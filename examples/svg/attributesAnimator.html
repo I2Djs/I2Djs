@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+
+	<div id="mySvg" style="height: 100%;width:100%">
+	</div>
+    
+	<script type="text/javascript" src="../../dist/i2d.js"></script>
+
+	<script type="text/javascript">
+        var renderer = i2d.SVGLayer('#mySvg');
+        var nodes = [];
+
+        var data= [];
+            for(var i=1;i<=10;i++){
+                data.push(i);
+            }
+                renderer.createElements(data,{
+                    element:'circle',
+                    attr:{
+                        r:function(d,i){
+                            return Math.abs(Math.sin(d*20*3.142/180))*10
+                        },
+                        cx:function(d,i){
+                            return (d/Math.sqrt(data.length))*100+100;
+                        },
+                        cy:function(d,i){
+                            return (d%Math.sqrt(data.length))*70+100;
+                        }
+                    }
+                }).animateTo({
+                    duration:1000,
+                    loop:6,
+                    direction:'alternate',
+                    attr:{
+                        r:function(d,i){
+                            var r = this.getAttribute('r');
+                            return function(f){
+                                return r*f*2;
+                            }
+                        }
+                    }
+                })
+
+
+	</script>
+
+</body>
+</html>

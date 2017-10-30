@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+
+	<div id="mySvg" style="height: 100%;width:100%">
+	</div>
+    
+	<script type="text/javascript" src="../../dist/i2d.js"></script>
+
+	<script type="text/javascript">
+
+        var renderer = i2d.SVGLayer('#mySvg');
+        var width = 1400,height=900;
+        var circles,links;
+
+        var radius = 150;
+
+        var data2 = [{	
+				sub:[1,2,3,4,5,6,7,8,9,10],
+				value:10
+			},
+			{	
+				sub:[1,2],
+				value:2
+			},
+            {	
+				sub:[1,2],
+				value:2
+			},
+            {	
+				sub:[1],
+				value:2
+			},
+            {	
+				sub:[1],
+				value:2
+			},
+            {	
+				sub:[],
+				value:0
+			},
+            {	
+				sub:[],
+				value:0
+			}
+			];
+
+            data2 = data2.sort(function(b,a){return a.value - b.value})
+
+            console.log(data2);
+
+        var pieData = pieAngleLayout(data2);
+       
+        var g = renderer.createEl({
+                    el:'group',
+                    attr:{
+                        transform:{
+                            translate:[700,450]
+                        }
+                    }
+                });
+
+            g.createEl({
+                el:'image',
+                attr:{
+                    width:90,
+                    height:100,
+                    x:-45,
+                    y:-50,
+                    'xlink:href':'adcIcon.svg'
+                }
+            });
+
+        var pieChart =  g.createEl({el:'group'});
+
+            g.createEls(pieData,{
+                    el:'group'
+                })
+            .forEach(function(d){
+                var pathG = this.createEl({el:'group',attr:{class:'pathG'}});
+                var nodeG = this.createEl({el:'group',attr:{class:'nodeG'}});
+
+                pieChart.createEl({el:'path',
+                                    attr:{
+                                                d:pathGenerator(d,radius+d.level*30,radius+d.level*30-20)
+                                    },
+                                    styles:{
+                                        fill:'#5e787f'
+                                    }
+                                });
+                
+                d.data.sub.forEach(function(_,i){
+                    var temp = computePathAngles(d,radius+i*30,radius);
+                    var startAngle = d.startAngle-Math.PI/2;
+                    var endAngle = d.endAngle-Math.PI/2;
+
+                    var midAngle = startAngle + (endAngle - startAngle)/2;
+                    var centroid = {x:130*Math.cos(midAngle),y:130*Math.sin(midAngle)};
+                    var ctrl1 = {x:(250)*Math.cos(midAngle),y:(250)*Math.sin(midAngle)};
+
+                    pathG.join(temp,'.tempPath'+i,{
+                                            joinCond:function(d,i){ return i; },
+                                            action:{
+                                                new:function(data){
+                                                    this.createEls(data,{
+                                                                el:'path',
+                                                                attr:{
+                                                                    class:'tenPaths'+i,
+                                                                    d:function(d) {
+                                                                       return 'M'+centroid.x+','+centroid.y + ' Q'+ctrl1.x+','+ctrl1.y +' '+ d.x+','+d.y;
+                                                                    }
+                                                                },
+                                                                styles:{
+                                                                    stroke:'#5e787f',
+                                                                    opacity:0.2,
+                                                                    fill:'none',
+                                                                    'stroke-dasharray':function(){
+                                                                        var totalLength = this.node().getTotalLength();
+                                                                            return totalLength+' '+totalLength;
+                                                                    },
+                                                                    'stroke-dashoffset':function(){
+                                                                        var totalLength = this.node().getTotalLength();
+                                                                        return totalLength
+                                                                    }
+                                                                }
+                                                            })
+                                                            .animateTo({
+                                                                duration:1500,
+                                                                ease:'easeInOutCubic',
+                                                                styles:{
+                                                                    'stroke-dashoffset':0
+                                                                }
+                                                            })
+                                                },
+                                                old:function(oldNodes,oldData){
+                                                    oldNodes.remove();
+                                                }
+                                            }
+                    })
+
+                        nodeG.join(temp,'.tempNode'+i,{
+                                            joinCond:function(d,i){ return i; },
+                                            action:{
+                                                new:function(data){
+                                                    this.createEls(data,{
+                                                                el:'image',
+                                                                attr:{
+                                                                    class:'tempNode'+i,
+                                                                    width:0,
+                                                                    height:0,
+                                                                    x:0,
+                                                                    y:0,
+                                                                    'xlink:href':'vlanIcon.svg'
+                                                                },
+                                                                styles:{
+                                                                    opacity:0
+                                                                }
+                                                            })
+                                                            .animateTo({
+                                                                duration:1500,
+                                                                ease:'easeInOutCubic',
+                                                                delay:(d.data.sub.length - 1 - i)*30,
+                                                                attr:{
+                                                                    width:20,
+                                                                    height:20,
+                                                                    x:-10,
+                                                                    y:-10,
+                                                                    transform:function(d){
+                                                                        return function(t){
+                                                                            var point = bezierTransition(centroid,ctrl1,d,t);
+                                                                            return {
+                                                                                translate:[point.x,point.y]
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                },
+                                                                styles:{
+                                                                    opacity:1
+                                                                }
+                                                            });
+                                                },
+                                                old:function(oldNodes,oldData){
+                                                    // oldNodes.remove();
+                                                }
+                                            }
+                        });
+                })
+            })
+            function pieAngleLayout(data){
+                var div = data.length > 6?6:data.length;
+
+            var multiArray = [];
+            
+
+                data.forEach(function(d,i){
+                    if(!multiArray[~~(i/div)])
+                        multiArray[~~(i/div)] = [];
+                    multiArray[~~(i/div)].push(d); 
+                })
+
+            
+            var returArray = [];
+            
+            var anglePerValue;
+                multiArray.forEach(function(d,i){
+
+                    var conti = 0;
+                    
+                    var sum = d.reduce(function(p,_){ return p+(_.value <=0?1:_.value) },0);
+
+                        returArray = returArray.concat(d.map(function(_,j){
+                            if(anglePerValue === undefined){
+                                anglePerValue = (2*Math.PI)/sum;
+                            }
+
+                            var obj = {};
+                                _.value = _.value <=0?1:_.value;
+                                obj.data = _;
+                                obj.startAngle = conti ; //(conti/sum)*(2*Math.PI);
+                                obj.endAngle = conti+ anglePerValue*_.value;
+                                obj.level = i;
+                                conti = obj.endAngle;
+                                return obj;
+                        }))
+                })
+
+            return returArray;
+            }
+
+        function  pathGenerator(d,r,r2) {
+
+           var startAngle = (d.startAngle-Math.PI/2 + 0.1)%(Math.PI*2);
+            var endAngle = (d.endAngle-Math.PI/2 - 0.1)%(Math.PI*2);
+            var diffAngle = endAngle - startAngle ; 
+                diffAngle = diffAngle/2;
+                
+                diffAngle = (diffAngle < 0.3 && diffAngle >= 0)?diffAngle:diffAngle-0.3;
+                diffAngle = diffAngle < 0?0:diffAngle;
+
+            return 'M'+r*Math.cos(startAngle)+' '+r*Math.sin(startAngle) +
+                        ' A'+r+' '+r+' 0 0 1 '+r*Math.cos(endAngle)+' '+r*Math.sin(endAngle) +
+                        ' L'+r2*Math.cos(endAngle)+' '+r2*Math.sin(endAngle) +
+                        ' A'+r2+' '+r2+' 0 0 0 '+r2*Math.cos(endAngle - diffAngle )+' '+r2*Math.sin(endAngle - diffAngle) +
+                        ' A'+50+' '+50+' 0 0 1 '+r2*Math.cos(startAngle + diffAngle)+' '+r2*Math.sin(startAngle + diffAngle) +
+                        ' A'+r2+' '+r2+' 0 0 0 '+r2*Math.cos(startAngle)+' '+r2*Math.sin(startAngle) +'z'
+        }
+
+        function computePathAngles(angle,r,radius){
+
+            var startAngle = angle.startAngle-Math.PI/2;
+            var endAngle = angle.endAngle-Math.PI/2;
+
+            var midAngle = startAngle + (endAngle - startAngle)/2;
+
+            var p = {};
+            var angleDev = Math.PI/10;
+            var spreadAngle = Math.PI/(25)*-1;
+            var spreadRadius = r+150;
+
+                p.p0 = {x:(r+50)*Math.cos(midAngle+angleDev),y:(r+50)*Math.sin(midAngle+angleDev)},
+                p.p1 = {x:(r+50)*Math.cos(midAngle-angleDev),y:(r+50)*Math.sin(midAngle-angleDev)};
+                p.cntrl1 = {x:spreadRadius*Math.cos(midAngle+angleDev+spreadAngle),y:spreadRadius*Math.sin(midAngle+angleDev+spreadAngle)},
+                p.cntrl2 = {x:spreadRadius*Math.cos(midAngle-angleDev-spreadAngle),y:spreadRadius*Math.sin(midAngle-angleDev-spreadAngle)};
+
+            var co = cubicBezierCoefficients(p);
+            var len = cubicBezierLength(p.p0,co);
+
+            var points = [];
+            var factor = 1/(~~(len/30));
+            var f = 0
+                while(f<1){
+                    points.push(cubicBezierTransition(p.p0,co,f));
+                    f +=factor;
+                }
+
+            return points
+
+        }
+
+        function cubicBezierTransition(p0, co, f) {
+            var p3 = Math.pow(f, 3),
+                p2 = Math.pow(f, 2);
+            return {
+                x: co.ax * p3 + co.bx * p2 + co.cx * f + p0.x,
+                y: co.ay * p3 + co.by * p2 + co.cy * f + p0.y
+            }
+        }
+
+        function bezierTransition(p0, p1, p2, f) {
+            return {
+                x: (p0.x - 2 * p1.x + p2.x) * f * f + (2 * p1.x - 2 * p0.x) * f + p0.x,
+                y: (p0.y - 2 * p1.y + p2.y) * f * f + (2 * p1.y - 2 * p0.y) * f + p0.y
+            }
+        }
+
+        function cubicBezierLength(p0, co) {
+            var interval = 0.001,
+                sum = 0;
+
+            var cubicBezierTransitionInstance = cubicBezierTransition.bind(null, p0, co);
+            var p1, p2;
+            for (var i = 0; i <= 1; i += interval) {
+                p1 = cubicBezierTransitionInstance(i);
+                p2 = cubicBezierTransitionInstance(i + interval);
+                sum += Math.sqrt(Math.pow((p2.x - p1.x) / interval, 2) + (Math.pow((p2.y - p1.y) / interval, 2))) * interval;
+            }
+            return sum;
+        };
+
+        function cubicBezierCoefficients(p) {
+            var cx = 3 * (p.cntrl1.x - p.p0.x),
+                bx = 3 * (p.cntrl2.x - p.cntrl1.x) - cx,
+                ax = p.p1.x - p.p0.x - cx - bx,
+                cy = 3 * (p.cntrl1.y - p.p0.y),
+                by = 3 * (p.cntrl2.y - p.cntrl1.y) - cy,
+                ay = p.p1.y - p.p0.y - cy - by;
+
+            return {
+                cx: cx,
+                bx: bx,
+                ax: ax,
+                cy: cy,
+                by: by,
+                ay: ay
+            }
+        }
+
+	</script>
+
+</body>
+</html>

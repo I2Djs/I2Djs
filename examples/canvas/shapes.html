@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+	<div id="myCanvas" style="height: 100%;width:100%">
+	</div>
+    
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+
+    <script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
+
+	<script type="text/javascript">
+        var renderer = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
+        
+        var rect = renderer.createEl({
+                    el:'rect',
+                    attr:{
+                        x:50,
+                        y:100,
+                        width:100,
+                        height:100
+                    },
+                    styles:{
+                        fillStyle:'red',
+                        shadowColor:'#999',
+                        shadowBlur:20,
+                        shadowOffsetX:15,
+                        shadowOffsetY:15
+                    }
+                });
+        
+        var polygon = renderer.createEl({
+                    el:'polygon',
+                    attr:{
+                        points:"100,10 40,198 190,78 10,78 160,198",
+                        transform:{
+                            translate:[200,50]
+                        }
+                    },
+                    styles:{
+                        // lineWidth:4,
+                        fillStyle:'lime',
+                        // strokeStyle:'purple',
+                        shadowColor:'#999',
+                        shadowBlur:20,
+                        shadowOffsetX:15,
+                        shadowOffsetY:15
+                    }
+                });
+
+        
+        var circle = renderer.createEl({
+                    el:'circle',
+                    attr:{
+                        r:70,
+                        cx:0,
+                        cy:0,
+                        transform:{
+                            translate:[500,150]
+                        }
+                    },
+                    styles:{
+                        lineWidth:4,
+                        strokeStyle:'red',
+                        shadowColor:'#999',
+                        shadowBlur:20,
+                        shadowOffsetX:15,
+                        shadowOffsetY:15
+                    }
+                });
+        
+        var circle = renderer.createEl({
+                    el:'line',
+                    attr:{
+                        x1:0,
+                        x2:100,
+                        y1:0,
+                        y2:100,
+                        transform:{
+                            translate:[650,100]
+                        }
+                    },
+                    styles:{
+                        lineWidth:4,
+                        strokeStyle:'red',
+                        shadowColor:'#999',
+                        shadowBlur:20,
+                        shadowOffsetX:15,
+                        shadowOffsetY:15
+                    }
+                });
+        
+         var ellipse = renderer.createEl({
+                    el:'ellipse',
+                    attr:{
+                        cx:100,
+                        cy:0,
+                        rx:120,
+                        ry:50,
+                        transform:{
+                            translate:[800,150]
+                        }
+                    },
+                    styles:{
+                        // lineWidth:4,
+                        fillStyle:'lime',
+                        // strokeStyle:'purple',
+                        shadowColor:'#999',
+                        shadowBlur:20,
+                        shadowOffsetX:15,
+                        shadowOffsetY:15
+                    }
+                });
+
+        var img = renderer.createEl({
+                el:'image',
+                attr:{
+                    src:'boySprite.png',
+                    width:150, height:150, x:0,
+                    y:0,
+                    transform:{
+                            translate:[1000,100]
+                    },
+                    clip:{
+                        sx:0, sy:0, swidth:108, sheight:140
+                    },
+                    pixels:function(pixelData){
+                            var data = pixelData.data;
+                            for (var i = 0; i < data.length; i += 4) {
+                                data[i]     = 255 - data[i];     // red
+                                data[i + 1] = 255 - data[i + 1]; // green
+                                data[i + 2] = 255 - data[i + 2]; // blue
+                            }
+                            pixelData.data = data;
+                        return pixelData
+                    }
+                },
+                styles:{
+                        shadowColor:'#999',
+                        shadowBlur:20,
+                        shadowOffsetX:15,
+                        shadowOffsetY:15
+                }
+            })
+            .animateTo({
+                duration:1000,
+                loop:6,
+                attr:{
+                    pixels:function(f){
+                        return function(pixelData){
+                                var data = pixelData.data;
+                                for (var i = 0; i < data.length; i += 4) {
+                                    data[i]     = data[i];     // red
+                                    data[i + 1] = data[i + 1]; // green
+                                    data[i + 2] = data[i + 2]; // blue
+                                }
+                                pixelData.data = data;
+                            return pixelData
+                        }
+                    }
+                }
+            });
+           
+	</script>
+
+</body>
+</html>

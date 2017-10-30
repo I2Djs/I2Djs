@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+	<div id="myCanvas" style="position: absolute; height: 100%;width:100%">
+
+		<!--<canvas width="1400" height="900" id="myCanvas"></canvas>-->
+	</div>
+    
+	<script type="text/javascript" src="../../dist/i2d.js"></script>
+    <script src="https://d3js.org/d3-collection.v1.min.js"></script>
+    <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
+    <script src="https://d3js.org/d3-quadtree.v1.min.js"></script>
+    <script src="https://d3js.org/d3-timer.v1.min.js"></script>
+    <script src="https://d3js.org/d3-force.v1.min.js"></script>
+
+	<script type="text/javascript">
+        var renderer = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
+        var width = 1400,height=900;
+        var circles,links;
+
+
+        var simulation = d3.forceSimulation()
+                            .force("link", d3.forceLink().id(function(d) { return d.id; }))
+                            .force("charge", d3.forceManyBody())
+                            .force("center", d3.forceCenter(width / 2, height / 2));
+
+       var data = fetch('huge_graph.json')
+                .then(function(response) {
+
+                    response.json().then(function(data) {  
+                        console.log(data);
+
+                        var graphData = {links:[],
+                                        nodes:[]}
+
+                            for(var i=0;i<data.links.length;i=i+3){
+                                graphData.links.push({source:data.links[i],target:data.links[i+1]});
+                                if(graphData.nodes.indexOf(data.links[i]) === -1)
+                                    graphData.nodes.push(data.links[i])
+                                if(graphData.nodes.indexOf(data.links[i+1]) === -1)
+                                    graphData.nodes.push(data.links[i+1]);
+                            }
+
+                            graphData.links.forEach(function(d){
+                                d.source = graphData.nodes.indexOf(d.source);
+                                d.target = graphData.nodes.indexOf(d.target);
+                            })
+                            graphData.nodes = graphData.nodes.map(function(d,i){
+                                                    return {value:d,id:i};
+                                                });
+                        renderChart(graphData) 
+                    });  
+                })
+                .catch(function(error) {
+                }); 
+        
+        var g = renderer.createEl({
+                    el:'group',
+                    attributes:{
+                        transform:{
+                            translate:[400,400],
+                            scale:[0.4,0.4]
+                        }
+                    }
+                });
+        
+        var linesG = g.createEl({
+                    el:'group',
+                    attributes:{
+                        class:'lines'
+                    },
+                    styles:{
+                       strokeStyle:'#999'
+                    }
+                })
+        
+        var circleG = g.createEl({
+                    el:'group',
+                    attributes:{
+                        class:'circles'
+                    }
+                    // styles:{
+                    //     strokeStyle:'#000',
+                    //     fillStyle:'#1f77b4'
+                    // }
+                })
+        
+        
+
+        
+        function renderChart(graph){
+            
+            links = linesG.createEls(graph.links,{
+                            el:'line',
+                            styles:{
+                                strokeStyle:'#999'
+                            }
+                        });
+
+             circles = circleG.createEls(graph.nodes,{
+                            el:'circle',
+                            attributes:{
+                                r:5,
+                                cx:0,
+                                cy:0
+                            }
+                            ,styles:{
+                                fillStyle:'#1f77b4'
+                            }
+                        })
+                         .on('mouseover',function(){
+                            this.setStyle('strokeStyle','black').setStyle('lineWidth',2)
+                        })
+                        .on('mouseout',function(){
+                            this.setStyle('strokeStyle','#f00000').setStyle('lineWidth',1)
+                        });
+
+                 simulation
+                    .nodes(graph.nodes)
+                    .on("tick", ticked);
+                
+                simulation.force("link")
+                    .links(graph.links);
+
+        }
+
+        function ticked(){
+            circles.forEach(function(d){
+                this.setAttr({cx:d.x,cy:d.y});
+            });
+
+            links.forEach(function(d){
+                this.setAttr({x1:d.source.x,
+                                    y1:d.source.y,
+                                    x2:d.target.x,
+                                    y2:d.target.y});
+            })
+        }
+
+        //  var rect2 = renderer.createElement({
+        //                 element:'rect',
+        //                 attributes:{
+        //                     // x:g.dom.BBox_hit.x,
+        //                     // y:g.dom.BBox_hit.y,
+        //                     // width:g.dom.BBox_hit.width,
+        //                     // height:g.dom.BBox_hit.height,
+        //                     transform:{
+        //                         // translate:[700,400],
+        //                         scale:[0.4,0.4]
+        //                     }
+        //                 },
+        //                 styles:{
+        //                     'stroke-width':2,
+        //                     strokeStyle:'#000000'
+        //                 }
+        //             });
+            
+            // setInterval(function(){
+            //     // console.log(g.dom.BBox_hit);
+            //     rect2.setAttribute('x',g.dom.BBox_hit.x)
+            //         .setAttribute('y',g.dom.BBox_hit.y)
+            //         .setAttribute('width',g.dom.BBox_hit.width)
+            //         .setAttribute('height',g.dom.BBox_hit.height);
+
+            // },5000)
+
+
+
+	</script>
+
+</body>
+</html>

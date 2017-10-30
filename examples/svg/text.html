@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+
+	<div id="mySvg" style="height: 100%;width:100%">
+	</div>
+    
+	<script type="text/javascript" src="../../dist/i2d.js"></script>
+
+	<script type="text/javascript">
+
+        var renderer = i2d.SVGLayer('#mySvg');
+        
+        var text = renderer.createEl({
+                    el:'text',
+                    attr:{
+                        x:100,
+                        y:250
+                    },
+                    styles:{
+                        fill:'red',
+                        'font-size':'25px'
+                    }
+                })
+                .text('Uchiha... :)')
+
+	</script>
+</body>
+</html>

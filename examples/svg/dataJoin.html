@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+
+	<div id="mySvg" style="height: 100%;width:100%">
+	</div>
+    
+	<script type="text/javascript" src="../../dist/i2d.js"></script>
+
+	<script type="text/javascript">
+
+        var renderer_ = i2d.SVGLayer('#mySvg');
+
+        var data = [{id:1},{id:2},{id:3},{id:4}]
+        var v_;
+
+        function dataJoin(data){
+                    v_ = renderer_.join(data,'circle',{
+                                        joinCond:function(d){ return d.id; },
+                                        action:{
+                                            new:function(data){
+                                                this.createEls(data,{el:'circle',
+                                                                    attr:{
+                                                                        cx:function(d){
+                                                                                return d.id*10},
+                                                                        cy:function(d){return d.id*10},
+                                                                        r:5
+                                                                    },
+                                                                    styles:{
+                                                                        fill:'red'
+                                                                    }
+                                                                }); 
+                                            },
+                                            old:function(oldNodes,oldData){
+                                                oldNodes.remove();
+                                            }
+                                        }
+                                    }
+                    );
+        }
+
+        dataJoin(data);
+
+            
+            setTimeout(function(){
+
+                dataJoin([{id:1},{id:2},{id:3},{id:4},{id:5},{id:6},{id:7}])
+
+            },1000)
+
+            setTimeout(function(){
+                dataJoin([{id:5},{id:6},{id:7}])
+                v_.setStyle('fill','green')
+                    .animateTo({
+                    duration:1200,
+                    attr:{
+                        r:20,
+                        cx:function(d){return d.id*30},
+                        cy:function(d){return d.id*30}
+                    },
+                    styles:{
+
+                    }
+                })
+                
+            },2000)
+        
+	</script>
+
+</body>
+</html>

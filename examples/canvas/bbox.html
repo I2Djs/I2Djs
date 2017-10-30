@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+	<div id="myCanvas" style="height: 100%;width:100%;position: absolute;" >
+		<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
+	</div>
+	<script type="text/javascript" src="../../dist/i2d.js"></script>
+
+	<script type="text/javascript">
+
+        var renderer_ = i2d.CanvasLayer('#myCanvas',{events:true,selectiveClear:false});
+        // var exe = queue();
+        var nodes = [];
+
+        // var pgroup = renderer_.createEl({
+        //                 el:'group',
+        //                 attributes:{
+        //                     transform:{
+        //                         // translate:[0,0],
+        //                         // scale:[2,2],
+        //                         // rotate:[30]
+        //                     }
+        //                 }
+        //             });
+
+        // var group = pgroup.createEl({
+        //                 el:'group',
+        //                 attributes:{
+        //                     transform:{
+        //                         translate:[100,0],
+        //                         // scale:[2,2],
+        //                         // rotate:[30]
+        //                     }
+        //                 },
+        //                 styles:{
+        //                     //  strokeStyle:'#000000'
+        //                 }
+        //             });
+
+        var data= [];
+            for(var i=0;i<=1000;i++){
+                data.push(i);
+            }
+
+                // group.createElements(data,{
+                //     element:'rect',
+                //     attributes:{
+                //         x:function(d,i){
+                //             return Math.random()*1000+100
+                //         },
+                //         y:function(d,i){
+                //             return Math.random()*500+100;
+                //         },
+                //         width:function(d,i){
+                //             return Math.random()*60+5;
+                //         },
+                //         height:function(d,i){
+                //             return Math.random()*60+5;
+                //         },
+                //         transform:{
+                //             // scale:[2,2],
+                //             translate:[30,80],
+                //             rotate:[40]
+                //         }
+                //     },
+                //     styles:{
+                //             lineWidth:1,
+                //             strokeStyle:'#f00000',
+                //             fillStyle:"red"
+                //         }
+                // })
+
+                // group.createElements(data,{
+                //     element:'circle',
+                //     attributes:{
+                //         r:5,
+                //         cx:function(d,i){
+                //             return Math.random()*1200;
+                //         },
+                //         cy:function(d,i){
+                //             return Math.random()*800;
+                //         }
+                //         // ,
+                //         // transform:{
+                //         //     // scale:[2,2],
+                //         //     // translate:[100,10]
+                //         //     // ,
+                //         //     // rotate:[50]
+                //         // }
+                //     },
+                //     styles:{
+                //             lineWidth:1,
+                //             // strokeStyle:'#000000',
+                //             fillStyle:"red"
+                //         }
+                // })
+                // .animateTo({
+                //     duration:5000,
+                //     ease:'elastic',
+                //     loop:10,
+                //     direction:'alternate',
+                //     attributes:{
+                //         r:10
+                //         // cx:function(d,i){
+                //         //     return Math.random()*800+100;
+                //         // },
+                //         // cy:function(d,i){
+                //         //     return Math.random()*500+100;
+                //         // }
+                //     }
+                // })
+
+
+
+                //  group.createElements(data,{
+                //     element:'line',
+                //     attributes:{
+                //         x1:function(d,i){
+                //             return Math.random()*800+100
+                //         },
+                //         y1:function(d,i){
+                //             return Math.random()*800+100;
+                //         },
+                //         x2:function(d,i){
+                //             return Math.random()*800+100;
+                //         },
+                //         y2:function(d,i){
+                //             return Math.random()*800+100;
+                //         },
+                //         transform:{
+                //             // scale:[2,2],
+                //             rotate:[75],
+                //             translate:[100,50]
+                //         }
+                //     },
+                //     styles:{
+                //             lineWidth:2,
+                //             strokeStyle:'#f00000'
+                //     }
+                // })
+
+                renderer_.createEls(data,{
+                        el:'path',
+                        attr:{
+                            d:"M88.8,0.1H20c-6.2,0-11.2,5-11.2,11.3v8.1c0,0-5.1,3.7-8.5,2.5c0,0,2.8,5.3,8.6,3.3c0.7,5.5,5.4,9.8,11.1,9.8h68.8c6.2,0,11.2-5,11.2-11.3V11.4C100,5.2,95,0.1,88.8,0.1z",
+                            //"M 100 100 L 300 100 L 200 300 z",
+                            //
+                            transform:function(d){
+                                return {
+                                            translate:[Math.random()*1000,100+Math.random()*700],
+                                            scale:[0.5,0.5],
+                                            // rotate:[parseInt(Math.random()*360)]
+                                        }
+                            }
+                        },
+                        styles:{
+                            lineWidth:2,
+                            fillStyle:'#f00000',
+                            shadowColor:"black",
+                            lineCap:'round'
+                        }
+                    })
+                    .animateTo({
+                        duration:5000,
+                        attr:{
+                            transform:{
+                                rotate:[360]
+                            }
+                        }
+                    })
+
+                // .on('click',function(data){
+                    
+                // })
+                // .on('dblclick',function(){
+                //     this.setStyle('fillStyle','#a1d99b');
+                // })
+                // .on('mouseover',function(){
+                //     this.setStyle('strokeStyle','#00f000')
+                //         .setStyle('lineWidth',2);
+                // })
+                // .on('mouseout',function(){
+                //     this.setStyle('strokeStyle','#000000')
+                //         .setStyle('lineWidth',1);
+                // })
+                // .forEach(function(d){
+
+                //     var dom = this.dom;
+                //     // group.createElement({
+                //     //             element:'rect',
+                //     //             attributes:{
+                //     //                 x:dom.BBox_hit.x,
+                //     //                 y:dom.BBox_hit.y,
+                //     //                 width:dom.BBox_hit.width,
+                //     //                 height:dom.BBox_hit.height,
+                //     //                  transform:{
+                //     //                     // rotate:[40]
+                //     //                 }
+                //     //             },
+                //     //             styles:{
+                //     //                 strokeStyle:'#000000',
+                //     //                 shadowColor:"black"
+                //     //             }
+                //     //         })
+
+                // })
+
+                // group.createElements(data,{
+                //     element:'circle',
+                //     attributes:{
+                //         r:function(d,i){
+                //             return 20
+                //         },
+                //         cx:function(d,i){
+                //             return Math.random()*800+100;
+                //         },
+                //         cy:function(d,i){
+                //             return Math.random()*500+100;
+                //         }
+                //         ,
+                //         transform:{
+                //             // scale:[2,2],
+                //             translate:[10,10],
+                //             rotate:[50]
+                //         }
+                //     },
+                //     styles:{
+                //             lineWidth:1,
+                //             strokeStyle:'#f00000',
+                //             fillStyle:"red"
+                //         }
+                // }).forEach(function(d){
+
+                //     // var dom = this.dom;
+                //     // group.createElement({
+                //     //             element:'rect',
+                //     //             attributes:{
+                //     //                 x:dom.BBox.x,
+                //     //                 y:dom.BBox.y,
+                //     //                 width:dom.BBox.width,
+                //     //                 height:dom.BBox.height
+                //     //             },
+                //     //             styles:{
+                //     //                 strokeStyle:'#000000',
+                //     //                 shadowColor:"black"
+                //     //             }
+                //     //         })
+
+                // });
+
+        //     var lines = group.createElements(data,{
+        //             element:'line',
+        //             attributes:{
+        //                 x1:function(d,i){
+        //                     return Math.random()*800+100
+        //                 },
+        //                 y1:function(d,i){
+        //                     return Math.random()*800+100;
+        //                 },
+        //                 x2:function(d,i){
+        //                     return Math.random()*800+100;
+        //                 },
+        //                 y2:function(d,i){
+        //                     return Math.random()*800+100;
+        //                 },
+        //                 transform:{
+        //                     // scale:[2,2],
+        //                     rotate:[75],
+        //                     // translate:[100,50]
+        //                 }
+        //             },
+        //             styles:{
+        //                     lineWidth:2,
+        //                     strokeStyle:'#f00000'
+        //             }
+        //         })
+        //         .forEach(function(d){
+        //             // console.log(this);
+        //             // console.log(d);
+        //             var dom = this.dom;
+        //             // group.createElement({
+        //             //             element:'rect',
+        //             //             attributes:{
+        //             //                 x:dom.BBox_hit.x,
+        //             //                 y:dom.BBox_hit.y,
+        //             //                 width:dom.BBox_hit.width,
+        //             //                 height:dom.BBox_hit.height
+        //             //             },
+        //             //             styles:{
+        //             //                 strokeStyle:'#000000',
+        //             //                 shadowColor:"black"
+        //             //             }
+        //             //         })
+
+        //         })
+        
+        // var path2 = group.createElement({
+        //                 element:'path',
+        //                 attributes:{
+        //                     d:"M100,250 C100,100 400,100 400,250",
+        //                     transform:{
+        //                         // translate:[0,0],
+        //                         // rotate:[0]
+        //                     }
+        //                 },
+        //                 styles:{
+        //                     lineWidth:2,
+        //                     fillStyle:'#f00000',
+        //                     shadowColor:"black",
+        //                     lineCap:'round'
+        //                 }
+        //             });
+        
+    // var rect = renderer.createElement({
+    //         element:'rect',
+    //         attributes:{
+    //             x:,
+    //             y:group.dom.BBox.y+group.dom.BBox.height/2,
+    //             width:50,
+    //             height:50
+    //         },
+    //         styles:{
+    //             strokeStyle:'#000000',
+    //             shadowColor:"black"
+    //         }
+    //     });
+    // console.log(group.dom.BBox)
+    //  var rect2 = renderer_.createElement({
+    //         element:'rect',
+    //         attributes:{
+    //             x:group.dom.BBox_hit.x,
+    //             y:group.dom.BBox_hit.y,
+    //             width:group.dom.BBox_hit.width,
+    //             height:group.dom.BBox_hit.height
+    //         },
+    //         styles:{
+    //             strokeStyle:'#000000',
+    //             shadowColor:"black"
+    //         }
+    //     });
+    //     path2.rotate([45])
+
+        // rect2.rotate([])
+
+        // var angle = 0,factor = 0.01,scale=1
+
+        //         exe.onRequestFrame(function(t){
+                    
+        //             angle = (angle + 3) % 360;
+        //             // group.rotate([angle])
+
+        //         })
+
+            // console.log(group3.dom.BBox);
+	</script>
+
+</body>
+</html>

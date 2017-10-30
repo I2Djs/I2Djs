@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+	<div id="myCanvas" style="position: absolute; height: 100%;width:100%">
+	</div>
+	<script type="text/javascript" src="../../dist/i2d.js"></script>
+
+	<script type="text/javascript">
+
+        var renderer = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
+
+
+	var FirstDataSet = [{id:1},{id:2},{id:3},{id:4}]
+	var SecondDataSet = [{id:1},{id:2},{id:3},{id:4}]
+        var groups_;
+
+        FirstDataSetHndlr = renderer.join(FirstDataSet,'.circleG',{
+					joinCond:function(d){ return d.id; },
+					action:{
+						new:function(data){
+							this.createEls(data,{ el:'circle', attr: { class: 'circleG' } });
+							// this.createEls(data,{ el:'text', attr: { class: 'cirleLable' } });
+						},
+						old:function(oldNodes,oldData){
+							oldNodes['circleG'].remove();
+							oldNodes['cirleLable'].remove();
+						},
+						change: function(){
+							
+							this.fetchEls('.circleG')
+									.setAttr({
+										x:function(d){return d.id*10},
+										y:function(d){return d.id*10},
+										width:5,
+										height:10
+									})
+
+							this.fetchEls('.cirleLable')
+									.setAttr({
+										x:function(d){ return d.id*10},
+										y:function(d){ return d.id*10}
+									})
+
+						}
+					}
+				});
+
+	SecondDataSetHndlr = renderer.join(SecondDataSet,'.lineG:.lineLable',{
+				joinCond:function(d){ return d.id; },
+				action:{
+					new:function(data){
+						this.createEls(data,{ el:'line', attr: { class: 'lineG' } });
+						this.createEls(data,{ el:'text', attr: { class: 'lineLable' } });
+					},
+					old:function(oldNodes,oldData){
+						oldNodes['circle'].remove();
+						// oldNodes['text'].remove();
+					},
+					change: function(){
+						this.call(method);
+					}
+				}
+			});
+
+
+
+
+
+
+
+
+
+function method(){
+	this.forEach(function(d){
+		renderer.join(data,'rects',{
+			joinCond:function(d){ return d.id; },
+			action:{
+				new:function(data){
+					this.createEls(data,{
+						el:'rect',
+						attr:{
+							x:function(d){return d.id*10},
+							y:function(d){return d.id*10},
+							width:5,
+							height:10
+						},
+						styles:{
+							fillStyle:'red'
+						}
+					});
+				},
+				old:function(oldCircles,oldData){
+					oldNodes.remove();
+				},
+				change: function(rects){
+					
+				}
+			}
+		});
+	})
+}
+
+
+
+	</script>
+
+</body>
+</html>

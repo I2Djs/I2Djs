@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+	<div id="myCanvas" style="position: absolute; height: 100%;width:100%">
+	</div>
+    
+	<script type="text/javascript" src="../../dist/i2d.js"></script>
+    <script src="https://d3js.org/d3-collection.v1.min.js"></script>
+    <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
+    <script src="https://d3js.org/d3-quadtree.v1.min.js"></script>
+    <script src="https://d3js.org/d3-timer.v1.min.js"></script>
+    <script src="https://d3js.org/d3-force.v1.min.js"></script>
+
+	<script type="text/javascript">
+        var renderer = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
+        var width = 1400,height=900;
+        var circles,links;
+
+
+        var simulation = d3.forceSimulation()
+                            .force("link", d3.forceLink().id(function(d) { return d.id; }))
+                            .force("charge", d3.forceManyBody())
+                            .force("center", d3.forceCenter(width / 2, height / 2));
+
+       var data = fetch('xg736_esd_graph.json')
+                .then(function(response) {
+
+                    response.json().then(function(data) {  
+                        renderChart(data) 
+                    });  
+                })
+                .catch(function(error) {
+                }); 
+        
+        var g = renderer.createEl({
+                    el:'group',
+                    attributes:{
+                        transform:{
+                            translate:[700,400],
+                            scale:[0.4,0.4]
+                        }
+                    }
+                });
+
+        
+        function renderChart(graph){
+            
+            links = g.createEls(graph.links,{
+                            el:'line',
+                            styles:{
+                                lineWidth:1,
+                                strokeStyle:'#999'
+                            }
+                        });
+
+             circles = g.createEls(graph.nodes,{
+                            el:'rect',
+                            attributes:{
+                                width:5,
+                                height:5,
+                                x:0,
+                                y:0
+                                // transform:{
+                                //     rotate:[90]
+                                // }
+                            },
+                            styles:{
+                                // strokeStyle:'#fff',
+                                fillStyle:'#1f77b4'
+                            }
+                        })
+                         .on('mouseover',function(){
+                            this.setStyle('strokeStyle','black').setStyle('lineWidth',2)
+                        })
+                        .on('mouseout',function(){
+                            this.setStyle('strokeStyle','#f00000').setStyle('lineWidth',1)
+                        });
+
+                 simulation
+                    .nodes(graph.nodes)
+                    .on("tick", ticked);
+                
+                simulation.force("link")
+                    .links(graph.links);
+
+        }
+
+        function ticked(){
+            circles.forEach(function(d){
+                this.setAttr('x',d.x)
+                    .setAttr('y',d.y);
+            });
+
+            links.forEach(function(d){
+                this.setAttr('x1',d.source.x)
+                    .setAttr('y1',d.source.y)
+                    .setAttr('x2',d.target.x)
+                    .setAttr('y2',d.target.y);
+            })
+        }
+
+        //  var rect2 = renderer.createElement({
+        //                 element:'rect',
+        //                 attributes:{
+        //                     // x:g.dom.BBox_hit.x,
+        //                     // y:g.dom.BBox_hit.y,
+        //                     // width:g.dom.BBox_hit.width,
+        //                     // height:g.dom.BBox_hit.height,
+        //                     transform:{
+        //                         // translate:[700,400],
+        //                         scale:[0.4,0.4]
+        //                     }
+        //                 },
+        //                 styles:{
+        //                     'stroke-width':2,
+        //                     strokeStyle:'#000000'
+        //                 }
+        //             });
+            
+            // setInterval(function(){
+            //     // console.log(g.dom.BBox_hit);
+            //     rect2.setAttribute('x',g.dom.BBox_hit.x)
+            //         .setAttribute('y',g.dom.BBox_hit.y)
+            //         .setAttribute('width',g.dom.BBox_hit.width)
+            //         .setAttribute('height',g.dom.BBox_hit.height);
+
+            // },5000)
+
+
+
+	</script>
+
+</body>
+</html>

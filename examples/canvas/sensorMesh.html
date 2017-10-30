@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+	<div id="myCanvas" style="position: absolute; height: 100%;width:100%;background: black">
+	</div>
+    <script type="text/javascript" src="../../dist/i2d.js"></script>
+
+	<script type="text/javascript">
+        var renderer = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
+        var width = 1400,height=900;
+        var circles,links;
+
+        var radius = 150;
+
+        var data2 = [{	
+				sub:[1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9],
+				value:25
+			},
+			{	
+				sub:[1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9],
+				value:25
+			},
+            {	
+				sub:[1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9],
+				value:25
+			},
+			{	
+				sub:[1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9],
+				value:25
+			},
+			{	
+				sub:[1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9],
+				value:25
+			},
+            {	
+				sub:[1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9,1,2,5,6,7,8,9],
+				value:25
+			},
+			{	
+				sub:[],
+				value:25
+			},
+			{	
+				sub:[],
+				value:25
+			},
+            {	
+				sub:[],
+				value:25
+			},
+			{	
+				sub:[],
+				value:25
+			},
+			{	
+				sub:[],
+				value:25
+			},
+			{	
+				sub:[],
+				value:25
+			},
+            {	
+				sub:[],
+				value:25
+			},
+			{	
+				sub:[],
+				value:25
+			},
+			{	
+				sub:[],
+				value:25
+			},
+			{	
+				sub:[],
+				value:25
+			},
+            {	
+				sub:[],
+				value:25
+			},
+			{	
+				sub:[],
+				value:25
+			},
+			{	
+				sub:[],
+				value:25
+			},
+			{	
+				sub:[],
+				value:25
+			},
+            {	
+				sub:[],
+				value:25
+			},
+			{	
+				sub:[],
+				value:25
+			}
+			];
+
+        var pieData = pieAngleLayout(data2);
+       
+        var g = renderer.createEl({
+                    el:'group',
+                    attr:{
+                        transform:{
+                            translate:[700,450]
+                        }
+                    }
+                });
+
+            g.createEl({
+                el:'image',
+                attr:{
+                    width:90,
+                    height:100,
+                    x:-45,
+                    y:-50,
+                    src:'adcIcon.svg'
+                }
+            });
+
+        var pieChart =  g.createEl({el:'group'});
+        var sum = 0;
+            g.createEls(pieData,{
+                    el:'group'
+                })
+            .forEach(function(d){
+                var pathG = this.createEl({el:'group',attr:{class:'pathG'}});
+                var nodeG = this.createEl({el:'group',attr:{class:'nodeG'}});
+
+                pieChart.createEl({el:'path',
+                                    attr:{
+                                                d:pathGenerator(d,radius+d.level*30,radius+d.level*30-20)
+                                    },
+                                    styles:{
+                                        fillStyle:'#5e787f'
+                                    }
+                                });
+
+                d.data.sub.forEach(function(_,i){
+                    var temp = computePathAngles(d,radius+i*30,radius);
+                        sum += temp.length;
+                    var startAngle = d.startAngle-Math.PI/2;
+                    var endAngle = d.endAngle-Math.PI/2;
+
+                    var midAngle = startAngle + (endAngle - startAngle)/2;
+                    var centroid = {x:130*Math.cos(midAngle),y:130*Math.sin(midAngle)};
+                    var ctrl1 = {x:(250)*Math.cos(midAngle),y:(250)*Math.sin(midAngle)};
+
+                        nodeG.join(temp,'.tempNode'+i,{
+                                            joinCond:function(d,i){ return i; },
+                                            action:{
+                                                new:function(data){
+
+                                                    this.createEls(data,{
+                                                                el:'image',
+                                                                attr:{
+                                                                    class:'tempNode'+i,
+                                                                    width:0,
+                                                                    height:0,
+                                                                    x:0,
+                                                                    y:0,
+                                                                    src:'vlanIcon.svg'
+                                                                }
+                                                            })
+                                                            .animateTo({
+                                                                duration:1500,
+                                                                ease:'easeInOutCubic',
+                                                                delay:(d.data.sub.length - 1 - i)*30,
+                                                                attr:{
+                                                                    width:20,
+                                                                    height:20,
+                                                                    x:-10,
+                                                                    y:-10,
+                                                                    transform:function(d){
+                                                                        return function(t){
+                                                                            var point = bezierTransition(centroid,ctrl1,d,t);
+                                                                            return {
+                                                                                translate:[point.x,point.y]
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                },
+                                                                end:function(){
+                                                                    // this.node().parentNode.createE
+                                                                }
+                                                            });
+                                                },
+                                                old:function(oldNodes,oldData){
+                                                    // oldNodes.remove();
+                                                }
+                                            }
+                        });
+                })
+            })
+
+
+        function pieAngleLayout(data) {
+
+            var div = data.length > 6?6:data.length;
+
+            return data.map(function(d,i) {
+                    var obj = {};
+                        obj.data = d;
+                        obj.startAngle = ((i/div)*((2*Math.PI))-(~~(i/div) * ((Math.PI)/div))- (~~(i/div) * 2*Math.PI))//%(2*Math.PI);
+                        obj.endAngle = (((i+1)/div)*((2*Math.PI))-(~~(i/div) * ((Math.PI)/div)) - (~~(i/div) * 2*Math.PI))//%(2*Math.PI);
+                        obj.level = ~~(i/div);
+
+                        return obj;
+            })
+
+        }
+
+
+        function  pathGenerator(d,r,r2) {
+
+            var startAngle = (d.startAngle-Math.PI/2 + 0.2)%(Math.PI*2);
+            var endAngle = (d.endAngle-Math.PI/2 - 0.2)%(Math.PI*2);
+            var diffAngle = endAngle - startAngle;
+
+            return 'M'+r*Math.cos(startAngle)+' '+r*Math.sin(startAngle) +
+                        ' A'+r+' '+r+' 0 0 1 '+r*Math.cos(endAngle)+' '+r*Math.sin(endAngle) +
+                        ' L'+r2*Math.cos(endAngle)+' '+r2*Math.sin(endAngle) +
+                        ' A'+r2+' '+r2+' 0 0 0 '+r2*Math.cos(endAngle - diffAngle*0.35)+' '+r2*Math.sin(endAngle - diffAngle*0.35) +
+                        ' A'+(r2-r2*0.8)+' '+(r2-r2*0.8)+' 0 0 1 '+r2*Math.cos(startAngle + diffAngle*0.3)+' '+r2*Math.sin(startAngle + diffAngle*0.3) +
+                        ' A'+r2+' '+r2+' 0 0 0 '+r2*Math.cos(startAngle)+' '+r2*Math.sin(startAngle) +'z'
+
+        }
+
+        function computePathAngles(angle,r,radius){
+
+            var startAngle = angle.startAngle-Math.PI/2;
+            var endAngle = angle.endAngle-Math.PI/2;
+
+            var midAngle = startAngle + (endAngle - startAngle)/2;
+
+            var p = {};
+            var angleDev = Math.PI/10;
+            var spreadAngle = Math.PI/(25)*-1;
+            var spreadRadius = r+150;
+
+                p.p0 = {x:(r+50)*Math.cos(midAngle+angleDev),y:(r+50)*Math.sin(midAngle+angleDev)},
+                p.p1 = {x:(r+50)*Math.cos(midAngle-angleDev),y:(r+50)*Math.sin(midAngle-angleDev)};
+                p.cntrl1 = {x:spreadRadius*Math.cos(midAngle+angleDev+spreadAngle),y:spreadRadius*Math.sin(midAngle+angleDev+spreadAngle)},
+                p.cntrl2 = {x:spreadRadius*Math.cos(midAngle-angleDev-spreadAngle),y:spreadRadius*Math.sin(midAngle-angleDev-spreadAngle)};
+
+            var co = cubicBezierCoefficients(p);
+            var len = cubicBezierLength(p.p0,co);
+
+            var points = [];
+            var factor = 1/(~~(len/30));
+            var f = 0
+                while(f<1){
+                    points.push(cubicBezierTransition(p.p0,co,f));
+                    f +=factor;
+                }
+
+            return points
+
+        }
+
+        function cubicBezierTransition(p0, co, f) {
+            var p3 = Math.pow(f, 3),
+                p2 = Math.pow(f, 2);
+            return {
+                x: co.ax * p3 + co.bx * p2 + co.cx * f + p0.x,
+                y: co.ay * p3 + co.by * p2 + co.cy * f + p0.y
+            }
+        }
+
+        function bezierTransition(p0, p1, p2, f) {
+            return {
+                x: (p0.x - 2 * p1.x + p2.x) * f * f + (2 * p1.x - 2 * p0.x) * f + p0.x,
+                y: (p0.y - 2 * p1.y + p2.y) * f * f + (2 * p1.y - 2 * p0.y) * f + p0.y
+            }
+        }
+
+        function cubicBezierLength(p0, co) {
+            var interval = 0.001,
+                sum = 0;
+
+            var cubicBezierTransitionInstance = cubicBezierTransition.bind(null, p0, co);
+            var p1, p2;
+            for (var i = 0; i <= 1; i += interval) {
+                p1 = cubicBezierTransitionInstance(i);
+                p2 = cubicBezierTransitionInstance(i + interval);
+                sum += Math.sqrt(Math.pow((p2.x - p1.x) / interval, 2) + (Math.pow((p2.y - p1.y) / interval, 2))) * interval;
+            }
+            return sum;
+        };
+
+        function cubicBezierCoefficients(p) {
+            var cx = 3 * (p.cntrl1.x - p.p0.x),
+                bx = 3 * (p.cntrl2.x - p.cntrl1.x) - cx,
+                ax = p.p1.x - p.p0.x - cx - bx,
+                cy = 3 * (p.cntrl1.y - p.p0.y),
+                by = 3 * (p.cntrl2.y - p.cntrl1.y) - cy,
+                ay = p.p1.y - p.p0.y - cy - by;
+
+            return {
+                cx: cx,
+                bx: bx,
+                ax: ax,
+                cy: cy,
+                by: by,
+                ay: ay
+            }
+        }
+
+
+
+	</script>
+
+</body>
+</html>

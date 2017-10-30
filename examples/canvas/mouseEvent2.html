@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+	<div style="height: 100%;width:100%;position: absolute;background: black" id='myCanvas'>
+	</div>
+	
+    <script type="text/javascript" src="../../dist/i2d.js"></script>
+
+	<script type="text/javascript">
+
+            var renderer_ = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
+            var i = 0;
+
+                window.addEventListener("mousemove",function(e){
+                        renderer_.createEl({
+                            el:'circle',
+                            attr:{ r:0, cx:e.x, cy:e.y },
+                            styles:{ globalAlpha:1,lineWidth:2,strokeStyle:'hsl('+(i = (i + 1) % 360)+',100%,50%)' }
+                        })
+                        .animateTo({
+                                duration:2000,
+                                ease:Math.sqrt,
+                                attr:{ r:150},
+                                styles:{globalAlpha:0},
+                                end:function(){ this.remove(); }
+                        });
+                    },false);
+
+	</script>
+</body>
+</html>

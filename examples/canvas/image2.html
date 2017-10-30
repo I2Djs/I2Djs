@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+	<div style="height: 50%;width:100%;position: relative;" id='myCanvas2'></div>
+    <div style="height: 20%;width:100%;position: relative;" id='myCanvas1'></div>
+    
+    <script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
+
+	<script type="text/javascript">
+
+        var renderer_ = i2d.CanvasLayer('#myCanvas1',{events:false,selectiveClear:false});
+        var nodes = [];
+        var data= [];
+            for(var i=0;i<1;i++){
+                data.push(i);
+            }
+
+var localPixelData;
+
+var img = renderer_.createEl({
+                el:'image',
+                attr:{
+                    src:'boySprite.png',
+                    width:100, height:100, x:300,
+                    y:0,
+                    clip:{
+                        sx:0, sy:0, swidth:108, sheight:140
+                    },
+                    pixels:function(pixelData){
+                           localPixelData = pixelData.data
+                           console.log(localPixelData)
+                           console.log(localPixelData.length)
+                        return pixelData
+                    }
+                },
+                onload:function(){
+
+                    this.animateTo({
+                        duration:5000,
+                        ease:'easeInOutSin',
+                        attr:{
+                            pixels:function(f){
+                                return function(pixelData){
+                                        var data = pixelData.data;
+                                        
+                                        for (var i = 0; i < data.length; i += 4) {
+                                            
+                                            if(i < parseInt(f*100)*100*4){
+                                                data[i]     = localPixelData[i];     
+                                                data[i + 1] = localPixelData[i + 1];
+                                                data[i + 2] = localPixelData[i + 2];
+                                            }else{
+                                                data[i]     = 255;     
+                                                data[i + 1] = 255;
+                                                data[i + 2] = 255;
+                                            }
+                                        }
+                                        pixelData.data = data;
+                                    return pixelData
+                                }
+                            }
+                        }
+                    })
+
+                }
+            });
+                
+	</script>
+
+   
+
+</body>
+</html>
