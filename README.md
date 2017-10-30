@@ -11,8 +11,8 @@ It even provides Data Join, similar to [D3](https://d3js.org/), to help you bind
 
 Download source code from below links
 
-* [i2D.js](https://raw.githubusercontent.com/g2djs/G2Djs/master/dist/g2d.js) 
-* [i2D.min.js](https://raw.githubusercontent.com/g2djs/G2Djs/master/dist/g2d.min.js) 
+* [i2D.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.js) 
+* [i2D.min.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.min.js) 
 
 ## Initialising
 
