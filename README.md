@@ -12,22 +12,7 @@ Download source code from below links
 * [i2D.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.js) 
 * [i2D.min.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.min.js) 
 
-## Initialising
-
-To begin, we need container in which context will be rendered.
-
-``` <div id="container"> </div> ```
-
-### i2D Layer creation
-
-For SVG Layer:
-  ```javascript
-    var svgRenderer = i2D.SVGLayer(containerId,config)
-  ```
-  
-For Canvas Layer: 
-   ```javascript
-    var canvasRenderer = i2D.CanvasLayer(containerId,config)
-  ```
-  As many layers as needed can be created using above syntax. 
+Resources
+---
+[API reference](https://github.com/I2djs/I2D/wiki)
     
