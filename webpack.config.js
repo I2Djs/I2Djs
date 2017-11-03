@@ -6,28 +6,28 @@ module.exports = {
   entry: './src/renderer.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'i2d.min.js',
+    filename: 'i2d.js',
     library: 'i2d',
     libraryTarget: 'umd',
     umdNamedDefine: true
   },
-  module: {
-    rules: [
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: ['env']
-          }
-        }
-      }
-    ]
-  },
-  plugins: [
-    new webpack.optimize.UglifyJsPlugin({
-      minimize: true
-    })
-  ]
+  // module: {
+  //   rules: [
+  //     {
+  //       test: /\.js$/,
+  //       exclude: /node_modules/,
+  //       use: {
+  //         loader: 'babel-loader',
+  //         options: {
+  //           presets: ['env']
+  //         }
+  //       }
+  //     }
+  //   ]
+  // },
+  // plugins: [
+  //   new webpack.optimize.UglifyJsPlugin({
+  //     minimize: true
+  //   })
+  // ]
 };

@@ -1,11 +1,11 @@
 (function chain (root, factory) {
-  const g2d = root
+  const i2d = root
   if (typeof module === 'object' && module.exports) {
     module.exports = factory(require('./easing.js'), require('./queue.js'))
   } else if (typeof define === 'function' && define.amd) {
     define('chain', ['./easing.js', './queue.js'], (easing, queue) => factory(easing, queue))
   } else {
-    g2d.chain = factory(easing, queue)
+    i2d.chain = factory(easing, queue)
   }
 }(this, (easing, queue) => {
   let Id = 0

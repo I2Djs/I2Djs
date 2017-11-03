@@ -1,11 +1,11 @@
 (function easing (root, factory) {
-  const g2d = root
+  const i2d = root
   if (typeof module === 'object' && module.exports) {
     module.exports = factory(require('./geometry.js'))
   } else if (typeof define === 'function' && define.amd) {
     define('easing', ['./geometry.js'], geometry => factory(geometry))
   } else {
-    g2d.easing = factory(geometry)
+    i2d.easing = factory(geometry)
   }
 }(this, (geometry) => {
   const t2DGeometry = geometry('2D')

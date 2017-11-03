@@ -1,13 +1,13 @@
 (function renderer (root, factory) {
-  const g2d = root
+  const i2d = root
   if (typeof module === 'object' && module.exports) {
     console.log('exports')
     module.exports = factory(require('./geometry.js'), require('./queue.js'), require('./easing.js'), require('./chaining.js'), require('./vDom.js'), require('./colorMap.js'))
   } else if (typeof define === 'function' && define.amd) {
     console.log('define')
-    define('g2d', ['./geometry.js', './queue.js', './easing.js', './chaining.js', './vDom.js', './colorMap.js'], (geometry, queue, easing, chain, vDom, colorMap) => factory(geometry, queue, easing, chain, vDom, colorMap))
+    define('i2d', ['./geometry.js', './queue.js', './easing.js', './chaining.js', './vDom.js', './colorMap.js'], (geometry, queue, easing, chain, vDom, colorMap) => factory(geometry, queue, easing, chain, vDom, colorMap))
   } else {
-    g2d.g2d = factory(geometry, queue, easing, chain, vDom, colorMap)
+    i2d.i2d = factory(geometry, queue, easing, chain, vDom, colorMap)
   }
 }(this, (geometry, queue, easing, chain, VDom, colorMap) => {
   let ratio = 1
@@ -2061,7 +2061,7 @@
   }
 
   function domSetAttribute (attr, value) {
-    if (value) {
+    if (value !== undefined) {
       this.attr[attr] = value
     } else {
       delete this.attr[attr]
@@ -2069,7 +2069,7 @@
   }
 
   function domSetStyle (attr, value) {
-    if (value) {
+    if (value !== undefined) {
       this.styles[attr] = value
     } else {
       delete this.styles[attr]

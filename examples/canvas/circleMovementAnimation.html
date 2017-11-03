@@ -55,7 +55,7 @@
                 circle.y += circle.velY;
         }
 
-            while(i < 100){
+            while(i < 200){
                 circle = {};
                 circle.x = random(0, width);
                 circle.y = random(0, height);
@@ -70,7 +70,10 @@
             var circleNodes = renderer_.createEls(circles,{
                                         el:'circle',
                                         attr:{
-                                            cx:function(d,i){return d.x},
+                                            cx:function(d,i){                                                
+                                                console.log(d.x);
+                                                return d.x
+                                            },
                                             cy:function(d,i){return d.y},
                                             r:function(d,i){return d.size}
                                         },

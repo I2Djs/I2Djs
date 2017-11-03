@@ -774,8 +774,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         vDoms[i].stateModified = false
       }
     }
-
-    return true
   }
 
   function animateQueue () {
@@ -850,20 +848,32 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     const t = starttime / duration
     return t < 0.5 ? 4 * t2DGeometry.pow(t, 3) : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
   }
-  function easeInQuart (starttime, duration) {
+  function sinIn (starttime, duration) {
     const t = starttime / duration
-    return t2DGeometry.pow(t, 4)
+    return 1 - Math.cos(t * Math.PI / 2)
   }
-  function easeOutQuart (starttime, duration) {
-    let t = starttime / duration
-    t -= 1
-    return 1 - t * t2DGeometry.pow(t, 3)
+  function easeOutSin (starttime, duration) {
+    const t = starttime / duration
+    return Math.cos(t * Math.PI / 2)
   }
-  function easeInOutQuart (starttime, duration) {
-    let t = starttime / duration
-    t -= 1
-    return t < 0.5 ? 8 * t2DGeometry.pow(t, 4) : 1 - 8 * t * t2DGeometry.pow(t, 3)
+  function easeInOutSin (starttime, duration) {
+    const t = starttime / duration
+    return (1 - Math.cos(Math.PI * t)) / 2
   }
+  // function easeInQuart (starttime, duration) {
+  //   const t = starttime / duration
+  //   return t2DGeometry.pow(t, 4)
+  // }
+  // function easeOutQuart (starttime, duration) {
+  //   let t = starttime / duration
+  //   t -= 1
+  //   return 1 - t * t2DGeometry.pow(t, 3)
+  // }
+  // function easeInOutQuart (starttime, duration) {
+  //   let t = starttime / duration
+  //   t -= 1
+  //   return t < 0.5 ? 8 * t2DGeometry.pow(t, 4) : 1 - 8 * t * t2DGeometry.pow(t, 3)
+  // }
   function cust (custEase) {
     return function custExe (starttime, duration) {
       return custEase(starttime / duration)
@@ -892,14 +902,14 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         case 'easeInOutCubic':
           res = easeInOutCubic
           break
-        case 'easeInQuart':
-          res = easeInQuart
+        case 'easeInSin':
+          res = sinIn
           break
-        case 'easeOutQuart':
-          res = easeOutQuart
+        case 'easeOutSin':
+          res = easeOutSin
           break
-        case 'easeInOutQuart':
-          res = easeInOutQuart
+        case 'easeInOutSin':
+          res = easeInOutSin
           break
         case 'bounce':
           res = bounce
@@ -3552,7 +3562,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
 
   function domSetAttribute (attr, value) {
-    if (value) {
+    if (value !== undefined) {
       this.attr[attr] = value
     } else {
       delete this.attr[attr]
@@ -3560,7 +3570,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
 
   function domSetStyle (attr, value) {
-    if (value) {
+    if (value !== undefined) {
       this.styles[attr] = value
     } else {
       delete this.styles[attr]
@@ -3641,7 +3651,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
   const imageDataMap = {}
 
-  function RenderImage (ctx, props, stylesProps, nodeExe) {
+  function RenderImage (ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
     const self = this
     self.ctx = ctx
     self.attr = props
@@ -3652,6 +3662,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     self.image.onload = function onload () {
       self.attr.height = self.attr.height ? self.attr.height : 0
       self.attr.width = self.attr.width ? self.attr.width : 0
+      console.log('test')
       if (imageDataMap[self.attr.src]) {
         self.imageObj = imageDataMap[self.attr.src]
       } else {
@@ -3683,14 +3694,23 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
           self.imageObj, sx, sy, swidth, sheight, 0, 0, width, height
         )
       }
+
       if (self.attr.pixels) {
         let ctxX
         ctxX = self.rImageObj.getContext('2d')
         ctxX.putImageData(pixels.call(self, self.attr.pixels), 0, 0)
       }
 
+      if (onloadExe && typeof onloadExe === 'function') {
+        onloadExe.call(nodeExe)
+      }
       self.nodeExe.BBoxUpdate = true
       queueInstance.vDomChanged(self.nodeExe.vDomIndex)
+    }
+    self.image.onerror = function onerror () {
+      if (onerrorExe && typeof onerrorExe === 'function') {
+        onerrorExe.call(nodeExe)
+      }
     }
     if (self.attr.src) { self.image.src = self.attr.src }
 
@@ -3733,11 +3753,11 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
           this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height
         )
       }
-      if (self.attr.pixels) {
-        let ctxX
-        ctxX = self.rImageObj.getContext('2d')
-        ctxX.putImageData(pixels.call(self, self.attr.pixels), 0, 0)
-      }
+    }
+    if (self.attr.pixels) {
+      let ctxX
+      ctxX = self.rImageObj.getContext('2d')
+      ctxX.putImageData(pixels.call(self, self.attr.pixels), 0, 0)
     }
 
     queueInstance.vDomChanged(this.nodeExe.vDomIndex)
@@ -4457,7 +4477,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         this.dom = new RenderText(this.ctx, this.attr, this.styles)
         break
       case 'image':
-        this.dom = new RenderImage(this.ctx, this.attr, this.styles, this)
+        this.dom = new RenderImage(this.ctx, _.attr, _.styles, _.onload, _.onerror, this)
         break
       case 'polygon':
         this.dom = new RenderPolygon(this.ctx, this.attr, this.styles, this)

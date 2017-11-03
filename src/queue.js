@@ -177,8 +177,6 @@
         vDoms[i].stateModified = false
       }
     }
-
-    return true
   }
 
   function animateQueue () {
