@@ -30,9 +30,8 @@
        var data = fetch('huge_graph.json')
                 .then(function(response) {
 
-                    response.json().then(function(data) {  
-                        console.log(data);
-
+                    response.json().then(function(data) {
+                        
                         var graphData = {links:[],
                                         nodes:[]}
 

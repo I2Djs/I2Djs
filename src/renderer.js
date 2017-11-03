@@ -28,17 +28,82 @@
     return animeIdentifier
   }
 
-  function fetchElements (nodeSelector) {
+  function fetchEls (nodeSelector, dataArray) {
     let d
     const coll = []
     for (let i = 0; i < this.stack.length; i += 1) {
       d = this.stack[i]
-      coll.push(d.fetchElements(nodeSelector))
+      coll.push(d.fetchEls(nodeSelector, dataArray))
     }
     const collection = new CreateElements()
     collection.wrapper(coll)
 
     return collection
+  }
+
+  function cfetchEls (nodeSelector, dataArray) {
+    const nodes = []
+    const wrap = new CreateElements()
+    if (this.children.length > 0) {
+      if (nodeSelector.charAt(0) === '.') {
+        const classToken = nodeSelector.substring(1, nodeSelector.length)
+        this.children.forEach((d) => {
+          if ((dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.attr.class === classToken) || (d.attr.class === classToken)) {
+            nodes.push(d)
+          }
+        })
+      } else if (nodeSelector.charAt(0) === '#') {
+        const idToken = nodeSelector.substring(1, nodeSelector.length)
+        this.children.every((d) => {
+          if ((dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.attr.id === idToken) || (d.attr.id === idToken)) {
+            nodes.push(d)
+            return false
+          }
+          return true
+        })
+      } else {
+        this.children.forEach((d) => {
+          if ((dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.nodeName === nodeSelector) || (d.nodeName === nodeSelector)) {
+            nodes.push(d)
+          }
+        })
+      }
+    }
+
+    return wrap.wrapper(nodes)
+  }
+
+  function cfetchEl (nodeSelector, dataArray) {
+    let nodes
+    if (this.children.length > 0) {
+      if (nodeSelector.charAt(0) === '.') {
+        const classToken = nodeSelector.substring(1, nodeSelector.length)
+        this.children.every((d) => {
+          if ((dataArray && d.dataObj && dataArray === d.dataObj && d.attr.class === classToken) || (d.attr.class === classToken)) {
+            nodes = d
+            return false
+          }
+          return true
+        })
+      } else if (nodeSelector.charAt(0) === '#') {
+        const idToken = nodeSelector.substring(1, nodeSelector.length)
+        this.children.every((d) => {
+          if ((dataArray && d.dataObj && dataArray === d.dataObj && d.attr.id === idToken) || (d.attr.id === idToken)) {
+            nodes = d
+            return false
+          }
+          return true
+        })
+      } else {
+        this.children.forEach((d) => {
+          if ((dataArray && d.dataObj && dataArray === d.dataObj && d.nodeName === nodeSelector) || (d.nodeName === nodeSelector)) {
+            nodes = d
+          }
+        })
+      }
+    }
+
+    return nodes
   }
 
   function join (data, el, arg) {
@@ -290,7 +355,7 @@
 
   function dataJoin (data, selector, config) {
     const self = this
-    const nodes = this.fetchElements(selector)
+    const nodes = this.fetchEls(selector)
     let { joinCond } = config
 
     if (!joinCond) { joinCond = function (d, i) { return i } }
@@ -1615,7 +1680,7 @@
       y2: `${self.config.y2}%`
     })
 
-    this.linearEl.fetchElements('stop').remove()
+    this.linearEl.fetchEls('stop').remove()
 
     this.linearEl.createEls(this.config.colorStops, {
       el: 'stop',
@@ -1653,7 +1718,7 @@
       fy: `${self.config.outerCircle.y}%`
     })
 
-    this.radialEl.fetchElements('stop').remove()
+    this.radialEl.fetchEls('stop').remove()
 
     this.radialEl.createEls(this.config.colorStops, {
       el: 'stop',
@@ -1759,7 +1824,6 @@
 
     for (let i = 0; i < styles.length; i += 1) {
       if (this.changedStyles[styles[i]] instanceof DomGradients) {
-        console.log('cought it ')
         this.changedStyles[styles[i]] = this.changedStyles[styles[i]].exe()
       }
       this.dom.style[styles[i]] = this.changedStyles[styles[i]]
@@ -1897,41 +1961,8 @@
 
     return this
   }
-  DomExe.prototype.fetchElement = function DMfetchElement (nodeSelector) {
-    const res = this.dom.querySelector(nodeSelector)
-    return new DomExe(res, {}, domId())
-  }
-  DomExe.prototype.fetchElements = function DMfetchElements (nodeSelector) {
-    const nodes = []
-    if (nodeSelector.charAt(0) === '.') {
-      const classToken = nodeSelector.substring(1, nodeSelector.length)
-      this.children.forEach((d) => {
-        if (d.attr.class === classToken) {
-          nodes.push(d)
-        }
-      })
-    } else if (nodeSelector.charAt(0) === '#') {
-      const idToken = nodeSelector.substring(1, nodeSelector.length)
-      this.children.every((d) => {
-        if (d.attr.id === idToken) {
-          nodes.push(d)
-          return false
-        }
-        return true
-      })
-    } else {
-      this.children.forEach((d) => {
-        if (d.nodeName === nodeSelector) {
-          nodes.push(d)
-        }
-      })
-    }
-
-    const exe = new CreateElements()
-    // res = this.dom.querySelectorAll(nodeSelector);
-    return exe.wrapper(nodes)
-  }
-
+  DomExe.prototype.fetchEl = cfetchEl
+  DomExe.prototype.fetchEls = cfetchEls
   DomExe.prototype.animateTo = animateTo
   DomExe.prototype.animatePathTo = animatePathTo
   DomExe.prototype.morphTo = morphTo
@@ -2161,7 +2192,6 @@
     self.image.onload = function onload () {
       self.attr.height = self.attr.height ? self.attr.height : 0
       self.attr.width = self.attr.width ? self.attr.width : 0
-      console.log('test')
       if (imageDataMap[self.attr.src]) {
         self.imageObj = imageDataMap[self.attr.src]
       } else {
@@ -2626,7 +2656,7 @@
     setStyle: domSetStyle,
     on: addListener
   }
-  RenderPath.prototype.setAttr = function RPolysetAttr (attr, value) {
+  RenderPolygon.prototype.setAttr = function RPolysetAttr (attr, value) {
     this.attr[attr] = value
     if (attr === 'points') {
       this.polygon = polygonExe(this.attr[attr])
@@ -2946,17 +2976,17 @@
 
   /** ***************** End Render Group */
 
-  let CanvasNodeExe = function CanvasNodeExe (context, _, id, vDomIndex) {
-    this.styles = _.styles ? _.styles : {}
-    this.attr = _.attr ? _.attr : {}
+  let CanvasNodeExe = function CanvasNodeExe (context, config, id, vDomIndex) {
+    this.styles = config.styles ? config.styles : {}
+    this.attr = config.attr ? config.attr : {}
     this.id = id
-    this.nodeName = _.el
+    this.nodeName = config.el
     this.nodeType = 'CANVAS'
     this.children = []
     this.ctx = context
     this.vDomIndex = vDomIndex
 
-    switch (_.el) {
+    switch (config.el) {
       case 'circle':
         this.dom = new RenderCircle(this.ctx, this.attr, this.styles)
         break
@@ -2976,7 +3006,7 @@
         this.dom = new RenderText(this.ctx, this.attr, this.styles)
         break
       case 'image':
-        this.dom = new RenderImage(this.ctx, _.attr, _.styles, _.onload, _.onerror, this)
+        this.dom = new RenderImage(this.ctx, this.attr, this.styles, config.onload, config.onerror, this)
         break
       case 'polygon':
         this.dom = new RenderPolygon(this.ctx, this.attr, this.styles, this)
@@ -3162,67 +3192,8 @@
     queueInstance.vDomChanged(this.vDomIndex)
     return self
   }
-  CanvasNodeExe.prototype.fetchElement = function fetchElement (nodeSelector) {
-    let nodes
-    if (this.dom instanceof RenderGroup) {
-      if (nodeSelector.charAt(0) === '.') {
-        const classToken = nodeSelector.substring(1, nodeSelector.length)
-        this.children.every((d) => {
-          if (d.attr.class === classToken) {
-            nodes = d
-            return false
-          }
-          return true
-        })
-      } else if (nodeSelector.charAt(0) === '#') {
-        const idToken = nodeSelector.substring(1, nodeSelector.length)
-        this.children.every((d) => {
-          if (d.attr.id === idToken) {
-            nodes = d
-            return false
-          }
-          return true
-        })
-      } else {
-        this.children.forEach((d) => {
-          if (d.nodeName === nodeSelector) {
-            nodes = d
-          }
-        })
-      }
-    }
-
-    return nodes
-  }
-  CanvasNodeExe.prototype.fetchElements = function CfetchElements (nodeSelector) {
-    const nodes = []
-    const wrap = new CreateElements()
-    if (this.dom instanceof RenderGroup) {
-      if (nodeSelector.charAt(0) === '.') {
-        this.children.forEach((d) => {
-          if (d.attr.class === nodeSelector.substring(1, nodeSelector.length)) {
-            nodes.push(d)
-          }
-        })
-      } else if (nodeSelector.charAt(0) === '#') {
-        this.children.every((d) => {
-          if (d.attr.id === nodeSelector.substring(1, nodeSelector.length)) {
-            nodes.push(d)
-            return false
-          }
-          return true
-        })
-      } else {
-        this.children.forEach((d) => {
-          if (d.nodeName === nodeSelector) {
-            nodes.push(d)
-          }
-        })
-      }
-    }
-
-    return wrap.wrapper(nodes)
-  }
+  CanvasNodeExe.prototype.fetchEl = cfetchEl
+  CanvasNodeExe.prototype.fetchEls = cfetchEls
 
   CanvasNodeExe.prototype.updateBBox = function CupdateBBox () {
     let status
@@ -3347,7 +3318,7 @@
     createEl,
     forEach,
     setAttr: setAttribute,
-    fetchElements,
+    fetchEls,
     setStyle,
     translate,
     rotate,
