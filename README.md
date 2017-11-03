@@ -3,7 +3,7 @@
 </p>
 Integrated-2D is a Javascript framework, for rendering 2D graphics on SVG and Canvas contexts. It's simple syntax and semantics lets you combine the power of Vector graphics and Bitmap to achieve complex visualisations easily.
 
-For efficient rendering I2D creates elements called mini Virtual Doms, virtual representation of rendered graphics.
+For efficient rendering I2D creates elements called mini Virtual Doms, virtual representation of render trees.
 
 ## Installing
 
