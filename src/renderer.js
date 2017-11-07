@@ -1,13 +1,10 @@
 (function renderer (root, factory) {
-  const i2d = root
   if (typeof module === 'object' && module.exports) {
-    console.log('exports')
     module.exports = factory(require('./geometry.js'), require('./queue.js'), require('./easing.js'), require('./chaining.js'), require('./vDom.js'), require('./colorMap.js'))
   } else if (typeof define === 'function' && define.amd) {
-    console.log('define')
     define('i2d', ['./geometry.js', './queue.js', './easing.js', './chaining.js', './vDom.js', './colorMap.js'], (geometry, queue, easing, chain, vDom, colorMap) => factory(geometry, queue, easing, chain, vDom, colorMap))
   } else {
-    i2d.i2d = factory(geometry, queue, easing, chain, vDom, colorMap)
+    root.i2d = factory(root.geometry, root.queue, root.easing, root.chain, root.vDom, root.colorMap)
   }
 }(this, (geometry, queue, easing, chain, VDom, colorMap) => {
   let ratio = 1
@@ -48,14 +45,14 @@
       if (nodeSelector.charAt(0) === '.') {
         const classToken = nodeSelector.substring(1, nodeSelector.length)
         this.children.forEach((d) => {
-          if ((dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.attr.class === classToken) || (d.attr.class === classToken)) {
+          if ((dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.attr.class === classToken) || (!dataArray && d.attr.class === classToken)) {
             nodes.push(d)
           }
         })
       } else if (nodeSelector.charAt(0) === '#') {
         const idToken = nodeSelector.substring(1, nodeSelector.length)
         this.children.every((d) => {
-          if ((dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.attr.id === idToken) || (d.attr.id === idToken)) {
+          if ((dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.attr.id === idToken) || (!dataArray && d.attr.id === idToken)) {
             nodes.push(d)
             return false
           }
@@ -63,7 +60,7 @@
         })
       } else {
         this.children.forEach((d) => {
-          if ((dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.nodeName === nodeSelector) || (d.nodeName === nodeSelector)) {
+          if ((dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.nodeName === nodeSelector) || (!dataArray && d.nodeName === nodeSelector)) {
             nodes.push(d)
           }
         })
@@ -73,13 +70,13 @@
     return wrap.wrapper(nodes)
   }
 
-  function cfetchEl (nodeSelector, dataArray) {
+  function cfetchEl (nodeSelector, data) {
     let nodes
     if (this.children.length > 0) {
       if (nodeSelector.charAt(0) === '.') {
         const classToken = nodeSelector.substring(1, nodeSelector.length)
         this.children.every((d) => {
-          if ((dataArray && d.dataObj && dataArray === d.dataObj && d.attr.class === classToken) || (d.attr.class === classToken)) {
+          if ((data && d.dataObj && data === d.dataObj && d.attr.class === classToken) || (!data && d.attr.class === classToken)) {
             nodes = d
             return false
           }
@@ -88,7 +85,7 @@
       } else if (nodeSelector.charAt(0) === '#') {
         const idToken = nodeSelector.substring(1, nodeSelector.length)
         this.children.every((d) => {
-          if ((dataArray && d.dataObj && dataArray === d.dataObj && d.attr.id === idToken) || (d.attr.id === idToken)) {
+          if ((data && d.dataObj && data === d.dataObj && d.attr.id === idToken) || (!data && d.attr.id === idToken)) {
             nodes = d
             return false
           }
@@ -96,7 +93,7 @@
         })
       } else {
         this.children.forEach((d) => {
-          if ((dataArray && d.dataObj && dataArray === d.dataObj && d.nodeName === nodeSelector) || (d.nodeName === nodeSelector)) {
+          if ((data && d.dataObj && data === d.dataObj && d.nodeName === nodeSelector) || (!data && d.nodeName === nodeSelector)) {
             nodes = d
           }
         })
@@ -363,19 +360,24 @@
     const joinResult = performJoin(data, nodes.stack, joinCond)
 
     if (config.action) {
-      if (config.action.new) { config.action.new.call(self, joinResult.new) }
-      if (joinResult.old.length > 0) {
+      if (config.action.enter) {
+        config.action.enter.call(self, joinResult.new)
+      }
+      if (config.action.exit) {
         const collection = new CreateElements()
         collection.wrapper(joinResult.old)
-        config.action.old.call(self, collection, joinResult.old.map(d => d.dataObj))
+        console.log(joinResult.old)
+        config.action.exit.call(self, collection, joinResult.old.map(d => d.dataObj))
+      }
+      if (config.action.update) {
+        const collection = new CreateElements()
+        collection.wrapper(joinResult.update)
+        config.action.update.call(self, collection, joinResult.update.map(d => d.dataObj))
       }
     }
 
     return (new CreateElements()).wrapper(self.children)
   }
-
-  // let Id = 0
-  // const counter = 0
 
   function generateStackId () {
     Id += 1
@@ -825,8 +827,6 @@
   }
 
   const animate = function animate (self, targetConfig) {
-    // let tattr,
-    //   tstyles
     const callerExe = self
     const tattr = targetConfig.attr ? targetConfig.attr : {}
     const tstyles = targetConfig.styles ? targetConfig.styles : {}
@@ -2147,7 +2147,6 @@
   }
   CanvasGradients.prototype.colorStops = function GRAcolorStops (colorStopValues) {
     if (Object.prototype.toString.call(colorStopValues) !== '[object Array]') {
-      // console.error('Color Stop object has to be array')
       return false
     }
     this.config.colorStops = colorStopValues
@@ -2161,7 +2160,6 @@
   function createRadialGradient (config) {
     return new CanvasGradients(config, 'radial')
   }
-
 
   function pixels (pixHndlr) {
     const tObj = this.rImageObj ? this.rImageObj : this.imageObj

@@ -5,7 +5,7 @@
   } else if (typeof define === 'function' && define.amd) {
     define('easing', ['./geometry.js'], geometry => factory(geometry))
   } else {
-    i2d.easing = factory(geometry)
+    i2d.easing = factory(root.geometry)
   }
 }(this, (geometry) => {
   const t2DGeometry = geometry('2D')

@@ -8,7 +8,14 @@
 	<div id="mySvg" style="height: 100%;width:100%">
 	</div>
     
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+    <script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
 
 	<script type="text/javascript">
 
@@ -18,55 +25,72 @@
         var v_;
 
         function dataJoin(data){
-                    v_ = renderer_.join(data,'circle',{
-                                        joinCond:function(d){ return d.id; },
-                                        action:{
-                                            new:function(data){
-                                                this.createEls(data,{el:'circle',
-                                                                    attr:{
-                                                                        cx:function(d){
-                                                                                return d.id*10},
-                                                                        cy:function(d){return d.id*10},
-                                                                        r:5
-                                                                    },
-                                                                    styles:{
-                                                                        fill:'red'
-                                                                    }
-                                                                }); 
-                                            },
-                                            old:function(oldNodes,oldData){
-                                                oldNodes.remove();
+
+            v_ = renderer_.join(data,'circle',{
+                                            joinCond:function(d){ return d.id; },
+                                            action:{
+                                                enter:function(data){
+                                                    this.createEls(data,{
+                                                                        el:'circle',
+                                                                        attr:{
+                                                                            cx:function(d){return d.id*40},
+                                                                            cy:function(d){return 100 },
+                                                                            r:10
+                                                                        },
+                                                                        styles:{
+                                                                            fill:'#ff0000'
+                                                                        }
+                                                                    }).animateTo({
+                                                                        duration:1000,
+                                                                        attr:{ r:20 }
+                                                                    }); 
+                                                    this.createEls(data,{
+                                                                        el:'text',
+                                                                        attr:{
+                                                                            x:function(d){return d.id*40},
+                                                                            y:function(d){return 130 }
+                                                                        },
+                                                                        styles:{
+                                                                            fill:'#ff0000',
+                                                                            'text-align':'middle'
+                                                                        }
+                                                                    }).text(function(d){
+                                                                        return d.id
+                                                                    }); 
+                                                },
+                                                exit:function(oldNodes,oldData){
+                                                    // this.fetchEls('circle',oldData).remove();
+                                                    // this.fetchEls('text',oldData).remove();
+                                                },
+                                                update:function(nodes,data){
+                                                    this.fetchEls('circle',data)
+                                                        .animateTo({
+                                                            duration:1000,
+                                                            styles:{
+                                                                fill:'#00ff00'
+                                                            }
+                                                        })
+                                                }
                                             }
-                                        }
-                                    }
-                    );
+                                });
+
         }
 
+
+
+
+        // Calls
+
         dataJoin(data);
-
             
-            setTimeout(function(){
+        setTimeout(function(){
+            dataJoin([{id:1},{id:2},{id:3},{id:4},{id:5},{id:6}])
+        },2000)
 
-                dataJoin([{id:1},{id:2},{id:3},{id:4},{id:5},{id:6},{id:7}])
 
-            },1000)
-
-            setTimeout(function(){
-                dataJoin([{id:5},{id:6},{id:7}])
-                v_.setStyle('fill','green')
-                    .animateTo({
-                    duration:1200,
-                    attr:{
-                        r:20,
-                        cx:function(d){return d.id*30},
-                        cy:function(d){return d.id*30}
-                    },
-                    styles:{
-
-                    }
-                })
-                
-            },2000)
+        setTimeout(function(){
+            dataJoin([{id:1},{id:2},{id:3},{id:4},{id:5},{id:6},{id:7},{id:8}])
+        },4000)
         
 	</script>
 

@@ -5,7 +5,7 @@
   } else if (typeof define === 'function' && define.amd) {
     define('chain', ['./easing.js', './queue.js'], (easing, queue) => factory(easing, queue))
   } else {
-    i2d.chain = factory(easing, queue)
+    i2d.chain = factory(root.easing, root.queue)
   }
 }(this, (easing, queue) => {
   let Id = 0
