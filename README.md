@@ -10,9 +10,13 @@ For efficient rendering I2D creates elements called mini Virtual Doms, virtual r
 Download source code from below links
 
 * [i2D.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.js) 
-* [i2D.min.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.min.js) 
+* [i2D.min.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.min.js)
 
 Resources
 ---
-[API reference](https://github.com/I2djs/I2D/wiki)
+[API reference](https://github.com/I2djs/I2D/wiki/API-Reference)
+
+### Support & Compatibility
+I2D is implemented in ES2016. It supports Universal Module Definition(UMD)(AMD,CommonJS and vanilla environments) , based on the environment it can be imported accordingly.
+It is compatible with all modern browsers.
     
