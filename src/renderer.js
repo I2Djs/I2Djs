@@ -366,7 +366,6 @@
       if (config.action.exit) {
         const collection = new CreateElements()
         collection.wrapper(joinResult.old)
-        console.log(joinResult.old)
         config.action.exit.call(self, collection, joinResult.old.map(d => d.dataObj))
       }
       if (config.action.update) {
@@ -376,7 +375,7 @@
       }
     }
 
-    return (new CreateElements()).wrapper(self.children)
+    return self // (new CreateElements()).wrapper(self.children)
   }
 
   function generateStackId () {

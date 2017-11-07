@@ -799,7 +799,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
   } else {
-    i2d.easing = factory(geometry)
+    i2d.easing = factory(root.geometry)
   }
 }(this, (geometry) => {
   const t2DGeometry = geometry('2D')
@@ -948,7 +948,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
   } else {
-    i2d.chain = factory(easing, queue)
+    i2d.chain = factory(root.easing, root.queue)
   }
 }(this, (easing, queue) => {
   let Id = 0
@@ -1497,18 +1497,15 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function renderer (root, factory) {
-  const i2d = root
   if (typeof module === 'object' && module.exports) {
-    console.log('exports')
     module.exports = factory(__webpack_require__(0), __webpack_require__(1), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4), __webpack_require__(5))
   } else if (true) {
-    console.log('define')
     !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(1), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4), __webpack_require__(5)], __WEBPACK_AMD_DEFINE_FACTORY__ = ((geometry, queue, easing, chain, vDom, colorMap) => factory(geometry, queue, easing, chain, vDom, colorMap)),
 				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
 				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
   } else {
-    i2d.i2d = factory(geometry, queue, easing, chain, vDom, colorMap)
+    root.i2d = factory(root.geometry, root.queue, root.easing, root.chain, root.vDom, root.colorMap)
   }
 }(this, (geometry, queue, easing, chain, VDom, colorMap) => {
   let ratio = 1
@@ -1549,14 +1546,14 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       if (nodeSelector.charAt(0) === '.') {
         const classToken = nodeSelector.substring(1, nodeSelector.length)
         this.children.forEach((d) => {
-          if ((dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.attr.class === classToken) || (d.attr.class === classToken)) {
+          if ((dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.attr.class === classToken) || (!dataArray && d.attr.class === classToken)) {
             nodes.push(d)
           }
         })
       } else if (nodeSelector.charAt(0) === '#') {
         const idToken = nodeSelector.substring(1, nodeSelector.length)
         this.children.every((d) => {
-          if ((dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.attr.id === idToken) || (d.attr.id === idToken)) {
+          if ((dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.attr.id === idToken) || (!dataArray && d.attr.id === idToken)) {
             nodes.push(d)
             return false
           }
@@ -1564,7 +1561,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         })
       } else {
         this.children.forEach((d) => {
-          if ((dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.nodeName === nodeSelector) || (d.nodeName === nodeSelector)) {
+          if ((dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.nodeName === nodeSelector) || (!dataArray && d.nodeName === nodeSelector)) {
             nodes.push(d)
           }
         })
@@ -1574,13 +1571,13 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     return wrap.wrapper(nodes)
   }
 
-  function cfetchEl (nodeSelector, dataArray) {
+  function cfetchEl (nodeSelector, data) {
     let nodes
     if (this.children.length > 0) {
       if (nodeSelector.charAt(0) === '.') {
         const classToken = nodeSelector.substring(1, nodeSelector.length)
         this.children.every((d) => {
-          if ((dataArray && d.dataObj && dataArray === d.dataObj && d.attr.class === classToken) || (d.attr.class === classToken)) {
+          if ((data && d.dataObj && data === d.dataObj && d.attr.class === classToken) || (!data && d.attr.class === classToken)) {
             nodes = d
             return false
           }
@@ -1589,7 +1586,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       } else if (nodeSelector.charAt(0) === '#') {
         const idToken = nodeSelector.substring(1, nodeSelector.length)
         this.children.every((d) => {
-          if ((dataArray && d.dataObj && dataArray === d.dataObj && d.attr.id === idToken) || (d.attr.id === idToken)) {
+          if ((data && d.dataObj && data === d.dataObj && d.attr.id === idToken) || (!data && d.attr.id === idToken)) {
             nodes = d
             return false
           }
@@ -1597,7 +1594,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         })
       } else {
         this.children.forEach((d) => {
-          if ((dataArray && d.dataObj && dataArray === d.dataObj && d.nodeName === nodeSelector) || (d.nodeName === nodeSelector)) {
+          if ((data && d.dataObj && data === d.dataObj && d.nodeName === nodeSelector) || (!data && d.nodeName === nodeSelector)) {
             nodes = d
           }
         })
@@ -1864,19 +1861,23 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     const joinResult = performJoin(data, nodes.stack, joinCond)
 
     if (config.action) {
-      if (config.action.new) { config.action.new.call(self, joinResult.new) }
-      if (joinResult.old.length > 0) {
+      if (config.action.enter) {
+        config.action.enter.call(self, joinResult.new)
+      }
+      if (config.action.exit) {
         const collection = new CreateElements()
         collection.wrapper(joinResult.old)
-        config.action.old.call(self, collection, joinResult.old.map(d => d.dataObj))
+        config.action.exit.call(self, collection, joinResult.old.map(d => d.dataObj))
+      }
+      if (config.action.update) {
+        const collection = new CreateElements()
+        collection.wrapper(joinResult.update)
+        config.action.update.call(self, collection, joinResult.update.map(d => d.dataObj))
       }
     }
 
-    return (new CreateElements()).wrapper(self.children)
+    return self // (new CreateElements()).wrapper(self.children)
   }
-
-  // let Id = 0
-  // const counter = 0
 
   function generateStackId () {
     Id += 1
@@ -2326,8 +2327,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
 
   const animate = function animate (self, targetConfig) {
-    // let tattr,
-    //   tstyles
     const callerExe = self
     const tattr = targetConfig.attr ? targetConfig.attr : {}
     const tstyles = targetConfig.styles ? targetConfig.styles : {}
@@ -3648,7 +3647,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
   CanvasGradients.prototype.colorStops = function GRAcolorStops (colorStopValues) {
     if (Object.prototype.toString.call(colorStopValues) !== '[object Array]') {
-      // console.error('Color Stop object has to be array')
       return false
     }
     this.config.colorStops = colorStopValues
@@ -3662,7 +3660,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   function createRadialGradient (config) {
     return new CanvasGradients(config, 'radial')
   }
-
 
   function pixels (pixHndlr) {
     const tObj = this.rImageObj ? this.rImageObj : this.imageObj
