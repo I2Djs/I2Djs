@@ -30,13 +30,13 @@ var img = renderer_.createEl({
                         sx:0, sy:0, swidth:108, sheight:140
                     },
                     pixels:function(pixelData){
-                            var data = pixelData.data;
+                            var data = pixelData;
                             for (var i = 0; i < data.length; i += 4) {
                                 data[i]     = 255 - data[i];     // red
                                 data[i + 1] = 255 - data[i + 1]; // green
                                 data[i + 2] = 255 - data[i + 2]; // blue
                             }
-                            pixelData.data = data;
+                            pixelData = data;
                         return pixelData
                     }
                 }

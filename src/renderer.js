@@ -1800,11 +1800,11 @@
       for (let i = 0; i < transforms.length; i += 1) {
         trnX = transforms[i]
         if (trnX === 'rotate') {
-          if (!this.attr.transform[trnX][1]) {
-            const boundingBox = this.dom.getBBox()
-            this.attr.transform[trnX][1] = boundingBox.x + boundingBox.width / 2
-            this.attr.transform[trnX][2] = boundingBox.y + boundingBox.height / 2
-          }
+          // if (!this.attr.transform[trnX][1]) {
+          //   const boundingBox = this.dom.getBBox()
+          //   this.attr.transform[trnX][1] = boundingBox.x + boundingBox.width / 2
+          //   this.attr.transform[trnX][2] = boundingBox.y + boundingBox.height / 2
+          // }
           cmd += `${trnX}(${this.attr.transform[trnX].join(' ')}) `
         } else if (trnX === 'translate') {
           cmd += `translate(${this.attr.transform[trnX].join(' ')}) `
@@ -1873,9 +1873,9 @@
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
-  DomExe.prototype.rotate = function DMrotate (angle) {
+  DomExe.prototype.rotate = function DMrotate (angle, x, y) {
     if (!this.attr.transform) { this.attr.transform = {} }
-    this.attr.transform.rotate = [angle[0] % 360, angle[1] ? angle[1] : 0, angle[2] ? angle[2] : 0]
+    this.attr.transform.rotate = [angle % 360, x ? x : 0, y ? y : 0]
     if (this.changedAttribute.transform) {
       this.changedAttribute.transform.rotate = this.attr.transform.rotate
     } else {
@@ -1924,7 +1924,8 @@
 
     return this
   }
-  DomExe.prototype.getAttribute = function DMgetAttribute (_) {
+  DomExe.prototype.getAttr = function DMgetAttribute (_) {
+
     return this.attr[_]
   }
   DomExe.prototype.execute = function DMexecute () {
@@ -2072,18 +2073,13 @@
         ? transform.translate[1] : hozMove || 0
 
       self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove)
-
+      // self.ctx.save()
       if (transform.rotate) {
-        self.ctx.translate(
-          (self.BBox.x + (self.BBox.width / 2) - hozMove) / hozScale,
-          (self.BBox.y + (self.BBox.height / 2) - verMove) / verScale
-        )
+        self.ctx.translate(transform.cx, transform.cy)
         self.ctx.rotate(transform.rotate * (Math.PI / 180))
-        self.ctx.translate(
-          -(self.BBox.x + (self.BBox.width / 2) - hozMove) / hozScale,
-          -(self.BBox.y + (self.BBox.height / 2) - verMove) / verScale
-        )
+        self.ctx.translate(-(transform.cx), -(transform.cy))
       }
+      // self.ctx.restore()
     }
     for (let i = 0; i < self.stack.length; i += 1) {
       self.stack[i].execute()
@@ -2160,6 +2156,26 @@
     return new CanvasGradients(config, 'radial')
   }
 
+  function pixelObject (data, width, height, x, y) {
+    this.pixels = data
+    this.width = width
+    this.height = height
+    this.x = x
+    this.y = y
+  }
+  pixelObject.prototype.get = function (pos) {
+    let rIndex = ((pos.y - 1) * (this.width * 4)) + ((pos.x - 1) * 4)
+    return 'rgba(' + this.pixels[rIndex] + ', ' + this.pixels[rIndex + 1] + ', ' + this.pixels[rIndex + 2] + ', ' + this.pixels[rIndex + 3] + ')'
+  }
+  pixelObject.prototype.put = function (color, pos) {
+    let rIndex = ((pos.y - 1) * (this.width * 4)) + ((pos.x - 1) * 4)
+    this.pixels[rIndex] = color[0]
+    this.pixels[rIndex + 1] = color[1]
+    this.pixels[rIndex + 2] = color[2]
+    this.pixels[rIndex + 3] = color[3]
+    return this
+  }
+
   function pixels (pixHndlr) {
     const tObj = this.rImageObj ? this.rImageObj : this.imageObj
     const tCxt = tObj.getContext('2d')
@@ -2173,6 +2189,7 @@
     canvas.setAttribute('width', width)
     canvas.style.height = `${this.height}px`
     canvas.style.width = `${this.width}px`
+    
     return canvas
   }
 
@@ -2185,10 +2202,15 @@
     self.styles = stylesProps
     self.nodeName = 'Image'
     self.image = new Image()
+    // self.image.crossOrigin="anonymous"
+    // self.image.setAttribute('crossOrigin', '*');
 
     self.image.onload = function onload () {
-      self.attr.height = self.attr.height ? self.attr.height : 0
-      self.attr.width = self.attr.width ? self.attr.width : 0
+
+      this.crossOrigin = 'anonymous';
+
+      self.attr.height = self.attr.height ? self.attr.height : this.height
+      self.attr.width = self.attr.width ? self.attr.width : this.width
       if (imageDataMap[self.attr.src]) {
         self.imageObj = imageDataMap[self.attr.src]
       } else {
@@ -2223,7 +2245,19 @@
 
       if (self.attr.pixels) {
         let ctxX
+        const {
+          width, height
+        } = self.attr
+        if (!self.rImageObj) {
+          self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height)
+          ctxX = self.rImageObj.getContext('2d')
+        }
         ctxX = self.rImageObj.getContext('2d')
+        ctxX.drawImage(
+          self.imageObj, 0, 0, width, height
+        )
+        var ctxXXX = self.imageObj.getContext('2d');
+        console.log(ctxXXX.getImageData(0, 0, self.attr.width, self.attr.height))
         ctxX.putImageData(pixels.call(self, self.attr.pixels), 0, 0)
       }
 
@@ -2295,6 +2329,9 @@
     let scaleX = 1
     let scaleY = 1
     const { transform } = self.attr
+    let {
+      x, y , width, height
+    } = self.attr
 
     if (transform) {
       if (transform.translate) {
@@ -2307,10 +2344,10 @@
     }
 
     self.BBox = {
-      x: (translateX + self.attr.x) * scaleX,
-      y: (translateY + self.attr.y) * scaleY,
-      width: (self.attr.width) * scaleX,
-      height: (self.attr.height) * scaleY
+      x: (translateX + x) * scaleX,
+      y: (translateY + y) * scaleY,
+      width: (width ? width : 0) * scaleX,
+      height: (height ? height : 0) * scaleY
     }
 
     if (transform && transform.rotate) {
@@ -2323,7 +2360,7 @@
     const {
       width, height, x, y
     } = this.attr
-
+    // console.log(height,width)
     if (this.imageObj) {
       this.ctx.drawImage(
         this.rImageObj ? this.rImageObj : this.imageObj,
@@ -3102,17 +3139,20 @@
     return this
   }
 
-  CanvasNodeExe.prototype.getAttribute = function CgetAttribute (_) {
+  CanvasNodeExe.prototype.getAttr = function CgetAttribute (_) {
+    // console.log(this.attr);
     return this.attr[_]
   }
 
-  CanvasNodeExe.prototype.rotate = function Crotate (angle, XY) {
+  CanvasNodeExe.prototype.rotate = function Crotate (angle, x, y) {
     if (!this.attr.transform) { this.attr.transform = {} }
-    XY = XY || {
-      x: 0,
-      y: 0
-    }
+    // XY = XY || {
+    //   x: 0,
+    //   y: 0
+    // }
     this.attr.transform.rotate = angle
+    this.attr.transform.cx = x
+    this.attr.transform.cy = y
     this.dom.setAttr('transform', this.attr.transform)
 
     this.BBoxUpdate = true
@@ -3502,7 +3542,8 @@
     return root
   }
 
-  renderer.queue = queueInstance
+  renderer.queue = queueInstance;
+  renderer.geometry = t2DGeometry;
 
   return renderer
 }))

@@ -148,24 +148,27 @@
                         shadowBlur:20,
                         shadowOffsetX:15,
                         shadowOffsetY:15
-                }
-            })
-            .animateTo({
-                duration:1000,
-                loop:6,
-                attr:{
-                    pixels:function(f){
-                        return function(pixelData){
-                                var data = pixelData.data;
-                                for (var i = 0; i < data.length; i += 4) {
-                                    data[i]     = data[i];     // red
-                                    data[i + 1] = data[i + 1]; // green
-                                    data[i + 2] = data[i + 2]; // blue
-                                }
-                                pixelData.data = data;
-                            return pixelData
-                        }
-                    }
+                },
+                onload:function(){
+                    
+                    // this.animateTo({
+                    //     duration:1000,
+                    //     attr:{
+                    //         pixels:function(f){
+                    //             return function(pixelData){
+                    //                     var data = pixelData.data;
+                    //                     for (var i = 0; i < data.length; i += 4) {
+                    //                         data[i]     =  data[i];     // red
+                    //                         data[i + 1] = 255*f - data[i + 1]; // green
+                    //                         data[i + 2] = 255*f - data[i + 2]; // blue
+                    //                     }
+                    //                     pixelData.data = data;
+                    //                     console.log(f);
+                    //                 return pixelData;
+                    //             }
+                    //         }
+                    //     }
+                    // })
                 }
             });
            
