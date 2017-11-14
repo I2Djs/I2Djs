@@ -13,6 +13,11 @@
     "type": "git",
     "url": "git+https://github.com/I2Djs/I2D.git"
   },
+  "files": [
+    "dist",
+    "src",
+    "examples"
+  ],
   "keywords": [
     "SVG",
     "Canvas",
