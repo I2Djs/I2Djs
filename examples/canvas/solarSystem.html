@@ -25,7 +25,7 @@
         var renderer_ = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
         var renderer1 = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
 
-        var pGroup = renderer_.createEl({
+        var pGroup = renderer1.createEl({
                 el:'group',
                 attr:{
                     transform:{
@@ -34,14 +34,32 @@
                 }
             });
 
-        var sun = renderer1.createEl({
+        var sun = renderer_.createEl({
                 el:'image',
                 attr:{
-                    src:'../images/Canvas_sun.png',
-                    width:150, height:150, x:-150/2,y:-150/2,
+                    src:'../images/galaxy.jpg',
+                    width:500, height:500, x:-250,y:-250,
                     transform:{
                         translate:[750, 350]
                     }
+                }
+            });
+    
+     var sun = renderer_.createEl({
+                el:'circle',
+                attr:{
+                    r:40,
+                    cx:0,cy:0,
+                    transform:{
+                        translate:[750, 350]
+                    }
+                },
+                styles:{
+                    fillStyle:'#fffdca',
+                    shadowColor:'#fffdca',
+                    shadowOffsetX:0,
+                    shadowOffsetY:0,
+                    shadowBlur:150
                 }
             });
             

@@ -2189,9 +2189,11 @@
     canvas.setAttribute('width', width)
     canvas.style.height = `${this.height}px`
     canvas.style.width = `${this.width}px`
-    
     return canvas
   }
+
+  // function CanvasPattern (config) {
+  // }
 
   const imageDataMap = {}
 
@@ -2360,7 +2362,6 @@
     const {
       width, height, x, y
     } = this.attr
-    // console.log(height,width)
     if (this.imageObj) {
       this.ctx.drawImage(
         this.rImageObj ? this.rImageObj : this.imageObj,
