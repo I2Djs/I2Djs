@@ -12,6 +12,11 @@ Download source code from below links
 * [i2D.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.js) 
 * [i2D.min.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.min.js)
 
+### npm Installation
+```
+   npm install i2djs
+```
+
 Resources
 ---
 [API reference](https://github.com/I2djs/I2D/wiki/API-Reference)
