@@ -1979,6 +1979,7 @@
   DomExe.prototype.fetchEl = cfetchEl
   DomExe.prototype.fetchEls = cfetchEls
   DomExe.prototype.animateTo = animateTo
+  DomExe.prototype.animateExe = animateExe
   DomExe.prototype.animatePathTo = animatePathTo
   DomExe.prototype.morphTo = morphTo
 

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+	<div id="mySvg" style="height: 100%;width:100%;position: absolute;background: black" >
+		<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
+	</div>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/webcola@3.3.6/WebCola/cola.min.js"></script>
+    <script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
+
+	<script type="text/javascript">
+
+        var width = 1200, height = 600
+        var d3cola = new cola.Layout() 
+                        .handleDisconnected(false)
+                        .linkDistance(100)
+                        .avoidOverlaps(true)
+                        .size([width, height]);
+        
+        var renderer_ = i2d.SVGLayer('#mySvg');
+
+        var g = renderer_.createEl({
+                    el:'group',
+                    attr:{
+                        transform:{
+                            translate:[100,100]
+                        }
+                    }
+                })
+
+        var lineG = g.createEl({
+                el:'group'
+            })
+
+        var circleG = g.createEl({
+                el:'group'
+            })
+        
+        var radialGradiant = renderer_.createRadialGradient({
+                                                            id:'radialG',
+                                                            innerCircle:{x:50,y:50,r:0},
+                                                            outerCircle:{x:50,y:50,r:50},
+                                                            colorStops:[{color:'rgb(11, 192, 255)',value:0},
+                                                                        {color:'black',value:100}]
+                                                            })
+        
+        var blastGradiant = renderer_.createRadialGradient({
+                                                            id:'radialP',
+                                                            innerCircle:{x:50,y:50,r:0},
+                                                            outerCircle:{x:50,y:50,r:50},
+                                                            colorStops:[{color:'#fffdca',value:0},
+                                                                        {color:'black',value:100}]
+                                                            })
+
+        var data = fetch('../data/networkGraph.json')
+                .then(function(response) {
+                    response.json().then(function(data) {  
+                        renderChart(data) 
+                    });  
+                })
+                .catch(function(error) {
+                }); 
+            
+        function renderChart (jsonData) {
+
+            var sourceDestTree = {}
+            
+                jsonData.nodes.forEach(function(d,i){
+                    d.index = i
+                })
+                jsonData.links.forEach(function(d){
+                    if(!sourceDestTree[d.source_])
+                        sourceDestTree[d.source_] = []
+                    sourceDestTree[d.source_].push(d)
+                })
+            
+            d3cola.nodes(jsonData.nodes)
+                .links(jsonData.links)
+                .on(cola.EventType.end,function(d){
+
+                        circleG.createEl({
+                                        el:'circle',
+                                        attr:{ r:8, cx:jsonData.nodes[0].x, cy:jsonData.nodes[0].y },
+                                        styles:{ 
+                                            fill:'red'
+                                            // shadowColor:'red',
+                                            // shadowOffsetX:0,
+                                            // shadowOffsetY:0,
+                                            // shadowBlur:30
+                                        }
+                                    })
+
+                                circleG.createEl({
+                                        el:'text',
+                                        attr:{ x:jsonData.nodes[0].x-30, y:jsonData.nodes[0].y+20 },
+                                        styles:{ 
+                                            fill:'white'
+                                        }
+                                    }).text(jsonData.nodes[0].ip)
+
+                                circleG.createEl({
+                                        el:'circle',
+                                        attr:{ r:0, cx:jsonData.nodes[0].x, cy:jsonData.nodes[0].y },
+                                        styles:{ fill:blastGradiant, 'line-Width':2 }
+                                    }).animateTo({
+                                        duration:1000,
+                                        ease:'easeOutCubic',
+                                        attr:{ r:50 },
+                                        styles:{ opacity :0 },
+                                        end:function(){ 
+                                            this.remove()
+                                        }
+                                    })
+
+                                var exe = recurSive('1.70.2.15');
+                                        exe.start();
+                   
+                })
+                .start();
+        
+            function recurSive(ip){
+                var links = sourceDestTree[ip]
+                var chainInstance;
+
+                if(links && links.length > 0){
+
+                    chainInstance = i2d.chain.parallelChain()
+                                .duration(1000)
+                                .ease('linear');
+                    
+                    var lineExe = lineG.createEls(links,{
+                                    el:'line',
+                                    attr:{
+                                        x1:function(d){return d.source.x},
+                                        y1:function(d){return d.source.y},
+                                        x2:function(d){return d.source.x},
+                                        y2:function(d){return d.source.y}
+                                    },
+                                    styles:{
+                                        stroke:'rgb(11, 192, 255)' ,//radialGradiant,
+                                        'stroke-width':'4px'
+                                    }
+                                })
+                                .animateExe({
+                                    duration:1000,
+                                    ease:'linear',
+                                    attr:{
+                                        x2:function(d){return d.target.x},
+                                        y2:function(d){return d.target.y}
+                                    },
+                                    end:function(d){
+
+                                        circleG.createEl({
+                                            el:'circle',
+                                            attr:{ r:8, cx:d.target.x, cy:d.target.y },
+                                            styles:{ 
+                                                opacity:0,
+                                                fill:d.target.type === 'HI_ipv4'?'red':'#fffdca',
+                                                // shadowColor:d.target.type === 'HI_ipv4'?'red':'#fffdca',
+                                                // shadowOffsetX:0,
+                                                // shadowOffsetY:0,
+                                                // shadowBlur:30
+                                            }
+                                        }).animateTo({
+                                            duration:1000,
+                                            ease:'easeOutCubic',
+                                            styles:{ opacity:1 }
+                                        })
+
+                                        circleG.createEl({
+                                            el:'text',
+                                            attr:{ x:d.target.x, y:d.target.y+20 },
+                                            styles:{ 
+                                                fill:'white',
+                                                'text-align':'middle'
+                                            }
+                                        }).text(d.target.ip)
+
+                                        circleG.createEl({
+                                            el:'circle',
+                                            attr:{ r:8, cx:d.target.x, cy:d.target.y },
+                                            styles:{ stroke:d.target.type === 'HI_ipv4'?'red':'#fffdca', 'stroke-Width':2 }
+                                        }).animateTo({
+                                            duration:1500,
+                                            ease:'easeOutCubic',
+                                            attr:{ r:30 },
+                                            styles:{ opacity:0 },
+                                            end:function(){ this.remove() }
+                                        })
+
+                                        var exe = recurSive(d.target.ip);
+                                            if(exe)
+                                                exe.start()
+                                    }
+                                })
+                    chainInstance.add(lineExe)
+                }
+                return chainInstance
+            }
+            function random(min, max){
+                return Math.floor(Math.random()*(max-min)) + min;
+            }
+        }
+
+
+	</script>
+
+</body>
+</html>

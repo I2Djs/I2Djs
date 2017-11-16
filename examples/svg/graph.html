@@ -2,15 +2,20 @@
 <html style="height: 100%">
 <head>
 	<title></title>
+    <style>
+    .edge{
+        stroke:#999;
+        stroke-width:'1px';
+    }
+    .node{
+        fill:#1f77b4
+    }
+    </style>
 </head>
 <body style="height: 100%">
 
 	<div id="mySvg" style="height: 100%;width:100%">
 	</div>
-    
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
-
-	
     
 	<script type="text/javascript" src="../../dist/i2d.js"></script>
     <script src="https://d3js.org/d3-collection.v1.min.js"></script>
@@ -23,12 +28,12 @@
 
         var renderer = i2d.SVGLayer('#mySvg');
         var width = 1000,height=700;
+        var circles,links;
         var group = renderer.createEl({
                         el:'g',
                         attr:{
                             transform:{
-                                translate:[700,450],
-                                scale:[0.3,0.3]
+                                translate:[200,0]
                             }
                         }
                     })
@@ -38,31 +43,25 @@
                         .force("charge", d3.forceManyBody())
                         .force("center", d3.forceCenter(width / 2, height / 2));
 
-       var data = fetch('xg736_esd_graph.json')
+        var data = fetch('../data/graphData.json')
                 .then(function(response) {
                     response.json().then(function(data) {  
                         renderChart(data) 
                     });  
-                    })
+                })
                 .catch(function(error) {
-                    console.log(error);
                 }); 
 
-        var circles,links;
+        
         function renderChart(graph){
 
             links = group.createEls(graph.links,{
                             el:'line',
-                            attr:{
-                                class:'edge'
-                            }
+                            attr:{ class:'edge' }
                         });
              circles = group.createEls(graph.nodes,{
                             el:'circle',
-                            attr:{
-                                r:5,
-                                class:'node'
-                            }
+                            attr:{ r:5, class:'node' }
                         });
 
                  simulation

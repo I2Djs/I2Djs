@@ -3477,6 +3477,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   DomExe.prototype.fetchEl = cfetchEl
   DomExe.prototype.fetchEls = cfetchEls
   DomExe.prototype.animateTo = animateTo
+  DomExe.prototype.animateExe = animateExe
   DomExe.prototype.animatePathTo = animatePathTo
   DomExe.prototype.morphTo = morphTo
 
@@ -3774,13 +3775,11 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         if (!self.rImageObj) {
           self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height)
           ctxX = self.rImageObj.getContext('2d')
+          ctxX.drawImage(
+            self.imageObj, 0, 0, width, height
+          )
         }
         ctxX = self.rImageObj.getContext('2d')
-        ctxX.drawImage(
-          self.imageObj, 0, 0, width, height
-        )
-        var ctxXXX = self.imageObj.getContext('2d')
-        console.log(ctxXXX.getImageData(0, 0, self.attr.width, self.attr.height))
         ctxX.putImageData(pixels.call(self, self.attr.pixels), 0, 0)
       }
 
