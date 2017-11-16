@@ -966,7 +966,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
   const easying = easing()
 
-  function transitionType (type) {
+  function ease (type) {
     this.easying = easying(type)
     this.transition = type
     return this
@@ -1005,7 +1005,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     return this
   }
   function child (exe) {
-    this.childExe = exe
+    this.end = exe
     return this
   }
 
@@ -1040,7 +1040,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     callbck: callbckExe,
     bind,
     child,
-    transitionType,
+    ease,
     end,
     commit,
     reset,
@@ -1054,7 +1054,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       value = [value]
     }
     value.map((d) => {
-      self.lengthV += d.length
+      self.lengthV += (d.length ? d.length : 0)
       return d
     })
     this.sequenceQueue = this.sequenceQueue.concat(value)
@@ -1093,21 +1093,20 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     if (!currObj) { return }
     if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
-      currObj.duration(currObj.durationP ? currObj.durationP
-        : (currObj.length / self.lengthV) * self.durationP)
+      // currObj.duration(currObj.durationP ? currObj.durationP
+      //   : (currObj.length / self.lengthV) * self.durationP)
       currObj.end(self.triggerEnd.bind(self, currObj)).commit()
     } else {
-      const tValue = currObj.durationP ? currObj.durationP
-        : ((currObj.length / self.lengthV) * self.durationP)
+      // const tValue = currObj.duration
       // const data_ = currObj.data ? currObj.data : self.data
-
+      // console.log(currObj)
       this.currObj = currObj
-      currObj.durationP = tValue
+      // currObj.durationP = tValue
       this.queue.add(generateChainId(), {
         run (f) {
           currObj.run(f)
         },
-        duration: tValue,
+        duration: currObj.duration,
         // ,
         // loop: self.loopValue,
         direction: self.factor < 0 ? 'reverse' : 'default',
@@ -1121,12 +1120,12 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   SequenceGroup.prototype.triggerEnd = function SGtriggerEnd (currObj) {
     const self = this
     self.currPos += self.factor
-    if (currObj.childExe) {
+    if (currObj.end) {
       self.triggerChild(currObj)
     }
     if (self.sequenceQueue.length === self.currPos || self.currPos < 0) {
       if (self.endExe) { self.endExe() }
-      if (self.childExe) { self.triggerChild(self) }
+      if (self.end) { self.triggerChild(self) }
 
       self.loopCounter += 1
       if (self.loopCounter < self.loopValue) {
@@ -1139,14 +1138,15 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
 
   SequenceGroup.prototype.triggerChild = function SGtriggerChild (currObj) {
-    if (currObj.childExe instanceof ParallelGroup || currObj.childExe instanceof SequenceGroup) {
+    if (currObj.end instanceof ParallelGroup || currObj.end instanceof SequenceGroup) {
       setTimeout(() => {
-        currObj.childExe.commit()
+        currObj.end.commit()
       }, 0)
     } else {
-      setTimeout(() => {
-        currObj.childExe.start()
-      }, 0)
+      currObj.end()
+      // setTimeout(() => {
+      //   currObj.childExe.start()
+      // }, 0)
     }
   }
 
@@ -1154,7 +1154,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     this.queue = queue()
     this.group = []
     this.currPos = 0
-    this.lengthV = 0
+    // this.lengthV = 0
     this.ID = generateRendererId()
     this.loopCounter = 1
     // this.transition = 'linear'
@@ -1166,7 +1166,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     callbck: callbckExe,
     bind,
     child,
-    transitionType,
+    ease,
     end,
     commit,
     direction
@@ -1177,16 +1177,15 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     if (!Array.isArray(value)) { value = [value] }
 
-    value.map((d) => {
-      self.lengthV += d.lengthV
-      return d
-    })
+    // value.map((d) => {
+    //   self.lengthV += d.lengthV
+    //   return d
+    // })
 
     this.group = this.group.concat(value)
 
     this.group.forEach((d) => {
       d.durationP = d.durationP ? d.durationP : self.durationP
-      // d.easying = self.easying;
     })
 
     return this
@@ -1201,14 +1200,14 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
       if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
         currObj
-          .duration(currObj.durationP ? currObj.durationP : self.durationP)
+          // .duration(currObj.durationP ? currObj.durationP : self.durationP)
           .end(self.triggerEnd.bind(self, currObj)).commit()
       } else {
         self.queue.add(generateChainId(), {
           run (f) {
             d.run(f)
           },
-          duration: self.durationP,
+          duration: currObj.duration,
           loop: 1,
           direction: self.factor < 0 ? 'reverse' : 'default',
           end: self.triggerEnd.bind(self, currObj)
@@ -1237,13 +1236,13 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     // Call child transition wen Entire parallelChain transition completes
     this.currPos += 1
 
-    if (currObj.childExe) {
-      this.triggerChild(currObj)
+    if (currObj.end) {
+      this.triggerChild(currObj.end)
     }
     if (this.currPos === this.group.length) {
       // Call child transition wen Entire parallelChain transition completes
-      if (this.endExe) { this.endExe() }
-      if (this.childExe) { this.triggerChild(this) }
+      if (this.endExe) { this.triggerChild(this.endExe) }
+      if (this.end) { this.triggerChild(this.end) }
 
       self.loopCounter += 1
       if (self.loopCounter < self.loopValue) {
@@ -1252,15 +1251,13 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     }
   }
 
-  ParallelGroup.prototype.triggerChild = function PGtriggerChild (currObj) {
-    if (currObj.childExe instanceof ParallelGroup || currObj.childExe instanceof SequenceGroup) {
-      setTimeout(() => {
-        currObj.childExe.commit()
-      }, 0)
+  ParallelGroup.prototype.triggerChild = function PGtriggerChild (exe) {
+    if (exe instanceof ParallelGroup || exe instanceof SequenceGroup) {
+      exe.commit()
+    } else if (typeof exe === 'function') {
+      exe()
     } else {
-      setTimeout(() => {
-        currObj.childExe.start()
-      }, 0)
+      console.log('wrong type')
     }
   }
 
@@ -2378,7 +2375,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       },
       duration: targetConfig.duration,
       delay: targetConfig.delay ? targetConfig.delay : 0,
-      end: targetConfig.end ? targetConfig.end.bind(self) : null,
+      end: targetConfig.end ? targetConfig.end.bind(self, self.dataObj) : null,
       loop: targetConfig.loop ? targetConfig.loop : 0,
       direction: targetConfig.direction ? targetConfig.direction : 'default'
     }
@@ -2472,6 +2469,26 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     return this
   }
 
+  const animateExe = function animateExe (targetConfig) {
+    return animate(this, targetConfig)
+  }
+
+  function resolveObject (config, node, i) {
+    let obj = {}
+    const attrs = Object.keys(config)
+    for (let j = 0; j < attrs.length; j += 1) {
+      const key = attrs[j]
+      if (key !== 'attr' && key !== 'styles' && key !== 'end') {
+        if (typeof config[key] === 'function') {
+          obj[key] = config[key].call(node, node.dataObj, i)
+        } else {
+          obj[key] = config[key]
+        }
+      }
+    }
+    return obj
+  }
+
   const animateArrayTo = function animateArrayTo (config) {
     let node
     let newConfig
@@ -2480,48 +2497,34 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       newConfig = {}
       node = this.stack[i]
 
-      const attrs = Object.keys(config)
-
-      for (let j = 0; j < attrs.length; j += 1) {
-        const key = attrs[j]
-        if (key !== 'attr' && key !== 'styles' && key !== 'end') {
-          if (typeof config[key] === 'function') {
-            newConfig[key] = config[key].call(node, node.dataObj, i)
-          } else {
-            newConfig[key] = config[key]
-          }
-        }
-      }
-      if (config.attr) {
-        newConfig.attr = {}
-        const keys = Object.keys(config.attr)
-        for (let j = 0; j < keys.length; j += 1) {
-          const key = keys[j]
-          if (typeof config.attr[key] === 'function') {
-            newConfig.attr[key] = config.attr[key].call(node, node.dataObj, i)
-          } else {
-            newConfig.attr[key] = config.attr[key]
-          }
-        }
-      }
-      if (config.styles) {
-        newConfig.styles = {}
-        const keys = Object.keys(config.styles)
-        for (let j = 0; j < keys.length; j += 1) {
-          const key = keys[j]
-          if (typeof config.styles[key] === 'function') {
-            newConfig.styles[key] = config.styles[key].call(node, node.dataObj, i)
-          } else {
-            newConfig.styles[key] = config.styles[key]
-          }
-        }
-      }
+      newConfig = resolveObject(config, node, i)
+      if (config.attr) { newConfig.attr = resolveObject(config.attr, node, i) }
+      if (config.styles) { newConfig.styles = resolveObject(config.styles, node, i) }
       if (config.end) { newConfig.end = config.end }
       if (config.ease) { newConfig.ease = config.ease }
 
       node.animateTo(newConfig)
     }
     return this
+  }
+  const animateArrayExe = function animateArrayExe (config) {
+    let node
+    let newConfig
+    let exeArray = []
+
+    for (let i = 0; i < this.stack.length; i += 1) {
+      newConfig = {}
+      node = this.stack[i]
+
+      newConfig = resolveObject(config, node, i)
+      if (config.attr) { newConfig.attr = resolveObject(config.attr, node, i) }
+      if (config.styles) { newConfig.styles = resolveObject(config.styles, node, i) }
+      if (config.end) { newConfig.end = config.end }
+      if (config.ease) { newConfig.ease = config.ease }
+
+      exeArray.push(node.animateExe(newConfig))
+    }
+    return exeArray
   }
 
   const animatePathArrayTo = function animatePathArrayTo (config) {
@@ -2566,7 +2569,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     let destPath = (new Path(destD)).stackGroup
 
     const chainInstance = chain.parallelChain()
-      .transitionType(ease)
+      .ease(ease)
       .duration(duration)
       .loop(loop)
       .direction(direction)
@@ -2601,7 +2604,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     chainInstance.duration(duration)
       .add(self.arrayStack)
-      .transitionType(ease)
+      .ease(ease)
       .loop(loop)
       .direction(direction)
       .commit()
@@ -2686,12 +2689,12 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     function normalizeCmds (cmd, n) {
       if (cmd.length === n) { return cmd }
-      const totaLength = cmd.reduce((pp, cc) => pp + cc.length, 0)
+      const totalLength = cmd.reduce((pp, cc) => pp + cc.length, 0)
       const arr = []
 
       for (let i = 0; i < cmd.length; i += 1) {
         const len = cmd[i].length
-        let counter = Math.floor((n / totaLength) * len)
+        let counter = Math.floor((n / totalLength) * len)
         if (counter <= 1) {
           arr.push(cmd[i])
         } else {
@@ -3012,6 +3015,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       duration, ease, end, loop, direction, d
     } = targetConfig
     const src = d || self.attr.d
+    let totalLength = 0
 
     self.arrayStack = []
 
@@ -3040,6 +3044,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
           },
           length: 0
         })
+        totalLength += 0
       } else if (['V', 'H', 'L'].indexOf(arrExe[i].type) !== -1) {
         mappedArr.push({
           run (f) {
@@ -3051,6 +3056,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
           render: linearTransitionBetweenPoints.bind(self, arrExe[i].p0, arrExe[i].p1),
           length: arrExe[i].length
         })
+        totalLength += arrExe[i].length
       } else if (arrExe[i].type === 'Q') {
         mappedArr.push({
           run (f) {
@@ -3062,6 +3068,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
           render: bezierTransition.bind(self, arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].p1),
           length: arrExe[i].length
         })
+        totalLength += arrExe[i].length
       } else if (arrExe[i].type === 'C' || arrExe[i].type === 'S') {
         const co = t2DGeometry.cubicBezierCoefficients(arrExe[i])
         mappedArr.push({
@@ -3081,6 +3088,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
           ),
           length: arrExe[i].length
         })
+        totalLength += arrExe[i].length
       } else if (arrExe[i].type === 'M') {
         mappedArr.push({
           run () {
@@ -3092,14 +3100,19 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
           render: buildMoveTo.bind(self, arrExe[i].p0),
           length: 0
         })
+        totalLength += 0
       } else {
         // console.log('M Or Other Type')
       }
     }
 
+    mappedArr.forEach(function (d) {
+      d.duration = (d.length / totalLength) * duration
+    })
+
     chainInstance.duration(duration)
       .add(mappedArr)
-      .transitionType(ease)
+      .ease(ease)
       .loop(loop || 0)
       .direction(direction || 'default')
 
@@ -3301,11 +3314,11 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       for (let i = 0; i < transforms.length; i += 1) {
         trnX = transforms[i]
         if (trnX === 'rotate') {
-          if (!this.attr.transform[trnX][1]) {
-            const boundingBox = this.dom.getBBox()
-            this.attr.transform[trnX][1] = boundingBox.x + boundingBox.width / 2
-            this.attr.transform[trnX][2] = boundingBox.y + boundingBox.height / 2
-          }
+          // if (!this.attr.transform[trnX][1]) {
+          //   const boundingBox = this.dom.getBBox()
+          //   this.attr.transform[trnX][1] = boundingBox.x + boundingBox.width / 2
+          //   this.attr.transform[trnX][2] = boundingBox.y + boundingBox.height / 2
+          // }
           cmd += `${trnX}(${this.attr.transform[trnX].join(' ')}) `
         } else if (trnX === 'translate') {
           cmd += `translate(${this.attr.transform[trnX].join(' ')}) `
@@ -3374,9 +3387,9 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
-  DomExe.prototype.rotate = function DMrotate (angle) {
+  DomExe.prototype.rotate = function DMrotate (angle, x, y) {
     if (!this.attr.transform) { this.attr.transform = {} }
-    this.attr.transform.rotate = [angle[0] % 360, angle[1] ? angle[1] : 0, angle[2] ? angle[2] : 0]
+    this.attr.transform.rotate = [angle % 360, x ? x : 0, y ? y : 0]
     if (this.changedAttribute.transform) {
       this.changedAttribute.transform.rotate = this.attr.transform.rotate
     } else {
@@ -3425,7 +3438,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     return this
   }
-  DomExe.prototype.getAttribute = function DMgetAttribute (_) {
+  DomExe.prototype.getAttr = function DMgetAttribute (_) {
     return this.attr[_]
   }
   DomExe.prototype.execute = function DMexecute () {
@@ -3573,18 +3586,13 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         ? transform.translate[1] : hozMove || 0
 
       self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove)
-
+      // self.ctx.save()
       if (transform.rotate) {
-        self.ctx.translate(
-          (self.BBox.x + (self.BBox.width / 2) - hozMove) / hozScale,
-          (self.BBox.y + (self.BBox.height / 2) - verMove) / verScale
-        )
+        self.ctx.translate(transform.cx, transform.cy)
         self.ctx.rotate(transform.rotate * (Math.PI / 180))
-        self.ctx.translate(
-          -(self.BBox.x + (self.BBox.width / 2) - hozMove) / hozScale,
-          -(self.BBox.y + (self.BBox.height / 2) - verMove) / verScale
-        )
+        self.ctx.translate(-(transform.cx), -(transform.cy))
       }
+      // self.ctx.restore()
     }
     for (let i = 0; i < self.stack.length; i += 1) {
       self.stack[i].execute()
@@ -3661,6 +3669,26 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     return new CanvasGradients(config, 'radial')
   }
 
+  function pixelObject (data, width, height, x, y) {
+    this.pixels = data
+    this.width = width
+    this.height = height
+    this.x = x
+    this.y = y
+  }
+  pixelObject.prototype.get = function (pos) {
+    let rIndex = ((pos.y - 1) * (this.width * 4)) + ((pos.x - 1) * 4)
+    return 'rgba(' + this.pixels[rIndex] + ', ' + this.pixels[rIndex + 1] + ', ' + this.pixels[rIndex + 2] + ', ' + this.pixels[rIndex + 3] + ')'
+  }
+  pixelObject.prototype.put = function (color, pos) {
+    let rIndex = ((pos.y - 1) * (this.width * 4)) + ((pos.x - 1) * 4)
+    this.pixels[rIndex] = color[0]
+    this.pixels[rIndex + 1] = color[1]
+    this.pixels[rIndex + 2] = color[2]
+    this.pixels[rIndex + 3] = color[3]
+    return this
+  }
+
   function pixels (pixHndlr) {
     const tObj = this.rImageObj ? this.rImageObj : this.imageObj
     const tCxt = tObj.getContext('2d')
@@ -3677,6 +3705,19 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     return canvas
   }
 
+  function createCanvasPattern (patternObj, repeatInd) {
+    const self = this
+    // self.children = []
+    // self.stack = [self]
+  }
+  createCanvasPattern.prototype = {
+  }
+  createCanvasPattern.prototype.setAttr = function CPsetAttr (attr, value) {
+    // this.attr[attr] = value
+  }
+  createCanvasPattern.prototype.execute = function CPexecute () {
+  }
+
   const imageDataMap = {}
 
   function RenderImage (ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
@@ -3686,10 +3727,13 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     self.styles = stylesProps
     self.nodeName = 'Image'
     self.image = new Image()
+    // self.image.crossOrigin="anonymous"
+    // self.image.setAttribute('crossOrigin', '*');
 
     self.image.onload = function onload () {
-      self.attr.height = self.attr.height ? self.attr.height : 0
-      self.attr.width = self.attr.width ? self.attr.width : 0
+      this.crossOrigin = 'anonymous'
+      self.attr.height = self.attr.height ? self.attr.height : this.height
+      self.attr.width = self.attr.width ? self.attr.width : this.width
       if (imageDataMap[self.attr.src]) {
         self.imageObj = imageDataMap[self.attr.src]
       } else {
@@ -3724,7 +3768,19 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
       if (self.attr.pixels) {
         let ctxX
+        const {
+          width, height
+        } = self.attr
+        if (!self.rImageObj) {
+          self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height)
+          ctxX = self.rImageObj.getContext('2d')
+        }
         ctxX = self.rImageObj.getContext('2d')
+        ctxX.drawImage(
+          self.imageObj, 0, 0, width, height
+        )
+        var ctxXXX = self.imageObj.getContext('2d')
+        console.log(ctxXXX.getImageData(0, 0, self.attr.width, self.attr.height))
         ctxX.putImageData(pixels.call(self, self.attr.pixels), 0, 0)
       }
 
@@ -3796,6 +3852,9 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     let scaleX = 1
     let scaleY = 1
     const { transform } = self.attr
+    let {
+      x, y, width, height
+    } = self.attr
 
     if (transform) {
       if (transform.translate) {
@@ -3808,10 +3867,10 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     }
 
     self.BBox = {
-      x: (translateX + self.attr.x) * scaleX,
-      y: (translateY + self.attr.y) * scaleY,
-      width: (self.attr.width) * scaleX,
-      height: (self.attr.height) * scaleY
+      x: (translateX + x) * scaleX,
+      y: (translateY + y) * scaleY,
+      width: (width ? width : 0) * scaleX,
+      height: (height ? height : 0) * scaleY
     }
 
     if (transform && transform.rotate) {
@@ -3824,7 +3883,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     const {
       width, height, x, y
     } = this.attr
-
     if (this.imageObj) {
       this.ctx.drawImage(
         this.rImageObj ? this.rImageObj : this.imageObj,
@@ -4603,17 +4661,20 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     return this
   }
 
-  CanvasNodeExe.prototype.getAttribute = function CgetAttribute (_) {
+  CanvasNodeExe.prototype.getAttr = function CgetAttribute (_) {
+    // console.log(this.attr);
     return this.attr[_]
   }
 
-  CanvasNodeExe.prototype.rotate = function Crotate (angle, XY) {
+  CanvasNodeExe.prototype.rotate = function Crotate (angle, x, y) {
     if (!this.attr.transform) { this.attr.transform = {} }
-    XY = XY || {
-      x: 0,
-      y: 0
-    }
+    // XY = XY || {
+    //   x: 0,
+    //   y: 0
+    // }
     this.attr.transform.rotate = angle
+    this.attr.transform.cx = x
+    this.attr.transform.cy = y
     this.dom.setAttr('transform', this.attr.transform)
 
     this.BBoxUpdate = true
@@ -4661,18 +4722,14 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
   CanvasNodeExe.prototype.execute = function Cexecute () {
     this.ctx.save()
-
     this.stylesExe()
     this.attributesExe()
-
     this.dom.applyStyles()
-
     if ((this.dom instanceof RenderGroup)) {
       for (let i = 0; i < this.children.length; i += 1) {
         this.children[i].execute()
       }
     }
-
     this.ctx.restore()
   }
 
@@ -4714,12 +4771,14 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     return this
   }
   CanvasNodeExe.prototype.animateTo = animateTo
+  CanvasNodeExe.prototype.animateExe = animateExe
   CanvasNodeExe.prototype.animatePathTo = animatePathTo
   CanvasNodeExe.prototype.morphTo = morphTo
   CanvasNodeExe.prototype.vDomIndex = null
   CanvasNodeExe.prototype.join = dataJoin
   CanvasNodeExe.prototype.createRadialGradient = createRadialGradient
   CanvasNodeExe.prototype.createLinearGradient = createLinearGradient
+  CanvasNodeExe.prototype.createPattern = createCanvasPattern
   CanvasNodeExe.prototype.createEls = function CcreateEls (data, config) {
     const e = new CreateElements({ type: 'CANVAS', ctx: this.dom.ctx }, data, config, this.vDomIndex)
     this.child(e.stack)
@@ -4822,6 +4881,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     rotate,
     scale,
     animateTo: animateArrayTo,
+    animateExe: animateArrayExe,
     animatePathTo: animatePathArrayTo,
     remove,
     text: textArray,
@@ -4861,6 +4921,32 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
   const renderer = {}
 
+  function createCanvasPattern(config) {
+    const self = this
+    const vDomIndex = self.vDomIndex
+    const layer = document.createElement('canvas')
+    const height = config.height ? config.height : 0
+    const width = config.width ? config.width : 0
+    const ctx = layer.getContext('2d')
+    ratio = getPixlRatio(ctx)
+    layer.setAttribute('height', height * ratio)
+    layer.setAttribute('width', width * ratio)
+    layer.style.height = `${height}px`
+    layer.style.width = `${width}px`
+
+    this.pattern =  new CanvasNodeExe(ctx, {
+      el: 'group',
+      attr: {
+        id: 'pattern',
+        transform: {
+          scale: [ratio, ratio]
+        }
+      }
+    }, domId(), vDomIndex)
+
+    return this.pattern
+  }
+
   renderer.CanvasLayer = function CanvasLayer (context, config) {
     let selectedNode
     // const selectiveClearing = config.selectiveClear ? config.selectiveClear : false
@@ -4873,8 +4959,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     } : config.onClear
 
     const layer = document.createElement('canvas')
-    res.appendChild(layer)
-
     const ctx = layer.getContext('2d')
 
     ratio = getPixlRatio(ctx)
@@ -4884,6 +4968,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     layer.style.height = `${height}px`
     layer.style.width = `${width}px`
     layer.style.position = 'absolute'
+
+    res.appendChild(layer)
 
     const vDomInstance = new VDom()
     const vDomIndex = queueInstance.addVdom(vDomInstance)
@@ -5004,6 +5090,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
 
   renderer.queue = queueInstance
+  renderer.geometry = t2DGeometry
+  renderer.chain = chain
 
   return renderer
 }))

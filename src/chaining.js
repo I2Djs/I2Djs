@@ -23,7 +23,7 @@
 
   const easying = easing()
 
-  function transitionType (type) {
+  function ease (type) {
     this.easying = easying(type)
     this.transition = type
     return this
@@ -62,7 +62,7 @@
     return this
   }
   function child (exe) {
-    this.childExe = exe
+    this.end = exe
     return this
   }
 
@@ -97,7 +97,7 @@
     callbck: callbckExe,
     bind,
     child,
-    transitionType,
+    ease,
     end,
     commit,
     reset,
@@ -111,7 +111,7 @@
       value = [value]
     }
     value.map((d) => {
-      self.lengthV += d.length
+      self.lengthV += (d.length ? d.length : 0)
       return d
     })
     this.sequenceQueue = this.sequenceQueue.concat(value)
@@ -150,21 +150,20 @@
 
     if (!currObj) { return }
     if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
-      currObj.duration(currObj.durationP ? currObj.durationP
-        : (currObj.length / self.lengthV) * self.durationP)
+      // currObj.duration(currObj.durationP ? currObj.durationP
+      //   : (currObj.length / self.lengthV) * self.durationP)
       currObj.end(self.triggerEnd.bind(self, currObj)).commit()
     } else {
-      const tValue = currObj.durationP ? currObj.durationP
-        : ((currObj.length / self.lengthV) * self.durationP)
+      // const tValue = currObj.duration
       // const data_ = currObj.data ? currObj.data : self.data
-
+      // console.log(currObj)
       this.currObj = currObj
-      currObj.durationP = tValue
+      // currObj.durationP = tValue
       this.queue.add(generateChainId(), {
         run (f) {
           currObj.run(f)
         },
-        duration: tValue,
+        duration: currObj.duration,
         // ,
         // loop: self.loopValue,
         direction: self.factor < 0 ? 'reverse' : 'default',
@@ -178,12 +177,12 @@
   SequenceGroup.prototype.triggerEnd = function SGtriggerEnd (currObj) {
     const self = this
     self.currPos += self.factor
-    if (currObj.childExe) {
+    if (currObj.end) {
       self.triggerChild(currObj)
     }
     if (self.sequenceQueue.length === self.currPos || self.currPos < 0) {
       if (self.endExe) { self.endExe() }
-      if (self.childExe) { self.triggerChild(self) }
+      if (self.end) { self.triggerChild(self) }
 
       self.loopCounter += 1
       if (self.loopCounter < self.loopValue) {
@@ -196,14 +195,15 @@
   }
 
   SequenceGroup.prototype.triggerChild = function SGtriggerChild (currObj) {
-    if (currObj.childExe instanceof ParallelGroup || currObj.childExe instanceof SequenceGroup) {
+    if (currObj.end instanceof ParallelGroup || currObj.end instanceof SequenceGroup) {
       setTimeout(() => {
-        currObj.childExe.commit()
+        currObj.end.commit()
       }, 0)
     } else {
-      setTimeout(() => {
-        currObj.childExe.start()
-      }, 0)
+      currObj.end()
+      // setTimeout(() => {
+      //   currObj.childExe.start()
+      // }, 0)
     }
   }
 
@@ -211,7 +211,7 @@
     this.queue = queue()
     this.group = []
     this.currPos = 0
-    this.lengthV = 0
+    // this.lengthV = 0
     this.ID = generateRendererId()
     this.loopCounter = 1
     // this.transition = 'linear'
@@ -223,7 +223,7 @@
     callbck: callbckExe,
     bind,
     child,
-    transitionType,
+    ease,
     end,
     commit,
     direction
@@ -234,16 +234,15 @@
 
     if (!Array.isArray(value)) { value = [value] }
 
-    value.map((d) => {
-      self.lengthV += d.lengthV
-      return d
-    })
+    // value.map((d) => {
+    //   self.lengthV += d.lengthV
+    //   return d
+    // })
 
     this.group = this.group.concat(value)
 
     this.group.forEach((d) => {
       d.durationP = d.durationP ? d.durationP : self.durationP
-      // d.easying = self.easying;
     })
 
     return this
@@ -258,14 +257,14 @@
 
       if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
         currObj
-          .duration(currObj.durationP ? currObj.durationP : self.durationP)
+          // .duration(currObj.durationP ? currObj.durationP : self.durationP)
           .end(self.triggerEnd.bind(self, currObj)).commit()
       } else {
         self.queue.add(generateChainId(), {
           run (f) {
             d.run(f)
           },
-          duration: self.durationP,
+          duration: currObj.duration,
           loop: 1,
           direction: self.factor < 0 ? 'reverse' : 'default',
           end: self.triggerEnd.bind(self, currObj)
@@ -294,13 +293,13 @@
     // Call child transition wen Entire parallelChain transition completes
     this.currPos += 1
 
-    if (currObj.childExe) {
-      this.triggerChild(currObj)
+    if (currObj.end) {
+      this.triggerChild(currObj.end)
     }
     if (this.currPos === this.group.length) {
       // Call child transition wen Entire parallelChain transition completes
-      if (this.endExe) { this.endExe() }
-      if (this.childExe) { this.triggerChild(this) }
+      if (this.endExe) { this.triggerChild(this.endExe) }
+      if (this.end) { this.triggerChild(this.end) }
 
       self.loopCounter += 1
       if (self.loopCounter < self.loopValue) {
@@ -309,15 +308,13 @@
     }
   }
 
-  ParallelGroup.prototype.triggerChild = function PGtriggerChild (currObj) {
-    if (currObj.childExe instanceof ParallelGroup || currObj.childExe instanceof SequenceGroup) {
-      setTimeout(() => {
-        currObj.childExe.commit()
-      }, 0)
+  ParallelGroup.prototype.triggerChild = function PGtriggerChild (exe) {
+    if (exe instanceof ParallelGroup || exe instanceof SequenceGroup) {
+      exe.commit()
+    } else if (typeof exe === 'function') {
+      exe()
     } else {
-      setTimeout(() => {
-        currObj.childExe.start()
-      }, 0)
+      console.log('wrong type')
     }
   }
 

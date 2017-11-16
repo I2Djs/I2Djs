@@ -877,7 +877,7 @@
       },
       duration: targetConfig.duration,
       delay: targetConfig.delay ? targetConfig.delay : 0,
-      end: targetConfig.end ? targetConfig.end.bind(self) : null,
+      end: targetConfig.end ? targetConfig.end.bind(self, self.dataObj) : null,
       loop: targetConfig.loop ? targetConfig.loop : 0,
       direction: targetConfig.direction ? targetConfig.direction : 'default'
     }
@@ -971,6 +971,26 @@
     return this
   }
 
+  const animateExe = function animateExe (targetConfig) {
+    return animate(this, targetConfig)
+  }
+
+  function resolveObject (config, node, i) {
+    let obj = {}
+    const attrs = Object.keys(config)
+    for (let j = 0; j < attrs.length; j += 1) {
+      const key = attrs[j]
+      if (key !== 'attr' && key !== 'styles' && key !== 'end') {
+        if (typeof config[key] === 'function') {
+          obj[key] = config[key].call(node, node.dataObj, i)
+        } else {
+          obj[key] = config[key]
+        }
+      }
+    }
+    return obj
+  }
+
   const animateArrayTo = function animateArrayTo (config) {
     let node
     let newConfig
@@ -979,48 +999,34 @@
       newConfig = {}
       node = this.stack[i]
 
-      const attrs = Object.keys(config)
-
-      for (let j = 0; j < attrs.length; j += 1) {
-        const key = attrs[j]
-        if (key !== 'attr' && key !== 'styles' && key !== 'end') {
-          if (typeof config[key] === 'function') {
-            newConfig[key] = config[key].call(node, node.dataObj, i)
-          } else {
-            newConfig[key] = config[key]
-          }
-        }
-      }
-      if (config.attr) {
-        newConfig.attr = {}
-        const keys = Object.keys(config.attr)
-        for (let j = 0; j < keys.length; j += 1) {
-          const key = keys[j]
-          if (typeof config.attr[key] === 'function') {
-            newConfig.attr[key] = config.attr[key].call(node, node.dataObj, i)
-          } else {
-            newConfig.attr[key] = config.attr[key]
-          }
-        }
-      }
-      if (config.styles) {
-        newConfig.styles = {}
-        const keys = Object.keys(config.styles)
-        for (let j = 0; j < keys.length; j += 1) {
-          const key = keys[j]
-          if (typeof config.styles[key] === 'function') {
-            newConfig.styles[key] = config.styles[key].call(node, node.dataObj, i)
-          } else {
-            newConfig.styles[key] = config.styles[key]
-          }
-        }
-      }
+      newConfig = resolveObject(config, node, i)
+      if (config.attr) { newConfig.attr = resolveObject(config.attr, node, i) }
+      if (config.styles) { newConfig.styles = resolveObject(config.styles, node, i) }
       if (config.end) { newConfig.end = config.end }
       if (config.ease) { newConfig.ease = config.ease }
 
       node.animateTo(newConfig)
     }
     return this
+  }
+  const animateArrayExe = function animateArrayExe (config) {
+    let node
+    let newConfig
+    let exeArray = []
+
+    for (let i = 0; i < this.stack.length; i += 1) {
+      newConfig = {}
+      node = this.stack[i]
+
+      newConfig = resolveObject(config, node, i)
+      if (config.attr) { newConfig.attr = resolveObject(config.attr, node, i) }
+      if (config.styles) { newConfig.styles = resolveObject(config.styles, node, i) }
+      if (config.end) { newConfig.end = config.end }
+      if (config.ease) { newConfig.ease = config.ease }
+
+      exeArray.push(node.animateExe(newConfig))
+    }
+    return exeArray
   }
 
   const animatePathArrayTo = function animatePathArrayTo (config) {
@@ -1065,7 +1071,7 @@
     let destPath = (new Path(destD)).stackGroup
 
     const chainInstance = chain.parallelChain()
-      .transitionType(ease)
+      .ease(ease)
       .duration(duration)
       .loop(loop)
       .direction(direction)
@@ -1100,7 +1106,7 @@
 
     chainInstance.duration(duration)
       .add(self.arrayStack)
-      .transitionType(ease)
+      .ease(ease)
       .loop(loop)
       .direction(direction)
       .commit()
@@ -1185,12 +1191,12 @@
 
     function normalizeCmds (cmd, n) {
       if (cmd.length === n) { return cmd }
-      const totaLength = cmd.reduce((pp, cc) => pp + cc.length, 0)
+      const totalLength = cmd.reduce((pp, cc) => pp + cc.length, 0)
       const arr = []
 
       for (let i = 0; i < cmd.length; i += 1) {
         const len = cmd[i].length
-        let counter = Math.floor((n / totaLength) * len)
+        let counter = Math.floor((n / totalLength) * len)
         if (counter <= 1) {
           arr.push(cmd[i])
         } else {
@@ -1511,6 +1517,7 @@
       duration, ease, end, loop, direction, d
     } = targetConfig
     const src = d || self.attr.d
+    let totalLength = 0
 
     self.arrayStack = []
 
@@ -1539,6 +1546,7 @@
           },
           length: 0
         })
+        totalLength += 0
       } else if (['V', 'H', 'L'].indexOf(arrExe[i].type) !== -1) {
         mappedArr.push({
           run (f) {
@@ -1550,6 +1558,7 @@
           render: linearTransitionBetweenPoints.bind(self, arrExe[i].p0, arrExe[i].p1),
           length: arrExe[i].length
         })
+        totalLength += arrExe[i].length
       } else if (arrExe[i].type === 'Q') {
         mappedArr.push({
           run (f) {
@@ -1561,6 +1570,7 @@
           render: bezierTransition.bind(self, arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].p1),
           length: arrExe[i].length
         })
+        totalLength += arrExe[i].length
       } else if (arrExe[i].type === 'C' || arrExe[i].type === 'S') {
         const co = t2DGeometry.cubicBezierCoefficients(arrExe[i])
         mappedArr.push({
@@ -1580,6 +1590,7 @@
           ),
           length: arrExe[i].length
         })
+        totalLength += arrExe[i].length
       } else if (arrExe[i].type === 'M') {
         mappedArr.push({
           run () {
@@ -1591,14 +1602,19 @@
           render: buildMoveTo.bind(self, arrExe[i].p0),
           length: 0
         })
+        totalLength += 0
       } else {
         // console.log('M Or Other Type')
       }
     }
 
+    mappedArr.forEach(function (d) {
+      d.duration = (d.length / totalLength) * duration
+    })
+
     chainInstance.duration(duration)
       .add(mappedArr)
-      .transitionType(ease)
+      .ease(ease)
       .loop(loop || 0)
       .direction(direction || 'default')
 
@@ -1925,7 +1941,6 @@
     return this
   }
   DomExe.prototype.getAttr = function DMgetAttribute (_) {
-
     return this.attr[_]
   }
   DomExe.prototype.execute = function DMexecute () {
@@ -2192,8 +2207,18 @@
     return canvas
   }
 
-  // function CanvasPattern (config) {
-  // }
+  function createCanvasPattern (patternObj, repeatInd) {
+    const self = this
+    // self.children = []
+    // self.stack = [self]
+  }
+  createCanvasPattern.prototype = {
+  }
+  createCanvasPattern.prototype.setAttr = function CPsetAttr (attr, value) {
+    // this.attr[attr] = value
+  }
+  createCanvasPattern.prototype.execute = function CPexecute () {
+  }
 
   const imageDataMap = {}
 
@@ -2208,9 +2233,7 @@
     // self.image.setAttribute('crossOrigin', '*');
 
     self.image.onload = function onload () {
-
-      this.crossOrigin = 'anonymous';
-
+      this.crossOrigin = 'anonymous'
       self.attr.height = self.attr.height ? self.attr.height : this.height
       self.attr.width = self.attr.width ? self.attr.width : this.width
       if (imageDataMap[self.attr.src]) {
@@ -2253,13 +2276,11 @@
         if (!self.rImageObj) {
           self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height)
           ctxX = self.rImageObj.getContext('2d')
+          ctxX.drawImage(
+            self.imageObj, 0, 0, width, height
+          )
         }
         ctxX = self.rImageObj.getContext('2d')
-        ctxX.drawImage(
-          self.imageObj, 0, 0, width, height
-        )
-        var ctxXXX = self.imageObj.getContext('2d');
-        console.log(ctxXXX.getImageData(0, 0, self.attr.width, self.attr.height))
         ctxX.putImageData(pixels.call(self, self.attr.pixels), 0, 0)
       }
 
@@ -2332,7 +2353,7 @@
     let scaleY = 1
     const { transform } = self.attr
     let {
-      x, y , width, height
+      x, y, width, height
     } = self.attr
 
     if (transform) {
@@ -3201,18 +3222,14 @@
   }
   CanvasNodeExe.prototype.execute = function Cexecute () {
     this.ctx.save()
-
     this.stylesExe()
     this.attributesExe()
-
     this.dom.applyStyles()
-
     if ((this.dom instanceof RenderGroup)) {
       for (let i = 0; i < this.children.length; i += 1) {
         this.children[i].execute()
       }
     }
-
     this.ctx.restore()
   }
 
@@ -3254,12 +3271,14 @@
     return this
   }
   CanvasNodeExe.prototype.animateTo = animateTo
+  CanvasNodeExe.prototype.animateExe = animateExe
   CanvasNodeExe.prototype.animatePathTo = animatePathTo
   CanvasNodeExe.prototype.morphTo = morphTo
   CanvasNodeExe.prototype.vDomIndex = null
   CanvasNodeExe.prototype.join = dataJoin
   CanvasNodeExe.prototype.createRadialGradient = createRadialGradient
   CanvasNodeExe.prototype.createLinearGradient = createLinearGradient
+  CanvasNodeExe.prototype.createPattern = createCanvasPattern
   CanvasNodeExe.prototype.createEls = function CcreateEls (data, config) {
     const e = new CreateElements({ type: 'CANVAS', ctx: this.dom.ctx }, data, config, this.vDomIndex)
     this.child(e.stack)
@@ -3362,6 +3381,7 @@
     rotate,
     scale,
     animateTo: animateArrayTo,
+    animateExe: animateArrayExe,
     animatePathTo: animatePathArrayTo,
     remove,
     text: textArray,
@@ -3401,6 +3421,32 @@
 
   const renderer = {}
 
+  function createCanvasPattern(config) {
+    const self = this
+    const vDomIndex = self.vDomIndex
+    const layer = document.createElement('canvas')
+    const height = config.height ? config.height : 0
+    const width = config.width ? config.width : 0
+    const ctx = layer.getContext('2d')
+    ratio = getPixlRatio(ctx)
+    layer.setAttribute('height', height * ratio)
+    layer.setAttribute('width', width * ratio)
+    layer.style.height = `${height}px`
+    layer.style.width = `${width}px`
+
+    this.pattern =  new CanvasNodeExe(ctx, {
+      el: 'group',
+      attr: {
+        id: 'pattern',
+        transform: {
+          scale: [ratio, ratio]
+        }
+      }
+    }, domId(), vDomIndex)
+
+    return this.pattern
+  }
+
   renderer.CanvasLayer = function CanvasLayer (context, config) {
     let selectedNode
     // const selectiveClearing = config.selectiveClear ? config.selectiveClear : false
@@ -3413,8 +3459,6 @@
     } : config.onClear
 
     const layer = document.createElement('canvas')
-    res.appendChild(layer)
-
     const ctx = layer.getContext('2d')
 
     ratio = getPixlRatio(ctx)
@@ -3424,6 +3468,8 @@
     layer.style.height = `${height}px`
     layer.style.width = `${width}px`
     layer.style.position = 'absolute'
+
+    res.appendChild(layer)
 
     const vDomInstance = new VDom()
     const vDomIndex = queueInstance.addVdom(vDomInstance)
@@ -3543,8 +3589,9 @@
     return root
   }
 
-  renderer.queue = queueInstance;
-  renderer.geometry = t2DGeometry;
+  renderer.queue = queueInstance
+  renderer.geometry = t2DGeometry
+  renderer.chain = chain
 
   return renderer
 }))
