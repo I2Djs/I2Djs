@@ -44,14 +44,14 @@
         var circleG = g.createEl({
                 el:'group'
             })
-        
-        var radialGradiant = renderer_.createRadialGradient({
-                                                            id:'radialG',
-                                                            innerCircle:{x:50,y:50,r:0},
-                                                            outerCircle:{x:50,y:50,r:50},
-                                                            colorStops:[{color:'rgb(11, 192, 255)',value:0},
-                                                                        {color:'black',value:100}]
-                                                            })
+        var linearGradiant = renderer_.createLinearGradient({id:'linearG',x1:0,y1:0,x2:0,y2:100,colorStops:[{color:'black',value:0},{color:'rgb(11, 192, 255)',value:50},{color:'black',value:100}]})
+        // var radialGradiant = renderer_.createRadialGradient({
+        //                                                     id:'radialG',
+        //                                                     innerCircle:{x:50,y:50,r:0},
+        //                                                     outerCircle:{x:50,y:50,r:50},
+        //                                                     colorStops:[{color:'rgb(11, 192, 255)',value:0},
+        //                                                                 {color:'black',value:100}]
+        //                                                     })
         
         var blastGradiant = renderer_.createRadialGradient({
                                                             id:'radialP',
@@ -110,7 +110,7 @@
                                 circleG.createEl({
                                         el:'circle',
                                         attr:{ r:0, cx:jsonData.nodes[0].x, cy:jsonData.nodes[0].y },
-                                        styles:{ fill:blastGradiant, 'line-Width':2 }
+                                        styles:{ fill:blastGradiant, 'line-width':1 }
                                     }).animateTo({
                                         duration:1000,
                                         ease:'easeOutCubic',
@@ -146,8 +146,8 @@
                                         y2:function(d){return d.source.y}
                                     },
                                     styles:{
-                                        stroke:'rgb(11, 192, 255)' ,//radialGradiant,
-                                        'stroke-width':'4px'
+                                        stroke:linearGradiant,
+                                        'stroke-width':'1px'
                                     }
                                 })
                                 .animateExe({
@@ -181,7 +181,7 @@
                                             attr:{ x:d.target.x, y:d.target.y+20 },
                                             styles:{ 
                                                 fill:'white',
-                                                'text-align':'middle'
+                                                'text-anchor':'middle'
                                             }
                                         }).text(d.target.ip)
 

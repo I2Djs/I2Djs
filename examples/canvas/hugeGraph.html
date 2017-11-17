@@ -65,8 +65,8 @@
                     .links(graph.links);
 
             function ticked(){
-                circles.setAttr('x',function(d){return d.x})
-                        .setAttr('y',function(d){return d.y})
+                circles.setAttr(function(d){return {x: d.x, y: d.y} })
+                        // .setAttr('y',function(d){return d.y})
 
                 links.forEach(function(d){
                     this.setAttr({x1:d.source.x,

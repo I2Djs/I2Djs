@@ -1678,22 +1678,33 @@
 
     this.linearEl = this.defs.join([1], 'linearGradient', {
       action: {
-        new (data) {
+        enter (data) {
           this.createEls(data, {
             el: 'linearGradient'
+          }).setAttr({
+            id: self.config.id,
+            x1: `${self.config.x1}%`,
+            y1: `${self.config.y1}%`,
+            x2: `${self.config.x2}%`,
+            y2: `${self.config.y2}%`
           })
         },
-        old (oldNodes, oldData) {
+        exit (oldNodes, oldData) {
           oldNodes.remove()
+        },
+        update (nodes, data) {
+          nodes.setAttr({
+            id: self.config.id,
+            x1: `${self.config.x1}%`,
+            y1: `${self.config.y1}%`,
+            x2: `${self.config.x2}%`,
+            y2: `${self.config.y2}%`
+          })
         }
       }
-    }).setAttr({
-      id: self.config.id,
-      x1: `${self.config.x1}%`,
-      y1: `${self.config.y1}%`,
-      x2: `${self.config.x2}%`,
-      y2: `${self.config.y2}%`
     })
+    
+    this.linearEl = this.linearEl.fetchEl('linearGradient')
 
     this.linearEl.fetchEls('stop').remove()
 
@@ -1715,22 +1726,32 @@
 
     this.radialEl = this.defs.join([1], 'radialGradient', {
       action: {
-        new (data) {
+        enter (data) {
           this.createEls(data, {
             el: 'radialGradient'
+          }).setAttr({
+            id: self.config.id,
+            cx: `${self.config.innerCircle.x}%`,
+            cy: `${self.config.innerCircle.y}%`,
+            r: `${self.config.outerCircle.r}%`,
+            fx: `${self.config.outerCircle.x}%`,
+            fy: `${self.config.outerCircle.y}%`
           })
         },
-        old (oldNodes, oldData) {
+        exit (oldNodes, oldData) {
           oldNodes.remove()
+        },
+        update (nodes,data) {
+          nodes.setAttr({
+            id: self.config.id,
+            cx: `${self.config.innerCircle.x}%`,
+            cy: `${self.config.innerCircle.y}%`,
+            r: `${self.config.outerCircle.r}%`,
+            fx: `${self.config.outerCircle.x}%`,
+            fy: `${self.config.outerCircle.y}%`
+          })
         }
       }
-    }).setAttr({
-      id: self.config.id,
-      cx: `${self.config.innerCircle.x}%`,
-      cy: `${self.config.innerCircle.y}%`,
-      r: `${self.config.outerCircle.r}%`,
-      fx: `${self.config.outerCircle.x}%`,
-      fy: `${self.config.outerCircle.y}%`
     })
 
     this.radialEl.fetchEls('stop').remove()
