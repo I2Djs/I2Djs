@@ -15,37 +15,19 @@
         var text = renderer.createEl({
                     el:'text',
                     attr:{
-                        x:0,
+                        x:100,
                         y:100
                     },
                     styles:{
                         fillStyle:'red'
                     }
                 })
-                .text('Uchiha... :)');
+                .text('Narayana... :)');
 
                 text.setStyle('font',"40px Arial");
-
+                
                 text.scale([2,2]);
 
-        var BBox = text.node().BBox;
-
-        var rect2 = renderer.createEl({
-                el:'rect',
-                attr:{
-                    x:BBox.x,
-                    y:BBox.y,
-                    width:BBox.width,
-                    height:BBox.height,
-                    transform:{
-                        
-                    }
-                },
-                styles:{
-                    strokeStyle:'#000000',
-                    shadowColor:"black"
-                }
-            });
 	</script>
 
 </body>
