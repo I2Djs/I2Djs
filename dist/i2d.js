@@ -1106,7 +1106,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         run (f) {
           currObj.run(f)
         },
-        duration: currObj.duration,
+        duration: currObj.duration ? currObj.duration : self.duration,
         // ,
         // loop: self.loopValue,
         direction: self.factor < 0 ? 'reverse' : 'default',
@@ -1177,13 +1177,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     if (!Array.isArray(value)) { value = [value] }
 
-    // value.map((d) => {
-    //   self.lengthV += d.lengthV
-    //   return d
-    // })
-
     this.group = this.group.concat(value)
-
     this.group.forEach((d) => {
       d.durationP = d.durationP ? d.durationP : self.durationP
     })
@@ -1207,7 +1201,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
           run (f) {
             d.run(f)
           },
-          duration: currObj.duration,
+          duration: currObj.duration ? currObj.duration : self.durationP,
           loop: 1,
           direction: self.factor < 0 ? 'reverse' : 'default',
           end: self.triggerEnd.bind(self, currObj)
@@ -1856,9 +1850,9 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         this.action.enter.call(this, data)
       }
     },
-    enumerable: true,
-    configurable: true,
-    writable: true
+    enumerable: false,
+    configurable: false,
+    writable: false
   }
   CompositeArray.pop = {
     value: function () {
@@ -1867,9 +1861,9 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         this.action.exit.call(this, this.fetchEl(this.selector, elData), [elData])
       }
     },
-    enumerable: true,
-    configurable: true,
-    writable: true
+    enumerable: false,
+    configurable: false,
+    writable: false
   }
   CompositeArray.remove = {
     value: function (data) {
@@ -1880,9 +1874,19 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         this.action.exit.call(this, this.fetchEls(this.selector, data), data)
       }
     },
-    enumerable: true,
+    enumerable: false,
     configurable: true,
-    writable: true
+    writable: false
+  }
+  CompositeArray.update = {
+    value: function () {
+      if (this.action.update) {
+        this.action.update.call(this, this.fetchEls(this.selector, this.data), this.data)
+      }
+    },
+    enumerable: false,
+    configurable: true,
+    writable: false
   }
 
   function dataJoin (data, selector, config) {
@@ -2643,15 +2647,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     }
 
     chainInstance.duration(duration)
-      .add(self.arrayStack)
-      .ease(ease)
-      .loop(loop)
-      .direction(direction)
       .commit()
-
-    // function generateStackId () {
-    //   return (Id++)
-    // }
 
     function toCubicCurves (stack) {
       if (!stack.length) { return }
@@ -3063,7 +3059,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     const chainInstance = chain.sequenceChain()
     const pathInstance = new Path(src)
-    // console.log(pathInstance)
     const arrExe = pathInstance.stackGroup.reduce((p, c) => {
       p = p.concat(c)
       return p
@@ -3783,6 +3778,20 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   createCanvasPattern.prototype.execute = function CPexecute () {
   }
 
+  function applyStyles () {
+    if (this.styles.fillStyle) { this.ctx.fill() }
+    if (this.styles.strokeStyle) { this.ctx.stroke() }
+  }
+
+  function CanvasDom () { }
+  CanvasDom.prototype = {
+    render: cRender,
+    on: addListener,
+    setAttr: domSetAttribute,
+    setStyle: domSetStyle,
+    applyStyles
+  }
+
   const imageDataMap = {}
 
   function RenderImage (ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
@@ -3864,11 +3873,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     self.stack = [self]
   }
-  RenderImage.prototype = {
-    render: cRender,
-    on: addListener,
-    setStyle: domSetStyle
-  }
+  RenderImage.prototype = new CanvasDom()
+  RenderImage.prototype.constructor = RenderImage
   RenderImage.prototype.setAttr = function RIsetAttr (attr, value) {
     const self = this
 
@@ -3956,9 +3962,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       )
     }
   }
-  RenderImage.prototype.applyStyles = function RIapplyStyles () {
-
-  }
+  RenderImage.prototype.applyStyles = function RIapplyStyles () {}
   RenderImage.prototype.in = function RIinfun (co) {
     return co.x >= this.attr.x && co.x <= this.attr.x + this.attr.width &&
      co.y >= this.attr.y && co.y <= this.attr.y + this.attr.height
@@ -3973,14 +3977,10 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     self.stack = [self]
   }
-  RenderText.prototype = {
-    render: cRender,
-    text (value) {
-      this.textContent = value
-    },
-    setAttr: domSetAttribute,
-    setStyle: domSetStyle,
-    on: addListener
+  RenderText.prototype = new CanvasDom()
+  RenderText.prototype.constructor = RenderText
+  RenderText.prototype.text = function RTtext (value) {
+    this.textContent = value
   }
   RenderText.prototype.updateBBox = function RTupdateBBox () {
     const self = this
@@ -4041,12 +4041,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     self.stack = [self]
   }
-  RenderCircle.prototype = {
-    render: cRender,
-    on: addListener,
-    setAttr: domSetAttribute,
-    setStyle: domSetStyle
-  }
+  RenderCircle.prototype = new CanvasDom()
+  RenderCircle.prototype.constructor = RenderCircle
   RenderCircle.prototype.updateBBox = function RCupdateBBox () {
     const self = this
     let translateX = 0
@@ -4078,14 +4074,9 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     }
   }
   RenderCircle.prototype.execute = function RCexecute () {
-    // this.ctx.moveTo(this.attr.cx+this.attr.r,this.attr.cy);
     this.ctx.beginPath()
     this.ctx.arc(this.attr.cx, this.attr.cy, this.attr.r, 0, 2 * Math.PI, false)
     this.ctx.closePath()
-  }
-  RenderCircle.prototype.applyStyles = function RCapplyStyles () {
-    if (this.styles.fillStyle) { this.ctx.fill() }
-    if (this.styles.strokeStyle) { this.ctx.stroke() }
   }
 
   RenderCircle.prototype.in = function RCinfun (co) {
@@ -4103,12 +4094,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     self.stack = [self]
   }
-  RenderLine.prototype = {
-    render: cRender,
-    on: addListener,
-    setAttr: domSetAttribute,
-    setStyle: domSetStyle
-  }
+  RenderLine.prototype = new CanvasDom()
+  RenderLine.prototype.constructor = RenderLine
   RenderLine.prototype.updateBBox = function RLupdateBBox () {
     const self = this
     let translateX = 0
@@ -4143,10 +4130,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     ctx.lineTo(this.attr.x2, this.attr.y2)
     ctx.closePath()
   }
-  RenderLine.prototype.applyStyles = function RLapplyStyles () {
-    if (this.styles.fillStyle) { this.ctx.fill() }
-    if (this.styles.strokeStyle) { this.ctx.stroke() }
-  }
   RenderLine.prototype.in = function RLinfun (co) {
     return parseFloat(t2DGeometry.getDistance({ x: this.attr.x1, y: this.attr.y1 }, co) +
       t2DGeometry.getDistance(co, { x: this.attr.x2, y: this.attr.y2 })).toFixed(1) ===
@@ -4175,11 +4158,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     return self
   }
-  RenderPath.prototype = {
-    render: cRender,
-    setStyle: domSetStyle,
-    on: addListener
-  }
+  RenderPath.prototype = new CanvasDom()
+  RenderPath.prototype.constructor = RenderPath
   RenderPath.prototype.updateBBox = function RPupdateBBox () {
     const self = this
     let translateX = 0
@@ -4230,9 +4210,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       if (this.styles.strokeStyle) { this.ctx.stroke(this.pathNode) }
     }
   }
-  RenderPath.prototype.applyStyles = function RPapplyStyles () {
-
-  }
+  RenderPath.prototype.applyStyles = function RPapplyStyles () {}
   RenderPath.prototype.in = function RPinfun (co) {
     if (!this.attr.d) {
       return false
@@ -4270,11 +4248,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     }
     return this
   }
-  RenderPolygon.prototype = {
-    render: cRender,
-    setStyle: domSetStyle,
-    on: addListener
-  }
+  RenderPolygon.prototype = new CanvasDom()
+  RenderPolygon.prototype.constructor = RenderPolygon
   RenderPolygon.prototype.setAttr = function RPolysetAttr (attr, value) {
     this.attr[attr] = value
     if (attr === 'points') {
@@ -4328,9 +4303,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       if (this.styles.strokeStyle) { this.ctx.stroke(this.polygon) }
     }
   }
-  RenderPolygon.prototype.applyStyles = function RPolyapplyStyles () {
-
-  }
+  RenderPolygon.prototype.applyStyles = function RPolyapplyStyles () {}
   RenderPolygon.prototype.in = function RPolyinfun (co) {
     if (!this.attr.points) {
       return false
@@ -4351,12 +4324,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     self.stack = [self]
     return this
   }
-  RenderEllipse.prototype = {
-    render: cRender,
-    setAttr: domSetAttribute,
-    setStyle: domSetStyle,
-    on: addListener
-  }
+  RenderEllipse.prototype = new CanvasDom()
+  RenderEllipse.prototype.constructor = RenderEllipse
   RenderEllipse.prototype.updateBBox = function REupdateBBox () {
     const self = this
     let translateX = 0
@@ -4400,10 +4369,10 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     ctx.closePath()
   }
 
-  RenderEllipse.prototype.applyStyles = function REapplyStyles () {
-    if (this.styles.fillStyle) { this.ctx.fill() }
-    if (this.styles.strokeStyle) { this.ctx.stroke() }
-  }
+  // RenderEllipse.prototype.applyStyles = function REapplyStyles () {
+  //   if (this.styles.fillStyle) { this.ctx.fill() }
+  //   if (this.styles.strokeStyle) { this.ctx.stroke() }
+  // }
 
   RenderEllipse.prototype.in = function REinfun (co) {
     const {
@@ -4426,13 +4395,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     self.stack = [self]
     return this
   }
-  RenderRect.prototype = {
-    // execute: c_buildRect,
-    render: cRender,
-    setAttr: domSetAttribute,
-    setStyle: domSetStyle,
-    on: addListener
-  }
+  RenderRect.prototype = new CanvasDom()
+  RenderRect.prototype.constructor = RenderRect
   RenderRect.prototype.updateBBox = function RRupdateBBox () {
     const self = this
     let translateX = 0
@@ -4466,11 +4430,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     ctx.closePath()
   }
 
-  RenderRect.prototype.applyStyles = function RRapplyStyles () {
-    if (this.styles.fillStyle) { this.ctx.fill() }
-    if (this.styles.strokeStyle) { this.ctx.stroke() }
-  }
-
   RenderRect.prototype.in = function RRinfun (co) {
     const {
       x, y, width, height
@@ -4490,12 +4449,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     self.stack = new Array(0)
     return this
   }
-  RenderGroup.prototype = {
-    render: cRender,
-    setAttr: domSetAttribute,
-    setStyle: domSetStyle,
-    on: addListener
-  }
+  RenderGroup.prototype = new CanvasDom()
+  RenderGroup.prototype.constructor = RenderGroup
   RenderGroup.prototype.updateBBox = function RGupdateBBox (children) {
     const self = this
     let minX
@@ -4565,13 +4520,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       })
     } else { console.log('wrong Object') }
   }
-  RenderGroup.prototype.applyStyles = function RGapplyStyles () {
-    //  console.log(this.styles)
-    if (this.styles.fillStyle) { this.ctx.fill() }
-    if (this.styles.strokeStyle) {
-      this.ctx.stroke()
-    }
-  }
+
   RenderGroup.prototype.in = function RGinfun (coOr) {
     const self = this
     const co = { x: coOr.x, y: coOr.y }
@@ -4642,7 +4591,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     }
 
     this.dom.nodeExe = this
-    // this.dom.setAttribute(this.attr);
     this.BBoxUpdate = true
     // queueInstance.vDomChanged(this.vDomIndex);
   }
@@ -4728,16 +4676,10 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
 
   CanvasNodeExe.prototype.getAttr = function CgetAttribute (_) {
-    // console.log(this.attr);
     return this.attr[_]
   }
-
   CanvasNodeExe.prototype.rotate = function Crotate (angle, x, y) {
     if (!this.attr.transform) { this.attr.transform = {} }
-    // XY = XY || {
-    //   x: 0,
-    //   y: 0
-    // }
     this.attr.transform.rotate = angle
     this.attr.transform.cx = x
     this.attr.transform.cy = y
@@ -4787,9 +4729,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     return this
   }
   CanvasNodeExe.prototype.execute = function Cexecute () {
-    // if (this.attr.transform) {
     this.ctx.save()
-    // }
     this.stylesExe()
     this.attributesExe()
     if ((this.dom instanceof RenderGroup)) {
@@ -4798,9 +4738,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       }
     }
     this.dom.applyStyles()
-    // if (this.attr.transform) {
     this.ctx.restore()
-    // }
   }
 
   CanvasNodeExe.prototype.child = function child (childrens) {
@@ -4878,11 +4816,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     queueInstance.vDomChanged(this.vDomIndex)
   }
-
-  // const createCanvasElement = function (obj) {
-  //   const root = this.dom
-  //   return root.createEl(obj)
-  // }
 
   function CreateElements (contextInfo, data, config, vDomIndex) {
     if (!data) { data = [] }
@@ -4973,11 +4906,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     return this
   }
 
-  // const createCanvasElements = function (data, config) {
-  //   const root = this.dom
-  //   return root.createEls(data, config)
-  // }
-
   function getPixlRatio (ctx) {
     const dpr = window.devicePixelRatio || 1
     const bsr = ctx.webkitBackingStorePixelRatio ||
@@ -4991,31 +4919,31 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
   const renderer = {}
 
-  function createCanvasPattern(config) {
-    const self = this
-    const vDomIndex = self.vDomIndex
-    const layer = document.createElement('canvas')
-    const height = config.height ? config.height : 0
-    const width = config.width ? config.width : 0
-    const ctx = layer.getContext('2d')
-    ratio = getPixlRatio(ctx)
-    layer.setAttribute('height', height * ratio)
-    layer.setAttribute('width', width * ratio)
-    layer.style.height = `${height}px`
-    layer.style.width = `${width}px`
+  // function createCanvasPattern(config) {
+  //   const self = this
+  //   const vDomIndex = self.vDomIndex
+  //   const layer = document.createElement('canvas')
+  //   const height = config.height ? config.height : 0
+  //   const width = config.width ? config.width : 0
+  //   const ctx = layer.getContext('2d')
+  //   ratio = getPixlRatio(ctx)
+  //   layer.setAttribute('height', height * ratio)
+  //   layer.setAttribute('width', width * ratio)
+  //   layer.style.height = `${height}px`
+  //   layer.style.width = `${width}px`
 
-    this.pattern =  new CanvasNodeExe(ctx, {
-      el: 'group',
-      attr: {
-        id: 'pattern',
-        transform: {
-          scale: [ratio, ratio]
-        }
-      }
-    }, domId(), vDomIndex)
+  //   this.pattern =  new CanvasNodeExe(ctx, {
+  //     el: 'group',
+  //     attr: {
+  //       id: 'pattern',
+  //       transform: {
+  //         scale: [ratio, ratio]
+  //       }
+  //     }
+  //   }, domId(), vDomIndex)
 
-    return this.pattern
-  }
+  //   return this.pattern
+  // }
 
   renderer.CanvasLayer = function CanvasLayer (context, config) {
     let selectedNode
@@ -5023,15 +4951,14 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     const res = document.querySelector(context)
     const height = config.height ? config.height : res.clientHeight
     const width = config.width ? config.width : res.clientWidth
-
-    const onClear = (config.onClear === 'clear' || !config.onClear) ? function (ctx) {
-      ctx.clearRect(0, 0, width * ratio, height * ratio)
-    } : config.onClear
-
     const layer = document.createElement('canvas')
     const ctx = layer.getContext('2d')
 
     ratio = getPixlRatio(ctx)
+
+    const onClear = (config.onClear === 'clear' || !config.onClear) ? function (ctx) {
+      ctx.clearRect(0, 0, width * ratio, height * ratio)
+    } : config.onClear
 
     layer.setAttribute('height', height * ratio)
     layer.setAttribute('width', width * ratio)
@@ -5101,35 +5028,25 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         }
       })
       res.addEventListener('click', (e) => {
-        // setTimeout(function(){
         if (selectedNode && selectedNode.dom.click) { selectedNode.dom.click.call(selectedNode, selectedNode.dataObj) }
-        // },0);
       })
       res.addEventListener('dblclick', (e) => {
-        // setTimeout(function(){
         if (selectedNode && selectedNode.dom.dblclick) { selectedNode.dom.dblclick.call(selectedNode, selectedNode.dataObj) }
-        // },0);
       })
       res.addEventListener('mousedown', (e) => {
-        // setTimeout(function(){
         if (selectedNode && selectedNode.dom.mousedown) {
           selectedNode.dom.mousedown.call(selectedNode, selectedNode.dataObj)
           selectedNode.down = true
         }
-        // },0);
       })
       res.addEventListener('mouseup', (e) => {
-        // setTimeout(function(){
         if (selectedNode && selectedNode.dom.mouseup && selectedNode.down) {
           selectedNode.dom.mouseup.call(selectedNode, selectedNode.dataObj)
           selectedNode.down = false
         }
-        // },0);
       })
       res.addEventListener('contextmenu', (e) => {
-        // setTimeout(function(){
         if (selectedNode && selectedNode.dom.contextmenu) { selectedNode.dom.contextmenu.call(selectedNode, selectedNode.dataObj) }
-        // },0);
       })
       document.addEventListener('drag', (e) => {
       }, false)
