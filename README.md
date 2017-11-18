@@ -25,7 +25,7 @@ Resources
 ---
 [API reference](https://github.com/I2djs/I2D/wiki/API-Reference)
 
-Examples
+Examples (SVG + Canvas)
 ---
 
 ### Basic Shapes
