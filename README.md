@@ -43,15 +43,13 @@ Examples (SVG + Canvas)
 ### Animation 
 <table>
     <tr>
-      <td width="20%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/circleMovementAnimation.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/circleMoveMent.gif"></a></td>
-      <td width="20%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/image.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/imageAnimation.gif"></a></td>
-      <td width="20%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathAnimator.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/PathAnimation.gif"></a></td>
-      <td width="20%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathMorph.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/PathMorphAnimation.gif"></a></td>
-      <td width="20%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/mouseAnimation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/circleMovementAnimation.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/circleMoveMent.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/image.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/imageAnimation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathAnimator.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/PathAnimation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathMorph.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/PathMorphAnimation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/mouseAnimation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent2.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/mouse2Animation.gif"></a></td>
     </tr>
-  <tr>
-    <td width="20%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent2.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/mouse2Animation.gif"></a></td>
-  </tr>
 </table>
 
 ### Graphs
