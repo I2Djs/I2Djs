@@ -28,11 +28,31 @@ Resources
 Examples
 ---
 
+### Basic Shapes
 <table>
     <tr>
-        <td width="25%">Graph<br><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="133" src="https://i2djs.github.io/I2Djs/examples/snaps/graph.gif"></a></td>
-        <td width="25%">Large Graph<br><a href="https://i2djs.github.io/I2Djs/examples/canvas/hugeGraph.html"><img width="133" src="https://i2djs.github.io/I2Djs/examples/snaps/circleMoveMent.gif"></a></td>
-        <td width="25%">Animation using Data Join<br><a href="https://i2djs.github.io/I2Djs/examples/canvas/graphAnimation.html"><img width="133" src="https://i2djs.github.io/I2Djs/examples/snaps/graphAnimation.gif"></a></td>
+        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/square.png"></a></td>
+        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/circle.png"></a></td>
+        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/line.png"></a></td>
+      <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/polygon.png"></a></td>
+      <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/ellipse.png"></a></td>
+      <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/image.png"></a></td>
+    </tr>
+</table>
+
+### Animation 
+<table>
+    <tr>
+        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/circleMoveMent.gif"></a></td>
+    </tr>
+</table>
+
+### Graphs
+<table>
+    <tr>
+        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/graph.gif"></a></td>
+        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/hugeGraph.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/hugeGraph.gif"></a></td>
+        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graphAnimation.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/graphAnimation.gif"></a></td>
     </tr>
 </table>
 
