@@ -25,6 +25,17 @@ Resources
 ---
 [API reference](https://github.com/I2djs/I2D/wiki/API-Reference)
 
+Examples
+---
+
+<table>
+    <tr>
+        <td width="25%">Graph<br><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="133" src="https://i2djs.github.io/I2Djs/examples/snaps/graph.gif"></a></td>
+        <td width="25%">Large Graph<br><a href="https://i2djs.github.io/I2Djs/examples/canvas/hugeGraph.html"><img width="133" src="https://i2djs.github.io/I2Djs/examples/snaps/circleMoveMent.gif"></a></td>
+        <td width="25%">Animation using Data Join<br><a href="https://i2djs.github.io/I2Djs/examples/canvas/graphAnimation.html"><img width="133" src="https://i2djs.github.io/I2Djs/examples/snaps/graphAnimation.gif"></a></td>
+    </tr>
+</table>
+
 ### Support & Compatibility
 I2D is implemented in ES2016. It supports Universal Module Definition(UMD)(AMD,CommonJS and vanilla environments) , based on the environment it can be imported accordingly.
 It is compatible with all modern browsers.
