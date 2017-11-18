@@ -1826,7 +1826,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       update: [],
       old: []
     }
-
     for (let i = 0; i < nodes.length; i += 1) {
       const index = dataIds.indexOf(cond(nodes[i].dataObj, i))
       if (index !== -1) {
@@ -1836,7 +1835,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         res.old.push(nodes[i])
       }
     }
-
     res.new = data.filter((d, i) => {
       const index = dataIds.indexOf(cond(d, i))
       if (index !== -1) {
@@ -1844,8 +1842,47 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         return true
       } return false
     })
-
     return res
+  }
+
+  let CompositeArray = {}
+  CompositeArray.push = {
+    value: function (data) {
+      if (Object.prototype.toString.call(data) !== '[object Array]') {
+        data = [data]
+      }
+      this.data = this.data.concat(data)
+      if (this.action.enter) {
+        this.action.enter.call(this, data)
+      }
+    },
+    enumerable: true,
+    configurable: true,
+    writable: true
+  }
+  CompositeArray.pop = {
+    value: function () {
+      let elData = this.data.pop()
+      if (this.action.exit) {
+        this.action.exit.call(this, this.fetchEl(this.selector, elData), [elData])
+      }
+    },
+    enumerable: true,
+    configurable: true,
+    writable: true
+  }
+  CompositeArray.remove = {
+    value: function (data) {
+      if (Object.prototype.toString.call(data) !== '[object Array]') {
+        data = [data]
+      }
+      if (this.action.exit) {
+        this.action.exit.call(this, this.fetchEls(this.selector, data), data)
+      }
+    },
+    enumerable: true,
+    configurable: true,
+    writable: true
   }
 
   function dataJoin (data, selector, config) {
@@ -1872,8 +1909,11 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         config.action.update.call(self, collection, joinResult.update.map(d => d.dataObj))
       }
     }
-
-    return self // (new CreateElements()).wrapper(self.children)
+    this.joinCond = joinCond
+    this.action = config.action
+    this.selector = selector
+    this.data = data
+    return Object.create(self, CompositeArray)
   }
 
   function generateStackId () {
@@ -3176,22 +3216,34 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     this.linearEl = this.defs.join([1], 'linearGradient', {
       action: {
-        new (data) {
+        enter (data) {
           this.createEls(data, {
             el: 'linearGradient'
           })
+            .setAttr({
+              id: self.config.id,
+              x1: `${self.config.x1}%`,
+              y1: `${self.config.y1}%`,
+              x2: `${self.config.x2}%`,
+              y2: `${self.config.y2}%`
+            })
         },
-        old (oldNodes, oldData) {
+        exit (oldNodes, oldData) {
           oldNodes.remove()
+        },
+        update (nodes, data) {
+          nodes.setAttr({
+            id: self.config.id,
+            x1: `${self.config.x1}%`,
+            y1: `${self.config.y1}%`,
+            x2: `${self.config.x2}%`,
+            y2: `${self.config.y2}%`
+          })
         }
       }
-    }).setAttr({
-      id: self.config.id,
-      x1: `${self.config.x1}%`,
-      y1: `${self.config.y1}%`,
-      x2: `${self.config.x2}%`,
-      y2: `${self.config.y2}%`
     })
+    
+    this.linearEl = this.linearEl.fetchEl('linearGradient')
 
     this.linearEl.fetchEls('stop').remove()
 
@@ -3213,23 +3265,35 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     this.radialEl = this.defs.join([1], 'radialGradient', {
       action: {
-        new (data) {
+        enter (data) {
           this.createEls(data, {
             el: 'radialGradient'
+          }).setAttr({
+            id: self.config.id,
+            cx: `${self.config.innerCircle.x}%`,
+            cy: `${self.config.innerCircle.y}%`,
+            r: `${self.config.outerCircle.r}%`,
+            fx: `${self.config.outerCircle.x}%`,
+            fy: `${self.config.outerCircle.y}%`
           })
         },
-        old (oldNodes, oldData) {
+        exit (oldNodes, oldData) {
           oldNodes.remove()
+        },
+        update (nodes, data) {
+          nodes.setAttr({
+            id: self.config.id,
+            cx: `${self.config.innerCircle.x}%`,
+            cy: `${self.config.innerCircle.y}%`,
+            r: `${self.config.outerCircle.r}%`,
+            fx: `${self.config.outerCircle.x}%`,
+            fy: `${self.config.outerCircle.y}%`
+          })
         }
       }
-    }).setAttr({
-      id: self.config.id,
-      cx: `${self.config.innerCircle.x}%`,
-      cy: `${self.config.innerCircle.y}%`,
-      r: `${self.config.outerCircle.r}%`,
-      fx: `${self.config.outerCircle.x}%`,
-      fy: `${self.config.outerCircle.y}%`
     })
+
+    this.radialEl = this.radialEl.fetchEl('radialGradient')
 
     this.radialEl.fetchEls('stop').remove()
 
@@ -4502,8 +4566,11 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     } else { console.log('wrong Object') }
   }
   RenderGroup.prototype.applyStyles = function RGapplyStyles () {
+    //  console.log(this.styles)
     if (this.styles.fillStyle) { this.ctx.fill() }
-    if (this.styles.strokeStyle) { this.ctx.stroke() }
+    if (this.styles.strokeStyle) {
+      this.ctx.stroke()
+    }
   }
   RenderGroup.prototype.in = function RGinfun (coOr) {
     const self = this
@@ -4720,16 +4787,20 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     return this
   }
   CanvasNodeExe.prototype.execute = function Cexecute () {
+    // if (this.attr.transform) {
     this.ctx.save()
+    // }
     this.stylesExe()
     this.attributesExe()
-    this.dom.applyStyles()
     if ((this.dom instanceof RenderGroup)) {
       for (let i = 0; i < this.children.length; i += 1) {
         this.children[i].execute()
       }
     }
+    this.dom.applyStyles()
+    // if (this.attr.transform) {
     this.ctx.restore()
+    // }
   }
 
   CanvasNodeExe.prototype.child = function child (childrens) {
@@ -5009,8 +5080,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
         if (selectedNode && tselectedNode !== selectedNode) {
           if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
-            if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, { da: 'test' }, e) }
-            if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, { da: 'test' }, e) }
+            if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
+            if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e) }
             selectedNode.hovered = false
           }
         }
@@ -5018,12 +5089,12 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
           selectedNode = tselectedNode
           if ((selectedNode.dom.mouseover || selectedNode.dom.mouseenter) &&
               !selectedNode.hovered) {
-            if (selectedNode.dom.mouseover) { selectedNode.dom.mouseover.call(selectedNode, { da: 'test' }, e) }
-            if (selectedNode.dom.mouseenter) { selectedNode.dom.mouseenter.call(selectedNode, { da: 'test' }, e) }
+            if (selectedNode.dom.mouseover) { selectedNode.dom.mouseover.call(selectedNode, selectedNode.dataObj, e) }
+            if (selectedNode.dom.mouseenter) { selectedNode.dom.mouseenter.call(selectedNode, selectedNode.dataObj, e) }
             selectedNode.hovered = true
           }
           if (selectedNode.dom.mousemove) {
-            selectedNode.dom.mousemove.call(selectedNode, { da: 'test' }, e)
+            selectedNode.dom.mousemove.call(selectedNode, selectedNode.dataObj, e)
           }
         } else {
           selectedNode = undefined
@@ -5031,18 +5102,18 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       })
       res.addEventListener('click', (e) => {
         // setTimeout(function(){
-        if (selectedNode && selectedNode.dom.click) { selectedNode.dom.click.call(selectedNode, { da: 'test' }) }
+        if (selectedNode && selectedNode.dom.click) { selectedNode.dom.click.call(selectedNode, selectedNode.dataObj) }
         // },0);
       })
       res.addEventListener('dblclick', (e) => {
         // setTimeout(function(){
-        if (selectedNode && selectedNode.dom.dblclick) { selectedNode.dom.dblclick.call(selectedNode, { da: 'test' }) }
+        if (selectedNode && selectedNode.dom.dblclick) { selectedNode.dom.dblclick.call(selectedNode, selectedNode.dataObj) }
         // },0);
       })
       res.addEventListener('mousedown', (e) => {
         // setTimeout(function(){
         if (selectedNode && selectedNode.dom.mousedown) {
-          selectedNode.dom.mousedown.call(selectedNode, { da: 'test' })
+          selectedNode.dom.mousedown.call(selectedNode, selectedNode.dataObj)
           selectedNode.down = true
         }
         // },0);
@@ -5050,14 +5121,14 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       res.addEventListener('mouseup', (e) => {
         // setTimeout(function(){
         if (selectedNode && selectedNode.dom.mouseup && selectedNode.down) {
-          selectedNode.dom.mouseup.call(selectedNode, { da: 'test' })
+          selectedNode.dom.mouseup.call(selectedNode, selectedNode.dataObj)
           selectedNode.down = false
         }
         // },0);
       })
       res.addEventListener('contextmenu', (e) => {
         // setTimeout(function(){
-        if (selectedNode && selectedNode.dom.contextmenu) { selectedNode.dom.contextmenu.call(selectedNode, { da: 'test' }) }
+        if (selectedNode && selectedNode.dom.contextmenu) { selectedNode.dom.contextmenu.call(selectedNode, selectedNode.dataObj) }
         // },0);
       })
       document.addEventListener('drag', (e) => {

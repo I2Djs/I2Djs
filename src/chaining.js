@@ -163,7 +163,7 @@
         run (f) {
           currObj.run(f)
         },
-        duration: currObj.duration,
+        duration: currObj.duration ? currObj.duration : self.duration,
         // ,
         // loop: self.loopValue,
         direction: self.factor < 0 ? 'reverse' : 'default',
@@ -234,13 +234,7 @@
 
     if (!Array.isArray(value)) { value = [value] }
 
-    // value.map((d) => {
-    //   self.lengthV += d.lengthV
-    //   return d
-    // })
-
     this.group = this.group.concat(value)
-
     this.group.forEach((d) => {
       d.durationP = d.durationP ? d.durationP : self.durationP
     })
@@ -264,7 +258,7 @@
           run (f) {
             d.run(f)
           },
-          duration: currObj.duration,
+          duration: currObj.duration ? currObj.duration : self.durationP,
           loop: 1,
           direction: self.factor < 0 ? 'reverse' : 'default',
           end: self.triggerEnd.bind(self, currObj)

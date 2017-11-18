@@ -328,7 +328,6 @@
       update: [],
       old: []
     }
-
     for (let i = 0; i < nodes.length; i += 1) {
       const index = dataIds.indexOf(cond(nodes[i].dataObj, i))
       if (index !== -1) {
@@ -338,7 +337,6 @@
         res.old.push(nodes[i])
       }
     }
-
     res.new = data.filter((d, i) => {
       const index = dataIds.indexOf(cond(d, i))
       if (index !== -1) {
@@ -346,8 +344,57 @@
         return true
       } return false
     })
-
     return res
+  }
+
+  let CompositeArray = {}
+  CompositeArray.push = {
+    value: function (data) {
+      if (Object.prototype.toString.call(data) !== '[object Array]') {
+        data = [data]
+      }
+      this.data = this.data.concat(data)
+      if (this.action.enter) {
+        this.action.enter.call(this, data)
+      }
+    },
+    enumerable: false,
+    configurable: false,
+    writable: false
+  }
+  CompositeArray.pop = {
+    value: function () {
+      let elData = this.data.pop()
+      if (this.action.exit) {
+        this.action.exit.call(this, this.fetchEl(this.selector, elData), [elData])
+      }
+    },
+    enumerable: false,
+    configurable: false,
+    writable: false
+  }
+  CompositeArray.remove = {
+    value: function (data) {
+      if (Object.prototype.toString.call(data) !== '[object Array]') {
+        data = [data]
+      }
+      if (this.action.exit) {
+        this.action.exit.call(this, this.fetchEls(this.selector, data), data)
+      }
+    },
+    enumerable: false,
+    configurable: true,
+    writable: false
+  }
+  CompositeArray.update = {
+    value: function () {
+      if (this.action.update) {
+        this.action.update.call(this, this.fetchEls(this.selector, this.data), this.data)
+      }
+    },
+    enumerable: false,
+    configurable: true,
+    writable: false
   }
 
   function dataJoin (data, selector, config) {
@@ -374,8 +421,11 @@
         config.action.update.call(self, collection, joinResult.update.map(d => d.dataObj))
       }
     }
-
-    return self // (new CreateElements()).wrapper(self.children)
+    this.joinCond = joinCond
+    this.action = config.action
+    this.selector = selector
+    this.data = data
+    return Object.create(self, CompositeArray)
   }
 
   function generateStackId () {
@@ -1105,15 +1155,7 @@
     }
 
     chainInstance.duration(duration)
-      .add(self.arrayStack)
-      .ease(ease)
-      .loop(loop)
-      .direction(direction)
       .commit()
-
-    // function generateStackId () {
-    //   return (Id++)
-    // }
 
     function toCubicCurves (stack) {
       if (!stack.length) { return }
@@ -1525,7 +1567,6 @@
 
     const chainInstance = chain.sequenceChain()
     const pathInstance = new Path(src)
-    // console.log(pathInstance)
     const arrExe = pathInstance.stackGroup.reduce((p, c) => {
       p = p.concat(c)
       return p
@@ -1681,13 +1722,14 @@
         enter (data) {
           this.createEls(data, {
             el: 'linearGradient'
-          }).setAttr({
-            id: self.config.id,
-            x1: `${self.config.x1}%`,
-            y1: `${self.config.y1}%`,
-            x2: `${self.config.x2}%`,
-            y2: `${self.config.y2}%`
           })
+            .setAttr({
+              id: self.config.id,
+              x1: `${self.config.x1}%`,
+              y1: `${self.config.y1}%`,
+              x2: `${self.config.x2}%`,
+              y2: `${self.config.y2}%`
+            })
         },
         exit (oldNodes, oldData) {
           oldNodes.remove()
@@ -1741,7 +1783,7 @@
         exit (oldNodes, oldData) {
           oldNodes.remove()
         },
-        update (nodes,data) {
+        update (nodes, data) {
           nodes.setAttr({
             id: self.config.id,
             cx: `${self.config.innerCircle.x}%`,
@@ -1753,6 +1795,8 @@
         }
       }
     })
+
+    this.radialEl = this.radialEl.fetchEl('radialGradient')
 
     this.radialEl.fetchEls('stop').remove()
 
@@ -2242,6 +2286,20 @@
   createCanvasPattern.prototype.execute = function CPexecute () {
   }
 
+  function applyStyles () {
+    if (this.styles.fillStyle) { this.ctx.fill() }
+    if (this.styles.strokeStyle) { this.ctx.stroke() }
+  }
+
+  function CanvasDom () { }
+  CanvasDom.prototype = {
+    render: cRender,
+    on: addListener,
+    setAttr: domSetAttribute,
+    setStyle: domSetStyle,
+    applyStyles
+  }
+
   const imageDataMap = {}
 
   function RenderImage (ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
@@ -2323,11 +2381,8 @@
 
     self.stack = [self]
   }
-  RenderImage.prototype = {
-    render: cRender,
-    on: addListener,
-    setStyle: domSetStyle
-  }
+  RenderImage.prototype = new CanvasDom()
+  RenderImage.prototype.constructor = RenderImage
   RenderImage.prototype.setAttr = function RIsetAttr (attr, value) {
     const self = this
 
@@ -2415,9 +2470,7 @@
       )
     }
   }
-  RenderImage.prototype.applyStyles = function RIapplyStyles () {
-
-  }
+  RenderImage.prototype.applyStyles = function RIapplyStyles () {}
   RenderImage.prototype.in = function RIinfun (co) {
     return co.x >= this.attr.x && co.x <= this.attr.x + this.attr.width &&
      co.y >= this.attr.y && co.y <= this.attr.y + this.attr.height
@@ -2432,14 +2485,10 @@
 
     self.stack = [self]
   }
-  RenderText.prototype = {
-    render: cRender,
-    text (value) {
-      this.textContent = value
-    },
-    setAttr: domSetAttribute,
-    setStyle: domSetStyle,
-    on: addListener
+  RenderText.prototype = new CanvasDom()
+  RenderText.prototype.constructor = RenderText
+  RenderText.prototype.text = function RTtext (value) {
+    this.textContent = value
   }
   RenderText.prototype.updateBBox = function RTupdateBBox () {
     const self = this
@@ -2500,12 +2549,8 @@
 
     self.stack = [self]
   }
-  RenderCircle.prototype = {
-    render: cRender,
-    on: addListener,
-    setAttr: domSetAttribute,
-    setStyle: domSetStyle
-  }
+  RenderCircle.prototype = new CanvasDom()
+  RenderCircle.prototype.constructor = RenderCircle
   RenderCircle.prototype.updateBBox = function RCupdateBBox () {
     const self = this
     let translateX = 0
@@ -2537,14 +2582,9 @@
     }
   }
   RenderCircle.prototype.execute = function RCexecute () {
-    // this.ctx.moveTo(this.attr.cx+this.attr.r,this.attr.cy);
     this.ctx.beginPath()
     this.ctx.arc(this.attr.cx, this.attr.cy, this.attr.r, 0, 2 * Math.PI, false)
     this.ctx.closePath()
-  }
-  RenderCircle.prototype.applyStyles = function RCapplyStyles () {
-    if (this.styles.fillStyle) { this.ctx.fill() }
-    if (this.styles.strokeStyle) { this.ctx.stroke() }
   }
 
   RenderCircle.prototype.in = function RCinfun (co) {
@@ -2562,12 +2602,8 @@
 
     self.stack = [self]
   }
-  RenderLine.prototype = {
-    render: cRender,
-    on: addListener,
-    setAttr: domSetAttribute,
-    setStyle: domSetStyle
-  }
+  RenderLine.prototype = new CanvasDom()
+  RenderLine.prototype.constructor = RenderLine
   RenderLine.prototype.updateBBox = function RLupdateBBox () {
     const self = this
     let translateX = 0
@@ -2602,10 +2638,6 @@
     ctx.lineTo(this.attr.x2, this.attr.y2)
     ctx.closePath()
   }
-  RenderLine.prototype.applyStyles = function RLapplyStyles () {
-    if (this.styles.fillStyle) { this.ctx.fill() }
-    if (this.styles.strokeStyle) { this.ctx.stroke() }
-  }
   RenderLine.prototype.in = function RLinfun (co) {
     return parseFloat(t2DGeometry.getDistance({ x: this.attr.x1, y: this.attr.y1 }, co) +
       t2DGeometry.getDistance(co, { x: this.attr.x2, y: this.attr.y2 })).toFixed(1) ===
@@ -2634,11 +2666,8 @@
 
     return self
   }
-  RenderPath.prototype = {
-    render: cRender,
-    setStyle: domSetStyle,
-    on: addListener
-  }
+  RenderPath.prototype = new CanvasDom()
+  RenderPath.prototype.constructor = RenderPath
   RenderPath.prototype.updateBBox = function RPupdateBBox () {
     const self = this
     let translateX = 0
@@ -2689,9 +2718,7 @@
       if (this.styles.strokeStyle) { this.ctx.stroke(this.pathNode) }
     }
   }
-  RenderPath.prototype.applyStyles = function RPapplyStyles () {
-
-  }
+  RenderPath.prototype.applyStyles = function RPapplyStyles () {}
   RenderPath.prototype.in = function RPinfun (co) {
     if (!this.attr.d) {
       return false
@@ -2729,11 +2756,8 @@
     }
     return this
   }
-  RenderPolygon.prototype = {
-    render: cRender,
-    setStyle: domSetStyle,
-    on: addListener
-  }
+  RenderPolygon.prototype = new CanvasDom()
+  RenderPolygon.prototype.constructor = RenderPolygon
   RenderPolygon.prototype.setAttr = function RPolysetAttr (attr, value) {
     this.attr[attr] = value
     if (attr === 'points') {
@@ -2787,9 +2811,7 @@
       if (this.styles.strokeStyle) { this.ctx.stroke(this.polygon) }
     }
   }
-  RenderPolygon.prototype.applyStyles = function RPolyapplyStyles () {
-
-  }
+  RenderPolygon.prototype.applyStyles = function RPolyapplyStyles () {}
   RenderPolygon.prototype.in = function RPolyinfun (co) {
     if (!this.attr.points) {
       return false
@@ -2810,12 +2832,8 @@
     self.stack = [self]
     return this
   }
-  RenderEllipse.prototype = {
-    render: cRender,
-    setAttr: domSetAttribute,
-    setStyle: domSetStyle,
-    on: addListener
-  }
+  RenderEllipse.prototype = new CanvasDom()
+  RenderEllipse.prototype.constructor = RenderEllipse
   RenderEllipse.prototype.updateBBox = function REupdateBBox () {
     const self = this
     let translateX = 0
@@ -2859,10 +2877,10 @@
     ctx.closePath()
   }
 
-  RenderEllipse.prototype.applyStyles = function REapplyStyles () {
-    if (this.styles.fillStyle) { this.ctx.fill() }
-    if (this.styles.strokeStyle) { this.ctx.stroke() }
-  }
+  // RenderEllipse.prototype.applyStyles = function REapplyStyles () {
+  //   if (this.styles.fillStyle) { this.ctx.fill() }
+  //   if (this.styles.strokeStyle) { this.ctx.stroke() }
+  // }
 
   RenderEllipse.prototype.in = function REinfun (co) {
     const {
@@ -2885,13 +2903,8 @@
     self.stack = [self]
     return this
   }
-  RenderRect.prototype = {
-    // execute: c_buildRect,
-    render: cRender,
-    setAttr: domSetAttribute,
-    setStyle: domSetStyle,
-    on: addListener
-  }
+  RenderRect.prototype = new CanvasDom()
+  RenderRect.prototype.constructor = RenderRect
   RenderRect.prototype.updateBBox = function RRupdateBBox () {
     const self = this
     let translateX = 0
@@ -2925,11 +2938,6 @@
     ctx.closePath()
   }
 
-  RenderRect.prototype.applyStyles = function RRapplyStyles () {
-    if (this.styles.fillStyle) { this.ctx.fill() }
-    if (this.styles.strokeStyle) { this.ctx.stroke() }
-  }
-
   RenderRect.prototype.in = function RRinfun (co) {
     const {
       x, y, width, height
@@ -2949,12 +2957,8 @@
     self.stack = new Array(0)
     return this
   }
-  RenderGroup.prototype = {
-    render: cRender,
-    setAttr: domSetAttribute,
-    setStyle: domSetStyle,
-    on: addListener
-  }
+  RenderGroup.prototype = new CanvasDom()
+  RenderGroup.prototype.constructor = RenderGroup
   RenderGroup.prototype.updateBBox = function RGupdateBBox (children) {
     const self = this
     let minX
@@ -3024,10 +3028,7 @@
       })
     } else { console.log('wrong Object') }
   }
-  RenderGroup.prototype.applyStyles = function RGapplyStyles () {
-    if (this.styles.fillStyle) { this.ctx.fill() }
-    if (this.styles.strokeStyle) { this.ctx.stroke() }
-  }
+
   RenderGroup.prototype.in = function RGinfun (coOr) {
     const self = this
     const co = { x: coOr.x, y: coOr.y }
@@ -3098,7 +3099,6 @@
     }
 
     this.dom.nodeExe = this
-    // this.dom.setAttribute(this.attr);
     this.BBoxUpdate = true
     // queueInstance.vDomChanged(this.vDomIndex);
   }
@@ -3184,16 +3184,10 @@
   }
 
   CanvasNodeExe.prototype.getAttr = function CgetAttribute (_) {
-    // console.log(this.attr);
     return this.attr[_]
   }
-
   CanvasNodeExe.prototype.rotate = function Crotate (angle, x, y) {
     if (!this.attr.transform) { this.attr.transform = {} }
-    // XY = XY || {
-    //   x: 0,
-    //   y: 0
-    // }
     this.attr.transform.rotate = angle
     this.attr.transform.cx = x
     this.attr.transform.cy = y
@@ -3246,12 +3240,12 @@
     this.ctx.save()
     this.stylesExe()
     this.attributesExe()
-    this.dom.applyStyles()
     if ((this.dom instanceof RenderGroup)) {
       for (let i = 0; i < this.children.length; i += 1) {
         this.children[i].execute()
       }
     }
+    this.dom.applyStyles()
     this.ctx.restore()
   }
 
@@ -3330,11 +3324,6 @@
 
     queueInstance.vDomChanged(this.vDomIndex)
   }
-
-  // const createCanvasElement = function (obj) {
-  //   const root = this.dom
-  //   return root.createEl(obj)
-  // }
 
   function CreateElements (contextInfo, data, config, vDomIndex) {
     if (!data) { data = [] }
@@ -3425,11 +3414,6 @@
     return this
   }
 
-  // const createCanvasElements = function (data, config) {
-  //   const root = this.dom
-  //   return root.createEls(data, config)
-  // }
-
   function getPixlRatio (ctx) {
     const dpr = window.devicePixelRatio || 1
     const bsr = ctx.webkitBackingStorePixelRatio ||
@@ -3443,31 +3427,31 @@
 
   const renderer = {}
 
-  function createCanvasPattern(config) {
-    const self = this
-    const vDomIndex = self.vDomIndex
-    const layer = document.createElement('canvas')
-    const height = config.height ? config.height : 0
-    const width = config.width ? config.width : 0
-    const ctx = layer.getContext('2d')
-    ratio = getPixlRatio(ctx)
-    layer.setAttribute('height', height * ratio)
-    layer.setAttribute('width', width * ratio)
-    layer.style.height = `${height}px`
-    layer.style.width = `${width}px`
+  // function createCanvasPattern(config) {
+  //   const self = this
+  //   const vDomIndex = self.vDomIndex
+  //   const layer = document.createElement('canvas')
+  //   const height = config.height ? config.height : 0
+  //   const width = config.width ? config.width : 0
+  //   const ctx = layer.getContext('2d')
+  //   ratio = getPixlRatio(ctx)
+  //   layer.setAttribute('height', height * ratio)
+  //   layer.setAttribute('width', width * ratio)
+  //   layer.style.height = `${height}px`
+  //   layer.style.width = `${width}px`
 
-    this.pattern =  new CanvasNodeExe(ctx, {
-      el: 'group',
-      attr: {
-        id: 'pattern',
-        transform: {
-          scale: [ratio, ratio]
-        }
-      }
-    }, domId(), vDomIndex)
+  //   this.pattern =  new CanvasNodeExe(ctx, {
+  //     el: 'group',
+  //     attr: {
+  //       id: 'pattern',
+  //       transform: {
+  //         scale: [ratio, ratio]
+  //       }
+  //     }
+  //   }, domId(), vDomIndex)
 
-    return this.pattern
-  }
+  //   return this.pattern
+  // }
 
   renderer.CanvasLayer = function CanvasLayer (context, config) {
     let selectedNode
@@ -3475,15 +3459,14 @@
     const res = document.querySelector(context)
     const height = config.height ? config.height : res.clientHeight
     const width = config.width ? config.width : res.clientWidth
-
-    const onClear = (config.onClear === 'clear' || !config.onClear) ? function (ctx) {
-      ctx.clearRect(0, 0, width * ratio, height * ratio)
-    } : config.onClear
-
     const layer = document.createElement('canvas')
     const ctx = layer.getContext('2d')
 
     ratio = getPixlRatio(ctx)
+
+    const onClear = (config.onClear === 'clear' || !config.onClear) ? function (ctx) {
+      ctx.clearRect(0, 0, width * ratio, height * ratio)
+    } : config.onClear
 
     layer.setAttribute('height', height * ratio)
     layer.setAttribute('width', width * ratio)
@@ -3532,8 +3515,8 @@
 
         if (selectedNode && tselectedNode !== selectedNode) {
           if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
-            if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, { da: 'test' }, e) }
-            if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, { da: 'test' }, e) }
+            if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
+            if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e) }
             selectedNode.hovered = false
           }
         }
@@ -3541,47 +3524,37 @@
           selectedNode = tselectedNode
           if ((selectedNode.dom.mouseover || selectedNode.dom.mouseenter) &&
               !selectedNode.hovered) {
-            if (selectedNode.dom.mouseover) { selectedNode.dom.mouseover.call(selectedNode, { da: 'test' }, e) }
-            if (selectedNode.dom.mouseenter) { selectedNode.dom.mouseenter.call(selectedNode, { da: 'test' }, e) }
+            if (selectedNode.dom.mouseover) { selectedNode.dom.mouseover.call(selectedNode, selectedNode.dataObj, e) }
+            if (selectedNode.dom.mouseenter) { selectedNode.dom.mouseenter.call(selectedNode, selectedNode.dataObj, e) }
             selectedNode.hovered = true
           }
           if (selectedNode.dom.mousemove) {
-            selectedNode.dom.mousemove.call(selectedNode, { da: 'test' }, e)
+            selectedNode.dom.mousemove.call(selectedNode, selectedNode.dataObj, e)
           }
         } else {
           selectedNode = undefined
         }
       })
       res.addEventListener('click', (e) => {
-        // setTimeout(function(){
-        if (selectedNode && selectedNode.dom.click) { selectedNode.dom.click.call(selectedNode, { da: 'test' }) }
-        // },0);
+        if (selectedNode && selectedNode.dom.click) { selectedNode.dom.click.call(selectedNode, selectedNode.dataObj) }
       })
       res.addEventListener('dblclick', (e) => {
-        // setTimeout(function(){
-        if (selectedNode && selectedNode.dom.dblclick) { selectedNode.dom.dblclick.call(selectedNode, { da: 'test' }) }
-        // },0);
+        if (selectedNode && selectedNode.dom.dblclick) { selectedNode.dom.dblclick.call(selectedNode, selectedNode.dataObj) }
       })
       res.addEventListener('mousedown', (e) => {
-        // setTimeout(function(){
         if (selectedNode && selectedNode.dom.mousedown) {
-          selectedNode.dom.mousedown.call(selectedNode, { da: 'test' })
+          selectedNode.dom.mousedown.call(selectedNode, selectedNode.dataObj)
           selectedNode.down = true
         }
-        // },0);
       })
       res.addEventListener('mouseup', (e) => {
-        // setTimeout(function(){
         if (selectedNode && selectedNode.dom.mouseup && selectedNode.down) {
-          selectedNode.dom.mouseup.call(selectedNode, { da: 'test' })
+          selectedNode.dom.mouseup.call(selectedNode, selectedNode.dataObj)
           selectedNode.down = false
         }
-        // },0);
       })
       res.addEventListener('contextmenu', (e) => {
-        // setTimeout(function(){
-        if (selectedNode && selectedNode.dom.contextmenu) { selectedNode.dom.contextmenu.call(selectedNode, { da: 'test' }) }
-        // },0);
+        if (selectedNode && selectedNode.dom.contextmenu) { selectedNode.dom.contextmenu.call(selectedNode, selectedNode.dataObj) }
       })
       document.addEventListener('drag', (e) => {
       }, false)

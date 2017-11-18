@@ -9,7 +9,14 @@
 		<!--<canvas width="1400" height="900" id="myCanvas"></canvas>-->
 	</div>
     
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+    <script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
     <script src="https://d3js.org/d3-collection.v1.min.js"></script>
     <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
     <script src="https://d3js.org/d3-quadtree.v1.min.js"></script>
@@ -37,12 +44,24 @@
         var g = renderer.createEl({
                     el:'group',
                     attr:{
+                        class:'g',
                         transform:{
                             translate:[width / 2,height / 2],
                             scale:[0.2,0.2]
                         }
                     }
                 });
+        
+        // var lineG = g.createEl({
+        //             el:'group',
+        //             attr:{
+        //                 class:'lineG'
+        //             }
+        //             ,
+        //             styles:{
+        //                 strokeStyle:'#999'
+        //             }
+        //         })
         
         function renderChart(graph){
             
@@ -59,14 +78,27 @@
 
             simulation
                     .nodes(graph.nodes)
-                    .on("tick", ticked);
+                    .on("tick", ticked)
+                    // .on("end",function(){
+                    //     links = g.createEls(graph.links,{
+                    //         el:'line',
+                    //         attr:{
+                    //             x1:function(d){return d.source.x},
+                    //             y1:function(d){return d.source.y},
+                    //             x2:function(d){return d.target.x},
+                    //             y2:function(d){return d.target.y}
+                    //         },
+                    //         styles:{ strokeStyle:'#999' }
+                    //     });
+                    // });
                 
             simulation.force("link")
                     .links(graph.links);
 
             function ticked(){
-                circles.setAttr(function(d){return {x: d.x, y: d.y} })
-                        // .setAttr('y',function(d){return d.y})
+                circles//.setAttr(function(d){return {x: d.x, y: d.y} })
+                        .setAttr('y',function(d){return d.y})
+                        .setAttr('x',function(d){return d.x})
 
                 links.forEach(function(d){
                     this.setAttr({x1:d.source.x,

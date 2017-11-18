@@ -59,12 +59,12 @@
         
         function renderChart(graph){
             
-           links = group.createEls(graph.links,{
-                            el:'line',
-                            attr:{
-                                class:'edge'
-                            }
-                        });
+        //    links = group.createEls(graph.links,{
+        //                     el:'line',
+        //                     attr:{
+        //                         class:'edge'
+        //                     }
+        //                 });
              circles = group.createEls(graph.nodes,{
                             el:'circle',
                             attr:{
@@ -75,7 +75,19 @@
 
                  simulation
                     .nodes(graph.nodes)
-                    .on("tick", ticked);
+                    .on("tick", ticked)
+                    .on("end",function(){
+                        links = group.createEls(graph.links,{
+                            el:'line',
+                            attr:{
+                                class:'edge',
+                                x1:function(d){return d.source.x},
+                                y1:function(d){return d.source.y},
+                                x2:function(d){return d.target.x},
+                                y2:function(d){return d.target.y}
+                            }
+                        });
+                    });
                 
                 simulation.force("link")
                     .links(graph.links);
@@ -86,12 +98,12 @@
                             .setAttr('cy',d.y);
                     });
 
-                    links.forEach(function(d){
-                        this.setAttr('x1',d.source.x)
-                            .setAttr('y1',d.source.y)
-                            .setAttr('x2',d.target.x)
-                            .setAttr('y2',d.target.y);
-                    })
+                    // links.forEach(function(d){
+                    //     this.setAttr('x1',d.source.x)
+                    //         .setAttr('y1',d.source.y)
+                    //         .setAttr('x2',d.target.x)
+                    //         .setAttr('y2',d.target.y);
+                    // })
                 }
 
         }
