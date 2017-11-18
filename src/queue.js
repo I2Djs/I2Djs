@@ -45,7 +45,7 @@
     this.currTime = Date.now()
     this.lastTime = 0 - (executable.delay ? executable.delay : 0)
     this.loopTracker = 0
-    this.loop = executable.loop ? executable.loop : 0
+    this.loop = executable.loop ? executable.loop : 1
     this.direction = executable.direction
     this.easying = easying
     this.end = executable.end ? executable.end : null
