@@ -43,16 +43,16 @@ Examples
 ### Animation 
 <table>
     <tr>
-        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/circleMoveMent.gif"></a></td>
+        <td width="20%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="70" src="https://i2djs.github.io/I2Djs/examples/snaps/circleMoveMent.gif"></a></td>
     </tr>
 </table>
 
 ### Graphs
 <table>
     <tr>
-        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/graph.gif"></a></td>
-        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/hugeGraph.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/hugeGraph.gif"></a></td>
-        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graphAnimation.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/graphAnimation.gif"></a></td>
+        <td width="25%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="150" src="https://i2djs.github.io/I2Djs/examples/snaps/graph.gif"></a></td>
+        <td width="25%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/hugeGraph.html"><img width="150" src="https://i2djs.github.io/I2Djs/examples/snaps/hugeGraph.gif"></a></td>
+        <td width="25%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graphAnimation.html"><img width="150" src="https://i2djs.github.io/I2Djs/examples/snaps/graphAnimation.gif"></a></td>
     </tr>
 </table>
 
