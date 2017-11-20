@@ -3452,6 +3452,30 @@
 
   //   return this.pattern
   // }
+  let dragObject = {
+    dragStart: function (fun) {
+      if (typeof fun === 'function') {
+        this.onDragStart = fun
+      }
+      return this
+    },
+    drag: function (fun) {
+      if (typeof fun === 'function') {
+        this.onDrag = fun
+      }
+      return this
+    },
+    dragEnd: function (fun) {
+      if (typeof fun === 'function') {
+        this.onDragEnd = fun
+      }
+      return this
+    }
+  }
+
+  renderer.dragEvent = function () {
+    return Object.create(dragObject)
+  }
 
   renderer.CanvasLayer = function CanvasLayer (context, config) {
     let selectedNode
@@ -3470,6 +3494,7 @@
 
     layer.setAttribute('height', height * ratio)
     layer.setAttribute('width', width * ratio)
+    layer.setAttribute('draggable', true)
     layer.style.height = `${height}px`
     layer.style.width = `${width}px`
     layer.style.position = 'absolute'
@@ -3508,16 +3533,39 @@
 
     if (config.events || config.events === undefined) {
       res.addEventListener('mousemove', (e) => {
+        e.preventDefault()
+        
         const tselectedNode = vDomInstance.eventsCheck(
           root.children,
           { x: e.offsetX, y: e.offsetY }
         )
-
+        
         if (selectedNode && tselectedNode !== selectedNode) {
           if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
             if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
             if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e) }
             selectedNode.hovered = false
+          }
+          
+          if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag) {
+            selectedNode.dom.drag.dragStartFlag = false
+            selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
+            selectedNode.dom.drag.event = null
+          }
+        }
+        
+        if (selectedNode && tselectedNode === selectedNode) {
+          // console.log('test')
+          if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
+            let event = selectedNode.dom.drag.event
+            if (selectedNode.dom.drag.event) {
+              event.dx = e.clientX - event.x
+              event.dy = e.clientY - event.y
+            }
+            event.x = e.clientX
+            event.y = e.clientY
+            selectedNode.dom.drag.event = event
+            selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
           }
         }
         if (tselectedNode) {
@@ -3536,28 +3584,58 @@
         }
       })
       res.addEventListener('click', (e) => {
-        if (selectedNode && selectedNode.dom.click) { selectedNode.dom.click.call(selectedNode, selectedNode.dataObj) }
+        console.log('click')
+        e.preventDefault()
+        if (selectedNode && selectedNode.dom.click) { selectedNode.dom.click.call(selectedNode, selectedNode.dataObj, e) }
       })
       res.addEventListener('dblclick', (e) => {
-        if (selectedNode && selectedNode.dom.dblclick) { selectedNode.dom.dblclick.call(selectedNode, selectedNode.dataObj) }
+        if (selectedNode && selectedNode.dom.dblclick) { selectedNode.dom.dblclick.call(selectedNode, selectedNode.dataObj, e) }
       })
       res.addEventListener('mousedown', (e) => {
+        console.log('down')
+        e.preventDefault()
         if (selectedNode && selectedNode.dom.mousedown) {
-          selectedNode.dom.mousedown.call(selectedNode, selectedNode.dataObj)
+          selectedNode.dom.mousedown.call(selectedNode, selectedNode.dataObj, e)
           selectedNode.down = true
+        }
+        if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.onDragStart) {
+          selectedNode.dom.drag.dragStartFlag = true
+          selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e)
+          let event = {}
+          event.x = e.clientX
+          event.y = e.clientY
+          event.dx = 0
+          event.dy = 0
+          selectedNode.dom.drag.event = event
         }
       })
       res.addEventListener('mouseup', (e) => {
+        e.preventDefault()
         if (selectedNode && selectedNode.dom.mouseup && selectedNode.down) {
           selectedNode.dom.mouseup.call(selectedNode, selectedNode.dataObj)
           selectedNode.down = false
         }
+        if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDragEnd) {
+          selectedNode.dom.drag.dragStartFlag = false
+          selectedNode.dom.drag.event = null
+          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
+        }
+      })
+      res.addEventListener('mouseleave', (e) => {
+        e.preventDefault()
+        if (selectedNode && selectedNode.dom.mouseleave) {
+          selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e)
+        }
+        if (selectedNode && selectedNode.dom.onDragEnd && selectedNode.dom.drag.dragStartFlag) {
+          selectedNode.dom.drag.dragStartFlag = false
+          selectedNode.dom.drag.event = null
+          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
+        }
       })
       res.addEventListener('contextmenu', (e) => {
+        e.preventDefault()
         if (selectedNode && selectedNode.dom.contextmenu) { selectedNode.dom.contextmenu.call(selectedNode, selectedNode.dataObj) }
       })
-      document.addEventListener('drag', (e) => {
-      }, false)
     }
     queueInstance.execute()
 
