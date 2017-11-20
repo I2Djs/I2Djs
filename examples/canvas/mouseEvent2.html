@@ -7,7 +7,6 @@
 	<!--<div style="height: 400px;width:400px;position: absolute;background: black" id='myCanvas'>
 	</div>-->
 	<div style="height: 100%;width:100%;position: absolute;background: black" id='myCanvas'>
-        <div style="position: relative;z-index: 1;color: white; text-align: center"> Move your mouse pointer on the Canvas</div>
 	</div>
     <script type="text/javascript" src="../../src/colorMap.js"></script>
 	<script type="text/javascript" src="../../src/geometry.js"></script>
@@ -26,13 +25,13 @@
                         renderer_.createEl({
                             el:'circle',
                             attr:{ r:0, cx:e.x, cy:e.y },
-                            styles:{ globalAlpha:1,lineWidth:2,strokeStyle:'hsl('+(i = (i + 1) % 360)+',100%,50%)' }
+                            style:{ globalAlpha:1,lineWidth:2,strokeStyle:'hsl('+(i = (i + 1) % 360)+',100%,50%)' }
                         })
                         .animateTo({
                                 duration:2000,
                                 ease:Math.sqrt,
                                 attr:{ r:150},
-                                styles:{globalAlpha:0},
+                                style:{globalAlpha:0},
                                 end:function(){ this.remove(); }
                         });
                     },false);

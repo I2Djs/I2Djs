@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+	<div id="myCanvas" style="height: 100%;width:100%">
+	</div>
+	<script type="text/javascript" src="../../dist/i2d.js"></script>
+
+	<script type="text/javascript">
+
+        var renderer = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
+
+        renderer.createEl({
+                    el:'circle',
+                    attr:{
+                        r:50,
+                        cx:500,
+                        cy:300
+                    },
+                    style:{
+                        fillStyle:'#ff0000'
+                    }
+                }).animateTo({
+                    duration:500,
+                    loop:100,
+                    ease:'easeInOutSin',
+                    direction:'alternate',
+                    attr:{
+                        r:200
+                    },
+                    style:{
+                        fillStyle:'#00ff00'
+                    }
+                })
+
+	</script>
+
+</body>
+</html>

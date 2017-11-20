@@ -5,7 +5,6 @@
 </head>
 <body style="height: 100%">
 	<div style="height: 100%;width:100%;position: absolute;background: black" id="myCanvas">
-        <div style="position: relative;z-index: 1;color: white; text-align: center"> Move your mouse pointer on the Canvas </div>
 	</div>
 	<script type="text/javascript" src="../../dist/i2d.js"></script>
 
@@ -24,7 +23,7 @@
                     x:e.offsetX,
                     y:e.offsetY
                 },
-                styles:{
+                style:{
                     fillStyle:'hsl('+(i = (i + 1) % 360)+',100%,50%)',
                     globalAlpha:1
                 }
@@ -37,7 +36,7 @@
                             y:function(d){ return e.offsetY+Math.sin((2*Math.PI/12)*d)*300; },
                             width:100
                         },
-                        styles:{
+                        style:{
                             globalAlpha:0
                         },
                         end:function(){

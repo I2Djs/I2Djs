@@ -33,7 +33,7 @@
                         cx:function(d,i){ return (d/Math.sqrt(data.length))*100+100; },
                         cy:function(d,i){ return (d%Math.sqrt(data.length))*70+100; }
                     },
-                    styles:{ fill:'red' }
+                    style:{ fill:'red' }
                 })
                 .on('click',function(){ console.log('circle click'); })
                 .on('dblclick',function(){ this.setStyle('fill','#a1d99b'); })

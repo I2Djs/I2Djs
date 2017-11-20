@@ -90,7 +90,7 @@
                         circleG.createEl({
                                         el:'circle',
                                         attr:{ r:8, cx:jsonData.nodes[0].x, cy:jsonData.nodes[0].y },
-                                        styles:{ 
+                                        style:{ 
                                             fill:'red'
                                             // shadowColor:'red',
                                             // shadowOffsetX:0,
@@ -102,7 +102,7 @@
                                 circleG.createEl({
                                         el:'text',
                                         attr:{ x:jsonData.nodes[0].x-30, y:jsonData.nodes[0].y+20 },
-                                        styles:{ 
+                                        style:{ 
                                             fill:'white'
                                         }
                                     }).text(jsonData.nodes[0].ip)
@@ -110,18 +110,18 @@
                                 circleG.createEl({
                                         el:'circle',
                                         attr:{ r:0, cx:jsonData.nodes[0].x, cy:jsonData.nodes[0].y },
-                                        styles:{ fill:blastGradiant, 'line-width':1 }
+                                        style:{ fill:blastGradiant, 'line-width':1 }
                                     }).animateTo({
                                         duration:1000,
                                         ease:'easeOutCubic',
                                         attr:{ r:50 },
-                                        styles:{ opacity :0 },
+                                        style:{ opacity :0 },
                                         end:function(){ 
                                             this.remove()
                                         }
                                     })
 
-                                var exe = recurSive('1.70.2.15');
+                                var exe = recurSive('170215');
                                         exe.start();
                    
                 })
@@ -145,7 +145,7 @@
                                         x2:function(d){return d.source.x},
                                         y2:function(d){return d.source.y}
                                     },
-                                    styles:{
+                                    style:{
                                         stroke:linearGradiant,
                                         'stroke-width':'1px'
                                     }
@@ -162,9 +162,9 @@
                                         circleG.createEl({
                                             el:'circle',
                                             attr:{ r:8, cx:d.target.x, cy:d.target.y },
-                                            styles:{ 
+                                            style:{ 
                                                 opacity:0,
-                                                fill:d.target.type === 'HI_ipv4'?'red':'#fffdca',
+                                                fill:d.target.type === 'HI'?'red':'#fffdca',
                                                 // shadowColor:d.target.type === 'HI_ipv4'?'red':'#fffdca',
                                                 // shadowOffsetX:0,
                                                 // shadowOffsetY:0,
@@ -173,13 +173,13 @@
                                         }).animateTo({
                                             duration:1000,
                                             ease:'easeOutCubic',
-                                            styles:{ opacity:1 }
+                                            style:{ opacity:1 }
                                         })
 
                                         circleG.createEl({
                                             el:'text',
                                             attr:{ x:d.target.x, y:d.target.y+20 },
-                                            styles:{ 
+                                            style:{ 
                                                 fill:'white',
                                                 'text-anchor':'middle'
                                             }
@@ -188,12 +188,12 @@
                                         circleG.createEl({
                                             el:'circle',
                                             attr:{ r:8, cx:d.target.x, cy:d.target.y },
-                                            styles:{ stroke:d.target.type === 'HI_ipv4'?'red':'#fffdca', 'stroke-Width':2 }
+                                            style:{ fill:blastGradiant }
                                         }).animateTo({
                                             duration:1500,
                                             ease:'easeOutCubic',
-                                            attr:{ r:30 },
-                                            styles:{ opacity:0 },
+                                            attr:{ r:50 },
+                                            style:{ opacity:0 },
                                             end:function(){ this.remove() }
                                         })
 

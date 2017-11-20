@@ -1106,7 +1106,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         run (f) {
           currObj.run(f)
         },
-        duration: currObj.duration ? currObj.duration : self.duration,
+        duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
         // ,
         // loop: self.loopValue,
         direction: self.factor < 0 ? 'reverse' : 'default',
@@ -1201,7 +1201,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
           run (f) {
             d.run(f)
           },
-          duration: currObj.duration ? currObj.duration : self.durationP,
+          duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
           loop: 1,
           direction: self.factor < 0 ? 'reverse' : 'default',
           end: self.triggerEnd.bind(self, currObj)
@@ -2370,7 +2370,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   const animate = function animate (self, targetConfig) {
     const callerExe = self
     const tattr = targetConfig.attr ? targetConfig.attr : {}
-    const tstyles = targetConfig.styles ? targetConfig.styles : {}
+    const tstyles = targetConfig.style ? targetConfig.style : {}
     const runStack = []
     let value
     let key
@@ -2483,7 +2483,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         self.setStyle(key, value.call(self, self.dataObj, f))
       }
     }
-    srcValue = self.styles[key]
+    srcValue = self.style[key]
     if (isNaN(value)) {
       if (value.startsWith('#') || value.startsWith('rgb') || value.startsWith('hsl')) {
         const colorExe = colorMap.transition(srcValue, value)
@@ -2499,7 +2499,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       destValue = parseInt(destValue.length > 0 ? destValue[0] : 0, 10)
       destUnit = destUnit.length > 0 ? destUnit[0] : 'px'
     } else {
-      srcValue = (self.styles[key] !== undefined ? self.styles[key] : 1)
+      srcValue = (self.style[key] !== undefined ? self.style[key] : 1)
       destValue = value
       destUnit = 0
     }
@@ -2522,7 +2522,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     const attrs = Object.keys(config)
     for (let j = 0; j < attrs.length; j += 1) {
       const key = attrs[j]
-      if (key !== 'attr' && key !== 'styles' && key !== 'end') {
+      if (key !== 'attr' && key !== 'style' && key !== 'end') {
         if (typeof config[key] === 'function') {
           obj[key] = config[key].call(node, node.dataObj, i)
         } else {
@@ -2543,7 +2543,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
       newConfig = resolveObject(config, node, i)
       if (config.attr) { newConfig.attr = resolveObject(config.attr, node, i) }
-      if (config.styles) { newConfig.styles = resolveObject(config.styles, node, i) }
+      if (config.style) { newConfig.style = resolveObject(config.style, node, i) }
       if (config.end) { newConfig.end = config.end }
       if (config.ease) { newConfig.ease = config.ease }
 
@@ -2562,7 +2562,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
       newConfig = resolveObject(config, node, i)
       if (config.attr) { newConfig.attr = resolveObject(config.attr, node, i) }
-      if (config.styles) { newConfig.styles = resolveObject(config.styles, node, i) }
+      if (config.style) { newConfig.style = resolveObject(config.style, node, i) }
       if (config.end) { newConfig.end = config.end }
       if (config.ease) { newConfig.ease = config.ease }
 
@@ -3332,8 +3332,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     this.nodeName = dom.nodeName
     this.attr = _.attr ? _.attr : {}
     this.changedAttribute = this.attr
-    this.styles = _.styles ? _.styles : {}
-    this.changedStyles = this.styles
+    this.style = _.style ? _.style : {}
+    this.changedStyles = this.style
     this.id = id
     this.nodeType = 'svg'
     this.dom.nodeId = id
@@ -3463,14 +3463,14 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       if (typeof value === 'function') {
         value = value.call(this, this.dataObj)
       }
-      this.styles[attr] = value
+      this.style[attr] = value
       this.changedStyles[attr] = value
     } else if (arguments.length === 1 && typeof attr === 'object') {
       const styleAttrs = Object.keys(attr)
 
       for (let i = 0; i < styleAttrs.length; i += 1) {
         const key = styleAttrs[i]
-        this.styles[key] = attr[key]
+        this.style[key] = attr[key]
         this.changedStyles[key] = attr[key]
       }
     }
@@ -3624,7 +3624,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     const node = new DomExe(dom, obj, domId(), vDomIndex)
     if (obj.dataObj) { dom.dataObj = obj.dataObj }
-    if (obj.styles) { node.setStyle(obj.styles) }
+    if (obj.style) { node.setStyle(obj.style) }
     if (obj.attr) { node.setAttr(obj.attr) }
 
     return node
@@ -3669,9 +3669,9 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
   function domSetStyle (attr, value) {
     if (value !== undefined) {
-      this.styles[attr] = value
+      this.style[attr] = value
     } else {
-      delete this.styles[attr]
+      delete this.style[attr]
     }
   }
 
@@ -3779,8 +3779,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
 
   function applyStyles () {
-    if (this.styles.fillStyle) { this.ctx.fill() }
-    if (this.styles.strokeStyle) { this.ctx.stroke() }
+    if (this.style.fillStyle) { this.ctx.fill() }
+    if (this.style.strokeStyle) { this.ctx.stroke() }
   }
 
   function CanvasDom () { }
@@ -3798,7 +3798,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     const self = this
     self.ctx = ctx
     self.attr = props
-    self.styles = stylesProps
+    self.style = stylesProps
     self.nodeName = 'Image'
     self.image = new Image()
     // self.image.crossOrigin="anonymous"
@@ -3972,7 +3972,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     const self = this
     self.ctx = ctx
     self.attr = props
-    self.styles = stylesProps
+    self.style = stylesProps
     self.nodeName = 'text'
 
     self.stack = [self]
@@ -3996,9 +3996,9 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     if (transform && transform.scale) {
       [scaleX, scaleY] = transform.scale
     }
-    if (this.styles.font) {
-      this.ctx.font = this.styles.font
-      height = parseInt(this.styles.font, 10)
+    if (this.style.font) {
+      this.ctx.font = this.style.font
+      height = parseInt(this.style.font, 10)
     }
 
     self.BBox = {
@@ -4016,10 +4016,10 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
   RenderText.prototype.execute = function RTexecute () {
     if (this.textContent) {
-      if (this.styles.fillStyle) {
+      if (this.style.fillStyle) {
         this.ctx.fillText(this.textContent, this.attr.x, this.attr.y)
       }
-      if (this.styles.strokeStyle) {
+      if (this.style.strokeStyle) {
         this.ctx.strokeText(this.textContent, this.attr.x, this.attr.y)
       }
     }
@@ -4036,7 +4036,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     const self = this
     self.ctx = ctx
     self.attr = props
-    self.styles = stylesProps
+    self.style = stylesProps
     self.nodeName = 'circle'
 
     self.stack = [self]
@@ -4089,7 +4089,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     const self = this
     self.ctx = ctx
     self.attr = props
-    self.styles = stylesProps
+    self.style = stylesProps
     self.nodeName = 'line'
 
     self.stack = [self]
@@ -4147,7 +4147,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     self.angle = 0
     self.nodeName = 'path'
     self.attr = props
-    self.styles = styleProps
+    self.style = styleProps
 
     if (props.d) {
       self.attr.d = props.d
@@ -4206,8 +4206,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
   RenderPath.prototype.execute = function RPexecute () {
     if (this.attr.d) {
-      if (this.styles.fillStyle) { this.ctx.fill(this.pathNode) }
-      if (this.styles.strokeStyle) { this.ctx.stroke(this.pathNode) }
+      if (this.style.fillStyle) { this.ctx.fill(this.pathNode) }
+      if (this.style.strokeStyle) { this.ctx.stroke(this.pathNode) }
     }
   }
   RenderPath.prototype.applyStyles = function RPapplyStyles () {}
@@ -4215,7 +4215,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     if (!this.attr.d) {
       return false
     }
-    return this.styles.fillStyle ? this.ctx.isPointInPath(this.pathNode, co.x, co.y) : false
+    return this.style.fillStyle ? this.ctx.isPointInPath(this.pathNode, co.x, co.y) : false
   }
   /** *****************End Render Path */
 
@@ -4241,7 +4241,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     self.ctx = ctx
     self.nodeName = 'polygon'
     self.attr = props
-    self.styles = styleProps
+    self.style = styleProps
     self.stack = [self]
     if (props.points) {
       self.polygon = polygonExe(self.attr.points)
@@ -4299,8 +4299,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
   RenderPolygon.prototype.execute = function RPolyexecute () {
     if (this.attr.points) {
-      if (this.styles.fillStyle) { this.ctx.fill(this.polygon) }
-      if (this.styles.strokeStyle) { this.ctx.stroke(this.polygon) }
+      if (this.style.fillStyle) { this.ctx.fill(this.polygon) }
+      if (this.style.strokeStyle) { this.ctx.stroke(this.polygon) }
     }
   }
   RenderPolygon.prototype.applyStyles = function RPolyapplyStyles () {}
@@ -4308,7 +4308,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     if (!this.attr.points) {
       return false
     }
-    return this.styles.fillStyle ? this.ctx.isPointInPath(this.polygon, co.x, co.y) : false
+    return this.style.fillStyle ? this.ctx.isPointInPath(this.polygon, co.x, co.y) : false
   }
 
   /** ***************** Render polygon */
@@ -4320,7 +4320,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     self.ctx = ctx
     self.nodeName = 'ellipse'
     self.attr = props
-    self.styles = styleProps
+    self.style = styleProps
     self.stack = [self]
     return this
   }
@@ -4390,7 +4390,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     self.ctx = ctx
     self.nodeName = 'rect'
     self.attr = props
-    self.styles = styleProps
+    self.style = styleProps
 
     self.stack = [self]
     return this
@@ -4445,7 +4445,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     const self = this
     self.ctx = ctx
     self.attr = props
-    self.styles = styleProps
+    self.style = styleProps
     self.stack = new Array(0)
     return this
   }
@@ -4548,7 +4548,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   /** ***************** End Render Group */
 
   let CanvasNodeExe = function CanvasNodeExe (context, config, id, vDomIndex) {
-    this.styles = config.styles ? config.styles : {}
+    this.style = config.style ? config.style : {}
     this.attr = config.attr ? config.attr : {}
     this.id = id
     this.nodeName = config.el
@@ -4559,31 +4559,31 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     switch (config.el) {
       case 'circle':
-        this.dom = new RenderCircle(this.ctx, this.attr, this.styles)
+        this.dom = new RenderCircle(this.ctx, this.attr, this.style)
         break
       case 'rect':
-        this.dom = new RenderRect(this.ctx, this.attr, this.styles)
+        this.dom = new RenderRect(this.ctx, this.attr, this.style)
         break
       case 'line':
-        this.dom = new RenderLine(this.ctx, this.attr, this.styles)
+        this.dom = new RenderLine(this.ctx, this.attr, this.style)
         break
       case 'path':
-        this.dom = new RenderPath(this.ctx, this.attr, this.styles)
+        this.dom = new RenderPath(this.ctx, this.attr, this.style)
         break
       case 'group':
-        this.dom = new RenderGroup(this.ctx, this.attr, this.styles)
+        this.dom = new RenderGroup(this.ctx, this.attr, this.style)
         break
       case 'text':
-        this.dom = new RenderText(this.ctx, this.attr, this.styles)
+        this.dom = new RenderText(this.ctx, this.attr, this.style)
         break
       case 'image':
-        this.dom = new RenderImage(this.ctx, this.attr, this.styles, config.onload, config.onerror, this)
+        this.dom = new RenderImage(this.ctx, this.attr, this.style, config.onload, config.onerror, this)
         break
       case 'polygon':
-        this.dom = new RenderPolygon(this.ctx, this.attr, this.styles, this)
+        this.dom = new RenderPolygon(this.ctx, this.attr, this.style, this)
         break
       case 'ellipse':
-        this.dom = new RenderEllipse(this.ctx, this.attr, this.styles, this)
+        this.dom = new RenderEllipse(this.ctx, this.attr, this.style, this)
         break
       default:
         this.dom = null
@@ -4600,17 +4600,17 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     return this.dom
   }
   CanvasNodeExe.prototype.stylesExe = function CstylesExe () {
-    const props = Object.keys(this.styles)
+    const props = Object.keys(this.style)
     let value
 
     for (let i = 0; i < props.length; i += 1) {
-      if (typeof this.styles[props[i]] === 'function') {
-        this.styles[props[i]] = this.styles[props[i]].call(this, this.dataObj)
-        value = this.styles[props[i]]
-      } else if (this.styles[props[i]] instanceof CanvasGradients) {
-        value = this.styles[props[i]].exe(this.ctx, this.dom.BBox)
+      if (typeof this.style[props[i]] === 'function') {
+        this.style[props[i]] = this.style[props[i]].call(this, this.dataObj)
+        value = this.style[props[i]]
+      } else if (this.style[props[i]] instanceof CanvasGradients) {
+        value = this.style[props[i]].exe(this.ctx, this.dom.BBox)
       } else {
-        value = this.styles[props[i]]
+        value = this.style[props[i]]
       }
 
       if (typeof value !== 'function') { this.ctx[props[i]] = value } else if (typeof value === 'function') { this.ctx[props[i]](value) } else { console.log('junk comp') }
@@ -4642,12 +4642,12 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
   CanvasNodeExe.prototype.setStyle = function CsetStyle (attr, value) {
     if (arguments.length === 2) {
-      this.styles[attr] = value
+      this.style[attr] = value
       this.dom.setStyle(attr, value)
     } else if (arguments.length === 1 && typeof attr === 'object') {
       const styleKeys = Object.keys(attr)
       for (let i = 0; i < styleKeys.length; i += 1) {
-        this.styles[styleKeys[i]] = attr[styleKeys[i]]
+        this.style[styleKeys[i]] = attr[styleKeys[i]]
         this.dom.setStyle(styleKeys[i], attr[styleKeys[i]])
       }
     }
@@ -4824,7 +4824,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     let key
 
     const attrKeys = config ? (config.attr ? Object.keys(config.attr) : []) : []
-    const styleKeys = config ? (config.styles ? Object.keys(config.styles) : []) : []
+    const styleKeys = config ? (config.style ? Object.keys(config.style) : []) : []
 
     this.stack = data.map((d, i) => {
       let node
@@ -4861,11 +4861,11 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       }
       for (let j = 0; j < styleKeys.length; j += 1) {
         key = styleKeys[j]
-        if (typeof config.styles[key] === 'function') {
-          const bindFun = config.styles[key].bind(node)
+        if (typeof config.style[key] === 'function') {
+          const bindFun = config.style[key].bind(node)
           node.setStyle(key, bindFun(d, j))
         } else {
-          node.setStyle(key, config.styles[key])
+          node.setStyle(key, config.style[key])
         }
       }
       node.dataObj = d
@@ -4944,6 +4944,30 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
   //   return this.pattern
   // }
+  let dragObject = {
+    dragStart: function (fun) {
+      if (typeof fun === 'function') {
+        this.onDragStart = fun
+      }
+      return this
+    },
+    drag: function (fun) {
+      if (typeof fun === 'function') {
+        this.onDrag = fun
+      }
+      return this
+    },
+    dragEnd: function (fun) {
+      if (typeof fun === 'function') {
+        this.onDragEnd = fun
+      }
+      return this
+    }
+  }
+
+  renderer.dragEvent = function () {
+    return Object.create(dragObject)
+  }
 
   renderer.CanvasLayer = function CanvasLayer (context, config) {
     let selectedNode
@@ -4962,6 +4986,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     layer.setAttribute('height', height * ratio)
     layer.setAttribute('width', width * ratio)
+    layer.setAttribute('draggable', true)
     layer.style.height = `${height}px`
     layer.style.width = `${width}px`
     layer.style.position = 'absolute'
@@ -5000,16 +5025,39 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     if (config.events || config.events === undefined) {
       res.addEventListener('mousemove', (e) => {
+        e.preventDefault()
+        
         const tselectedNode = vDomInstance.eventsCheck(
           root.children,
           { x: e.offsetX, y: e.offsetY }
         )
-
+        
         if (selectedNode && tselectedNode !== selectedNode) {
           if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
             if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
             if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e) }
             selectedNode.hovered = false
+          }
+          
+          if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag) {
+            selectedNode.dom.drag.dragStartFlag = false
+            selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
+            selectedNode.dom.drag.event = null
+          }
+        }
+        
+        if (selectedNode && tselectedNode === selectedNode) {
+          // console.log('test')
+          if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
+            let event = selectedNode.dom.drag.event
+            if (selectedNode.dom.drag.event) {
+              event.dx = e.clientX - event.x
+              event.dy = e.clientY - event.y
+            }
+            event.x = e.clientX
+            event.y = e.clientY
+            selectedNode.dom.drag.event = event
+            selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
           }
         }
         if (tselectedNode) {
@@ -5028,28 +5076,58 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         }
       })
       res.addEventListener('click', (e) => {
-        if (selectedNode && selectedNode.dom.click) { selectedNode.dom.click.call(selectedNode, selectedNode.dataObj) }
+        console.log('click')
+        e.preventDefault()
+        if (selectedNode && selectedNode.dom.click) { selectedNode.dom.click.call(selectedNode, selectedNode.dataObj, e) }
       })
       res.addEventListener('dblclick', (e) => {
-        if (selectedNode && selectedNode.dom.dblclick) { selectedNode.dom.dblclick.call(selectedNode, selectedNode.dataObj) }
+        if (selectedNode && selectedNode.dom.dblclick) { selectedNode.dom.dblclick.call(selectedNode, selectedNode.dataObj, e) }
       })
       res.addEventListener('mousedown', (e) => {
+        console.log('down')
+        e.preventDefault()
         if (selectedNode && selectedNode.dom.mousedown) {
-          selectedNode.dom.mousedown.call(selectedNode, selectedNode.dataObj)
+          selectedNode.dom.mousedown.call(selectedNode, selectedNode.dataObj, e)
           selectedNode.down = true
+        }
+        if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.onDragStart) {
+          selectedNode.dom.drag.dragStartFlag = true
+          selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e)
+          let event = {}
+          event.x = e.clientX
+          event.y = e.clientY
+          event.dx = 0
+          event.dy = 0
+          selectedNode.dom.drag.event = event
         }
       })
       res.addEventListener('mouseup', (e) => {
+        e.preventDefault()
         if (selectedNode && selectedNode.dom.mouseup && selectedNode.down) {
           selectedNode.dom.mouseup.call(selectedNode, selectedNode.dataObj)
           selectedNode.down = false
         }
+        if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDragEnd) {
+          selectedNode.dom.drag.dragStartFlag = false
+          selectedNode.dom.drag.event = null
+          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
+        }
+      })
+      res.addEventListener('mouseleave', (e) => {
+        e.preventDefault()
+        if (selectedNode && selectedNode.dom.mouseleave) {
+          selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e)
+        }
+        if (selectedNode && selectedNode.dom.onDragEnd && selectedNode.dom.drag.dragStartFlag) {
+          selectedNode.dom.drag.dragStartFlag = false
+          selectedNode.dom.drag.event = null
+          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
+        }
       })
       res.addEventListener('contextmenu', (e) => {
+        e.preventDefault()
         if (selectedNode && selectedNode.dom.contextmenu) { selectedNode.dom.contextmenu.call(selectedNode, selectedNode.dataObj) }
       })
-      document.addEventListener('drag', (e) => {
-      }, false)
     }
     queueInstance.execute()
 

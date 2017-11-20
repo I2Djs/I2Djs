@@ -8,15 +8,15 @@
         <div style="position: relative;z-index: 1;color: white; text-align: center"> Click on nodes to remove</div>
 		<!--<canvas width="1200" height="1000" id="myCanvas"></canvas>-->
 	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/webcola@3.3.6/WebCola/cola.min.js"></script>
-    <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
+    <script type="text/javascript" src="../../src/colorMap.js"></script>
 	<script type="text/javascript" src="../../src/geometry.js"></script>
 	<script type="text/javascript" src="../../src/easing.js"></script>
     <script type="text/javascript" src="../../src/vDom.js"></script>
 	<script type="text/javascript" src="../../src/queue.js"></script>
     <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>-->
+    <script type="text/javascript" src="../../src/renderer.js"></script>
 
 	<script type="text/javascript">
 
@@ -26,6 +26,18 @@
         var nodeToEdgeTree = {}
         var width = 1200, height = 600
         var renderer_ = i2d.CanvasLayer('#myCanvas',{events:true,selectiveClear:false});
+        var dragEvent = i2d.dragEvent()
+
+            dragEvent.dragStart(function(d,e){
+
+            })
+            .drag(function(d,e){
+                var currTranslate = g.getAttr('transform').translate
+                    g.translate([currTranslate[0]+e.dx,currTranslate[1]+e.dy])
+            })
+            .dragEnd(function(d,e){
+
+            })
 
         var d3cola = new cola.Layout() 
                         .handleDisconnected(false)
@@ -39,8 +51,24 @@
                         transform:{ translate:[100,100] }
                     }
                 })
+
+        var dragRect = g.createEl({
+                el:'rect',
+                attr:{
+                    x:0,
+                    y:0,
+                    width:1000,
+                    height:700
+                },
+                style:{
+                    fillStyle:'rgba(0,0,0,0.2)'
+                }
+            }).on('drag',dragEvent)
+
         var lineG = g.createEl({ el:'group' })
         var circleG = g.createEl({ el:'group' })
+        
+
         var linearGradiant = renderer_.createLinearGradient({id:'linearG',x1:0,y1:0,x2:0,y2:100,
                                                             colorStops:[{color:'black',value:10},
                                                                         {color:'rgb(11, 192, 255)',value:50},
@@ -52,6 +80,7 @@
                                                             colorStops:[{color:'#fffdca',value:0},
                                                                         {color:'black',value:100}]
                                                             });
+        
 
         var data = fetch('../data/networkGraph.json')
                 .then(function(response) {
@@ -100,7 +129,7 @@
                                                     x2:function(d){return d.source.x},
                                                     y2:function(d){return d.source.y}
                                                 },
-                                                styles:{ strokeStyle:linearGradiant }
+                                                style:{ strokeStyle:linearGradiant }
                                             })
                                             .animateExe({
                                                 duration:600,
@@ -168,9 +197,9 @@
                                             cx:function(d){return d.x},
                                             cy:function(d){return d.y}
                                         },
-                                        styles:{ 
-                                            fillStyle:function(d){return d.type === 'HI_ipv4'?'red':'#fffdca' },
-                                            shadowColor:function(d){return d.type === 'HI_ipv4'?'red':'#fffdca' },
+                                        style:{ 
+                                            fillStyle:function(d){return d.type === 'HI'?'red':'#fffdca' },
+                                            shadowColor:function(d){return d.type === 'HI'?'red':'#fffdca' },
                                             shadowOffsetX:0,
                                             shadowOffsetY:0,
                                             shadowBlur:30
@@ -189,7 +218,7 @@
                                             x:function(d){return d.x},
                                             y:function(d){return d.y+20}
                                         },
-                                        styles:{ fillStyle:'yellow','textAlign':'center' }
+                                        style:{ fillStyle:'yellow','textAlign':'center' }
                                     }).text(function(d){ return d.ip})
 
                                 circleG.createEls(data,{
@@ -199,12 +228,12 @@
                                             cx:function(d){return d.x},
                                             cy:function(d){return d.y}
                                         },
-                                        styles:{ fillStyle:blastGradiant, 'line-Width':2 }
+                                        style:{ fillStyle:blastGradiant, 'line-Width':2 }
                                     }).animateTo({
                                         duration:1000,
                                         ease:'easeOutCubic',
                                         attr:{ r:50 },
-                                        styles:{ globalAlpha:0 },
+                                        style:{ globalAlpha:0 },
                                         end:function(){ this.remove() }
                                     })
                         },
@@ -218,7 +247,7 @@
                                         duration:500,
                                         ease:'easeOutCubic',
                                         attr:{ r:0 },
-                                        styles:{ globalAlpha:0 },
+                                        style:{ globalAlpha:0 },
                                         end:function(d){ 
                                             this.remove()
                                         }
@@ -243,6 +272,13 @@
                     EdgeJoinRef.push(sourceDestTree[jsonData.nodes[0].ip]);
                 })
                 .start();
+
+            // var ele = document.getElementById('myCanvas')
+            // window.addEventListener('resize',function(){
+            //     var offset = 2/1400
+            //     var width = ele.offsetWidth
+            //     g.scale([width*offset,width*offset])
+            // })
             
         }
 	</script>

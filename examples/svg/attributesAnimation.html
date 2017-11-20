@@ -11,27 +11,32 @@
 	<script type="text/javascript" src="../../dist/i2d.js"></script>
 
 	<script type="text/javascript">
-
         var renderer = i2d.SVGLayer('#mySvg');
 
                 renderer.createEl({
-                    el:'rect',
+                    el:'circle',
                     attr:{
-                        x:0,
-                        y:0,
-                        width:100,
-                        height:100
+                        r:50,
+                        cx:500,
+                        cy:300
                     },
                     style:{
-                            fill:'#d00'
-                        }
-                })
-                .animateTo({
-                    duration:5000,
+                        fill:'#ff0000'
+                    }
+                }).animateTo({
+                    duration:500,
+                    loop:100,
+                    ease:'easeInOutSin',
+                    direction:'alternate',
+                    attr:{
+                        r:200
+                    },
                     style:{
-                        fill:'#0dd'
+                        fill:'#00ff00'
                     }
                 })
+
+
 	</script>
 
 </body>
