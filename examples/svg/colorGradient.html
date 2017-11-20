@@ -7,14 +7,14 @@
 
 	<div id="mySvg" style="height: 100%;width:100%">
 	</div>
-    
-	<script type="text/javascript" src="../../src/colorMap.js"></script>
+    <script type="text/javascript" src="../../dist/i2d.js"></script>
+	<!--<script type="text/javascript" src="../../src/colorMap.js"></script>
 	<script type="text/javascript" src="../../src/geometry.js"></script>
 	<script type="text/javascript" src="../../src/easing.js"></script>
     <script type="text/javascript" src="../../src/vDom.js"></script>
 	<script type="text/javascript" src="../../src/queue.js"></script>
     <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>-->
 
 	<script type="text/javascript">
 
@@ -55,8 +55,6 @@
                     attr:{
                         cx:function(d,i){return Math.random()*600},
                         cy:function(d,i){return Math.random()*600}
-                        // width:100,//function(d,i){return },
-                        // height:100//function(d,i){return Math.random()*100+50}
                     },
                     style:{
                             fill:radialGradiant
@@ -64,26 +62,8 @@
                 }).forEach(function(d,i){
                     var size = Math.random()*100+50;
                     this.setAttr('r',size/2)
-                        // .setAttr('height',size)
                 });
 
-
-
-                // renderer_.createEl({
-                //     el:'rect',
-                //     attr:{
-                //         x:0,
-                //         y:0,
-                //         width:100,
-                //         height:100
-                //     },
-                //     style:{
-                //             fillStyle:radialGradiant
-                //             // function(){
-                //             //     return this.createLinearGradient({x1:0,y1:0,x2:0,y2:100,colorStops:[{color:'red',value:0},{color:'white',value:50},{color:'green',value:100}]})
-                //             // }
-                //         }
-                // })
 	</script>
 
 </body>
