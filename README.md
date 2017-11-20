@@ -49,7 +49,7 @@ Done! All we need to do is go ahead and create shapes, animate attributes, style
                       x:0,
                       y:0
                   },
-                  styles:{
+                  style:{
                     //Styles goes here
                     fill:'red' //if its Canvas renderer, then it will be canvas style attr 'fillStyle'
                   }
