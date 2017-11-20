@@ -5,7 +5,7 @@
 </head>
 <body style="height: 100%">
 
-	<div id="mySvg" style="height: 100%;width:100%">
+	<div id="mySvg" style="height: 100%;width:100%;background: black">
 	</div>
     
 	<script type="text/javascript" src="../../dist/i2d.js"></script>
@@ -25,7 +25,7 @@
                     x:e.offsetX,
                     y:e.offsetY
                 },
-                styles:{
+                style:{
                     fill:'hsl('+(i = (i + 1) % 360)+',100%,50%)',
                     opacity:1
                 }
@@ -38,7 +38,7 @@
                             y:function(d){ return e.offsetY+Math.sin((2*Math.PI/12)*d)*300; },
                             width:100
                         },
-                        styles:{
+                        style:{
                             opacity:0
                         },
                         end:function(){

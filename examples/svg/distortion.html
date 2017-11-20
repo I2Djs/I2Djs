@@ -3,9 +3,8 @@
 <head>
 	<title></title>
 </head>
-<body style="height: 100%">
-	<div id="myCanvas" style="height: 100%;width:100%;position: absolute;background: black" >
-		<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
+<body style="height: 100%;background: black">
+	<div id="mySvg" style="height: 100%;width:100%">
 	</div>
 	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
     <script type="text/javascript" src="../../src/colorMap.js"></script>
@@ -19,7 +18,7 @@
 	<script type="text/javascript">
 
         var height = 820, width = 1430;
-        var renderer_ = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
+        var renderer_ = i2d.SVGLayer('#mySvg');
         var circlesGrid = []
         var gridSize = parseInt(Math.sqrt(2000))
         
@@ -38,8 +37,8 @@
                     return d.y
                 }
             },
-            styles:{
-                fillStyle:'#fff'
+            style:{
+                fill:'#fff'
             }
         })
 

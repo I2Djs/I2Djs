@@ -5,7 +5,7 @@
 </head>
 <body style="height: 100%">
 
-	<div id="mySvg" style="height: 100%;width:100%">
+	<div id="mySvg" style="height: 100%;width:100%;background: black">
 	</div>
     
 
@@ -20,13 +20,13 @@
                     renderer_.createEls([1],{
                         el:'circle',
                         attr:{ r:0, cx:e.x, cy:e.y },
-                        styles:{ opacity:1, stroke:'hsl('+(i = (i + 1) % 360)+',100%,50%)', 'stroke-width':'2px',fill:'none' }
+                        style:{ opacity:1, stroke:'hsl('+(i = (i + 1) % 360)+',100%,50%)', 'stroke-width':'2px',fill:'none' }
                     })
                     .animateTo({
                             duration:2000,
                             ease:Math.sqrt,
                             attr:{ r:150 },
-                            styles:{opacity:0},
+                            style:{opacity:0},
                             end:function(){ this.remove(); }
                     });
                 });

@@ -163,7 +163,7 @@
         run (f) {
           currObj.run(f)
         },
-        duration: currObj.duration ? currObj.duration : self.duration,
+        duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
         // ,
         // loop: self.loopValue,
         direction: self.factor < 0 ? 'reverse' : 'default',
@@ -258,7 +258,7 @@
           run (f) {
             d.run(f)
           },
-          duration: currObj.duration ? currObj.duration : self.durationP,
+          duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
           loop: 1,
           direction: self.factor < 0 ? 'reverse' : 'default',
           end: self.triggerEnd.bind(self, currObj)

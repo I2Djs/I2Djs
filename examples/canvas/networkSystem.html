@@ -60,7 +60,7 @@
                     width:1000,
                     height:700
                 },
-                styles:{
+                style:{
                     fillStyle:'rgba(0,0,0,0.2)'
                 }
             }).on('drag',dragEvent)
@@ -129,7 +129,7 @@
                                                     x2:function(d){return d.source.x},
                                                     y2:function(d){return d.source.y}
                                                 },
-                                                styles:{ strokeStyle:linearGradiant }
+                                                style:{ strokeStyle:linearGradiant }
                                             })
                                             .animateExe({
                                                 duration:600,
@@ -197,7 +197,7 @@
                                             cx:function(d){return d.x},
                                             cy:function(d){return d.y}
                                         },
-                                        styles:{ 
+                                        style:{ 
                                             fillStyle:function(d){return d.type === 'HI'?'red':'#fffdca' },
                                             shadowColor:function(d){return d.type === 'HI'?'red':'#fffdca' },
                                             shadowOffsetX:0,
@@ -218,7 +218,7 @@
                                             x:function(d){return d.x},
                                             y:function(d){return d.y+20}
                                         },
-                                        styles:{ fillStyle:'yellow','textAlign':'center' }
+                                        style:{ fillStyle:'yellow','textAlign':'center' }
                                     }).text(function(d){ return d.ip})
 
                                 circleG.createEls(data,{
@@ -228,12 +228,12 @@
                                             cx:function(d){return d.x},
                                             cy:function(d){return d.y}
                                         },
-                                        styles:{ fillStyle:blastGradiant, 'line-Width':2 }
+                                        style:{ fillStyle:blastGradiant, 'line-Width':2 }
                                     }).animateTo({
                                         duration:1000,
                                         ease:'easeOutCubic',
                                         attr:{ r:50 },
-                                        styles:{ globalAlpha:0 },
+                                        style:{ globalAlpha:0 },
                                         end:function(){ this.remove() }
                                     })
                         },
@@ -247,7 +247,7 @@
                                         duration:500,
                                         ease:'easeOutCubic',
                                         attr:{ r:0 },
-                                        styles:{ globalAlpha:0 },
+                                        style:{ globalAlpha:0 },
                                         end:function(d){ 
                                             this.remove()
                                         }
