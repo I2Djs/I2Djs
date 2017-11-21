@@ -22,14 +22,14 @@ npm install i2djs
 ```
 
 ### To Begin
-Lets create a container in which SVG layer will be rendered. SVG viewport will be set with container dimension
+Lets create a container in which SVG layer will be rendered. SVG viewport will be set as per container dimension
 #### Container
 ```html
 <div id="container" >
 </div>
 ```
 #### Create Layer
-Once container is ready, we need to create SVG Layer using below api. It accepts container ID as an input, gives renderer instance as an output. After the below step, we should see SVG element inside the provided container.
+Lets create SVG Layer using below api. It accepts container ID as an input, gives renderer instance as an output. After the below step, we should see SVG element inside the provided container.
 
 Note :- We can create as many layers a possible. Every layer internally will be represented as a mini Virtual Dom (For efficient rendering)
 
@@ -38,7 +38,7 @@ var layerRenderer = i2d.SVGLayer('#containerId')
 ```
 
 #### Create Shape
-Done! All we need to do is go ahead and create shapes, animate attributes, styles.
+Lets user renderer instance to create shapes, animate attributes.. etc.
 ```javascript
   layerRenderer.createEl({
                   el:'rect',
