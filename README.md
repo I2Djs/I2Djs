@@ -39,7 +39,7 @@ Note :- We can create as many layers as possible. Every layer internally will be
 ```
 
 #### Create Shape
-Lets user renderer instance to create shapes, animate attributes.. etc.
+Lets use renderer instance to create shapes, animate attributes.. etc.
 ```javascript
   layerRenderer.createEl({
                   el:'rect',
