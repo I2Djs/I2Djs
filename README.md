@@ -68,7 +68,7 @@ Examples (SVG + Canvas)
 ### Basic Shapes
 <table>
     <tr>
-        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/square.png"></a></td>
+        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="45" src="https://i2djs.github.io/I2Djs/examples/snaps/square.png"></a></td>
         <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/circle.png"></a></td>
         <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/line.png"></a></td>
       <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/polygon.png"></a></td>
