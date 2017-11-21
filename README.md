@@ -35,7 +35,7 @@ Lets create SVG Layer using below api. It accepts container ID as an input, give
 var layerRenderer = i2d.SVGLayer('#containerId')
 ```
 ```
-Note :- We can create as many layers as possible. Every layer internally will be represented as a mini Virtual Dom (For efficient rendering)
+Note :- We can create many layers. Every layer internally will be represented as a mini Virtual Dom (For efficient rendering)
 ```
 
 #### Create Shape
