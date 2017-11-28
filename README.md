@@ -81,7 +81,7 @@ Examples (SVG + Canvas)
 ### Animation 
 <table>
     <tr>
-      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathMorph.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/attributeAnimation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/attributesAnimation.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/attributeAnimation.gif"></a></td>
       <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/circleMovementAnimation.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/circleMoveMent.gif"></a></td>
       <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent2.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/mouse2Animation.gif"></a></td>
       <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/mouseAnimation.gif"></a></td>
@@ -91,7 +91,7 @@ Examples (SVG + Canvas)
   <tr>
     <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathMorph.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/PathMorphAnimation.gif"></a></td>
     <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/solarSystem.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/solarAnimation.gif"></a></td>
-    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/solarSystem.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/distortion.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/distortion.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/distortion.gif"></a></td>
   </tr>
 </table>
 
