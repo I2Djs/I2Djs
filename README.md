@@ -25,8 +25,7 @@ npm install i2djs
 Lets create a container in which SVG layer will be rendered. SVG viewport will be set as per container dimension
 #### Container
 ```html
-<div id="container" >
-</div>
+<div id="container"> </div>
 ```
 #### Create Layer
 Lets create SVG Layer using below api. It accepts container ID as an input, gives renderer instance as an output. After the below step, we should see SVG element inside the provided container.
