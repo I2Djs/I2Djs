@@ -210,24 +210,27 @@
       let maxX = -Infinity
       let maxY = -Infinity
 
-      const exe = []
+      // const exe = []
       let d
+      let point
       for (let i = 0; i < cmxArr.length; i += 1) {
         d = cmxArr[i]
         if (['V', 'H', 'L'].indexOf(d.type) !== -1) {
-          exe[exe.length] = linearTBetweenPoints.bind(null, d.p0 ? d.p0 : (cmxArr[i - 1].p1), d.p1)
+          [d.p0 ? d.p0 : (cmxArr[i - 1].p1), d.p1].forEach(function (point) {
+            if (point.x < minX) { minX = point.x }
+            if (point.x > maxX) { maxX = point.x }
+
+            if (point.y < minY) { minY = point.y }
+            if (point.y > maxY) { maxY = point.y }
+          })
         } else if (['Q', 'C'].indexOf(d.type) !== -1) {
           const co = cubicBezierCoefficients(d)
-          exe[exe.length] = cubicBezierTransition.bind(null, d.p0, co)
-        } else {
-          exe[exe.length] = d.p0
-        }
+          let exe = cubicBezierTransition.bind(null, d.p0, co)
+          let ii = 0
+          let point
 
-        let ii = 0
-        let point
-        if (typeof exe[exe.length - 1] === 'function') {
           while (ii < 1) {
-            point = exe[exe.length - 1](ii)
+            point = exe(ii)
             ii += 0.05
             if (point.x < minX) { minX = point.x }
             if (point.x > maxX) { maxX = point.x }
@@ -236,7 +239,7 @@
             if (point.y > maxY) { maxY = point.y }
           }
         } else {
-          point = exe[exe.length - 1]
+          point = d.p0
           if (point.x < minX) { minX = point.x }
           if (point.x > maxX) { maxX = point.x }
 

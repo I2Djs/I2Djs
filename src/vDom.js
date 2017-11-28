@@ -39,6 +39,8 @@
     return node
   }
 
+  VDom.prototype.transformCoOr = transformCoOr
+
   function transformCoOr (d, coOr) {
     let hozMove = 0
     let verMove = 0

@@ -136,7 +136,7 @@
   let t
   function exeFrameCaller () {
     animeFrameId = window.requestAnimationFrame(exeFrameCaller)
-
+    t = Date.now()
     for (let i = 0; i < tweens.length; i += 1) {
       d = tweens[i]
       t = Date.now()
