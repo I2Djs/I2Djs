@@ -31,19 +31,13 @@ Lets create a container in which SVG layer will be rendered. SVG viewport will b
 Below specified methods are to create the respective Canvas/SVG layers. It accepts container ID as an input, gives renderer instance as an output.
 Multiple SVG/Canvas can be defined. Each layer represents corresponding Dom element - SVG for SVGlayer, Canvas for Canvas layer.
 
-<table>
-  <tr>
-    <td align="center"><b>Canvas</b></td>
-    <td align="center"><b>SVG</b></td>
-  </tr>
-   <tr>
-    <td> canvasRenderer = i2d.CanvasLayer('#containerId', ConfigObj)</td>
-    <td> svgRenderer = i2d.SVGLayer('#containerId')</td>
-  </tr>
-</table>
+| Canvas  | SVG |
+| ------------- | ------------- |
+| canvasRenderer = i2d.CanvasLayer('#containerId', ConfigObj)  | svgRenderer = i2d.SVGLayer('#containerId')  |
 
 #### Create Shape
 Lets use renderer instance to create shapes, animate attributes.. etc.
+
 ```javascript
   layerRenderer.createEl({
                   el:'rect',
