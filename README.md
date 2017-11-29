@@ -40,10 +40,6 @@ Multiple SVG/Canvas can be defined. Each layer represents corresponding Dom elem
     <td> canvasRenderer = i2d.CanvasLayer('#containerId', ConfigObj)</td>
     <td> svgRenderer = i2d.SVGLayer('#containerId')</td>
   </tr>
-  <tr>
-    <td> canvasRenderer = i2d.CanvasLayer('#containerId')</td>
-    <td> svgRenderer = i2d.SVGLayer('#containerId')</td>
-  </tr>
 </table>
 
 #### Create Shape
