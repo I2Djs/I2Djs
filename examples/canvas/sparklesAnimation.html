@@ -18,6 +18,9 @@
 
 	<script type="text/javascript">
 
+    render()
+    
+    function render () {
         var height = 820, width = 1430;
         var renderer = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
         
@@ -39,14 +42,17 @@
                                                             });
         var sparkles = []
 
-            for(var i=0;i<1500;i++){
+            for(var i=0;i<500;i++){
                     var angle = (2*Math.PI/50)*(parseInt(i%50))
                                         var r = random(50,450)
                                         var tx = r*Math.cos(angle)
                                         var ty = r*Math.sin(angle)
+                    var pathInstance = i2d.Path()
+                        .m(false,{x:700,y:350})
+                        .q(false,{x:(tx*0.6),y:((ty-350)*0.6)},{x:tx,y:ty})
                                         // console.log("m"+x+','+y+' q'+(tx*0.6)+','+((ty-y)*0.6) +' '+tx+','+ty)
-                                        
-                    sparkles.push({d:'m700,350 q'+(tx*0.6)+','+((ty-350)*0.6) +' '+tx+','+ty})
+                    
+                    sparkles.push({d:pathInstance})
                 }
 
         renderer.createEl({
@@ -87,8 +93,7 @@
                         var sparkclesNodes = renderer2.createEls(sparkles,{
                                 el:'path',
                                 style:{
-                                    strokeStyle:'white',
-                                    //blastGradiant,
+                                    strokeStyle:blastGradiant,
                                     globalAlpha:0.5
                                 }
                             })
@@ -167,6 +172,8 @@
             var num = Math.floor(Math.random()*(max-min)) + min;
             return num;
         }
+
+    }
 
 	</script>
 

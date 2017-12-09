@@ -41,7 +41,7 @@
         //             });
 
         var data= [];
-            for(var i=0;i<=1000;i++){
+            for(var i=0;i<=100;i++){
                 data.push(i);
             }
 
@@ -150,17 +150,13 @@
                             //
                             transform:function(d){
                                 return {
-                                            translate:[Math.random()*1000,100+Math.random()*700],
-                                            scale:[0.5,0.5],
+                                            translate:[Math.random()*1400,100+Math.random()*800]
                                             // rotate:[parseInt(Math.random()*360)]
                                         }
                             }
                         },
                         style:{
-                            lineWidth:2,
-                            fillStyle:'#f00000',
-                            shadowColor:"black",
-                            lineCap:'round'
+                            fillStyle:'#f00000'
                         }
                     })
                     .animateTo({

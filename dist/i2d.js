@@ -285,7 +285,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (roo
     }
 
     function intermediateValue (v1, v2, f) {
-      return v1 + ((v2 - v1)) * f
+      return v1 + (v2 - v1) * f
     }
     function getBBox (cmxArr) {
       let minX = Infinity
@@ -604,6 +604,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     module.exports = factory()
   } else {
     root.queue = factory()
+    console.log('queue root')
   }
 }(this, () => {
   let animatorInstance = null
@@ -667,7 +668,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
 
   function onRequestFrame (_) {
-    // const self = this
 
     if (typeof _ !== 'function') {
       throw new Error('Wrong input')
@@ -724,6 +724,14 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     vDoms.push(_)
     return vDoms.length - 1
   }
+  Animator.prototype.removeVdom = function removeVdom (_) {
+    for (var i = 0; i < vDoms.length; i++) {
+      if (vDoms[i] === _) {
+        vDoms.splice(i, 1)
+      }
+    }
+    console.log(vDoms)
+  }
   Animator.prototype.vDomChanged = function AvDomChanged (vDom) {
     vDoms[vDom].stateModified = true
   }
@@ -736,7 +744,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   function exeFrameCaller () {
     animeFrameId = window.requestAnimationFrame(exeFrameCaller)
     t = Date.now()
-    for (let i = 0; i < tweens.length; i += 1) {
+    for (let i = 0, len = tweens.length; i < len; i += 1) {
       d = tweens[i]
       t = Date.now()
       d.lastTime += (t - d.currTime)
@@ -754,6 +762,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         }
       }
     }
+
+    d = null
 
     if (onFrameExe.length > 0) {
       for (let i = 0; i < onFrameExe.length; i += 1) {
@@ -1027,13 +1037,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     this.currPos = 0
     this.ID = generateRendererId()
     this.loopCounter = 0
-    // this.factor = 1;
-    // this.direction = 'alternate';
-    // this.completedTime = 0;
-    // this.percentCompletion = 0;
-    // this.previousFactor = 0;
-    // this.previousLocalFactor = 0;
-    // this.cumilativeLength = 0;
   }
 
   SequenceGroup.prototype = {
@@ -1130,7 +1133,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       if (self.end) { self.triggerChild(self) }
 
       self.loopCounter += 1
-      console.log(self.loopCounter)
       if (self.loopCounter < self.loopValue) {
         self.start()
       }
@@ -1674,6 +1676,9 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     })
     this.length += this.segmentLength
     this.pp = this.cp
+
+    // this.stackGroup.push(this.stack)
+
     return this
   }
 
@@ -2157,14 +2162,14 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   function createEl (config) {
     let d
     const coll = []
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       let cRes = {}
       d = this.stack[i]
       if (typeof config === 'function') {
         cRes = config.call(d, d.dataObj, i)
       } else {
         const keys = Object.keys(config)
-        for (let j = 0; j < keys.length; j += 1) {
+        for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
           const key = keys[j]
           if (typeof config[key] !== 'object') { cRes[key] = config[key] } else {
             cRes[key] = JSON.parse(JSON.stringify(config[key]))
@@ -2183,7 +2188,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     let d
     const coll = []
     let res = data
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       let cRes = {}
       d = this.stack[i]
 
@@ -2194,7 +2199,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         cRes = config.call(d, d.dataObj, i)
       } else {
         const keys = Object.keys(config)
-        for (let j = 0; j < keys.length; j += 1) {
+        for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
           const key = keys[j]
           cRes[key] = config[key]
         }
@@ -2208,7 +2213,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
 
   function forEach (callBck) {
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       callBck.call(this.stack[i], this.stack[i].dataObj, i)
     }
     return this
@@ -2216,7 +2221,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
   function setAttribute (key, value) {
     let d
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       d = this.stack[i]
       if (arguments.length > 1) {
         if (typeof value === 'function') {
@@ -2228,7 +2233,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         d.setAttr(key.call(d, d.dataObj, i))
       } else {
         const keys = Object.keys(key)
-        for (let j = 0; j < keys.length; j += 1) {
+        for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
           const keykey = keys[j]
           if (typeof key[keykey] === 'function') {
             d.setAttr(keykey, key[keykey].call(d, d.dataObj, i))
@@ -2242,7 +2247,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
   function setStyle (key, value) {
     let d
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       d = this.stack[i]
       if (arguments.length > 1) {
         if (typeof value === 'function') {
@@ -2255,7 +2260,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
           d.setStyle(key.call(d, d.dataObj, i))
         } else {
           const keys = Object.keys(key)
-          for (let j = 0; j < keys.length; j += 1) {
+          for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
             const keykey = keys[j]
             if (typeof key[keykey] === 'function') {
               d.setStyle(keykey, key[keykey].call(d, d.dataObj, i))
@@ -2281,7 +2286,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
   function translate (value) {
     let d
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       d = this.stack[i]
       if (typeof value === 'function') {
         d.translate(value.call(d, d.dataObj, i))
@@ -2293,7 +2298,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
   function rotate (value) {
     let d
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       d = this.stack[i]
       if (typeof value === 'function') {
         d.rotate(value.call(d, d.dataObj, i))
@@ -2305,7 +2310,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
   function scale (value) {
     let d
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       d = this.stack[i]
       if (typeof value === 'function') {
         d.scale(value.call(d, d.dataObj, i))
@@ -2317,13 +2322,13 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
 
   function on (eventType, hndlr) {
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       this.stack[i].on(eventType, hndlr)
     }
     return this
   }
   function remove () {
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       this.stack[i].remove()
     }
     return this
@@ -3167,7 +3172,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     if (!src) { throw Error('Path Not defined') }
 
     const chainInstance = chain.sequenceChain()
-    const newPathInstance = i2d.Path(src)
+    const newPathInstance = path.isTypePath(src) ? src : i2d.Path(src)
     const arrExe = newPathInstance.stackGroup.reduce((p, c) => {
       p = p.concat(c)
       return p
@@ -3552,12 +3557,12 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
   DomExe.prototype.scale = function DMscale (XY) {
     if (!this.attr.transform) { this.attr.transform = {} }
-    this.attr.transform.scale = [XY[0], XY[0]]
+    this.attr.transform.scale = XY
     if (this.changedAttribute.transform) {
-      this.changedAttribute.transform.scale = [XY[0], XY[0]]
+      this.changedAttribute.transform.scale = XY
     } else {
       this.changedAttribute.transform = {}
-      this.changedAttribute.transform.scale = [XY[0], XY[0]]
+      this.changedAttribute.transform.scale = XY
     }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
@@ -3638,7 +3643,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         this.changedAttribute[key] = attr[key]
       }
     }
-
     this.attrChanged = true
     queueInstance.vDomChanged(this.vDomIndex)
 
@@ -3702,8 +3706,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
   DomExe.prototype.on = function DMon (eventType, hndlr) {
     const hnd = hndlr.bind(this)
-
-    this.dom.addEventListener(eventType, (event) => { hnd({ data: 'sample' }, event) })
+    const self = this
+    this.dom.addEventListener(eventType, (event) => { hnd(self.dataObj, event) })
 
     return this
   }
@@ -3793,13 +3797,11 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         ? transform.translate[1] : hozMove || 0
 
       self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove)
-      // self.ctx.save()
       if (transform.rotate) {
         self.ctx.translate(transform.cx, transform.cy)
         self.ctx.rotate(transform.rotate * (Math.PI / 180))
         self.ctx.translate(-(transform.cx), -(transform.cy))
       }
-      // self.ctx.restore()
     }
     for (let i = 0; i < self.stack.length; i += 1) {
       self.stack[i].execute()
@@ -4579,11 +4581,17 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       self.BBoxHit = this.BBox
     }
   }
+  RenderRect.prototype.applyStyles = function rStyles () {
+    // if (this.style.fillStyle) { this.ctx.fill() }
+    // if (this.style.strokeStyle) { this.ctx.stroke() }
+  }
   RenderRect.prototype.execute = function RRexecute () {
     const { ctx } = this
-    ctx.beginPath()
-    ctx.rect(this.attr.x, this.attr.y, this.attr.width, this.attr.height)
-    ctx.closePath()
+    // ctx.beginPath()
+    if (this.style.fillStyle) { ctx.fillRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height) }
+    if (this.style.strokeStyle) { ctx.strokeRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height) }
+    // ctx.fillRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height)
+    // ctx.closePath()
   }
 
   RenderRect.prototype.in = function RRinfun (co) {
@@ -4759,14 +4767,16 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     const props = Object.keys(this.style)
     let value
 
-    for (let i = 0; i < props.length; i += 1) {
-      if (typeof this.style[props[i]] === 'function') {
+    for (let i = 0, len = props.length; i < len; i += 1) {
+      if (typeof this.style[props[i]] !== 'function' && !(this.style[props[i]] instanceof CanvasGradients)) {
+        value = this.style[props[i]]
+      } else if (typeof this.style[props[i]] === 'function') {
         this.style[props[i]] = this.style[props[i]].call(this, this.dataObj)
         value = this.style[props[i]]
       } else if (this.style[props[i]] instanceof CanvasGradients) {
         value = this.style[props[i]].exe(this.ctx, this.dom.BBox)
       } else {
-        value = this.style[props[i]]
+        console.log('unkonwn Style')
       }
 
       if (typeof value !== 'function') { this.ctx[props[i]] = value } else if (typeof value === 'function') { this.ctx[props[i]](value) } else { console.log('junk comp') }
@@ -4802,7 +4812,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       this.dom.setStyle(attr, value)
     } else if (arguments.length === 1 && typeof attr === 'object') {
       const styleKeys = Object.keys(attr)
-      for (let i = 0; i < styleKeys.length; i += 1) {
+      for (let i = 0, len = styleKeys.length; i < len; i += 1) {
         this.style[styleKeys[i]] = attr[styleKeys[i]]
         this.dom.setStyle(styleKeys[i], attr[styleKeys[i]])
       }
@@ -4886,8 +4896,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     this.ctx.save()
     this.stylesExe()
     this.attributesExe()
-    if ((this.dom instanceof RenderGroup)) {
-      for (let i = 0; i < this.children.length; i += 1) {
+    if (this.dom instanceof RenderGroup) {
+      for (let i = 0, len = this.children.length; i < len; i += 1) {
         this.children[i].execute()
       }
     }
@@ -4914,8 +4924,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
   CanvasNodeExe.prototype.updateBBox = function CupdateBBox () {
     let status
-    let length = this.children.length
-    for (let i = 0; i < length; i += 1) {
+    for (let i = 0, len = this.children.length; i < len; i += 1) {
       status = this.children[i].updateBBox() || status
     }
     if (this.BBoxUpdate || status) {
@@ -5164,7 +5173,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     root.domEl = layer
     root.height = height
     root.width = width
-    root.pixelRatio = 1
     root.execute = function executeExe () {
       if (!this.dom.BBoxHit) {
         this.dom.BBoxHit = {
@@ -5182,15 +5190,17 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     root.resize = function () {
       let width = this.container.clientWidth
       let height = this.container.clientHeight
-      let newRatio = (width / this.width)
-      // this.width = width
-      // this.height = height
-      this.pixelRatio = newRatio
-      this.scale([newRatio, newRatio])
+      let newWidthRatio = (width / this.width)
+      let newHeightRatio = (height / this.height)
+      this.scale([newWidthRatio, newHeightRatio])
       this.domEl.setAttribute('height', height * originalRatio)
       this.domEl.setAttribute('width', width * originalRatio)
       this.domEl.style.height = `${height}px`
       this.domEl.style.width = `${width}px`
+    }
+
+    root.destroy = function () {
+      queueInstance.removeVdom(vDomInstance)
     }
 
     root.type = 'CANVAS'
@@ -5200,11 +5210,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     if (config.events || config.events === undefined) {
       res.addEventListener('mousemove', (e) => {
         e.preventDefault()
-        let pos = { x: e.offsetX, y: e.offsetY }
-        pos.x /= root.pixelRatio
-        pos.y /= root.pixelRatio
 
-        const tselectedNode = vDomInstance.eventsCheck(root.children, pos)
+        const tselectedNode = vDomInstance.eventsCheck([root], { x: e.offsetX, y: e.offsetY })
 
         if (selectedNode && tselectedNode !== selectedNode) {
           if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
@@ -5310,7 +5317,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     return root
   }
 
-  i2d.SVGLayer = function SVGLayer (context) {
+  i2d.SVGLayer = function SVGLayer (context, config) {
     const vDomInstance = new VDom()
     const vDomIndex = queueInstance.addVdom(vDomInstance)
     const res = document.querySelector(context)
@@ -5323,8 +5330,31 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     res.appendChild(layer)
     const root = new DomExe(layer, {}, domId(), vDomIndex)
 
+    root.container = res
     root.type = 'SVG'
+    root.width = width
+    root.height = height
     vDomInstance.root(root)
+
+    root.resize = function () {
+      let width = this.container.clientWidth
+      let height = this.container.clientHeight
+      let newWidthRatio = (width / this.width)
+      let newHeightRatio = (height / this.height)
+      this.scale([newWidthRatio, newHeightRatio])
+      this.dom.setAttribute('height', height)
+      this.dom.setAttribute('width', width)
+    }
+
+    root.destroy = function () {
+      queueInstance.removeVdom(vDomInstance)
+    }
+
+    if (config && config.resize) {
+      window.addEventListener('resize', function () {
+        root.resize()
+      })
+    }
 
     queueInstance.execute()
     return root

@@ -202,7 +202,7 @@
     }
 
     function intermediateValue (v1, v2, f) {
-      return v1 + ((v2 - v1)) * f
+      return v1 + (v2 - v1) * f
     }
     function getBBox (cmxArr) {
       let minX = Infinity

@@ -119,14 +119,14 @@
   function createEl (config) {
     let d
     const coll = []
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       let cRes = {}
       d = this.stack[i]
       if (typeof config === 'function') {
         cRes = config.call(d, d.dataObj, i)
       } else {
         const keys = Object.keys(config)
-        for (let j = 0; j < keys.length; j += 1) {
+        for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
           const key = keys[j]
           if (typeof config[key] !== 'object') { cRes[key] = config[key] } else {
             cRes[key] = JSON.parse(JSON.stringify(config[key]))
@@ -145,7 +145,7 @@
     let d
     const coll = []
     let res = data
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       let cRes = {}
       d = this.stack[i]
 
@@ -156,7 +156,7 @@
         cRes = config.call(d, d.dataObj, i)
       } else {
         const keys = Object.keys(config)
-        for (let j = 0; j < keys.length; j += 1) {
+        for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
           const key = keys[j]
           cRes[key] = config[key]
         }
@@ -170,7 +170,7 @@
   }
 
   function forEach (callBck) {
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       callBck.call(this.stack[i], this.stack[i].dataObj, i)
     }
     return this
@@ -178,7 +178,7 @@
 
   function setAttribute (key, value) {
     let d
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       d = this.stack[i]
       if (arguments.length > 1) {
         if (typeof value === 'function') {
@@ -190,7 +190,7 @@
         d.setAttr(key.call(d, d.dataObj, i))
       } else {
         const keys = Object.keys(key)
-        for (let j = 0; j < keys.length; j += 1) {
+        for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
           const keykey = keys[j]
           if (typeof key[keykey] === 'function') {
             d.setAttr(keykey, key[keykey].call(d, d.dataObj, i))
@@ -204,7 +204,7 @@
   }
   function setStyle (key, value) {
     let d
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       d = this.stack[i]
       if (arguments.length > 1) {
         if (typeof value === 'function') {
@@ -217,7 +217,7 @@
           d.setStyle(key.call(d, d.dataObj, i))
         } else {
           const keys = Object.keys(key)
-          for (let j = 0; j < keys.length; j += 1) {
+          for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
             const keykey = keys[j]
             if (typeof key[keykey] === 'function') {
               d.setStyle(keykey, key[keykey].call(d, d.dataObj, i))
@@ -243,7 +243,7 @@
   }
   function translate (value) {
     let d
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       d = this.stack[i]
       if (typeof value === 'function') {
         d.translate(value.call(d, d.dataObj, i))
@@ -255,7 +255,7 @@
   }
   function rotate (value) {
     let d
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       d = this.stack[i]
       if (typeof value === 'function') {
         d.rotate(value.call(d, d.dataObj, i))
@@ -267,7 +267,7 @@
   }
   function scale (value) {
     let d
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       d = this.stack[i]
       if (typeof value === 'function') {
         d.scale(value.call(d, d.dataObj, i))
@@ -279,13 +279,13 @@
   }
 
   function on (eventType, hndlr) {
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       this.stack[i].on(eventType, hndlr)
     }
     return this
   }
   function remove () {
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       this.stack[i].remove()
     }
     return this
@@ -1129,7 +1129,7 @@
     if (!src) { throw Error('Path Not defined') }
 
     const chainInstance = chain.sequenceChain()
-    const newPathInstance = i2d.Path(src)
+    const newPathInstance = path.isTypePath(src) ? src : i2d.Path(src)
     const arrExe = newPathInstance.stackGroup.reduce((p, c) => {
       p = p.concat(c)
       return p
@@ -1514,12 +1514,12 @@
   }
   DomExe.prototype.scale = function DMscale (XY) {
     if (!this.attr.transform) { this.attr.transform = {} }
-    this.attr.transform.scale = [XY[0], XY[0]]
+    this.attr.transform.scale = XY
     if (this.changedAttribute.transform) {
-      this.changedAttribute.transform.scale = [XY[0], XY[0]]
+      this.changedAttribute.transform.scale = XY
     } else {
       this.changedAttribute.transform = {}
-      this.changedAttribute.transform.scale = [XY[0], XY[0]]
+      this.changedAttribute.transform.scale = XY
     }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
@@ -1600,7 +1600,6 @@
         this.changedAttribute[key] = attr[key]
       }
     }
-
     this.attrChanged = true
     queueInstance.vDomChanged(this.vDomIndex)
 
@@ -1664,8 +1663,8 @@
 
   DomExe.prototype.on = function DMon (eventType, hndlr) {
     const hnd = hndlr.bind(this)
-
-    this.dom.addEventListener(eventType, (event) => { hnd({ data: 'sample' }, event) })
+    const self = this
+    this.dom.addEventListener(eventType, (event) => { hnd(self.dataObj, event) })
 
     return this
   }
@@ -1755,13 +1754,11 @@
         ? transform.translate[1] : hozMove || 0
 
       self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove)
-      // self.ctx.save()
       if (transform.rotate) {
         self.ctx.translate(transform.cx, transform.cy)
         self.ctx.rotate(transform.rotate * (Math.PI / 180))
         self.ctx.translate(-(transform.cx), -(transform.cy))
       }
-      // self.ctx.restore()
     }
     for (let i = 0; i < self.stack.length; i += 1) {
       self.stack[i].execute()
@@ -2541,11 +2538,17 @@
       self.BBoxHit = this.BBox
     }
   }
+  RenderRect.prototype.applyStyles = function rStyles () {
+    // if (this.style.fillStyle) { this.ctx.fill() }
+    // if (this.style.strokeStyle) { this.ctx.stroke() }
+  }
   RenderRect.prototype.execute = function RRexecute () {
     const { ctx } = this
-    ctx.beginPath()
-    ctx.rect(this.attr.x, this.attr.y, this.attr.width, this.attr.height)
-    ctx.closePath()
+    // ctx.beginPath()
+    if (this.style.fillStyle) { ctx.fillRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height) }
+    if (this.style.strokeStyle) { ctx.strokeRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height) }
+    // ctx.fillRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height)
+    // ctx.closePath()
   }
 
   RenderRect.prototype.in = function RRinfun (co) {
@@ -2721,14 +2724,16 @@
     const props = Object.keys(this.style)
     let value
 
-    for (let i = 0; i < props.length; i += 1) {
-      if (typeof this.style[props[i]] === 'function') {
+    for (let i = 0, len = props.length; i < len; i += 1) {
+      if (typeof this.style[props[i]] !== 'function' && !(this.style[props[i]] instanceof CanvasGradients)) {
+        value = this.style[props[i]]
+      } else if (typeof this.style[props[i]] === 'function') {
         this.style[props[i]] = this.style[props[i]].call(this, this.dataObj)
         value = this.style[props[i]]
       } else if (this.style[props[i]] instanceof CanvasGradients) {
         value = this.style[props[i]].exe(this.ctx, this.dom.BBox)
       } else {
-        value = this.style[props[i]]
+        console.log('unkonwn Style')
       }
 
       if (typeof value !== 'function') { this.ctx[props[i]] = value } else if (typeof value === 'function') { this.ctx[props[i]](value) } else { console.log('junk comp') }
@@ -2764,7 +2769,7 @@
       this.dom.setStyle(attr, value)
     } else if (arguments.length === 1 && typeof attr === 'object') {
       const styleKeys = Object.keys(attr)
-      for (let i = 0; i < styleKeys.length; i += 1) {
+      for (let i = 0, len = styleKeys.length; i < len; i += 1) {
         this.style[styleKeys[i]] = attr[styleKeys[i]]
         this.dom.setStyle(styleKeys[i], attr[styleKeys[i]])
       }
@@ -2848,8 +2853,8 @@
     this.ctx.save()
     this.stylesExe()
     this.attributesExe()
-    if ((this.dom instanceof RenderGroup)) {
-      for (let i = 0; i < this.children.length; i += 1) {
+    if (this.dom instanceof RenderGroup) {
+      for (let i = 0, len = this.children.length; i < len; i += 1) {
         this.children[i].execute()
       }
     }
@@ -2876,8 +2881,7 @@
 
   CanvasNodeExe.prototype.updateBBox = function CupdateBBox () {
     let status
-    let length = this.children.length
-    for (let i = 0; i < length; i += 1) {
+    for (let i = 0, len = this.children.length; i < len; i += 1) {
       status = this.children[i].updateBBox() || status
     }
     if (this.BBoxUpdate || status) {
@@ -3126,7 +3130,6 @@
     root.domEl = layer
     root.height = height
     root.width = width
-    root.pixelRatio = 1
     root.execute = function executeExe () {
       if (!this.dom.BBoxHit) {
         this.dom.BBoxHit = {
@@ -3144,15 +3147,17 @@
     root.resize = function () {
       let width = this.container.clientWidth
       let height = this.container.clientHeight
-      let newRatio = (width / this.width)
-      // this.width = width
-      // this.height = height
-      this.pixelRatio = newRatio
-      this.scale([newRatio, newRatio])
+      let newWidthRatio = (width / this.width)
+      let newHeightRatio = (height / this.height)
+      this.scale([newWidthRatio, newHeightRatio])
       this.domEl.setAttribute('height', height * originalRatio)
       this.domEl.setAttribute('width', width * originalRatio)
       this.domEl.style.height = `${height}px`
       this.domEl.style.width = `${width}px`
+    }
+
+    root.destroy = function () {
+      queueInstance.removeVdom(vDomInstance)
     }
 
     root.type = 'CANVAS'
@@ -3162,11 +3167,8 @@
     if (config.events || config.events === undefined) {
       res.addEventListener('mousemove', (e) => {
         e.preventDefault()
-        let pos = { x: e.offsetX, y: e.offsetY }
-        pos.x /= root.pixelRatio
-        pos.y /= root.pixelRatio
 
-        const tselectedNode = vDomInstance.eventsCheck(root.children, pos)
+        const tselectedNode = vDomInstance.eventsCheck([root], { x: e.offsetX, y: e.offsetY })
 
         if (selectedNode && tselectedNode !== selectedNode) {
           if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
@@ -3272,7 +3274,7 @@
     return root
   }
 
-  i2d.SVGLayer = function SVGLayer (context) {
+  i2d.SVGLayer = function SVGLayer (context, config) {
     const vDomInstance = new VDom()
     const vDomIndex = queueInstance.addVdom(vDomInstance)
     const res = document.querySelector(context)
@@ -3285,8 +3287,31 @@
     res.appendChild(layer)
     const root = new DomExe(layer, {}, domId(), vDomIndex)
 
+    root.container = res
     root.type = 'SVG'
+    root.width = width
+    root.height = height
     vDomInstance.root(root)
+
+    root.resize = function () {
+      let width = this.container.clientWidth
+      let height = this.container.clientHeight
+      let newWidthRatio = (width / this.width)
+      let newHeightRatio = (height / this.height)
+      this.scale([newWidthRatio, newHeightRatio])
+      this.dom.setAttribute('height', height)
+      this.dom.setAttribute('width', width)
+    }
+
+    root.destroy = function () {
+      queueInstance.removeVdom(vDomInstance)
+    }
+
+    if (config && config.resize) {
+      window.addEventListener('resize', function () {
+        root.resize()
+      })
+    }
 
     queueInstance.execute()
     return root

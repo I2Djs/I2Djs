@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+
+	<div id="canvas" style="height: 50%;width:100%">
+	</div>
+    <div id="svg" style="height: 50%;width:100%">
+	</div>
+    
+	<script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
+
+	<script type="text/javascript">
+        var SVGrenderer = i2d.SVGLayer('#svg');
+        var canvasRenderer = i2d.CanvasLayer('#canvas',{events:false,selectiveClear:false});
+            canvasRenderer.destroy()
+            SVGrenderer.destroy()
+	</script>   
+
+</body>
+</html>

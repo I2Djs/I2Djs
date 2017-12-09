@@ -78,6 +78,8 @@
     if (this.currPathArr !== 0 && this.pp) {
       this.stackGroup.push(this.stack)
       this.stack = []
+    } else {
+      this.stackGroup.push(this.stack)
     }
 
     this.stack.push({
@@ -174,6 +176,9 @@
     })
     this.length += this.segmentLength
     this.pp = this.cp
+
+    // this.stackGroup.push(this.stack)
+
     return this
   }
 
@@ -346,11 +351,11 @@
   function Path (path) {
     this.stack = []
     this.length = 0
-    // this.stackGroup = []
+    this.stackGroup = []
     if (path) {
       this.path = path
       this.parse()
-      this.stackGroup.push(this.stack)
+      // this.stackGroup.push(this.stack)
     }
   }
   Path.prototype = {
