@@ -1580,6 +1580,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     if (this.currPathArr !== 0 && this.pp) {
       this.stackGroup.push(this.stack)
       this.stack = []
+    } else {
+      this.stackGroup.push(this.stack)
     }
 
     this.stack.push({
@@ -1851,11 +1853,11 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   function Path (path) {
     this.stack = []
     this.length = 0
-    // this.stackGroup = []
+    this.stackGroup = []
     if (path) {
       this.path = path
       this.parse()
-      this.stackGroup.push(this.stack)
+      // this.stackGroup.push(this.stack)
     }
   }
   Path.prototype = {
@@ -2056,6 +2058,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   const queueInstance = queue()
   let Id = 0
   let animeIdentifier = 1
+  let ratio
 
   function domId () {
     Id += 1
@@ -4370,10 +4373,15 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
   RenderPath.prototype.applyStyles = function RPapplyStyles () {}
   RenderPath.prototype.in = function RPinfun (co) {
+    let flag = false
     if (!this.attr.d) {
-      return false
+      return flag
     }
-    return this.style.fillStyle ? this.ctx.isPointInPath(this.pathNode, co.x, co.y) : false
+    this.ctx.save()
+    this.ctx.scale(1 / ratio, 1 / ratio)
+    flag = this.style.fillStyle ? this.ctx.isPointInPath(this.pathNode, co.x, co.y) : flag
+    this.ctx.restore()
+    return flag
   }
   /** *****************End Render Path */
 
@@ -5134,7 +5142,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
 
   i2d.CanvasLayer = function CanvasLayer (context, config) {
-    let ratio
     let originalRatio
     let selectedNode
     // const selectiveClearing = config.selectiveClear ? config.selectiveClear : false
@@ -5212,13 +5219,12 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         e.preventDefault()
 
         const tselectedNode = vDomInstance.eventsCheck([root], { x: e.offsetX, y: e.offsetY })
-
         if (selectedNode && tselectedNode !== selectedNode) {
           if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
             if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
             if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e) }
-            selectedNode.hovered = false
           }
+          selectedNode.hovered = false
           if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag) {
             selectedNode.dom.drag.dragStartFlag = false
             selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
