@@ -13,6 +13,7 @@
   const queueInstance = queue()
   let Id = 0
   let animeIdentifier = 1
+  let ratio
 
   function domId () {
     Id += 1
@@ -2327,10 +2328,15 @@
   }
   RenderPath.prototype.applyStyles = function RPapplyStyles () {}
   RenderPath.prototype.in = function RPinfun (co) {
+    let flag = false
     if (!this.attr.d) {
-      return false
+      return flag
     }
-    return this.style.fillStyle ? this.ctx.isPointInPath(this.pathNode, co.x, co.y) : false
+    this.ctx.save()
+    this.ctx.scale(1 / ratio, 1 / ratio)
+    flag = this.style.fillStyle ? this.ctx.isPointInPath(this.pathNode, co.x, co.y) : flag
+    this.ctx.restore()
+    return flag
   }
   /** *****************End Render Path */
 
@@ -3091,7 +3097,6 @@
   }
 
   i2d.CanvasLayer = function CanvasLayer (context, config) {
-    let ratio
     let originalRatio
     let selectedNode
     // const selectiveClearing = config.selectiveClear ? config.selectiveClear : false
@@ -3169,13 +3174,12 @@
         e.preventDefault()
 
         const tselectedNode = vDomInstance.eventsCheck([root], { x: e.offsetX, y: e.offsetY })
-
         if (selectedNode && tselectedNode !== selectedNode) {
           if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
             if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
             if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e) }
-            selectedNode.hovered = false
           }
+          selectedNode.hovered = false
           if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag) {
             selectedNode.dom.drag.dragStartFlag = false
             selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
