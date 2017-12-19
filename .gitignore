@@ -1,5 +1,6 @@
 node_modules/
 server/
 examples/d3ScaleTest/
+examples/svgCanvas/
 .DS_Store
 npm-debug.log

@@ -353,7 +353,9 @@
       if (Object.prototype.toString.call(data) !== '[object Array]') {
         data = [data]
       }
-      this.data = this.data.concat(data)
+      for (let i = 0, len = data.length; i < len; i++) {
+        this.data.push(data[i])
+      }
       if (this.action.enter) {
         this.action.enter.call(this, data)
       }
@@ -421,10 +423,28 @@
         config.action.update.call(self, collection, joinResult.update.map(d => d.dataObj))
       }
     }
-    this.joinCond = joinCond
-    this.action = config.action
-    this.selector = selector
-    this.data = data
+    // this.joinCond = joinCond
+    CompositeArray.action = {
+      value: config.action,
+      enumerable: false,
+      configurable: true,
+      writable: false
+    }
+    CompositeArray.selector = {
+      value: selector,
+      enumerable: false,
+      configurable: true,
+      writable: false
+    }
+    CompositeArray.data = {
+      value: data,
+      enumerable: false,
+      configurable: true,
+      writable: false
+    }
+    // this.action = config.action
+    // this.selector = selector
+    // this.data = data
     return Object.create(self, CompositeArray)
   }
 
@@ -2183,6 +2203,7 @@
   RenderCircle.prototype.execute = function RCexecute () {
     this.ctx.beginPath()
     this.ctx.arc(this.attr.cx, this.attr.cy, this.attr.r, 0, 2 * Math.PI, false)
+    this.applyStyles()
     this.ctx.closePath()
   }
 
@@ -2235,6 +2256,7 @@
     ctx.beginPath()
     ctx.moveTo(this.attr.x1, this.attr.y1)
     ctx.lineTo(this.attr.x2, this.attr.y2)
+    this.applyStyles()
     ctx.closePath()
   }
   RenderLine.prototype.in = function RLinfun (co) {
@@ -2487,6 +2509,7 @@
       this.attr.cx - this.attr.rx, this.attr.cy - this.attr.ry,
       this.attr.cx, this.attr.cy - this.attr.ry
     )
+    this.applyStyles()
     ctx.closePath()
   }
 
@@ -2742,7 +2765,13 @@
         console.log('unkonwn Style')
       }
 
-      if (typeof value !== 'function') { this.ctx[props[i]] = value } else if (typeof value === 'function') { this.ctx[props[i]](value) } else { console.log('junk comp') }
+      if (typeof this.ctx[props[i]] !== 'function') {
+        this.ctx[props[i]] = value
+      } else if (typeof this.ctx[props[i]] === 'function') {
+        // console.log(value);
+        // this.ctx.setLineDash([5, 5])
+        this.ctx[props[i]](value)
+      } else { console.log('junk comp') }
     }
   }
 
@@ -2864,7 +2893,7 @@
         this.children[i].execute()
       }
     }
-    this.dom.applyStyles()
+    // this.dom.applyStyles()
     this.ctx.restore()
   }
 
