@@ -4412,16 +4412,22 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   function polygonExe (points) {
     let polygon = new Path2D()
     let localPoints = points
+    let points_ = []
 
     localPoints = localPoints.replace(/,/g, ' ').split(' ')
 
     polygon.moveTo(localPoints[0], localPoints[1])
+    points_.push({x:parseFloat(localPoints[0]),y:parseFloat(localPoints[1])})
     for (let i = 2; i < localPoints.length; i += 2) {
       polygon.lineTo(localPoints[i], localPoints[i + 1])
+      points_.push({x:parseFloat(localPoints[i]),y:parseFloat(localPoints[i+1])})
     }
     polygon.closePath()
 
-    return polygon
+    return {
+      path: polygon,
+      points: points_
+    }
   }
 
   const RenderPolygon = function RenderPolygon (ctx, props, styleProps) {
@@ -4451,32 +4457,41 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     let scaleX = 1
     let scaleY = 1
     const { transform } = self.attr
-    let points = self.attr.points.replace(/,/g, ' ').split(' ').map(function (d) { return parseFloat(d) })
+    console.log('update called')
+    if (self.polygon && self.polygon.points.length > 0) {
+      let points = self.polygon.points
 
-    if (transform && transform.translate) {
-      [translateX, translateY] = transform.translate
-    }
-    if (transform && transform.scale) {
-      [scaleX, scaleY] = transform.scale
-    }
+      if (transform && transform.translate) {
+        [translateX, translateY] = transform.translate
+      }
+      if (transform && transform.scale) {
+        [scaleX, scaleY] = transform.scale
+      }
+      let minX = points[0].x
+      let maxX = points[0].x
+      let minY = points[0].y
+      let maxY = points[0].y
 
-    let minX = points[0]
-    let maxX = points[0]
-    let minY = points[1]
-    let maxY = points[1]
+      for (let i = 1; i < points.length; i += 1) {
+        if (minX > points[i].x) minX = points[i].x
+        if (maxX < points[i].x) maxX = points[i].x
+        if (minY > points[i].y) minY = points[i].y
+        if (maxY < points[i].y) maxY = points[i].y
+      }
 
-    for (let i = 2; i < points.length; i += 2) {
-      if (minX > points[i]) minX = points[i]
-      if (maxX < points[i]) maxX = points[i]
-      if (minY > points[i + 1]) minY = points[i + 1]
-      if (maxY < points[i + 1]) maxY = points[i + 1]
-    }
-
-    self.BBox = {
-      x: (translateX + minX * scaleX),
-      y: (translateY + minY * scaleY),
-      width: (maxX - minX) * scaleX,
-      height: (maxY - minY) * scaleY
+      self.BBox = {
+        x: (translateX + minX * scaleX),
+        y: (translateY + minY * scaleY),
+        width: (maxX - minX) * scaleX,
+        height: (maxY - minY) * scaleY
+      }
+    } else {
+      self.BBox = {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0
+      }
     }
 
     if (transform && transform.rotate) {
@@ -4487,8 +4502,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
   RenderPolygon.prototype.execute = function RPolyexecute () {
     if (this.attr.points) {
-      if (this.style.fillStyle) { this.ctx.fill(this.polygon) }
-      if (this.style.strokeStyle) { this.ctx.stroke(this.polygon) }
+      if (this.style.fillStyle) { this.ctx.fill(this.polygon.path) }
+      if (this.style.strokeStyle) { this.ctx.stroke(this.polygon.path) }
     }
   }
   RenderPolygon.prototype.applyStyles = function RPolyapplyStyles () {}
@@ -4496,7 +4511,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     if (!this.attr.points) {
       return false
     }
-    return this.style.fillStyle ? this.ctx.isPointInPath(this.polygon, co.x, co.y) : false
+    return this.style.fillStyle ? this.ctx.isPointInPath(this.polygon.path, co.x, co.y) : false
   }
 
   /** ***************** Render polygon */
@@ -4638,6 +4653,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
   const RenderGroup = function RenderGroup (ctx, props, styleProps) {
     const self = this
+    self.nodeName = 'group'
     self.ctx = ctx
     self.attr = props
     self.style = styleProps
