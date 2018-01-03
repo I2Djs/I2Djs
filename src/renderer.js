@@ -298,18 +298,21 @@
 
   function rotateBBox (BBox, rotateAngle) {
     // let angle
-    const point1 = { x: BBox.x, y: BBox.y }
-    const point2 = { x: BBox.x + BBox.width, y: BBox.y }
-    const point3 = { x: BBox.x, y: BBox.y + BBox.height }
-    const point4 = { x: BBox.x + BBox.width, y: BBox.y + BBox.height }
+    let point1 = { x: BBox.x, y: BBox.y }
+    let point2 = { x: BBox.x + BBox.width, y: BBox.y }
+    let point3 = { x: BBox.x, y: BBox.y + BBox.height }
+    let point4 = { x: BBox.x + BBox.width, y: BBox.y + BBox.height }
 
-    const cen = { x: BBox.x + BBox.width / 2, y: BBox.y + BBox.height / 2 }
-    const dis = t2DGeometry.getDistance(point1, cen)
+    const cen = {x: 0, y: 0}
+    // { x: BBox.x + BBox.width / 2, y: BBox.y + BBox.height / 2 }
+    // {x: 0, y: 0}
+    // { x: BBox.x + BBox.width / 2, y: BBox.y + BBox.height / 2 }
+    // const dis = t2DGeometry.getDistance(point1, cen)
 
-    t2DGeometry.rotatePoint(point1, cen, rotateAngle, dis)
-    t2DGeometry.rotatePoint(point2, cen, rotateAngle, dis)
-    t2DGeometry.rotatePoint(point3, cen, rotateAngle, dis)
-    t2DGeometry.rotatePoint(point4, cen, rotateAngle, dis)
+    point1 = t2DGeometry.rotatePoint(point1, cen, rotateAngle, t2DGeometry.getDistance(point1, cen))
+    point2 = t2DGeometry.rotatePoint(point2, cen, rotateAngle, t2DGeometry.getDistance(point2, cen))
+    point3 = t2DGeometry.rotatePoint(point3, cen, rotateAngle, t2DGeometry.getDistance(point3, cen))
+    point4 = t2DGeometry.rotatePoint(point4, cen, rotateAngle, t2DGeometry.getDistance(point4, cen))
 
     const xVec = [point1.x, point2.x, point3.x, point4.x].sort((bb, aa) => bb - aa)
     const yVec = [point1.y, point2.y, point3.y, point4.y].sort((bb, aa) => bb - aa)
@@ -1777,7 +1780,7 @@
       self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove)
       if (transform.rotate) {
         self.ctx.translate(transform.cx, transform.cy)
-        self.ctx.rotate(transform.rotate * (Math.PI / 180))
+        self.ctx.rotate(transform.rotate[0] * (Math.PI / 180))
         self.ctx.translate(-(transform.cx), -(transform.cy))
       }
     }
@@ -2142,7 +2145,7 @@
     }
   }
   RenderText.prototype.execute = function RTexecute () {
-    if (this.textContent) {
+    if (this.textContent !== undefined && this.textContent !== null) {
       if (this.style.fillStyle) {
         this.ctx.fillText(this.textContent, this.attr.x, this.attr.y)
       }
@@ -2463,10 +2466,15 @@
   }
   RenderPolygon.prototype.applyStyles = function RPolyapplyStyles () {}
   RenderPolygon.prototype.in = function RPolyinfun (co) {
+    let flag = false
     if (!this.attr.points) {
-      return false
+      return flag
     }
-    return this.style.fillStyle ? this.ctx.isPointInPath(this.polygon.path, co.x, co.y) : false
+    this.ctx.save()
+    this.ctx.scale(1 / ratio, 1 / ratio)
+    flag = this.style.fillStyle ? this.ctx.isPointInPath(this.polygon.path, co.x, co.y) : flag
+    this.ctx.restore()
+    return flag
   }
 
   /** ***************** Render polygon */
@@ -2588,11 +2596,8 @@
   }
   RenderRect.prototype.execute = function RRexecute () {
     const { ctx } = this
-    // ctx.beginPath()
     if (this.style.fillStyle) { ctx.fillRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height) }
     if (this.style.strokeStyle) { ctx.strokeRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height) }
-    // ctx.fillRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height)
-    // ctx.closePath()
   }
 
   RenderRect.prototype.in = function RRinfun (co) {
@@ -2690,7 +2695,7 @@
   RenderGroup.prototype.in = function RGinfun (coOr) {
     const self = this
     const co = { x: coOr.x, y: coOr.y }
-    const { BBoxHit } = this
+    const { BBox } = this
     const { transform } = self.attr
     let gTranslateX = 0
     let gTranslateY = 0
@@ -2705,10 +2710,10 @@
       scaleY = transform.scale[1] !== undefined ? transform.scale[1] : scaleX
     }
 
-    return co.x >= (BBoxHit.x - gTranslateX) / scaleX &&
-                co.x <= ((BBoxHit.x - gTranslateX) + BBoxHit.width) / scaleX &&
-                co.y >= (BBoxHit.y - gTranslateY) / scaleY &&
-                co.y <= ((BBoxHit.y - gTranslateY) + BBoxHit.height) / scaleY
+    return co.x >= (BBox.x - gTranslateX) / scaleX &&
+                co.x <= ((BBox.x - gTranslateX) + BBox.width) / scaleX &&
+                co.y >= (BBox.y - gTranslateY) / scaleY &&
+                co.y <= ((BBox.y - gTranslateY) + BBox.height) / scaleY
   }
 
   /** ***************** End Render Group */
@@ -3218,45 +3223,60 @@
       res.addEventListener('mousemove', (e) => {
         e.preventDefault()
 
-        const tselectedNode = vDomInstance.eventsCheck([root], { x: e.offsetX, y: e.offsetY })
-        if (selectedNode && tselectedNode !== selectedNode) {
-          if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
-            if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
-            if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e) }
+        if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
+          let event = selectedNode.dom.drag.event
+          if (selectedNode.dom.drag.event) {
+            event.dx = e.clientX - event.x
+            event.dy = e.clientY - event.y
           }
-          selectedNode.hovered = false
-          if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag) {
-            selectedNode.dom.drag.dragStartFlag = false
-            selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
-            selectedNode.dom.drag.event = null
-          }
-        }
-        if (selectedNode && tselectedNode === selectedNode) {
-          if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
-            let event = selectedNode.dom.drag.event
-            if (selectedNode.dom.drag.event) {
-              event.dx = e.clientX - event.x
-              event.dy = e.clientY - event.y
-            }
-            event.x = e.clientX
-            event.y = e.clientY
-            selectedNode.dom.drag.event = event
-            selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
-          }
-        }
-        if (tselectedNode) {
-          selectedNode = tselectedNode
-          if ((selectedNode.dom.mouseover || selectedNode.dom.mouseenter) &&
-              !selectedNode.hovered) {
-            if (selectedNode.dom.mouseover) { selectedNode.dom.mouseover.call(selectedNode, selectedNode.dataObj, e) }
-            if (selectedNode.dom.mouseenter) { selectedNode.dom.mouseenter.call(selectedNode, selectedNode.dataObj, e) }
-            selectedNode.hovered = true
-          }
-          if (selectedNode.dom.mousemove) {
-            selectedNode.dom.mousemove.call(selectedNode, selectedNode.dataObj, e)
-          }
+          event.x = e.clientX
+          event.y = e.clientY
+          selectedNode.dom.drag.event = event
+          selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
         } else {
-          selectedNode = undefined
+          const tselectedNode = vDomInstance.eventsCheck([root], { x: e.offsetX, y: e.offsetY })
+          if (selectedNode && tselectedNode !== selectedNode) {
+            // console.log('i am out')
+            // console.log(selectedNode.hovered)
+            if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
+              if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
+              if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e) }
+            }
+            selectedNode.hovered = false
+            if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag) {
+              selectedNode.dom.drag.dragStartFlag = false
+              selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
+              selectedNode.dom.drag.event = null
+            }
+          }
+          if (selectedNode && tselectedNode === selectedNode) {
+            // console.log(selectedNode)
+            if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
+              let event = selectedNode.dom.drag.event
+              if (selectedNode.dom.drag.event) {
+                event.dx = e.clientX - event.x
+                event.dy = e.clientY - event.y
+              }
+              event.x = e.clientX
+              event.y = e.clientY
+              selectedNode.dom.drag.event = event
+              selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
+            }
+          }
+          if (tselectedNode) {
+            selectedNode = tselectedNode
+            if ((selectedNode.dom.mouseover || selectedNode.dom.mouseenter) &&
+                !selectedNode.hovered) {
+              if (selectedNode.dom.mouseover) { selectedNode.dom.mouseover.call(selectedNode, selectedNode.dataObj, e) }
+              if (selectedNode.dom.mouseenter) { selectedNode.dom.mouseenter.call(selectedNode, selectedNode.dataObj, e) }
+              selectedNode.hovered = true
+            }
+            if (selectedNode.dom.mousemove) {
+              selectedNode.dom.mousemove.call(selectedNode, selectedNode.dataObj, e)
+            }
+          } else {
+            selectedNode = undefined
+          }
         }
       })
       res.addEventListener('click', (e) => {

@@ -552,12 +552,34 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (roo
 
     function rotatePoint (point, centre, newAngle, distance) {
       const p = {}
-      const currAngle = this.getAngle(centre, point)
+      let x = point.x
+      let y = point.y
+      let cx = centre.x
+      let cy = centre.y
+      // let currAngle = this.getAngle(centre, point)
+      // currAngle += (Math.PI / 2)
 
-      p.x = centre.x + Math.cos(currAngle - (newAngle * Math.PI / 180)) * distance
-      p.y = centre.y + Math.sin(currAngle - (newAngle * Math.PI / 180)) * distance
+      var radians = (Math.PI / 180) * newAngle
+      var cos = Math.cos(-radians)
+      var sin = Math.sin(-radians)
 
-      return p
+      p.x = (cos * (x - cx)) + (sin * (y - cy)) + cx
+      p.y = (cos * (y - cy)) - (sin * (x - cx)) + cy
+
+      return { x : (cos * (x - cx)) + (sin * (y - cy)) + cx,
+        y : (cos * (y - cy)) - (sin * (x - cx)) + cy
+      }
+
+
+
+
+      // console.log(point)
+      // console.log(currAngle)
+      // console.log(currAngle + newAngle * (Math.PI / 180))
+      // p.x = Math.cos(currAngle + newAngle * (Math.PI / 180) + Math.PI/2) * distance
+      // p.y = Math.sin(currAngle + newAngle * (Math.PI / 180) + Math.PI/2) * distance
+
+      // return p
     }
 
     function T2dGeometry () {}
@@ -733,7 +755,9 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     console.log(vDoms)
   }
   Animator.prototype.vDomChanged = function AvDomChanged (vDom) {
-    vDoms[vDom].stateModified = true
+    if (vDoms[vDom]) {
+      vDoms[vDom].stateModified = true
+    }
   }
   Animator.prototype.execute = function Aexecute () {
     if (!animeFrameId) { animeFrameId = window.requestAnimationFrame(exeFrameCaller) }
@@ -1347,14 +1371,28 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       const rotate = d.attr.transform.rotate[0]
       const { BBox } = d.dom
       const cen = {
-        x: (BBox.x + (BBox.width / 2) - hozMove) / scaleX,
-        y: (BBox.y + (BBox.height / 2) - verMove) / scaleY
+        x:0,
+        y:0
       }
-      const dis = t2DGeometry.getDistance(coOr, cen)
-      const angle = Math.atan2(coOr.y - cen.y, coOr.x - cen.x)
+      // {
+      //   x: (BBox.x + (BBox.width / 2) - hozMove) / scaleX,
+      //   y: (BBox.y + (BBox.height / 2) - verMove) / scaleY
+      // }
+      // const dis = t2DGeometry.getDistance(cen, coOr)
+      // const angle = Math.atan2(coOr.y - cen.y, coOr.x - cen.x)
 
-      coOrLocal.x = cen.x + Math.cos(angle - (rotate * Math.PI / 180)) * dis
-      coOrLocal.y = cen.y + Math.sin(angle - (rotate * Math.PI / 180)) * dis
+
+      let x = coOrLocal.x
+      let y = coOrLocal.y
+      let cx = cen.x
+      let cy = cen.y
+
+      var radians = (Math.PI / 180) * rotate
+      var cos = Math.cos(radians)
+      var sin = Math.sin(radians)
+
+      coOrLocal.x = (cos * (x - cx)) + (sin * (y - cy)) + cx
+      coOrLocal.y = (cos * (y - cy)) - (sin * (x - cx)) + cy
     }
   }
 
@@ -2343,18 +2381,21 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
   function rotateBBox (BBox, rotateAngle) {
     // let angle
-    const point1 = { x: BBox.x, y: BBox.y }
-    const point2 = { x: BBox.x + BBox.width, y: BBox.y }
-    const point3 = { x: BBox.x, y: BBox.y + BBox.height }
-    const point4 = { x: BBox.x + BBox.width, y: BBox.y + BBox.height }
+    let point1 = { x: BBox.x, y: BBox.y }
+    let point2 = { x: BBox.x + BBox.width, y: BBox.y }
+    let point3 = { x: BBox.x, y: BBox.y + BBox.height }
+    let point4 = { x: BBox.x + BBox.width, y: BBox.y + BBox.height }
 
-    const cen = { x: BBox.x + BBox.width / 2, y: BBox.y + BBox.height / 2 }
-    const dis = t2DGeometry.getDistance(point1, cen)
+    const cen = {x: 0, y: 0}
+    // { x: BBox.x + BBox.width / 2, y: BBox.y + BBox.height / 2 }
+    // {x: 0, y: 0}
+    // { x: BBox.x + BBox.width / 2, y: BBox.y + BBox.height / 2 }
+    // const dis = t2DGeometry.getDistance(point1, cen)
 
-    t2DGeometry.rotatePoint(point1, cen, rotateAngle, dis)
-    t2DGeometry.rotatePoint(point2, cen, rotateAngle, dis)
-    t2DGeometry.rotatePoint(point3, cen, rotateAngle, dis)
-    t2DGeometry.rotatePoint(point4, cen, rotateAngle, dis)
+    point1 = t2DGeometry.rotatePoint(point1, cen, rotateAngle, t2DGeometry.getDistance(point1, cen))
+    point2 = t2DGeometry.rotatePoint(point2, cen, rotateAngle, t2DGeometry.getDistance(point2, cen))
+    point3 = t2DGeometry.rotatePoint(point3, cen, rotateAngle, t2DGeometry.getDistance(point3, cen))
+    point4 = t2DGeometry.rotatePoint(point4, cen, rotateAngle, t2DGeometry.getDistance(point4, cen))
 
     const xVec = [point1.x, point2.x, point3.x, point4.x].sort((bb, aa) => bb - aa)
     const yVec = [point1.y, point2.y, point3.y, point4.y].sort((bb, aa) => bb - aa)
@@ -3822,7 +3863,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove)
       if (transform.rotate) {
         self.ctx.translate(transform.cx, transform.cy)
-        self.ctx.rotate(transform.rotate * (Math.PI / 180))
+        self.ctx.rotate(transform.rotate[0] * (Math.PI / 180))
         self.ctx.translate(-(transform.cx), -(transform.cy))
       }
     }
@@ -4187,7 +4228,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     }
   }
   RenderText.prototype.execute = function RTexecute () {
-    if (this.textContent) {
+    if (this.textContent !== undefined && this.textContent !== null) {
       if (this.style.fillStyle) {
         this.ctx.fillText(this.textContent, this.attr.x, this.attr.y)
       }
@@ -4508,10 +4549,15 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
   RenderPolygon.prototype.applyStyles = function RPolyapplyStyles () {}
   RenderPolygon.prototype.in = function RPolyinfun (co) {
+    let flag = false
     if (!this.attr.points) {
-      return false
+      return flag
     }
-    return this.style.fillStyle ? this.ctx.isPointInPath(this.polygon.path, co.x, co.y) : false
+    this.ctx.save()
+    this.ctx.scale(1 / ratio, 1 / ratio)
+    flag = this.style.fillStyle ? this.ctx.isPointInPath(this.polygon.path, co.x, co.y) : flag
+    this.ctx.restore()
+    return flag
   }
 
   /** ***************** Render polygon */
@@ -4633,11 +4679,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
   RenderRect.prototype.execute = function RRexecute () {
     const { ctx } = this
-    // ctx.beginPath()
     if (this.style.fillStyle) { ctx.fillRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height) }
     if (this.style.strokeStyle) { ctx.strokeRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height) }
-    // ctx.fillRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height)
-    // ctx.closePath()
   }
 
   RenderRect.prototype.in = function RRinfun (co) {
@@ -4735,7 +4778,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   RenderGroup.prototype.in = function RGinfun (coOr) {
     const self = this
     const co = { x: coOr.x, y: coOr.y }
-    const { BBoxHit } = this
+    const { BBox } = this
     const { transform } = self.attr
     let gTranslateX = 0
     let gTranslateY = 0
@@ -4750,10 +4793,10 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       scaleY = transform.scale[1] !== undefined ? transform.scale[1] : scaleX
     }
 
-    return co.x >= (BBoxHit.x - gTranslateX) / scaleX &&
-                co.x <= ((BBoxHit.x - gTranslateX) + BBoxHit.width) / scaleX &&
-                co.y >= (BBoxHit.y - gTranslateY) / scaleY &&
-                co.y <= ((BBoxHit.y - gTranslateY) + BBoxHit.height) / scaleY
+    return co.x >= (BBox.x - gTranslateX) / scaleX &&
+                co.x <= ((BBox.x - gTranslateX) + BBox.width) / scaleX &&
+                co.y >= (BBox.y - gTranslateY) / scaleY &&
+                co.y <= ((BBox.y - gTranslateY) + BBox.height) / scaleY
   }
 
   /** ***************** End Render Group */
@@ -5263,45 +5306,60 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       res.addEventListener('mousemove', (e) => {
         e.preventDefault()
 
-        const tselectedNode = vDomInstance.eventsCheck([root], { x: e.offsetX, y: e.offsetY })
-        if (selectedNode && tselectedNode !== selectedNode) {
-          if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
-            if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
-            if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e) }
+        if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
+          let event = selectedNode.dom.drag.event
+          if (selectedNode.dom.drag.event) {
+            event.dx = e.clientX - event.x
+            event.dy = e.clientY - event.y
           }
-          selectedNode.hovered = false
-          if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag) {
-            selectedNode.dom.drag.dragStartFlag = false
-            selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
-            selectedNode.dom.drag.event = null
-          }
-        }
-        if (selectedNode && tselectedNode === selectedNode) {
-          if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
-            let event = selectedNode.dom.drag.event
-            if (selectedNode.dom.drag.event) {
-              event.dx = e.clientX - event.x
-              event.dy = e.clientY - event.y
-            }
-            event.x = e.clientX
-            event.y = e.clientY
-            selectedNode.dom.drag.event = event
-            selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
-          }
-        }
-        if (tselectedNode) {
-          selectedNode = tselectedNode
-          if ((selectedNode.dom.mouseover || selectedNode.dom.mouseenter) &&
-              !selectedNode.hovered) {
-            if (selectedNode.dom.mouseover) { selectedNode.dom.mouseover.call(selectedNode, selectedNode.dataObj, e) }
-            if (selectedNode.dom.mouseenter) { selectedNode.dom.mouseenter.call(selectedNode, selectedNode.dataObj, e) }
-            selectedNode.hovered = true
-          }
-          if (selectedNode.dom.mousemove) {
-            selectedNode.dom.mousemove.call(selectedNode, selectedNode.dataObj, e)
-          }
+          event.x = e.clientX
+          event.y = e.clientY
+          selectedNode.dom.drag.event = event
+          selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
         } else {
-          selectedNode = undefined
+          const tselectedNode = vDomInstance.eventsCheck([root], { x: e.offsetX, y: e.offsetY })
+          if (selectedNode && tselectedNode !== selectedNode) {
+            // console.log('i am out')
+            // console.log(selectedNode.hovered)
+            if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
+              if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
+              if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e) }
+            }
+            selectedNode.hovered = false
+            if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag) {
+              selectedNode.dom.drag.dragStartFlag = false
+              selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
+              selectedNode.dom.drag.event = null
+            }
+          }
+          if (selectedNode && tselectedNode === selectedNode) {
+            // console.log(selectedNode)
+            if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
+              let event = selectedNode.dom.drag.event
+              if (selectedNode.dom.drag.event) {
+                event.dx = e.clientX - event.x
+                event.dy = e.clientY - event.y
+              }
+              event.x = e.clientX
+              event.y = e.clientY
+              selectedNode.dom.drag.event = event
+              selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
+            }
+          }
+          if (tselectedNode) {
+            selectedNode = tselectedNode
+            if ((selectedNode.dom.mouseover || selectedNode.dom.mouseenter) &&
+                !selectedNode.hovered) {
+              if (selectedNode.dom.mouseover) { selectedNode.dom.mouseover.call(selectedNode, selectedNode.dataObj, e) }
+              if (selectedNode.dom.mouseenter) { selectedNode.dom.mouseenter.call(selectedNode, selectedNode.dataObj, e) }
+              selectedNode.hovered = true
+            }
+            if (selectedNode.dom.mousemove) {
+              selectedNode.dom.mousemove.call(selectedNode, selectedNode.dataObj, e)
+            }
+          } else {
+            selectedNode = undefined
+          }
         }
       })
       res.addEventListener('click', (e) => {

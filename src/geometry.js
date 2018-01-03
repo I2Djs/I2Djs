@@ -469,12 +469,34 @@
 
     function rotatePoint (point, centre, newAngle, distance) {
       const p = {}
-      const currAngle = this.getAngle(centre, point)
+      let x = point.x
+      let y = point.y
+      let cx = centre.x
+      let cy = centre.y
+      // let currAngle = this.getAngle(centre, point)
+      // currAngle += (Math.PI / 2)
 
-      p.x = centre.x + Math.cos(currAngle - (newAngle * Math.PI / 180)) * distance
-      p.y = centre.y + Math.sin(currAngle - (newAngle * Math.PI / 180)) * distance
+      var radians = (Math.PI / 180) * newAngle
+      var cos = Math.cos(-radians)
+      var sin = Math.sin(-radians)
 
-      return p
+      p.x = (cos * (x - cx)) + (sin * (y - cy)) + cx
+      p.y = (cos * (y - cy)) - (sin * (x - cx)) + cy
+
+      return { x : (cos * (x - cx)) + (sin * (y - cy)) + cx,
+        y : (cos * (y - cy)) - (sin * (x - cx)) + cy
+      }
+
+
+
+
+      // console.log(point)
+      // console.log(currAngle)
+      // console.log(currAngle + newAngle * (Math.PI / 180))
+      // p.x = Math.cos(currAngle + newAngle * (Math.PI / 180) + Math.PI/2) * distance
+      // p.y = Math.sin(currAngle + newAngle * (Math.PI / 180) + Math.PI/2) * distance
+
+      // return p
     }
 
     function T2dGeometry () {}

@@ -134,7 +134,9 @@
     console.log(vDoms)
   }
   Animator.prototype.vDomChanged = function AvDomChanged (vDom) {
-    vDoms[vDom].stateModified = true
+    if (vDoms[vDom]) {
+      vDoms[vDom].stateModified = true
+    }
   }
   Animator.prototype.execute = function Aexecute () {
     if (!animeFrameId) { animeFrameId = window.requestAnimationFrame(exeFrameCaller) }
