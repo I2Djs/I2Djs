@@ -5309,11 +5309,11 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
           let event = selectedNode.dom.drag.event
           if (selectedNode.dom.drag.event) {
-            event.dx = e.clientX - event.x
-            event.dy = e.clientY - event.y
+            event.dx = e.offsetX - event.x
+            event.dy = e.offsetY - event.y
           }
-          event.x = e.clientX
-          event.y = e.clientY
+          event.x = e.offsetX
+          event.y = e.offsetY
           selectedNode.dom.drag.event = event
           selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
         } else {
@@ -5337,11 +5337,11 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
             if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
               let event = selectedNode.dom.drag.event
               if (selectedNode.dom.drag.event) {
-                event.dx = e.clientX - event.x
-                event.dy = e.clientY - event.y
+                event.dx = e.offsetX - event.x
+                event.dy = e.offsetY - event.y
               }
-              event.x = e.clientX
-              event.y = e.clientY
+              event.x = e.offsetX
+              event.y = e.offsetY
               selectedNode.dom.drag.event = event
               selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
             }
