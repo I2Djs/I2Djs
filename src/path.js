@@ -238,8 +238,9 @@
       cntrl2,
       p1: this.cp,
       length: this.segmentLength,
+      co: co,
       pointAt (f) {
-        return t2DGeometry.cubicBezierTransition(this.p0, this.cntrl1, this.cntrl2, this.p1, f)
+        return t2DGeometry.cubicBezierTransition(this.p0, this.co, f)
       }
     })
     this.length += this.segmentLength
@@ -258,15 +259,14 @@
     const endPoint = addVectors(ep, temp)
 
     this.cp = endPoint
+    const co = t2DGeometry.cubicBezierCoefficients({
+      p0: this.pp,
+      cntrl1,
+      cntrl2,
+      p1: this.cp
+    })
     this.segmentLength = t2DGeometry.cubicBezierLength(
-      this.pp,
-      t2DGeometry.cubicBezierCoefficients({
-        p0: this.pp,
-        cntrl1,
-        cntrl2,
-        p1: this.cp
-      })
-    )
+      this.pp, co)
 
     this.stack.push({
       type: 'S',
@@ -276,7 +276,7 @@
       p1: this.cp,
       length: this.segmentLength,
       pointAt (f) {
-        return t2DGeometry.cubicBezierTransition(this.p0, this.cntrl1, this.cntrl2, this.p1, f)
+        return t2DGeometry.cubicBezierTransition(this.p0, this.co, f)
       }
     })
     // this.stack.segmentLength += this.segmentLength
@@ -422,9 +422,10 @@
   Path.prototype.getPointAtLength = function getPointAtLength (length) {
     let coOr = { x: 0, y: 0 }
     let tLength = length
+
     this.stack.every((d, i) => {
       tLength -= d.length
-      if (Math.floor(tLength) > 0) {
+      if (Math.floor(tLength) >= 0) {
         return true
       }
 

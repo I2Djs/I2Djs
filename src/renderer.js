@@ -2415,7 +2415,6 @@
     let scaleX = 1
     let scaleY = 1
     const { transform } = self.attr
-    console.log('update called')
     if (self.polygon && self.polygon.points.length > 0) {
       let points = self.polygon.points
 
