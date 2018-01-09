@@ -3471,7 +3471,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     this.linearEl = this.defs.join([1], 'linearGradient', {
       action: {
         enter (data) {
-          this.createEls(data, {
+          this.createEls(data.linearGradient, {
             el: 'linearGradient'
           })
             .setAttr({
@@ -3482,11 +3482,11 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
               y2: `${self.config.y2}%`
             })
         },
-        exit (oldNodes, oldData) {
-          oldNodes.remove()
+        exit (oldNodes) {
+          oldNodes.linearGradient.remove()
         },
-        update (nodes, data) {
-          nodes.setAttr({
+        update (nodes) {
+          nodes.linearGradient.setAttr({
             id: self.config.id,
             x1: `${self.config.x1}%`,
             y1: `${self.config.y1}%`,
@@ -3519,7 +3519,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     this.radialEl = this.defs.join([1], 'radialGradient', {
       action: {
         enter (data) {
-          this.createEls(data, {
+          this.createEls(data.radialGradient, {
             el: 'radialGradient'
           }).setAttr({
             id: self.config.id,
@@ -3530,11 +3530,11 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
             fy: `${self.config.outerCircle.y}%`
           })
         },
-        exit (oldNodes, oldData) {
-          oldNodes.remove()
+        exit (oldNodes) {
+          oldNodes.radialGradient.remove()
         },
-        update (nodes, data) {
-          nodes.setAttr({
+        update (nodes) {
+          nodes.radialGradient.setAttr({
             id: self.config.id,
             cx: `${self.config.innerCircle.x}%`,
             cy: `${self.config.innerCircle.y}%`,
