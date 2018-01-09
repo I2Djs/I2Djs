@@ -2418,16 +2418,18 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     for (let i = 0; i < nodes.length; i += 1) {
       const index = dataIds.indexOf(cond(nodes[i].dataObj, i))
       if (index !== -1) {
+        nodes[i].dataObj = data[index]
         res.update.push(nodes[i])
-        dataIds.splice(index, 1)
+        dataIds[index] = null
       } else {
+        // nodes[i].dataObj = data[index]
         res.old.push(nodes[i])
       }
     }
     res.new = data.filter((d, i) => {
       const index = dataIds.indexOf(cond(d, i))
       if (index !== -1) {
-        dataIds.splice(index, 1)
+        dataIds[index] = null
         return true
       } return false
     })
@@ -2444,7 +2446,11 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         this.data.push(data[i])
       }
       if (this.action.enter) {
-        this.action.enter.call(this, data)
+        let nodes = {}
+        this.selector.split(',').forEach(function (d) {
+          nodes[d] = data
+        })
+        this.action.enter.call(this, nodes)
       }
     },
     enumerable: false,
@@ -2453,9 +2459,14 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
   CompositeArray.pop = {
     value: function () {
+      let self = this
       let elData = this.data.pop()
       if (this.action.exit) {
-        this.action.exit.call(this, this.fetchEl(this.selector, elData), [elData])
+        let nodes = {}
+        this.selector.split(',').forEach(function (d) {
+          nodes[d] = self.fetchEls(d, [elData])
+        })
+        this.action.exit.call(this, nodes)
       }
     },
     enumerable: false,
@@ -2467,8 +2478,13 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       if (Object.prototype.toString.call(data) !== '[object Array]') {
         data = [data]
       }
+      let self = this
       if (this.action.exit) {
-        this.action.exit.call(this, this.fetchEls(this.selector, data), data)
+        let nodes = {}
+        this.selector.split(',').forEach(function (d) {
+          nodes[d] = self.fetchEls(d, data)
+        })
+        this.action.exit.call(this, nodes)
       }
     },
     enumerable: false,
@@ -2477,8 +2493,13 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
   CompositeArray.update = {
     value: function () {
+      let self = this
       if (this.action.update) {
-        this.action.update.call(this, this.fetchEls(this.selector, this.data), this.data)
+        let nodes = {}
+        this.selector.split(',').forEach(function (d) {
+          nodes[d] = self.fetchEls(d, self.data)
+        })
+        this.action.update.call(this, nodes)
       }
     },
     enumerable: false,
@@ -2488,26 +2509,46 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
   function dataJoin (data, selector, config) {
     const self = this
-    const nodes = this.fetchEls(selector)
+    const selectors = selector.split(',')
     let { joinCond } = config
+    let joinResult = {
+      new: {
 
+      },
+      update: {
+
+      },
+      old: {
+
+      }
+    }
     if (!joinCond) { joinCond = function (d, i) { return i } }
 
-    const joinResult = performJoin(data, nodes.stack, joinCond)
+    selectors.forEach(function (d, i) {
+      const nodes = self.fetchEls(d)
+      const join = performJoin(data, nodes.stack, joinCond)
+      joinResult.new[d] = join.new
+      joinResult.update[d] = (new CreateElements()).wrapper(join.update)
+      joinResult.old[d] = (new CreateElements()).wrapper(join.old)
+    })
+
+    // const joinResult = performJoin(data, nodes.stack, joinCond)
 
     if (config.action) {
       if (config.action.enter) {
         config.action.enter.call(self, joinResult.new)
       }
       if (config.action.exit) {
-        const collection = new CreateElements()
-        collection.wrapper(joinResult.old)
-        config.action.exit.call(self, collection, joinResult.old.map(d => d.dataObj))
+        // const collection = new CreateElements() 
+        // collection.wrapper(joinResult.old)
+        // config.action.exit.call(self, collection, joinResult.old.map(d => d.dataObj))
+        config.action.exit.call(self, joinResult.old)
       }
       if (config.action.update) {
-        const collection = new CreateElements()
-        collection.wrapper(joinResult.update)
-        config.action.update.call(self, collection, joinResult.update.map(d => d.dataObj))
+        // const collection = new CreateElements()
+        // collection.wrapper(joinResult.update)
+        // config.action.update.call(self, collection, joinResult.update.map(d => d.dataObj))
+        config.action.update.call(self, joinResult.update)
       }
     }
     // this.joinCond = joinCond
