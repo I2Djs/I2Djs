@@ -5422,8 +5422,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
           selectedNode.dom.drag.dragStartFlag = true
           selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e)
           let event = {}
-          event.x = e.clientX
-          event.y = e.clientY
+          event.x = e.offsetX
+          event.y = e.offsetY
           event.dx = 0
           event.dy = 0
           selectedNode.dom.drag.event = event
