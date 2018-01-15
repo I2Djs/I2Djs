@@ -21,45 +21,6 @@ Download source code from below links
 npm install i2djs --save
 ```
 
-### To Begin
-Lets create a container in which SVG layer will be rendered. SVG viewport will be set as per container dimension
-#### Container
-```html
-<div id="container"> </div>
-```
-#### Create Layer
-Below specified methods are to create the respective Canvas/SVG layers. It accepts container ID as an input, gives renderer instance as an output.
-Multiple SVG/Canvas can be defined. Each layer represents corresponding Dom element - SVG for SVGlayer, Canvas for Canvas layer.
-
-| Canvas  | SVG |
-| ------------- | ------------- |
-| canvasRenderer = i2d.CanvasLayer('#containerId', ConfigObj)  | svgRenderer = i2d.SVGLayer('#containerId')  |
-
-#### Create Shape
-Lets use renderer instance to create shapes, animate attributes.. etc.
-
-```javascript
-  layerRenderer.createEl({
-                  el:'rect',
-                  attr:{
-                      //Attributes goes here
-                      height:100,
-                      width:100,
-                      x:0,
-                      y:0
-                  },
-                  style:{
-                    //Styles goes here
-                    fill:'red' //if its Canvas renderer, then it will be canvas style attr 'fillStyle'
-                  }
-              })
-```
-
-
-Resources
----
-[API reference](https://github.com/I2djs/I2D/wiki/API-Reference)
-
 Examples (SVG + Canvas)
 ---
 
@@ -101,6 +62,46 @@ Examples (SVG + Canvas)
         <td width="25%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/networkSystem.html"><img width="150" src="https://i2djs.github.io/I2Djs/examples/snaps/graphAnimation.gif"></a></td>
     </tr>
 </table>
+
+### To Begin
+Lets create a container in which SVG layer will be rendered. SVG viewport will be set as per container dimension
+#### Container
+```html
+<div id="container"> </div>
+```
+#### Create Layer
+Below specified methods are to create the respective Canvas/SVG layers. It accepts container ID as an input, gives renderer instance as an output.
+Multiple SVG/Canvas can be defined. Each layer represents corresponding Dom element - SVG for SVGlayer, Canvas for Canvas layer.
+
+| Canvas  | SVG |
+| ------------- | ------------- |
+| canvasRenderer = i2d.CanvasLayer('#containerId', ConfigObj)  | svgRenderer = i2d.SVGLayer('#containerId')  |
+
+#### Create Shape
+Lets use renderer instance to create shapes, animate attributes.. etc.
+
+```javascript
+  layerRenderer.createEl({
+                  el:'rect',
+                  attr:{
+                      //Attributes goes here
+                      height:100,
+                      width:100,
+                      x:0,
+                      y:0
+                  },
+                  style:{
+                    //Styles goes here
+                    fill:'red' //if its Canvas renderer, then it will be canvas style attr 'fillStyle'
+                  }
+              })
+```
+
+
+Resources
+---
+[API reference](https://github.com/I2djs/I2D/wiki/API-Reference)
+
 
 ### Support & Compatibility
 I2D is implemented in ES2016. It supports Universal Module Definition(UMD)(AMD,CommonJS and vanilla environments) , based on the environment it can be imported accordingly.
