@@ -202,7 +202,7 @@
     }
 
     function intermediateValue (v1, v2, f) {
-      return v1 + ((v2 - v1)) * f
+      return v1 + (v2 - v1) * f
     }
     function getBBox (cmxArr) {
       let minX = Infinity
@@ -210,24 +210,27 @@
       let maxX = -Infinity
       let maxY = -Infinity
 
-      const exe = []
+      // const exe = []
       let d
+      let point
       for (let i = 0; i < cmxArr.length; i += 1) {
         d = cmxArr[i]
         if (['V', 'H', 'L'].indexOf(d.type) !== -1) {
-          exe[exe.length] = linearTBetweenPoints.bind(null, d.p0 ? d.p0 : (cmxArr[i - 1].p1), d.p1)
+          [d.p0 ? d.p0 : (cmxArr[i - 1].p1), d.p1].forEach(function (point) {
+            if (point.x < minX) { minX = point.x }
+            if (point.x > maxX) { maxX = point.x }
+
+            if (point.y < minY) { minY = point.y }
+            if (point.y > maxY) { maxY = point.y }
+          })
         } else if (['Q', 'C'].indexOf(d.type) !== -1) {
           const co = cubicBezierCoefficients(d)
-          exe[exe.length] = cubicBezierTransition.bind(null, d.p0, co)
-        } else {
-          exe[exe.length] = d.p0
-        }
+          let exe = cubicBezierTransition.bind(null, d.p0, co)
+          let ii = 0
+          let point
 
-        let ii = 0
-        let point
-        if (typeof exe[exe.length - 1] === 'function') {
           while (ii < 1) {
-            point = exe[exe.length - 1](ii)
+            point = exe(ii)
             ii += 0.05
             if (point.x < minX) { minX = point.x }
             if (point.x > maxX) { maxX = point.x }
@@ -236,7 +239,7 @@
             if (point.y > maxY) { maxY = point.y }
           }
         } else {
-          point = exe[exe.length - 1]
+          point = d.p0
           if (point.x < minX) { minX = point.x }
           if (point.x > maxX) { maxX = point.x }
 
@@ -466,12 +469,34 @@
 
     function rotatePoint (point, centre, newAngle, distance) {
       const p = {}
-      const currAngle = this.getAngle(centre, point)
+      let x = point.x
+      let y = point.y
+      let cx = centre.x
+      let cy = centre.y
+      // let currAngle = this.getAngle(centre, point)
+      // currAngle += (Math.PI / 2)
 
-      p.x = centre.x + Math.cos(currAngle - (newAngle * Math.PI / 180)) * distance
-      p.y = centre.y + Math.sin(currAngle - (newAngle * Math.PI / 180)) * distance
+      var radians = (Math.PI / 180) * newAngle
+      var cos = Math.cos(-radians)
+      var sin = Math.sin(-radians)
 
-      return p
+      p.x = (cos * (x - cx)) + (sin * (y - cy)) + cx
+      p.y = (cos * (y - cy)) - (sin * (x - cx)) + cy
+
+      return { x : (cos * (x - cx)) + (sin * (y - cy)) + cx,
+        y : (cos * (y - cy)) - (sin * (x - cx)) + cy
+      }
+
+
+
+
+      // console.log(point)
+      // console.log(currAngle)
+      // console.log(currAngle + newAngle * (Math.PI / 180))
+      // p.x = Math.cos(currAngle + newAngle * (Math.PI / 180) + Math.PI/2) * distance
+      // p.y = Math.sin(currAngle + newAngle * (Math.PI / 180) + Math.PI/2) * distance
+
+      // return p
     }
 
     function T2dGeometry () {}

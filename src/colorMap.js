@@ -23,7 +23,7 @@
     const obj = {}
     const flags = ['r', 'g', 'b', 'a']
     for (let i = 0; i < res.length; i += 1) {
-      obj[flags[i]] = res[i]
+      obj[flags[i]] = parseFloat(res[i])
     }
     return obj
   }
@@ -105,8 +105,11 @@
     dest = dest.startsWith('#') ? this.hexToRgb(dest)
       : dest.startsWith('rgb') ? rgbParse(dest)
         : dest.startsWith('hsl') ? hslParse(dest) : { r: 0, g: 0, b: 0 }
-
+    // console.log(src)
+    // console.log(dest)
     return function trans (f) {
+      // console.log(src)
+      // console.log(dest)
       return `rgb(${Math.round(src.r + (dest.r - src.r) * f)},${Math.round(src.g + (dest.g - src.g) * f)},${Math.round(src.b + (dest.b - src.b) * f)})`
     }
   }

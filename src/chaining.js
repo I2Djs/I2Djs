@@ -81,14 +81,7 @@
     this.lengthV = 0
     this.currPos = 0
     this.ID = generateRendererId()
-    this.loopCounter = 1
-    // this.factor = 1;
-    // this.direction = 'alternate';
-    // this.completedTime = 0;
-    // this.percentCompletion = 0;
-    // this.previousFactor = 0;
-    // this.previousLocalFactor = 0;
-    // this.cumilativeLength = 0;
+    this.loopCounter = 0
   }
 
   SequenceGroup.prototype = {

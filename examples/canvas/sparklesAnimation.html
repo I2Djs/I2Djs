@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%;background: black">
+	<div id="myCanvas" style="height: 100%;width:100%">
+	</div>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+    <script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
+
+	<script type="text/javascript">
+
+    render()
+    
+    function render () {
+        var height = 820, width = 1430;
+        var renderer = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
+        
+        var renderer2 = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false,onClear:function(ctx){
+                                ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+                                ctx.fillRect(0, 0, width*2, height*2);
+                        }});
+        
+        var linearGradiant = renderer2.createLinearGradient({id:'linearG',x1:0,y1:0,x2:0,y2:100,
+                                                            colorStops:[{color:'white',value:10},
+                                                                        {color:'rgb(255, 0, 0)',value:50},
+                                                                        {color:'yellow',value:90}]
+                                                            });
+        
+        var blastGradiant = renderer2.createRadialGradient({innerCircle:{x:50,y:50,r:0},
+                                                            outerCircle:{x:50,y:50,r:50},
+                                                            colorStops:[{color:'rgb(255, 0, 0)',value:0},
+                                                                        {color:'white',value:90}]
+                                                            });
+        var sparkles = []
+
+            for(var i=0;i<500;i++){
+                    var angle = (2*Math.PI/50)*(parseInt(i%50))
+                                        var r = random(50,450)
+                                        var tx = r*Math.cos(angle)
+                                        var ty = r*Math.sin(angle)
+                    var pathInstance = i2d.Path()
+                        .m(false,{x:700,y:350})
+                        .q(false,{x:(tx*0.6),y:((ty-350)*0.6)},{x:tx,y:ty})
+                                        // console.log("m"+x+','+y+' q'+(tx*0.6)+','+((ty-y)*0.6) +' '+tx+','+ty)
+                    
+                    sparkles.push({d:pathInstance})
+                }
+
+        renderer.createEl({
+                    el:'circle',
+                    attr:{
+                        r:10,
+                        cx:700,
+                        cy:700
+                    },
+                    style:{
+                        fillStyle:'rgb(255,255,255)'
+                    }
+                }).animateTo({
+                    duration:2000,
+                    ease:'easeInCubic',
+                    attr:{
+                        cy:350
+                    },
+                    end:function(){
+
+                        // var x = this.getAttr('cx')
+                        // var y = this.getAttr('cy')
+
+                            this.animateTo({
+                                duration:300,
+                                ease:'easeInSin',
+                                attr:{
+                                    r:30
+                                },
+                                style:{
+                                    globalAlpha:0
+                                },
+                                end:function(){
+                                    this.remove()
+                                }
+                            })
+                        
+                        var sparkclesNodes = renderer2.createEls(sparkles,{
+                                el:'path',
+                                style:{
+                                    strokeStyle:blastGradiant,
+                                    globalAlpha:0.5
+                                }
+                            })
+
+                        sparkclesNodes.animatePathTo({
+                                duration:1000,
+                                ease:'easeInCubic',
+                                d:function(d){
+                                    return d.d
+                                }
+                                // end:function(){
+                                //     this.remove()
+                                // }
+                            })
+                        
+                        
+                        // var sparkclesNodes = renderer2.createEls(sparkles,{
+                        //         el:'circle',
+                        //         attr:{
+                        //             r:4,
+                        //             cx:x,
+                        //             cy:y
+                        //         },
+                        //         style:{
+                        //             fillStyle:'#f9d777'
+                        //         }
+                        //     }).forEach(function(d){
+                        //         var angle = (2*Math.PI/20)*(parseInt(d%20))
+                        //         var r = random(30,250)
+                        //         var tx = (r)*Math.cos(angle)
+                        //         var ty = (r)*Math.sin(angle)
+                        //         var path = i2d.path("m"+x+','+y+' q'+(tx*0.7)+','+((ty-y)*0.7) +' '+tx+','+ty)
+                        //         this.path = path;
+                        //         // this.animateTo({
+                        //         //     duration:1000,
+                        //         //     // ease:'easeInSin',
+                        //         //     attr:{
+                        //         //         cx:function(f){
+                        //         //             let point = path.getPointAtLength(path.length*f)
+                        //         //                 // console.log(point)
+                        //         //             return point.x;
+                        //         //         },
+                        //         //         cy:function(f){
+                        //         //             let point = path.getPointAtLength(path.length*f)
+                        //         //                 // console.log(point[1])
+                        //         //             return point.y;
+                        //         //         }
+                        //         //     },
+                        //         //     style:{
+                        //         //         // globalAlpha:0
+                        //         //     },
+                        //         //     end:function(){
+                        //         //         // this.remove()
+                        //         //     }
+                        //         // })
+                        //     })
+                        // var time;
+                        // i2d.queue.onRequestFrame(function(t){
+                        //         // console.log(t);
+                        //         if(!time)
+                        //             time = t;
+                        //         let f = (t-time)/1000
+                        //         if(f<=1){
+                        //             sparkclesNodes.forEach(function(d){
+                        //                 let point = this.path.getPointAtLength(this.path.length*f)
+                        //                 this.setAttr({cx:point.x,cy:point.y});
+                        //             })
+                        //         } else{
+                        //             // i2d.queue.onRequestFrame(null)
+                        //         }
+                        // });
+                    }
+                })
+        
+        function random(min,max) {
+            var num = Math.floor(Math.random()*(max-min)) + min;
+            return num;
+        }
+
+    }
+
+	</script>
+
+</body>
+</html>

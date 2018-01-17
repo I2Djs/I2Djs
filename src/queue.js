@@ -5,6 +5,7 @@
     module.exports = factory()
   } else {
     root.queue = factory()
+    console.log('queue root')
   }
 }(this, () => {
   let animatorInstance = null
@@ -68,7 +69,6 @@
   }
 
   function onRequestFrame (_) {
-    // const self = this
 
     if (typeof _ !== 'function') {
       throw new Error('Wrong input')
@@ -125,8 +125,18 @@
     vDoms.push(_)
     return vDoms.length - 1
   }
+  Animator.prototype.removeVdom = function removeVdom (_) {
+    for (var i = 0; i < vDoms.length; i++) {
+      if (vDoms[i] === _) {
+        vDoms.splice(i, 1)
+      }
+    }
+    console.log(vDoms)
+  }
   Animator.prototype.vDomChanged = function AvDomChanged (vDom) {
-    vDoms[vDom].stateModified = true
+    if (vDoms[vDom]) {
+      vDoms[vDom].stateModified = true
+    }
   }
   Animator.prototype.execute = function Aexecute () {
     if (!animeFrameId) { animeFrameId = window.requestAnimationFrame(exeFrameCaller) }
@@ -136,8 +146,8 @@
   let t
   function exeFrameCaller () {
     animeFrameId = window.requestAnimationFrame(exeFrameCaller)
-
-    for (let i = 0; i < tweens.length; i += 1) {
+    t = Date.now()
+    for (let i = 0, len = tweens.length; i < len; i += 1) {
       d = tweens[i]
       t = Date.now()
       d.lastTime += (t - d.currTime)
@@ -155,6 +165,8 @@
         }
       }
     }
+
+    d = null
 
     if (onFrameExe.length > 0) {
       for (let i = 0; i < onFrameExe.length; i += 1) {

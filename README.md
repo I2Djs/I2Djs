@@ -18,33 +18,40 @@ Download source code from below links
 
 ### npm Installation
 ```
-npm install i2djs
+npm install i2djs --save
 ```
 
-Resources
----
-[API reference](https://github.com/I2djs/I2D/wiki/API-Reference)
-
-Examples
+Examples (SVG + Canvas)
 ---
 
 ### Basic Shapes
 <table>
     <tr>
-        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/square.png"></a></td>
+        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="45" src="https://i2djs.github.io/I2Djs/examples/snaps/square.png"></a></td>
         <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/circle.png"></a></td>
         <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/line.png"></a></td>
       <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/polygon.png"></a></td>
       <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/ellipse.png"></a></td>
       <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/image.png"></a></td>
+      <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/text.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/text.png"></a></td>
     </tr>
 </table>
 
 ### Animation 
 <table>
     <tr>
-        <td width="20%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="70" src="https://i2djs.github.io/I2Djs/examples/snaps/circleMoveMent.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/attributesAnimation.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/attributeAnimation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/circleMovementAnimation.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/circleMoveMent.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent2.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/mouse2Animation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/mouseAnimation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/image.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/imageAnimation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathAnimator.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/PathAnimation.gif"></a></td>
     </tr>
+  <tr>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathMorph.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/PathMorphAnimation.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/solarSystem.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/solarAnimation.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/distortion.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/distortion.gif"></a></td>
+  </tr>
 </table>
 
 ### Graphs
@@ -52,9 +59,49 @@ Examples
     <tr>
         <td width="25%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="150" src="https://i2djs.github.io/I2Djs/examples/snaps/graph.gif"></a></td>
         <td width="25%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/hugeGraph.html"><img width="150" src="https://i2djs.github.io/I2Djs/examples/snaps/hugeGraph.gif"></a></td>
-        <td width="25%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graphAnimation.html"><img width="150" src="https://i2djs.github.io/I2Djs/examples/snaps/graphAnimation.gif"></a></td>
+        <td width="25%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/networkSystem.html"><img width="150" src="https://i2djs.github.io/I2Djs/examples/snaps/graphAnimation.gif"></a></td>
     </tr>
 </table>
+
+### To Begin
+Lets create a container in which SVG layer will be rendered. SVG viewport will be set as per container dimension
+#### Container
+```html
+<div id="container"> </div>
+```
+#### Create Layer
+Below specified methods are to create the respective Canvas/SVG layers. It accepts container ID as an input, gives renderer instance as an output.
+Multiple SVG/Canvas can be defined. Each layer represents corresponding Dom element - SVG for SVGlayer, Canvas for Canvas layer.
+
+| Canvas  | SVG |
+| ------------- | ------------- |
+| canvasRenderer = i2d.CanvasLayer('#containerId', ConfigObj)  | svgRenderer = i2d.SVGLayer('#containerId')  |
+
+#### Create Shape
+Lets use renderer instance to create shapes, animate attributes.. etc.
+
+```javascript
+  layerRenderer.createEl({
+                  el:'rect',
+                  attr:{
+                      //Attributes goes here
+                      height:100,
+                      width:100,
+                      x:0,
+                      y:0
+                  },
+                  style:{
+                    //Styles goes here
+                    fill:'red' //if its Canvas renderer, then it will be canvas style attr 'fillStyle'
+                  }
+              })
+```
+
+
+Resources
+---
+[API reference](https://github.com/I2djs/I2D/wiki/API-Reference)
+
 
 ### Support & Compatibility
 I2D is implemented in ES2016. It supports Universal Module Definition(UMD)(AMD,CommonJS and vanilla environments) , based on the environment it can be imported accordingly.

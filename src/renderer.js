@@ -1,19 +1,19 @@
 (function renderer (root, factory) {
   if (typeof module === 'object' && module.exports) {
-    module.exports = factory(require('./geometry.js'), require('./queue.js'), require('./easing.js'), require('./chaining.js'), require('./vDom.js'), require('./colorMap.js'))
+    module.exports = factory(require('./geometry.js'), require('./queue.js'), require('./easing.js'), require('./chaining.js'), require('./vDom.js'), require('./colorMap.js'), require('./path.js'))
   } else if (typeof define === 'function' && define.amd) {
-    define('i2d', ['./geometry.js', './queue.js', './easing.js', './chaining.js', './vDom.js', './colorMap.js'], (geometry, queue, easing, chain, vDom, colorMap) => factory(geometry, queue, easing, chain, vDom, colorMap))
+    define('i2d', ['./geometry.js', './queue.js', './easing.js', './chaining.js', './vDom.js', './colorMap.js', './path.js'], (geometry, queue, easing, chain, vDom, colorMap, path) => factory(geometry, queue, easing, chain, vDom, colorMap, path))
   } else {
-    root.i2d = factory(root.geometry, root.queue, root.easing, root.chain, root.vDom, root.colorMap)
+    root.i2d = factory(root.geometry, root.queue, root.easing, root.chain, root.vDom, root.colorMap, root.path)
   }
-}(this, (geometry, queue, easing, chain, VDom, colorMap) => {
-  let ratio = 1
+}(this, (geometry, queue, easing, chain, VDom, colorMap, path) => {
 
   const t2DGeometry = geometry('2D')
   const easying = easing()
   const queueInstance = queue()
   let Id = 0
   let animeIdentifier = 1
+  let ratio
 
   function domId () {
     Id += 1
@@ -120,14 +120,14 @@
   function createEl (config) {
     let d
     const coll = []
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       let cRes = {}
       d = this.stack[i]
       if (typeof config === 'function') {
         cRes = config.call(d, d.dataObj, i)
       } else {
         const keys = Object.keys(config)
-        for (let j = 0; j < keys.length; j += 1) {
+        for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
           const key = keys[j]
           if (typeof config[key] !== 'object') { cRes[key] = config[key] } else {
             cRes[key] = JSON.parse(JSON.stringify(config[key]))
@@ -146,7 +146,7 @@
     let d
     const coll = []
     let res = data
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       let cRes = {}
       d = this.stack[i]
 
@@ -157,7 +157,7 @@
         cRes = config.call(d, d.dataObj, i)
       } else {
         const keys = Object.keys(config)
-        for (let j = 0; j < keys.length; j += 1) {
+        for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
           const key = keys[j]
           cRes[key] = config[key]
         }
@@ -171,7 +171,7 @@
   }
 
   function forEach (callBck) {
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       callBck.call(this.stack[i], this.stack[i].dataObj, i)
     }
     return this
@@ -179,7 +179,7 @@
 
   function setAttribute (key, value) {
     let d
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       d = this.stack[i]
       if (arguments.length > 1) {
         if (typeof value === 'function') {
@@ -191,7 +191,7 @@
         d.setAttr(key.call(d, d.dataObj, i))
       } else {
         const keys = Object.keys(key)
-        for (let j = 0; j < keys.length; j += 1) {
+        for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
           const keykey = keys[j]
           if (typeof key[keykey] === 'function') {
             d.setAttr(keykey, key[keykey].call(d, d.dataObj, i))
@@ -205,7 +205,7 @@
   }
   function setStyle (key, value) {
     let d
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       d = this.stack[i]
       if (arguments.length > 1) {
         if (typeof value === 'function') {
@@ -218,7 +218,7 @@
           d.setStyle(key.call(d, d.dataObj, i))
         } else {
           const keys = Object.keys(key)
-          for (let j = 0; j < keys.length; j += 1) {
+          for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
             const keykey = keys[j]
             if (typeof key[keykey] === 'function') {
               d.setStyle(keykey, key[keykey].call(d, d.dataObj, i))
@@ -244,7 +244,7 @@
   }
   function translate (value) {
     let d
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       d = this.stack[i]
       if (typeof value === 'function') {
         d.translate(value.call(d, d.dataObj, i))
@@ -256,7 +256,7 @@
   }
   function rotate (value) {
     let d
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       d = this.stack[i]
       if (typeof value === 'function') {
         d.rotate(value.call(d, d.dataObj, i))
@@ -268,7 +268,7 @@
   }
   function scale (value) {
     let d
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       d = this.stack[i]
       if (typeof value === 'function') {
         d.scale(value.call(d, d.dataObj, i))
@@ -280,13 +280,13 @@
   }
 
   function on (eventType, hndlr) {
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       this.stack[i].on(eventType, hndlr)
     }
     return this
   }
   function remove () {
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       this.stack[i].remove()
     }
     return this
@@ -298,18 +298,21 @@
 
   function rotateBBox (BBox, rotateAngle) {
     // let angle
-    const point1 = { x: BBox.x, y: BBox.y }
-    const point2 = { x: BBox.x + BBox.width, y: BBox.y }
-    const point3 = { x: BBox.x, y: BBox.y + BBox.height }
-    const point4 = { x: BBox.x + BBox.width, y: BBox.y + BBox.height }
+    let point1 = { x: BBox.x, y: BBox.y }
+    let point2 = { x: BBox.x + BBox.width, y: BBox.y }
+    let point3 = { x: BBox.x, y: BBox.y + BBox.height }
+    let point4 = { x: BBox.x + BBox.width, y: BBox.y + BBox.height }
 
-    const cen = { x: BBox.x + BBox.width / 2, y: BBox.y + BBox.height / 2 }
-    const dis = t2DGeometry.getDistance(point1, cen)
+    const cen = {x: 0, y: 0}
+    // { x: BBox.x + BBox.width / 2, y: BBox.y + BBox.height / 2 }
+    // {x: 0, y: 0}
+    // { x: BBox.x + BBox.width / 2, y: BBox.y + BBox.height / 2 }
+    // const dis = t2DGeometry.getDistance(point1, cen)
 
-    t2DGeometry.rotatePoint(point1, cen, rotateAngle, dis)
-    t2DGeometry.rotatePoint(point2, cen, rotateAngle, dis)
-    t2DGeometry.rotatePoint(point3, cen, rotateAngle, dis)
-    t2DGeometry.rotatePoint(point4, cen, rotateAngle, dis)
+    point1 = t2DGeometry.rotatePoint(point1, cen, rotateAngle, t2DGeometry.getDistance(point1, cen))
+    point2 = t2DGeometry.rotatePoint(point2, cen, rotateAngle, t2DGeometry.getDistance(point2, cen))
+    point3 = t2DGeometry.rotatePoint(point3, cen, rotateAngle, t2DGeometry.getDistance(point3, cen))
+    point4 = t2DGeometry.rotatePoint(point4, cen, rotateAngle, t2DGeometry.getDistance(point4, cen))
 
     const xVec = [point1.x, point2.x, point3.x, point4.x].sort((bb, aa) => bb - aa)
     const yVec = [point1.y, point2.y, point3.y, point4.y].sort((bb, aa) => bb - aa)
@@ -331,16 +334,18 @@
     for (let i = 0; i < nodes.length; i += 1) {
       const index = dataIds.indexOf(cond(nodes[i].dataObj, i))
       if (index !== -1) {
+        nodes[i].dataObj = data[index]
         res.update.push(nodes[i])
-        dataIds.splice(index, 1)
+        dataIds[index] = null
       } else {
+        // nodes[i].dataObj = data[index]
         res.old.push(nodes[i])
       }
     }
     res.new = data.filter((d, i) => {
       const index = dataIds.indexOf(cond(d, i))
       if (index !== -1) {
-        dataIds.splice(index, 1)
+        dataIds[index] = null
         return true
       } return false
     })
@@ -353,9 +358,15 @@
       if (Object.prototype.toString.call(data) !== '[object Array]') {
         data = [data]
       }
-      this.data = this.data.concat(data)
+      for (let i = 0, len = data.length; i < len; i++) {
+        this.data.push(data[i])
+      }
       if (this.action.enter) {
-        this.action.enter.call(this, data)
+        let nodes = {}
+        this.selector.split(',').forEach(function (d) {
+          nodes[d] = data
+        })
+        this.action.enter.call(this, nodes)
       }
     },
     enumerable: false,
@@ -364,9 +375,14 @@
   }
   CompositeArray.pop = {
     value: function () {
+      let self = this
       let elData = this.data.pop()
       if (this.action.exit) {
-        this.action.exit.call(this, this.fetchEl(this.selector, elData), [elData])
+        let nodes = {}
+        this.selector.split(',').forEach(function (d) {
+          nodes[d] = self.fetchEls(d, [elData])
+        })
+        this.action.exit.call(this, nodes)
       }
     },
     enumerable: false,
@@ -378,8 +394,13 @@
       if (Object.prototype.toString.call(data) !== '[object Array]') {
         data = [data]
       }
+      let self = this
       if (this.action.exit) {
-        this.action.exit.call(this, this.fetchEls(this.selector, data), data)
+        let nodes = {}
+        this.selector.split(',').forEach(function (d) {
+          nodes[d] = self.fetchEls(d, data)
+        })
+        this.action.exit.call(this, nodes)
       }
     },
     enumerable: false,
@@ -388,8 +409,13 @@
   }
   CompositeArray.update = {
     value: function () {
+      let self = this
       if (this.action.update) {
-        this.action.update.call(this, this.fetchEls(this.selector, this.data), this.data)
+        let nodes = {}
+        this.selector.split(',').forEach(function (d) {
+          nodes[d] = self.fetchEls(d, self.data)
+        })
+        this.action.update.call(this, nodes)
       }
     },
     enumerable: false,
@@ -399,480 +425,76 @@
 
   function dataJoin (data, selector, config) {
     const self = this
-    const nodes = this.fetchEls(selector)
+    const selectors = selector.split(',')
     let { joinCond } = config
+    let joinResult = {
+      new: {
 
+      },
+      update: {
+
+      },
+      old: {
+
+      }
+    }
     if (!joinCond) { joinCond = function (d, i) { return i } }
 
-    const joinResult = performJoin(data, nodes.stack, joinCond)
+    selectors.forEach(function (d, i) {
+      const nodes = self.fetchEls(d)
+      const join = performJoin(data, nodes.stack, joinCond)
+      joinResult.new[d] = join.new
+      joinResult.update[d] = (new CreateElements()).wrapper(join.update)
+      joinResult.old[d] = (new CreateElements()).wrapper(join.old)
+    })
+
+    // const joinResult = performJoin(data, nodes.stack, joinCond)
 
     if (config.action) {
       if (config.action.enter) {
         config.action.enter.call(self, joinResult.new)
       }
       if (config.action.exit) {
-        const collection = new CreateElements()
-        collection.wrapper(joinResult.old)
-        config.action.exit.call(self, collection, joinResult.old.map(d => d.dataObj))
+        // const collection = new CreateElements() 
+        // collection.wrapper(joinResult.old)
+        // config.action.exit.call(self, collection, joinResult.old.map(d => d.dataObj))
+        config.action.exit.call(self, joinResult.old)
       }
       if (config.action.update) {
-        const collection = new CreateElements()
-        collection.wrapper(joinResult.update)
-        config.action.update.call(self, collection, joinResult.update.map(d => d.dataObj))
+        // const collection = new CreateElements()
+        // collection.wrapper(joinResult.update)
+        // config.action.update.call(self, collection, joinResult.update.map(d => d.dataObj))
+        config.action.update.call(self, joinResult.update)
       }
     }
-    this.joinCond = joinCond
-    this.action = config.action
-    this.selector = selector
-    this.data = data
+    // this.joinCond = joinCond
+    CompositeArray.action = {
+      value: config.action,
+      enumerable: false,
+      configurable: true,
+      writable: false
+    }
+    CompositeArray.selector = {
+      value: selector,
+      enumerable: false,
+      configurable: true,
+      writable: false
+    }
+    CompositeArray.data = {
+      value: data,
+      enumerable: false,
+      configurable: true,
+      writable: false
+    }
+    // this.action = config.action
+    // this.selector = selector
+    // this.data = data
     return Object.create(self, CompositeArray)
   }
 
   function generateStackId () {
     Id += 1
     return Id
-  }
-
-  function pathParser (path) {
-    let pathStr = path.replace(/e-/g, '$')
-    // .replace(/-/g, ',-').replace(/-/g, ',-').split(/([a-zA-Z,])/g)
-    //   .filter((d) => {
-    //     if (d === '' || d === ',') { return false }
-    //     d = d.replace(/$/g, 'e-')
-    //     return true
-    //   })
-    pathStr = pathStr.replace(/ /g, ',')
-    pathStr = pathStr.replace(/-/g, ',-')
-    pathStr = pathStr.split(/([a-zA-Z,])/g).filter((d) => {
-      if (d === '' || d === ',') {
-        return false
-      }
-      return true
-    }).map((d) => {
-      const dd = d.replace(/\$/g, 'e-')
-      return dd
-    })
-
-    for (let i = 0; i < pathStr.length; i += 1) {
-      if (pathStr[i].split('.').length > 2) {
-        const splitArr = pathStr[i].split('.')
-        const arr = [`${splitArr[0]}.${splitArr[1]}`]
-        for (let j = 2; j < splitArr.length; j += 1) {
-          arr.push(`.${splitArr[j]}`)
-        }
-        pathStr.splice(i, 1, arr[0], arr[1])
-      }
-    }
-
-    return pathStr
-  }
-
-  function addVectors (v1, v2) {
-    return {
-      x: v1.x + v2.x,
-      y: v1.y + v2.y
-    }
-  }
-
-  function subVectors (v1, v2) {
-    return {
-      x: v1.x - v2.x,
-      y: v1.y - v2.y
-    }
-  }
-
-  function fetchXY () {
-    const x = parseFloat(this.pathArr[this.currPathArr += 1])
-    const y = parseFloat(this.pathArr[this.currPathArr += 1])
-    return {
-      x,
-      y
-    }
-  }
-
-  function relative (cmd, p1, p2) {
-    return (cmd === cmd.toUpperCase()) ? p2 : p1
-  }
-
-  function m (cmd) {
-    const temp = relative(cmd, (this.currPathArr === 0 ? {
-      x: 0,
-      y: 0
-    } : this.pp), {
-      x: 0,
-      y: 0
-    })
-    // this.id = generateStackId()
-    this.cp = addVectors(this.fetchXY(), temp)
-    this.start = this.cp
-    this.segmentLength = 0
-    this.length = this.segmentLength
-
-    if (this.currPathArr !== 0 && this.pp) {
-      this.stackGroup.push(this.stack)
-      this.stack = []
-      // this.stack.segmentLength = 0;
-    }
-
-    this.stack.push({
-      type: 'M',
-      p0: this.cp,
-      length: this.segmentLength,
-      pointAt (f) {
-        return this.p0
-      }
-    })
-  }
-
-  function v (cmd) {
-    const temp = relative(cmd, this.pp, {
-      x: this.pp.x,
-      y: 0
-    })
-    this.cp = addVectors({
-      x: 0,
-      y: parseFloat(this.pathArr[this.currPathArr += 1])
-    }, temp)
-    this.segmentLength = t2DGeometry.getDistance(this.pp, this.cp)
-    this.stack.push({
-      type: 'V',
-      p0: this.pp,
-      p1: this.cp,
-      length: this.segmentLength,
-      pointAt (f) {
-        return t2DGeometry.linearTransitionBetweenPoints(this.p0, this.p1, f)
-      }
-    })
-    this.length += this.segmentLength
-    // this.stack.segmentLength += this.segmentLength;
-  }
-
-  function l (cmd) {
-    const temp = relative(cmd, this.pp, {
-      x: 0,
-      y: 0
-    })
-
-    this.cp = addVectors(this.fetchXY(), temp)
-    this.segmentLength = t2DGeometry.getDistance(this.pp, this.cp)
-    this.stack.push({
-      type: 'L',
-      p0: this.pp,
-      p1: this.cp,
-      length: this.segmentLength,
-      pointAt (f) {
-        return t2DGeometry.linearTransitionBetweenPoints(this.p0, this.p1, f)
-      }
-    })
-    // this.stack.segmentLength += this.segmentLength
-    this.length += this.segmentLength
-  }
-
-  function h (cmd) {
-    const temp = relative(cmd, this.pp, {
-      x: 0,
-      y: this.pp.y
-    })
-    this.cp = addVectors({
-      x: parseFloat(this.pathArr[this.currPathArr += 1]),
-      y: 0
-    }, temp)
-
-    this.segmentLength = t2DGeometry.getDistance(this.pp, this.cp)
-    this.stack.push({
-      type: 'H',
-      p0: this.pp,
-      p1: this.cp,
-      length: this.segmentLength,
-      pointAt (f) {
-        return t2DGeometry.linearTransitionBetweenPoints(this.p0, this.p1, f)
-      }
-    })
-
-    this.length += this.segmentLength
-  }
-
-  function z () {
-    this.cp = this.start
-    this.segmentLength = t2DGeometry.getDistance(this.pp, this.cp)
-    this.stack.push({
-      p0: this.pp,
-      p1: this.cp,
-      type: 'Z',
-      length: this.segmentLength,
-      pointAt (f) {
-        return t2DGeometry.linearTransitionBetweenPoints(this.p0, this.p1, f)
-      }
-    })
-    // this.stack.segmentLength += this.segmentLength
-    this.length += this.segmentLength
-  }
-
-  function q (cmd) {
-    const temp = relative(cmd, this.pp, {
-      x: 0,
-      y: 0
-    })
-    const cntrl1 = addVectors(this.fetchXY(), temp)
-    const endPoint = addVectors(this.fetchXY(), temp)
-
-    this.cp = endPoint
-
-    this.segmentLength = t2DGeometry.bezierLength(this.pp, cntrl1, this.cp)
-
-    this.cp = endPoint
-    this.stack.push({
-      type: 'Q',
-      p0: this.pp,
-      cntrl1,
-      cntrl2: cntrl1,
-      p1: this.cp,
-      length: this.segmentLength,
-      pointAt (f) {
-        return t2DGeometry.bezierTransition(this.p0, this.cntrl1, this.p1, f)
-      }
-    })
-    // this.stack.segmentLength += this.segmentLength;
-
-    this.length += this.segmentLength
-  }
-
-  function c (cmd) {
-    const temp = relative(cmd, this.pp, {
-      x: 0,
-      y: 0
-    })
-    const cntrl1 = addVectors(this.fetchXY(), temp)
-    const cntrl2 = addVectors(this.fetchXY(), temp)
-    const endPoint = addVectors(this.fetchXY(), temp)
-
-    const co = t2DGeometry.cubicBezierCoefficients({
-      p0: this.pp,
-      cntrl1,
-      cntrl2,
-      p1: endPoint
-    })
-
-    this.cntrl = cntrl2
-    this.cp = endPoint
-    this.segmentLength = t2DGeometry.cubicBezierLength(this.pp, co)
-    this.stack.push({
-      type: 'C',
-      p0: this.pp,
-      cntrl1,
-      cntrl2,
-      p1: this.cp,
-      length: this.segmentLength,
-      pointAt (f) {
-        return t2DGeometry.cubicBezierTransition(this.p0, co, f)
-      }
-    })
-    // this.stack.segmentLength += this.segmentLength;
-    this.length += this.segmentLength
-  }
-
-  function s (cmd) {
-    const temp = relative(cmd, this.pp, {
-      x: 0,
-      y: 0
-    })
-
-    const cntrl1 = addVectors(this.pp, subVectors(this.pp, this.cntrl ? this.cntrl : this.pp))
-    const cntrl2 = addVectors(this.fetchXY(), temp)
-    const endPoint = addVectors(this.fetchXY(), temp)
-
-    this.cp = endPoint
-    this.segmentLength = t2DGeometry.cubicBezierLength(
-      this.pp,
-      t2DGeometry.cubicBezierCoefficients({
-        p0: this.pp,
-        cntrl1,
-        cntrl2,
-        p1: this.cp
-      })
-    )
-
-    this.stack.push({
-      type: 'S',
-      p0: this.pp,
-      cntrl1,
-      cntrl2,
-      p1: this.cp,
-      length: this.segmentLength,
-      pointAt (f) {
-        return t2DGeometry.bezierTransition(this.p0, this.cntrl1, this.cntrl2, this.p1, f)
-      }
-    })
-    // this.stack.segmentLength += this.segmentLength
-    this.length += this.segmentLength
-  }
-
-  function a (cmd) {
-    const temp = relative(cmd, this.pp, {
-      x: 0,
-      y: 0
-    })
-    const self = this
-    const rx = parseFloat(this.pathArr[this.currPathArr += 1])
-    const ry = parseFloat(this.pathArr[this.currPathArr += 1])
-    const xRotation = parseFloat(this.pathArr[this.currPathArr += 1])
-    const arcLargeFlag = parseFloat(this.pathArr[this.currPathArr += 1])
-    const sweepFlag = parseFloat(this.pathArr[this.currPathArr += 1])
-    const endPoint = addVectors(this.fetchXY(), temp)
-
-    this.cp = endPoint
-
-    const arcToQuad = t2DGeometry.arcToBezier({
-      px: this.pp.x,
-      py: this.pp.y,
-      cx: endPoint.x,
-      cy: endPoint.y,
-      rx,
-      ry,
-      xAxisRotation: xRotation,
-      largeArcFlag: arcLargeFlag,
-      sweepFlag
-    })
-
-    arcToQuad.forEach((d, i) => {
-      const pp = (i === 0 ? self.pp : {
-        x: arcToQuad[0].x,
-        y: arcToQuad[0].y
-      })
-      const cntrl1 = {
-        x: d.x1,
-        y: d.y1
-      }
-      const cntrl2 = {
-        x: d.x2,
-        y: d.y2
-      }
-      const cp = {
-        x: d.x,
-        y: d.y
-      }
-      const segmentLength = t2DGeometry.cubicBezierLength(pp, t2DGeometry.cubicBezierCoefficients({
-        p0: pp,
-        cntrl1,
-        cntrl2,
-        p1: cp
-      }))
-      self.stack.push({
-        type: 'C',
-        p0: pp,
-        cntrl1,
-        cntrl2,
-        p1: cp,
-        length: segmentLength,
-        pointAt (f) {
-          return t2DGeometry.bezierTransition(this.p0, this.cntrl1, this.cntrl2, this.p1, f)
-        }
-
-      })
-      // self.stack.segmentLength += segmentLength
-      self.length += segmentLength
-    })
-  }
-
-  function Path (path) {
-    this.path = path
-    this.parse()
-    this.stackGroup.push(this.stack)
-  }
-  Path.prototype = {
-    z,
-    m,
-    v,
-    h,
-    l,
-    q,
-    s,
-    c,
-    a,
-    fetchXY
-  }
-
-  Path.prototype.parse = function parse () {
-    this.currPathArr = -1
-    this.stack = []
-    this.length = 0
-    this.pathArr = pathParser(this.path)
-
-    this.stackGroup = []
-
-    while (this.currPathArr < this.pathArr.length - 1) {
-      this.case(this.pathArr[this.currPathArr += 1])
-    }
-    return this.stack
-  }
-  Path.prototype.getTotalLength = function getTotalLength () {
-    return this.length
-  }
-  Path.prototype.getAngleAtLength = function getAngleAtLength (length, dir) {
-    if (length > this.length) { return null }
-
-    const point1 = this.getPointAtLength(length)
-    const point2 = this.getPointAtLength(length + (dir === 'src' ? (-1 * length * 0.01) : (length * 0.01)))
-
-    return Math.atan2(point2.y - point1.y, point2.x - point1.x)
-  }
-  Path.prototype.getPointAtLength = function getPointAtLength (length) {
-    let coOr = { x: 0, y: 0 }
-    let tLength = length
-    this.stack.every((d, i) => {
-      tLength -= d.length
-      if (Math.floor(tLength) > 0) {
-        return true
-      }
-
-      coOr = d.pointAt((d.length + tLength) / (d.length === 0 ? 1 : d.length))
-      return false
-    })
-    return coOr
-  }
-  Path.prototype.isValid = function isValid (_) {
-    return ['m', 'v', 'l', 'h', 'q', 'c', 's', 'a', 'z'].indexOf(_) !== -1
-  }
-  Path.prototype.case = function pCase (currCmd) {
-    let currCmdI = currCmd
-    if (this.isValid(currCmdI.toLowerCase())) {
-      this.PC = currCmdI
-    } else {
-      currCmdI = this.PC
-      this.currPathArr = this.currPathArr - 1
-    }
-    this.pp = this.cp
-    switch (currCmdI.toLowerCase()) {
-      case 'm':
-        this.m(currCmdI)
-        break
-      case 'v':
-        this.v(currCmdI)
-        break
-      case 'l':
-        this.l(currCmdI)
-        break
-      case 'h':
-        this.h(currCmdI)
-        break
-      case 'q':
-        this.q(currCmdI)
-        break
-      case 'c':
-        this.c(currCmdI)
-        break
-      case 's':
-        this.s(currCmdI)
-        break
-      case 'a':
-        this.a(currCmdI)
-        break
-      case 'z':
-        this.z()
-        break
-      default:
-        break
-    }
   }
 
   const animate = function animate (self, targetConfig) {
@@ -1081,10 +703,21 @@
 
   const animatePathArrayTo = function animatePathArrayTo (config) {
     let node
+    let keys = Object.keys(config)
     for (let i = 0; i < this.stack.length; i += 1) {
       node = this.stack[i]
-      node.animatePathTo(config)
+      let conf = {}
+      for (let j = 0; j < keys.length; j++) {
+        let value = config[keys[j]]
+        if (typeof value === 'function') {
+          value = value.call(node, node.dataObj, i)
+        }
+        conf[keys[j]] = value
+      }
+      node.animatePathTo(conf)
     }
+
+    return this
   }
 
   const textArray = function textArray (value) {
@@ -1107,18 +740,13 @@
   const morphTo = function morphTo (targetConfig) {
     const self = this
     const { duration } = targetConfig
-    // const delay = targetConfig.delay ? targetConfig.delay : 0;
     const { ease } = targetConfig
-    // const end = targetConfig.end ? targetConfig.end : null
     const loop = targetConfig.loop ? targetConfig.loop : 0
     const direction = targetConfig.direction ? targetConfig.direction : 'default'
     const destD = targetConfig.attr.d ? targetConfig.attr.d : self.attr.d
 
-    // const Id = 0
-    // let prevSrc;
-    // let preDest;
-    let srcPath = (new Path(self.attr.d)).stackGroup
-    let destPath = (new Path(destD)).stackGroup
+    let srcPath = (i2d.Path(self.attr.d)).stackGroup
+    let destPath = (i2d.Path(destD)).stackGroup
 
     const chainInstance = chain.parallelChain()
       .ease(ease)
@@ -1566,8 +1194,8 @@
     if (!src) { throw Error('Path Not defined') }
 
     const chainInstance = chain.sequenceChain()
-    const pathInstance = new Path(src)
-    const arrExe = pathInstance.stackGroup.reduce((p, c) => {
+    const newPathInstance = path.isTypePath(src) ? src : i2d.Path(src)
+    const arrExe = newPathInstance.stackGroup.reduce((p, c) => {
       p = p.concat(c)
       return p
     }, [])
@@ -1576,39 +1204,37 @@
     for (let i = 0; i < arrExe.length; i += 1) {
       if (arrExe[i].type === 'Z') {
         mappedArr.push({
-          run () {
-            self.arrayStack.splice(this.id, self.arrayStack.length - 1 - self.id)
-            self.arrayStack[this.id] = this.render()
-            self.setAttr('d', self.arrayStack.join(''))
+          run (f) {
+            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
+            newPathInstance.stack[this.id] = this.render.execute(f)
+            self.setAttr('d', newPathInstance)
           },
           id: i,
-          render () {
-            return 'z'
-          },
-          length: 0
+          render: new LinearTransitionBetweenPoints(arrExe[i].p0, arrExe[0].p0, arrExe[i].segmentLength),
+          length: arrExe[i].length
         })
         totalLength += 0
       } else if (['V', 'H', 'L'].indexOf(arrExe[i].type) !== -1) {
         mappedArr.push({
           run (f) {
-            self.arrayStack.splice(this.id, self.arrayStack.length - 1 - self.id)
-            self.arrayStack[this.id] = this.render(f)
-            self.setAttr('d', self.arrayStack.join(''))
+            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
+            newPathInstance.stack[this.id] = this.render.execute(f)
+            self.setAttr('d', newPathInstance)
           },
           id: i,
-          render: linearTransitionBetweenPoints.bind(self, arrExe[i].p0, arrExe[i].p1),
+          render: new LinearTransitionBetweenPoints(arrExe[i].p0, arrExe[i].p1, arrExe[i].length),
           length: arrExe[i].length
         })
         totalLength += arrExe[i].length
       } else if (arrExe[i].type === 'Q') {
         mappedArr.push({
           run (f) {
-            self.arrayStack.splice(this.id, self.arrayStack.length - 1 - self.id)
-            self.arrayStack[this.id] = this.render(f)
-            self.setAttr('d', self.arrayStack.join(''))
+            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
+            newPathInstance.stack[this.id] = this.render.execute(f)
+            self.setAttr('d', newPathInstance)
           },
           id: i,
-          render: bezierTransition.bind(self, arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].p1),
+          render: new BezierTransition(arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].p1, arrExe[i].length),
           length: arrExe[i].length
         })
         totalLength += arrExe[i].length
@@ -1616,18 +1242,18 @@
         const co = t2DGeometry.cubicBezierCoefficients(arrExe[i])
         mappedArr.push({
           run (f) {
-            self.arrayStack.splice(this.id, self.arrayStack.length - 1 - self.id)
-            self.arrayStack[this.id] = this.render(f)
-            self.setAttr('d', self.arrayStack.join(''))
+            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
+            newPathInstance.stack[this.id] = this.render.execute(f)
+            self.setAttr('d', newPathInstance)
           },
           id: i,
           co,
-          render: cubicBezierTransition.bind(
-            self,
+          render: new CubicBezierTransition(
             arrExe[i].p0,
             arrExe[i].cntrl1,
             arrExe[i].cntrl2,
-            co
+            co,
+            arrExe[i].length
           ),
           length: arrExe[i].length
         })
@@ -1635,12 +1261,17 @@
       } else if (arrExe[i].type === 'M') {
         mappedArr.push({
           run () {
-            self.arrayStack.splice(this.id, self.arrayStack.length - 1 - self.id)
-            self.arrayStack[this.id] = this.render()
-            self.setAttr('d', self.arrayStack.join(''))
+            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
+            newPathInstance.stack[this.id] = {
+              type: 'M',
+              p0: arrExe[i].p0,
+              length: 0,
+              pointAt (f) {
+                return this.p0
+              }
+            }
           },
           id: i,
-          render: buildMoveTo.bind(self, arrExe[i].p0),
           length: 0
         })
         totalLength += 0
@@ -1652,7 +1283,6 @@
     mappedArr.forEach(function (d) {
       d.duration = (d.length / totalLength) * duration
     })
-
     chainInstance.duration(duration)
       .add(mappedArr)
       .ease(ease)
@@ -1666,7 +1296,19 @@
     return this
   }
 
-  let cubicBezierTransition = function cubicBezierTransition (p0, c1, c2, co, f) {
+  let CubicBezierTransition = function CubicBezierTransition (p0, c1, c2, co, length) {
+    this.type = 'C'
+    this.p0 = p0
+    this.c1_src = c1
+    this.c2_src = c2
+    this.co = co
+    this.length_src = length
+  }
+  CubicBezierTransition.prototype.execute = function (f) {
+    const co = this.co
+    const p0 = this.p0
+    const c1 = this.c1_src
+    const c2 = this.c2_src
     const c1Temp = {
       x: (p0.x + ((c1.x - p0.x)) * f),
       y: (p0.y + ((c1.y - p0.y)) * f)
@@ -1675,35 +1317,60 @@
       x: (c1.x + ((c2.x - c1.x)) * f),
       y: (c1.y + ((c2.y - c1.y)) * f)
     }
-
-    let cmd = ''
-    cmd += `C${c1Temp.x},${c1Temp.y} `
-    cmd += `${c1Temp.x + ((c2Temp.x - c1Temp.x)) * f},${c1Temp.y + ((c2Temp.y - c1Temp.y)) * f} `
-    cmd += `${co.ax * t2DGeometry.pow(f, 3) + co.bx * t2DGeometry.pow(f, 2) + co.cx * f + p0.x},${co.ay * t2DGeometry.pow(f, 3) + co.by * t2DGeometry.pow(f, 2) + co.cy * f + p0.y}`
-
-    return cmd
+    this.cntrl1 = c1Temp
+    this.cntrl2 = {x: c1Temp.x + ((c2Temp.x - c1Temp.x)) * f, y: c1Temp.y + ((c2Temp.y - c1Temp.y)) * f}
+    this.p1 = {x: co.ax * t2DGeometry.pow(f, 3) + co.bx * t2DGeometry.pow(f, 2) + co.cx * f + p0.x,
+      y: co.ay * t2DGeometry.pow(f, 3) + co.by * t2DGeometry.pow(f, 2) + co.cy * f + p0.y
+    }
+    this.length = this.length_src * f
+    return this
+  }
+  CubicBezierTransition.prototype.pointAt = function (f) {
+    return t2DGeometry.cubicBezierTransition(this.p0, this.co, f)
   }
 
-  let bezierTransition = function bezierTransition (p0, p1, p2, f) {
-    return `M${p0.x},${p0.y} ` +
-            `Q${p0.x + ((p1.x - p0.x)) * f},${p0.y + ((p1.y - p0.y)) * (f)} ${
-              (p0.x - 2 * p1.x + p2.x) * f * f + (2 * p1.x - 2 * p0.x) * f + p0.x},${(p0.y - 2 * p1.y + p2.y) * f * f + (2 * p1.y - 2 * p0.y) * f + p0.y}`
+
+  let BezierTransition = function BezierTransition (p0, p1, p2, length, f) {
+    this.type = 'Q'
+    this.p0 = p0
+    this.p1_src = p1
+    this.p2_src = p2
+    this.length_src = length
+    this.length = 0
+  }
+  BezierTransition.prototype.execute = function (f) {
+    let p0 = this.p0
+    let p1 = this.p1_src
+    let p2 = this.p2_src
+    this.length = this.length_src * f
+    this.cntrl1 = {x: p0.x + ((p1.x - p0.x)) * f, y: p0.y + ((p1.y - p0.y)) * (f)}
+    this.cntrl2 = this.cntrl1
+    this.p1 = {x: (p0.x - 2 * p1.x + p2.x) * f * f + (2 * p1.x - 2 * p0.x) * f + p0.x, y: (p0.y - 2 * p1.y + p2.y) * f * f + (2 * p1.y - 2 * p0.y) * f + p0.y}
+    return this
+  }
+  BezierTransition.prototype.pointAt = function (f) {
+    return t2DGeometry.bezierTransition(this.p0, this.cntrl1, this.p1, f)
   }
 
-  let linearTransitionBetweenPoints = function linearTransitionBetweenPoints (p1, p2, f) {
-    return ` L${p1.x + ((p2.x - p1.x)) * f},${p1.y + ((p2.y - p1.y)) * (f)}`
+  let LinearTransitionBetweenPoints = function LinearTransitionBetweenPoints (p0, p2, length, f) {
+    this.type = 'L'
+    this.p0 = p0
+    this.p1 = p0
+    this.p2_src = p2
+    this.length_src = length
+    this.length = 0
   }
+  LinearTransitionBetweenPoints.prototype.execute = function (f) {
+    let p0 = this.p0
+    let p2 = this.p2_src
 
-  let buildMoveTo = function buildMoveTo (p0) {
-    return `M${p0.x},${p0.y}`
+    this.p1 = { x: p0.x + (p2.x - p0.x) * f, y: p0.y + (p2.y - p0.y) * f }
+    this.length = this.length_src * f
+    return this
   }
-
-  // const buildCubicBazierCurveTo = function buildCubicBazierCurveTo (p0, c1, c2, p1) {
-  //   return `C${c1.x},${c1.y
-  //   },${c2.x},${c2.y
-  //   },${p1.x},${p1.y}`
-  // }
-
+  LinearTransitionBetweenPoints.prototype.pointAt = function (f) {
+    return t2DGeometry.linearTransitionBetweenPoints(this.p0, this.p1, f)
+  }
   function DomGradients (config, type, pDom) {
     this.config = config
     this.type = type || 'linear'
@@ -1720,7 +1387,7 @@
     this.linearEl = this.defs.join([1], 'linearGradient', {
       action: {
         enter (data) {
-          this.createEls(data, {
+          this.createEls(data.linearGradient, {
             el: 'linearGradient'
           })
             .setAttr({
@@ -1731,11 +1398,11 @@
               y2: `${self.config.y2}%`
             })
         },
-        exit (oldNodes, oldData) {
-          oldNodes.remove()
+        exit (oldNodes) {
+          oldNodes.linearGradient.remove()
         },
-        update (nodes, data) {
-          nodes.setAttr({
+        update (nodes) {
+          nodes.linearGradient.setAttr({
             id: self.config.id,
             x1: `${self.config.x1}%`,
             y1: `${self.config.y1}%`,
@@ -1745,7 +1412,6 @@
         }
       }
     })
-    
     this.linearEl = this.linearEl.fetchEl('linearGradient')
 
     this.linearEl.fetchEls('stop').remove()
@@ -1769,7 +1435,7 @@
     this.radialEl = this.defs.join([1], 'radialGradient', {
       action: {
         enter (data) {
-          this.createEls(data, {
+          this.createEls(data.radialGradient, {
             el: 'radialGradient'
           }).setAttr({
             id: self.config.id,
@@ -1780,11 +1446,11 @@
             fy: `${self.config.outerCircle.y}%`
           })
         },
-        exit (oldNodes, oldData) {
-          oldNodes.remove()
+        exit (oldNodes) {
+          oldNodes.radialGradient.remove()
         },
-        update (nodes, data) {
-          nodes.setAttr({
+        update (nodes) {
+          nodes.radialGradient.setAttr({
             id: self.config.id,
             cx: `${self.config.innerCircle.x}%`,
             cy: `${self.config.innerCircle.y}%`,
@@ -1913,12 +1579,12 @@
   }
   DomExe.prototype.scale = function DMscale (XY) {
     if (!this.attr.transform) { this.attr.transform = {} }
-    this.attr.transform.scale = [XY[0], XY[0]]
+    this.attr.transform.scale = XY
     if (this.changedAttribute.transform) {
-      this.changedAttribute.transform.scale = [XY[0], XY[0]]
+      this.changedAttribute.transform.scale = XY
     } else {
       this.changedAttribute.transform = {}
-      this.changedAttribute.transform.scale = [XY[0], XY[0]]
+      this.changedAttribute.transform.scale = XY
     }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
@@ -1999,7 +1665,6 @@
         this.changedAttribute[key] = attr[key]
       }
     }
-
     this.attrChanged = true
     queueInstance.vDomChanged(this.vDomIndex)
 
@@ -2063,8 +1728,8 @@
 
   DomExe.prototype.on = function DMon (eventType, hndlr) {
     const hnd = hndlr.bind(this)
-
-    this.dom.addEventListener(eventType, (event) => { hnd({ data: 'sample' }, event) })
+    const self = this
+    this.dom.addEventListener(eventType, (event) => { hnd(self.dataObj, event) })
 
     return this
   }
@@ -2154,13 +1819,11 @@
         ? transform.translate[1] : hozMove || 0
 
       self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove)
-      // self.ctx.save()
       if (transform.rotate) {
         self.ctx.translate(transform.cx, transform.cy)
-        self.ctx.rotate(transform.rotate * (Math.PI / 180))
+        self.ctx.rotate(transform.rotate[0] * (Math.PI / 180))
         self.ctx.translate(-(transform.cx), -(transform.cy))
       }
-      // self.ctx.restore()
     }
     for (let i = 0; i < self.stack.length; i += 1) {
       self.stack[i].execute()
@@ -2274,7 +1937,7 @@
   }
 
   function createCanvasPattern (patternObj, repeatInd) {
-    const self = this
+    // const self = this
     // self.children = []
     // self.stack = [self]
   }
@@ -2523,7 +2186,11 @@
     }
   }
   RenderText.prototype.execute = function RTexecute () {
+<<<<<<< HEAD
     if (this.textContent) {
+=======
+    if (this.textContent !== undefined && this.textContent !== null) {
+>>>>>>> master
       if (this.style.fillStyle) {
         this.ctx.fillText(this.textContent, this.attr.x, this.attr.y)
       }
@@ -2584,6 +2251,7 @@
   RenderCircle.prototype.execute = function RCexecute () {
     this.ctx.beginPath()
     this.ctx.arc(this.attr.cx, this.attr.cy, this.attr.r, 0, 2 * Math.PI, false)
+    this.applyStyles()
     this.ctx.closePath()
   }
 
@@ -2636,6 +2304,7 @@
     ctx.beginPath()
     ctx.moveTo(this.attr.x1, this.attr.y1)
     ctx.lineTo(this.attr.x2, this.attr.y2)
+    this.applyStyles()
     ctx.closePath()
   }
   RenderLine.prototype.in = function RLinfun (co) {
@@ -2657,9 +2326,13 @@
     self.attr = props
     self.style = styleProps
 
-    if (props.d) {
-      self.attr.d = props.d
-      self.path = new Path(self.attr.d)
+    if (self.attr.d) {
+      if (path.isTypePath(self.attr.d)) {
+        self.path = self.attr.d
+        self.attr.d = self.attr.d.fetchPathString()
+      } else {
+        self.path = i2d.Path(self.attr.d)
+      }
       self.pathNode = new Path2D(self.attr.d)
     }
     self.stack = [self]
@@ -2698,7 +2371,12 @@
   RenderPath.prototype.setAttr = function RPsetAttr (attr, value) {
     this.attr[attr] = value
     if (attr === 'd') {
-      this.path = new Path(this.attr.d)
+      if (path.isTypePath(value)) {
+        this.path = value
+        this.attr.d = value.fetchPathString()
+      } else {
+        this.path = i2d.Path(this.attr.d)
+      }
       this.pathNode = new Path2D(this.attr.d)
     }
   }
@@ -2720,10 +2398,19 @@
   }
   RenderPath.prototype.applyStyles = function RPapplyStyles () {}
   RenderPath.prototype.in = function RPinfun (co) {
+    let flag = false
     if (!this.attr.d) {
-      return false
+      return flag
     }
+<<<<<<< HEAD
     return this.style.fillStyle ? this.ctx.isPointInPath(this.pathNode, co.x, co.y) : false
+=======
+    this.ctx.save()
+    this.ctx.scale(1 / ratio, 1 / ratio)
+    flag = this.style.fillStyle ? this.ctx.isPointInPath(this.pathNode, co.x, co.y) : flag
+    this.ctx.restore()
+    return flag
+>>>>>>> master
   }
   /** *****************End Render Path */
 
@@ -2732,16 +2419,22 @@
   function polygonExe (points) {
     let polygon = new Path2D()
     let localPoints = points
+    let points_ = []
 
     localPoints = localPoints.replace(/,/g, ' ').split(' ')
 
     polygon.moveTo(localPoints[0], localPoints[1])
+    points_.push({x:parseFloat(localPoints[0]),y:parseFloat(localPoints[1])})
     for (let i = 2; i < localPoints.length; i += 2) {
       polygon.lineTo(localPoints[i], localPoints[i + 1])
+      points_.push({x:parseFloat(localPoints[i]),y:parseFloat(localPoints[i+1])})
     }
     polygon.closePath()
 
-    return polygon
+    return {
+      path: polygon,
+      points: points_
+    }
   }
 
   const RenderPolygon = function RenderPolygon (ctx, props, styleProps) {
@@ -2771,32 +2464,40 @@
     let scaleX = 1
     let scaleY = 1
     const { transform } = self.attr
-    let points = self.attr.points.replace(/,/g, ' ').split(' ').map(function (d) { return parseFloat(d) })
+    if (self.polygon && self.polygon.points.length > 0) {
+      let points = self.polygon.points
 
-    if (transform && transform.translate) {
-      [translateX, translateY] = transform.translate
-    }
-    if (transform && transform.scale) {
-      [scaleX, scaleY] = transform.scale
-    }
+      if (transform && transform.translate) {
+        [translateX, translateY] = transform.translate
+      }
+      if (transform && transform.scale) {
+        [scaleX, scaleY] = transform.scale
+      }
+      let minX = points[0].x
+      let maxX = points[0].x
+      let minY = points[0].y
+      let maxY = points[0].y
 
-    let minX = points[0]
-    let maxX = points[0]
-    let minY = points[1]
-    let maxY = points[1]
+      for (let i = 1; i < points.length; i += 1) {
+        if (minX > points[i].x) minX = points[i].x
+        if (maxX < points[i].x) maxX = points[i].x
+        if (minY > points[i].y) minY = points[i].y
+        if (maxY < points[i].y) maxY = points[i].y
+      }
 
-    for (let i = 2; i < points.length; i += 2) {
-      if (minX > points[i]) minX = points[i]
-      if (maxX < points[i]) maxX = points[i]
-      if (minY > points[i + 1]) minY = points[i + 1]
-      if (maxY < points[i + 1]) maxY = points[i + 1]
-    }
-
-    self.BBox = {
-      x: (translateX + minX * scaleX),
-      y: (translateY + minY * scaleY),
-      width: (maxX - minX) * scaleX,
-      height: (maxY - minY) * scaleY
+      self.BBox = {
+        x: (translateX + minX * scaleX),
+        y: (translateY + minY * scaleY),
+        width: (maxX - minX) * scaleX,
+        height: (maxY - minY) * scaleY
+      }
+    } else {
+      self.BBox = {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0
+      }
     }
 
     if (transform && transform.rotate) {
@@ -2807,16 +2508,30 @@
   }
   RenderPolygon.prototype.execute = function RPolyexecute () {
     if (this.attr.points) {
+<<<<<<< HEAD
       if (this.style.fillStyle) { this.ctx.fill(this.polygon) }
       if (this.style.strokeStyle) { this.ctx.stroke(this.polygon) }
+=======
+      if (this.style.fillStyle) { this.ctx.fill(this.polygon.path) }
+      if (this.style.strokeStyle) { this.ctx.stroke(this.polygon.path) }
+>>>>>>> master
     }
   }
   RenderPolygon.prototype.applyStyles = function RPolyapplyStyles () {}
   RenderPolygon.prototype.in = function RPolyinfun (co) {
+    let flag = false
     if (!this.attr.points) {
-      return false
+      return flag
     }
+<<<<<<< HEAD
     return this.style.fillStyle ? this.ctx.isPointInPath(this.polygon, co.x, co.y) : false
+=======
+    this.ctx.save()
+    this.ctx.scale(1 / ratio, 1 / ratio)
+    flag = this.style.fillStyle ? this.ctx.isPointInPath(this.polygon.path, co.x, co.y) : flag
+    this.ctx.restore()
+    return flag
+>>>>>>> master
   }
 
   /** ***************** Render polygon */
@@ -2874,6 +2589,7 @@
       this.attr.cx - this.attr.rx, this.attr.cy - this.attr.ry,
       this.attr.cx, this.attr.cy - this.attr.ry
     )
+    this.applyStyles()
     ctx.closePath()
   }
 
@@ -2931,11 +2647,14 @@
       self.BBoxHit = this.BBox
     }
   }
+  RenderRect.prototype.applyStyles = function rStyles () {
+    // if (this.style.fillStyle) { this.ctx.fill() }
+    // if (this.style.strokeStyle) { this.ctx.stroke() }
+  }
   RenderRect.prototype.execute = function RRexecute () {
     const { ctx } = this
-    ctx.beginPath()
-    ctx.rect(this.attr.x, this.attr.y, this.attr.width, this.attr.height)
-    ctx.closePath()
+    if (this.style.fillStyle) { ctx.fillRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height) }
+    if (this.style.strokeStyle) { ctx.strokeRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height) }
   }
 
   RenderRect.prototype.in = function RRinfun (co) {
@@ -2951,6 +2670,7 @@
 
   const RenderGroup = function RenderGroup (ctx, props, styleProps) {
     const self = this
+    self.nodeName = 'group'
     self.ctx = ctx
     self.attr = props
     self.style = styleProps
@@ -3032,7 +2752,7 @@
   RenderGroup.prototype.in = function RGinfun (coOr) {
     const self = this
     const co = { x: coOr.x, y: coOr.y }
-    const { BBoxHit } = this
+    const { BBox } = this
     const { transform } = self.attr
     let gTranslateX = 0
     let gTranslateY = 0
@@ -3047,10 +2767,10 @@
       scaleY = transform.scale[1] !== undefined ? transform.scale[1] : scaleX
     }
 
-    return co.x >= (BBoxHit.x - gTranslateX) / scaleX &&
-                co.x <= ((BBoxHit.x - gTranslateX) + BBoxHit.width) / scaleX &&
-                co.y >= (BBoxHit.y - gTranslateY) / scaleY &&
-                co.y <= ((BBoxHit.y - gTranslateY) + BBoxHit.height) / scaleY
+    return co.x >= (BBox.x - gTranslateX) / scaleX &&
+                co.x <= ((BBox.x - gTranslateX) + BBox.width) / scaleX &&
+                co.y >= (BBox.y - gTranslateY) / scaleY &&
+                co.y <= ((BBox.y - gTranslateY) + BBox.height) / scaleY
   }
 
   /** ***************** End Render Group */
@@ -3111,17 +2831,34 @@
     const props = Object.keys(this.style)
     let value
 
+<<<<<<< HEAD
     for (let i = 0; i < props.length; i += 1) {
       if (typeof this.style[props[i]] === 'function') {
+=======
+    for (let i = 0, len = props.length; i < len; i += 1) {
+      if (typeof this.style[props[i]] !== 'function' && !(this.style[props[i]] instanceof CanvasGradients)) {
+        value = this.style[props[i]]
+      } else if (typeof this.style[props[i]] === 'function') {
+>>>>>>> master
         this.style[props[i]] = this.style[props[i]].call(this, this.dataObj)
         value = this.style[props[i]]
       } else if (this.style[props[i]] instanceof CanvasGradients) {
         value = this.style[props[i]].exe(this.ctx, this.dom.BBox)
       } else {
+<<<<<<< HEAD
         value = this.style[props[i]]
+=======
+        console.log('unkonwn Style')
+>>>>>>> master
       }
 
-      if (typeof value !== 'function') { this.ctx[props[i]] = value } else if (typeof value === 'function') { this.ctx[props[i]](value) } else { console.log('junk comp') }
+      if (typeof this.ctx[props[i]] !== 'function') {
+        this.ctx[props[i]] = value
+      } else if (typeof this.ctx[props[i]] === 'function') {
+        // console.log(value);
+        // this.ctx.setLineDash([5, 5])
+        this.ctx[props[i]](value)
+      } else { console.log('junk comp') }
     }
   }
 
@@ -3154,14 +2891,16 @@
       this.dom.setStyle(attr, value)
     } else if (arguments.length === 1 && typeof attr === 'object') {
       const styleKeys = Object.keys(attr)
+<<<<<<< HEAD
       for (let i = 0; i < styleKeys.length; i += 1) {
+=======
+      for (let i = 0, len = styleKeys.length; i < len; i += 1) {
+>>>>>>> master
         this.style[styleKeys[i]] = attr[styleKeys[i]]
         this.dom.setStyle(styleKeys[i], attr[styleKeys[i]])
       }
     }
-
     queueInstance.vDomChanged(this.vDomIndex)
-
     return this
   }
 
@@ -3240,12 +2979,12 @@
     this.ctx.save()
     this.stylesExe()
     this.attributesExe()
-    if ((this.dom instanceof RenderGroup)) {
-      for (let i = 0; i < this.children.length; i += 1) {
+    if (this.dom instanceof RenderGroup) {
+      for (let i = 0, len = this.children.length; i < len; i += 1) {
         this.children[i].execute()
       }
     }
-    this.dom.applyStyles()
+    // this.dom.applyStyles()
     this.ctx.restore()
   }
 
@@ -3268,7 +3007,7 @@
 
   CanvasNodeExe.prototype.updateBBox = function CupdateBBox () {
     let status
-    for (let i = 0; i < this.children.length; i += 1) {
+    for (let i = 0, len = this.children.length; i < len; i += 1) {
       status = this.children[i].updateBBox() || status
     }
     if (this.BBoxUpdate || status) {
@@ -3351,14 +3090,14 @@
         key = attrKeys[j]
         if (key !== 'transform') {
           if (typeof config.attr[key] === 'function') {
-            const resValue = config.attr[key].call(node, d, j)
+            const resValue = config.attr[key].call(node, d, i)
             node.setAttr(key, resValue)
           } else {
             node.setAttr(key, config.attr[key])
           }
         } else {
           if (typeof config.attr.transform === 'function') {
-            transform = config.attr[key].call(node, d, j)
+            transform = config.attr[key].call(node, d, i)
           } else {
             ({ transform } = config.attr)
           }
@@ -3370,8 +3109,13 @@
       for (let j = 0; j < styleKeys.length; j += 1) {
         key = styleKeys[j]
         if (typeof config.style[key] === 'function') {
+<<<<<<< HEAD
           const bindFun = config.style[key].bind(node)
           node.setStyle(key, bindFun(d, j))
+=======
+          const resValue = config.style[key].call(node, d, i)
+          node.setStyle(key, resValue)
+>>>>>>> master
         } else {
           node.setStyle(key, config.style[key])
         }
@@ -3425,7 +3169,7 @@
     return dpr / bsr
   }
 
-  const renderer = {}
+  const i2d = {}
 
   // function createCanvasPattern(config) {
   //   const self = this
@@ -3473,11 +3217,16 @@
     }
   }
 
+<<<<<<< HEAD
   renderer.dragEvent = function () {
+=======
+  i2d.dragEvent = function () {
+>>>>>>> master
     return Object.create(dragObject)
   }
 
-  renderer.CanvasLayer = function CanvasLayer (context, config) {
+  i2d.CanvasLayer = function CanvasLayer (context, config) {
+    let originalRatio
     let selectedNode
     // const selectiveClearing = config.selectiveClear ? config.selectiveClear : false
     const res = document.querySelector(context)
@@ -3485,8 +3234,8 @@
     const width = config.width ? config.width : res.clientWidth
     const layer = document.createElement('canvas')
     const ctx = layer.getContext('2d')
-
     ratio = getPixlRatio(ctx)
+    originalRatio = ratio
 
     const onClear = (config.onClear === 'clear' || !config.onClear) ? function (ctx) {
       ctx.clearRect(0, 0, width * ratio, height * ratio)
@@ -3507,24 +3256,43 @@
     const root = new CanvasNodeExe(ctx, {
       el: 'group',
       attr: {
-        id: 'rootNode',
-        transform: {
-          scale: [ratio, ratio]
-        }
+        id: 'rootNode'
       }
     }, domId(), vDomIndex)
 
     const execute = root.execute.bind(root)
-
+    root.container = res
+    root.domEl = layer
+    root.height = height
+    root.width = width
     root.execute = function executeExe () {
       if (!this.dom.BBoxHit) {
         this.dom.BBoxHit = {
-          x: 0, y: 0, width: width * ratio, height: height * ratio
+          x: 0, y: 0, width: width * originalRatio, height: height * originalRatio
         }
+      } else {
+        this.dom.BBoxHit.width = this.width * originalRatio
+        this.dom.BBoxHit.height = this.height * originalRatio
       }
       onClear(ctx)
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
       root.updateBBox()
       execute()
+    }
+    root.resize = function () {
+      let width = this.container.clientWidth
+      let height = this.container.clientHeight
+      let newWidthRatio = (width / this.width)
+      let newHeightRatio = (height / this.height)
+      this.scale([newWidthRatio, newHeightRatio])
+      this.domEl.setAttribute('height', height * originalRatio)
+      this.domEl.setAttribute('width', width * originalRatio)
+      this.domEl.style.height = `${height}px`
+      this.domEl.style.width = `${width}px`
+    }
+
+    root.destroy = function () {
+      queueInstance.removeVdom(vDomInstance)
     }
 
     root.type = 'CANVAS'
@@ -3534,6 +3302,7 @@
     if (config.events || config.events === undefined) {
       res.addEventListener('mousemove', (e) => {
         e.preventDefault()
+<<<<<<< HEAD
         
         const tselectedNode = vDomInstance.eventsCheck(
           root.children,
@@ -3544,8 +3313,36 @@
           if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
             if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
             if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e) }
-            selectedNode.hovered = false
+=======
+
+        if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
+          let event = selectedNode.dom.drag.event
+          if (selectedNode.dom.drag.event) {
+            event.dx = e.offsetX - event.x
+            event.dy = e.offsetY - event.y
           }
+          event.x = e.offsetX
+          event.y = e.offsetY
+          selectedNode.dom.drag.event = event
+          selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
+        } else {
+          const tselectedNode = vDomInstance.eventsCheck([root], { x: e.offsetX, y: e.offsetY })
+          if (selectedNode && tselectedNode !== selectedNode) {
+            // console.log('i am out')
+            // console.log(selectedNode.hovered)
+            if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
+              if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
+              if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e) }
+            }
+>>>>>>> master
+            selectedNode.hovered = false
+            if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag) {
+              selectedNode.dom.drag.dragStartFlag = false
+              selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
+              selectedNode.dom.drag.event = null
+            }
+          }
+<<<<<<< HEAD
           
           if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag) {
             selectedNode.dom.drag.dragStartFlag = false
@@ -3575,12 +3372,36 @@
             if (selectedNode.dom.mouseover) { selectedNode.dom.mouseover.call(selectedNode, selectedNode.dataObj, e) }
             if (selectedNode.dom.mouseenter) { selectedNode.dom.mouseenter.call(selectedNode, selectedNode.dataObj, e) }
             selectedNode.hovered = true
+=======
+          if (selectedNode && tselectedNode === selectedNode) {
+            // console.log(selectedNode)
+            if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
+              let event = selectedNode.dom.drag.event
+              if (selectedNode.dom.drag.event) {
+                event.dx = e.offsetX - event.x
+                event.dy = e.offsetY - event.y
+              }
+              event.x = e.offsetX
+              event.y = e.offsetY
+              selectedNode.dom.drag.event = event
+              selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
+            }
+>>>>>>> master
           }
-          if (selectedNode.dom.mousemove) {
-            selectedNode.dom.mousemove.call(selectedNode, selectedNode.dataObj, e)
+          if (tselectedNode) {
+            selectedNode = tselectedNode
+            if ((selectedNode.dom.mouseover || selectedNode.dom.mouseenter) &&
+                !selectedNode.hovered) {
+              if (selectedNode.dom.mouseover) { selectedNode.dom.mouseover.call(selectedNode, selectedNode.dataObj, e) }
+              if (selectedNode.dom.mouseenter) { selectedNode.dom.mouseenter.call(selectedNode, selectedNode.dataObj, e) }
+              selectedNode.hovered = true
+            }
+            if (selectedNode.dom.mousemove) {
+              selectedNode.dom.mousemove.call(selectedNode, selectedNode.dataObj, e)
+            }
+          } else {
+            selectedNode = undefined
           }
-        } else {
-          selectedNode = undefined
         }
       })
       res.addEventListener('click', (e) => {
@@ -3602,8 +3423,13 @@
           selectedNode.dom.drag.dragStartFlag = true
           selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e)
           let event = {}
+<<<<<<< HEAD
           event.x = e.clientX
           event.y = e.clientY
+=======
+          event.x = e.offsetX
+          event.y = e.offsetY
+>>>>>>> master
           event.dx = 0
           event.dy = 0
           selectedNode.dom.drag.event = event
@@ -3637,11 +3463,17 @@
         if (selectedNode && selectedNode.dom.contextmenu) { selectedNode.dom.contextmenu.call(selectedNode, selectedNode.dataObj) }
       })
     }
-    queueInstance.execute()
 
+    if (config.resize) {
+      window.addEventListener('resize', function () {
+        root.resize()
+      })
+    }
+    queueInstance.execute()
     return root
   }
-  renderer.SVGLayer = function SVGLayer (context) {
+
+  i2d.SVGLayer = function SVGLayer (context, config) {
     const vDomInstance = new VDom()
     const vDomIndex = queueInstance.addVdom(vDomInstance)
     const res = document.querySelector(context)
@@ -3652,19 +3484,42 @@
     layer.setAttribute('width', width)
     layer.style.position = 'absolute'
     res.appendChild(layer)
-
     const root = new DomExe(layer, {}, domId(), vDomIndex)
 
+    root.container = res
     root.type = 'SVG'
+    root.width = width
+    root.height = height
     vDomInstance.root(root)
+
+    root.resize = function () {
+      let width = this.container.clientWidth
+      let height = this.container.clientHeight
+      let newWidthRatio = (width / this.width)
+      let newHeightRatio = (height / this.height)
+      this.scale([newWidthRatio, newHeightRatio])
+      this.dom.setAttribute('height', height)
+      this.dom.setAttribute('width', width)
+    }
+
+    root.destroy = function () {
+      queueInstance.removeVdom(vDomInstance)
+    }
+
+    if (config && config.resize) {
+      window.addEventListener('resize', function () {
+        root.resize()
+      })
+    }
 
     queueInstance.execute()
     return root
   }
 
-  renderer.queue = queueInstance
-  renderer.geometry = t2DGeometry
-  renderer.chain = chain
+  i2d.Path = path.instance
+  i2d.queue = queueInstance
+  i2d.geometry = t2DGeometry
+  i2d.chain = chain
 
-  return renderer
+  return i2d
 }))

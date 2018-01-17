@@ -8,19 +8,11 @@
 		<!--<canvas width="1400" height="900" id="myCanvas"></canvas>-->
 	</div>
     <script type="text/javascript" src="../../dist/i2d.js"></script>
-    <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
-	<script type="text/javascript" src="../../src/geometry.js"></script>
-	<script type="text/javascript" src="../../src/easing.js"></script>
-    <script type="text/javascript" src="../../src/vDom.js"></script>
-	<script type="text/javascript" src="../../src/queue.js"></script>
-    <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>-->
 
 	<script type="text/javascript">
 
         var renderer = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
         var nodes = [];
-
 
         var path = renderer.createEl({
                         el:'path',
@@ -37,10 +29,10 @@
                     })
                     .animatePathTo({
                         duration:10000,
+                        loop:2,
                         ease:'linear',
                         direction:'alternate'
                         })
-        
 	</script>
 
 </body>

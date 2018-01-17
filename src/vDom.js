@@ -39,6 +39,8 @@
     return node
   }
 
+  VDom.prototype.transformCoOr = transformCoOr
+
   function transformCoOr (d, coOr) {
     let hozMove = 0
     let verMove = 0
@@ -63,14 +65,28 @@
       const rotate = d.attr.transform.rotate[0]
       const { BBox } = d.dom
       const cen = {
-        x: (BBox.x + (BBox.width / 2) - hozMove) / scaleX,
-        y: (BBox.y + (BBox.height / 2) - verMove) / scaleY
+        x:0,
+        y:0
       }
-      const dis = t2DGeometry.getDistance(coOr, cen)
-      const angle = Math.atan2(coOr.y - cen.y, coOr.x - cen.x)
+      // {
+      //   x: (BBox.x + (BBox.width / 2) - hozMove) / scaleX,
+      //   y: (BBox.y + (BBox.height / 2) - verMove) / scaleY
+      // }
+      // const dis = t2DGeometry.getDistance(cen, coOr)
+      // const angle = Math.atan2(coOr.y - cen.y, coOr.x - cen.x)
 
-      coOrLocal.x = cen.x + Math.cos(angle - (rotate * Math.PI / 180)) * dis
-      coOrLocal.y = cen.y + Math.sin(angle - (rotate * Math.PI / 180)) * dis
+
+      let x = coOrLocal.x
+      let y = coOrLocal.y
+      let cx = cen.x
+      let cy = cen.y
+
+      var radians = (Math.PI / 180) * rotate
+      var cos = Math.cos(radians)
+      var sin = Math.sin(radians)
+
+      coOrLocal.x = (cos * (x - cx)) + (sin * (y - cy)) + cx
+      coOrLocal.y = (cos * (y - cy)) - (sin * (x - cx)) + cy
     }
   }
 
