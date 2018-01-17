@@ -4270,11 +4270,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     }
   }
   RenderText.prototype.execute = function RTexecute () {
-<<<<<<< HEAD
-    if (this.textContent) {
-=======
     if (this.textContent !== undefined && this.textContent !== null) {
->>>>>>> master
       if (this.style.fillStyle) {
         this.ctx.fillText(this.textContent, this.attr.x, this.attr.y)
       }
@@ -4486,15 +4482,11 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     if (!this.attr.d) {
       return flag
     }
-<<<<<<< HEAD
-    return this.style.fillStyle ? this.ctx.isPointInPath(this.pathNode, co.x, co.y) : false
-=======
     this.ctx.save()
     this.ctx.scale(1 / ratio, 1 / ratio)
     flag = this.style.fillStyle ? this.ctx.isPointInPath(this.pathNode, co.x, co.y) : flag
     this.ctx.restore()
     return flag
->>>>>>> master
   }
   /** *****************End Render Path */
 
@@ -4592,13 +4584,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
   RenderPolygon.prototype.execute = function RPolyexecute () {
     if (this.attr.points) {
-<<<<<<< HEAD
-      if (this.style.fillStyle) { this.ctx.fill(this.polygon) }
-      if (this.style.strokeStyle) { this.ctx.stroke(this.polygon) }
-=======
       if (this.style.fillStyle) { this.ctx.fill(this.polygon.path) }
       if (this.style.strokeStyle) { this.ctx.stroke(this.polygon.path) }
->>>>>>> master
     }
   }
   RenderPolygon.prototype.applyStyles = function RPolyapplyStyles () {}
@@ -4607,15 +4594,11 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     if (!this.attr.points) {
       return flag
     }
-<<<<<<< HEAD
-    return this.style.fillStyle ? this.ctx.isPointInPath(this.polygon, co.x, co.y) : false
-=======
     this.ctx.save()
     this.ctx.scale(1 / ratio, 1 / ratio)
     flag = this.style.fillStyle ? this.ctx.isPointInPath(this.polygon.path, co.x, co.y) : flag
     this.ctx.restore()
     return flag
->>>>>>> master
   }
 
   /** ***************** Render polygon */
@@ -4915,25 +4898,16 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     const props = Object.keys(this.style)
     let value
 
-<<<<<<< HEAD
-    for (let i = 0; i < props.length; i += 1) {
-      if (typeof this.style[props[i]] === 'function') {
-=======
     for (let i = 0, len = props.length; i < len; i += 1) {
       if (typeof this.style[props[i]] !== 'function' && !(this.style[props[i]] instanceof CanvasGradients)) {
         value = this.style[props[i]]
       } else if (typeof this.style[props[i]] === 'function') {
->>>>>>> master
         this.style[props[i]] = this.style[props[i]].call(this, this.dataObj)
         value = this.style[props[i]]
       } else if (this.style[props[i]] instanceof CanvasGradients) {
         value = this.style[props[i]].exe(this.ctx, this.dom.BBox)
       } else {
-<<<<<<< HEAD
-        value = this.style[props[i]]
-=======
         console.log('unkonwn Style')
->>>>>>> master
       }
 
       if (typeof this.ctx[props[i]] !== 'function') {
@@ -4975,11 +4949,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       this.dom.setStyle(attr, value)
     } else if (arguments.length === 1 && typeof attr === 'object') {
       const styleKeys = Object.keys(attr)
-<<<<<<< HEAD
-      for (let i = 0; i < styleKeys.length; i += 1) {
-=======
       for (let i = 0, len = styleKeys.length; i < len; i += 1) {
->>>>>>> master
         this.style[styleKeys[i]] = attr[styleKeys[i]]
         this.dom.setStyle(styleKeys[i], attr[styleKeys[i]])
       }
@@ -5193,13 +5163,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       for (let j = 0; j < styleKeys.length; j += 1) {
         key = styleKeys[j]
         if (typeof config.style[key] === 'function') {
-<<<<<<< HEAD
-          const bindFun = config.style[key].bind(node)
-          node.setStyle(key, bindFun(d, j))
-=======
           const resValue = config.style[key].call(node, d, i)
           node.setStyle(key, resValue)
->>>>>>> master
         } else {
           node.setStyle(key, config.style[key])
         }
@@ -5301,11 +5266,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     }
   }
 
-<<<<<<< HEAD
-  renderer.dragEvent = function () {
-=======
   i2d.dragEvent = function () {
->>>>>>> master
     return Object.create(dragObject)
   }
 
@@ -5327,7 +5288,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     layer.setAttribute('height', height * ratio)
     layer.setAttribute('width', width * ratio)
-    layer.setAttribute('draggable', true)
     layer.style.height = `${height}px`
     layer.style.width = `${width}px`
     layer.style.position = 'absolute'
@@ -5386,18 +5346,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     if (config.events || config.events === undefined) {
       res.addEventListener('mousemove', (e) => {
         e.preventDefault()
-<<<<<<< HEAD
-        
-        const tselectedNode = vDomInstance.eventsCheck(
-          root.children,
-          { x: e.offsetX, y: e.offsetY }
-        )
-        
-        if (selectedNode && tselectedNode !== selectedNode) {
-          if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
-            if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
-            if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e) }
-=======
 
         if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
           let event = selectedNode.dom.drag.event
@@ -5418,7 +5366,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
               if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
               if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e) }
             }
->>>>>>> master
             selectedNode.hovered = false
             if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag) {
               selectedNode.dom.drag.dragStartFlag = false
@@ -5426,37 +5373,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
               selectedNode.dom.drag.event = null
             }
           }
-<<<<<<< HEAD
-          
-          if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag) {
-            selectedNode.dom.drag.dragStartFlag = false
-            selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
-            selectedNode.dom.drag.event = null
-          }
-        }
-        
-        if (selectedNode && tselectedNode === selectedNode) {
-          // console.log('test')
-          if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
-            let event = selectedNode.dom.drag.event
-            if (selectedNode.dom.drag.event) {
-              event.dx = e.clientX - event.x
-              event.dy = e.clientY - event.y
-            }
-            event.x = e.clientX
-            event.y = e.clientY
-            selectedNode.dom.drag.event = event
-            selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
-          }
-        }
-        if (tselectedNode) {
-          selectedNode = tselectedNode
-          if ((selectedNode.dom.mouseover || selectedNode.dom.mouseenter) &&
-              !selectedNode.hovered) {
-            if (selectedNode.dom.mouseover) { selectedNode.dom.mouseover.call(selectedNode, selectedNode.dataObj, e) }
-            if (selectedNode.dom.mouseenter) { selectedNode.dom.mouseenter.call(selectedNode, selectedNode.dataObj, e) }
-            selectedNode.hovered = true
-=======
           if (selectedNode && tselectedNode === selectedNode) {
             // console.log(selectedNode)
             if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
@@ -5470,7 +5386,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
               selectedNode.dom.drag.event = event
               selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
             }
->>>>>>> master
           }
           if (tselectedNode) {
             selectedNode = tselectedNode
@@ -5507,13 +5422,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
           selectedNode.dom.drag.dragStartFlag = true
           selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e)
           let event = {}
-<<<<<<< HEAD
-          event.x = e.clientX
-          event.y = e.clientY
-=======
           event.x = e.offsetX
           event.y = e.offsetY
->>>>>>> master
           event.dx = 0
           event.dy = 0
           selectedNode.dom.drag.event = event
