@@ -2880,7 +2880,7 @@
       this.dom.setAttr(attr, value)
     } else if (arguments.length === 1 && typeof attr === 'object') {
       const keys = Object.keys(attr)
-      for (let i = 0; i < keys.length; i += 1) {
+      for (let i = 0, len = keys.length; i < len; i += 1) {
         this.attr[keys[i]] = attr[keys[i]]
         this.dom.setAttr(keys[i], attr[keys[i]])
       }
@@ -2962,7 +2962,7 @@
     const self = this
     const childrensLocal = childrens
     if (self.dom instanceof RenderGroup) {
-      for (let i = 0; i < childrensLocal.length; i += 1) {
+      for (let i = 0, len = childrensLocal.length; i < len; i += 1) {
         childrensLocal[i].dom.parent = self
         self.children[self.children.length] = childrensLocal[i]
       }
@@ -3056,7 +3056,7 @@
         }, vDomIndex)
       }
 
-      for (let j = 0; j < attrKeys.length; j += 1) {
+      for (let j = 0, len = attrKeys.length; j < len; j += 1) {
         key = attrKeys[j]
         if (key !== 'transform') {
           if (typeof config.attr[key] === 'function') {
@@ -3076,7 +3076,7 @@
           }
         }
       }
-      for (let j = 0; j < styleKeys.length; j += 1) {
+      for (let j = 0, len = styleKeys.length; j < len; j += 1) {
         key = styleKeys[j]
         if (typeof config.style[key] === 'function') {
           const resValue = config.style[key].call(node, d, i)

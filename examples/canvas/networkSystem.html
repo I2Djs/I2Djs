@@ -185,12 +185,12 @@
             /*
                 Performing Node join with actions. Returns Join handler.
             */
-            var NodeJoinRef = circleG.join([],'circle',{
+            var NodeJoinRef = circleG.join([],'circle,text',{
                     joinCond: function(d){ return d.ip},
                     action: {
                         enter : function(data){
 
-                                circleG.createEls(data,{
+                                circleG.createEls(data.circle,{
                                         el:'circle',
                                         attr:{
                                             r:5,
@@ -212,7 +212,7 @@
                                         NodeJoinRef.remove(d);
                                     })
 
-                                circleG.createEls(data,{
+                                circleG.createEls(data.text,{
                                         el:'text',
                                         attr:{
                                             x:function(d){return d.x},
@@ -221,7 +221,7 @@
                                         style:{ fillStyle:'yellow','textAlign':'center' }
                                     }).text(function(d){ return d.ip})
 
-                                circleG.createEls(data,{
+                                circleG.createEls(data.circle,{
                                         el:'circle',
                                         attr:{
                                             r:0,
@@ -237,13 +237,13 @@
                                         end:function(){ this.remove() }
                                     })
                         },
-                        exit : function (nodes, data){
+                        exit : function (nodes){
                             if(data.length === 0) return;
 
                             /*
                                 circle exit with animation
                             */
-                            nodes.animateTo({
+                            nodes.circle.animateTo({
                                         duration:500,
                                         ease:'easeOutCubic',
                                         attr:{ r:0 },
