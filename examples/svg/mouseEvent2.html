@@ -2,6 +2,25 @@
 <html style="height: 100%">
 <head>
 	<title></title>
+    <style>
+
+        body {
+        margin: 0;
+        background: #222;
+        min-width: 960px;
+        }
+
+        rect {
+        fill: none;
+        pointer-events: all;
+        }
+
+        circle {
+        fill: none;
+        stroke-width: 2.5px;
+        }
+
+    </style>
 </head>
 <body style="height: 100%">
 
@@ -10,25 +29,38 @@
     
 
     
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+    <script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
 
 	<script type="text/javascript">
 
         var renderer_ = i2d.SVGLayer('#mySvg');
             var i = 0;
+
                 window.addEventListener("mousemove",function(e){
-                    renderer_.createEls([1],{
+                    // console.log(e)
+                    
+                    renderer_.createEl({
                         el:'circle',
                         attr:{ r:0, cx:e.x, cy:e.y },
-                        style:{ opacity:1, stroke:'hsl('+(i = (i + 1) % 360)+',100%,50%)', 'stroke-width':'2px',fill:'none' }
+                        style:{ opacity:1, stroke:'hsl('+(i = (i + 1) % 360)+',100%,50%)'}
                     })
                     .animateTo({
-                            duration:2000,
-                            ease:Math.sqrt,
-                            attr:{ r:150 },
-                            style:{opacity:0},
+                            duration: 2000,
+                            ease: Math.sqrt,
+                            attr:{ r:100 },
+                            style:{ opacity:0 },
                             end:function(){ this.remove(); }
                     });
+                    
+                    e.preventDefault();
                 });
                 
 	</script>

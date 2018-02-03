@@ -116,12 +116,12 @@
             var EdgeJoinRef = lineG.join([],'line',{
                     action: {
                         enter : function(data){
-                            if(data && data.length > 0){
+                            if(data.line && data.line.length > 0){
                                 var chainInstance = i2d.chain.parallelChain()
                                                     .duration(1000)
                                                     .ease('linear');
                         
-                                var lineExe = lineG.createEls(data,{
+                                var lineExe = lineG.createEls(data.line,{
                                                 el:'line',
                                                 attr:{
                                                     x1:function(d){return d.source.x},
@@ -153,17 +153,16 @@
                                 chainInstance.start()
                             }
                         },
-                        exit : function(nodes , data){
+                        exit : function(nodes){
                             
                             /*
                                 Remove edges in parallel mode
                             */
-                            if(data && data.length > 0){
                                 var chainInstance = i2d.chain.parallelChain()
                                                     .duration(1000)
                                                     .ease('linear');
                         
-                                var lineExe = nodes.animateExe({
+                                var lineExe = nodes.line.animateExe({
                                                 duration:600,
                                                 ease:'linear',
                                                 attr:{
@@ -178,7 +177,6 @@
                                 chainInstance.add(lineExe)
                                 chainInstance.start()
                             }
-                        }
                     }
                 })
             
@@ -190,7 +188,7 @@
                     action: {
                         enter : function(data){
 
-                                circleG.createEls(data,{
+                                circleG.createEls(data.circle,{
                                         el:'circle',
                                         attr:{
                                             r:5,
@@ -212,7 +210,7 @@
                                         NodeJoinRef.remove(d);
                                     })
 
-                                circleG.createEls(data,{
+                                circleG.createEls(data.circle,{
                                         el:'text',
                                         attr:{
                                             x:function(d){return d.x},
@@ -221,7 +219,7 @@
                                         style:{ fillStyle:'yellow','textAlign':'center' }
                                     }).text(function(d){ return d.ip})
 
-                                circleG.createEls(data,{
+                                circleG.createEls(data.circle,{
                                         el:'circle',
                                         attr:{
                                             r:0,
@@ -237,13 +235,13 @@
                                         end:function(){ this.remove() }
                                     })
                         },
-                        exit : function (nodes, data){
+                        exit : function (nodes){
                             if(data.length === 0) return;
 
                             /*
                                 circle exit with animation
                             */
-                            nodes.animateTo({
+                            nodes.circle.animateTo({
                                         duration:500,
                                         ease:'easeOutCubic',
                                         attr:{ r:0 },
@@ -252,15 +250,14 @@
                                             this.remove()
                                         }
                                     })
-                            /*
-                                On every circle exit. Remove corresponding linked edges.
-                            */
-                            EdgeJoinRef.remove(nodeToEdgeTree[data[0].ip])
-
-                            /*
-                                On every circle exit. Remove corresponding Text.
-                            */
-                            this.fetchEls('text',data).remove();
+                            // /*
+                            //     On every circle exit. Remove corresponding linked edges.
+                            // */
+                            // EdgeJoinRef.remove(nodeToEdgeTree[data[0].ip])
+                            // /*
+                            //     On every circle exit. Remove corresponding Text.
+                            // */
+                            // this.fetchEls('text',data).remove();
                         }
                     }
                 })

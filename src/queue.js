@@ -10,7 +10,7 @@
 }(this, () => {
   let animatorInstance = null
   // const currentTime = Date.now()
-  let tweens = []
+  let tweens = {}
   const vDoms = []
   let animeFrameId
 
@@ -39,9 +39,8 @@
     )
   })()
 
-  function Tween (executable, ID, easying) {
+  function Tween (Id, executable, easying) {
     this.executable = executable
-    this.ID = ID
     this.duration = executable.duration ? executable.duration : 0
     this.currTime = Date.now()
     this.lastTime = 0 - (executable.delay ? executable.delay : 0)
@@ -69,29 +68,19 @@
   }
 
   function onRequestFrame (_) {
-
     if (typeof _ !== 'function') {
       throw new Error('Wrong input')
     }
-
     onFrameExe.push(_)
-
     if (onFrameExe.length > 0 && !animeFrameId) {
       this.startAnimeFrames()
     }
   }
-  function add (Id, executable, easying) {
-    tweens[tweens.length] = new Tween(executable, Id, easying)
+
+  function add (uId, executable, easying) {
+    tweens[uId] = new Tween(uId, executable, easying)
   }
-  // var remove = function(id) {
-  //     for(var i=0;i<tweens.length;i++){
-  //         if (id === tweens[i].ID) {
-  //             tweens.splice(i, 1)[0];
-  //             break;
-  //         }
-  //     }
-  //     return this;
-  // };
+
   function startAnimeFrames () {
     if (!animeFrameId) {
       animeFrameId = window.requestAnimationFrame(exeFrameCaller)
@@ -144,20 +133,22 @@
 
   let d
   let t
+  let abs = Math.abs
   function exeFrameCaller () {
     animeFrameId = window.requestAnimationFrame(exeFrameCaller)
-    t = Date.now()
-    for (let i = 0, len = tweens.length; i < len; i += 1) {
-      d = tweens[i]
+    let aIds = Object.keys(tweens)
+    for (let i = 0, len = aIds.length; i < len; i += 1) {
+      d = tweens[aIds[i]]
       t = Date.now()
       d.lastTime += (t - d.currTime)
       d.currTime = t
       if (d.lastTime < d.duration && d.lastTime >= 0) {
-        d.execute(Math.abs(d.factor - d.easying(d.lastTime, d.duration)))
+        d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)))
       } else if (d.lastTime > d.duration) {
         d.execute(1 - d.factor)
         if (d.loopTracker >= d.loop - 1) {
-          d.removed = true
+          if (d.end) { d.end() }
+          delete tweens[aIds[i]]
         } else {
           d.loopTracker += 1
           d.lastTime = 0
@@ -166,24 +157,14 @@
       }
     }
 
-    d = null
-
     if (onFrameExe.length > 0) {
+      console.log(onFrameExe)
       for (let i = 0; i < onFrameExe.length; i += 1) {
         onFrameExe[i](t)
       }
     }
 
-    const newTween = []
-    for (let i = 0; i < tweens.length; i += 1) {
-      if (!tweens[i].removed) { newTween[newTween.length] = tweens[i] } else if (typeof tweens[i].end === 'function') {
-        tweens[i].end()
-        tweens[i] = undefined
-      }
-    }
-    tweens = newTween
-
-    for (let i = 0; i < vDoms.length; i += 1) {
+    for (let i = 0, len = vDoms.length; i < len; i += 1) {
       if (vDoms[i].stateModified) {
         vDoms[i].execute()
         vDoms[i].stateModified = false

@@ -23,7 +23,7 @@
         var v_;
 
         function dataJoin(data){
-            v_ = renderer_.join(data,'circle,.',{
+            v_ = renderer_.join(data,'circle,text',{
                                             joinCond:function(d){ return d.id; },
                                             action:{
                                                 enter:function(nodes){

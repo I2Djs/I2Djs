@@ -30,7 +30,7 @@
                                             joinCond:function(d){ return d.id; },
                                             action:{
                                                 enter:function(data){
-                                                    this.createEls(data,{
+                                                    this.createEls(data.circle,{
                                                                         el:'circle',
                                                                         attr:{
                                                                             cx:function(d){return d.id*40},
@@ -44,7 +44,7 @@
                                                                         duration:1000,
                                                                         attr:{ r:20 }
                                                                     }); 
-                                                    this.createEls(data,{
+                                                    this.createEls(data.circle,{
                                                                         el:'text',
                                                                         attr:{
                                                                             x:function(d){return d.id*40},
@@ -62,9 +62,8 @@
                                                     // this.fetchEls('circle',oldData).remove();
                                                     // this.fetchEls('text',oldData).remove();
                                                 },
-                                                update:function(nodes,data){
-                                                    this.fetchEls('circle',data)
-                                                        .animateTo({
+                                                update:function(nodes){
+                                                    nodes.circle.animateTo({
                                                             duration:1000,
                                                             style:{
                                                                 fill:'#00ff00'
