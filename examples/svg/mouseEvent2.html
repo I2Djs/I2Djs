@@ -27,8 +27,6 @@
 	<div id="mySvg" style="height: 100%;width:100%;background: black">
 	</div>
     
-
-    
 	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
     <script type="text/javascript" src="../../src/colorMap.js"></script>
 	<script type="text/javascript" src="../../src/geometry.js"></script>
@@ -43,10 +41,8 @@
 
         var renderer_ = i2d.SVGLayer('#mySvg');
             var i = 0;
-
+            var sqrt = Math.sqrt
                 window.addEventListener("mousemove",function(e){
-                    // console.log(e)
-                    
                     renderer_.createEl({
                         el:'circle',
                         attr:{ r:0, cx:e.x, cy:e.y },
@@ -54,7 +50,7 @@
                     })
                     .animateTo({
                             duration: 2000,
-                            ease: Math.sqrt,
+                            ease: sqrt,
                             attr:{ r:100 },
                             style:{ opacity:0 },
                             end:function(){ this.remove(); }
