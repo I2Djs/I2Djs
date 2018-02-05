@@ -631,7 +631,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 }(this, () => {
   let animatorInstance = null
   // const currentTime = Date.now()
-  let tweens = []
+  let tweens = {}
   const vDoms = []
   let animeFrameId
 
@@ -660,9 +660,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     )
   })()
 
-  function Tween (executable, ID, easying) {
+  function Tween (Id, executable, easying) {
     this.executable = executable
-    this.ID = ID
     this.duration = executable.duration ? executable.duration : 0
     this.currTime = Date.now()
     this.lastTime = 0 - (executable.delay ? executable.delay : 0)
@@ -690,29 +689,19 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
 
   function onRequestFrame (_) {
-
     if (typeof _ !== 'function') {
       throw new Error('Wrong input')
     }
-
     onFrameExe.push(_)
-
     if (onFrameExe.length > 0 && !animeFrameId) {
       this.startAnimeFrames()
     }
   }
-  function add (Id, executable, easying) {
-    tweens[tweens.length] = new Tween(executable, Id, easying)
+
+  function add (uId, executable, easying) {
+    tweens[uId] = new Tween(uId, executable, easying)
   }
-  // var remove = function(id) {
-  //     for(var i=0;i<tweens.length;i++){
-  //         if (id === tweens[i].ID) {
-  //             tweens.splice(i, 1)[0];
-  //             break;
-  //         }
-  //     }
-  //     return this;
-  // };
+
   function startAnimeFrames () {
     if (!animeFrameId) {
       animeFrameId = window.requestAnimationFrame(exeFrameCaller)
@@ -765,20 +754,22 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
   let d
   let t
+  let abs = Math.abs
   function exeFrameCaller () {
     animeFrameId = window.requestAnimationFrame(exeFrameCaller)
-    t = Date.now()
-    for (let i = 0, len = tweens.length; i < len; i += 1) {
-      d = tweens[i]
+    let aIds = Object.keys(tweens)
+    for (let i = 0, len = aIds.length; i < len; i += 1) {
+      d = tweens[aIds[i]]
       t = Date.now()
       d.lastTime += (t - d.currTime)
       d.currTime = t
       if (d.lastTime < d.duration && d.lastTime >= 0) {
-        d.execute(Math.abs(d.factor - d.easying(d.lastTime, d.duration)))
+        d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)))
       } else if (d.lastTime > d.duration) {
         d.execute(1 - d.factor)
         if (d.loopTracker >= d.loop - 1) {
-          d.removed = true
+          if (d.end) { d.end() }
+          delete tweens[aIds[i]]
         } else {
           d.loopTracker += 1
           d.lastTime = 0
@@ -787,24 +778,14 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       }
     }
 
-    d = null
-
     if (onFrameExe.length > 0) {
+      console.log(onFrameExe)
       for (let i = 0; i < onFrameExe.length; i += 1) {
         onFrameExe[i](t)
       }
     }
 
-    const newTween = []
-    for (let i = 0; i < tweens.length; i += 1) {
-      if (!tweens[i].removed) { newTween[newTween.length] = tweens[i] } else if (typeof tweens[i].end === 'function') {
-        tweens[i].end()
-        tweens[i] = undefined
-      }
-    }
-    tweens = newTween
-
-    for (let i = 0; i < vDoms.length; i += 1) {
+    for (let i = 0, len = vDoms.length; i < len; i += 1) {
       if (vDoms[i].stateModified) {
         vDoms[i].execute()
         vDoms[i].stateModified = false
@@ -910,15 +891,15 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   //   t -= 1
   //   return t < 0.5 ? 8 * t2DGeometry.pow(t, 4) : 1 - 8 * t * t2DGeometry.pow(t, 3)
   // }
-  function cust (custEase) {
-    return function custExe (starttime, duration) {
-      return custEase(starttime / duration)
-    }
-  }
 
   function easing () {
     function fetchTransitionType (_) {
       let res
+      if (typeof _ === 'function') {
+        return function custExe (starttime, duration) {
+          return _(starttime / duration)
+        }
+      }
       switch (_) {
         case 'easeOutQuad':
           res = easeOutQuad
@@ -959,7 +940,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         default:
           res = linear
       }
-      if (typeof _ === 'function') { return cust(_) }
+      
       return res
     }
 
@@ -2096,14 +2077,13 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   const easying = easing()
   const queueInstance = queue()
   let Id = 0
-  let animeIdentifier = 1
+  let animeIdentifier = 0
   let ratio
 
   function domId () {
     Id += 1
     return Id
   }
-
   function animeId () {
     animeIdentifier += 1
     return animeIdentifier
@@ -2582,7 +2562,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
 
   const animate = function animate (self, targetConfig) {
-    const callerExe = self
+    // const callerExe = self
     const tattr = targetConfig.attr ? targetConfig.attr : {}
     const tstyles = targetConfig.style ? targetConfig.style : {}
     const runStack = []
@@ -2591,27 +2571,27 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     const attrs = tattr ? Object.keys(tattr) : []
 
-    for (let i = 0; i < attrs.length; i += 1) {
+    for (let i = 0, len = attrs.length; i < len; i += 1) {
       key = attrs[i]
       if (key !== 'transform') {
         if (key === 'd') {
-          callerExe.morphTo(targetConfig)
+          self.morphTo(targetConfig)
         } else {
-          runStack[runStack.length] = attrTransition(callerExe, key, tattr[key])
+          runStack[runStack.length] = attrTransition(self, key, tattr[key])
         }
       } else {
         value = tattr[key]
         if (typeof value === 'function') {
-          runStack[runStack.length] = transitionSetAttr(callerExe, key, value)
+          runStack[runStack.length] = transitionSetAttr(self, key, value)
         } else {
-          const trans = callerExe.attr.transform
+          const trans = self.attr.transform
           if (!trans) {
-            callerExe.attr.transform = {}
+            self.attr.transform = {}
           }
           const subTrnsKeys = Object.keys(tattr.transform)
-          for (let j = 0; j < subTrnsKeys.length; j += 1) {
+          for (let j = 0, jLen = subTrnsKeys.length; j < jLen; j += 1) {
             runStack[runStack.length] = transformTransition(
-              callerExe,
+              self,
               subTrnsKeys[j],
               tattr.transform[subTrnsKeys[j]]
             )
@@ -2621,13 +2601,13 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     }
 
     const styles = tstyles ? Object.keys(tstyles) : []
-    for (let i = 0; i < styles.length; i += 1) {
+    for (let i = 0, len = styles.length; i < len; i += 1) {
       runStack[runStack.length] = styleTransition(self, styles[i], tstyles[styles[i]])
     }
 
     return {
       run (f) {
-        for (let j = 0; j < runStack.length; j += 1) {
+        for (let j = 0, len = runStack.length; j < len; j += 1) {
           runStack[j](f)
         }
       },
@@ -2677,14 +2657,15 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
 
   let attrTransition = function attrTransition (self, key, value) {
+    let srcVal = self.attr[key]
     if (typeof value === 'function') {
       return function setAttr_ (f) {
         self.setAttr(key, value.call(self, f))
       }
     }
-    const exe = t2DGeometry.intermediateValue.bind(null, self.attr[key], value)
+    // const exe = t2DGeometry.intermediateValue.bind(null, srcVal, value)
     return function setAttr_ (f) {
-      self.setAttr(key, exe(f))
+      self.setAttr(key, t2DGeometry.intermediateValue(srcVal, value, f))
     }
   }
 
@@ -3599,7 +3580,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     this.styleChanged = true
     this.children = []
     this.vDomIndex = vDomIndex
-    queueInstance.vDomChanged(this.vDomIndex)
+    // queueInstance.vDomChanged(this.vDomIndex)
   }
   DomExe.prototype.node = function node () {
     this.execute()
@@ -3610,17 +3591,17 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     transforms,
     trnX
   DomExe.prototype.transFormAttributes = function transFormAttributes () {
-    let NS
     const self = this
 
     attrs = Object.keys(self.changedAttribute)
-    for (let i = 0; i < attrs.length; i += 1) {
-      if (attrs[i] !== 'transform') {
-        if (attrs[i].indexOf(':') !== -1) {
-          NS = attrs[i].split(':')
-          self.dom.setAttributeNS(nameSpace[NS[0]], attrs[i], this.changedAttribute[attrs[i]])
+    for (let i = 0, len = attrs.length; i < len; i += 1) {
+      let key = attrs[i]
+      if (key !== 'transform') {
+        let ind = key.indexOf(':')
+        if (ind >= 0) {
+          self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), this.changedAttribute[key])
         } else {
-          self.dom.setAttribute(attrs[i], this.changedAttribute[attrs[i]])
+          self.dom.setAttribute(key, this.changedAttribute[key])
         }
       }
     }
@@ -3652,11 +3633,12 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
     styles = Object.keys(this.changedStyles)
 
-    for (let i = 0; i < styles.length; i += 1) {
+    for (let i = 0, len = styles.length; i < len; i += 1) {
       if (this.changedStyles[styles[i]] instanceof DomGradients) {
         this.changedStyles[styles[i]] = this.changedStyles[styles[i]].exe()
       }
-      this.dom.style[styles[i]] = this.changedStyles[styles[i]]
+      this.dom.style.setProperty(styles[i], this.changedStyles[styles[i]],"")
+      // this.dom.style[styles[i]] = this.changedStyles[styles[i]]
     }
 
     this.changedStyles = {}
@@ -3726,7 +3708,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     } else if (arguments.length === 1 && typeof attr === 'object') {
       const styleAttrs = Object.keys(attr)
 
-      for (let i = 0; i < styleAttrs.length; i += 1) {
+      for (let i = 0, len = styleAttrs.length; i < len; i += 1) {
         const key = styleAttrs[i]
         this.style[key] = attr[key]
         this.changedStyles[key] = attr[key]
@@ -3743,7 +3725,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       this.changedAttribute[attr] = value
     } else if (arguments.length === 1 && typeof attr === 'object') {
       const props = Object.keys(attr)
-      for (let i = 0; i < props.length; i += 1) {
+      for (let i = 0, len = props.length; i < len; i += 1) {
         const key = props[i]
         this.attr[key] = attr[key]
         this.changedAttribute[key] = attr[key]
@@ -3758,15 +3740,15 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     return this.attr[_]
   }
   DomExe.prototype.execute = function DMexecute () {
-    if ((!this.styleChanged && !this.attrChanged)) {
-      for (let i = 0; i < this.children.length; i += 1) {
+    if (!this.styleChanged && !this.attrChanged) {
+      for (let i = 0, len = this.children.length; i < len; i += 1) {
         this.children[i].execute()
       }
       return
     }
     this.transFormAttributes()
 
-    for (let i = 0; i < this.children.length; i += 1) {
+    for (let i = 0, len = this.children.length; i < len; i += 1) {
       this.children[i].execute()
     }
   }
@@ -3775,11 +3757,19 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     const self = this
     // if (parent.nodeName === 'g' || parent.nodeName === 'svg') {
     if (nodes instanceof CreateElements) {
-      nodes.stack.forEach((d) => {
-        parent.appendChild(d.dom)
-        d.parentNode = self
-      })
-      this.children = this.children.concat(nodes.stack)
+      var fragment = document.createDocumentFragment()
+      for (let i = 0, len = nodes.stack.length; i < len; i++) {
+        fragment.appendChild(nodes.stack[i].dom)
+        nodes.stack[i].parentNode = self
+        this.children[this.children.length] = nodes.stack[i]
+      }
+      parent.appendChild(fragment)
+      // console.log(this.children.length)
+      // nodes.stack.forEach((d) => {
+      //   parent.appendChild(d.dom)
+      //   d.parentNode = self
+      // })
+      // this.children = this.children.concat(nodes.stack)
     } else if (nodes instanceof DomExe) {
       parent.appendChild(nodes.dom)
       nodes.parentNode = self
@@ -3831,7 +3821,6 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
   DomExe.prototype.remove = function DMremove () {
     this.parentNode.removeChild(this)
-    this.removed = true
   }
   DomExe.prototype.createEls = function DMcreateEls (data, config) {
     const e = new CreateElements({ type: 'SVG' }, data, config, this.vDomIndex)
@@ -3846,29 +3835,29 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     return e
   }
   DomExe.prototype.removeChild = function DMremoveChild (obj) {
-    let index = -1
+    // let index = -1
     // let removedNode
 
     const { children } = this
-    for (let i = 0; i < children.length; i += 1) {
-      if (obj === children[i]) {
-        index = i
-        this.dom.removeChild(children[i].dom)
-      }
-    }
-    if (index > -1) {
-      for (let i = index; i < children.length - 1; i += 1) {
-        children[i] = children[i + 1]
-      }
-      children.length -= 1
-    }
+    this.dom.removeChild(children.splice(obj, 1)[0].dom)
+    // for (let i = 0; i < children.length; i += 1) {
+    //   if (obj === children[i]) {
+    //     index = i
+    //     this.dom.removeChild(children[i].dom)
+    //   }
+    // }
+    // if (index > -1) {
+    //   for (let i = index; i < children.length - 1; i += 1) {
+    //     children[i] = children[i + 1]
+    //   }
+    //   children.length -= 1
+    // }
 
-    queueInstance.vDomChanged(this.vDomIndex)
+    // queueInstance.vDomChanged(this.vDomIndex)
   }
 
   function createDomElement (obj, vDomIndex) {
     let dom = null
-    // let node
 
     switch (obj.el) {
       case 'group':
@@ -3880,10 +3869,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     }
 
     const node = new DomExe(dom, obj, domId(), vDomIndex)
-    if (obj.dataObj) { dom.dataObj = obj.dataObj }
-    if (obj.style) { node.setStyle(obj.style) }
-    if (obj.attr) { node.setAttr(obj.attr) }
-
+    if (obj.dataObj) { dom.dataObj = obj.dataObj }    
     return node
   }
 
@@ -3905,7 +3891,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove)
       if (transform.rotate) {
         self.ctx.translate(transform.cx, transform.cy)
-        self.ctx.rotate(transform.rotate[0] * (Math.PI / 180))
+        self.ctx.rotate(transform.rotate * (Math.PI / 180))
         self.ctx.translate(-(transform.cx), -(transform.cy))
       }
     }
@@ -4922,21 +4908,23 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
   CanvasNodeExe.prototype.remove = function Cremove () {
     const self = this
-    let index
+    // let index
     const { children } = this.dom.parent
-    for (let i = 0; i < children.length; i += 1) {
-      if (self === children[i]) {
-        index = i
-      }
-    }
-    if (index > -1) {
-      for (let i = index; i < children.length - 1; i += 1) {
-        children[i] = children[i + 1]
-      }
-      children.length -= 1
-    }
-    this.dom.parent.children = children
-    queueInstance.vDomChanged(this.vDomIndex)
+
+    children.splice(children.indexOf(self), 1)
+    // for (let i = 0, len = children.length; i < len; i += 1) {
+    //   if (self === children[i]) {
+    //     index = i
+    //   }
+    // }
+    // if (index > -1) {
+    //   for (let i = index; i < children.length - 1; i += 1) {
+    //     children[i] = children[i + 1]
+    //   }
+    //   children.length -= 1
+    // }
+    // this.dom.parent.children = children
+    // queueInstance.vDomChanged(this.vDomIndex)
     this.BBoxUpdate = true
   }
 
@@ -5140,7 +5128,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
         }, vDomIndex)
       }
 
-      for (let j = 0; j < attrKeys.length; j += 1) {
+      for (let j = 0, len = attrKeys.length; j < len; j += 1) {
         key = attrKeys[j]
         if (key !== 'transform') {
           if (typeof config.attr[key] === 'function') {
@@ -5160,7 +5148,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
           }
         }
       }
-      for (let j = 0; j < styleKeys.length; j += 1) {
+      for (let j = 0, len = styleKeys.length; j < len; j += 1) {
         key = styleKeys[j]
         if (typeof config.style[key] === 'function') {
           const resValue = config.style[key].call(node, d, i)
