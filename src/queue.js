@@ -158,7 +158,6 @@
     }
 
     if (onFrameExe.length > 0) {
-      console.log(onFrameExe)
       for (let i = 0; i < onFrameExe.length; i += 1) {
         onFrameExe[i](t)
       }
