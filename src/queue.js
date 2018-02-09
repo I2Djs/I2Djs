@@ -10,7 +10,7 @@
 }(this, () => {
   let animatorInstance = null
   // const currentTime = Date.now()
-  let tweens = {}
+  let tweens = []
   const vDoms = []
   let animeFrameId
 
@@ -78,7 +78,7 @@
   }
 
   function add (uId, executable, easying) {
-    tweens[uId] = new Tween(uId, executable, easying)
+    tweens[tweens.length] = new Tween(uId, executable, easying)
   }
 
   function startAnimeFrames () {
@@ -134,29 +134,34 @@
   let d
   let t
   let abs = Math.abs
+  let counter = 0
+  let tweensN = []
   function exeFrameCaller () {
     animeFrameId = window.requestAnimationFrame(exeFrameCaller)
-    let aIds = Object.keys(tweens)
-    for (let i = 0, len = aIds.length; i < len; i += 1) {
-      d = tweens[aIds[i]]
+    // let aIds = Object.keys(tweens)
+    tweensN = []
+    counter = 0
+    for (let i = 0, len = tweens.length; i < len; i += 1) {
+      d = tweens[i]
       t = Date.now()
       d.lastTime += (t - d.currTime)
       d.currTime = t
-      if (d.lastTime < d.duration && d.lastTime >= 0) {
+      if (d.lastTime <= d.duration && d.lastTime >= 0) {
         d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)))
+        tweensN[counter++] = d
       } else if (d.lastTime > d.duration) {
         d.execute(1 - d.factor)
         if (d.loopTracker >= d.loop - 1) {
           if (d.end) { d.end() }
-          delete tweens[aIds[i]]
         } else {
           d.loopTracker += 1
           d.lastTime = 0
           if (d.direction === 'alternate') { d.factor = 1 - d.factor } else if (d.direction === 'reverse') { d.factor = 1 } else { d.factor = 0 }
+          tweensN[counter++] = d
         }
       }
     }
-
+    tweens = tweensN
     if (onFrameExe.length > 0) {
       for (let i = 0; i < onFrameExe.length; i += 1) {
         onFrameExe[i](t)

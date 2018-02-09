@@ -1774,7 +1774,8 @@
     // let removedNode
 
     const { children } = this
-    this.dom.removeChild(children.splice(obj, 1)[0].dom)
+    // console.log(obj)
+    this.dom.removeChild(children.splice(children.indexOf(obj), 1)[0].dom)
     // for (let i = 0; i < children.length; i += 1) {
     //   if (obj === children[i]) {
     //     index = i
@@ -3429,6 +3430,75 @@
       })
     }
 
+    queueInstance.execute()
+    return root
+  }
+
+  function points () {
+    
+  }
+
+  function webglNodeExe (ctx, config) {
+    this.ctx = ctx
+  }
+  webglNodeExe.prototype.point = function points () {
+    let shaders = shaderRaw.points;
+    
+  }
+  webglNodeExe.prototype.line = function lines () {
+  }
+  webglNodeExe.prototype.rect = function rects () {
+  }
+  webglNodeExe.prototype.circle = function circle () {
+  }
+
+  i2d.webglLayer = function webGLLayer (context, config) {
+    const res = document.querySelector(context)
+    const height = config.height ? config.height : res.clientHeight
+    const width = config.width ? config.width : res.clientWidth
+    const layer = document.createElement('canvas')
+    const ctx = layer.getContext('webgl2')
+
+    layer.setAttribute('height', height * ratio)
+    layer.setAttribute('width', width * ratio)
+    layer.style.height = `${height}px`
+    layer.style.width = `${width}px`
+    layer.style.position = 'absolute'
+
+    res.appendChild(layer)
+
+    const vDomInstance = new VDom()
+    const vDomIndex = queueInstance.addVdom(vDomInstance)
+
+    const root = new webglNodeExe(ctx, {
+      el: 'group',
+      attr: {
+        id: 'rootNode'
+      }
+    }, domId(), vDomIndex)
+
+    const execute = root.execute.bind(root)
+    root.container = res
+    root.domEl = layer
+    root.height = height
+    root.width = width
+    root.execute = function executeExe () {
+      execute()
+    }
+
+    root.destroy = function () {
+      queueInstance.removeVdom(vDomInstance)
+    }
+
+    root.type = 'CANVAS'
+
+    vDomInstance.root(root)
+
+    if (config.resize) {
+      window.addEventListener('resize', function () {
+        root.resize()
+      })
+    }
     queueInstance.execute()
     return root
   }

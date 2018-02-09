@@ -8,21 +8,21 @@
 	</div>-->
 	<div style="height: 100%;width:100%;position: absolute;background: black" id='myCanvas'>
 	</div>
-    <!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
-    <script type="text/javascript" src="../../src/colorMap.js"></script>
+    <script type="text/javascript" src="../../dist/i2d.js"></script>
+    <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
 	<script type="text/javascript" src="../../src/geometry.js"></script>
 	<script type="text/javascript" src="../../src/easing.js"></script>
     <script type="text/javascript" src="../../src/vDom.js"></script>
 	<script type="text/javascript" src="../../src/queue.js"></script>
     <script type="text/javascript" src="../../src/chaining.js"></script>
     <script type="text/javascript" src="../../src/path.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>-->
 
 	<script type="text/javascript">
 
             var renderer_ = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
             var i = 0;
-
+            var sqrt = Math.sqrt
                 window.addEventListener("mousemove",function(e){
                         renderer_.createEl({
                             el:'circle',
@@ -31,11 +31,12 @@
                         })
                         .animateTo({
                                 duration:2000,
-                                ease:Math.sqrt,
-                                attr:{ r:150},
+                                ease:sqrt,
+                                attr:{ r:100},
                                 style:{globalAlpha:0},
                                 end:function(){ this.remove(); }
                         });
+                        e.preventDefault();
                     },false);
 
 	</script>

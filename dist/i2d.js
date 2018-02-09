@@ -631,7 +631,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 }(this, () => {
   let animatorInstance = null
   // const currentTime = Date.now()
-  let tweens = {}
+  let tweens = []
   const vDoms = []
   let animeFrameId
 
@@ -699,7 +699,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   }
 
   function add (uId, executable, easying) {
-    tweens[uId] = new Tween(uId, executable, easying)
+    tweens[tweens.length] = new Tween(uId, executable, easying)
   }
 
   function startAnimeFrames () {
@@ -755,31 +755,35 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
   let d
   let t
   let abs = Math.abs
+  let counter = 0
+  let tweensN = []
   function exeFrameCaller () {
     animeFrameId = window.requestAnimationFrame(exeFrameCaller)
-    let aIds = Object.keys(tweens)
-    for (let i = 0, len = aIds.length; i < len; i += 1) {
-      d = tweens[aIds[i]]
+    // let aIds = Object.keys(tweens)
+    tweensN = []
+    counter = 0
+    for (let i = 0, len = tweens.length; i < len; i += 1) {
+      d = tweens[i]
       t = Date.now()
       d.lastTime += (t - d.currTime)
       d.currTime = t
-      if (d.lastTime < d.duration && d.lastTime >= 0) {
+      if (d.lastTime <= d.duration && d.lastTime >= 0) {
         d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)))
+        tweensN[counter++] = d
       } else if (d.lastTime > d.duration) {
         d.execute(1 - d.factor)
         if (d.loopTracker >= d.loop - 1) {
           if (d.end) { d.end() }
-          delete tweens[aIds[i]]
         } else {
           d.loopTracker += 1
           d.lastTime = 0
           if (d.direction === 'alternate') { d.factor = 1 - d.factor } else if (d.direction === 'reverse') { d.factor = 1 } else { d.factor = 0 }
+          tweensN[counter++] = d
         }
       }
     }
-
+    tweens = tweensN
     if (onFrameExe.length > 0) {
-      console.log(onFrameExe)
       for (let i = 0; i < onFrameExe.length; i += 1) {
         onFrameExe[i](t)
       }
@@ -3839,7 +3843,8 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     // let removedNode
 
     const { children } = this
-    this.dom.removeChild(children.splice(obj, 1)[0].dom)
+    // console.log(obj)
+    this.dom.removeChild(children.splice(children.indexOf(obj), 1)[0].dom)
     // for (let i = 0; i < children.length; i += 1) {
     //   if (obj === children[i]) {
     //     index = i
@@ -5494,6 +5499,75 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
       })
     }
 
+    queueInstance.execute()
+    return root
+  }
+
+  function points () {
+    
+  }
+
+  function webglNodeExe (ctx, config) {
+    this.ctx = ctx
+  }
+  webglNodeExe.prototype.point = function points () {
+    let shaders = shaderRaw.points;
+    
+  }
+  webglNodeExe.prototype.line = function lines () {
+  }
+  webglNodeExe.prototype.rect = function rects () {
+  }
+  webglNodeExe.prototype.circle = function circle () {
+  }
+
+  i2d.webglLayer = function webGLLayer (context, config) {
+    const res = document.querySelector(context)
+    const height = config.height ? config.height : res.clientHeight
+    const width = config.width ? config.width : res.clientWidth
+    const layer = document.createElement('canvas')
+    const ctx = layer.getContext('webgl2')
+
+    layer.setAttribute('height', height * ratio)
+    layer.setAttribute('width', width * ratio)
+    layer.style.height = `${height}px`
+    layer.style.width = `${width}px`
+    layer.style.position = 'absolute'
+
+    res.appendChild(layer)
+
+    const vDomInstance = new VDom()
+    const vDomIndex = queueInstance.addVdom(vDomInstance)
+
+    const root = new webglNodeExe(ctx, {
+      el: 'group',
+      attr: {
+        id: 'rootNode'
+      }
+    }, domId(), vDomIndex)
+
+    const execute = root.execute.bind(root)
+    root.container = res
+    root.domEl = layer
+    root.height = height
+    root.width = width
+    root.execute = function executeExe () {
+      execute()
+    }
+
+    root.destroy = function () {
+      queueInstance.removeVdom(vDomInstance)
+    }
+
+    root.type = 'CANVAS'
+
+    vDomInstance.root(root)
+
+    if (config.resize) {
+      window.addEventListener('resize', function () {
+        root.resize()
+      })
+    }
     queueInstance.execute()
     return root
   }
