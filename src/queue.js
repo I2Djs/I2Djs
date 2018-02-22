@@ -141,7 +141,7 @@
     // let aIds = Object.keys(tweens)
     tweensN = []
     counter = 0
-    for (let i = 0, len = tweens.length; i < len; i += 1) {
+    for (let i = 0; i < tweens.length; i += 1) {
       d = tweens[i]
       t = Date.now()
       d.lastTime += (t - d.currTime)
@@ -159,6 +159,10 @@
           if (d.direction === 'alternate') { d.factor = 1 - d.factor } else if (d.direction === 'reverse') { d.factor = 1 } else { d.factor = 0 }
           tweensN[counter++] = d
         }
+      } else if (d.lastTime < d.duration) {
+        tweensN[counter++] = d
+      } else {
+        console.log('unknown')
       }
     }
     tweens = tweensN

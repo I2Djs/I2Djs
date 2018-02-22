@@ -1770,12 +1770,11 @@
     return e
   }
   DomExe.prototype.removeChild = function DMremoveChild (obj) {
-    // let index = -1
-    // let removedNode
-
     const { children } = this
-    // console.log(obj)
-    this.dom.removeChild(children.splice(children.indexOf(obj), 1)[0].dom)
+    const index = children.indexOf(this)
+    if (index !== -1) {
+      this.dom.removeChild(children.splice(index, 1)[0].dom)
+    }
     // for (let i = 0; i < children.length; i += 1) {
     //   if (obj === children[i]) {
     //     index = i
@@ -2843,11 +2842,11 @@
   }
 
   CanvasNodeExe.prototype.remove = function Cremove () {
-    const self = this
-    // let index
     const { children } = this.dom.parent
-
-    children.splice(children.indexOf(self), 1)
+    const index = children.indexOf(this)
+    if (index !== -1) {
+      children.splice(index, 1)
+    }
     // for (let i = 0, len = children.length; i < len; i += 1) {
     //   if (self === children[i]) {
     //     index = i

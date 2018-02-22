@@ -28,7 +28,7 @@
             for(var i=1;i<=10;i++){
                 data.push(i-10/2);
             }
-            for(var i=1;i<=20;i++){
+            for(var i=1;i<=10;i++){
                 circles.push(i);
             }
 
@@ -92,13 +92,15 @@
                                 },
                                 attr:{
                                     transform:function(data,i){
-
+                                                
                                                 var Tlength = length - i* 50;
                                                 var dim = (Tlength < 0 || Tlength > length) ? 0 : (Tlength >= 300 && Tlength <= (1300 - 300) ) ? 1.7 : (Tlength < 300) ? ((1.5 / 300) * Tlength) : ((1.5 / 300) * (1300 - Tlength));
 							                        dim = dim < 0 ? 0.5 : dim;
                                                 
                                                 return function(f){
+                                                    
                                                     var point = path.node().getPointAtLength(f*Tlength);
+                                                    console.log(point)
                                                     return {
                                                         translate:[point.x,point.y],
                                                         // scale:[dim+(1-f)*(1.5-dim)]
