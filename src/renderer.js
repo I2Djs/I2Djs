@@ -1936,8 +1936,8 @@
     const canvas = document.createElement('canvas')
     canvas.setAttribute('height', height)
     canvas.setAttribute('width', width)
-    canvas.style.height = `${this.height}px`
-    canvas.style.width = `${this.width}px`
+    canvas.style.height = `${height}px`
+    canvas.style.width = `${width}px`
     return canvas
   }
 
