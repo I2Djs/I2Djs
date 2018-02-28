@@ -3827,7 +3827,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   }
   DomExe.prototype.removeChild = function DMremoveChild (obj) {
     const { children } = this
-    const index = children.indexOf(this)
+    const index = children.indexOf(obj)
     if (index !== -1) {
       this.dom.removeChild(children.splice(index, 1)[0].dom)
     }
