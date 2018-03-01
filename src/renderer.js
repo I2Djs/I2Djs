@@ -7,7 +7,7 @@
     root.i2d = factory(root.geometry, root.queue, root.easing, root.chain, root.vDom, root.colorMap, root.path)
   }
 }(this, (geometry, queue, easing, chain, VDom, colorMap, path) => {
-
+  'use strict'
   const t2DGeometry = geometry('2D')
   const easying = easing()
   const queueInstance = queue()
@@ -3264,7 +3264,16 @@
       }
     }
 
+    function canvasResize () {
+      console.log('resize called')
+      root.resize()
+    }
+
+    window.addEventListener('resize', canvasResize)
+
     root.destroy = function () {
+      window.removeEventListener('resize', canvasResize)
+      layer.remove()
       queueInstance.removeVdom(vDomInstance)
     }
 
@@ -3384,9 +3393,6 @@
       })
     }
 
-    window.addEventListener('resize', function () {
-      root.resize()
-    })
     queueInstance.execute()
     return root
   }

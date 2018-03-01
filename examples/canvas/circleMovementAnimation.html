@@ -24,7 +24,7 @@
         var renderer_ = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false,onClear:function(ctx){
                                 ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
                                 ctx.fillRect(0, 0, width*2, height*2);
-                        }});
+                        },rescale: true});
         var radialGradiant = renderer_.createRadialGradient({
                                                             id:'radialG',
                                                             innerCircle:{x:50,y:50,r:0},
@@ -71,13 +71,14 @@
                                                 }
                                             }
                                     });
-
-                i2d.queue.onRequestFrame(function(t){
+            
+        var anime = function(t){
                         circleNodes.forEach(function(d){
                                 updateCirclePosition(d);
                             this.setAttr({cx:d.x,cy:d.y})
                         })
-                });
+                }
+                i2d.queue.onRequestFrame(anime);
 
         function updateCirclePosition(circle){
                 if ((circle.x + circle.size) >= width) {
@@ -99,7 +100,6 @@
                 circle.x += circle.velX;
                 circle.y += circle.velY;
         }
-
 
 
 	</script>

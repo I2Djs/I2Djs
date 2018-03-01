@@ -8,6 +8,7 @@
     i2d.shaders = factory()
   }
 }(this, () => {
+  'use strict'
   function shaders () {
     let res
     switch (_) {

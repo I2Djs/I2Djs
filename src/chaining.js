@@ -8,6 +8,7 @@
     i2d.chain = factory(root.easing, root.queue)
   }
 }(this, (easing, queue) => {
+  'use strict'
   let Id = 0
   let chainId = 0
 

@@ -7,6 +7,7 @@
     root.vDom = factory(geometry)
   }
 }(this, (geometry) => {
+  'use strict'
   const t2DGeometry = geometry('2D')
 
   function VDom () {}

@@ -7,6 +7,7 @@
     root.geometry = factory()
   }
 }(this, () => {
+  'use strict'
   function geometry (context) {
     function cos (a) {
       return Math.cos(a)

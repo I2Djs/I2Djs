@@ -8,6 +8,7 @@
     console.log('queue root')
   }
 }(this, () => {
+  'use strict'
   let animatorInstance = null
   // const currentTime = Date.now()
   let tweens = []
@@ -76,6 +77,15 @@
       this.startAnimeFrames()
     }
   }
+  function removeRequestFrameCall (_) {
+    if (typeof _ !== 'function') {
+      throw new Error('Wrong input')
+    }
+    let index = onFrameExe.indexOf(_)
+    if (index !== -1) {
+      onFrameExe.splice(index, 1)
+    }
+  }
 
   function add (uId, executable, easying) {
     tweens[tweens.length] = new Tween(uId, executable, easying)
@@ -104,6 +114,7 @@
     // remove: remove,
     end: endExe,
     onRequestFrame,
+    removeRequestFrameCall,
     destroy () {
       if (this.endExe) { this.endExe() }
       this.stopAnimeFrame()
