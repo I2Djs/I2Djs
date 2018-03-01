@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+	<div id="mySvg" style="height: 100%;width:100%;position: absolute;background: black" >
+		<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
+	</div>
+	<script type="text/javascript" src="../../dist/i2d.js"></script>
+    <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>-->
+
+	<script type="text/javascript">
+
+        var height = 820, width = 1430;
+        var renderer_ = i2d.SVGLayer('#mySvg');
+        var circlesGrid = []
+        var gridSize = parseInt(Math.sqrt(10000))
+        var rad = Math.pow( 100, 2 );
+        var dis, dx, dy, f;
+        var mx, my;
+        
+        for(var i=0; i< 80; i++){
+            for(var j=0; j < 130; j++){
+                circlesGrid.push({
+                    x:j*10,
+                    ox:j*10,
+                    y:i*10,
+                    oy:i*10,
+                    vx:0,
+                    vy:0
+                });
+            }
+        }
+        
+    var circles = renderer_.createEls(circlesGrid,{
+            el:'circle',
+            attr:{
+                r:3,
+                cx:function(d){
+                    return d.x
+                },
+                cy:function(d){
+                    return d.y
+                }
+            },
+            style:{
+                fill:'#fff'
+            }
+        })
+        
+        window.addEventListener("mousemove",function(e){
+            mx = e.pageX;
+            my = e.pageY;
+        })
+
+
+        
+        
+       i2d.queue.onRequestFrame(function(t){
+
+            if(!mx|| !my)
+                return;
+
+            circles.forEach(function(d){
+
+                            dis = ( dx = mx - d.x ) * dx + ( dy = my - d.y ) * dy;
+                            f = -rad / dis
+                            
+                            if(dis < rad){
+                                t = Math.atan2( dy, dx );
+                                d.vx += f * Math.cos(t);
+                                d.vy += f * Math.sin(t);
+                            }
+
+                            d.x += ( d.vx *= 0.95 ) + (d.ox - d.x) * 0.25;
+                            d.y += ( d.vy *= 0.95 ) + (d.oy - d.y) * 0.25;
+                            
+                        this.setAttr({
+                            cx:d.x,
+                            cy:d.y
+                        })
+
+            })
+        });
+
+	</script>
+
+</body>
+</html>

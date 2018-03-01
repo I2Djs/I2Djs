@@ -5305,13 +5305,19 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     root.resize = function () {
       let width = this.container.clientWidth
       let height = this.container.clientHeight
-      let newWidthRatio = (width / this.width)
-      let newHeightRatio = (height / this.height)
-      this.scale([newWidthRatio, newHeightRatio])
       this.domEl.setAttribute('height', height * originalRatio)
       this.domEl.setAttribute('width', width * originalRatio)
       this.domEl.style.height = `${height}px`
       this.domEl.style.width = `${width}px`
+      this.height = height
+      this.width = width
+      if (config.rescale) {
+        let newWidthRatio = (width / this.width)
+        let newHeightRatio = (height / this.height)
+        this.scale([newWidthRatio, newHeightRatio])
+      } else {
+        this.execute()
+      }
     }
 
     root.destroy = function () {
@@ -5339,8 +5345,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         } else {
           const tselectedNode = vDomInstance.eventsCheck([root], { x: e.offsetX, y: e.offsetY })
           if (selectedNode && tselectedNode !== selectedNode) {
-            // console.log('i am out')
-            // console.log(selectedNode.hovered)
             if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
               if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
               if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e) }
@@ -5353,7 +5357,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
             }
           }
           if (selectedNode && tselectedNode === selectedNode) {
-            // console.log(selectedNode)
             if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
               let event = selectedNode.dom.drag.event
               if (selectedNode.dom.drag.event) {
@@ -5437,11 +5440,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       })
     }
 
-    if (config.resize) {
-      window.addEventListener('resize', function () {
-        root.resize()
-      })
-    }
+    window.addEventListener('resize', function () {
+      root.resize()
+    })
     queueInstance.execute()
     return root
   }
