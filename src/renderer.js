@@ -3421,19 +3421,24 @@
       let height = this.container.clientHeight
       let newWidthRatio = (width / this.width)
       let newHeightRatio = (height / this.height)
-      this.scale([newWidthRatio, newHeightRatio])
+      if (config && config.rescale) {
+        this.scale([newWidthRatio, newHeightRatio])
+      }
       this.dom.setAttribute('height', height)
       this.dom.setAttribute('width', width)
     }
 
-    root.destroy = function () {
-      queueInstance.removeVdom(vDomInstance)
+    function svgResize () {
+      console.log('resize called')
+      root.resize()
     }
 
-    if (config && config.resize) {
-      window.addEventListener('resize', function () {
-        root.resize()
-      })
+    window.addEventListener('resize', svgResize)
+
+    root.destroy = function () {
+      window.removeEventListener('resize', svgResize)
+      layer.remove()
+      queueInstance.removeVdom(vDomInstance)
     }
 
     queueInstance.execute()

@@ -2,6 +2,11 @@
 <html style="height: 100%">
 <head>
 	<title></title>
+    <style>
+        rect {
+            fill: #fff
+        }
+    </style>
 </head>
 <body style="height: 100%">
 	<div id="mySvg" style="height: 100%;width:100%;position: absolute;background: black" >
@@ -26,13 +31,13 @@
         var dis, dx, dy, f;
         var mx, my;
         
-        for(var i=0; i< 80; i++){
-            for(var j=0; j < 130; j++){
+        for(var i=0; i< 140; i++){
+            for(var j=0; j < 230; j++){
                 circlesGrid.push({
-                    x:j*10,
-                    ox:j*10,
-                    y:i*10,
-                    oy:i*10,
+                    x:j*5,
+                    ox:j*5,
+                    y:i*5,
+                    oy:i*5,
                     vx:0,
                     vy:0
                 });
@@ -40,18 +45,16 @@
         }
         
     var circles = renderer_.createEls(circlesGrid,{
-            el:'circle',
+            el:'rect',
             attr:{
-                r:3,
-                cx:function(d){
+                width:2,
+                height:2,
+                x:function(d){
                     return d.x
                 },
-                cy:function(d){
+                y:function(d){
                     return d.y
                 }
-            },
-            style:{
-                fill:'#fff'
             }
         })
         
@@ -82,10 +85,8 @@
                             d.x += ( d.vx *= 0.95 ) + (d.ox - d.x) * 0.25;
                             d.y += ( d.vy *= 0.95 ) + (d.oy - d.y) * 0.25;
                             
-                        this.setAttr({
-                            cx:d.x,
-                            cy:d.y
-                        })
+                        this.setAttr('x',d.x)
+                            .setAttr('y',d.y)
 
             })
         });

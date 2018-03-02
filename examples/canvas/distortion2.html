@@ -7,14 +7,15 @@
 	<div id="myCanvas" style="height: 100%;width:100%;position: absolute;background: black" >
 		<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
 	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
-    <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+    <script type="text/javascript" src="../../src/colorMap.js"></script>
 	<script type="text/javascript" src="../../src/geometry.js"></script>
 	<script type="text/javascript" src="../../src/easing.js"></script>
     <script type="text/javascript" src="../../src/vDom.js"></script>
 	<script type="text/javascript" src="../../src/queue.js"></script>
     <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>-->
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
 
 	<script type="text/javascript">
 
@@ -27,13 +28,13 @@
         var dis, dx, dy, f;
         var mx, my;
         
-        for(var i=0; i< 80; i++){
-            for(var j=0; j < 130; j++){
+        for(var i=0; i< 140; i++){
+            for(var j=0; j < 230; j++){
                 circlesGrid.push({
-                    x:j*10,
-                    ox:j*10,
-                    y:i*10,
-                    oy:i*10,
+                    x:j*5,
+                    ox:j*5,
+                    y:i*5,
+                    oy:i*5,
                     vx:0,
                     vy:0
                 });
@@ -43,8 +44,8 @@
     var circles = renderer_.createEls(circlesGrid,{
             el:'rect',
             attr:{
-                width:3,
-                height:3,
+                width:2,
+                height:2,
                 x:function(d){
                     return d.x
                 },
@@ -75,18 +76,15 @@
                             
                             if(dis < rad){
                                 t = Math.atan2( dy, dx );
-                                d.vx += f * Math.cos(t);
-                                d.vy += f * Math.sin(t);
+                                d.vx = f * Math.cos(t);
+                                d.vy = f * Math.sin(t);
                             }
 
-                            d.x += ( d.vx *= 0.95 ) + (d.ox - d.x) * 0.25;
-                            d.y += ( d.vy *= 0.95 ) + (d.oy - d.y) * 0.25;
+                            d.x += ( d.vx *= 1) + (d.ox - d.x) * 0.25;
+                            d.y += ( d.vy *= 1 ) + (d.oy - d.y) * 0.25;
                             
-                        this.setAttr({
-                            x:d.x,
-                            y:d.y
-                        })
-
+                        this.setAttr('x',d.x)
+                            .setAttr('y',d.y)
             })
         });
 
