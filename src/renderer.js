@@ -438,14 +438,14 @@
       }
     }
     if (!joinCond) { joinCond = function (d, i) { return i } }
-
-    selectors.forEach(function (d, i) {
+    for (let i = 0, len = selectors.length; i < len; i++) {
+      let d = selectors[i]
       const nodes = self.fetchEls(d)
       const join = performJoin(data, nodes.stack, joinCond)
       joinResult.new[d] = join.new
       joinResult.update[d] = (new CreateElements()).wrapper(join.update)
       joinResult.old[d] = (new CreateElements()).wrapper(join.old)
-    })
+    }
 
     // const joinResult = performJoin(data, nodes.stack, joinCond)
 
@@ -3119,13 +3119,14 @@
   CreateElements.prototype.wrapper = function wrapper (nodes) {
     const self = this
     if (nodes) {
-      nodes.forEach((node, i) => {
+      for (let i = 0, len = nodes.length; i < len; i++) {
+        let node = nodes[i]
         if (node instanceof DomExe ||
             node instanceof CanvasNodeExe ||
             node instanceof CreateElements) {
           self.stack.push(node)
         } else { self.stack.push(new DomExe(node, {}, domId())) }
-      })
+      }
     }
     return this
   }
