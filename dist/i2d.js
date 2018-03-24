@@ -4032,7 +4032,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     if (this.style.strokeStyle) { this.ctx.stroke() }
   }
 
-  function CanvasDom () { }
+  function CanvasDom () {
+    this.BBox = { x: 0, y: 0, width: 0, height: 0 }
+    this.BBoxHit = { x: 0, y: 0, width: 0, height: 0 }
+  }
   CanvasDom.prototype = {
     render: cRender,
     on: addListener,
@@ -4845,6 +4848,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.children = []
     this.ctx = context
     this.vDomIndex = vDomIndex
+    this.bbox = config['bbox'] !== undefined ? config['bbox'] : true
 
     switch (config.el) {
       case 'circle':
@@ -4920,19 +4924,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     if (index !== -1) {
       children.splice(index, 1)
     }
-    // for (let i = 0, len = children.length; i < len; i += 1) {
-    //   if (self === children[i]) {
-    //     index = i
-    //   }
-    // }
-    // if (index > -1) {
-    //   for (let i = index; i < children.length - 1; i += 1) {
-    //     children[i] = children[i + 1]
-    //   }
-    //   children.length -= 1
-    // }
-    // this.dom.parent.children = children
-    // queueInstance.vDomChanged(this.vDomIndex)
     this.BBoxUpdate = true
   }
 
@@ -5058,16 +5049,21 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   CanvasNodeExe.prototype.updateBBox = function CupdateBBox () {
     let status
     for (let i = 0, len = this.children.length; i < len; i += 1) {
-      status = this.children[i].updateBBox() || status
+      if (this.bbox) {
+        status = this.children[i].updateBBox() || status
+      }
     }
-    if (this.BBoxUpdate || status) {
-      this.dom.updateBBox(this.children)
-      this.BBoxUpdate = false
-      return true
+    if (this.bbox) {
+      if (this.BBoxUpdate || status) {
+        this.dom.updateBBox(this.children)
+        this.BBoxUpdate = false
+        return true
+      }
     }
 
     return false
   }
+
   CanvasNodeExe.prototype.in = function Cinfun (co) {
     return this.dom.in(co)
   }
@@ -5122,13 +5118,15 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
 
     const attrKeys = config ? (config.attr ? Object.keys(config.attr) : []) : []
     const styleKeys = config ? (config.style ? Object.keys(config.style) : []) : []
+    const bbox = config ? (config['bbox'] !== undefined ? config['bbox'] : true) : true
 
     this.stack = data.map((d, i) => {
       let node
 
       if (contextInfo.type === 'CANVAS') {
         node = new CanvasNodeExe(contextInfo.ctx, {
-          el: config.el
+          el: config.el,
+          bbox: bbox
         }, domId(), vDomIndex)
       } else {
         node = createDomElement({

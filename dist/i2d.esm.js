@@ -4249,7 +4249,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
   }
 
-  function CanvasDom() {}
+  function CanvasDom() {
+    this.BBox = { x: 0, y: 0, width: 0, height: 0 };
+    this.BBoxHit = { x: 0, y: 0, width: 0, height: 0 };
+  }
   CanvasDom.prototype = {
     render: cRender,
     on: addListener,
@@ -5126,6 +5129,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.children = [];
     this.ctx = context;
     this.vDomIndex = vDomIndex;
+    this.bbox = config['bbox'] !== undefined ? config['bbox'] : true;
 
     switch (config.el) {
       case 'circle':
@@ -5204,19 +5208,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     if (index !== -1) {
       children.splice(index, 1);
     }
-    // for (let i = 0, len = children.length; i < len; i += 1) {
-    //   if (self === children[i]) {
-    //     index = i
-    //   }
-    // }
-    // if (index > -1) {
-    //   for (let i = index; i < children.length - 1; i += 1) {
-    //     children[i] = children[i + 1]
-    //   }
-    //   children.length -= 1
-    // }
-    // this.dom.parent.children = children
-    // queueInstance.vDomChanged(this.vDomIndex)
     this.BBoxUpdate = true;
   };
 
@@ -5356,16 +5347,21 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   CanvasNodeExe.prototype.updateBBox = function CupdateBBox() {
     var status = void 0;
     for (var i = 0, len = this.children.length; i < len; i += 1) {
-      status = this.children[i].updateBBox() || status;
+      if (this.bbox) {
+        status = this.children[i].updateBBox() || status;
+      }
     }
-    if (this.BBoxUpdate || status) {
-      this.dom.updateBBox(this.children);
-      this.BBoxUpdate = false;
-      return true;
+    if (this.bbox) {
+      if (this.BBoxUpdate || status) {
+        this.dom.updateBBox(this.children);
+        this.BBoxUpdate = false;
+        return true;
+      }
     }
 
     return false;
   };
+
   CanvasNodeExe.prototype.in = function Cinfun(co) {
     return this.dom.in(co);
   };
@@ -5426,13 +5422,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     var attrKeys = config ? config.attr ? Object.keys(config.attr) : [] : [];
     var styleKeys = config ? config.style ? Object.keys(config.style) : [] : [];
+    var bbox = config ? config['bbox'] !== undefined ? config['bbox'] : true : true;
 
     this.stack = data.map(function (d, i) {
       var node = void 0;
 
       if (contextInfo.type === 'CANVAS') {
         node = new CanvasNodeExe(contextInfo.ctx, {
-          el: config.el
+          el: config.el,
+          bbox: bbox
         }, domId(), vDomIndex);
       } else {
         node = createDomElement({

@@ -27,7 +27,8 @@
                         renderer_.createEl({
                             el:'circle',
                             attr:{ r:0, cx:e.x, cy:e.y },
-                            style:{ globalAlpha:1,lineWidth:2,strokeStyle:'hsl('+(i = (i + 1) % 360)+',100%,50%)' }
+                            style:{ globalAlpha:1,lineWidth:2,strokeStyle:'hsl('+(i = (i + 1) % 360)+',100%,50%)' },
+                            bbox: false
                         })
                         .animateTo({
                                 duration:2000,
