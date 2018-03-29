@@ -7,7 +7,7 @@
 		exports["i2d"] = factory();
 	else
 		root["i2d"] = factory();
-})(typeof self !== 'undefined' ? self : this, function() {
+})(this, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -86,9 +86,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   if (( false ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
     module.exports = factory();
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_RESULT__ = (function () {
+    !(__WEBPACK_AMD_DEFINE_RESULT__ = function () {
       return factory();
-    }).call(exports, __webpack_require__, exports, module),
+    }.call(exports, __webpack_require__, exports, module),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
   } else {
     root.geometry = factory();
@@ -695,9 +695,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 (function (root, factory) {
   if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function () {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function () {
       return factory();
-    }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+    }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
   } else if ((typeof module === 'undefined' ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
     module.exports = factory();
@@ -918,9 +918,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   if (( false ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
     module.exports = factory(__webpack_require__(0));
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0)], __WEBPACK_AMD_DEFINE_RESULT__ = function (geometry) {
       return factory(geometry);
-    }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+    }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
   } else {
     i2d.easing = factory(root.geometry);
@@ -1072,9 +1072,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   if (( false ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
     module.exports = factory(__webpack_require__(3), __webpack_require__(2));
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(3), __webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (easing, queue) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(3), __webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = function (easing, queue) {
       return factory(easing, queue);
-    }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+    }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
   } else {
     i2d.chain = factory(root.easing, root.queue);
@@ -1434,9 +1434,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   if (( false ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
     module.exports = factory(__webpack_require__(0));
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0)], __WEBPACK_AMD_DEFINE_RESULT__ = function (geometry) {
       return factory(geometry);
-    }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+    }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
   } else {
     root.vDom = factory(geometry);
@@ -1553,9 +1553,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 (function colorMap(root, factory) {
   var i2d = root;
   if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function () {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function () {
       return factory();
-    }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+    }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
   } else if ((typeof module === 'undefined' ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
     module.exports.colorMap = factory();
@@ -1686,9 +1686,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   if (( false ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
     module.exports = factory(__webpack_require__(0));
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0)], __WEBPACK_AMD_DEFINE_RESULT__ = function (geometry) {
       return factory(geometry);
-    }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+    }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
   } else {
     i2d.path = factory(root.geometry);
@@ -2238,9 +2238,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   if (( false ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
     module.exports = factory(__webpack_require__(0), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6), __webpack_require__(7));
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6), __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry, queue, easing, chain, vDom, colorMap, path) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6), __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = function (geometry, queue, easing, chain, vDom, colorMap, path) {
       return factory(geometry, queue, easing, chain, vDom, colorMap, path);
-    }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+    }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
   } else {
     root.i2d = factory(root.geometry, root.queue, root.easing, root.chain, root.vDom, root.colorMap, root.path);
@@ -5605,14 +5605,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     root.height = height;
     root.width = width;
     root.execute = function executeExe() {
-      if (!this.dom.BBoxHit) {
-        this.dom.BBoxHit = {
-          x: 0, y: 0, width: width * originalRatio, height: height * originalRatio
-        };
-      } else {
-        this.dom.BBoxHit.width = this.width * originalRatio;
-        this.dom.BBoxHit.height = this.height * originalRatio;
-      }
+      // if (!this.dom.BBoxHit) {
+      //   this.dom.BBoxHit = {
+      //     x: 0, y: 0, width: width * originalRatio, height: height * originalRatio
+      //   }
+      // } else {
+      //   this.dom.BBoxHit.width = this.width * originalRatio
+      //   this.dom.BBoxHit.height = this.height * originalRatio
+      // }
       onClear(ctx);
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
       root.updateBBox();

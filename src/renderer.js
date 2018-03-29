@@ -3232,14 +3232,14 @@
     root.height = height
     root.width = width
     root.execute = function executeExe () {
-      if (!this.dom.BBoxHit) {
-        this.dom.BBoxHit = {
-          x: 0, y: 0, width: width * originalRatio, height: height * originalRatio
-        }
-      } else {
-        this.dom.BBoxHit.width = this.width * originalRatio
-        this.dom.BBoxHit.height = this.height * originalRatio
-      }
+      // if (!this.dom.BBoxHit) {
+      //   this.dom.BBoxHit = {
+      //     x: 0, y: 0, width: width * originalRatio, height: height * originalRatio
+      //   }
+      // } else {
+      //   this.dom.BBoxHit.width = this.width * originalRatio
+      //   this.dom.BBoxHit.height = this.height * originalRatio
+      // }
       onClear(ctx)
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
       root.updateBBox()
