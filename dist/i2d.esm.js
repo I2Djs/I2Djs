@@ -70,7 +70,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 8);
+/******/ 	return __webpack_require__(__webpack_require__.s = 9);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -625,6 +625,41 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       };
     }
 
+    function rotateBBox(BBox, transform) {
+      var point1 = { x: BBox.x, y: BBox.y };
+      var point2 = { x: BBox.x + BBox.width, y: BBox.y };
+      var point3 = { x: BBox.x, y: BBox.y + BBox.height };
+      var point4 = { x: BBox.x + BBox.width, y: BBox.y + BBox.height };
+      var translate = transform.translate,
+          rotate = transform.rotate;
+
+      var cen = { x: rotate[1], y: rotate[2] };
+      var rotateAngle = rotate[0];
+
+      if (translate.length > 0) {
+        cen.x += translate[0];
+        cen.y += translate[1];
+      }
+
+      point1 = rotatePoint(point1, cen, rotateAngle, getDistance(point1, cen));
+      point2 = rotatePoint(point2, cen, rotateAngle, getDistance(point2, cen));
+      point3 = rotatePoint(point3, cen, rotateAngle, getDistance(point3, cen));
+      point4 = rotatePoint(point4, cen, rotateAngle, getDistance(point4, cen));
+
+      var xVec = [point1.x, point2.x, point3.x, point4.x].sort(function (bb, aa) {
+        return bb - aa;
+      });
+      var yVec = [point1.y, point2.y, point3.y, point4.y].sort(function (bb, aa) {
+        return bb - aa;
+      });
+      return {
+        x: xVec[0],
+        y: yVec[0],
+        width: xVec[3] - xVec[0],
+        height: yVec[3] - yVec[0]
+      };
+    }
+
     function T2dGeometry() {}
     T2dGeometry.prototype = {
       pow: pw,
@@ -642,7 +677,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       intermediateValue: intermediateValue,
       getBBox: getBBox,
       toCubicCurves: toCubicCurves,
-      rotatePoint: rotatePoint
+      rotatePoint: rotatePoint,
+      rotateBBox: rotateBBox
     };
 
     function getGeometry() {
@@ -1509,8 +1545,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       var BBox = d.dom.BBox;
 
       var cen = {
-        x: 0,
-        y: 0
+        x: d.attr.transform.rotate[1],
+        y: d.attr.transform.rotate[2]
         // {
         //   x: (BBox.x + (BBox.width / 2) - hozMove) / scaleX,
         //   y: (BBox.y + (BBox.height / 2) - verMove) / scaleY
@@ -2230,22 +2266,68 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 "use strict";
 /* WEBPACK VAR INJECTION */(function(module) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+(function easing(root, factory) {
+  var i2d = root;
+  if (( false ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
+    module.exports = factory();
+  } else if (true) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function () {
+      return factory();
+    }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+  } else {
+    i2d.shaders = factory();
+  }
+})(undefined, function () {
+  'use strict';
+
+  function shaders() {
+    var res = void 0;
+    switch (_) {
+      case 'rect':
+        res = {
+          vertexShader: '#version 300 es\n                    in vec2 a_position;\n                    in vec4 a_color;\n                    uniform vec2 u_resolution;\n                    out vec4 v_color;\n\n                    void main() {\n                    vec2 zeroToOne = a_position / u_resolution;\n                    vec2 zeroToTwo = zeroToOne * 2.0;\n                    vec2 clipSpace = zeroToTwo - 1.0;\n                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                    v_color = a_color;\n                    }\n                    ',
+          fragmentShader: '#version 300 es\n                    precision mediump float;\n                    in vec4 v_color;\n                    out vec4 outColor;\n                    void main() {\n                        outColor = v_color;\n                    }\n                    '
+        };
+        break;
+      default:
+        res = {
+          vertexShader: '#version 300 es\n                    in vec2 a_position;\n                    in vec4 a_color;\n                    uniform vec2 u_resolution;\n                    out vec4 v_color;\n\n                    void main() {\n                    vec2 zeroToOne = a_position / u_resolution;\n                    vec2 zeroToTwo = zeroToOne * 2.0;\n                    vec2 clipSpace = zeroToTwo - 1.0;\n                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                    v_color = a_color;\n                    }\n                    ',
+          fragmentShader: '#version 300 es\n                    precision mediump float;\n                    in vec4 v_color;\n                    out vec4 outColor;\n                    void main() {\n                        outColor = v_color;\n                    }\n                    '
+        };
+    }
+    return res;
+  }
+
+  return shaders;
+});
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)(module)))
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(module) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
+
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 (function renderer(root, factory) {
   if (( false ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
-    module.exports = factory(__webpack_require__(0), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6), __webpack_require__(7));
+    module.exports = factory(__webpack_require__(0), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6), __webpack_require__(7), __webpack_require__(8));
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6), __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry, queue, easing, chain, vDom, colorMap, path) {
-      return factory(geometry, queue, easing, chain, vDom, colorMap, path);
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6), __webpack_require__(7), __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry, queue, easing, chain, vDom, colorMap, path, shaders) {
+      return factory(geometry, queue, easing, chain, vDom, colorMap, path, shaders);
     }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
   } else {
     root.i2d = factory(root.geometry, root.queue, root.easing, root.chain, root.vDom, root.colorMap, root.path);
   }
-})(undefined, function (geometry, queue, easing, chain, VDom, colorMap, path) {
+})(undefined, function (geometry, queue, easing, chain, VDom, colorMap, path, shaders) {
   'use strict';
 
   var t2DGeometry = geometry('2D');
@@ -2535,38 +2617,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   function addListener(eventType, hndlr) {
     this[eventType] = hndlr;
-  }
-
-  function rotateBBox(BBox, rotateAngle) {
-    // let angle
-    var point1 = { x: BBox.x, y: BBox.y };
-    var point2 = { x: BBox.x + BBox.width, y: BBox.y };
-    var point3 = { x: BBox.x, y: BBox.y + BBox.height };
-    var point4 = { x: BBox.x + BBox.width, y: BBox.y + BBox.height };
-
-    var cen = { x: 0, y: 0
-      // { x: BBox.x + BBox.width / 2, y: BBox.y + BBox.height / 2 }
-      // {x: 0, y: 0}
-      // { x: BBox.x + BBox.width / 2, y: BBox.y + BBox.height / 2 }
-      // const dis = t2DGeometry.getDistance(point1, cen)
-
-    };point1 = t2DGeometry.rotatePoint(point1, cen, rotateAngle, t2DGeometry.getDistance(point1, cen));
-    point2 = t2DGeometry.rotatePoint(point2, cen, rotateAngle, t2DGeometry.getDistance(point2, cen));
-    point3 = t2DGeometry.rotatePoint(point3, cen, rotateAngle, t2DGeometry.getDistance(point3, cen));
-    point4 = t2DGeometry.rotatePoint(point4, cen, rotateAngle, t2DGeometry.getDistance(point4, cen));
-
-    var xVec = [point1.x, point2.x, point3.x, point4.x].sort(function (bb, aa) {
-      return bb - aa;
-    });
-    var yVec = [point1.y, point2.y, point3.y, point4.y].sort(function (bb, aa) {
-      return bb - aa;
-    });
-    return {
-      x: xVec[0],
-      y: yVec[0],
-      width: xVec[3] - xVec[0],
-      height: yVec[3] - yVec[0]
-    };
   }
 
   function performJoin(data, nodes, cond) {
@@ -3825,11 +3875,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           //   this.attr.transform[trnX][1] = boundingBox.x + boundingBox.width / 2
           //   this.attr.transform[trnX][2] = boundingBox.y + boundingBox.height / 2
           // }
-          cmd += trnX + '(' + this.attr.transform[trnX].join(' ') + ') ';
-        } else if (trnX === 'translate') {
-          cmd += 'translate(' + this.attr.transform[trnX].join(' ') + ') ';
-        } else if (trnX === 'scale') {
-          cmd += trnX + '(' + this.attr.transform[trnX].join(' ') + ') ';
+          cmd += trnX + '(' + (this.attr.transform.rotate[0] + ' ' + this.attr.transform.rotate[1] + ' ' + this.attr.transform.rotate[2]) + ') ';
         } else {
           cmd += trnX + '(' + this.attr.transform[trnX].join(' ') + ') ';
         }
@@ -3845,7 +3891,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       if (this.changedStyles[styles[_i7]] instanceof DomGradients) {
         this.changedStyles[styles[_i7]] = this.changedStyles[styles[_i7]].exe();
       }
-      this.dom.style.setProperty(styles[_i7], this.changedStyles[styles[_i7]], "");
+      this.dom.style.setProperty(styles[_i7], this.changedStyles[styles[_i7]], '');
       // this.dom.style[styles[i]] = this.changedStyles[styles[i]]
     }
 
@@ -3856,12 +3902,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       this.attr.transform = {};
     }
     this.attr.transform.scale = XY;
-    if (this.changedAttribute.transform) {
-      this.changedAttribute.transform.scale = XY;
-    } else {
-      this.changedAttribute.transform = {};
-      this.changedAttribute.transform.scale = XY;
-    }
+    this.changedAttribute.transform = true;
+    // if (this.changedAttribute.transform) {
+    //   this.changedAttribute.transform.scale = XY
+    // } else {
+    //   this.changedAttribute.transform = {}
+    //   this.changedAttribute.transform.scale = XY
+    // }
     queueInstance.vDomChanged(this.vDomIndex);
     return this;
   };
@@ -3870,12 +3917,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       this.attr.transform = {};
     }
     this.attr.transform.skewX = [x];
-    if (this.changedAttribute.transform) {
-      this.changedAttribute.transform.skewX = [x];
-    } else {
-      this.changedAttribute.transform = {};
-      this.changedAttribute.transform.skewX = [x];
-    }
+    this.changedAttribute.transform = true;
+    // if (this.changedAttribute.transform) { this.changedAttribute.transform.skewX = [x] } else {
+    //   this.changedAttribute.transform = {}
+    //   this.changedAttribute.transform.skewX = [x]
+    // }
     queueInstance.vDomChanged(this.vDomIndex);
     return this;
   };
@@ -3884,12 +3930,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       this.attr.transform = {};
     }
     this.attr.transform.skewY = [y];
-    if (this.changedAttribute.transform) {
-      this.changedAttribute.transform.skewY = [y];
-    } else {
-      this.changedAttribute.transform = {};
-      this.changedAttribute.transform.skewY = [y];
-    }
+    this.changedAttribute.transform = true;
+    // if (this.changedAttribute.transform) { this.changedAttribute.transform.skewY = [y] } else {
+    //   this.changedAttribute.transform = {}
+    //   this.changedAttribute.transform.skewY = [y]
+    // }
     queueInstance.vDomChanged(this.vDomIndex);
     return this;
   };
@@ -3899,12 +3944,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       this.attr.transform = {};
     }
     this.attr.transform.translate = XY;
-    if (this.changedAttribute.transform) {
-      this.changedAttribute.transform.translate = XY;
-    } else {
-      this.changedAttribute.transform = {};
-      this.changedAttribute.transform.translate = XY;
-    }
+    this.changedAttribute.transform = true;
+    // if (this.changedAttribute.transform) { this.changedAttribute.transform.translate = XY } else {
+    //   this.changedAttribute.transform = {}
+    //   this.changedAttribute.transform.translate = XY
+    // }
     queueInstance.vDomChanged(this.vDomIndex);
     return this;
   };
@@ -3913,12 +3957,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       this.attr.transform = {};
     }
     this.attr.transform.rotate = [angle % 360, x ? x : 0, y ? y : 0];
-    if (this.changedAttribute.transform) {
-      this.changedAttribute.transform.rotate = this.attr.transform.rotate;
-    } else {
-      this.changedAttribute.transform = {};
-      this.changedAttribute.transform.rotate = this.attr.transform.rotate;
-    }
+    // this.attr.transform.cx = x ? x : 0
+    // this.attr.transform.cy = y ? y : 0
+    this.changedAttribute.transform = true;
+    // if (this.changedAttribute.transform) {
+    //   this.changedAttribute.transform.rotate = this.attr.transform.rotate
+    // } else {
+    //   this.changedAttribute.transform = {}
+    //   this.changedAttribute.transform.rotate = this.attr.transform.rotate
+    // }
     queueInstance.vDomChanged(this.vDomIndex);
     return this;
   };
@@ -4121,9 +4168,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove);
       if (transform.rotate) {
-        self.ctx.translate(transform.cx, transform.cy);
-        self.ctx.rotate(transform.rotate * (Math.PI / 180));
-        self.ctx.translate(-transform.cx, -transform.cy);
+        self.ctx.translate(transform.rotate[1], transform.rotate[2]);
+        self.ctx.rotate(transform.rotate[0] * (Math.PI / 180));
+        self.ctx.translate(-transform.rotate[1], -transform.rotate[2]);
       }
     }
     for (var i = 0; i < self.stack.length; i += 1) {
@@ -4421,7 +4468,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     };
 
     if (transform && transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, transform.rotate[0]);
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
     } else {
       self.BBoxHit = this.BBox;
     }
@@ -4490,7 +4537,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     };
 
     if (transform && transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, transform.rotate[0]);
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
     } else {
       self.BBoxHit = this.BBox;
     }
@@ -4555,7 +4602,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     };
 
     if (transform && transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, transform.rotate[0]);
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
     } else {
       self.BBoxHit = this.BBox;
     }
@@ -4612,7 +4659,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     };
 
     if (transform && transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, transform.rotate[0]);
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
     } else {
       self.BBoxHit = this.BBox;
     }
@@ -4684,7 +4731,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     self.BBox.height *= scaleY;
 
     if (transform && transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, transform.rotate[0]);
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
     } else {
       self.BBoxHit = this.BBox;
     }
@@ -4787,7 +4834,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var transform = self.attr.transform;
 
     if (self.polygon && self.polygon.points.length > 0) {
-      var _points = self.polygon.points;
+      var points = self.polygon.points;
 
       if (transform && transform.translate) {
         var _transform$translate6 = _slicedToArray(transform.translate, 2);
@@ -4801,16 +4848,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         scaleX = _transform$scale5[0];
         scaleY = _transform$scale5[1];
       }
-      var minX = _points[0].x;
-      var maxX = _points[0].x;
-      var minY = _points[0].y;
-      var maxY = _points[0].y;
+      var minX = points[0].x;
+      var maxX = points[0].x;
+      var minY = points[0].y;
+      var maxY = points[0].y;
 
-      for (var i = 1; i < _points.length; i += 1) {
-        if (minX > _points[i].x) minX = _points[i].x;
-        if (maxX < _points[i].x) maxX = _points[i].x;
-        if (minY > _points[i].y) minY = _points[i].y;
-        if (maxY < _points[i].y) maxY = _points[i].y;
+      for (var i = 1; i < points.length; i += 1) {
+        if (minX > points[i].x) minX = points[i].x;
+        if (maxX < points[i].x) maxX = points[i].x;
+        if (minY > points[i].y) minY = points[i].y;
+        if (maxY < points[i].y) maxY = points[i].y;
       }
 
       self.BBox = {
@@ -4829,7 +4876,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
 
     if (transform && transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, transform.rotate[0]);
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
     } else {
       self.BBoxHit = this.BBox;
     }
@@ -4900,7 +4947,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       height: self.attr.ry * 2 * scaleY
     };
     if (transform && transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, transform.rotate[0]);
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
     } else {
       self.BBoxHit = this.BBox;
     }
@@ -4975,7 +5022,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       height: self.attr.height * scaleY
     };
     if (transform && transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, transform.rotate[0]);
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
     } else {
       self.BBoxHit = this.BBox;
     }
@@ -5071,7 +5118,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     self.BBox.height = Math.abs(maxY - minY) * scaleY;
 
     if (self.attr.transform && self.attr.transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, this.attr.transform.rotate[0]);
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, this.attr.transform);
     } else {
       self.BBoxHit = this.BBox;
     }
@@ -5254,9 +5301,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     if (!this.attr.transform) {
       this.attr.transform = {};
     }
-    this.attr.transform.rotate = angle;
-    this.attr.transform.cx = x;
-    this.attr.transform.cy = y;
+    this.attr.transform.rotate = [angle, !x ? 0 : x, !y ? 0 : y];
+    // this.attr.transform.cx = x
+    // this.attr.transform.cy = y
     this.dom.setAttr('transform', this.attr.transform);
 
     this.BBoxUpdate = true;
@@ -5427,15 +5474,22 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.stack = data.map(function (d, i) {
       var node = void 0;
 
-      if (contextInfo.type === 'CANVAS') {
+      if (contextInfo.type === 'SVG') {
+        node = createDomElement({
+          el: config.el
+        }, vDomIndex);
+      } else if (contextInfo.type === 'CANVAS') {
         node = new CanvasNodeExe(contextInfo.ctx, {
           el: config.el,
           bbox: bbox
         }, domId(), vDomIndex);
+      } else if (contextInfo.type === 'WEBGL') {
+        node = new WebglNodeExe(contextInfo.ctx, {
+          el: config.el,
+          bbox: bbox
+        }, domId(), vDomIndex);
       } else {
-        node = createDomElement({
-          el: config.el
-        }, vDomIndex);
+        console.log('unknow type');
       }
 
       for (var j = 0, len = attrKeys.length; j < len; j += 1) {
@@ -5496,7 +5550,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     if (nodes) {
       for (var i = 0, len = nodes.length; i < len; i++) {
         var node = nodes[i];
-        if (node instanceof DomExe || node instanceof CanvasNodeExe || node instanceof CreateElements) {
+        if (node instanceof DomExe || node instanceof CanvasNodeExe || node instanceof WebglNodeExe || node instanceof CreateElements) {
           self.stack.push(node);
         } else {
           self.stack.push(new DomExe(node, {}, domId()));
@@ -5830,17 +5884,151 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     return root;
   };
 
-  function points() {}
+  function getShader(gl, shaderSource, type) {
+    var shader;
+    if (type === 'x-shader/x-fragment') {
+      shader = gl.createShader(gl.FRAGMENT_SHADER);
+    } else if (type === 'x-shader/x-vertex') {
+      shader = gl.createShader(gl.VERTEX_SHADER);
+    } else {
+      return null;
+    }
 
-  function webglNodeExe(ctx, config) {
-    this.ctx = ctx;
+    gl.shaderSource(shader, shaderSource);
+    gl.compileShader(shader);
+
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      return null;
+    }
+    return shader;
   }
-  webglNodeExe.prototype.point = function points() {
-    var shaders = shaderRaw.points;
+
+  // renderer.createEls(data, {
+  //   el: 'point',
+  //   attr: {
+  //     x: function (d) {
+  //       return d.x
+  //     },
+  //     y: function (d) {
+  //       return d.y
+  //     },
+  //     size: function (d) {
+  //       return d.size
+  //     }
+  //   },
+  //   style: {
+  //     fillStyle: function (d) {
+  //       return d.color
+  //     }
+  //   }
+  // })
+
+
+  function RenderWebglPoints(ctx) {
+    this.ctx = ctx;
+    this.positionArray = [];
+    this.colorArray = [];
+  }
+  RenderWebglPoints.prototype.createEl = function (conf) {
+    if (conf.el === 'point') {}
   };
-  webglNodeExe.prototype.line = function lines() {};
-  webglNodeExe.prototype.rect = function rects() {};
-  webglNodeExe.prototype.circle = function circle() {};
+
+  RenderWebglPoints.prototype.execute = function () {
+    this.ctx.drawArrays(this.ctx.POINTS, 0, this.positionArray.length / 2);
+  };
+  function RenderWebglCircles() {}
+  function RenderWebglRects() {}
+  function RenderWebglLines() {}
+  function RenderWebglGroup() {}
+
+  function WebglNodeExe(ctx, config, id, vDomIndex) {
+    this.ctx = ctx;
+    this.style = config.style ? config.style : {};
+    this.attr = config.attr ? config.attr : {};
+    this.id = id;
+    this.nodeName = config.el;
+    this.nodeType = 'WEBGL';
+    this.children = [];
+    this.ctx = ctx;
+    this.vDomIndex = vDomIndex;
+
+    switch (config.el) {
+      case 'circles':
+        this.dom = new RenderWebglCircleGroup(this.ctx, this.attr, this.style);
+        break;
+      case 'rects':
+        this.dom = new RenderWebglRectGroup(this.ctx, this.attr, this.style);
+        break;
+      case 'points':
+        this.dom = new RenderWebglPointGroup(this.ctx, this.attr, this.style);
+        break;
+      case 'lines':
+        this.dom = new RenderWebglPointGroup(this.ctx, this.attr, this.style);
+        break;
+      default:
+        this.dom = null;
+        break;
+    }
+    this.dom.nodeExe = this;
+  }
+
+  // WebglNodeExe.prototype.
+
+
+  WebglNodeExe.prototype.execute = function Cexecute() {
+    this.stylesExe();
+    this.attributesExe();
+    if (this.dom instanceof RenderGroup) {
+      for (var i = 0, len = this.children.length; i < len; i += 1) {
+        this.children[i].execute();
+      }
+    }
+  };
+
+  WebglNodeExe.prototype.child = function child(childrens) {
+    var self = this;
+    var childrensLocal = childrens;
+    if (self.dom instanceof RenderGroup) {
+      for (var i = 0; i < childrensLocal.length; i += 1) {
+        childrensLocal[i].dom.parent = self;
+        self.children[self.children.length] = childrensLocal[i];
+      }
+    } else {
+      console.log('Error');
+    }
+
+    this.BBoxUpdate = true;
+    queueInstance.vDomChanged(this.vDomIndex);
+    return self;
+  };
+  // WebglNodeExe.prototype.fetchEl = cfetchEl
+  // WebglNodeExe.prototype.fetchEls = cfetchEls
+  // WebglNodeExe.prototype.vDomIndex = null
+  // WebglNodeExe.prototype.join = dataJoin
+  WebglNodeExe.prototype.createEls = function CcreateEls(data, config) {
+    var e = new CreateElements({ type: 'WEBGL', ctx: this.dom.ctx }, data, config, this.vDomIndex);
+    this.child(e.stack);
+    queueInstance.vDomChanged(this.vDomIndex);
+    return e;
+  };
+  WebglNodeExe.prototype.createEl = function CcreateEl(config) {
+    var e = new CanvasNodeExe(this.dom.ctx, config, domId(), this.vDomIndex);
+    this.child([e]);
+    queueInstance.vDomChanged(this.vDomIndex);
+    return e;
+  };
+  // WebglNodeExe.prototype.removeChild = function CremoveChild (obj) {
+  //   let index = -1
+  //   this.children.forEach((d, i) => {
+  //     if (d === obj) { index = i }
+  //   })
+  //   if (index !== -1) {
+  //     const removedNode = this.children.splice(index, 1)[0]
+  //     this.dom.removeChild(removedNode.dom)
+  //   }
+
+  //   queueInstance.vDomChanged(this.vDomIndex)
+  // }
 
   i2d.webglLayer = function webGLLayer(context, config) {
     var res = document.querySelector(context);
@@ -5848,6 +6036,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var width = config.width ? config.width : res.clientWidth;
     var layer = document.createElement('canvas');
     var ctx = layer.getContext('webgl2');
+    var shaderSource = shaders('rect');
+
+    var program = webglUtils.createProgramFromSources(ctx, [shaderSource.vertexShader, shaderSource.fragmentShader]);
+
+    var positionAttrLoc = ctx.getAttribLocation(program, "a_position");
+    var colorAttrLoc = ctx.getAttribLocation(program, "a_color");
+    var resolutionUniLoc = ctx.getUniformLocation(program, "u_resolution");
 
     layer.setAttribute('height', height * ratio);
     layer.setAttribute('width', width * ratio);
@@ -5860,7 +6055,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var vDomInstance = new VDom();
     var vDomIndex = queueInstance.addVdom(vDomInstance);
 
-    var root = new webglNodeExe(ctx, {
+    var root = new WebglNodeExe(ctx, {
       el: 'group',
       attr: {
         id: 'rootNode'

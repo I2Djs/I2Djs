@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+	<div id="mySvg" style="height: 100%;width:100%">
+	</div>
+    
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+
+    <script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
+
+	<script type="text/javascript">
+        var renderer = i2d.SVGLayer('#mySvg');
+        
+        var pg = renderer.createEl({
+            el: 'group',
+            attr:{
+                transform:{
+                            translate:[100,100]
+                        }
+            }
+        })
+        var g = pg.createEl({
+            el: 'group',
+            attr:{
+                transform:{
+                            translate:[0,0],
+                            rotate:[45, 0, 0]
+                        }
+            }
+        })
+        var rect = g.createEl({
+                    el:'rect',
+                    attr:{
+                        x:0,
+                        y:0,
+                        width:100,
+                        height:100,
+                        transform:{
+                            translate:[50,50],
+                            rotate:[45, 50, 50]
+                        }
+                    },
+                    style:{
+                        fill:'red'
+                    }
+                })
+                .on('mouseover',function(){
+                    this.setStyle('fill','green')
+                })
+                .on('mouseout',function(){
+                    this.setStyle('fill','red')
+                });
+        
+        // let bbox = rect.node().BBoxHit
+        //     g.createEl({
+        //             el:'rect',
+        //             attr:{
+        //                 x:bbox.x,
+        //                 y:bbox.y,
+        //                 width:bbox.width,
+        //                 height:bbox.height
+        //             },
+        //             style:{
+        //                 strokeStyle:'#999'
+        //             }
+        //         })
+	</script>
+
+</body>
+</html>
