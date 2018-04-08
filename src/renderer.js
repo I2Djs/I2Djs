@@ -3229,8 +3229,8 @@
       execute()
     }
     root.resize = function () {
-      let width = this.container.clientWidth
-      let height = this.container.clientHeight
+      let width = config.width ? config.width : this.container.clientWidth
+      let height = config.height ? config.height : this.container.clientHeight
       this.domEl.setAttribute('height', height * originalRatio)
       this.domEl.setAttribute('width', width * originalRatio)
       this.domEl.style.height = `${height}px`
@@ -3383,8 +3383,8 @@
     const vDomInstance = new VDom()
     const vDomIndex = queueInstance.addVdom(vDomInstance)
     const res = document.querySelector(context)
-    const height = res.clientHeight
-    const width = res.clientWidth
+    const height = config.height ? config.height : res.clientHeight
+    const width = config.width ? config.width : res.clientWidth
     const layer = document.createElementNS(nameSpace.svg, 'svg')
     layer.setAttribute('height', height)
     layer.setAttribute('width', width)
@@ -3399,8 +3399,8 @@
     vDomInstance.root(root)
 
     root.resize = function () {
-      let width = this.container.clientWidth
-      let height = this.container.clientHeight
+      let width = config.width ? config.width : this.container.clientWidth
+      let height = config.height ? config.height : this.container.clientHeight
       let newWidthRatio = (width / this.width)
       let newHeightRatio = (height / this.height)
       if (config && config.rescale) {

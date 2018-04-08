@@ -4,7 +4,7 @@
 	<title></title>
 </head>
 <body style="height: 100%">
-	<div id="myCanvas" style="height: 100%;width:100%; background: black">
+	<div id="myCanvas" style="height: 50%;width:50%; background: black">
 	</div>
 	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
      <!--<script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>-->
@@ -21,7 +21,7 @@
 
         var renderer = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false,onClear:function(ctx) {
                         ctx.clearRect(renderer.dom.BBox.x-20, renderer.dom.BBox.y-20, renderer.dom.BBox.width+50, renderer.dom.BBox.height+50)        
-                    }});
+                    }, height: 1000, width: 1000});
 
         
 

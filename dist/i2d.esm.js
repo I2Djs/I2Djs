@@ -636,7 +636,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       var cen = { x: rotate[1], y: rotate[2] };
       var rotateAngle = rotate[0];
 
-      if (translate.length > 0) {
+      if (translate && translate.length > 0) {
         cen.x += translate[0];
         cen.y += translate[1];
       }
@@ -5673,8 +5673,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       execute();
     };
     root.resize = function () {
-      var width = this.container.clientWidth;
-      var height = this.container.clientHeight;
+      var width = config.width ? config.width : this.container.clientWidth;
+      var height = config.height ? config.height : this.container.clientHeight;
       this.domEl.setAttribute('height', height * originalRatio);
       this.domEl.setAttribute('width', width * originalRatio);
       this.domEl.style.height = height + 'px';
@@ -5840,8 +5840,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var vDomInstance = new VDom();
     var vDomIndex = queueInstance.addVdom(vDomInstance);
     var res = document.querySelector(context);
-    var height = res.clientHeight;
-    var width = res.clientWidth;
+    var height = config.height ? config.height : res.clientHeight;
+    var width = config.width ? config.width : res.clientWidth;
     var layer = document.createElementNS(nameSpace.svg, 'svg');
     layer.setAttribute('height', height);
     layer.setAttribute('width', width);
@@ -5856,8 +5856,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     vDomInstance.root(root);
 
     root.resize = function () {
-      var width = this.container.clientWidth;
-      var height = this.container.clientHeight;
+      var width = config.width ? config.width : this.container.clientWidth;
+      var height = config.height ? config.height : this.container.clientHeight;
       var newWidthRatio = width / this.width;
       var newHeightRatio = height / this.height;
       if (config && config.rescale) {

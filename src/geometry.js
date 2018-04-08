@@ -509,7 +509,7 @@
       const cen = {x: rotate[1], y: rotate[2]}
       const rotateAngle = rotate[0]
 
-      if (translate.length > 0) {
+      if (translate && translate.length > 0) {
         cen.x += translate[0]
         cen.y += translate[1]
       }
