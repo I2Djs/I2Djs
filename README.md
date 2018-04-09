@@ -4,6 +4,7 @@
 
 # Integrated-2D js [![npm](https://img.shields.io/npm/v/i2djs.svg)](https://www.npmjs.com/package/i2djs) [![Downloads](https://img.shields.io/npm/dm/i2djs.svg)](https://www.npmjs.com/package/i2djs)
 
+### I2dJs (SVG + Canvas + WebGL)
 
 Integrated-2D is a Javascript framework, for rendering 2D graphics on SVG, Canvas and WebGL contexts. It's simple syntax and semantics lets you combine the power of Vector graphics and Bitmap to achieve complex visualisations easily.
 
@@ -15,6 +16,7 @@ Download source code from below links
 
 * [i2D.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.js) 
 * [i2D.min.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.min.js)
+* [i2D.esm.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.esm.js)
 
 ### npm Installation
 ```
