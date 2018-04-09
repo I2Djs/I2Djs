@@ -66,11 +66,7 @@ Examples (SVG + Canvas + WebGL)
 </table>
 
 ### To Begin
-Lets create a container in which SVG layer will be rendered. SVG viewport will be set as per container dimension
-#### Container
-```html
-<div id="container"> </div>
-```
+
 #### Create Layer
 Below specified methods are to create the respective Canvas/SVG layers. It accepts container ID as an input, gives renderer instance as an output.
 Multiple SVG/Canvas can be defined. Each layer represents corresponding Dom element - SVG for SVGlayer, Canvas for Canvas layer.
