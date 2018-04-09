@@ -6,7 +6,15 @@
 <body style="height: 100%">
 	<div id="myCanvas" style="height: 100%;width:100%;position: absolute;" >
 	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+    <script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
 
 	<script type="text/javascript">
 
@@ -24,8 +32,9 @@
                                                                     ]
                                                             });
 
-        var radialGradiant = renderer_.createRadialGradient({innerCircle:{x:50,y:50,r:0},
-                                                            outerCircle:{x:50,y:50,r:50},
+        var radialGradiant = renderer_.createRadialGradient({innerCircle:{x:0,y:0,r:0},
+                                                            outerCircle:{x:0,y:0,r:50},
+                                                            mode:'absolute',
                                                             colorStops:[{color:'red',value:0},
                                                                         {color:'yellow',value:25},
                                                                         {color:'green',value:50},
@@ -42,19 +51,31 @@
                         }
             })
 
-            g.createEls([1],{
+            g.createEl({
                     el:'circle',
                     attr:{
-                        cx:function(d,i){return 0},
-                        cy:function(d,i){return 0}
+                        cx: 0,
+                        cy: 0,
+                        r: 50
                     },
                     style:{
-                            fillStyle:radialGradiant
-                        }
-                }).forEach(function(d,i){
-                    var size = 120;//Math.random()*100+50;
-                    this.setAttr('r',size/2);
-                });
+                        fillStyle:radialGradiant
+                    },
+                    bbox: false
+            });
+
+            g.createEl({
+                    el:'rect',
+                    attr:{
+                        x: 100,
+                        y: 0,
+                        width: 100,
+                        height: 100
+                    },
+                    style:{
+                        fillStyle:linearGradiant
+                    }
+            });
 
 	</script>
 

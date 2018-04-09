@@ -4197,16 +4197,21 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   function CanvasGradients(config, type) {
     this.config = config;
     this.type = type || 'linear';
+    this.mode = !this.config.mode || this.config.mode === 'percent' ? 'percent' : 'absolute';
   }
   CanvasGradients.prototype.exe = function GRAexe(ctx, BBox) {
-    if (this.type === 'linear') {
+    if (this.type === 'linear' && this.mode === 'percent') {
       return this.linearGradient(ctx, BBox);
-    } else if (this.type === 'radial') {
+    }if (this.type === 'linear' && this.mode === 'absolute') {
+      return this.absoluteLinearGradient(ctx);
+    } else if (this.type === 'radial' && this.mode === 'percent') {
       return this.radialGradient(ctx, BBox);
+    } else if (this.type === 'radial' && this.mode === 'absolute') {
+      return this.absoluteRadialGradient(ctx);
     }
     console.Error('wrong Gradiant type');
   };
-  CanvasGradients.prototype.linearGradient = function GRAlinearGradient(ctx, BBox) {
+  CanvasGradients.prototype.linearGradient = function GralinearGradient(ctx, BBox) {
     var lGradient = ctx.createLinearGradient(BBox.x + BBox.width * (this.config.x1 / 100), BBox.y + BBox.height * (this.config.y1 / 100), BBox.x + BBox.width * (this.config.x2 / 100), BBox.y + BBox.height * (this.config.y2 / 100));
 
     this.config.colorStops.forEach(function (d) {
@@ -4215,8 +4220,27 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     return lGradient;
   };
+  CanvasGradients.prototype.absoluteLinearGradient = function absoluteGralinearGradient(ctx) {
+    console.log('called');
+    var lGradient = ctx.createLinearGradient(this.config.x1, this.config.y1, this.config.x2, this.config.y2);
+
+    this.config.colorStops.forEach(function (d) {
+      lGradient.addColorStop(d.value, d.color);
+    });
+
+    return lGradient;
+  };
   CanvasGradients.prototype.radialGradient = function GRAradialGradient(ctx, BBox) {
     var cGradient = ctx.createRadialGradient(BBox.x + BBox.width * (this.config.innerCircle.x / 100), BBox.y + BBox.height * (this.config.innerCircle.y / 100), BBox.width > BBox.height ? BBox.width * this.config.innerCircle.r / 100 : BBox.height * this.config.innerCircle.r / 100, BBox.x + BBox.width * (this.config.outerCircle.x / 100), BBox.y + BBox.height * (this.config.outerCircle.y / 100), BBox.width > BBox.height ? BBox.width * this.config.outerCircle.r / 100 : BBox.height * this.config.outerCircle.r / 100);
+
+    this.config.colorStops.forEach(function (d) {
+      cGradient.addColorStop(d.value / 100, d.color);
+    });
+
+    return cGradient;
+  };
+  CanvasGradients.prototype.absoluteRadialGradient = function absoluteGraradialGradient(ctx, BBox) {
+    var cGradient = ctx.createRadialGradient(this.config.innerCircle.x, this.config.innerCircle.y, this.config.innerCircle.r, this.config.outerCircle.x, this.config.outerCircle.y, this.config.outerCircle.r);
 
     this.config.colorStops.forEach(function (d) {
       cGradient.addColorStop(d.value / 100, d.color);
