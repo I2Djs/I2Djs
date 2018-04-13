@@ -2112,9 +2112,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
   }
 }(this, () => {
   'use strict'
-  function shaders () {
+  function shaders (el) {
     let res
-    switch (_) {
+    switch (el) {
       case 'rect':
         res = {
           vertexShader: `#version 300 es
@@ -2140,7 +2140,34 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
                     }
                     `
         }
-        break;
+        break
+      case 'point':
+        res = {
+          vertexShader: `#version 300 es
+          in vec2 a_position;
+          in vec4 a_color;
+          uniform vec2 u_resolution;
+          out vec4 v_color;
+          void main() {
+            vec2 zeroToOne = a_position / u_resolution;
+            vec2 zeroToTwo = zeroToOne * 2.0;
+            vec2 clipSpace = zeroToTwo - 1.0;
+
+            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+            gl_PointSize = 1.0;
+            v_color = a_color;
+          }
+          `,
+          fragmentShader: `#version 300 es
+                    precision mediump float;
+                    in vec4 v_color;
+                    out vec4 outColor;
+                    void main() {
+                        outColor = v_color;
+                    }
+                    `
+        }
+        break
       default:
         res = {
           vertexShader: `#version 300 es
@@ -2898,14 +2925,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     const direction = targetConfig.direction ? targetConfig.direction : 'default'
     const destD = targetConfig.attr.d ? targetConfig.attr.d : self.attr.d
 
-    let srcPath = (i2d.Path(self.attr.d)).stackGroup
-    let destPath = (i2d.Path(destD)).stackGroup
+    let srcPath = path.isTypePath(self.attr.d) ? self.attr.d.stackGroup : (i2d.Path(self.attr.d)).stackGroup
+    let destPath = path.isTypePath(destD) ? destD.stackGroup : (i2d.Path(destD)).stackGroup
 
-    const chainInstance = chain.parallelChain()
-      .ease(ease)
-      .duration(duration)
-      .loop(loop)
-      .direction(direction)
+    const chainInstance = []
 
     self.arrayStack = []
 
@@ -2935,9 +2958,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       }
     }
 
-    chainInstance.duration(duration)
-      .commit()
-
     function toCubicCurves (stack) {
       if (!stack.length) { return }
       const _ = stack
@@ -2966,29 +2986,31 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     }
 
     function buildMTransitionobj (src, dest) {
-      chainInstance.add({
-        run (f) {
+      chainInstance.push({
+        run (path, f) {
           const point = this.pointTansition(f)
-          self.arrayStack[this.id] = `M${point.x},${point.y}`
-          self.setAttr('d', self.arrayStack.join(''))
+          path.m(true, {x: point.x, y:point.y})
+          // self.arrayStack[this.id] = `M${point.x},${point.y}`
+          // self.setAttr('d', self.arrayStack.join(''))
         },
-        id: generateStackId(),
+        // id: generateStackId(),
         pointTansition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.p0, dest.p0)
       })
     }
 
     function buildTransitionObj (src, dest) {
-      chainInstance.add({
-        run (f) {
+      chainInstance.push({
+        run (path, f) {
           const t = this
           const c1 = t.ctrl1Transition(f)
           const c2 = t.ctrl2Transition(f)
           const p1 = t.destTransition(f)
 
-          self.arrayStack[this.id] = ` C${c1.x},${c1.y} ${c2.x},${c2.y} ${p1.x},${p1.y}`
-          self.setAttr('d', self.arrayStack.join(''))
+          // self.arrayStack[this.id] = ` C${c1.x},${c1.y} ${c2.x},${c2.y} ${p1.x},${p1.y}`
+          path.c(true, {x: c1.x, y: c1.y}, {x: c2.x, y: c2.y}, {x: p1.x, y: p1.y})
+          // self.setAttr('d', self.arrayStack.join(''))
         },
-        id: generateStackId(),
+        // id: generateStackId(),
         srcTransition: t2DGeometry.linearTransitionBetweenPoints.bind(
           null,
           src.p0,
@@ -3332,6 +3354,19 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         } else { buildTransitionObj(sCmd, dCmd) }
       }
     }
+
+    queueInstance.add(animeId(), {
+          run (f) {
+            let ppath= i2d.Path()
+            for(let i=0, len = chainInstance.length; i<len; i++){
+              chainInstance[i].run(ppath,f)
+            }
+            self.setAttr('d', ppath)
+          },
+          duration: duration,
+          loop: loop,
+          direction: direction
+        }, easying(ease))
   }
 
   const animatePathTo = function animatePathTo (targetConfig) {
@@ -5047,6 +5082,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       children.splice(index, 1)
     }
     this.BBoxUpdate = true
+    queueInstance.vDomChanged(this.vDomIndex)
   }
 
   CanvasNodeExe.prototype.attributesExe = function CattributesExe () {
@@ -5648,23 +5684,27 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   }
 
 
-  function getShader (gl, shaderSource, type) {
+  function getShader (ctx, shaderSource, type) {
     var shader
     if (type === 'x-shader/x-fragment') {
-      shader = gl.createShader(gl.FRAGMENT_SHADER)
+      shader = ctx.createShader(ctx.FRAGMENT_SHADER)
     } else if (type === 'x-shader/x-vertex') {
-      shader = gl.createShader(gl.VERTEX_SHADER)
+      shader = ctx.createShader(ctx.VERTEX_SHADER)
     } else {
       return null
     }
 
-    gl.shaderSource(shader, shaderSource)
-    gl.compileShader(shader)
+    ctx.shaderSource(shader, shaderSource)
+    ctx.compileShader(shader)
 
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    if (!ctx.getShaderParameter(shader, ctx.COMPILE_STATUS)) {
       return null
     }
     return shader
+  }
+
+  function getProgram (ctx, shaderCode) {
+    // return webglUtils.createProgramFromSources(ctx, [shaderCode.vertexShader, shaderCode.fragmentShader])
   }
 
 
@@ -5689,23 +5729,64 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   //   }
   // })
 
+  function PointNode (x, y, fill) {
+    this.x = x
+    this.y = y
+    this.color = {
+      r: 255,
+      g: 0,
+      b: 0
+    }
+    // this.ctx = ctx
+    // this.attr = attr ? attr : {}
+    // this.style = style ? style : {}
+  }
+  // PointNode.prototype.setAttr = function(prop, value) {
+  //   this.attr[prop] = value
+  // }
+  // PointNode.prototype.setStyle = function(prop, value) {
+  //   this.attr[prop] = value
+  // }
 
-  function RenderWebglPoints (ctx) {
+
+  function RenderWebglPoints (ctx, attr, style) {
     this.ctx = ctx
-    this.positionArray = []
     this.colorArray = []
+    this.child = []
+    this.attr = attr || {}
+    this.style = style || {}
+    this.program = getProgram(ctx, shaders('point'))
+    this.colorBuffer = ctx.createBuffer()
+    this.positionBuffer = ctx.createBuffer()
   }
   RenderWebglPoints.prototype.createEl = function (conf) {
-    if (conf.el === 'point') {
-
+    this.child.push(new PointNode(conf.attr.x, conf.attr.y, conf.style))
+  }
+  RenderWebglPoints.prototype.setAttr = function (prop, value) {
+    this.attr[prop] = value
+  }
+  RenderWebglPoints.prototype.execute = function () {
+    let positionArray = []
+    let colorArray = []
+    for (var i = 0, len = this.child.length; i < len; i++) {
+      positionArray[i * 2] = this.child[i].x
+      positionArray[i * 2 + 1] = this.child[i].y
+      colorArray[i * 3] = this.child[i].r
+      colorArray[i * 3 + 1] = this.child[i].g
+      colorArray[i * 3 + 2] = this.child[i].b
     }
 
+    this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, this.colorBuffer)
+    this.ctx.bufferData(this.ctx.ARRAY_BUFFER, new Uint8Array(colorArray), this.ctx.STATIC_DRAW)
+
+    this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, this.positionBuffer)
+    this.ctx.bufferSubData(this.ctx.ARRAY_BUFFER, 0, new Float32Array(positionArray))
+    this.ctx.drawArrays(this.ctx.POINTS, 0, positionArray.length / 2)
   }
-  
-  RenderWebglPoints.prototype.execute = function () {
-    this.ctx.drawArrays(this.ctx.POINTS, 0, this.positionArray.length/2);
-  }
-  function RenderWebglCircles () {
+
+  function RenderWebglCircleGroup (ctx, attr, style) {
+    this.ctx = ctx;
+    this.attr = style;
   }
   function RenderWebglRects () {
   }
@@ -5733,7 +5814,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         this.dom = new RenderWebglRectGroup(this.ctx, this.attr, this.style)
         break
       case 'points':
-        this.dom = new RenderWebglPointGroup(this.ctx, this.attr, this.style)
+        this.dom = new RenderWebglPoints(this.ctx, this.attr, this.style)
         break
       case 'lines':
         this.dom = new RenderWebglPointGroup(this.ctx, this.attr, this.style)
@@ -5744,9 +5825,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     }
     this.dom.nodeExe = this
   }
-
-  // WebglNodeExe.prototype.
-
 
   WebglNodeExe.prototype.execute = function Cexecute () {
     this.stylesExe()
@@ -5809,11 +5887,11 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     const ctx = layer.getContext('webgl2')
     const shaderSource = shaders('rect')
 
-    var program = webglUtils.createProgramFromSources(ctx, [shaderSource.vertexShader, shaderSource.fragmentShader])
+    // var program = webglUtils.createProgramFromSources(ctx, [shaderSource.vertexShader, shaderSource.fragmentShader])
 
-    var positionAttrLoc = ctx.getAttribLocation(program, "a_position")
-    var colorAttrLoc = ctx.getAttribLocation(program, "a_color")
-    var resolutionUniLoc = ctx.getUniformLocation(program, "u_resolution")
+    // var positionAttrLoc = ctx.getAttribLocation(program, "a_position")
+    // var colorAttrLoc = ctx.getAttribLocation(program, "a_color")
+    // var resolutionUniLoc = ctx.getUniformLocation(program, "u_resolution")
 
     layer.setAttribute('height', height * ratio)
     layer.setAttribute('width', width * ratio)

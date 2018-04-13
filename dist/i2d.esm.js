@@ -2283,12 +2283,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 })(undefined, function () {
   'use strict';
 
-  function shaders() {
+  function shaders(el) {
     var res = void 0;
-    switch (_) {
+    switch (el) {
       case 'rect':
         res = {
           vertexShader: '#version 300 es\n                    in vec2 a_position;\n                    in vec4 a_color;\n                    uniform vec2 u_resolution;\n                    out vec4 v_color;\n\n                    void main() {\n                    vec2 zeroToOne = a_position / u_resolution;\n                    vec2 zeroToTwo = zeroToOne * 2.0;\n                    vec2 clipSpace = zeroToTwo - 1.0;\n                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                    v_color = a_color;\n                    }\n                    ',
+          fragmentShader: '#version 300 es\n                    precision mediump float;\n                    in vec4 v_color;\n                    out vec4 outColor;\n                    void main() {\n                        outColor = v_color;\n                    }\n                    '
+        };
+        break;
+      case 'point':
+        res = {
+          vertexShader: '#version 300 es\n          in vec2 a_position;\n          in vec4 a_color;\n          uniform vec2 u_resolution;\n          out vec4 v_color;\n          void main() {\n            vec2 zeroToOne = a_position / u_resolution;\n            vec2 zeroToTwo = zeroToOne * 2.0;\n            vec2 clipSpace = zeroToTwo - 1.0;\n\n            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n            gl_PointSize = 1.0;\n            v_color = a_color;\n          }\n          ',
           fragmentShader: '#version 300 es\n                    precision mediump float;\n                    in vec4 v_color;\n                    out vec4 outColor;\n                    void main() {\n                        outColor = v_color;\n                    }\n                    '
         };
         break;
@@ -3051,10 +3057,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var direction = targetConfig.direction ? targetConfig.direction : 'default';
     var destD = targetConfig.attr.d ? targetConfig.attr.d : self.attr.d;
 
-    var srcPath = i2d.Path(self.attr.d).stackGroup;
-    var destPath = i2d.Path(destD).stackGroup;
+    var srcPath = path.isTypePath(self.attr.d) ? self.attr.d.stackGroup : i2d.Path(self.attr.d).stackGroup;
+    var destPath = path.isTypePath(destD) ? destD.stackGroup : i2d.Path(destD).stackGroup;
 
-    var chainInstance = chain.parallelChain().ease(ease).duration(duration).loop(loop).direction(direction);
+    var chainInstance = [];
 
     self.arrayStack = [];
 
@@ -3088,8 +3094,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       }
     }
 
-    chainInstance.duration(duration).commit();
-
     function toCubicCurves(stack) {
       if (!stack.length) {
         return;
@@ -3120,31 +3124,33 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
 
     function buildMTransitionobj(src, dest) {
-      chainInstance.add({
-        run: function run(f) {
+      chainInstance.push({
+        run: function run(path, f) {
           var point = this.pointTansition(f);
-          self.arrayStack[this.id] = 'M' + point.x + ',' + point.y;
-          self.setAttr('d', self.arrayStack.join(''));
+          path.m(true, { x: point.x, y: point.y });
+          // self.arrayStack[this.id] = `M${point.x},${point.y}`
+          // self.setAttr('d', self.arrayStack.join(''))
         },
 
-        id: generateStackId(),
+        // id: generateStackId(),
         pointTansition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.p0, dest.p0)
       });
     }
 
     function buildTransitionObj(src, dest) {
-      chainInstance.add({
-        run: function run(f) {
+      chainInstance.push({
+        run: function run(path, f) {
           var t = this;
           var c1 = t.ctrl1Transition(f);
           var c2 = t.ctrl2Transition(f);
           var p1 = t.destTransition(f);
 
-          self.arrayStack[this.id] = ' C' + c1.x + ',' + c1.y + ' ' + c2.x + ',' + c2.y + ' ' + p1.x + ',' + p1.y;
-          self.setAttr('d', self.arrayStack.join(''));
+          // self.arrayStack[this.id] = ` C${c1.x},${c1.y} ${c2.x},${c2.y} ${p1.x},${p1.y}`
+          path.c(true, { x: c1.x, y: c1.y }, { x: c2.x, y: c2.y }, { x: p1.x, y: p1.y });
+          // self.setAttr('d', self.arrayStack.join(''))
         },
 
-        id: generateStackId(),
+        // id: generateStackId(),
         srcTransition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.p0, dest.p0),
         ctrl1Transition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.cntrl1, dest.cntrl1),
         ctrl2Transition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.cntrl2, dest.cntrl2),
@@ -3483,6 +3489,20 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         }
       }
     }
+
+    queueInstance.add(animeId(), {
+      run: function run(f) {
+        var ppath = i2d.Path();
+        for (var i = 0, len = chainInstance.length; i < len; i++) {
+          chainInstance[i].run(ppath, f);
+        }
+        self.setAttr('d', ppath);
+      },
+
+      duration: duration,
+      loop: loop,
+      direction: direction
+    }, easying(ease));
   };
 
   var animatePathTo = function animatePathTo(targetConfig) {
@@ -5280,6 +5300,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       children.splice(index, 1);
     }
     this.BBoxUpdate = true;
+    queueInstance.vDomChanged(this.vDomIndex);
   };
 
   CanvasNodeExe.prototype.attributesExe = function CattributesExe() {
@@ -5908,24 +5929,28 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     return root;
   };
 
-  function getShader(gl, shaderSource, type) {
+  function getShader(ctx, shaderSource, type) {
     var shader;
     if (type === 'x-shader/x-fragment') {
-      shader = gl.createShader(gl.FRAGMENT_SHADER);
+      shader = ctx.createShader(ctx.FRAGMENT_SHADER);
     } else if (type === 'x-shader/x-vertex') {
-      shader = gl.createShader(gl.VERTEX_SHADER);
+      shader = ctx.createShader(ctx.VERTEX_SHADER);
     } else {
       return null;
     }
 
-    gl.shaderSource(shader, shaderSource);
-    gl.compileShader(shader);
+    ctx.shaderSource(shader, shaderSource);
+    ctx.compileShader(shader);
 
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    if (!ctx.getShaderParameter(shader, ctx.COMPILE_STATUS)) {
       return null;
     }
     return shader;
   }
+
+  function getProgram(ctx, shaderCode) {}
+  // return webglUtils.createProgramFromSources(ctx, [shaderCode.vertexShader, shaderCode.fragmentShader])
+
 
   // renderer.createEls(data, {
   //   el: 'point',
@@ -5947,20 +5972,65 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   //   }
   // })
 
+  function PointNode(x, y, fill) {
+    this.x = x;
+    this.y = y;
+    this.color = {
+      r: 255,
+      g: 0,
+      b: 0
+      // this.ctx = ctx
+      // this.attr = attr ? attr : {}
+      // this.style = style ? style : {}
+    };
+  }
+  // PointNode.prototype.setAttr = function(prop, value) {
+  //   this.attr[prop] = value
+  // }
+  // PointNode.prototype.setStyle = function(prop, value) {
+  //   this.attr[prop] = value
+  // }
 
-  function RenderWebglPoints(ctx) {
+
+  function RenderWebglPoints(ctx, attr, style) {
     this.ctx = ctx;
-    this.positionArray = [];
     this.colorArray = [];
+    this.child = [];
+    this.attr = attr || {};
+    this.style = style || {};
+    this.program = getProgram(ctx, shaders('point'));
+    this.colorBuffer = ctx.createBuffer();
+    this.positionBuffer = ctx.createBuffer();
   }
   RenderWebglPoints.prototype.createEl = function (conf) {
-    if (conf.el === 'point') {}
+    this.child.push(new PointNode(conf.attr.x, conf.attr.y, conf.style));
+  };
+  RenderWebglPoints.prototype.setAttr = function (prop, value) {
+    this.attr[prop] = value;
+  };
+  RenderWebglPoints.prototype.execute = function () {
+    var positionArray = [];
+    var colorArray = [];
+    for (var i = 0, len = this.child.length; i < len; i++) {
+      positionArray[i * 2] = this.child[i].x;
+      positionArray[i * 2 + 1] = this.child[i].y;
+      colorArray[i * 3] = this.child[i].r;
+      colorArray[i * 3 + 1] = this.child[i].g;
+      colorArray[i * 3 + 2] = this.child[i].b;
+    }
+
+    this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, this.colorBuffer);
+    this.ctx.bufferData(this.ctx.ARRAY_BUFFER, new Uint8Array(colorArray), this.ctx.STATIC_DRAW);
+
+    this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, this.positionBuffer);
+    this.ctx.bufferSubData(this.ctx.ARRAY_BUFFER, 0, new Float32Array(positionArray));
+    this.ctx.drawArrays(this.ctx.POINTS, 0, positionArray.length / 2);
   };
 
-  RenderWebglPoints.prototype.execute = function () {
-    this.ctx.drawArrays(this.ctx.POINTS, 0, this.positionArray.length / 2);
-  };
-  function RenderWebglCircles() {}
+  function RenderWebglCircleGroup(ctx, attr, style) {
+    this.ctx = ctx;
+    this.attr = style;
+  }
   function RenderWebglRects() {}
   function RenderWebglLines() {}
   function RenderWebglGroup() {}
@@ -5984,7 +6054,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         this.dom = new RenderWebglRectGroup(this.ctx, this.attr, this.style);
         break;
       case 'points':
-        this.dom = new RenderWebglPointGroup(this.ctx, this.attr, this.style);
+        this.dom = new RenderWebglPoints(this.ctx, this.attr, this.style);
         break;
       case 'lines':
         this.dom = new RenderWebglPointGroup(this.ctx, this.attr, this.style);
@@ -5995,9 +6065,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
     this.dom.nodeExe = this;
   }
-
-  // WebglNodeExe.prototype.
-
 
   WebglNodeExe.prototype.execute = function Cexecute() {
     this.stylesExe();
@@ -6062,11 +6129,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var ctx = layer.getContext('webgl2');
     var shaderSource = shaders('rect');
 
-    var program = webglUtils.createProgramFromSources(ctx, [shaderSource.vertexShader, shaderSource.fragmentShader]);
+    // var program = webglUtils.createProgramFromSources(ctx, [shaderSource.vertexShader, shaderSource.fragmentShader])
 
-    var positionAttrLoc = ctx.getAttribLocation(program, "a_position");
-    var colorAttrLoc = ctx.getAttribLocation(program, "a_color");
-    var resolutionUniLoc = ctx.getUniformLocation(program, "u_resolution");
+    // var positionAttrLoc = ctx.getAttribLocation(program, "a_position")
+    // var colorAttrLoc = ctx.getAttribLocation(program, "a_color")
+    // var resolutionUniLoc = ctx.getUniformLocation(program, "u_resolution")
 
     layer.setAttribute('height', height * ratio);
     layer.setAttribute('width', width * ratio);
