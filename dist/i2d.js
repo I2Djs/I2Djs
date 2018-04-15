@@ -2581,6 +2581,11 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         })
         this.action.exit.call(this, nodes)
       }
+      for (let i = 0, len = data.length; i < len; i++) {
+        if (this.data.indexOf(data[i])) {
+          this.data.splice(this.data.indexOf(data[i]), 1)
+        }
+      }
     },
     enumerable: false,
     configurable: true,
@@ -2990,10 +2995,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         run (path, f) {
           const point = this.pointTansition(f)
           path.m(true, {x: point.x, y:point.y})
-          // self.arrayStack[this.id] = `M${point.x},${point.y}`
-          // self.setAttr('d', self.arrayStack.join(''))
         },
-        // id: generateStackId(),
         pointTansition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.p0, dest.p0)
       })
     }
@@ -3005,12 +3007,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
           const c1 = t.ctrl1Transition(f)
           const c2 = t.ctrl2Transition(f)
           const p1 = t.destTransition(f)
-
-          // self.arrayStack[this.id] = ` C${c1.x},${c1.y} ${c2.x},${c2.y} ${p1.x},${p1.y}`
           path.c(true, {x: c1.x, y: c1.y}, {x: c2.x, y: c2.y}, {x: p1.x, y: p1.y})
-          // self.setAttr('d', self.arrayStack.join(''))
         },
-        // id: generateStackId(),
         srcTransition: t2DGeometry.linearTransitionBetweenPoints.bind(
           null,
           src.p0,
@@ -3356,17 +3354,17 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     }
 
     queueInstance.add(animeId(), {
-          run (f) {
-            let ppath= i2d.Path()
-            for(let i=0, len = chainInstance.length; i<len; i++){
-              chainInstance[i].run(ppath,f)
-            }
-            self.setAttr('d', ppath)
-          },
-          duration: duration,
-          loop: loop,
-          direction: direction
-        }, easying(ease))
+      run (f) {
+        let ppath = i2d.Path()
+        for (let i = 0, len = chainInstance.length; i < len; i++) {
+          chainInstance[i].run(ppath, f)
+        }
+        self.setAttr('d', self instanceof DomExe ? ppath.fetchPathString() : ppath)
+      },
+      duration: duration,
+      loop: loop,
+      direction: direction
+    }, easying(ease))
   }
 
   const animatePathTo = function animatePathTo (targetConfig) {
@@ -3912,6 +3910,14 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   DomExe.prototype.animateExe = animateExe
   DomExe.prototype.animatePathTo = animatePathTo
   DomExe.prototype.morphTo = morphTo
+
+  DomExe.prototype.exec = function Cexe (exe) {
+    if (typeof exe !== 'function') {
+      console.Error('Wrong Exe type')
+    }
+    exe.call(this, this.dataObj)
+    return this
+  }
 
   DomExe.prototype.createRadialGradient = function DMcreateRadialGradient (config) {
     const gradientIns = new DomGradients(config, 'radial', this)
@@ -4654,10 +4660,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     localPoints = localPoints.replace(/,/g, ' ').split(' ')
 
     polygon.moveTo(localPoints[0], localPoints[1])
-    points_.push({x:parseFloat(localPoints[0]),y:parseFloat(localPoints[1])})
+    points_.push({x: parseFloat(localPoints[0]), y: parseFloat(localPoints[1])})
     for (let i = 2; i < localPoints.length; i += 2) {
       polygon.lineTo(localPoints[i], localPoints[i + 1])
-      points_.push({x:parseFloat(localPoints[i]),y:parseFloat(localPoints[i+1])})
+      points_.push({x: parseFloat(localPoints[i]), y: parseFloat(localPoints[i + 1])})
     }
     polygon.closePath()
 
@@ -5227,6 +5233,13 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   }
   CanvasNodeExe.prototype.on = function Con (eventType, hndlr) {
     this.dom.on(eventType, hndlr)
+    return this
+  }
+  CanvasNodeExe.prototype.exec = function Cexe (exe) {
+    if (typeof exe !== 'function') {
+      console.Error('Wrong Exe type')
+    }
+    exe.call(this, this.dataObj)
     return this
   }
   CanvasNodeExe.prototype.animateTo = animateTo

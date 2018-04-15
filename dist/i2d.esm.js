@@ -2703,6 +2703,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         });
         this.action.exit.call(this, nodes);
       }
+      for (var i = 0, len = data.length; i < len; i++) {
+        if (this.data.indexOf(data[i])) {
+          this.data.splice(this.data.indexOf(data[i]), 1);
+        }
+      }
     },
     enumerable: false,
     configurable: true,
@@ -3128,11 +3133,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         run: function run(path, f) {
           var point = this.pointTansition(f);
           path.m(true, { x: point.x, y: point.y });
-          // self.arrayStack[this.id] = `M${point.x},${point.y}`
-          // self.setAttr('d', self.arrayStack.join(''))
         },
 
-        // id: generateStackId(),
         pointTansition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.p0, dest.p0)
       });
     }
@@ -3144,13 +3146,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           var c1 = t.ctrl1Transition(f);
           var c2 = t.ctrl2Transition(f);
           var p1 = t.destTransition(f);
-
-          // self.arrayStack[this.id] = ` C${c1.x},${c1.y} ${c2.x},${c2.y} ${p1.x},${p1.y}`
           path.c(true, { x: c1.x, y: c1.y }, { x: c2.x, y: c2.y }, { x: p1.x, y: p1.y });
-          // self.setAttr('d', self.arrayStack.join(''))
         },
 
-        // id: generateStackId(),
         srcTransition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.p0, dest.p0),
         ctrl1Transition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.cntrl1, dest.cntrl1),
         ctrl2Transition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.cntrl2, dest.cntrl2),
@@ -3496,7 +3494,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         for (var i = 0, len = chainInstance.length; i < len; i++) {
           chainInstance[i].run(ppath, f);
         }
-        self.setAttr('d', ppath);
+        self.setAttr('d', self instanceof DomExe ? ppath.fetchPathString() : ppath);
       },
 
       duration: duration,
@@ -4077,6 +4075,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   DomExe.prototype.animateExe = animateExe;
   DomExe.prototype.animatePathTo = animatePathTo;
   DomExe.prototype.morphTo = morphTo;
+
+  DomExe.prototype.exec = function Cexe(exe) {
+    if (typeof exe !== 'function') {
+      console.Error('Wrong Exe type');
+    }
+    exe.call(this, this.dataObj);
+    return this;
+  };
 
   DomExe.prototype.createRadialGradient = function DMcreateRadialGradient(config) {
     var gradientIns = new DomGradients(config, 'radial', this);
@@ -5459,6 +5465,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   };
   CanvasNodeExe.prototype.on = function Con(eventType, hndlr) {
     this.dom.on(eventType, hndlr);
+    return this;
+  };
+  CanvasNodeExe.prototype.exec = function Cexe(exe) {
+    if (typeof exe !== 'function') {
+      console.Error('Wrong Exe type');
+    }
+    exe.call(this, this.dataObj);
     return this;
   };
   CanvasNodeExe.prototype.animateTo = animateTo;
