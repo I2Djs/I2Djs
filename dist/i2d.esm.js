@@ -2760,7 +2760,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         config.action.enter.call(self, joinResult.new);
       }
       if (config.action.exit) {
-        // const collection = new CreateElements() 
+        // const collection = new CreateElements()
         // collection.wrapper(joinResult.old)
         // config.action.exit.call(self, collection, joinResult.old.map(d => d.dataObj))
         config.action.exit.call(self, joinResult.old);
@@ -2794,11 +2794,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       // this.selector = selector
       // this.data = data
     };return Object.create(self, CompositeArray);
-  }
-
-  function generateStackId() {
-    Id += 1;
-    return Id;
   }
 
   var animate = function animate(self, targetConfig) {
@@ -3877,7 +3872,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         if (ind >= 0) {
           self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), this.changedAttribute[key]);
         } else {
-          self.dom.setAttribute(key, this.changedAttribute[key]);
+          if (key === 'text') {
+            self.dom.textContent = this.changedAttribute[key];
+          } else {
+            self.dom.setAttribute(key, this.changedAttribute[key]);
+          }
         }
       }
     }
@@ -3974,7 +3973,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     if (!this.attr.transform) {
       this.attr.transform = {};
     }
-    this.attr.transform.rotate = [angle % 360, x ? x : 0, y ? y : 0];
+    this.attr.transform.rotate = [angle % 360, x || 0, y || 0];
     // this.attr.transform.cx = x ? x : 0
     // this.attr.transform.cy = y ? y : 0
     this.changedAttribute.transform = true;
@@ -4116,9 +4115,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   };
   DomExe.prototype.text = function DMtext(value) {
     if (!arguments.length) {
-      return this.dom.textContent;
+      return this.attr.text;
     }
-    this.dom.textContent = value;
+    this.attr['text'] = value;
+    this.changedAttribute['text'] = value;
     return this;
   };
 
@@ -4513,8 +4513,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     self.BBox = {
       x: (translateX + x) * scaleX,
       y: (translateY + y) * scaleY,
-      width: (width ? width : 0) * scaleX,
-      height: (height ? height : 0) * scaleY
+      width: (width || 0) * scaleX,
+      height: (height || 0) * scaleY
     };
 
     if (transform && transform.rotate) {
@@ -4551,7 +4551,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   RenderText.prototype = new CanvasDom();
   RenderText.prototype.constructor = RenderText;
   RenderText.prototype.text = function RTtext(value) {
-    this.textContent = value;
+    this.attr.text = value;
   };
   RenderText.prototype.updateBBox = function RTupdateBBox() {
     var self = this;
@@ -4582,7 +4582,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     self.BBox = {
       x: translateX + self.attr.x * scaleX,
       y: translateY + (self.attr.y - height + 5) * scaleY,
-      width: this.ctx.measureText(this.textContent).width * scaleX,
+      width: this.ctx.measureText(this.attr.text).width * scaleX,
       height: height * scaleY
     };
 
@@ -4593,12 +4593,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
   };
   RenderText.prototype.execute = function RTexecute() {
-    if (this.textContent !== undefined && this.textContent !== null) {
+    if (this.attr.text !== undefined && this.attr.text !== null) {
       if (this.style.fillStyle) {
-        this.ctx.fillText(this.textContent, this.attr.x, this.attr.y);
+        this.ctx.fillText(this.attr.text, this.attr.x, this.attr.y);
       }
       if (this.style.strokeStyle) {
-        this.ctx.strokeText(this.textContent, this.attr.x, this.attr.y);
+        this.ctx.strokeText(this.attr.text, this.attr.x, this.attr.y);
       }
     }
   };

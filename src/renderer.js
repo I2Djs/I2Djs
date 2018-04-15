@@ -431,7 +431,7 @@
         config.action.enter.call(self, joinResult.new)
       }
       if (config.action.exit) {
-        // const collection = new CreateElements() 
+        // const collection = new CreateElements()
         // collection.wrapper(joinResult.old)
         // config.action.exit.call(self, collection, joinResult.old.map(d => d.dataObj))
         config.action.exit.call(self, joinResult.old)
@@ -466,11 +466,6 @@
     // this.selector = selector
     // this.data = data
     return Object.create(self, CompositeArray)
-  }
-
-  function generateStackId () {
-    Id += 1
-    return Id
   }
 
   const animate = function animate (self, targetConfig) {
@@ -786,7 +781,7 @@
       chainInstance.push({
         run (path, f) {
           const point = this.pointTansition(f)
-          path.m(true, {x: point.x, y:point.y})
+          path.m(true, {x: point.x, y: point.y})
         },
         pointTansition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.p0, dest.p0)
       })
@@ -1296,7 +1291,7 @@
       y: (c1.y + ((c2.y - c1.y)) * f)
     }
     this.cntrl1 = c1Temp
-    this.cntrl2 = {x: c1Temp.x + ((c2Temp.x - c1Temp.x)) * f, y: c1Temp.y + ((c2Temp.y - c1Temp.y)) * f}
+    this.cntrl2 = {x: c1Temp.x + (c2Temp.x - c1Temp.x) * f, y: c1Temp.y + ((c2Temp.y - c1Temp.y)) * f}
     this.p1 = {x: co.ax * t2DGeometry.pow(f, 3) + co.bx * t2DGeometry.pow(f, 2) + co.cx * f + p0.x,
       y: co.ay * t2DGeometry.pow(f, 3) + co.by * t2DGeometry.pow(f, 2) + co.cy * f + p0.y
     }
@@ -1514,7 +1509,11 @@
         if (ind >= 0) {
           self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), this.changedAttribute[key])
         } else {
-          self.dom.setAttribute(key, this.changedAttribute[key])
+          if (key === 'text') {
+            self.dom.textContent = this.changedAttribute[key]
+          } else {
+            self.dom.setAttribute(key, this.changedAttribute[key])
+          }
         }
       }
     }
@@ -1601,7 +1600,7 @@
   }
   DomExe.prototype.rotate = function DMrotate (angle, x, y) {
     if (!this.attr.transform) { this.attr.transform = {} }
-    this.attr.transform.rotate = [angle % 360, x ? x : 0, y ? y : 0]
+    this.attr.transform.rotate = [angle % 360, x || 0, y || 0]
     // this.attr.transform.cx = x ? x : 0
     // this.attr.transform.cy = y ? y : 0
     this.changedAttribute.transform = true
@@ -1738,8 +1737,9 @@
     return this
   }
   DomExe.prototype.text = function DMtext (value) {
-    if (!arguments.length) { return this.dom.textContent }
-    this.dom.textContent = value
+    if (!arguments.length) { return this.attr.text }
+    this.attr['text'] = value
+    this.changedAttribute['text'] = value
     return this
   }
 
@@ -1844,7 +1844,6 @@
     this.config = config
     this.type = type || 'linear'
     this.mode = (!this.config.mode || this.config.mode === 'percent') ? 'percent' : 'absolute'
-    
   }
   CanvasGradients.prototype.exe = function GRAexe (ctx, BBox) {
     if (this.type === 'linear' && this.mode === 'percent') {
@@ -2145,8 +2144,8 @@
     self.BBox = {
       x: (translateX + x) * scaleX,
       y: (translateY + y) * scaleY,
-      width: (width ? width : 0) * scaleX,
-      height: (height ? height : 0) * scaleY
+      width: (width || 0) * scaleX,
+      height: (height || 0) * scaleY
     }
 
     if (transform && transform.rotate) {
@@ -2187,7 +2186,7 @@
   RenderText.prototype = new CanvasDom()
   RenderText.prototype.constructor = RenderText
   RenderText.prototype.text = function RTtext (value) {
-    this.textContent = value
+    this.attr.text = value
   }
   RenderText.prototype.updateBBox = function RTupdateBBox () {
     const self = this
@@ -2211,7 +2210,7 @@
     self.BBox = {
       x: (translateX + (self.attr.x) * scaleX),
       y: (translateY + (self.attr.y - height + 5) * scaleY),
-      width: this.ctx.measureText(this.textContent).width * scaleX,
+      width: this.ctx.measureText(this.attr.text).width * scaleX,
       height: height * scaleY
     }
 
@@ -2222,12 +2221,12 @@
     }
   }
   RenderText.prototype.execute = function RTexecute () {
-    if (this.textContent !== undefined && this.textContent !== null) {
+    if (this.attr.text !== undefined && this.attr.text !== null) {
       if (this.style.fillStyle) {
-        this.ctx.fillText(this.textContent, this.attr.x, this.attr.y)
+        this.ctx.fillText(this.attr.text, this.attr.x, this.attr.y)
       }
       if (this.style.strokeStyle) {
-        this.ctx.strokeText(this.textContent, this.attr.x, this.attr.y)
+        this.ctx.strokeText(this.attr.text, this.attr.x, this.attr.y)
       }
     }
   }
@@ -3590,8 +3589,8 @@
   }
 
   function RenderWebglCircleGroup (ctx, attr, style) {
-    this.ctx = ctx;
-    this.attr = style;
+    this.ctx = ctx
+    this.attr = style
   }
   function RenderWebglRects () {
   }
