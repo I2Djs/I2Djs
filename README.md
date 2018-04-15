@@ -53,6 +53,7 @@ Examples (SVG + Canvas + WebGL)
     <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathMorph.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/PathMorphAnimation.gif"></a></td>
     <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/solarSystem.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/solarAnimation.gif"></a></td>
     <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/distortion.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/distortion.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/radarAnimation.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/radarScanner.gif"></a></td>
   </tr>
 </table>
 
