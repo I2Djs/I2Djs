@@ -6,14 +6,15 @@
 <body style="height: 100%;background: black">
 	<div id="mySvg" style="height: 100%;width:100%">
 	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
-    <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+    <script type="text/javascript" src="../../src/colorMap.js"></script>
 	<script type="text/javascript" src="../../src/geometry.js"></script>
 	<script type="text/javascript" src="../../src/easing.js"></script>
     <script type="text/javascript" src="../../src/vDom.js"></script>
 	<script type="text/javascript" src="../../src/queue.js"></script>
     <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>-->
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
 
 	<script type="text/javascript">
 
@@ -77,6 +78,7 @@
             });
 
         i2d.queue.onRequestFrame(function(t){
+                    console.log(t)
                     var time = new Date()
                     group.rotate((((2 * Math.PI) / 60) * time.getSeconds() + ((2 * Math.PI) / 60000) * time.getMilliseconds())*(180/Math.PI), 100, 100)
                     moon.rotate((((2 * Math.PI) / 6) * time.getSeconds() + ((2 * Math.PI) / 6000) * time.getMilliseconds())*(180/Math.PI), 25,25)

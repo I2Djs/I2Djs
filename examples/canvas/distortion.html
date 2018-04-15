@@ -24,7 +24,13 @@
         var gridSize = parseInt(Math.sqrt(2000))
         
         for(var i=0; i< 2000; i++){
-            circlesGrid.push({id:i,x:(i%gridSize)*20,y:parseInt(i/gridSize)*20});
+            circlesGrid.push({
+                id:i,
+                x:(i%gridSize)*20,
+                ox:(i%gridSize)*20,
+                y:parseInt(i/gridSize)*20,
+                oy:parseInt(i/gridSize)*20
+            });
         }
         
     var circles = renderer_.createEls(circlesGrid,{

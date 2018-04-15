@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+	<div id="myCanvas" style="height: 100%;width:100%; background: black">
+	</div>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+     <!--<script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>-->
+	<script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
+
+	<script type="text/javascript">
+
+        var renderer = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false,onClear:function(ctx) {
+                        ctx.clearRect(renderer.dom.BBox.x-20, renderer.dom.BBox.y-20, renderer.dom.BBox.width+50, renderer.dom.BBox.height+50)        
+                    }, height: 1000, width: 1000});
+
+        
+
+        var g = renderer.createEl({
+            el:'group',
+            attr:{
+                transform:{
+                    translate:[300,300]
+                }
+            }
+        })
+
+        g.createEls([4,3,2,1],{
+                    el:'circle',
+                    attr:{
+                        r:function(d){return d*50},
+                        cx:0,
+                        cy:0
+                    },
+                    style:{
+                        strokeStyle:'red',
+                        shadowBlur:20,
+                        shadowColor:'yellow'
+                    },
+                    bbox: true
+                })
+        
+        var rad = g.createEl({
+                    el:'image',
+                    attr:{
+                        src:'../images/circularGrad.png', width:200, height:200, x:0, y:-200
+                    },
+                    bbox: true
+                })
+
+        
+        var currentAngle = 0;
+		var time;
+
+        i2d.queue.onRequestFrame(function (t) {
+                t = Date.now();
+                if (!time) {
+					currentAngle = 0;
+				} else {
+					currentAngle += (t - time) / 20;
+				}
+				currentAngle = currentAngle % 360;
+				time = t;
+                rad.setAttr('transform',{
+                    rotate:[currentAngle,0,0]
+                })
+        });
+
+	</script>
+
+</body>
+</html>

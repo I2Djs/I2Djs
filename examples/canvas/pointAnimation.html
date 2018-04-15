@@ -52,7 +52,7 @@
         joinRef = g.join(points,'rect',{
             action:{
                 enter: function(data){
-                    this.createEls(data,{
+                    this.createEls(data.rect,{
                         el:'rect',
                         attr:{
                             width:pointSize,
@@ -77,7 +77,7 @@
 
                 },
                 update: function(nodes){
-                    nodes.animateTo({
+                    nodes.rect.animateTo({
                         duration:1000,
                         ease:'easeInOutSin',
                         // loop:3,

@@ -7,6 +7,7 @@
     root.vDom = factory(geometry)
   }
 }(this, (geometry) => {
+  'use strict'
   const t2DGeometry = geometry('2D')
 
   function VDom () {}
@@ -65,8 +66,8 @@
       const rotate = d.attr.transform.rotate[0]
       const { BBox } = d.dom
       const cen = {
-        x:0,
-        y:0
+        x: d.attr.transform.rotate[1],
+        y: d.attr.transform.rotate[2]
       }
       // {
       //   x: (BBox.x + (BBox.width / 2) - hozMove) / scaleX,

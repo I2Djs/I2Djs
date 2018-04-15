@@ -8,7 +8,7 @@
 	<div id="mySvg" style="height: 100%;width:100%">
 	</div>
     
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
     <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
 	<script type="text/javascript" src="../../src/geometry.js"></script>
 	<script type="text/javascript" src="../../src/easing.js"></script>
@@ -16,35 +16,44 @@
 	<script type="text/javascript" src="../../src/queue.js"></script>
     <script type="text/javascript" src="../../src/chaining.js"></script>
     <script type="text/javascript" src="../../src/renderer.js"></script>-->
+    <script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/shaders.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
 
 	<script type="text/javascript">
 
-        var renderer_ = i2d.SVGLayer('#mySvg');
+        var renderer_ = i2d.SVGLayer('#mySvg',{});
 
         var data = [{id:1},{id:2},{id:3},{id:4}]
         var v_;
 
         function dataJoin(data){
 
-            v_ = renderer_.join(data,'circle',{
+            v_ = renderer_.join(data,'circle,text',{
                                             joinCond:function(d){ return d.id; },
                                             action:{
                                                 enter:function(data){
-                                                    this.createEls(data,{
-                                                                        el:'circle',
-                                                                        attr:{
-                                                                            cx:function(d){return d.id*40},
-                                                                            cy:function(d){return 100 },
-                                                                            r:10
-                                                                        },
-                                                                        style:{
-                                                                            fill:'#ff0000'
-                                                                        }
-                                                                    }).animateTo({
-                                                                        duration:1000,
-                                                                        attr:{ r:20 }
-                                                                    }); 
-                                                    this.createEls(data,{
+                                                    // this.createEls(data.circle,{
+                                                    //                     el:'circle',
+                                                    //                     attr:{
+                                                    //                         cx:function(d){return d.id*40},
+                                                    //                         cy:function(d){return 100 },
+                                                    //                         r:10
+                                                    //                     },
+                                                    //                     style:{
+                                                    //                         fill:'#ff0000'
+                                                    //                     }
+                                                    //                 }).animateTo({
+                                                    //                     duration:1000,
+                                                    //                     attr:{ r:20 }
+                                                    //                 }); 
+                                                    this.createEls(data.text,{
                                                                         el:'text',
                                                                         attr:{
                                                                             x:function(d){return d.id*40},
@@ -55,21 +64,20 @@
                                                                             'text-align':'middle'
                                                                         }
                                                                     }).text(function(d){
-                                                                        return d.id
-                                                                    }); 
+                                                                                return d.id
+                                                                            })
                                                 },
-                                                exit:function(oldNodes,oldData){
-                                                    // this.fetchEls('circle',oldData).remove();
-                                                    // this.fetchEls('text',oldData).remove();
+                                                exit:function(oldNodes){
+                                                    // oldNodes.circle.remove();
+                                                    oldNodes.text.remove();
                                                 },
-                                                update:function(nodes,data){
-                                                    this.fetchEls('circle',data)
-                                                        .animateTo({
-                                                            duration:1000,
-                                                            style:{
-                                                                fill:'#00ff00'
-                                                            }
-                                                        })
+                                                update:function(nodes){
+                                                    // nodes.circle.animateTo({
+                                                    //         duration:1000,
+                                                    //         style:{
+                                                    //             fill:'#00ff00'
+                                                    //         }
+                                                    //     })
                                                 }
                                             }
                                 });
@@ -89,7 +97,7 @@
 
 
         setTimeout(function(){
-            dataJoin([{id:1},{id:2},{id:3},{id:4},{id:5},{id:6},{id:7},{id:8}])
+            dataJoin([{id:1},{id:2},{id:5},{id:6},{id:7},{id:8}])
         },4000)
         
 	</script>

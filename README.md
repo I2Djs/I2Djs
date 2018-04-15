@@ -4,8 +4,9 @@
 
 # Integrated-2D js [![npm](https://img.shields.io/npm/v/i2djs.svg)](https://www.npmjs.com/package/i2djs) [![Downloads](https://img.shields.io/npm/dm/i2djs.svg)](https://www.npmjs.com/package/i2djs)
 
+### I2dJs (SVG + Canvas + WebGL)
 
-Integrated-2D is a Javascript framework, for rendering 2D graphics on SVG and Canvas contexts. It's simple syntax and semantics lets you combine the power of Vector graphics and Bitmap to achieve complex visualisations easily.
+Integrated-2D is a Javascript framework, for rendering 2D graphics on SVG, Canvas and WebGL contexts. It's simple syntax and semantics lets you combine the power of Vector graphics and Bitmap to achieve complex visualisations easily.
 
 For efficient rendering I2D creates elements called mini Virtual Doms, virtual representation of render trees.
 
@@ -13,15 +14,16 @@ For efficient rendering I2D creates elements called mini Virtual Doms, virtual r
 
 Download source code from below links
 
-* [i2D.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.js) 
 * [i2D.min.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.min.js)
+* [i2D.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.js) 
+* [i2D.esm.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.esm.js)
 
 ### npm Installation
 ```
 npm install i2djs --save
 ```
 
-Examples (SVG + Canvas)
+Examples (SVG + Canvas + WebGL)
 ---
 
 ### Basic Shapes
@@ -64,11 +66,7 @@ Examples (SVG + Canvas)
 </table>
 
 ### To Begin
-Lets create a container in which SVG layer will be rendered. SVG viewport will be set as per container dimension
-#### Container
-```html
-<div id="container"> </div>
-```
+
 #### Create Layer
 Below specified methods are to create the respective Canvas/SVG layers. It accepts container ID as an input, gives renderer instance as an output.
 Multiple SVG/Canvas can be defined. Each layer represents corresponding Dom element - SVG for SVGlayer, Canvas for Canvas layer.

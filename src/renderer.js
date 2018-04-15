@@ -1,25 +1,24 @@
 (function renderer (root, factory) {
   if (typeof module === 'object' && module.exports) {
-    module.exports = factory(require('./geometry.js'), require('./queue.js'), require('./easing.js'), require('./chaining.js'), require('./vDom.js'), require('./colorMap.js'), require('./path.js'))
+    module.exports = factory(require('./geometry.js'), require('./queue.js'), require('./easing.js'), require('./chaining.js'), require('./vDom.js'), require('./colorMap.js'), require('./path.js'), require('./shaders.js'))
   } else if (typeof define === 'function' && define.amd) {
-    define('i2d', ['./geometry.js', './queue.js', './easing.js', './chaining.js', './vDom.js', './colorMap.js', './path.js'], (geometry, queue, easing, chain, vDom, colorMap, path) => factory(geometry, queue, easing, chain, vDom, colorMap, path))
+    define('i2d', ['./geometry.js', './queue.js', './easing.js', './chaining.js', './vDom.js', './colorMap.js', './path.js', './shaders.js'], (geometry, queue, easing, chain, vDom, colorMap, path, shaders) => factory(geometry, queue, easing, chain, vDom, colorMap, path, shaders))
   } else {
     root.i2d = factory(root.geometry, root.queue, root.easing, root.chain, root.vDom, root.colorMap, root.path)
   }
-}(this, (geometry, queue, easing, chain, VDom, colorMap, path) => {
-
+}(this, (geometry, queue, easing, chain, VDom, colorMap, path, shaders) => {
+  'use strict'
   const t2DGeometry = geometry('2D')
   const easying = easing()
   const queueInstance = queue()
   let Id = 0
-  let animeIdentifier = 1
+  let animeIdentifier = 0
   let ratio
 
   function domId () {
     Id += 1
     return Id
   }
-
   function animeId () {
     animeIdentifier += 1
     return animeIdentifier
@@ -296,34 +295,6 @@
     this[eventType] = hndlr
   }
 
-  function rotateBBox (BBox, rotateAngle) {
-    // let angle
-    let point1 = { x: BBox.x, y: BBox.y }
-    let point2 = { x: BBox.x + BBox.width, y: BBox.y }
-    let point3 = { x: BBox.x, y: BBox.y + BBox.height }
-    let point4 = { x: BBox.x + BBox.width, y: BBox.y + BBox.height }
-
-    const cen = {x: 0, y: 0}
-    // { x: BBox.x + BBox.width / 2, y: BBox.y + BBox.height / 2 }
-    // {x: 0, y: 0}
-    // { x: BBox.x + BBox.width / 2, y: BBox.y + BBox.height / 2 }
-    // const dis = t2DGeometry.getDistance(point1, cen)
-
-    point1 = t2DGeometry.rotatePoint(point1, cen, rotateAngle, t2DGeometry.getDistance(point1, cen))
-    point2 = t2DGeometry.rotatePoint(point2, cen, rotateAngle, t2DGeometry.getDistance(point2, cen))
-    point3 = t2DGeometry.rotatePoint(point3, cen, rotateAngle, t2DGeometry.getDistance(point3, cen))
-    point4 = t2DGeometry.rotatePoint(point4, cen, rotateAngle, t2DGeometry.getDistance(point4, cen))
-
-    const xVec = [point1.x, point2.x, point3.x, point4.x].sort((bb, aa) => bb - aa)
-    const yVec = [point1.y, point2.y, point3.y, point4.y].sort((bb, aa) => bb - aa)
-    return {
-      x: xVec[0],
-      y: yVec[0],
-      width: xVec[3] - xVec[0],
-      height: yVec[3] - yVec[0]
-    }
-  }
-
   function performJoin (data, nodes, cond) {
     const dataIds = data.map(cond)
     const res = {
@@ -402,6 +373,11 @@
         })
         this.action.exit.call(this, nodes)
       }
+      for (let i = 0, len = data.length; i < len; i++) {
+        if (this.data.indexOf(data[i])) {
+          this.data.splice(this.data.indexOf(data[i]), 1)
+        }
+      }
     },
     enumerable: false,
     configurable: true,
@@ -439,14 +415,14 @@
       }
     }
     if (!joinCond) { joinCond = function (d, i) { return i } }
-
-    selectors.forEach(function (d, i) {
+    for (let i = 0, len = selectors.length; i < len; i++) {
+      let d = selectors[i]
       const nodes = self.fetchEls(d)
       const join = performJoin(data, nodes.stack, joinCond)
       joinResult.new[d] = join.new
       joinResult.update[d] = (new CreateElements()).wrapper(join.update)
       joinResult.old[d] = (new CreateElements()).wrapper(join.old)
-    })
+    }
 
     // const joinResult = performJoin(data, nodes.stack, joinCond)
 
@@ -455,7 +431,7 @@
         config.action.enter.call(self, joinResult.new)
       }
       if (config.action.exit) {
-        // const collection = new CreateElements() 
+        // const collection = new CreateElements()
         // collection.wrapper(joinResult.old)
         // config.action.exit.call(self, collection, joinResult.old.map(d => d.dataObj))
         config.action.exit.call(self, joinResult.old)
@@ -492,13 +468,8 @@
     return Object.create(self, CompositeArray)
   }
 
-  function generateStackId () {
-    Id += 1
-    return Id
-  }
-
   const animate = function animate (self, targetConfig) {
-    const callerExe = self
+    // const callerExe = self
     const tattr = targetConfig.attr ? targetConfig.attr : {}
     const tstyles = targetConfig.style ? targetConfig.style : {}
     const runStack = []
@@ -507,27 +478,27 @@
 
     const attrs = tattr ? Object.keys(tattr) : []
 
-    for (let i = 0; i < attrs.length; i += 1) {
+    for (let i = 0, len = attrs.length; i < len; i += 1) {
       key = attrs[i]
       if (key !== 'transform') {
         if (key === 'd') {
-          callerExe.morphTo(targetConfig)
+          self.morphTo(targetConfig)
         } else {
-          runStack[runStack.length] = attrTransition(callerExe, key, tattr[key])
+          runStack[runStack.length] = attrTransition(self, key, tattr[key])
         }
       } else {
         value = tattr[key]
         if (typeof value === 'function') {
-          runStack[runStack.length] = transitionSetAttr(callerExe, key, value)
+          runStack[runStack.length] = transitionSetAttr(self, key, value)
         } else {
-          const trans = callerExe.attr.transform
+          const trans = self.attr.transform
           if (!trans) {
-            callerExe.attr.transform = {}
+            self.attr.transform = {}
           }
           const subTrnsKeys = Object.keys(tattr.transform)
-          for (let j = 0; j < subTrnsKeys.length; j += 1) {
+          for (let j = 0, jLen = subTrnsKeys.length; j < jLen; j += 1) {
             runStack[runStack.length] = transformTransition(
-              callerExe,
+              self,
               subTrnsKeys[j],
               tattr.transform[subTrnsKeys[j]]
             )
@@ -537,13 +508,13 @@
     }
 
     const styles = tstyles ? Object.keys(tstyles) : []
-    for (let i = 0; i < styles.length; i += 1) {
+    for (let i = 0, len = styles.length; i < len; i += 1) {
       runStack[runStack.length] = styleTransition(self, styles[i], tstyles[styles[i]])
     }
 
     return {
       run (f) {
-        for (let j = 0; j < runStack.length; j += 1) {
+        for (let j = 0, len = runStack.length; j < len; j += 1) {
           runStack[j](f)
         }
       },
@@ -593,14 +564,15 @@
   }
 
   let attrTransition = function attrTransition (self, key, value) {
+    let srcVal = self.attr[key]
     if (typeof value === 'function') {
       return function setAttr_ (f) {
         self.setAttr(key, value.call(self, f))
       }
     }
-    const exe = t2DGeometry.intermediateValue.bind(null, self.attr[key], value)
+    // const exe = t2DGeometry.intermediateValue.bind(null, srcVal, value)
     return function setAttr_ (f) {
-      self.setAttr(key, exe(f))
+      self.setAttr(key, t2DGeometry.intermediateValue(srcVal, value, f))
     }
   }
 
@@ -745,14 +717,10 @@
     const direction = targetConfig.direction ? targetConfig.direction : 'default'
     const destD = targetConfig.attr.d ? targetConfig.attr.d : self.attr.d
 
-    let srcPath = (i2d.Path(self.attr.d)).stackGroup
-    let destPath = (i2d.Path(destD)).stackGroup
+    let srcPath = path.isTypePath(self.attr.d) ? self.attr.d.stackGroup : (i2d.Path(self.attr.d)).stackGroup
+    let destPath = path.isTypePath(destD) ? destD.stackGroup : (i2d.Path(destD)).stackGroup
 
-    const chainInstance = chain.parallelChain()
-      .ease(ease)
-      .duration(duration)
-      .loop(loop)
-      .direction(direction)
+    const chainInstance = []
 
     self.arrayStack = []
 
@@ -782,9 +750,6 @@
       }
     }
 
-    chainInstance.duration(duration)
-      .commit()
-
     function toCubicCurves (stack) {
       if (!stack.length) { return }
       const _ = stack
@@ -813,29 +778,24 @@
     }
 
     function buildMTransitionobj (src, dest) {
-      chainInstance.add({
-        run (f) {
+      chainInstance.push({
+        run (path, f) {
           const point = this.pointTansition(f)
-          self.arrayStack[this.id] = `M${point.x},${point.y}`
-          self.setAttr('d', self.arrayStack.join(''))
+          path.m(true, {x: point.x, y: point.y})
         },
-        id: generateStackId(),
         pointTansition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.p0, dest.p0)
       })
     }
 
     function buildTransitionObj (src, dest) {
-      chainInstance.add({
-        run (f) {
+      chainInstance.push({
+        run (path, f) {
           const t = this
           const c1 = t.ctrl1Transition(f)
           const c2 = t.ctrl2Transition(f)
           const p1 = t.destTransition(f)
-
-          self.arrayStack[this.id] = ` C${c1.x},${c1.y} ${c2.x},${c2.y} ${p1.x},${p1.y}`
-          self.setAttr('d', self.arrayStack.join(''))
+          path.c(true, {x: c1.x, y: c1.y}, {x: c2.x, y: c2.y}, {x: p1.x, y: p1.y})
         },
-        id: generateStackId(),
         srcTransition: t2DGeometry.linearTransitionBetweenPoints.bind(
           null,
           src.p0,
@@ -1179,6 +1139,19 @@
         } else { buildTransitionObj(sCmd, dCmd) }
       }
     }
+
+    queueInstance.add(animeId(), {
+      run (f) {
+        let ppath = i2d.Path()
+        for (let i = 0, len = chainInstance.length; i < len; i++) {
+          chainInstance[i].run(ppath, f)
+        }
+        self.setAttr('d', self instanceof DomExe ? ppath.fetchPathString() : ppath)
+      },
+      duration: duration,
+      loop: loop,
+      direction: direction
+    }, easying(ease))
   }
 
   const animatePathTo = function animatePathTo (targetConfig) {
@@ -1318,7 +1291,7 @@
       y: (c1.y + ((c2.y - c1.y)) * f)
     }
     this.cntrl1 = c1Temp
-    this.cntrl2 = {x: c1Temp.x + ((c2Temp.x - c1Temp.x)) * f, y: c1Temp.y + ((c2Temp.y - c1Temp.y)) * f}
+    this.cntrl2 = {x: c1Temp.x + (c2Temp.x - c1Temp.x) * f, y: c1Temp.y + ((c2Temp.y - c1Temp.y)) * f}
     this.p1 = {x: co.ax * t2DGeometry.pow(f, 3) + co.bx * t2DGeometry.pow(f, 2) + co.cx * f + p0.x,
       y: co.ay * t2DGeometry.pow(f, 3) + co.by * t2DGeometry.pow(f, 2) + co.cy * f + p0.y
     }
@@ -1515,7 +1488,7 @@
     this.styleChanged = true
     this.children = []
     this.vDomIndex = vDomIndex
-    queueInstance.vDomChanged(this.vDomIndex)
+    // queueInstance.vDomChanged(this.vDomIndex)
   }
   DomExe.prototype.node = function node () {
     this.execute()
@@ -1526,17 +1499,21 @@
     transforms,
     trnX
   DomExe.prototype.transFormAttributes = function transFormAttributes () {
-    let NS
     const self = this
 
     attrs = Object.keys(self.changedAttribute)
-    for (let i = 0; i < attrs.length; i += 1) {
-      if (attrs[i] !== 'transform') {
-        if (attrs[i].indexOf(':') !== -1) {
-          NS = attrs[i].split(':')
-          self.dom.setAttributeNS(nameSpace[NS[0]], attrs[i], this.changedAttribute[attrs[i]])
+    for (let i = 0, len = attrs.length; i < len; i += 1) {
+      let key = attrs[i]
+      if (key !== 'transform') {
+        let ind = key.indexOf(':')
+        if (ind >= 0) {
+          self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), this.changedAttribute[key])
         } else {
-          self.dom.setAttribute(attrs[i], this.changedAttribute[attrs[i]])
+          if (key === 'text') {
+            self.dom.textContent = this.changedAttribute[key]
+          } else {
+            self.dom.setAttribute(key, this.changedAttribute[key])
+          }
         }
       }
     }
@@ -1552,11 +1529,7 @@
           //   this.attr.transform[trnX][1] = boundingBox.x + boundingBox.width / 2
           //   this.attr.transform[trnX][2] = boundingBox.y + boundingBox.height / 2
           // }
-          cmd += `${trnX}(${this.attr.transform[trnX].join(' ')}) `
-        } else if (trnX === 'translate') {
-          cmd += `translate(${this.attr.transform[trnX].join(' ')}) `
-        } else if (trnX === 'scale') {
-          cmd += `${trnX}(${this.attr.transform[trnX].join(' ')}) `
+          cmd += `${trnX}(${this.attr.transform.rotate[0] + ' ' + this.attr.transform.rotate[1] + ' ' + this.attr.transform.rotate[2]}) `
         } else {
           cmd += `${trnX}(${this.attr.transform[trnX].join(' ')}) `
         }
@@ -1568,11 +1541,12 @@
 
     styles = Object.keys(this.changedStyles)
 
-    for (let i = 0; i < styles.length; i += 1) {
+    for (let i = 0, len = styles.length; i < len; i += 1) {
       if (this.changedStyles[styles[i]] instanceof DomGradients) {
         this.changedStyles[styles[i]] = this.changedStyles[styles[i]].exe()
       }
-      this.dom.style[styles[i]] = this.changedStyles[styles[i]]
+      this.dom.style.setProperty(styles[i], this.changedStyles[styles[i]], '')
+      // this.dom.style[styles[i]] = this.changedStyles[styles[i]]
     }
 
     this.changedStyles = {}
@@ -1580,32 +1554,35 @@
   DomExe.prototype.scale = function DMscale (XY) {
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.scale = XY
-    if (this.changedAttribute.transform) {
-      this.changedAttribute.transform.scale = XY
-    } else {
-      this.changedAttribute.transform = {}
-      this.changedAttribute.transform.scale = XY
-    }
+    this.changedAttribute.transform = true
+    // if (this.changedAttribute.transform) {
+    //   this.changedAttribute.transform.scale = XY
+    // } else {
+    //   this.changedAttribute.transform = {}
+    //   this.changedAttribute.transform.scale = XY
+    // }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
   DomExe.prototype.skewX = function DMskewX (x) {
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.skewX = [x]
-    if (this.changedAttribute.transform) { this.changedAttribute.transform.skewX = [x] } else {
-      this.changedAttribute.transform = {}
-      this.changedAttribute.transform.skewX = [x]
-    }
+    this.changedAttribute.transform = true
+    // if (this.changedAttribute.transform) { this.changedAttribute.transform.skewX = [x] } else {
+    //   this.changedAttribute.transform = {}
+    //   this.changedAttribute.transform.skewX = [x]
+    // }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
   DomExe.prototype.skewY = function DMskewY (y) {
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.skewY = [y]
-    if (this.changedAttribute.transform) { this.changedAttribute.transform.skewY = [y] } else {
-      this.changedAttribute.transform = {}
-      this.changedAttribute.transform.skewY = [y]
-    }
+    this.changedAttribute.transform = true
+    // if (this.changedAttribute.transform) { this.changedAttribute.transform.skewY = [y] } else {
+    //   this.changedAttribute.transform = {}
+    //   this.changedAttribute.transform.skewY = [y]
+    // }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -1613,22 +1590,26 @@
   DomExe.prototype.translate = function DMtranslate (XY) {
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.translate = XY
-    if (this.changedAttribute.transform) { this.changedAttribute.transform.translate = XY } else {
-      this.changedAttribute.transform = {}
-      this.changedAttribute.transform.translate = XY
-    }
+    this.changedAttribute.transform = true
+    // if (this.changedAttribute.transform) { this.changedAttribute.transform.translate = XY } else {
+    //   this.changedAttribute.transform = {}
+    //   this.changedAttribute.transform.translate = XY
+    // }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
   DomExe.prototype.rotate = function DMrotate (angle, x, y) {
     if (!this.attr.transform) { this.attr.transform = {} }
-    this.attr.transform.rotate = [angle % 360, x ? x : 0, y ? y : 0]
-    if (this.changedAttribute.transform) {
-      this.changedAttribute.transform.rotate = this.attr.transform.rotate
-    } else {
-      this.changedAttribute.transform = {}
-      this.changedAttribute.transform.rotate = this.attr.transform.rotate
-    }
+    this.attr.transform.rotate = [angle % 360, x || 0, y || 0]
+    // this.attr.transform.cx = x ? x : 0
+    // this.attr.transform.cy = y ? y : 0
+    this.changedAttribute.transform = true
+    // if (this.changedAttribute.transform) {
+    //   this.changedAttribute.transform.rotate = this.attr.transform.rotate
+    // } else {
+    //   this.changedAttribute.transform = {}
+    //   this.changedAttribute.transform.rotate = this.attr.transform.rotate
+    // }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -1642,7 +1623,7 @@
     } else if (arguments.length === 1 && typeof attr === 'object') {
       const styleAttrs = Object.keys(attr)
 
-      for (let i = 0; i < styleAttrs.length; i += 1) {
+      for (let i = 0, len = styleAttrs.length; i < len; i += 1) {
         const key = styleAttrs[i]
         this.style[key] = attr[key]
         this.changedStyles[key] = attr[key]
@@ -1659,7 +1640,7 @@
       this.changedAttribute[attr] = value
     } else if (arguments.length === 1 && typeof attr === 'object') {
       const props = Object.keys(attr)
-      for (let i = 0; i < props.length; i += 1) {
+      for (let i = 0, len = props.length; i < len; i += 1) {
         const key = props[i]
         this.attr[key] = attr[key]
         this.changedAttribute[key] = attr[key]
@@ -1674,15 +1655,15 @@
     return this.attr[_]
   }
   DomExe.prototype.execute = function DMexecute () {
-    if ((!this.styleChanged && !this.attrChanged)) {
-      for (let i = 0; i < this.children.length; i += 1) {
+    if (!this.styleChanged && !this.attrChanged) {
+      for (let i = 0, len = this.children.length; i < len; i += 1) {
         this.children[i].execute()
       }
       return
     }
     this.transFormAttributes()
 
-    for (let i = 0; i < this.children.length; i += 1) {
+    for (let i = 0, len = this.children.length; i < len; i += 1) {
       this.children[i].execute()
     }
   }
@@ -1691,11 +1672,19 @@
     const self = this
     // if (parent.nodeName === 'g' || parent.nodeName === 'svg') {
     if (nodes instanceof CreateElements) {
-      nodes.stack.forEach((d) => {
-        parent.appendChild(d.dom)
-        d.parentNode = self
-      })
-      this.children = this.children.concat(nodes.stack)
+      var fragment = document.createDocumentFragment()
+      for (let i = 0, len = nodes.stack.length; i < len; i++) {
+        fragment.appendChild(nodes.stack[i].dom)
+        nodes.stack[i].parentNode = self
+        this.children[this.children.length] = nodes.stack[i]
+      }
+      parent.appendChild(fragment)
+      // console.log(this.children.length)
+      // nodes.stack.forEach((d) => {
+      //   parent.appendChild(d.dom)
+      //   d.parentNode = self
+      // })
+      // this.children = this.children.concat(nodes.stack)
     } else if (nodes instanceof DomExe) {
       parent.appendChild(nodes.dom)
       nodes.parentNode = self
@@ -1712,6 +1701,14 @@
   DomExe.prototype.animateExe = animateExe
   DomExe.prototype.animatePathTo = animatePathTo
   DomExe.prototype.morphTo = morphTo
+
+  DomExe.prototype.exec = function Cexe (exe) {
+    if (typeof exe !== 'function') {
+      console.Error('Wrong Exe type')
+    }
+    exe.call(this, this.dataObj)
+    return this
+  }
 
   DomExe.prototype.createRadialGradient = function DMcreateRadialGradient (config) {
     const gradientIns = new DomGradients(config, 'radial', this)
@@ -1740,14 +1737,14 @@
     return this
   }
   DomExe.prototype.text = function DMtext (value) {
-    if (!arguments.length) { return this.dom.textContent }
-    this.dom.textContent = value
+    if (!arguments.length) { return this.attr.text }
+    this.attr['text'] = value
+    this.changedAttribute['text'] = value
     return this
   }
 
   DomExe.prototype.remove = function DMremove () {
     this.parentNode.removeChild(this)
-    this.removed = true
   }
   DomExe.prototype.createEls = function DMcreateEls (data, config) {
     const e = new CreateElements({ type: 'SVG' }, data, config, this.vDomIndex)
@@ -1762,29 +1759,29 @@
     return e
   }
   DomExe.prototype.removeChild = function DMremoveChild (obj) {
-    let index = -1
-    // let removedNode
-
     const { children } = this
-    for (let i = 0; i < children.length; i += 1) {
-      if (obj === children[i]) {
-        index = i
-        this.dom.removeChild(children[i].dom)
-      }
+    const index = children.indexOf(obj)
+    if (index !== -1) {
+      this.dom.removeChild(children.splice(index, 1)[0].dom)
     }
-    if (index > -1) {
-      for (let i = index; i < children.length - 1; i += 1) {
-        children[i] = children[i + 1]
-      }
-      children.length -= 1
-    }
+    // for (let i = 0; i < children.length; i += 1) {
+    //   if (obj === children[i]) {
+    //     index = i
+    //     this.dom.removeChild(children[i].dom)
+    //   }
+    // }
+    // if (index > -1) {
+    //   for (let i = index; i < children.length - 1; i += 1) {
+    //     children[i] = children[i + 1]
+    //   }
+    //   children.length -= 1
+    // }
 
-    queueInstance.vDomChanged(this.vDomIndex)
+    // queueInstance.vDomChanged(this.vDomIndex)
   }
 
   function createDomElement (obj, vDomIndex) {
     let dom = null
-    // let node
 
     switch (obj.el) {
       case 'group':
@@ -1797,9 +1794,6 @@
 
     const node = new DomExe(dom, obj, domId(), vDomIndex)
     if (obj.dataObj) { dom.dataObj = obj.dataObj }
-    if (obj.style) { node.setStyle(obj.style) }
-    if (obj.attr) { node.setAttr(obj.attr) }
-
     return node
   }
 
@@ -1820,9 +1814,9 @@
 
       self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove)
       if (transform.rotate) {
-        self.ctx.translate(transform.cx, transform.cy)
+        self.ctx.translate(transform.rotate[1], transform.rotate[2])
         self.ctx.rotate(transform.rotate[0] * (Math.PI / 180))
-        self.ctx.translate(-(transform.cx), -(transform.cy))
+        self.ctx.translate(-transform.rotate[1], -transform.rotate[2])
       }
     }
     for (let i = 0; i < self.stack.length; i += 1) {
@@ -1849,12 +1843,21 @@
   function CanvasGradients (config, type) {
     this.config = config
     this.type = type || 'linear'
+    this.mode = (!this.config.mode || this.config.mode === 'percent') ? 'percent' : 'absolute'
   }
   CanvasGradients.prototype.exe = function GRAexe (ctx, BBox) {
-    if (this.type === 'linear') { return this.linearGradient(ctx, BBox) } else if (this.type === 'radial') { return this.radialGradient(ctx, BBox) }
+    if (this.type === 'linear' && this.mode === 'percent') {
+      return this.linearGradient(ctx, BBox)
+    } if (this.type === 'linear' && this.mode === 'absolute') {
+      return this.absoluteLinearGradient(ctx)
+    } else if (this.type === 'radial' && this.mode === 'percent') {
+      return this.radialGradient(ctx, BBox)
+    } else if (this.type === 'radial' && this.mode === 'absolute') {
+      return this.absoluteRadialGradient(ctx)
+    }
     console.Error('wrong Gradiant type')
   }
-  CanvasGradients.prototype.linearGradient = function GRAlinearGradient (ctx, BBox) {
+  CanvasGradients.prototype.linearGradient = function GralinearGradient (ctx, BBox) {
     const lGradient = ctx.createLinearGradient(
       BBox.x + BBox.width * (this.config.x1 / 100), BBox.y + BBox.height * (this.config.y1 / 100),
       BBox.x + BBox.width * (this.config.x2 / 100), BBox.y + BBox.height * (this.config.y2 / 100)
@@ -1862,6 +1865,19 @@
 
     this.config.colorStops.forEach((d) => {
       lGradient.addColorStop((d.value / 100), d.color)
+    })
+
+    return lGradient
+  }
+  CanvasGradients.prototype.absoluteLinearGradient = function absoluteGralinearGradient (ctx) {
+    console.log('called')
+    const lGradient = ctx.createLinearGradient(
+      this.config.x1, this.config.y1,
+      this.config.x2, this.config.y2
+    )
+
+    this.config.colorStops.forEach((d) => {
+      lGradient.addColorStop(d.value, d.color)
     })
 
     return lGradient
@@ -1876,6 +1892,22 @@
       BBox.y + BBox.height * (this.config.outerCircle.y / 100),
       BBox.width > BBox.height ? BBox.width * this.config.outerCircle.r / 100
         : BBox.height * this.config.outerCircle.r / 100
+    )
+
+    this.config.colorStops.forEach((d) => {
+      cGradient.addColorStop((d.value / 100), d.color)
+    })
+
+    return cGradient
+  }
+  CanvasGradients.prototype.absoluteRadialGradient = function absoluteGraradialGradient (ctx, BBox) {
+    const cGradient = ctx.createRadialGradient(
+      this.config.innerCircle.x,
+      this.config.innerCircle.y,
+      this.config.innerCircle.r,
+      this.config.outerCircle.x,
+      this.config.outerCircle.y,
+      this.config.outerCircle.r
     )
 
     this.config.colorStops.forEach((d) => {
@@ -1931,8 +1963,8 @@
     const canvas = document.createElement('canvas')
     canvas.setAttribute('height', height)
     canvas.setAttribute('width', width)
-    canvas.style.height = `${this.height}px`
-    canvas.style.width = `${this.width}px`
+    canvas.style.height = `${height}px`
+    canvas.style.width = `${width}px`
     return canvas
   }
 
@@ -1954,7 +1986,10 @@
     if (this.style.strokeStyle) { this.ctx.stroke() }
   }
 
-  function CanvasDom () { }
+  function CanvasDom () {
+    this.BBox = { x: 0, y: 0, width: 0, height: 0 }
+    this.BBoxHit = { x: 0, y: 0, width: 0, height: 0 }
+  }
   CanvasDom.prototype = {
     render: cRender,
     on: addListener,
@@ -2109,12 +2144,12 @@
     self.BBox = {
       x: (translateX + x) * scaleX,
       y: (translateY + y) * scaleY,
-      width: (width ? width : 0) * scaleX,
-      height: (height ? height : 0) * scaleY
+      width: (width || 0) * scaleX,
+      height: (height || 0) * scaleY
     }
 
     if (transform && transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, transform.rotate[0])
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform)
     } else {
       self.BBoxHit = this.BBox
     }
@@ -2151,7 +2186,7 @@
   RenderText.prototype = new CanvasDom()
   RenderText.prototype.constructor = RenderText
   RenderText.prototype.text = function RTtext (value) {
-    this.textContent = value
+    this.attr.text = value
   }
   RenderText.prototype.updateBBox = function RTupdateBBox () {
     const self = this
@@ -2175,23 +2210,23 @@
     self.BBox = {
       x: (translateX + (self.attr.x) * scaleX),
       y: (translateY + (self.attr.y - height + 5) * scaleY),
-      width: this.ctx.measureText(this.textContent).width * scaleX,
+      width: this.ctx.measureText(this.attr.text).width * scaleX,
       height: height * scaleY
     }
 
     if (transform && transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, transform.rotate[0])
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform)
     } else {
       self.BBoxHit = this.BBox
     }
   }
   RenderText.prototype.execute = function RTexecute () {
-    if (this.textContent !== undefined && this.textContent !== null) {
+    if (this.attr.text !== undefined && this.attr.text !== null) {
       if (this.style.fillStyle) {
-        this.ctx.fillText(this.textContent, this.attr.x, this.attr.y)
+        this.ctx.fillText(this.attr.text, this.attr.x, this.attr.y)
       }
       if (this.style.strokeStyle) {
-        this.ctx.strokeText(this.textContent, this.attr.x, this.attr.y)
+        this.ctx.strokeText(this.attr.text, this.attr.x, this.attr.y)
       }
     }
   }
@@ -2239,7 +2274,7 @@
     }
 
     if (transform && transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, transform.rotate[0])
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform)
     } else {
       self.BBoxHit = this.BBox
     }
@@ -2290,7 +2325,7 @@
     }
 
     if (transform && transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, transform.rotate[0])
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform)
     } else {
       self.BBoxHit = this.BBox
     }
@@ -2359,7 +2394,7 @@
     self.BBox.height *= scaleY
 
     if (transform && transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, transform.rotate[0])
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform)
     } else {
       self.BBoxHit = this.BBox
     }
@@ -2416,10 +2451,10 @@
     localPoints = localPoints.replace(/,/g, ' ').split(' ')
 
     polygon.moveTo(localPoints[0], localPoints[1])
-    points_.push({x:parseFloat(localPoints[0]),y:parseFloat(localPoints[1])})
+    points_.push({x: parseFloat(localPoints[0]), y: parseFloat(localPoints[1])})
     for (let i = 2; i < localPoints.length; i += 2) {
       polygon.lineTo(localPoints[i], localPoints[i + 1])
-      points_.push({x:parseFloat(localPoints[i]),y:parseFloat(localPoints[i+1])})
+      points_.push({x: parseFloat(localPoints[i]), y: parseFloat(localPoints[i + 1])})
     }
     polygon.closePath()
 
@@ -2493,7 +2528,7 @@
     }
 
     if (transform && transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, transform.rotate[0])
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform)
     } else {
       self.BBoxHit = this.BBox
     }
@@ -2553,7 +2588,7 @@
       height: self.attr.ry * 2 * scaleY
     }
     if (transform && transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, transform.rotate[0])
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform)
     } else {
       self.BBoxHit = this.BBox
     }
@@ -2625,7 +2660,7 @@
       height: self.attr.height * scaleY
     }
     if (transform && transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, transform.rotate[0])
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform)
     } else {
       self.BBoxHit = this.BBox
     }
@@ -2712,7 +2747,7 @@
     self.BBox.height = Math.abs(maxY - minY) * scaleY
 
     if (self.attr.transform && self.attr.transform.rotate) {
-      self.BBoxHit = rotateBBox(this.BBox, this.attr.transform.rotate[0])
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, this.attr.transform)
     } else {
       self.BBoxHit = this.BBox
     }
@@ -2767,6 +2802,7 @@
     this.children = []
     this.ctx = context
     this.vDomIndex = vDomIndex
+    this.bbox = config['bbox'] !== undefined ? config['bbox'] : true
 
     switch (config.el) {
       case 'circle':
@@ -2837,23 +2873,13 @@
   }
 
   CanvasNodeExe.prototype.remove = function Cremove () {
-    const self = this
-    let index
     const { children } = this.dom.parent
-    for (let i = 0; i < children.length; i += 1) {
-      if (self === children[i]) {
-        index = i
-      }
+    const index = children.indexOf(this)
+    if (index !== -1) {
+      children.splice(index, 1)
     }
-    if (index > -1) {
-      for (let i = index; i < children.length - 1; i += 1) {
-        children[i] = children[i + 1]
-      }
-      children.length -= 1
-    }
-    this.dom.parent.children = children
-    queueInstance.vDomChanged(this.vDomIndex)
     this.BBoxUpdate = true
+    queueInstance.vDomChanged(this.vDomIndex)
   }
 
   CanvasNodeExe.prototype.attributesExe = function CattributesExe () {
@@ -2880,7 +2906,7 @@
       this.dom.setAttr(attr, value)
     } else if (arguments.length === 1 && typeof attr === 'object') {
       const keys = Object.keys(attr)
-      for (let i = 0, len = keys.length; i < len; i += 1) {
+      for (let i = 0; i < keys.length; i += 1) {
         this.attr[keys[i]] = attr[keys[i]]
         this.dom.setAttr(keys[i], attr[keys[i]])
       }
@@ -2897,9 +2923,9 @@
   }
   CanvasNodeExe.prototype.rotate = function Crotate (angle, x, y) {
     if (!this.attr.transform) { this.attr.transform = {} }
-    this.attr.transform.rotate = angle
-    this.attr.transform.cx = x
-    this.attr.transform.cy = y
+    this.attr.transform.rotate = [angle, !x ? 0 : x, !y ? 0 : y]
+    // this.attr.transform.cx = x
+    // this.attr.transform.cy = y
     this.dom.setAttr('transform', this.attr.transform)
 
     this.BBoxUpdate = true
@@ -2962,7 +2988,7 @@
     const self = this
     const childrensLocal = childrens
     if (self.dom instanceof RenderGroup) {
-      for (let i = 0, len = childrensLocal.length; i < len; i += 1) {
+      for (let i = 0; i < childrensLocal.length; i += 1) {
         childrensLocal[i].dom.parent = self
         self.children[self.children.length] = childrensLocal[i]
       }
@@ -2978,21 +3004,33 @@
   CanvasNodeExe.prototype.updateBBox = function CupdateBBox () {
     let status
     for (let i = 0, len = this.children.length; i < len; i += 1) {
-      status = this.children[i].updateBBox() || status
+      if (this.bbox) {
+        status = this.children[i].updateBBox() || status
+      }
     }
-    if (this.BBoxUpdate || status) {
-      this.dom.updateBBox(this.children)
-      this.BBoxUpdate = false
-      return true
+    if (this.bbox) {
+      if (this.BBoxUpdate || status) {
+        this.dom.updateBBox(this.children)
+        this.BBoxUpdate = false
+        return true
+      }
     }
 
     return false
   }
+
   CanvasNodeExe.prototype.in = function Cinfun (co) {
     return this.dom.in(co)
   }
   CanvasNodeExe.prototype.on = function Con (eventType, hndlr) {
     this.dom.on(eventType, hndlr)
+    return this
+  }
+  CanvasNodeExe.prototype.exec = function Cexe (exe) {
+    if (typeof exe !== 'function') {
+      console.Error('Wrong Exe type')
+    }
+    exe.call(this, this.dataObj)
     return this
   }
   CanvasNodeExe.prototype.animateTo = animateTo
@@ -3042,18 +3080,27 @@
 
     const attrKeys = config ? (config.attr ? Object.keys(config.attr) : []) : []
     const styleKeys = config ? (config.style ? Object.keys(config.style) : []) : []
+    const bbox = config ? (config['bbox'] !== undefined ? config['bbox'] : true) : true
 
     this.stack = data.map((d, i) => {
       let node
 
-      if (contextInfo.type === 'CANVAS') {
-        node = new CanvasNodeExe(contextInfo.ctx, {
-          el: config.el
-        }, domId(), vDomIndex)
-      } else {
+      if (contextInfo.type === 'SVG') {
         node = createDomElement({
           el: config.el
         }, vDomIndex)
+      } else if (contextInfo.type === 'CANVAS') {
+        node = new CanvasNodeExe(contextInfo.ctx, {
+          el: config.el,
+          bbox: bbox
+        }, domId(), vDomIndex)
+      } else if (contextInfo.type === 'WEBGL') {
+        node = new WebglNodeExe(contextInfo.ctx, {
+          el: config.el,
+          bbox: bbox
+        }, domId(), vDomIndex)
+      } else {
+        console.log('unknow type')
       }
 
       for (let j = 0, len = attrKeys.length; j < len; j += 1) {
@@ -3112,13 +3159,15 @@
   CreateElements.prototype.wrapper = function wrapper (nodes) {
     const self = this
     if (nodes) {
-      nodes.forEach((node, i) => {
+      for (let i = 0, len = nodes.length; i < len; i++) {
+        let node = nodes[i]
         if (node instanceof DomExe ||
             node instanceof CanvasNodeExe ||
+            node instanceof WebglNodeExe ||
             node instanceof CreateElements) {
           self.stack.push(node)
         } else { self.stack.push(new DomExe(node, {}, domId())) }
-      })
+      }
     }
     return this
   }
@@ -3226,32 +3275,47 @@
     root.height = height
     root.width = width
     root.execute = function executeExe () {
-      if (!this.dom.BBoxHit) {
-        this.dom.BBoxHit = {
-          x: 0, y: 0, width: width * originalRatio, height: height * originalRatio
-        }
-      } else {
-        this.dom.BBoxHit.width = this.width * originalRatio
-        this.dom.BBoxHit.height = this.height * originalRatio
-      }
+      // if (!this.dom.BBoxHit) {
+      //   this.dom.BBoxHit = {
+      //     x: 0, y: 0, width: width * originalRatio, height: height * originalRatio
+      //   }
+      // } else {
+      //   this.dom.BBoxHit.width = this.width * originalRatio
+      //   this.dom.BBoxHit.height = this.height * originalRatio
+      // }
       onClear(ctx)
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
       root.updateBBox()
       execute()
     }
     root.resize = function () {
-      let width = this.container.clientWidth
-      let height = this.container.clientHeight
-      let newWidthRatio = (width / this.width)
-      let newHeightRatio = (height / this.height)
-      this.scale([newWidthRatio, newHeightRatio])
+      let width = config.width ? config.width : this.container.clientWidth
+      let height = config.height ? config.height : this.container.clientHeight
       this.domEl.setAttribute('height', height * originalRatio)
       this.domEl.setAttribute('width', width * originalRatio)
       this.domEl.style.height = `${height}px`
       this.domEl.style.width = `${width}px`
+      this.height = height
+      this.width = width
+      if (config.rescale) {
+        let newWidthRatio = (width / this.width)
+        let newHeightRatio = (height / this.height)
+        this.scale([newWidthRatio, newHeightRatio])
+      } else {
+        this.execute()
+      }
     }
 
+    function canvasResize () {
+      console.log('resize called')
+      root.resize()
+    }
+
+    window.addEventListener('resize', canvasResize)
+
     root.destroy = function () {
+      window.removeEventListener('resize', canvasResize)
+      layer.remove()
       queueInstance.removeVdom(vDomInstance)
     }
 
@@ -3276,8 +3340,6 @@
         } else {
           const tselectedNode = vDomInstance.eventsCheck([root], { x: e.offsetX, y: e.offsetY })
           if (selectedNode && tselectedNode !== selectedNode) {
-            // console.log('i am out')
-            // console.log(selectedNode.hovered)
             if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
               if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
               if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e) }
@@ -3290,7 +3352,6 @@
             }
           }
           if (selectedNode && tselectedNode === selectedNode) {
-            // console.log(selectedNode)
             if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
               let event = selectedNode.dom.drag.event
               if (selectedNode.dom.drag.event) {
@@ -3374,11 +3435,6 @@
       })
     }
 
-    if (config.resize) {
-      window.addEventListener('resize', function () {
-        root.resize()
-      })
-    }
     queueInstance.execute()
     return root
   }
@@ -3387,8 +3443,8 @@
     const vDomInstance = new VDom()
     const vDomIndex = queueInstance.addVdom(vDomInstance)
     const res = document.querySelector(context)
-    const height = res.clientHeight
-    const width = res.clientWidth
+    const height = config.height ? config.height : res.clientHeight
+    const width = config.width ? config.width : res.clientWidth
     const layer = document.createElementNS(nameSpace.svg, 'svg')
     layer.setAttribute('height', height)
     layer.setAttribute('width', width)
@@ -3403,25 +3459,284 @@
     vDomInstance.root(root)
 
     root.resize = function () {
-      let width = this.container.clientWidth
-      let height = this.container.clientHeight
+      let width = config.width ? config.width : this.container.clientWidth
+      let height = config.height ? config.height : this.container.clientHeight
       let newWidthRatio = (width / this.width)
       let newHeightRatio = (height / this.height)
-      this.scale([newWidthRatio, newHeightRatio])
+      if (config && config.rescale) {
+        this.scale([newWidthRatio, newHeightRatio])
+      }
       this.dom.setAttribute('height', height)
       this.dom.setAttribute('width', width)
+    }
+
+    function svgResize () {
+      console.log('resize called')
+      root.resize()
+    }
+
+    window.addEventListener('resize', svgResize)
+
+    root.destroy = function () {
+      window.removeEventListener('resize', svgResize)
+      layer.remove()
+      queueInstance.removeVdom(vDomInstance)
+    }
+
+    queueInstance.execute()
+    return root
+  }
+
+
+  function getShader (ctx, shaderSource, type) {
+    var shader
+    if (type === 'x-shader/x-fragment') {
+      shader = ctx.createShader(ctx.FRAGMENT_SHADER)
+    } else if (type === 'x-shader/x-vertex') {
+      shader = ctx.createShader(ctx.VERTEX_SHADER)
+    } else {
+      return null
+    }
+
+    ctx.shaderSource(shader, shaderSource)
+    ctx.compileShader(shader)
+
+    if (!ctx.getShaderParameter(shader, ctx.COMPILE_STATUS)) {
+      return null
+    }
+    return shader
+  }
+
+  function getProgram (ctx, shaderCode) {
+    // return webglUtils.createProgramFromSources(ctx, [shaderCode.vertexShader, shaderCode.fragmentShader])
+  }
+
+
+
+  // renderer.createEls(data, {
+  //   el: 'point',
+  //   attr: {
+  //     x: function (d) {
+  //       return d.x
+  //     },
+  //     y: function (d) {
+  //       return d.y
+  //     },
+  //     size: function (d) {
+  //       return d.size
+  //     }
+  //   },
+  //   style: {
+  //     fillStyle: function (d) {
+  //       return d.color
+  //     }
+  //   }
+  // })
+
+  function PointNode (x, y, fill) {
+    this.x = x
+    this.y = y
+    this.color = {
+      r: 255,
+      g: 0,
+      b: 0
+    }
+    // this.ctx = ctx
+    // this.attr = attr ? attr : {}
+    // this.style = style ? style : {}
+  }
+  // PointNode.prototype.setAttr = function(prop, value) {
+  //   this.attr[prop] = value
+  // }
+  // PointNode.prototype.setStyle = function(prop, value) {
+  //   this.attr[prop] = value
+  // }
+
+
+  function RenderWebglPoints (ctx, attr, style) {
+    this.ctx = ctx
+    this.colorArray = []
+    this.child = []
+    this.attr = attr || {}
+    this.style = style || {}
+    this.program = getProgram(ctx, shaders('point'))
+    this.colorBuffer = ctx.createBuffer()
+    this.positionBuffer = ctx.createBuffer()
+  }
+  RenderWebglPoints.prototype.createEl = function (conf) {
+    this.child.push(new PointNode(conf.attr.x, conf.attr.y, conf.style))
+  }
+  RenderWebglPoints.prototype.setAttr = function (prop, value) {
+    this.attr[prop] = value
+  }
+  RenderWebglPoints.prototype.execute = function () {
+    let positionArray = []
+    let colorArray = []
+    for (var i = 0, len = this.child.length; i < len; i++) {
+      positionArray[i * 2] = this.child[i].x
+      positionArray[i * 2 + 1] = this.child[i].y
+      colorArray[i * 3] = this.child[i].r
+      colorArray[i * 3 + 1] = this.child[i].g
+      colorArray[i * 3 + 2] = this.child[i].b
+    }
+
+    this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, this.colorBuffer)
+    this.ctx.bufferData(this.ctx.ARRAY_BUFFER, new Uint8Array(colorArray), this.ctx.STATIC_DRAW)
+
+    this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, this.positionBuffer)
+    this.ctx.bufferSubData(this.ctx.ARRAY_BUFFER, 0, new Float32Array(positionArray))
+    this.ctx.drawArrays(this.ctx.POINTS, 0, positionArray.length / 2)
+  }
+
+  function RenderWebglCircleGroup (ctx, attr, style) {
+    this.ctx = ctx
+    this.attr = style
+  }
+  function RenderWebglRects () {
+  }
+  function RenderWebglLines () {
+  }
+  function RenderWebglGroup () {
+  }
+
+  function WebglNodeExe (ctx, config, id, vDomIndex) {
+    this.ctx = ctx
+    this.style = config.style ? config.style : {}
+    this.attr = config.attr ? config.attr : {}
+    this.id = id
+    this.nodeName = config.el
+    this.nodeType = 'WEBGL'
+    this.children = []
+    this.ctx = ctx
+    this.vDomIndex = vDomIndex
+
+    switch (config.el) {
+      case 'circles':
+        this.dom = new RenderWebglCircleGroup(this.ctx, this.attr, this.style)
+        break
+      case 'rects':
+        this.dom = new RenderWebglRectGroup(this.ctx, this.attr, this.style)
+        break
+      case 'points':
+        this.dom = new RenderWebglPoints(this.ctx, this.attr, this.style)
+        break
+      case 'lines':
+        this.dom = new RenderWebglPointGroup(this.ctx, this.attr, this.style)
+        break
+      default:
+        this.dom = null
+        break
+    }
+    this.dom.nodeExe = this
+  }
+
+  WebglNodeExe.prototype.execute = function Cexecute () {
+    this.stylesExe()
+    this.attributesExe()
+    if (this.dom instanceof RenderGroup) {
+      for (let i = 0, len = this.children.length; i < len; i += 1) {
+        this.children[i].execute()
+      }
+    }
+  }
+
+  WebglNodeExe.prototype.child = function child (childrens) {
+    const self = this
+    const childrensLocal = childrens
+    if (self.dom instanceof RenderGroup) {
+      for (let i = 0; i < childrensLocal.length; i += 1) {
+        childrensLocal[i].dom.parent = self
+        self.children[self.children.length] = childrensLocal[i]
+      }
+    } else { console.log('Error') }
+
+    this.BBoxUpdate = true
+    queueInstance.vDomChanged(this.vDomIndex)
+    return self
+  }
+  // WebglNodeExe.prototype.fetchEl = cfetchEl
+  // WebglNodeExe.prototype.fetchEls = cfetchEls
+  // WebglNodeExe.prototype.vDomIndex = null
+  // WebglNodeExe.prototype.join = dataJoin
+  WebglNodeExe.prototype.createEls = function CcreateEls (data, config) {
+    const e = new CreateElements({ type: 'WEBGL', ctx: this.dom.ctx }, data, config, this.vDomIndex)
+    this.child(e.stack)
+    queueInstance.vDomChanged(this.vDomIndex)
+    return e
+  }
+  WebglNodeExe.prototype.createEl = function CcreateEl (config) {
+    const e = new CanvasNodeExe(this.dom.ctx, config, domId(), this.vDomIndex)
+    this.child([e])
+    queueInstance.vDomChanged(this.vDomIndex)
+    return e
+  }
+  // WebglNodeExe.prototype.removeChild = function CremoveChild (obj) {
+  //   let index = -1
+  //   this.children.forEach((d, i) => {
+  //     if (d === obj) { index = i }
+  //   })
+  //   if (index !== -1) {
+  //     const removedNode = this.children.splice(index, 1)[0]
+  //     this.dom.removeChild(removedNode.dom)
+  //   }
+
+  //   queueInstance.vDomChanged(this.vDomIndex)
+  // }
+
+  i2d.webglLayer = function webGLLayer (context, config) {
+    const res = document.querySelector(context)
+    const height = config.height ? config.height : res.clientHeight
+    const width = config.width ? config.width : res.clientWidth
+    const layer = document.createElement('canvas')
+    const ctx = layer.getContext('webgl2')
+    const shaderSource = shaders('rect')
+
+    // var program = webglUtils.createProgramFromSources(ctx, [shaderSource.vertexShader, shaderSource.fragmentShader])
+
+    // var positionAttrLoc = ctx.getAttribLocation(program, "a_position")
+    // var colorAttrLoc = ctx.getAttribLocation(program, "a_color")
+    // var resolutionUniLoc = ctx.getUniformLocation(program, "u_resolution")
+
+    layer.setAttribute('height', height * ratio)
+    layer.setAttribute('width', width * ratio)
+    layer.style.height = `${height}px`
+    layer.style.width = `${width}px`
+    layer.style.position = 'absolute'
+
+    res.appendChild(layer)
+
+    const vDomInstance = new VDom()
+    const vDomIndex = queueInstance.addVdom(vDomInstance)
+
+    const root = new WebglNodeExe(ctx, {
+      el: 'group',
+      attr: {
+        id: 'rootNode'
+      }
+    }, domId(), vDomIndex)
+
+    const execute = root.execute.bind(root)
+    root.container = res
+    root.domEl = layer
+    root.height = height
+    root.width = width
+    root.execute = function executeExe () {
+      execute()
     }
 
     root.destroy = function () {
       queueInstance.removeVdom(vDomInstance)
     }
 
-    if (config && config.resize) {
+    root.type = 'CANVAS'
+
+    vDomInstance.root(root)
+
+    if (config.resize) {
       window.addEventListener('resize', function () {
         root.resize()
       })
     }
-
     queueInstance.execute()
     return root
   }

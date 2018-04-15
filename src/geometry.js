@@ -7,6 +7,7 @@
     root.geometry = factory()
   }
 }(this, () => {
+  'use strict'
   function geometry (context) {
     function cos (a) {
       return Math.cos(a)
@@ -499,6 +500,35 @@
       // return p
     }
 
+    function rotateBBox (BBox, transform) {
+      let point1 = { x: BBox.x, y: BBox.y }
+      let point2 = { x: BBox.x + BBox.width, y: BBox.y }
+      let point3 = { x: BBox.x, y: BBox.y + BBox.height }
+      let point4 = { x: BBox.x + BBox.width, y: BBox.y + BBox.height }
+      const {translate, rotate} = transform
+      const cen = {x: rotate[1], y: rotate[2]}
+      const rotateAngle = rotate[0]
+
+      if (translate && translate.length > 0) {
+        cen.x += translate[0]
+        cen.y += translate[1]
+      }
+
+      point1 = rotatePoint(point1, cen, rotateAngle, getDistance(point1, cen))
+      point2 = rotatePoint(point2, cen, rotateAngle, getDistance(point2, cen))
+      point3 = rotatePoint(point3, cen, rotateAngle, getDistance(point3, cen))
+      point4 = rotatePoint(point4, cen, rotateAngle, getDistance(point4, cen))
+
+      const xVec = [point1.x, point2.x, point3.x, point4.x].sort((bb, aa) => bb - aa)
+      const yVec = [point1.y, point2.y, point3.y, point4.y].sort((bb, aa) => bb - aa)
+      return {
+        x: xVec[0],
+        y: yVec[0],
+        width: xVec[3] - xVec[0],
+        height: yVec[3] - yVec[0]
+      }
+    }
+
     function T2dGeometry () {}
     T2dGeometry.prototype = {
       pow: pw,
@@ -516,7 +546,8 @@
       intermediateValue,
       getBBox,
       toCubicCurves,
-      rotatePoint
+      rotatePoint,
+      rotateBBox
     }
 
     function getGeometry () {

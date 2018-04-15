@@ -8,6 +8,7 @@
     i2d.path = factory(root.geometry)
   }
 }(this, (geometry) => {
+  'use strict'
   const t2DGeometry = geometry('2D')
 
   function pathParser (path) {

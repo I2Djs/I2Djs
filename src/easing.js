@@ -8,6 +8,7 @@
     i2d.easing = factory(root.geometry)
   }
 }(this, (geometry) => {
+  'use strict'
   const t2DGeometry = geometry('2D')
 
   function linear (starttime, duration) {
@@ -80,15 +81,15 @@
   //   t -= 1
   //   return t < 0.5 ? 8 * t2DGeometry.pow(t, 4) : 1 - 8 * t * t2DGeometry.pow(t, 3)
   // }
-  function cust (custEase) {
-    return function custExe (starttime, duration) {
-      return custEase(starttime / duration)
-    }
-  }
 
   function easing () {
     function fetchTransitionType (_) {
       let res
+      if (typeof _ === 'function') {
+        return function custExe (starttime, duration) {
+          return _(starttime / duration)
+        }
+      }
       switch (_) {
         case 'easeOutQuad':
           res = easeOutQuad
@@ -129,7 +130,7 @@
         default:
           res = linear
       }
-      if (typeof _ === 'function') { return cust(_) }
+      
       return res
     }
 
