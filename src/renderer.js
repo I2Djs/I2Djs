@@ -1600,7 +1600,11 @@
   }
   DomExe.prototype.rotate = function DMrotate (angle, x, y) {
     if (!this.attr.transform) { this.attr.transform = {} }
-    this.attr.transform.rotate = [angle % 360, x || 0, y || 0]
+    if (Object.prototype.toString.call(angle) === '[object Array]' && angle.length > 0) {
+      this.attr.transform.rotate = [angle[0] || 0, angle[1] || 0, angle[2] || 0]
+    } else {
+      this.attr.transform.rotate = [angle, x || 0, y || 0]
+    }
     // this.attr.transform.cx = x ? x : 0
     // this.attr.transform.cy = y ? y : 0
     this.changedAttribute.transform = true
@@ -2923,7 +2927,11 @@
   }
   CanvasNodeExe.prototype.rotate = function Crotate (angle, x, y) {
     if (!this.attr.transform) { this.attr.transform = {} }
-    this.attr.transform.rotate = [angle, !x ? 0 : x, !y ? 0 : y]
+    if (Object.prototype.toString.call(angle) === '[object Array]') {
+      this.attr.transform.rotate = [angle[0] || 0, angle[1] || 0, angle[2] || 0]
+    } else {
+      this.attr.transform.rotate = [angle, x || 0, y || 0]
+    }
     // this.attr.transform.cx = x
     // this.attr.transform.cy = y
     this.dom.setAttr('transform', this.attr.transform)
