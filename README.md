@@ -4,7 +4,7 @@
 
 # Integrated-2D js [![npm](https://img.shields.io/npm/v/i2djs.svg)](https://www.npmjs.com/package/i2djs) [![Downloads](https://img.shields.io/npm/dm/i2djs.svg)](https://www.npmjs.com/package/i2djs)
 
-### I2dJs (SVG + Canvas + WebGL)
+### I2dJs - SVG + Canvas + WebGL
 
 Integrated-2D is a Javascript framework, for rendering 2D graphics on SVG, Canvas and WebGL contexts. It's simple syntax and semantics lets you combine the power of Vector graphics and Bitmap to achieve complex visualisations easily.
 
@@ -74,7 +74,7 @@ Multiple SVG/Canvas can be defined. Each layer represents corresponding Dom elem
 
 | Canvas  | SVG |
 | ------------- | ------------- |
-| canvasRenderer = i2d.CanvasLayer('#containerId', ConfigObj)  | svgRenderer = i2d.SVGLayer('#containerId')  |
+| canvasRenderer = i2d.CanvasLayer('#containerId', ConfigObj)  | svgRenderer = i2d.SVGLayer('#containerId', ConfigObj)  |
 
 #### Create Shape
 Lets use renderer instance to create shapes, animate attributes.. etc.
