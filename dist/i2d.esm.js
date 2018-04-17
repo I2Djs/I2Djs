@@ -633,7 +633,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       var translate = transform.translate,
           rotate = transform.rotate;
 
-      var cen = { x: rotate[1], y: rotate[2] };
+      var cen = { x: rotate[1] || 0, y: rotate[2] || 0 };
       var rotateAngle = rotate[0];
 
       if (translate && translate.length > 0) {
@@ -3887,12 +3887,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       for (var _i6 = 0; _i6 < transforms.length; _i6 += 1) {
         trnX = transforms[_i6];
         if (trnX === 'rotate') {
-          // if (!this.attr.transform[trnX][1]) {
-          //   const boundingBox = this.dom.getBBox()
-          //   this.attr.transform[trnX][1] = boundingBox.x + boundingBox.width / 2
-          //   this.attr.transform[trnX][2] = boundingBox.y + boundingBox.height / 2
-          // }
-          cmd += trnX + '(' + (this.attr.transform.rotate[0] + ' ' + this.attr.transform.rotate[1] + ' ' + this.attr.transform.rotate[2]) + ') ';
+          cmd += trnX + '(' + (this.attr.transform.rotate[0] + ' ' + (this.attr.transform.rotate[1] || 0) + ' ' + (this.attr.transform.rotate[2] || 0)) + ') ';
         } else {
           cmd += trnX + '(' + this.attr.transform[trnX].join(' ') + ') ';
         }
@@ -4198,9 +4193,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove);
       if (transform.rotate) {
-        self.ctx.translate(transform.rotate[1], transform.rotate[2]);
+        self.ctx.translate(transform.rotate[1] || 0, transform.rotate[2] || 0);
         self.ctx.rotate(transform.rotate[0] * (Math.PI / 180));
-        self.ctx.translate(-transform.rotate[1], -transform.rotate[2]);
+        self.ctx.translate(-transform.rotate[1] || 0, -transform.rotate[2] || 0);
       }
     }
     for (var i = 0; i < self.stack.length; i += 1) {
