@@ -82,7 +82,7 @@ Multiple SVG/Canvas can be defined. Each layer represents corresponding Dom elem
 Lets use renderer instance to create shapes, animate attributes.. etc.
 
 ```javascript
-  layerRenderer.createEl({
+  var rect = layerRenderer.createEl({
                   el:'rect',
                   attr:{
                       //Attributes goes here
@@ -98,6 +98,26 @@ Lets use renderer instance to create shapes, animate attributes.. etc.
               })
 ```
 
+#### Animate Shape
+Attribute Animation can be performed easily using <b>animateTo</b> api
+
+```javascript
+rect.animateTo({
+               duration : 1000,
+               ease : 'easeInOutSin',
+               loop : 10,
+               direction : 'alternate'
+               attr : {
+                   width: 200
+               },
+               style : {
+                   opacity: 0
+               },
+               end: function(){
+                   this.remove();
+               }
+           })
+```
 
 Resources
 ---
