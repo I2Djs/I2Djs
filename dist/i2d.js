@@ -1178,7 +1178,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function chain 
     }
     if (self.sequenceQueue.length === self.currPos || self.currPos < 0) {
       if (self.endExe) { self.endExe() }
-      if (self.end) { self.triggerChild(self) }
+      // if (self.end) { self.triggerChild(self) }
 
       self.loopCounter += 1
       if (self.loopCounter < self.loopValue) {
@@ -1289,7 +1289,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function chain 
     if (this.currPos === this.group.length) {
       // Call child transition wen Entire parallelChain transition completes
       if (this.endExe) { this.triggerChild(this.endExe) }
-      if (this.end) { this.triggerChild(this.end) }
+      // if (this.end) { this.triggerChild(this.end) }
 
       self.loopCounter += 1
       if (self.loopCounter < self.loopValue) {
@@ -3388,7 +3388,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
           run (f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
             newPathInstance.stack[this.id] = this.render.execute(f)
-            self.setAttr('d', newPathInstance)
+            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance)
           },
           id: i,
           render: new LinearTransitionBetweenPoints(arrExe[i].p0, arrExe[0].p0, arrExe[i].segmentLength),
@@ -3400,7 +3400,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
           run (f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
             newPathInstance.stack[this.id] = this.render.execute(f)
-            self.setAttr('d', newPathInstance)
+            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance)
           },
           id: i,
           render: new LinearTransitionBetweenPoints(arrExe[i].p0, arrExe[i].p1, arrExe[i].length),
@@ -3412,7 +3412,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
           run (f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
             newPathInstance.stack[this.id] = this.render.execute(f)
-            self.setAttr('d', newPathInstance)
+            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance)
           },
           id: i,
           render: new BezierTransition(arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].p1, arrExe[i].length),
@@ -3425,7 +3425,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
           run (f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
             newPathInstance.stack[this.id] = this.render.execute(f)
-            self.setAttr('d', newPathInstance)
+            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance)
           },
           id: i,
           co,

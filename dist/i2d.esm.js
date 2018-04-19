@@ -1303,9 +1303,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       if (self.endExe) {
         self.endExe();
       }
-      if (self.end) {
-        self.triggerChild(self);
-      }
+      // if (self.end) { self.triggerChild(self) }
 
       self.loopCounter += 1;
       if (self.loopCounter < self.loopValue) {
@@ -1421,9 +1419,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       if (this.endExe) {
         this.triggerChild(this.endExe);
       }
-      if (this.end) {
-        this.triggerChild(this.end);
-      }
+      // if (this.end) { this.triggerChild(this.end) }
 
       self.loopCounter += 1;
       if (self.loopCounter < self.loopValue) {
@@ -3530,7 +3526,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           run: function run(f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id);
             newPathInstance.stack[this.id] = this.render.execute(f);
-            self.setAttr('d', newPathInstance);
+            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance);
           },
 
           id: i,
@@ -3543,7 +3539,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           run: function run(f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id);
             newPathInstance.stack[this.id] = this.render.execute(f);
-            self.setAttr('d', newPathInstance);
+            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance);
           },
 
           id: i,
@@ -3556,7 +3552,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           run: function run(f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id);
             newPathInstance.stack[this.id] = this.render.execute(f);
-            self.setAttr('d', newPathInstance);
+            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance);
           },
 
           id: i,
@@ -3570,7 +3566,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           run: function run(f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id);
             newPathInstance.stack[this.id] = this.render.execute(f);
-            self.setAttr('d', newPathInstance);
+            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance);
           },
 
           id: i,

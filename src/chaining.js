@@ -176,7 +176,7 @@
     }
     if (self.sequenceQueue.length === self.currPos || self.currPos < 0) {
       if (self.endExe) { self.endExe() }
-      if (self.end) { self.triggerChild(self) }
+      // if (self.end) { self.triggerChild(self) }
 
       self.loopCounter += 1
       if (self.loopCounter < self.loopValue) {
@@ -287,7 +287,7 @@
     if (this.currPos === this.group.length) {
       // Call child transition wen Entire parallelChain transition completes
       if (this.endExe) { this.triggerChild(this.endExe) }
-      if (this.end) { this.triggerChild(this.end) }
+      // if (this.end) { this.triggerChild(this.end) }
 
       self.loopCounter += 1
       if (self.loopCounter < self.loopValue) {

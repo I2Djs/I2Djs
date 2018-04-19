@@ -1180,7 +1180,7 @@
           run (f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
             newPathInstance.stack[this.id] = this.render.execute(f)
-            self.setAttr('d', newPathInstance)
+            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance)
           },
           id: i,
           render: new LinearTransitionBetweenPoints(arrExe[i].p0, arrExe[0].p0, arrExe[i].segmentLength),
@@ -1192,7 +1192,7 @@
           run (f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
             newPathInstance.stack[this.id] = this.render.execute(f)
-            self.setAttr('d', newPathInstance)
+            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance)
           },
           id: i,
           render: new LinearTransitionBetweenPoints(arrExe[i].p0, arrExe[i].p1, arrExe[i].length),
@@ -1204,7 +1204,7 @@
           run (f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
             newPathInstance.stack[this.id] = this.render.execute(f)
-            self.setAttr('d', newPathInstance)
+            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance)
           },
           id: i,
           render: new BezierTransition(arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].p1, arrExe[i].length),
@@ -1217,7 +1217,7 @@
           run (f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
             newPathInstance.stack[this.id] = this.render.execute(f)
-            self.setAttr('d', newPathInstance)
+            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance)
           },
           id: i,
           co,
