@@ -184,7 +184,7 @@
                 Performing Node join with actions. Returns Join handler.
             */
             var NodeJoinRef = circleG.join([],'circle',{
-                    joinCond: function(d){ return d.ip},
+                    joinOn: function(d){ return d.ip},
                     action: {
                         enter : function(data){
 

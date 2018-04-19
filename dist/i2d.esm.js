@@ -2732,28 +2732,28 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   function dataJoin(data, selector, config) {
     var self = this;
     var selectors = selector.split(',');
-    var joinCond = config.joinCond;
+    var joinOn = config.joinOn;
 
     var joinResult = {
       new: {},
       update: {},
       old: {}
     };
-    if (!joinCond) {
-      joinCond = function joinCond(d, i) {
+    if (!joinOn) {
+      joinOn = function joinOn(d, i) {
         return i;
       };
     }
     for (var i = 0, len = selectors.length; i < len; i++) {
       var d = selectors[i];
       var nodes = self.fetchEls(d);
-      var _join = performJoin(data, nodes.stack, joinCond);
+      var _join = performJoin(data, nodes.stack, joinOn);
       joinResult.new[d] = _join.new;
       joinResult.update[d] = new CreateElements().wrapper(_join.update);
       joinResult.old[d] = new CreateElements().wrapper(_join.old);
     }
 
-    // const joinResult = performJoin(data, nodes.stack, joinCond)
+    // const joinResult = performJoin(data, nodes.stack, joinOn)
 
     if (config.action) {
       if (config.action.enter) {
@@ -2772,7 +2772,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         config.action.update.call(self, joinResult.update);
       }
     }
-    // this.joinCond = joinCond
+    // this.joinOn = joinOn
     CompositeArray.action = {
       value: config.action,
       enumerable: false,
@@ -3914,7 +3914,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       this.attr.transform = {};
     }
     this.attr.transform.scale = XY;
-    this.changedAttribute.transform = true;
+    this.changedAttribute.transform = this.attr.transform;
     // if (this.changedAttribute.transform) {
     //   this.changedAttribute.transform.scale = XY
     // } else {
@@ -3929,7 +3929,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       this.attr.transform = {};
     }
     this.attr.transform.skewX = [x];
-    this.changedAttribute.transform = true;
+    this.changedAttribute.transform = this.attr.transform;
     // if (this.changedAttribute.transform) { this.changedAttribute.transform.skewX = [x] } else {
     //   this.changedAttribute.transform = {}
     //   this.changedAttribute.transform.skewX = [x]
@@ -3942,7 +3942,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       this.attr.transform = {};
     }
     this.attr.transform.skewY = [y];
-    this.changedAttribute.transform = true;
+    this.changedAttribute.transform = this.attr.transform;
     // if (this.changedAttribute.transform) { this.changedAttribute.transform.skewY = [y] } else {
     //   this.changedAttribute.transform = {}
     //   this.changedAttribute.transform.skewY = [y]
@@ -3956,7 +3956,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       this.attr.transform = {};
     }
     this.attr.transform.translate = XY;
-    this.changedAttribute.transform = true;
+    this.changedAttribute.transform = this.attr.transform;
     // if (this.changedAttribute.transform) { this.changedAttribute.transform.translate = XY } else {
     //   this.changedAttribute.transform = {}
     //   this.changedAttribute.transform.translate = XY
@@ -3975,7 +3975,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
     // this.attr.transform.cx = x ? x : 0
     // this.attr.transform.cy = y ? y : 0
-    this.changedAttribute.transform = true;
+    this.changedAttribute.transform = this.attr.transform;
     // if (this.changedAttribute.transform) {
     //   this.changedAttribute.transform.rotate = this.attr.transform.rotate
     // } else {
@@ -5680,7 +5680,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     return Object.create(dragObject);
   };
 
-  i2d.CanvasLayer = function CanvasLayer(context, config) {
+  i2d.CanvasLayer = function CanvasLayer(context) {
+    var config = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
     var originalRatio = void 0;
     var selectedNode = void 0;
     // const selectiveClearing = config.selectiveClear ? config.selectiveClear : false
@@ -5719,6 +5721,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     root.domEl = layer;
     root.height = height;
     root.width = width;
+    root.type = 'CANVAS';
     root.execute = function executeExe() {
       // if (!this.dom.BBoxHit) {
       //   this.dom.BBoxHit = {
@@ -5733,7 +5736,22 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       root.updateBBox();
       execute();
     };
-    root.resize = function () {
+
+    root.setAttr = function (prop, value) {
+      if (arguments.length === 2) {
+        config[prop] = value;
+      } else if (arguments.length === 1 && (typeof prop === 'undefined' ? 'undefined' : _typeof(prop)) === 'object') {
+        var props = Object.keys(prop);
+        for (var i = 0, len = props.length; i < len; i += 1) {
+          config[props[i]] = prop[props[i]];
+        }
+      }
+      renderVdom.call(this);
+    };
+
+    root.resize = renderVdom;
+
+    function renderVdom() {
       var width = config.width ? config.width : this.container.clientWidth;
       var height = config.height ? config.height : this.container.clientHeight;
       this.domEl.setAttribute('height', height * originalRatio);
@@ -5749,10 +5767,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       } else {
         this.execute();
       }
-    };
+    }
 
     function canvasResize() {
-      console.log('resize called');
       root.resize();
     }
 
@@ -5763,8 +5780,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       layer.remove();
       queueInstance.removeVdom(vDomInstance);
     };
-
-    root.type = 'CANVAS';
 
     vDomInstance.root(root);
 
@@ -5897,7 +5912,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     return root;
   };
 
-  i2d.SVGLayer = function SVGLayer(context, config) {
+  i2d.SVGLayer = function SVGLayer(context) {
+    var config = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
     var vDomInstance = new VDom();
     var vDomIndex = queueInstance.addVdom(vDomInstance);
     var res = document.querySelector(context);
@@ -5916,7 +5933,21 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     root.height = height;
     vDomInstance.root(root);
 
-    root.resize = function () {
+    // root.resize = renderVdom
+
+    root.setAttr = function (prop, value) {
+      if (arguments.length === 2) {
+        config[prop] = value;
+      } else if (arguments.length === 1 && (typeof prop === 'undefined' ? 'undefined' : _typeof(prop)) === 'object') {
+        var props = Object.keys(prop);
+        for (var i = 0, len = props.length; i < len; i += 1) {
+          config[props[i]] = prop[props[i]];
+        }
+      }
+      renderVdom.call(this);
+    };
+
+    function renderVdom() {
       var width = config.width ? config.width : this.container.clientWidth;
       var height = config.height ? config.height : this.container.clientHeight;
       var newWidthRatio = width / this.width;
@@ -5926,14 +5957,22 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       }
       this.dom.setAttribute('height', height);
       this.dom.setAttribute('width', width);
-    };
+    }
 
     function svgResize() {
-      console.log('resize called');
-      root.resize();
+      if (typeof config.resize === 'function') {
+        config.resize.call(root);
+      }
+      renderVdom.call(root);
     }
 
     window.addEventListener('resize', svgResize);
+
+    // function destroy () {
+    //   window.removeEventListener('resize', svgResize)
+    //   layer.remove()
+    //   queueInstance.removeVdom(vDomInstance)
+    // }
 
     root.destroy = function () {
       window.removeEventListener('resize', svgResize);

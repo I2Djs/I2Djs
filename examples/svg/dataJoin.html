@@ -36,48 +36,53 @@
         function dataJoin(data){
 
             v_ = renderer_.join(data,'circle,text',{
-                                            joinCond:function(d){ return d.id; },
+                                            joinOn:function(d){ return d.id; },
                                             action:{
                                                 enter:function(data){
-                                                    // this.createEls(data.circle,{
-                                                    //                     el:'circle',
-                                                    //                     attr:{
-                                                    //                         cx:function(d){return d.id*40},
-                                                    //                         cy:function(d){return 100 },
-                                                    //                         r:10
-                                                    //                     },
-                                                    //                     style:{
-                                                    //                         fill:'#ff0000'
-                                                    //                     }
-                                                    //                 }).animateTo({
-                                                    //                     duration:1000,
-                                                    //                     attr:{ r:20 }
-                                                    //                 }); 
+                                                    this.createEls(data.circle,{
+                                                                        el:'circle',
+                                                                        attr:{
+                                                                            cx:function(d){return d.id*40},
+                                                                            cy:function(d){return 100 },
+                                                                            r:10
+                                                                        },
+                                                                        style:{
+                                                                            fill:'#ff0000'
+                                                                        }
+                                                                    }).animateTo({
+                                                                        duration:1000,
+                                                                        attr:{ r:20 }
+                                                                    });
                                                     this.createEls(data.text,{
                                                                         el:'text',
                                                                         attr:{
-                                                                            x:function(d){return d.id*40},
-                                                                            y:function(d){return 130 }
+                                                                            x: function(d){return d.id*40},
+                                                                            y: function(d){return 130 },
+                                                                            text: function(d){
+                                                                                return d.id
+                                                                            }
                                                                         },
                                                                         style:{
                                                                             fill:'#ff0000',
                                                                             'text-align':'middle'
                                                                         }
-                                                                    }).text(function(d){
-                                                                                return d.id
-                                                                            })
+                                                                    })
                                                 },
                                                 exit:function(oldNodes){
-                                                    // oldNodes.circle.remove();
+                                                    oldNodes.circle.remove();
                                                     oldNodes.text.remove();
                                                 },
                                                 update:function(nodes){
-                                                    // nodes.circle.animateTo({
-                                                    //         duration:1000,
-                                                    //         style:{
-                                                    //             fill:'#00ff00'
-                                                    //         }
-                                                    //     })
+                                                    nodes.circle.animateTo({
+                                                            duration:1000,
+                                                            style:{
+                                                                fill:'#00ff00'
+                                                            }
+                                                        });
+                                                    nodes.text
+                                                        .text(function(d){
+                                                            return d.id
+                                                        })
                                                 }
                                             }
                                 });

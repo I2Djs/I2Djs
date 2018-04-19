@@ -2610,7 +2610,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   function dataJoin (data, selector, config) {
     const self = this
     const selectors = selector.split(',')
-    let { joinCond } = config
+    let { joinOn } = config
     let joinResult = {
       new: {
 
@@ -2622,17 +2622,17 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
 
       }
     }
-    if (!joinCond) { joinCond = function (d, i) { return i } }
+    if (!joinOn) { joinOn = function (d, i) { return i } }
     for (let i = 0, len = selectors.length; i < len; i++) {
       let d = selectors[i]
       const nodes = self.fetchEls(d)
-      const join = performJoin(data, nodes.stack, joinCond)
+      const join = performJoin(data, nodes.stack, joinOn)
       joinResult.new[d] = join.new
       joinResult.update[d] = (new CreateElements()).wrapper(join.update)
       joinResult.old[d] = (new CreateElements()).wrapper(join.old)
     }
 
-    // const joinResult = performJoin(data, nodes.stack, joinCond)
+    // const joinResult = performJoin(data, nodes.stack, joinOn)
 
     if (config.action) {
       if (config.action.enter) {
@@ -2651,7 +2651,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         config.action.update.call(self, joinResult.update)
       }
     }
-    // this.joinCond = joinCond
+    // this.joinOn = joinOn
     CompositeArray.action = {
       value: config.action,
       enumerable: false,
@@ -3732,7 +3732,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       for (let i = 0; i < transforms.length; i += 1) {
         trnX = transforms[i]
         if (trnX === 'rotate') {
-          cmd += `${trnX}(${this.attr.transform.rotate[0] + ' ' + (this.attr.transform.rotate[1] || 0 ) + ' ' + (this.attr.transform.rotate[2] || 0)}) `
+          cmd += `${trnX}(${this.attr.transform.rotate[0] + ' ' + (this.attr.transform.rotate[1] || 0) + ' ' + (this.attr.transform.rotate[2] || 0)}) `
         } else {
           cmd += `${trnX}(${this.attr.transform[trnX].join(' ')}) `
         }
@@ -3757,7 +3757,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   DomExe.prototype.scale = function DMscale (XY) {
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.scale = XY
-    this.changedAttribute.transform = true
+    this.changedAttribute.transform = this.attr.transform
     // if (this.changedAttribute.transform) {
     //   this.changedAttribute.transform.scale = XY
     // } else {
@@ -3770,7 +3770,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   DomExe.prototype.skewX = function DMskewX (x) {
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.skewX = [x]
-    this.changedAttribute.transform = true
+    this.changedAttribute.transform = this.attr.transform
     // if (this.changedAttribute.transform) { this.changedAttribute.transform.skewX = [x] } else {
     //   this.changedAttribute.transform = {}
     //   this.changedAttribute.transform.skewX = [x]
@@ -3781,7 +3781,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   DomExe.prototype.skewY = function DMskewY (y) {
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.skewY = [y]
-    this.changedAttribute.transform = true
+    this.changedAttribute.transform = this.attr.transform
     // if (this.changedAttribute.transform) { this.changedAttribute.transform.skewY = [y] } else {
     //   this.changedAttribute.transform = {}
     //   this.changedAttribute.transform.skewY = [y]
@@ -3793,7 +3793,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   DomExe.prototype.translate = function DMtranslate (XY) {
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.translate = XY
-    this.changedAttribute.transform = true
+    this.changedAttribute.transform = this.attr.transform
     // if (this.changedAttribute.transform) { this.changedAttribute.transform.translate = XY } else {
     //   this.changedAttribute.transform = {}
     //   this.changedAttribute.transform.translate = XY
@@ -3810,7 +3810,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     }
     // this.attr.transform.cx = x ? x : 0
     // this.attr.transform.cy = y ? y : 0
-    this.changedAttribute.transform = true
+    this.changedAttribute.transform = this.attr.transform
     // if (this.changedAttribute.transform) {
     //   this.changedAttribute.transform.rotate = this.attr.transform.rotate
     // } else {
@@ -5446,7 +5446,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return Object.create(dragObject)
   }
 
-  i2d.CanvasLayer = function CanvasLayer (context, config) {
+  i2d.CanvasLayer = function CanvasLayer (context, config = {}) {
     let originalRatio
     let selectedNode
     // const selectiveClearing = config.selectiveClear ? config.selectiveClear : false
@@ -5485,6 +5485,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     root.domEl = layer
     root.height = height
     root.width = width
+    root.type = 'CANVAS'
     root.execute = function executeExe () {
       // if (!this.dom.BBoxHit) {
       //   this.dom.BBoxHit = {
@@ -5499,7 +5500,22 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       root.updateBBox()
       execute()
     }
-    root.resize = function () {
+
+    root.setAttr = function (prop, value) {
+      if (arguments.length === 2) {
+        config[prop] = value
+      } else if (arguments.length === 1 && typeof prop === 'object') {
+        const props = Object.keys(prop)
+        for (let i = 0, len = props.length; i < len; i += 1) {
+          config[props[i]] = prop[props[i]]
+        }
+      }
+      renderVdom.call(this)
+    }
+
+    root.resize = renderVdom
+
+    function renderVdom () {
       let width = config.width ? config.width : this.container.clientWidth
       let height = config.height ? config.height : this.container.clientHeight
       this.domEl.setAttribute('height', height * originalRatio)
@@ -5518,7 +5534,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     }
 
     function canvasResize () {
-      console.log('resize called')
       root.resize()
     }
 
@@ -5529,8 +5544,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       layer.remove()
       queueInstance.removeVdom(vDomInstance)
     }
-
-    root.type = 'CANVAS'
 
     vDomInstance.root(root)
 
@@ -5650,7 +5663,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return root
   }
 
-  i2d.SVGLayer = function SVGLayer (context, config) {
+  i2d.SVGLayer = function SVGLayer (context, config = {}) {
     const vDomInstance = new VDom()
     const vDomIndex = queueInstance.addVdom(vDomInstance)
     const res = document.querySelector(context)
@@ -5669,7 +5682,21 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     root.height = height
     vDomInstance.root(root)
 
-    root.resize = function () {
+    // root.resize = renderVdom
+
+    root.setAttr = function (prop, value) {
+      if (arguments.length === 2) {
+        config[prop] = value
+      } else if (arguments.length === 1 && typeof prop === 'object') {
+        const props = Object.keys(prop)
+        for (let i = 0, len = props.length; i < len; i += 1) {
+          config[props[i]] = prop[props[i]]
+        }
+      }
+      renderVdom.call(this)
+    }
+
+    function renderVdom () {
       let width = config.width ? config.width : this.container.clientWidth
       let height = config.height ? config.height : this.container.clientHeight
       let newWidthRatio = (width / this.width)
@@ -5682,11 +5709,19 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     }
 
     function svgResize () {
-      console.log('resize called')
-      root.resize()
+      if (typeof config.resize === 'function') {
+        config.resize.call(root)
+      }
+      renderVdom.call(root)
     }
 
     window.addEventListener('resize', svgResize)
+
+    // function destroy () {
+    //   window.removeEventListener('resize', svgResize)
+    //   layer.remove()
+    //   queueInstance.removeVdom(vDomInstance)
+    // }
 
     root.destroy = function () {
       window.removeEventListener('resize', svgResize)
