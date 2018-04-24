@@ -44,9 +44,7 @@
 
         var g = renderer.createEl({
             el:'group',
-            // style:{
-            //     fillStyle:'red'
-            // }
+            bbox: false
         })
 
         joinRef = g.join(points,'rect',{
@@ -89,26 +87,7 @@
                     })
                 }
             }
-            
         })
-
-        // g.createEls(points,{
-        //     el:'rect',
-        //     attr:{
-        //         width:pointSize,
-        //         height:pointSize,
-        //         x:width/2,
-        //         y:height/2
-        //     }
-        //     // ,
-        //     // style:{
-        //     //     fillStyle:'red'
-        //     // }
-        // })
-
-
-
-
 
         function phyllotaxisLayout(points, pointSize, xOffset = 0, yOffset = 0, iOffset = 0) {
             // theta determines the spiral of the layout

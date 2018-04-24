@@ -2582,7 +2582,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         this.action.exit.call(this, nodes)
       }
       for (let i = 0, len = data.length; i < len; i++) {
-        if (this.data.indexOf(data[i])) {
+        if (this.data.indexOf(data[i]) !== -1) {
           this.data.splice(this.data.indexOf(data[i]), 1)
         }
       }
@@ -2801,6 +2801,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
           self.setStyle(key, colorExe(f))
         }
       }
+      // else {
+      //   value = colorMap.nameToHex(value)
+      // }
       srcValue = srcValue.match(/(\d+)/g)
       destValue = value.match(/(\d+)/g)
       destUnit = value.match(/\D+$/)
