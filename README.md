@@ -71,8 +71,8 @@ Examples (SVG + Canvas + WebGL)
 ### To Begin
 
 #### Create Layer
-Below specified methods are to create the respective Canvas/SVG layers. It accepts container ID as an input, gives renderer instance as an output.
-Multiple SVG/Canvas can be defined. Each layer represents corresponding Dom element - SVG for SVGlayer, Canvas for Canvas layer.
+Below specified methods are to create the respective Canvas/SVG/WebGl layers. It accepts container ID as an input, gives renderer instance as an output.
+Multiple SVG/Canvas/WebGl layers can be defined. Each layer represents corresponding Dom element - SVG for SVGlayer, Canvas for Canvas/Webgl layer.
 
 | Canvas  | SVG |  WebGl |
 | ------------- | ------------- | ------------- |
@@ -80,6 +80,10 @@ Multiple SVG/Canvas can be defined. Each layer represents corresponding Dom elem
 
 #### Create Shape
 Lets use renderer instance to create shapes, animate attributes.. etc.
+
+** Incase of Webgl **
+   First Define Shader, using 'shaderEl', then create corresponding Elements.
+   For example: only 'Point' Elements can be created under 'Points' shader.
 
 ```javascript
   var rect = layerRenderer.createEl({
