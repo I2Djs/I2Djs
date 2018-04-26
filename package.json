@@ -50,5 +50,7 @@
     "uglify-js": "^3.1.5",
     "webpack": "^3.8.1"
   },
-  "dependencies": {}
+  "dependencies": {
+    "earcut": "^2.1.3"
+  }
 }

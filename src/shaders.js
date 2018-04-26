@@ -12,22 +12,24 @@
   function shaders (el) {
     let res
     switch (el) {
-      case 'rect':
+      case 'point':
         res = {
           vertexShader: `#version 300 es
-                    in vec2 a_position;
-                    in vec4 a_color;
-                    uniform vec2 u_resolution;
-                    out vec4 v_color;
+          in vec2 a_position;
+          in vec4 a_color;
+          in float a_size;
+          uniform vec2 u_resolution;
+          out vec4 v_color;
+          void main() {
+            vec2 zeroToOne = a_position / u_resolution;
+            vec2 zeroToTwo = zeroToOne * 2.0;
+            vec2 clipSpace = zeroToTwo - 1.0;
 
-                    void main() {
-                    vec2 zeroToOne = a_position / u_resolution;
-                    vec2 zeroToTwo = zeroToOne * 2.0;
-                    vec2 clipSpace = zeroToTwo - 1.0;
-                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-                    v_color = a_color;
-                    }
-                    `,
+            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+            gl_PointSize = a_size;
+            v_color = a_color;
+          }
+          `,
           fragmentShader: `#version 300 es
                     precision mediump float;
                     in vec4 v_color;
@@ -38,20 +40,20 @@
                     `
         }
         break
-      case 'point':
+      case 'circle':
         res = {
           vertexShader: `#version 300 es
           in vec2 a_position;
           in vec4 a_color;
+          in float a_radius;
           uniform vec2 u_resolution;
           out vec4 v_color;
           void main() {
             vec2 zeroToOne = a_position / u_resolution;
             vec2 zeroToTwo = zeroToOne * 2.0;
             vec2 clipSpace = zeroToTwo - 1.0;
-
             gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-            gl_PointSize = 1.0;
+            gl_PointSize = a_radius;
             v_color = a_color;
           }
           `,
@@ -60,7 +62,15 @@
                     in vec4 v_color;
                     out vec4 outColor;
                     void main() {
-                        outColor = v_color;
+                      float r = 0.0, delta = 0.0, alpha = 1.0;
+                      vec2 cxy = 2.0 * gl_PointCoord - 1.0;
+                      r = dot(cxy, cxy);
+                      if(r > 1.0) {
+                        discard;
+                      }
+                      delta = fwidth(r);
+                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);                      
+                      outColor = v_color * alpha;
                     }
                     `
         }
