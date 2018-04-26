@@ -74,9 +74,9 @@ Examples (SVG + Canvas + WebGL)
 Below specified methods are to create the respective Canvas/SVG layers. It accepts container ID as an input, gives renderer instance as an output.
 Multiple SVG/Canvas can be defined. Each layer represents corresponding Dom element - SVG for SVGlayer, Canvas for Canvas layer.
 
-| Canvas  | SVG |
-| ------------- | ------------- |
-| canvasRenderer = i2d.CanvasLayer('#containerId', ConfigObj)  | svgRenderer = i2d.SVGLayer('#containerId', ConfigObj)  |
+| Canvas  | SVG |  WebGl |
+| ------------- | ------------- | ------------- |
+| i2d.CanvasLayer('#containerId', Config)  | i2d.SVGLayer('#containerId', Config)  | i2d.WebglLayer('#containerId', Config) |
 
 #### Create Shape
 Lets use renderer instance to create shapes, animate attributes.. etc.
