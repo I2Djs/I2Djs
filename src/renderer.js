@@ -4301,7 +4301,7 @@
   //   queueInstance.vDomChanged(this.vDomIndex)
   // }
 
-  i2d.webglLayer = function webGLLayer (context, config) {
+  i2d.WebglLayer = function WebGLLayer (context, config) {
     const res = document.querySelector(context)
     const height = config.height ? config.height : res.clientHeight
     const width = config.width ? config.width : res.clientWidth

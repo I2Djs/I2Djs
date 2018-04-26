@@ -7410,7 +7410,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   //   queueInstance.vDomChanged(this.vDomIndex)
   // }
 
-  i2d.webglLayer = function webGLLayer(context, config) {
+  i2d.WebglLayer = function WebGLLayer(context, config) {
     var res = document.querySelector(context);
     var height = config.height ? config.height : res.clientHeight;
     var width = config.width ? config.width : res.clientWidth;
