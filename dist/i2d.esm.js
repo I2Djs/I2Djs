@@ -1222,13 +1222,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   SequenceGroup.prototype.add = function SGadd(value) {
     var self = this;
 
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && typeof value !== 'function') {
       value = [value];
     }
-    value.map(function (d) {
-      self.lengthV += d.length ? d.length : 0;
-      return d;
-    });
+    if (Array.isArray(value)) {
+      value.map(function (d) {
+        self.lengthV += d.length ? d.length : 0;
+        return d;
+      });
+    }
     this.sequenceQueue = this.sequenceQueue.concat(value);
 
     return this;
@@ -1262,6 +1264,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   SequenceGroup.prototype.execute = function SGexecute() {
     var self = this;
     var currObj = this.sequenceQueue[self.currPos];
+
+    currObj = typeof currObj === 'function' ? currObj() : currObj;
 
     if (!currObj) {
       return;
@@ -1369,9 +1373,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var self = this;
 
     self.currPos = 0;
-    self.group.forEach(function (d, i) {
-      var currObj = d;
 
+    var _loop = function _loop(i, len) {
+      var currObj = self.group[i];
       if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
         currObj
         // .duration(currObj.durationP ? currObj.durationP : self.durationP)
@@ -1379,16 +1383,39 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       } else {
         self.queue.add(generateChainId(), {
           run: function run(f) {
-            d.run(f);
+            currObj.run(f);
           },
 
           duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
-          loop: 1,
-          direction: self.factor < 0 ? 'reverse' : 'default',
+          loop: currObj.loop ? currObj.loop : 1,
+          direction: currObj.direction ? currObj.direction : 'default', // self.factor < 0 ? 'reverse' : 'default',
           end: self.triggerEnd.bind(self, currObj)
-        }, self.easying);
+        }, self.easying ? self.easying : easying(currObj.ease));
       }
-    });
+    };
+
+    for (var i = 0, len = self.group.length; i < len; i++) {
+      _loop(i, len);
+    }
+    // self.group.forEach((d, i) => {
+    //   const currObj = d
+
+    //   if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
+    //     currObj
+    //       // .duration(currObj.durationP ? currObj.durationP : self.durationP)
+    //       .end(self.triggerEnd.bind(self, currObj)).commit()
+    //   } else {
+    //     self.queue.add(generateChainId(), {
+    //       run (f) {
+    //         d.run(f)
+    //       },
+    //       duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
+    //       loop: 1,
+    //       direction: self.factor < 0 ? 'reverse' : 'default',
+    //       end: self.triggerEnd.bind(self, currObj)
+    //     }, self.easying)
+    //   }
+    // })
 
     return self;
   };
@@ -3457,36 +3484,44 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var value = void 0;
     var key = void 0;
 
-    var attrs = tattr ? Object.keys(tattr) : [];
+    if (typeof tattr !== 'function') {
+      var _attrs = tattr ? Object.keys(tattr) : [];
 
-    for (var i = 0, len = attrs.length; i < len; i += 1) {
-      key = attrs[i];
-      if (key !== 'transform') {
-        if (key === 'd') {
-          self.morphTo(targetConfig);
-        } else {
-          runStack[runStack.length] = attrTransition(self, key, tattr[key]);
-        }
-      } else {
-        value = tattr[key];
-        if (typeof value === 'function') {
-          runStack[runStack.length] = transitionSetAttr(self, key, value);
-        } else {
-          var trans = self.attr.transform;
-          if (!trans) {
-            self.attr.transform = {};
+      for (var i = 0, len = _attrs.length; i < len; i += 1) {
+        key = _attrs[i];
+        if (key !== 'transform') {
+          if (key === 'd') {
+            self.morphTo(targetConfig);
+          } else {
+            runStack[runStack.length] = attrTransition(self, key, tattr[key]);
           }
-          var subTrnsKeys = Object.keys(tattr.transform);
-          for (var j = 0, jLen = subTrnsKeys.length; j < jLen; j += 1) {
-            runStack[runStack.length] = transformTransition(self, subTrnsKeys[j], tattr.transform[subTrnsKeys[j]]);
+        } else {
+          value = tattr[key];
+          if (typeof value === 'function') {
+            runStack[runStack.length] = transitionSetAttr(self, key, value);
+          } else {
+            var trans = self.attr.transform;
+            if (!trans) {
+              self.attr.transform = {};
+            }
+            var subTrnsKeys = Object.keys(tattr.transform);
+            for (var j = 0, jLen = subTrnsKeys.length; j < jLen; j += 1) {
+              runStack[runStack.length] = transformTransition(self, subTrnsKeys[j], tattr.transform[subTrnsKeys[j]]);
+            }
           }
         }
       }
+    } else {
+      runStack[runStack.length] = tattr.bind(self);
     }
 
-    var styles = tstyles ? Object.keys(tstyles) : [];
-    for (var _i = 0, _len = styles.length; _i < _len; _i += 1) {
-      runStack[runStack.length] = styleTransition(self, styles[_i], tstyles[styles[_i]]);
+    if (typeof tstyles !== 'function') {
+      var _styles = tstyles ? Object.keys(tstyles) : [];
+      for (var _i = 0, _len = _styles.length; _i < _len; _i += 1) {
+        runStack[runStack.length] = styleTransition(self, _styles[_i], tstyles[_styles[_i]]);
+      }
+    } else {
+      runStack[runStack.length] = tstyles.bind(self);
     }
 
     return {
@@ -3500,7 +3535,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       delay: targetConfig.delay ? targetConfig.delay : 0,
       end: targetConfig.end ? targetConfig.end.bind(self, self.dataObj) : null,
       loop: targetConfig.loop ? targetConfig.loop : 0,
-      direction: targetConfig.direction ? targetConfig.direction : 'default'
+      direction: targetConfig.direction ? targetConfig.direction : 'default',
+      ease: targetConfig.ease ? targetConfig.ease : 'default'
     };
   };
 
@@ -3603,7 +3639,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var attrs = Object.keys(config);
     for (var j = 0; j < attrs.length; j += 1) {
       var key = attrs[j];
-      if (key !== 'attr' && key !== 'style' && key !== 'end') {
+      // if (key !== 'attr' && key !== 'style' && key !== 'end') {
+      if (key !== 'end') {
         if (typeof config[key] === 'function') {
           obj[key] = config[key].call(node, node.dataObj, i);
         } else {
@@ -3623,10 +3660,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       node = this.stack[i];
 
       newConfig = resolveObject(config, node, i);
-      if (config.attr) {
+      if (config.attr && typeof config.attr !== 'function') {
         newConfig.attr = resolveObject(config.attr, node, i);
       }
-      if (config.style) {
+      if (config.style && typeof config.style !== 'function') {
         newConfig.style = resolveObject(config.style, node, i);
       }
       if (config.end) {
@@ -3650,10 +3687,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       node = this.stack[i];
 
       newConfig = resolveObject(config, node, i);
-      if (config.attr) {
+      if (config.attr && typeof config.attr !== 'function') {
         newConfig.attr = resolveObject(config.attr, node, i);
       }
-      if (config.style) {
+      if (config.style && typeof config.style !== 'function') {
         newConfig.style = resolveObject(config.style, node, i);
       }
       if (config.end) {
@@ -6812,6 +6849,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   WebGlWrapper.prototype.forEach = forEach;
   WebGlWrapper.prototype.setAttr = setAttribute;
   WebGlWrapper.prototype.animateTo = animateArrayTo;
+  WebGlWrapper.prototype.animateExe = animateArrayExe;
 
   function RenderWebglPoints(ctx, attr, style, vDomIndex) {
     this.ctx = ctx;
@@ -7323,6 +7361,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     return this.dom.getStyle(_);
   };
   WebglNodeExe.prototype.animateTo = animateTo;
+  WebglNodeExe.prototype.animateExe = animateExe;
+
   WebglNodeExe.prototype.execute = function Cexecute() {
     // this.stylesExe()
     // this.attributesExe()

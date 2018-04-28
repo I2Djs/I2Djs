@@ -476,40 +476,48 @@
     let value
     let key
 
-    const attrs = tattr ? Object.keys(tattr) : []
+    if (typeof tattr !== 'function') {
+      const attrs = tattr ? Object.keys(tattr) : []
 
-    for (let i = 0, len = attrs.length; i < len; i += 1) {
-      key = attrs[i]
-      if (key !== 'transform') {
-        if (key === 'd') {
-          self.morphTo(targetConfig)
-        } else {
-          runStack[runStack.length] = attrTransition(self, key, tattr[key])
-        }
-      } else {
-        value = tattr[key]
-        if (typeof value === 'function') {
-          runStack[runStack.length] = transitionSetAttr(self, key, value)
-        } else {
-          const trans = self.attr.transform
-          if (!trans) {
-            self.attr.transform = {}
+      for (let i = 0, len = attrs.length; i < len; i += 1) {
+        key = attrs[i]
+        if (key !== 'transform') {
+          if (key === 'd') {
+            self.morphTo(targetConfig)
+          } else {
+            runStack[runStack.length] = attrTransition(self, key, tattr[key])
           }
-          const subTrnsKeys = Object.keys(tattr.transform)
-          for (let j = 0, jLen = subTrnsKeys.length; j < jLen; j += 1) {
-            runStack[runStack.length] = transformTransition(
-              self,
-              subTrnsKeys[j],
-              tattr.transform[subTrnsKeys[j]]
-            )
+        } else {
+          value = tattr[key]
+          if (typeof value === 'function') {
+            runStack[runStack.length] = transitionSetAttr(self, key, value)
+          } else {
+            const trans = self.attr.transform
+            if (!trans) {
+              self.attr.transform = {}
+            }
+            const subTrnsKeys = Object.keys(tattr.transform)
+            for (let j = 0, jLen = subTrnsKeys.length; j < jLen; j += 1) {
+              runStack[runStack.length] = transformTransition(
+                self,
+                subTrnsKeys[j],
+                tattr.transform[subTrnsKeys[j]]
+              )
+            }
           }
         }
       }
+    } else {
+      runStack[runStack.length] = tattr.bind(self)
     }
 
-    const styles = tstyles ? Object.keys(tstyles) : []
-    for (let i = 0, len = styles.length; i < len; i += 1) {
-      runStack[runStack.length] = styleTransition(self, styles[i], tstyles[styles[i]])
+    if (typeof tstyles !== 'function') {
+      const styles = tstyles ? Object.keys(tstyles) : []
+      for (let i = 0, len = styles.length; i < len; i += 1) {
+        runStack[runStack.length] = styleTransition(self, styles[i], tstyles[styles[i]])
+      }
+    } else {
+      runStack[runStack.length] = tstyles.bind(self)
     }
 
     return {
@@ -522,7 +530,8 @@
       delay: targetConfig.delay ? targetConfig.delay : 0,
       end: targetConfig.end ? targetConfig.end.bind(self, self.dataObj) : null,
       loop: targetConfig.loop ? targetConfig.loop : 0,
-      direction: targetConfig.direction ? targetConfig.direction : 'default'
+      direction: targetConfig.direction ? targetConfig.direction : 'default',
+      ease: targetConfig.ease ? targetConfig.ease : 'default'
     }
   }
 
@@ -627,7 +636,8 @@
     const attrs = Object.keys(config)
     for (let j = 0; j < attrs.length; j += 1) {
       const key = attrs[j]
-      if (key !== 'attr' && key !== 'style' && key !== 'end') {
+      // if (key !== 'attr' && key !== 'style' && key !== 'end') {
+      if (key !== 'end') {
         if (typeof config[key] === 'function') {
           obj[key] = config[key].call(node, node.dataObj, i)
         } else {
@@ -647,8 +657,8 @@
       node = this.stack[i]
 
       newConfig = resolveObject(config, node, i)
-      if (config.attr) { newConfig.attr = resolveObject(config.attr, node, i) }
-      if (config.style) { newConfig.style = resolveObject(config.style, node, i) }
+      if (config.attr && typeof config.attr !== 'function') { newConfig.attr = resolveObject(config.attr, node, i) }
+      if (config.style && typeof config.style !== 'function') { newConfig.style = resolveObject(config.style, node, i) }
       if (config.end) { newConfig.end = config.end }
       if (config.ease) { newConfig.ease = config.ease }
 
@@ -666,8 +676,8 @@
       node = this.stack[i]
 
       newConfig = resolveObject(config, node, i)
-      if (config.attr) { newConfig.attr = resolveObject(config.attr, node, i) }
-      if (config.style) { newConfig.style = resolveObject(config.style, node, i) }
+      if (config.attr && typeof config.attr !== 'function') { newConfig.attr = resolveObject(config.attr, node, i) }
+      if (config.style && typeof config.style !== 'function') { newConfig.style = resolveObject(config.style, node, i) }
       if (config.end) { newConfig.end = config.end }
       if (config.ease) { newConfig.ease = config.ease }
 
@@ -3703,6 +3713,7 @@
   WebGlWrapper.prototype.forEach = forEach
   WebGlWrapper.prototype.setAttr = setAttribute
   WebGlWrapper.prototype.animateTo = animateArrayTo
+  WebGlWrapper.prototype.animateExe = animateArrayExe
 
   function RenderWebglPoints (ctx, attr, style, vDomIndex) {
     this.ctx = ctx
@@ -4216,6 +4227,8 @@
     return this.dom.getStyle(_)
   }
   WebglNodeExe.prototype.animateTo = animateTo
+  WebglNodeExe.prototype.animateExe = animateExe
+
   WebglNodeExe.prototype.execute = function Cexecute () {
     // this.stylesExe()
     // this.attributesExe()

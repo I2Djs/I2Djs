@@ -101,13 +101,15 @@
   SequenceGroup.prototype.add = function SGadd (value) {
     const self = this
 
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && typeof value !== 'function') {
       value = [value]
     }
-    value.map((d) => {
-      self.lengthV += (d.length ? d.length : 0)
-      return d
-    })
+    if (Array.isArray(value)) {
+      value.map((d) => {
+        self.lengthV += (d.length ? d.length : 0)
+        return d
+      })
+    }   
     this.sequenceQueue = this.sequenceQueue.concat(value)
 
     return this
@@ -140,7 +142,9 @@
 
   SequenceGroup.prototype.execute = function SGexecute () {
     const self = this
-    const currObj = this.sequenceQueue[self.currPos]
+    let currObj = this.sequenceQueue[self.currPos]
+
+    currObj = (typeof currObj === 'function' ? currObj() : currObj)
 
     if (!currObj) { return }
     if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
@@ -240,9 +244,8 @@
     const self = this
 
     self.currPos = 0
-    self.group.forEach((d, i) => {
-      const currObj = d
-
+    for (let i = 0, len = self.group.length; i < len; i++) {
+      let currObj = self.group[i]
       if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
         currObj
           // .duration(currObj.durationP ? currObj.durationP : self.durationP)
@@ -250,15 +253,34 @@
       } else {
         self.queue.add(generateChainId(), {
           run (f) {
-            d.run(f)
+            currObj.run(f)
           },
           duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
-          loop: 1,
-          direction: self.factor < 0 ? 'reverse' : 'default',
+          loop: currObj.loop ? currObj.loop : 1,
+          direction: currObj.direction ? currObj.direction : 'default', // self.factor < 0 ? 'reverse' : 'default',
           end: self.triggerEnd.bind(self, currObj)
-        }, self.easying)
+        }, self.easying ? self.easying : easying(currObj.ease))
       }
-    })
+    }
+    // self.group.forEach((d, i) => {
+    //   const currObj = d
+
+    //   if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
+    //     currObj
+    //       // .duration(currObj.durationP ? currObj.durationP : self.durationP)
+    //       .end(self.triggerEnd.bind(self, currObj)).commit()
+    //   } else {
+    //     self.queue.add(generateChainId(), {
+    //       run (f) {
+    //         d.run(f)
+    //       },
+    //       duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
+    //       loop: 1,
+    //       direction: self.factor < 0 ? 'reverse' : 'default',
+    //       end: self.triggerEnd.bind(self, currObj)
+    //     }, self.easying)
+    //   }
+    // })
 
     return self
   }
