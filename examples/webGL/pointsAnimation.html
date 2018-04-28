@@ -7,8 +7,8 @@
 
 	<div id="canvas" style="height: 100%;width:100%;background: black">
 	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
-	<!--<script type="text/javascript" src="../../src/earcut.min.js"></script>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+	<script type="text/javascript" src="../../src/earcut.min.js"></script>
 	<script type="text/javascript" src="../../src/colorMap.js"></script>
 	<script type="text/javascript" src="../../src/geometry.js"></script>
 	<script type="text/javascript" src="../../src/easing.js"></script>
@@ -17,7 +17,7 @@
     <script type="text/javascript" src="../../src/chaining.js"></script>
     <script type="text/javascript" src="../../src/path.js"></script>
     <script type="text/javascript" src="../../src/shaders.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>-->
+    <script type="text/javascript" src="../../src/renderer.js"></script>
 
 	<script type="text/javascript">
         var webglRenderer = i2d.WebglLayer('#canvas',{events:false,selectiveClear:false});
@@ -31,19 +31,14 @@
 				y: parseInt(Math.random()*1000)
 			})
 		}
-
-		var pointsRef = webglRenderer.shaderEl({
-			el:'points'
-		})
-
-
 		var path = i2d.Path()
 					.m(false, {x: 100, y: 100})
 					.c(false, {x: 0, y: 500}, {x: 1000, y: 0}, {x: 1000, y: 500});
-					
 		var totalLen = path.length
-
-		pointsRef.createEls(pointsData, {
+		var pointsRef = webglRenderer.createEl({
+				el:'group',
+				shaderType:'points'
+			}).createEls(pointsData, {
 				el:'point',
 				attr:{
 					x: function(d) {return d.x},
@@ -60,6 +55,7 @@
 					}
 				}
 			})
+			
 		pointsRef.animateTo({
 				duration:10000,
 				loop: 100,

@@ -64,8 +64,9 @@
 			})
 		}
 
-		var pointsRef = webglRenderer.shaderEl({
-			el:'points'
+		var pointsRef = webglRenderer.createEl({
+			el:'group',
+            shaderType:'points'
 		}).createEls(pointsData, {
 				el:'point',
 				attr:{

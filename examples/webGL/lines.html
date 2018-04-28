@@ -7,8 +7,8 @@
 
 	<div id="canvas" style="height: 100%;width:100%;background: black">
 	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
-	<!--<script type="text/javascript" src="../../src/earcut.min.js"></script>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+	<script type="text/javascript" src="../../src/earcut.min.js"></script>
 	<script type="text/javascript" src="../../src/colorMap.js"></script>
 	<script type="text/javascript" src="../../src/geometry.js"></script>
 	<script type="text/javascript" src="../../src/easing.js"></script>
@@ -17,7 +17,7 @@
     <script type="text/javascript" src="../../src/chaining.js"></script>
     <script type="text/javascript" src="../../src/path.js"></script>
     <script type="text/javascript" src="../../src/shaders.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>-->
+    <script type="text/javascript" src="../../src/renderer.js"></script>
 
 	<script type="text/javascript">
         var webglRenderer = i2d.WebglLayer('#canvas',{events:false,selectiveClear:false});
@@ -36,10 +36,10 @@
 			})
 		}
 		
-		var linesRef = webglRenderer.shaderEl({
-			el:'lines'
-		})
-		linesRef.createEls(linesData, {
+		var linesRef = webglRenderer.createEl({
+			el: 'group',
+			shaderType:'lines'
+		}).createEls(linesData, {
 				el:'line',
 				attr:{
 					x1: function(d) {return d.x1},

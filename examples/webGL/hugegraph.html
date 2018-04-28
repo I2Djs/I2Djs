@@ -43,12 +43,14 @@
                 .catch(function(error) {
                 });
         
-        var linesRef = webglRenderer.shaderEl({
-			el:'lines'
+        var linesRef = webglRenderer.createEl({
+			el: 'group',
+			shaderType:'lines'
 		})
 
-        var rectsRef = webglRenderer.shaderEl({
-			el:'circles'
+        var rectsRef = webglRenderer.createEl({
+			el: 'group',
+			shaderType:'circles'
 		})
 
     

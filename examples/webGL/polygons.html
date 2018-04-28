@@ -8,7 +8,7 @@
 	<div id="canvas" style="height: 100%;width:100%;background: black">
 	</div>
 	<script type="text/javascript" src="../../dist/i2d.js"></script>
-	<!--<script type="text/javascript" src="../../src/earcut.min.js"></script>
+	<!--<script type="text/javascript" src="../node_modules/earcut/earcut.dev.js"></script>
 	<script type="text/javascript" src="../../src/colorMap.js"></script>
 	<script type="text/javascript" src="../../src/geometry.js"></script>
 	<script type="text/javascript" src="../../src/easing.js"></script>
@@ -37,8 +37,9 @@
 			})
 		}
 		
-		var polygonsRef = webglRenderer.shaderEl({
-			el:'polygons'
+		var polygonsRef = webglRenderer.createEl({
+			el:'group',
+			shaderType:'polygons'
 		})
 		polygonsRef.createEls(polygonsData, {
 				el:'polygon',
@@ -46,16 +47,6 @@
 					points: function(d) {return d.points}
 				},
 				style: { fill: 'red' }
-			})
-		
-		polylinesRef.animateTo({
-				duration:5000,
-				loop: 100,
-				direction: 'alternate',
-				attr:{
-					x2: function(d) {return parseInt(Math.random()*1400)},
-					y2: function(d) {return parseInt(Math.random()*1000)}
-				}
 			})
 		
 		/************** End polygons *****************/

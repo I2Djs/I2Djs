@@ -109,7 +109,7 @@
         self.lengthV += (d.length ? d.length : 0)
         return d
       })
-    }   
+    }
     this.sequenceQueue = this.sequenceQueue.concat(value)
 
     return this
