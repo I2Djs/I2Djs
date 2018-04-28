@@ -82,8 +82,9 @@ Multiple SVG/Canvas/WebGl layers can be defined. Each layer represents correspon
 Lets use renderer instance to create shapes, animate attributes.. etc.
 
 ** Incase of Webgl **
-   First Define Shader, using 'shaderEl', then create corresponding Elements.
-   For example: only 'Point' Elements can be created under 'Points' shader.
+
+   Specific Element type group node to be created before creating Elements
+   For example: 'Points' group to be created by setting 'shaderType' in config object.
 
 ```javascript
   var rect = layerRenderer.createEl({
