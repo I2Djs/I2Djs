@@ -2,22 +2,18 @@
 <html style="height: 100%">
 <head>
 	<title></title>
+    <style>
+        label {
+            position: absolute;
+            color: white;
+        }
+    </style>
 </head>
 <body style="height: 100%">
-
+    <label> Webgl Example </label>
 	<div id="canvas" style="height: 100%;width:100%;background: black">
 	</div>
-    <!--<script src="webgl-utils.js"></script>-->
-	<script type="text/javascript" src="../../src/earcut.min.js"></script>
-	<script type="text/javascript" src="../../src/colorMap.js"></script>
-	<script type="text/javascript" src="../../src/geometry.js"></script>
-	<script type="text/javascript" src="../../src/easing.js"></script>
-    <script type="text/javascript" src="../../src/vDom.js"></script>
-	<script type="text/javascript" src="../../src/queue.js"></script>
-    <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/path.js"></script>
-    <script type="text/javascript" src="../../src/shaders.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>
+    <script type="text/javascript" src="../../dist/i2d.js"></script>
     <script src="https://d3js.org/d3-collection.v1.min.js"></script>
     <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
     <script src="https://d3js.org/d3-quadtree.v1.min.js"></script>
@@ -50,32 +46,30 @@
 
         var rectsRef = webglRenderer.createEl({
 			el: 'group',
-			shaderType:'circles'
+			shaderType:'rects'
 		})
 
-    
-        
         function renderChart(graph){
             
             links = linesRef.createEls(graph.links,{
                             el:'line',
                             style:{ stroke:{
-                                r:0,
-                                g:203,
+                                r:255,
+                                g:255,
                                 b:255,
-								a: 10
+                                a:255
                             } }
                         });
 
             circles = rectsRef.createEls(graph.nodes,{
-                            el:'circle',
-                            attr:{ r:10.0, cx:0, cy:0 },
+                            el:'rect',
+                            attr:{ width:15.0, height:15.0, x:-2.5, y:-2.5 },
                             style:{ fill: function(){
                                 return {
                                 r: parseInt(Math.random()*255),
                                 g: parseInt(Math.random()*255),
                                 b: parseInt(Math.random()*255),
-								a: 255
+								a: 100
                             }
                             } }
                         })
@@ -89,8 +83,8 @@
 
             function ticked(){
                 circles
-                        .setAttr('cy',function(d){return 400 + d.y * 0.2 })
-                        .setAttr('cx',function(d){return 600 + d.x * 0.2 - 2})
+                        .setAttr('y',function(d){return 400 + d.y * 0.2 -2.5})
+                        .setAttr('x',function(d){return 600 + d.x * 0.2 - 2.5})
 
                 links.forEach(function(d){
                     this.setAttr({x1: 600 + d.source.x  * 0.2,

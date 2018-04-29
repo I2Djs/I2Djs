@@ -2139,12 +2139,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
     switch (el) {
       case 'point':
         res = {
-          vertexShader: `#version 300 es
-          in vec2 a_position;
-          in vec4 a_color;
-          in float a_size;
+          vertexShader: `
+          attribute vec2 a_position;
+          attribute vec4 a_color;
+          attribute float a_size;
           uniform vec2 u_resolution;
-          out vec4 v_color;
+          varying vec4 v_color;
           void main() {
             vec2 zeroToOne = a_position / u_resolution;
             vec2 zeroToTwo = zeroToOne * 2.0;
@@ -2155,24 +2155,23 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
             v_color = a_color;
           }
           `,
-          fragmentShader: `#version 300 es
+          fragmentShader: `
                     precision mediump float;
-                    in vec4 v_color;
-                    out vec4 outColor;
+                    varying vec4 v_color;
                     void main() {
-                        outColor = v_color;
+                        gl_FragColor = v_color;
                     }
                     `
         }
         break
       case 'circle':
         res = {
-          vertexShader: `#version 300 es
-          in vec2 a_position;
-          in vec4 a_color;
-          in float a_radius;
+          vertexShader: `
+          attribute vec2 a_position;
+          attribute vec4 a_color;
+          attribute float a_radius;
           uniform vec2 u_resolution;
-          out vec4 v_color;
+          varying vec4 v_color;
           void main() {
             vec2 zeroToOne = a_position / u_resolution;
             vec2 zeroToTwo = zeroToOne * 2.0;
@@ -2182,10 +2181,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
             v_color = a_color;
           }
           `,
-          fragmentShader: `#version 300 es
+          fragmentShader: `
                     precision mediump float;
-                    in vec4 v_color;
-                    out vec4 outColor;
+                    varying vec4 v_color;
+                    // out vec4 outColor;
                     void main() {
                       float r = 0.0, delta = 0.0, alpha = 1.0;
                       vec2 cxy = 2.0 * gl_PointCoord - 1.0;
@@ -2195,18 +2194,18 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
                       }
                       delta = fwidth(r);
                       alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);                      
-                      outColor = v_color * alpha;
+                      gl_FragColor = v_color * alpha;
                     }
                     `
         }
         break
       default:
         res = {
-          vertexShader: `#version 300 es
-                    in vec2 a_position;
-                    in vec4 a_color;
+          vertexShader: `
+                    attribute vec2 a_position;
+                    attribute vec4 a_color;
                     uniform vec2 u_resolution;
-                    out vec4 v_color;
+                    varying vec4 v_color;
 
                     void main() {
                     vec2 zeroToOne = a_position / u_resolution;
@@ -2216,12 +2215,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
                     v_color = a_color;
                     }
                     `,
-          fragmentShader: `#version 300 es
+          fragmentShader: `
                     precision mediump float;
-                    in vec4 v_color;
-                    out vec4 outColor;
+                    varying vec4 v_color;
+                    // out vec4 outColor;
                     void main() {
-                        outColor = v_color;
+                        gl_FragColor = v_color;
                     }
                     `
         }
@@ -6643,7 +6642,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     let pointsSize = []
     for (var i = 0, len = stack.length; i < len; i++) {
       let fill = stack[i].getStyle('fill')
-      fill = fill || {r: 255, g: 0, b: 0, a: 255}
+      fill = fill || {r: 0, g: 0, b: 0, a: 0}
       positionArray[i * 2] = stack[i].getAttr('x')
       positionArray[i * 2 + 1] = stack[i].getAttr('y')
       colorArray[i * 4] = fill.r
@@ -6702,7 +6701,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     let positionArray = []
     let colorArray = []
     for (var i = 0, len = stack.length; i < len; i++) {
-      let fill = stack[i].getStyle('fill') || {r: 255, g: 0, b: 0, a: 1.0}
+      let fill = stack[i].getStyle('fill') || {r: 0, g: 0, b: 0, a: 1.0}
       let x = stack[i].getAttr('x')
       let y = stack[i].getAttr('y')
       let width = stack[i].getAttr('width')
@@ -6711,9 +6710,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       let x2 = x + width
       let y1 = y
       let y2 = y + height
-      let r = fill.r || 255
-      let g = fill.g || 0
-      let b = fill.b || 0
+      let r = fill.r 
+      let g = fill.g 
+      let b = fill.b 
       let a = fill.a || 1.0
       positionArray[i * 12] = x1
       positionArray[i * 12 + 1] = y1
@@ -6811,7 +6810,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       positionArray[i * 4 + 2] = x2
       positionArray[i * 4 + 3] = y2
 
-      fill = fill || {r: 255, g: 0, b: 0, a: 1.0}
+      fill = fill || {r: 0, g: 0, b: 0, a: 1.0}
 
       let r = fill.r
       let g = fill.g
@@ -6872,21 +6871,21 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     for (var i = 0, len = stack.length; i < len; i++) {
       let node = stack[i]
       let fill = node.getStyle('fill')
-      fill = fill || {r: 255, g: 0, b: 0}
+      fill = fill || {r: 0, g: 0, b: 0}
       let points = node.getAttr('points')
       let positionArray = []
       let colorArray = []
-      let r = fill.r || 255
-      let g = fill.g || 0
-      let b = fill.b || 0
-      let a = fill.a || 1.0
+      let r = fill.r
+      let g = fill.g
+      let b = fill.b
+      let a = fill.a
       for (let j = 0, jlen = points.length; j < jlen; j++) {
         positionArray[j * 2] = points[j].x
         positionArray[j * 2 + 1] = points[j].y
         colorArray[j * 4] = r
         colorArray[j * 4 + 1] = g
         colorArray[j * 4 + 2] = b
-        colorArray[j * 4 + 3] = a
+        colorArray[j * 4 + 3] = a || 1.0
       }
 
       this.writeDataToShaderAttributes([{
@@ -6936,17 +6935,17 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       let points = node.getAttr('triangulatedPoints')
       let positionArray = []
       let colorArray = []
-      let r = fill.r || 255
-      let g = fill.g || 0
-      let b = fill.b || 0
-      let a = fill.a || 1.0
+      let r = fill.r
+      let g = fill.g
+      let b = fill.b
+      let a = fill.a
       for (let j = 0, jlen = points.length; j < jlen; j++) {
         positionArray[j * 2] = points[j].x
         positionArray[j * 2 + 1] = points[j].y
         colorArray[j * 4] = r
         colorArray[j * 4 + 1] = g
         colorArray[j * 4 + 2] = b
-        colorArray[j * 4 + 3] = a
+        colorArray[j * 4 + 3] = a  || 1.0
       }
 
       this.writeDataToShaderAttributes([{
@@ -6999,7 +6998,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     for (var i = 0, len = stack.length; i < len; i++) {
       let node = stack[i]
       let fill = node.getStyle('fill')
-      fill = fill || {r: 255, g: 0, b: 0, a: 1.0}
+      fill = fill || {r: 0, g: 0, b: 0, a: 1.0}
 
       positionArray[i * 2] = node.getAttr('cx')
       positionArray[i * 2 + 1] = node.getAttr('cy')
@@ -7210,7 +7209,11 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     const height = config.height ? config.height : res.clientHeight
     const width = config.width ? config.width : res.clientWidth
     const layer = document.createElement('canvas')
-    const ctx = layer.getContext('webgl2')
+    const ctx = layer.getContext('webgl', { 
+      premultipliedAlpha: false,
+      depth: false,
+      antialias: true,
+      alpha: true })
     layer.height = height
     layer.width = width
     layer.style.height = `${height}px`
@@ -7235,11 +7238,17 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     root.height = height
     root.width = width
     root.type = 'WEBGL'
+    ctx.clearColor(0,0,0,0)
+    ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT)
     root.execute = function executeExe () {
       this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
-      this.ctx.clearColor(0, 0, 0, 0)
+      // this.ctx.colorMask(true, true, true, false);
       this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT)
       execute()
+      
+      // this.ctx.clearColor(1, 1, 1, 1);
+      // this.ctx.colorMask(false, false, false, true);
+      // this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT)
     }
     root.destroy = function () {
       queueInstance.removeVdom(vDomInstance)
