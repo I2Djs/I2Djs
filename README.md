@@ -81,7 +81,7 @@ Lets use renderer instance to create shapes, animate attributes.. etc.
 
 ** Incase of Webgl **
 
-   Specific Element type group node to be created before creating Elements
+   Group node with specific element type to be created before creating Elements
    For example: 'Points' group to be created by setting 'shaderType' in config object.
 
 ```javascript
