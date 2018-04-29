@@ -14,23 +14,40 @@
 
         var renderer = i2d.SVGLayer('#mySvg');
         
-        var text = renderer.createEl({
-                    el:'rect',
-                    attr:{
-                        x:0,
-                        y:0,
-                        width:'500px',
-                        height:'500px',
-                        transform:{
-                            // rotate:[45]
-                        }
-                    },
-                    style:{
+        var img = renderer.createEl({
+                el:'image',
+                attr:{
+                    'xlink:href':'../images/Canvas_sun.png',
+                    width:150,
+                    height:150,
+                    x:0,
+                    y:0,
+                    transform:{
+                        translate:[100,100]
                     }
-                });
-            
-            text.rotate([45])
-
+                },
+                onload:function(){
+                    
+                    // this.animateTo({
+                    //     duration:1000,
+                    //     attr:{
+                    //         pixels:function(f){
+                    //             return function(pixelData){
+                    //                     var data = pixelData.data;
+                    //                     for (var i = 0; i < data.length; i += 4) {
+                    //                         data[i]     =  data[i];     // red
+                    //                         data[i + 1] = 255*f - data[i + 1]; // green
+                    //                         data[i + 2] = 255*f - data[i + 2]; // blue
+                    //                     }
+                    //                     pixelData.data = data;
+                    //                     console.log(f);
+                    //                 return pixelData;
+                    //             }
+                    //         }
+                    //     }
+                    // })
+                }
+            });
 
         
 

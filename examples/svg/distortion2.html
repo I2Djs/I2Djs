@@ -13,13 +13,6 @@
 		<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
 	</div>
 	<script type="text/javascript" src="../../dist/i2d.js"></script>
-    <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
-	<script type="text/javascript" src="../../src/geometry.js"></script>
-	<script type="text/javascript" src="../../src/easing.js"></script>
-    <script type="text/javascript" src="../../src/vDom.js"></script>
-	<script type="text/javascript" src="../../src/queue.js"></script>
-    <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>-->
 
 	<script type="text/javascript">
 
@@ -31,8 +24,8 @@
         var dis, dx, dy, f;
         var mx, my;
         
-        for(var i=0; i< 140; i++){
-            for(var j=0; j < 230; j++){
+        for(var i=0; i< 100; i++){
+            for(var j=0; j < 100; j++){
                 circlesGrid.push({
                     x:j*5,
                     ox:j*5,
@@ -62,9 +55,6 @@
             mx = e.pageX;
             my = e.pageY;
         })
-
-
-        
         
        i2d.queue.onRequestFrame(function(t){
 
@@ -72,7 +62,6 @@
                 return;
 
             circles.forEach(function(d){
-
                             dis = ( dx = mx - d.x ) * dx + ( dy = my - d.y ) * dy;
                             f = -rad / dis
                             
@@ -87,7 +76,6 @@
                             
                         this.setAttr('x',d.x)
                             .setAttr('y',d.y)
-
             })
         });
 

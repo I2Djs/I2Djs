@@ -8,15 +8,7 @@
 	<div id="mySvg" style="height: 100%;width:100%;background: black">
 	</div>
     
-	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
-    <script type="text/javascript" src="../../src/colorMap.js"></script>
-	<script type="text/javascript" src="../../src/geometry.js"></script>
-	<script type="text/javascript" src="../../src/easing.js"></script>
-    <script type="text/javascript" src="../../src/vDom.js"></script>
-	<script type="text/javascript" src="../../src/queue.js"></script>
-    <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/path.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>
+	<script type="text/javascript" src="../../dist/i2d.js"></script>
 
 	<script type="text/javascript">
 
@@ -26,7 +18,7 @@
         
         window.addEventListener("mousemove",function(e){
             
-            renderer_.createEls([1,2,3,4,5,6,7,8,9,10,11,12],{
+            renderer_.createEls([1,2,3,4,5],{
                 el:'rect',
                 attr:{
                     width:7,
@@ -43,8 +35,8 @@
                         duration:1500,
                         ease:'easeOutCubic',
                         attr:{
-                            x:function(d){ return e.offsetX+Math.cos((2*Math.PI/12)*d)*300; },
-                            y:function(d){ return e.offsetY+Math.sin((2*Math.PI/12)*d)*300; },
+                            x:function(d){ return e.offsetX+Math.cos((2*Math.PI/5)*d)*300; },
+                            y:function(d){ return e.offsetY+Math.sin((2*Math.PI/5)*d)*300; },
                             width:100
                         },
                         style:{
