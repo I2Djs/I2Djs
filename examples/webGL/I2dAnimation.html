@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+
+	<div id="canvas" style="height: 100%;width:100%;background: black">
+	</div>
+	<script type="text/javascript" src="../../dist/i2d.js"></script>
+	<!--<script type="text/javascript" src="../../src/earcut.min.js"></script>-->
+	<!--<script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/shaders.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>-->
+
+	<script type="text/javascript">
+        var webglRenderer = i2d.WebglLayer('#canvas',{events:false,selectiveClear:false});
+        
+        var ichainInstance = i2d.chain.sequenceChain().loop(10)
+        var mchainInstance = i2d.chain.sequenceChain().loop(10)
+        var dchainInstance = i2d.chain.sequenceChain().loop(10)
+
+		/************** Points *****************/
+
+        var path = i2d.Path()
+					.m(false, {x: 350, y: 225})
+                    .l(true,{x:450, y:225})
+                    .l(true,{x:450, y:475})
+                    .l(true,{x:570, y:475});
+
+        var path3 = i2d.Path('M461,359.245249 L461,230 L561.860025,230.999803 C561.860025,230.999803 672.401935,230 672.401935,353.481856 C672.401935,486.963711 561.860025,479.591179 561.860025,479.591179')
+        var path2 = i2d.Path('M286,227 L556.149478,227 L556.149478,352.5 L418.443053,352.5 L418.443053,478 L675.470664,478')
+
+        animate(ichainInstance, path, {x:-120,y:0})
+        animate(mchainInstance, path2, {x:100,y:0})
+        animate(dchainInstance, path3, {x:260,y:0})
+
+        function animate(chain, path, position) {
+
+        var pointsData = []
+		for(let i=0; i< 5000; i++) {
+            let xrand = Math.random()*40
+            let yrand = Math.random()*40
+            let pos = Math.random()
+            let xy = path.getPointAtLength(path.length*pos)
+            let angle = (((Math.PI*2)/5000)*i)-(3*Math.PI/4)
+			pointsData.push({
+				x: xy.x + xrand,
+				y: xy.y + yrand,
+                xrand: xrand,
+                yrand: yrand,
+                pos: pos,
+                angle: angle
+			})
+		}
+
+		var pointsRef = webglRenderer.createEl({
+			el:'group',
+            shaderType:'points'
+		}).createEls(pointsData, {
+				el:'point',
+				attr:{
+					x: function(d) {return d.x + position.x+Math.cos(d.angle) * (Math.random()*300+200)},
+					y: function(d) {return d.y + position.y+ Math.sin(d.angle) * (Math.random()*300+200)},
+					size: 1.0
+				},
+				style: {
+					fill: path === path2 ? {
+                                r: 255,
+                                g: 132,
+                                b: 132
+                            } : {
+							r: 0,
+							g: 203,
+							b: 255
+						}
+				}
+			})
+
+            
+            chain.add(function(){
+                var parallelChain = i2d.chain.parallelChain()
+                    parallelChain.add(pointsRef.animateExe({
+                            duration: 3000,//1000+Math.random()*1000,
+                            ease:'easeOutCubic',
+                            attr:{
+                                x: function(d){
+                                    return d.x + position.x
+                                },
+                                y: function(d){
+                                    return d.y + position.y
+                                }
+                            }
+                        }))
+                    return parallelChain;
+            })
+
+            chain.add(function(){
+                var pathChain = i2d.chain.parallelChain()
+                    pathChain.add(pointsRef.animateExe({
+                            duration:5000,
+                            attr: function(d) {
+                                return function (t) {
+                                    let point = path.getPointAtLength(path.length*((t+d.pos)%1))
+                                    this.setAttr('x',point.x + d.xrand + position.x)
+                                        .setAttr('y',point.y + d.yrand + position.y)
+                                }
+                            }
+                        }))
+                        return pathChain;
+            })
+
+        
+            chain.add(disperseParticles)
+
+            chain.start()
+
+            function disperseParticles (){
+                var parallelChain4 = i2d.chain.parallelChain()
+                    parallelChain4.add(pointsRef.animateExe({
+                        duration: 3000,//+Math.random()*1000,
+                        ease:'easeOutCubic',
+                        attr:{
+                            x: function(d) {return d.x+ position.x +Math.cos(d.angle) * (Math.random()*300+200)},
+					        y: function(d) {return d.y+ position.y+Math.sin(d.angle) * (Math.random()*300+200)}
+                        }
+                    }))
+                return parallelChain4
+            }
+        }
+
+	</script>   
+
+</body>
+</html>
