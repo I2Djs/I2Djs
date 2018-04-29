@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+
+	<div id="canvas" style="height: 100%;width:100%;background: black">
+	</div>
+    <!--<script src="webgl-utils.js"></script>-->
+	<script type="text/javascript" src="../../src/earcut.min.js"></script>
+	<script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/shaders.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
+    <script src="https://d3js.org/d3-collection.v1.min.js"></script>
+    <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
+    <script src="https://d3js.org/d3-quadtree.v1.min.js"></script>
+    <script src="https://d3js.org/d3-timer.v1.min.js"></script>
+    <script src="https://d3js.org/d3-force.v1.min.js"></script>
+
+	<script type="text/javascript">
+        var webglRenderer = i2d.WebglLayer('#canvas',{events:false,selectiveClear:false});
+
+        var width = 1000,height=700;
+        var circles,links;
+        var simulation = d3.forceSimulation()
+                            .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(20).strength(1))
+                            .force("charge", d3.forceManyBody())
+                            .force("center", d3.forceCenter(width / 2, height / 2));
+
+       var data = fetch('../data/huge_graph.json')
+                .then(function(response) {
+                    response.json().then(function(data) {
+                        renderChart(data) 
+                    });  
+                })
+                .catch(function(error) {
+                });
+        
+        var linesRef = webglRenderer.createEl({
+			el: 'group',
+			shaderType:'lines'
+		})
+
+        var rectsRef = webglRenderer.createEl({
+			el: 'group',
+			shaderType:'circles'
+		})
+
+    
+        
+        function renderChart(graph){
+            
+            links = linesRef.createEls(graph.links,{
+                            el:'line',
+                            style:{ stroke:{
+                                r:0,
+                                g:203,
+                                b:255,
+								a: 10
+                            } }
+                        });
+
+            circles = rectsRef.createEls(graph.nodes,{
+                            el:'circle',
+                            attr:{ r:10.0, cx:0, cy:0 },
+                            style:{ fill: function(){
+                                return {
+                                r: parseInt(Math.random()*255),
+                                g: parseInt(Math.random()*255),
+                                b: parseInt(Math.random()*255),
+								a: 255
+                            }
+                            } }
+                        })
+
+            simulation
+                    .nodes(graph.nodes)
+                    .on("tick", ticked)
+                
+            simulation.force("link")
+                    .links(graph.links);
+
+            function ticked(){
+                circles
+                        .setAttr('cy',function(d){return 400 + d.y * 0.2 })
+                        .setAttr('cx',function(d){return 600 + d.x * 0.2 - 2})
+
+                links.forEach(function(d){
+                    this.setAttr({x1: 600 + d.source.x  * 0.2,
+                                        y1: 400 + d.source.y  * 0.2,
+                                        x2: 600 + d.target.x  * 0.2,
+                                        y2: 400 + d.target.y  * 0.2});
+                })
+            }
+        }
+	</script>   
+
+</body>
+</html>

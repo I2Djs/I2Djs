@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+
+	<div id="canvas" style="height: 100%;width:100%;background: black">
+	</div>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+	<script type="text/javascript" src="../../src/earcut.min.js"></script>
+	<script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/shaders.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
+
+	<script type="text/javascript">
+        var webglRenderer = i2d.WebglLayer('#canvas',{events:false,selectiveClear:false});
+
+		/************** Lines *****************/
+
+		var linesData = []
+		for(let i=0; i< 100; i++) {
+			let x1 = Math.random()*1400
+			let y1 = Math.random()*1400
+			linesData.push({
+				x1: x1,
+				y1: y1,
+				x2: x1 + 100,
+				y2: y1 + 100
+			})
+		}
+		
+		var linesRef = webglRenderer.createEl({
+			el: 'group',
+			shaderType:'lines'
+		}).createEls(linesData, {
+				el:'line',
+				attr:{
+					x1: function(d) {return d.x1},
+					y1: function(d) {return d.y1},
+					x2: function(d) {return d.x2},
+					y2: function(d) {return d.y2}
+				},
+				style: { fill: 'red' }
+			})
+		
+		linesRef.animateTo({
+				duration:5000,
+				loop: 100,
+				direction: 'alternate',
+				attr:{
+					x2: function(d) {return parseInt(Math.random()*1400)},
+					y2: function(d) {return parseInt(Math.random()*1000)}
+				}
+			})
+		
+		/************** End Lines *****************/
+
+		
+	</script>   
+
+</body>
+</html>
