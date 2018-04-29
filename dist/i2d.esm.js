@@ -2311,20 +2311,20 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     switch (el) {
       case 'point':
         res = {
-          vertexShader: '#version 300 es\n          in vec2 a_position;\n          in vec4 a_color;\n          in float a_size;\n          uniform vec2 u_resolution;\n          out vec4 v_color;\n          void main() {\n            vec2 zeroToOne = a_position / u_resolution;\n            vec2 zeroToTwo = zeroToOne * 2.0;\n            vec2 clipSpace = zeroToTwo - 1.0;\n\n            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n            gl_PointSize = a_size;\n            v_color = a_color;\n          }\n          ',
-          fragmentShader: '#version 300 es\n                    precision mediump float;\n                    in vec4 v_color;\n                    out vec4 outColor;\n                    void main() {\n                        outColor = v_color;\n                    }\n                    '
+          vertexShader: '\n          attribute vec2 a_position;\n          attribute vec4 a_color;\n          attribute float a_size;\n          uniform vec2 u_resolution;\n          varying vec4 v_color;\n          void main() {\n            vec2 zeroToOne = a_position / u_resolution;\n            vec2 zeroToTwo = zeroToOne * 2.0;\n            vec2 clipSpace = zeroToTwo - 1.0;\n            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n            gl_PointSize = a_size;\n            v_color = a_color;\n          }\n          ',
+          fragmentShader: '\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                        gl_FragColor = v_color;\n                    }\n                    '
         };
         break;
       case 'circle':
         res = {
-          vertexShader: '#version 300 es\n          in vec2 a_position;\n          in vec4 a_color;\n          in float a_radius;\n          uniform vec2 u_resolution;\n          out vec4 v_color;\n          void main() {\n            vec2 zeroToOne = a_position / u_resolution;\n            vec2 zeroToTwo = zeroToOne * 2.0;\n            vec2 clipSpace = zeroToTwo - 1.0;\n            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n            gl_PointSize = a_radius;\n            v_color = a_color;\n          }\n          ',
-          fragmentShader: '#version 300 es\n                    precision mediump float;\n                    in vec4 v_color;\n                    out vec4 outColor;\n                    void main() {\n                      float r = 0.0, delta = 0.0, alpha = 1.0;\n                      vec2 cxy = 2.0 * gl_PointCoord - 1.0;\n                      r = dot(cxy, cxy);\n                      if(r > 1.0) {\n                        discard;\n                      }\n                      delta = fwidth(r);\n                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);                      \n                      outColor = v_color * alpha;\n                    }\n                    '
+          vertexShader: '\n          attribute vec2 a_position;\n          attribute vec4 a_color;\n          attribute float a_radius;\n          uniform vec2 u_resolution;\n          varying vec4 v_color;\n          void main() {\n            vec2 zeroToOne = a_position / u_resolution;\n            vec2 zeroToTwo = zeroToOne * 2.0;\n            vec2 clipSpace = zeroToTwo - 1.0;\n            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n            gl_PointSize = a_radius;\n            v_color = a_color;\n          }\n          ',
+          fragmentShader: '\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                      float r = 0.0, delta = 0.0, alpha = 1.0;\n                      vec2 cxy = 2.0 * gl_PointCoord - 1.0;\n                      r = dot(cxy, cxy);\n                      if(r > 1.0) {\n                        discard;\n                      }\n                      delta = 0.09;\n                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);                      \n                      gl_FragColor = v_color * alpha;\n                    }\n                    '
         };
         break;
       default:
         res = {
-          vertexShader: '#version 300 es\n                    in vec2 a_position;\n                    in vec4 a_color;\n                    uniform vec2 u_resolution;\n                    out vec4 v_color;\n\n                    void main() {\n                    vec2 zeroToOne = a_position / u_resolution;\n                    vec2 zeroToTwo = zeroToOne * 2.0;\n                    vec2 clipSpace = zeroToTwo - 1.0;\n                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                    v_color = a_color;\n                    }\n                    ',
-          fragmentShader: '#version 300 es\n                    precision mediump float;\n                    in vec4 v_color;\n                    out vec4 outColor;\n                    void main() {\n                        outColor = v_color;\n                    }\n                    '
+          vertexShader: '\n                    attribute vec2 a_position;\n                    attribute vec4 a_color;\n                    uniform vec2 u_resolution;\n                    varying vec4 v_color;\n                    void main() {\n                    vec2 zeroToOne = a_position / u_resolution;\n                    vec2 zeroToTwo = zeroToOne * 2.0;\n                    vec2 clipSpace = zeroToTwo - 1.0;\n                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                    v_color = a_color;\n                    }\n                    ',
+          fragmentShader: '\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                        gl_FragColor = v_color;\n                    }\n                    '
         };
     }
     return res;
@@ -6882,7 +6882,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var pointsSize = [];
     for (var i = 0, len = stack.length; i < len; i++) {
       var fill = stack[i].getStyle('fill');
-      fill = fill || { r: 255, g: 0, b: 0, a: 255 };
+      fill = fill || { r: 0, g: 0, b: 0, a: 255 };
       positionArray[i * 2] = stack[i].getAttr('x');
       positionArray[i * 2 + 1] = stack[i].getAttr('y');
       colorArray[i * 4] = fill.r;
@@ -6941,7 +6941,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var positionArray = [];
     var colorArray = [];
     for (var i = 0, len = stack.length; i < len; i++) {
-      var fill = stack[i].getStyle('fill') || { r: 255, g: 0, b: 0, a: 1.0 };
+      var fill = stack[i].getStyle('fill') || { r: 0, g: 0, b: 0, a: 255.0 };
       var x = stack[i].getAttr('x');
       var y = stack[i].getAttr('y');
       var width = stack[i].getAttr('width');
@@ -6950,10 +6950,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       var x2 = x + width;
       var y1 = y;
       var y2 = y + height;
-      var r = fill.r || 255;
-      var g = fill.g || 0;
-      var b = fill.b || 0;
-      var a = fill.a || 1.0;
+      var r = fill.r;
+      var g = fill.g;
+      var b = fill.b;
+      var a = fill.a || 255.0;
       positionArray[i * 12] = x1;
       positionArray[i * 12 + 1] = y1;
       positionArray[i * 12 + 2] = x2;
@@ -7049,12 +7049,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       positionArray[i * 4 + 2] = x2;
       positionArray[i * 4 + 3] = y2;
 
-      fill = fill || { r: 255, g: 0, b: 0, a: 1.0 };
+      fill = fill || { r: 0, g: 0, b: 0, a: 255.0 };
 
       var r = fill.r;
       var g = fill.g;
       var b = fill.b;
-      var a = fill.a || 1.0;
+      var a = fill.a || 255.0;
 
       colorArray[i * 8] = r;
       colorArray[i * 8 + 1] = g;
@@ -7109,15 +7109,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     for (var i = 0, len = stack.length; i < len; i++) {
       var node = stack[i];
-      var fill = node.getStyle('fill');
-      fill = fill || { r: 255, g: 0, b: 0 };
+      var fill = node.getStyle('stroke');
+      fill = fill || { r: 0, g: 0, b: 0, a: 255.0 };
       var points = node.getAttr('points');
       var positionArray = [];
       var colorArray = [];
-      var r = fill.r || 255;
+      var r = fill.r || 0;
       var g = fill.g || 0;
       var b = fill.b || 0;
-      var a = fill.a || 1.0;
+      var a = fill.a || 255.0;
       for (var j = 0, jlen = points.length; j < jlen; j++) {
         positionArray[j * 2] = points[j].x;
         positionArray[j * 2 + 1] = points[j].y;
@@ -7170,14 +7170,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     for (var i = 0, len = stack.length; i < len; i++) {
       var node = stack[i];
       var fill = node.getStyle('fill');
-      fill = fill || { r: 255, g: 0, b: 0 };
+      fill = fill || { r: 0, g: 0, b: 0, a: 255 };
       var points = node.getAttr('triangulatedPoints');
       var positionArray = [];
       var colorArray = [];
-      var r = fill.r || 255;
+      var r = fill.r || 0;
       var g = fill.g || 0;
       var b = fill.b || 0;
-      var a = fill.a || 1.0;
+      var a = fill.a || 255.0;
       for (var j = 0, jlen = points.length; j < jlen; j++) {
         positionArray[j * 2] = points[j].x;
         positionArray[j * 2 + 1] = points[j].y;
@@ -7237,7 +7237,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     for (var i = 0, len = stack.length; i < len; i++) {
       var node = stack[i];
       var fill = node.getStyle('fill');
-      fill = fill || { r: 255, g: 0, b: 0, a: 1.0 };
+      fill = fill || { r: 0, g: 0, b: 0, a: 255.0 };
 
       positionArray[i * 2] = node.getAttr('cx');
       positionArray[i * 2 + 1] = node.getAttr('cy');
@@ -7247,7 +7247,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       colorArray[i * 4] = fill.r;
       colorArray[i * 4 + 1] = fill.g;
       colorArray[i * 4 + 2] = fill.b;
-      colorArray[i * 4 + 3] = fill.a || 1.0;
+      colorArray[i * 4 + 3] = fill.a || 255.0;
     }
 
     this.writeDataToShaderAttributes([{
@@ -7452,7 +7452,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var height = config.height ? config.height : res.clientHeight;
     var width = config.width ? config.width : res.clientWidth;
     var layer = document.createElement('canvas');
-    var ctx = layer.getContext('webgl2');
+    var ctx = layer.getContext('webgl', {
+      premultipliedAlpha: false,
+      depth: false,
+      antialias: true,
+      alpha: true
+    });
     layer.height = height;
     layer.width = width;
     layer.style.height = height + 'px';
@@ -7477,9 +7482,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     root.height = height;
     root.width = width;
     root.type = 'WEBGL';
+    ctx.clearColor(0, 0, 0, 0);
     root.execute = function executeExe() {
       this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-      this.ctx.clearColor(0, 0, 0, 0);
       this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT);
       execute();
     };

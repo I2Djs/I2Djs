@@ -25,11 +25,11 @@
 		/************** circles *****************/
 
 		var circlesData = []
-		for(let i=0; i< 50000; i++) {
+		for(let i=0; i< 5; i++) {
 			circlesData.push({
 				cx: Math.random()*1400,
 				cy: Math.random()*1000,
-				r: 5+Math.random()*5
+				r: 200+Math.random()*5
 			})
 		}
 		
@@ -48,7 +48,8 @@
                                 return {
                                 r: parseInt(Math.random()*255),
                                 g: parseInt(Math.random()*255),
-                                b: parseInt(Math.random()*255)
+                                b: parseInt(Math.random()*255),
+								a: 255
                             }
                             } 
 						}

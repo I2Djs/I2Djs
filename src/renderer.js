@@ -3746,7 +3746,7 @@
     let pointsSize = []
     for (var i = 0, len = stack.length; i < len; i++) {
       let fill = stack[i].getStyle('fill')
-      fill = fill || {r: 255, g: 0, b: 0, a: 255}
+      fill = fill || {r: 0, g: 0, b: 0, a: 255}
       positionArray[i * 2] = stack[i].getAttr('x')
       positionArray[i * 2 + 1] = stack[i].getAttr('y')
       colorArray[i * 4] = fill.r
@@ -3805,7 +3805,7 @@
     let positionArray = []
     let colorArray = []
     for (var i = 0, len = stack.length; i < len; i++) {
-      let fill = stack[i].getStyle('fill') || {r: 255, g: 0, b: 0, a: 1.0}
+      let fill = stack[i].getStyle('fill') || {r: 0, g: 0, b: 0, a: 255.0}
       let x = stack[i].getAttr('x')
       let y = stack[i].getAttr('y')
       let width = stack[i].getAttr('width')
@@ -3814,10 +3814,10 @@
       let x2 = x + width
       let y1 = y
       let y2 = y + height
-      let r = fill.r || 255
-      let g = fill.g || 0
-      let b = fill.b || 0
-      let a = fill.a || 1.0
+      let r = fill.r
+      let g = fill.g
+      let b = fill.b
+      let a = fill.a || 255.0
       positionArray[i * 12] = x1
       positionArray[i * 12 + 1] = y1
       positionArray[i * 12 + 2] = x2
@@ -3914,12 +3914,12 @@
       positionArray[i * 4 + 2] = x2
       positionArray[i * 4 + 3] = y2
 
-      fill = fill || {r: 255, g: 0, b: 0, a: 1.0}
+      fill = fill || {r: 0, g: 0, b: 0, a: 255.0}
 
       let r = fill.r
       let g = fill.g
       let b = fill.b
-      let a = fill.a || 1.0
+      let a = fill.a || 255.0
 
       colorArray[i * 8] = r
       colorArray[i * 8 + 1] = g
@@ -3974,15 +3974,15 @@
 
     for (var i = 0, len = stack.length; i < len; i++) {
       let node = stack[i]
-      let fill = node.getStyle('fill')
-      fill = fill || {r: 255, g: 0, b: 0}
+      let fill = node.getStyle('stroke')
+      fill = fill || {r: 0, g: 0, b: 0, a: 255.0}
       let points = node.getAttr('points')
       let positionArray = []
       let colorArray = []
-      let r = fill.r || 255
+      let r = fill.r || 0
       let g = fill.g || 0
       let b = fill.b || 0
-      let a = fill.a || 1.0
+      let a = fill.a || 255.0
       for (let j = 0, jlen = points.length; j < jlen; j++) {
         positionArray[j * 2] = points[j].x
         positionArray[j * 2 + 1] = points[j].y
@@ -4035,14 +4035,14 @@
     for (var i = 0, len = stack.length; i < len; i++) {
       let node = stack[i]
       let fill = node.getStyle('fill')
-      fill = fill || {r: 255, g: 0, b: 0}
+      fill = fill || {r: 0, g: 0, b: 0, a: 255}
       let points = node.getAttr('triangulatedPoints')
       let positionArray = []
       let colorArray = []
-      let r = fill.r || 255
+      let r = fill.r || 0
       let g = fill.g || 0
       let b = fill.b || 0
-      let a = fill.a || 1.0
+      let a = fill.a || 255.0
       for (let j = 0, jlen = points.length; j < jlen; j++) {
         positionArray[j * 2] = points[j].x
         positionArray[j * 2 + 1] = points[j].y
@@ -4102,7 +4102,7 @@
     for (var i = 0, len = stack.length; i < len; i++) {
       let node = stack[i]
       let fill = node.getStyle('fill')
-      fill = fill || {r: 255, g: 0, b: 0, a: 1.0}
+      fill = fill || {r: 0, g: 0, b: 0, a: 255.0}
 
       positionArray[i * 2] = node.getAttr('cx')
       positionArray[i * 2 + 1] = node.getAttr('cy')
@@ -4112,7 +4112,7 @@
       colorArray[i * 4] = fill.r
       colorArray[i * 4 + 1] = fill.g
       colorArray[i * 4 + 2] = fill.b
-      colorArray[i * 4 + 3] = fill.a || 1.0
+      colorArray[i * 4 + 3] = fill.a || 255.0
     }
 
     this.writeDataToShaderAttributes([{
@@ -4313,7 +4313,12 @@
     const height = config.height ? config.height : res.clientHeight
     const width = config.width ? config.width : res.clientWidth
     const layer = document.createElement('canvas')
-    const ctx = layer.getContext('webgl2')
+    const ctx = layer.getContext('webgl', {
+      premultipliedAlpha: false,
+      depth: false,
+      antialias: true,
+      alpha: true
+    })
     layer.height = height
     layer.width = width
     layer.style.height = `${height}px`
@@ -4338,9 +4343,9 @@
     root.height = height
     root.width = width
     root.type = 'WEBGL'
+    ctx.clearColor(0, 0, 0, 0)
     root.execute = function executeExe () {
       this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
-      this.ctx.clearColor(0, 0, 0, 0)
       this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT)
       execute()
     }

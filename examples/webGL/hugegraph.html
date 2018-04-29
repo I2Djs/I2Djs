@@ -63,13 +63,13 @@
                                 r:0,
                                 g:203,
                                 b:255,
-								a: 10
+								a: 100
                             } }
                         });
 
             circles = rectsRef.createEls(graph.nodes,{
                             el:'circle',
-                            attr:{ r:10.0, cx:0, cy:0 },
+                            attr:{ r:5.0, cx:0, cy:0 },
                             style:{ fill: function(){
                                 return {
                                 r: parseInt(Math.random()*255),
@@ -90,7 +90,7 @@
             function ticked(){
                 circles
                         .setAttr('cy',function(d){return 400 + d.y * 0.2 })
-                        .setAttr('cx',function(d){return 600 + d.x * 0.2 - 2})
+                        .setAttr('cx',function(d){return 600 + d.x * 0.2})
 
                 links.forEach(function(d){
                     this.setAttr({x1: 600 + d.source.x  * 0.2,
