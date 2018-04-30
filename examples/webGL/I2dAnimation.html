@@ -68,17 +68,19 @@
 				attr:{
 					x: function(d) {return d.x + position.x+Math.cos(d.angle) * (Math.random()*300+200)},
 					y: function(d) {return d.y + position.y+ Math.sin(d.angle) * (Math.random()*300+200)},
-					size: 1.0
+					size: 2.0
 				},
 				style: {
 					fill: path === path2 ? {
                                 r: 255,
                                 g: 132,
-                                b: 132
+                                b: 132,
+                                a: 255
                             } : {
 							r: 0,
 							g: 203,
-							b: 255
+							b: 255,
+                            a: 255
 						}
 				}
 			})
@@ -88,7 +90,7 @@
                 var parallelChain = i2d.chain.parallelChain()
                     parallelChain.add(pointsRef.animateExe({
                             duration: 3000,//1000+Math.random()*1000,
-                            ease:'easeOutCubic',
+                            ease:'easeInCubic',
                             attr:{
                                 x: function(d){
                                     return d.x + position.x
