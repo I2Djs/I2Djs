@@ -652,7 +652,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root,
     module.exports = factory()
   } else {
     root.queue = factory()
-    console.log('queue root')
   }
 }(this, () => {
   'use strict'
@@ -690,7 +689,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root,
   function Tween (Id, executable, easying) {
     this.executable = executable
     this.duration = executable.duration ? executable.duration : 0
-    this.currTime = Date.now()
+    this.delay = executable.delay ? executable.delay : 0
     this.lastTime = 0 - (executable.delay ? executable.delay : 0)
     this.loopTracker = 0
     this.loop = executable.loop ? executable.loop : 0
@@ -735,7 +734,20 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root,
   }
 
   function add (uId, executable, easying) {
-    tweens[tweens.length] = new Tween(uId, executable, easying)
+    let exeObj = new Tween(uId, executable, easying)
+    if (exeObj.delay > 0) {
+      setTimeout(function () {
+        pushAnimeObj(exeObj)
+      }, exeObj.delay)
+    } else {
+      pushAnimeObj(exeObj)
+    }
+  }
+
+  function pushAnimeObj (tween) {
+    tween.currTime = performance.now()
+    tween.lastTime = 0
+    tweens[tweens.length] = tween
   }
 
   function startAnimeFrames () {
@@ -778,7 +790,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root,
         vDoms.splice(i, 1)
       }
     }
-    console.log(vDoms)
   }
   Animator.prototype.vDomChanged = function AvDomChanged (vDom) {
     if (vDoms[vDom]) {
@@ -795,41 +806,54 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root,
   let counter = 0
   let tweensN = []
   function exeFrameCaller () {
-    animeFrameId = window.requestAnimationFrame(exeFrameCaller)
-    // let aIds = Object.keys(tweens)
     tweensN = []
     counter = 0
+    t = performance.now()
     for (let i = 0; i < tweens.length; i += 1) {
       d = tweens[i]
-      t = Date.now()
       d.lastTime += (t - d.currTime)
       d.currTime = t
-      if (d.lastTime <= d.duration && d.lastTime >= 0) {
+      if (d.lastTime < d.duration) {
         d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)))
         tweensN[counter++] = d
-      } else if (d.lastTime > d.duration) {
-        d.execute(1 - d.factor)
-        if (d.loopTracker >= d.loop - 1) {
-          if (d.end) { d.end() }
-        } else {
-          d.loopTracker += 1
-          d.lastTime = 0
-          if (d.direction === 'alternate') { d.factor = 1 - d.factor } else if (d.direction === 'reverse') { d.factor = 1 } else { d.factor = 0 }
-          tweensN[counter++] = d
-        }
-      } else if (d.lastTime < d.duration) {
-        tweensN[counter++] = d
-      } else {
-        console.log('unknown')
+      } else if (d.lastTime >= d.duration) {
+        loopCheck(d)
       }
     }
     tweens = tweensN
     if (onFrameExe.length > 0) {
-      for (let i = 0; i < onFrameExe.length; i += 1) {
-        onFrameExe[i](t)
-      }
+      onFrameExeFun()
     }
+    vDomUpdates()
+    animeFrameId = window.requestAnimationFrame(exeFrameCaller)
+  }
 
+  function loopCheck (d) {
+    if (d.loopTracker >= d.loop - 1) {
+      d.execute(1 - d.factor)
+      if (d.end) { d.end() }
+    } else {
+      d.loopTracker += 1
+      d.lastTime = (d.lastTime - d.duration)
+      if (d.direction === 'alternate') {
+        d.factor = 1 - d.factor
+      } else if (d.direction === 'reverse') {
+        d.factor = 1
+      } else {
+        d.factor = 0
+      }
+      d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)))
+      tweensN[counter++] = d
+    }
+  }
+
+  function onFrameExeFun () {
+    for (let i = 0; i < onFrameExe.length; i += 1) {
+      onFrameExe[i](t)
+    }
+  }
+
+  function vDomUpdates () {
     for (let i = 0, len = vDoms.length; i < len; i += 1) {
       if (vDoms[i].stateModified) {
         vDoms[i].execute()
@@ -1565,8 +1589,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function colorM
     // console.log(src)
     // console.log(dest)
     return function trans (f) {
-      // console.log(src)
-      // console.log(dest)
       return `rgb(${Math.round(src.r + (dest.r - src.r) * f)},${Math.round(src.g + (dest.g - src.g) * f)},${Math.round(src.b + (dest.b - src.b) * f)})`
     }
   }
@@ -3126,11 +3148,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
           d.setStyle(key)
         }
       }
-      // if (typeof value === 'function') {
-      //     d.setStyle(key, value.call(d, d.dataObj, i))
-      // } else {
-      //     d.setStyle(key, value)
-      // }
     }
     return this
   }
@@ -3171,12 +3188,31 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return this
   }
 
+  function exec (value) {
+    let d
+    if (typeof value !== 'function') {
+      return
+    }
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
+      d = this.stack[i]
+      value.call(d, d.dataObj, i)
+    }
+    return this
+  }
+  
   function on (eventType, hndlr) {
     for (let i = 0, len = this.stack.length; i < len; i += 1) {
       this.stack[i].on(eventType, hndlr)
     }
     return this
   }
+
+  // function in (coOr) {
+  //   for (let i = 0, len = this.stack.length; i < len; i += 1) {
+  //     this.stack[i].in(coOr)
+  //   }
+  //   return this
+  // }
   function remove () {
     for (let i = 0, len = this.stack.length; i < len; i += 1) {
       this.stack[i].remove()
@@ -3317,8 +3353,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       joinResult.old[d] = (new CreateElements()).wrapper(join.old)
     }
 
-    // const joinResult = performJoin(data, nodes.stack, joinOn)
-
     if (config.action) {
       if (config.action.enter) {
         config.action.enter.call(self, joinResult.new)
@@ -3355,25 +3389,17 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       configurable: true,
       writable: false
     }
-    // this.action = config.action
-    // this.selector = selector
-    // this.data = data
     return Object.create(self, CompositeArray)
   }
 
   const animate = function animate (self, targetConfig) {
-    // const callerExe = self
     const tattr = targetConfig.attr ? targetConfig.attr : {}
     const tstyles = targetConfig.style ? targetConfig.style : {}
     const runStack = []
     let value
-    let key
 
     if (typeof tattr !== 'function') {
-      const attrs = tattr ? Object.keys(tattr) : []
-
-      for (let i = 0, len = attrs.length; i < len; i += 1) {
-        key = attrs[i]
+      for (let key in tattr) {
         if (key !== 'transform') {
           if (key === 'd') {
             self.morphTo(targetConfig)
@@ -3405,9 +3431,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     }
 
     if (typeof tstyles !== 'function') {
-      const styles = tstyles ? Object.keys(tstyles) : []
-      for (let i = 0, len = styles.length; i < len; i += 1) {
-        runStack[runStack.length] = styleTransition(self, styles[i], tstyles[styles[i]])
+      for (let style in tstyles) {
+        runStack[runStack.length] = styleTransition(self, style, tstyles[style])
       }
     } else {
       runStack[runStack.length] = tstyles.bind(self)
@@ -3472,7 +3497,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         self.setAttr(key, value.call(self, f))
       }
     }
-    // const exe = t2DGeometry.intermediateValue.bind(null, srcVal, value)
     return function setAttr_ (f) {
       self.setAttr(key, t2DGeometry.intermediateValue(srcVal, value, f))
     }
@@ -3526,10 +3550,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
 
   function resolveObject (config, node, i) {
     let obj = {}
-    const attrs = Object.keys(config)
-    for (let j = 0; j < attrs.length; j += 1) {
-      const key = attrs[j]
-      // if (key !== 'attr' && key !== 'style' && key !== 'end') {
+    let key
+    for (key in config) {
       if (key !== 'end') {
         if (typeof config[key] === 'function') {
           obj[key] = config[key].call(node, node.dataObj, i)
@@ -3582,7 +3604,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   const animatePathArrayTo = function animatePathArrayTo (config) {
     let node
     let keys = Object.keys(config)
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       node = this.stack[i]
       let conf = {}
       for (let j = 0; j < keys.length; j++) {
@@ -3900,34 +3922,19 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       for (let i = 0; i < dest.length; i += 1) {
         destArr[i].quad = getQuadrant(centroidOfDest, dest[i].p0)
       }
-      // src.forEach((d) => {
-      //   d.quad =
-      // })
-      // dest.forEach((d) => {
-      //   d.quad = getQuadrant(centroidOfDest, d.p0)
-      // })
-
-      // let srcStartingIndex = -1;
-      // let secSrcStartIndex = -1;
-      // let destStartingIndex = -1;
-      // let secDestStartIndex = -1;
       let minDistance = 0
-      // let secminDistance = Infinity;
 
       src.forEach((d, i) => {
         const dis = t2DGeometry.getDistance(d.p0, centroidOfSrc)
         if ((d.quad === 1 && dis >= minDistance)) {
           minDistance = dis
-          // srcStartingIndex = i
         }
       })
       minDistance = 0
-      // secminDistance = Infinity
       dest.forEach((d, i) => {
         const dis = t2DGeometry.getDistance(d.p0, centroidOfDest)
         if (d.quad === 1 && dis > minDistance) {
           minDistance = dis
-          // destStartingIndex = i
         }
       })
 
@@ -3974,8 +3981,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         nsExe = sExe
         ndExe = dExe
       }
-      // prevSrc = nsExe[nsExe.length - 1]
-      // preDest = ndExe[ndExe.length - 1]
 
       if (getDirection(nsExe) < 0) { nsExe = reverse(nsExe) }
       if (getDirection(ndExe) < 0) { ndExe = reverse(ndExe) }
@@ -4400,68 +4405,48 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.execute()
     return this.dom
   }
-  let styles,
-    attrs,
-    transforms,
-    trnX
+
+  function updateAttrsToDom (self, key) {
+    if (key !== 'transform') {
+      let ind = key.indexOf(':')
+      if (ind >= 0) {
+        self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), self.changedAttribute[key])
+      } else {
+        if (key === 'text') {
+          self.dom.textContent = self.changedAttribute[key]
+        } else {
+          self.dom.setAttribute(key, self.changedAttribute[key])
+        }
+      }
+    }
+  }
+
+  function updateTransAttrsToDom (self) {
+    let cmd = ''
+    for (let trnX in self.attr.transform) {
+      if (trnX === 'rotate') {
+        cmd += `${trnX}(${self.attr.transform.rotate[0] + ' ' + (self.attr.transform.rotate[1] || 0) + ' ' + (self.attr.transform.rotate[2] || 0)}) `
+      } else {
+        cmd += `${trnX}(${self.attr.transform[trnX].join(' ')}) `
+      }
+    }
+    self.dom.setAttribute('transform', cmd)
+  }
+
   DomExe.prototype.transFormAttributes = function transFormAttributes () {
-    const self = this
-
-    attrs = Object.keys(self.changedAttribute)
-    for (let i = 0, len = attrs.length; i < len; i += 1) {
-      let key = attrs[i]
-      if (key !== 'transform') {
-        let ind = key.indexOf(':')
-        if (ind >= 0) {
-          self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), this.changedAttribute[key])
-        } else {
-          if (key === 'text') {
-            self.dom.textContent = this.changedAttribute[key]
-          } else {
-            self.dom.setAttribute(key, this.changedAttribute[key])
-          }
-        }
-      }
+    let self = this
+    for (let key in self.changedAttribute) {
+      updateAttrsToDom(self, key)
     }
-
     if (this.changedAttribute.transform) {
-      let cmd = ''
-      transforms = Object.keys(this.attr.transform)
-      for (let i = 0; i < transforms.length; i += 1) {
-        trnX = transforms[i]
-        if (trnX === 'rotate') {
-          cmd += `${trnX}(${this.attr.transform.rotate[0] + ' ' + (this.attr.transform.rotate[1] || 0) + ' ' + (this.attr.transform.rotate[2] || 0)}) `
-        } else {
-          cmd += `${trnX}(${this.attr.transform[trnX].join(' ')}) `
-        }
-      }
-      this.dom.setAttribute('transform', cmd)
+      updateTransAttrsToDom(self)
     }
-
     this.changedAttribute = {}
-
-    styles = Object.keys(this.changedStyles)
-
-    for (let i = 0, len = styles.length; i < len; i += 1) {
-      if (this.changedStyles[styles[i]] instanceof DomGradients) {
-        this.changedStyles[styles[i]] = this.changedStyles[styles[i]].exe()
-      }
-      this.dom.style.setProperty(styles[i], this.changedStyles[styles[i]], '')
-      // this.dom.style[styles[i]] = this.changedStyles[styles[i]]
-    }
-
-    this.changedStyles = {}
   }
   DomExe.prototype.scale = function DMscale (XY) {
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.scale = XY
     this.changedAttribute.transform = this.attr.transform
-    // if (this.changedAttribute.transform) {
-    //   this.changedAttribute.transform.scale = XY
-    // } else {
-    //   this.changedAttribute.transform = {}
-    //   this.changedAttribute.transform.scale = XY
-    // }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -4469,10 +4454,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.skewX = [x]
     this.changedAttribute.transform = this.attr.transform
-    // if (this.changedAttribute.transform) { this.changedAttribute.transform.skewX = [x] } else {
-    //   this.changedAttribute.transform = {}
-    //   this.changedAttribute.transform.skewX = [x]
-    // }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -4480,10 +4461,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.skewY = [y]
     this.changedAttribute.transform = this.attr.transform
-    // if (this.changedAttribute.transform) { this.changedAttribute.transform.skewY = [y] } else {
-    //   this.changedAttribute.transform = {}
-    //   this.changedAttribute.transform.skewY = [y]
-    // }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -4492,10 +4469,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.translate = XY
     this.changedAttribute.transform = this.attr.transform
-    // if (this.changedAttribute.transform) { this.changedAttribute.transform.translate = XY } else {
-    //   this.changedAttribute.transform = {}
-    //   this.changedAttribute.transform.translate = XY
-    // }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -4506,15 +4479,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     } else {
       this.attr.transform.rotate = [angle, x || 0, y || 0]
     }
-    // this.attr.transform.cx = x ? x : 0
-    // this.attr.transform.cy = y ? y : 0
     this.changedAttribute.transform = this.attr.transform
-    // if (this.changedAttribute.transform) {
-    //   this.changedAttribute.transform.rotate = this.attr.transform.rotate
-    // } else {
-    //   this.changedAttribute.transform = {}
-    //   this.changedAttribute.transform.rotate = this.attr.transform.rotate
-    // }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -4526,10 +4491,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       this.style[attr] = value
       this.changedStyles[attr] = value
     } else if (arguments.length === 1 && typeof attr === 'object') {
-      const styleAttrs = Object.keys(attr)
-
-      for (let i = 0, len = styleAttrs.length; i < len; i += 1) {
-        const key = styleAttrs[i]
+      let key
+      for (key in attr) {
         this.style[key] = attr[key]
         this.changedStyles[key] = attr[key]
       }
@@ -4571,11 +4534,19 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     for (let i = 0, len = this.children.length; i < len; i += 1) {
       this.children[i].execute()
     }
+
+    for (let style in this.changedStyles) {
+      if (this.changedStyles[style] instanceof DomGradients) {
+        this.changedStyles[style] = this.changedStyles[style].exe()
+      }
+      this.dom.style.setProperty(style, this.changedStyles[style], '')
+    }
+
+    this.changedStyles = {}
   }
   DomExe.prototype.child = function DMchild (nodes) {
     const parent = this.dom
     const self = this
-    // if (parent.nodeName === 'g' || parent.nodeName === 'svg') {
     if (nodes instanceof CreateElements) {
       var fragment = document.createDocumentFragment()
       for (let i = 0, len = nodes.stack.length; i < len; i++) {
@@ -4584,12 +4555,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         this.children[this.children.length] = nodes.stack[i]
       }
       parent.appendChild(fragment)
-      // console.log(this.children.length)
-      // nodes.stack.forEach((d) => {
-      //   parent.appendChild(d.dom)
-      //   d.parentNode = self
-      // })
-      // this.children = this.children.concat(nodes.stack)
     } else if (nodes instanceof DomExe) {
       parent.appendChild(nodes.dom)
       nodes.parentNode = self
@@ -4669,20 +4634,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     if (index !== -1) {
       this.dom.removeChild(children.splice(index, 1)[0].dom)
     }
-    // for (let i = 0; i < children.length; i += 1) {
-    //   if (obj === children[i]) {
-    //     index = i
-    //     this.dom.removeChild(children[i].dom)
-    //   }
-    // }
-    // if (index > -1) {
-    //   for (let i = index; i < children.length - 1; i += 1) {
-    //     children[i] = children[i + 1]
-    //   }
-    //   children.length -= 1
-    // }
-
-    // queueInstance.vDomChanged(this.vDomIndex)
   }
 
   function createDomElement (obj, vDomIndex) {
@@ -4775,7 +4726,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return lGradient
   }
   CanvasGradients.prototype.absoluteLinearGradient = function absoluteGralinearGradient (ctx) {
-    console.log('called')
     const lGradient = ctx.createLinearGradient(
       this.config.x1, this.config.y1,
       this.config.x2, this.config.y2
@@ -4874,9 +4824,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   }
 
   function createCanvasPattern (patternObj, repeatInd) {
-    // const self = this
-    // self.children = []
-    // self.stack = [self]
   }
   createCanvasPattern.prototype = {
   }
@@ -5752,27 +5699,25 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return this.dom
   }
   CanvasNodeExe.prototype.stylesExe = function CstylesExe () {
-    const props = Object.keys(this.style)
     let value
+    let key
 
-    for (let i = 0, len = props.length; i < len; i += 1) {
-      if (typeof this.style[props[i]] !== 'function' && !(this.style[props[i]] instanceof CanvasGradients)) {
-        value = this.style[props[i]]
-      } else if (typeof this.style[props[i]] === 'function') {
-        this.style[props[i]] = this.style[props[i]].call(this, this.dataObj)
-        value = this.style[props[i]]
-      } else if (this.style[props[i]] instanceof CanvasGradients) {
-        value = this.style[props[i]].exe(this.ctx, this.dom.BBox)
+    for (key in this.style) {
+      if (typeof this.style[key] !== 'function' && !(this.style[key] instanceof CanvasGradients)) {
+        value = this.style[key]
+      } else if (typeof this.style[key] === 'function') {
+        this.style[key] = this.style[key].call(this, this.dataObj)
+        value = this.style[key]
+      } else if (this.style[key] instanceof CanvasGradients) {
+        value = this.style[key].exe(this.ctx, this.dom.BBox)
       } else {
         console.log('unkonwn Style')
       }
 
-      if (typeof this.ctx[props[i]] !== 'function') {
-        this.ctx[props[i]] = value
-      } else if (typeof this.ctx[props[i]] === 'function') {
-        // console.log(value);
-        // this.ctx.setLineDash([5, 5])
-        this.ctx[props[i]](value)
+      if (typeof this.ctx[key] !== 'function') {
+        this.ctx[key] = value
+      } else if (typeof this.ctx[key] === 'function') {
+        this.ctx[key](value)
       } else { console.log('junk comp') }
     }
   }
@@ -5901,7 +5846,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         childrensLocal[i].dom.parent = self
         self.children[self.children.length] = childrensLocal[i]
       }
-    } else { console.log('Error') }
+    } else { console.error('Trying to insert child to nonGroup Element') }
 
     this.BBoxUpdate = true
     queueInstance.vDomChanged(this.vDomIndex)
@@ -6056,6 +6001,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     translate,
     rotate,
     scale,
+    exec,
     animateTo: animateArrayTo,
     animateExe: animateArrayExe,
     animatePathTo: animatePathArrayTo,
@@ -6183,14 +6129,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     root.width = width
     root.type = 'CANVAS'
     root.execute = function executeExe () {
-      // if (!this.dom.BBoxHit) {
-      //   this.dom.BBoxHit = {
-      //     x: 0, y: 0, width: width * originalRatio, height: height * originalRatio
-      //   }
-      // } else {
-      //   this.dom.BBoxHit.width = this.width * originalRatio
-      //   this.dom.BBoxHit.height = this.height * originalRatio
-      // }
       onClear(ctx)
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
       root.updateBBox()
@@ -6301,7 +6239,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         }
       })
       res.addEventListener('click', (e) => {
-        console.log('click')
         e.preventDefault()
         if (selectedNode && selectedNode.dom.click) { selectedNode.dom.click.call(selectedNode, selectedNode.dataObj, e) }
       })
@@ -6309,7 +6246,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         if (selectedNode && selectedNode.dom.dblclick) { selectedNode.dom.dblclick.call(selectedNode, selectedNode.dataObj, e) }
       })
       res.addEventListener('mousedown', (e) => {
-        console.log('down')
         e.preventDefault()
         if (selectedNode && selectedNode.dom.mousedown) {
           selectedNode.dom.mousedown.call(selectedNode, selectedNode.dataObj, e)
@@ -6412,12 +6348,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     }
 
     window.addEventListener('resize', svgResize)
-
-    // function destroy () {
-    //   window.removeEventListener('resize', svgResize)
-    //   layer.remove()
-    //   queueInstance.removeVdom(vDomInstance)
-    // }
 
     root.destroy = function () {
       window.removeEventListener('resize', svgResize)
@@ -6583,36 +6513,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return this.style[key]
   }
 
-  // function WebGlWrapper () {
-  //   this.stack = []
-  //   this.colorArray = []
-  // }
-  // WebGlWrapper.prototype.createEl = function (config) {
-  //   const e = new WebglNodeExe(this.ctx, config, domId(), this.vDomIndex)
-  //   this.stack.push(e)
-  // }
-  // WebGlWrapper.prototype.createEls = function WcreateEls (data, config) {
-  //   const e = new CreateElements({ type: 'WEBGL', ctx: this.dom.ctx }, data, config, this.vDomIndex)
-  //   this.stack = this.stack.concat(e.stack)
-  //   queueInstance.vDomChanged(this.vDomIndex)
-  //   return e
-  // }
-  // WebGlWrapper.prototype.forEach = forEach
-  // WebGlWrapper.prototype.setAttr = setAttribute
-  // WebGlWrapper.prototype.animateTo = animateArrayTo
-  // WebGlWrapper.prototype.animateExe = animateArrayExe
-  // WebGlWrapper.prototype.remove = remove
-  // // WebGlWrapper.prototype.fetchEl = fetchEl
-  // // WebGlWrapper.prototype.fetchEls = fetchEls
-  // WebGlWrapper.prototype.join = join
-
-
-  function writeDataToShaderAttributes (data) {
+  function writeDataToShaderAttributes (ctx, data) {
     for (let i = 0; i < data.length; i++) {
-      this.ctx.bindBuffer(data[i].bufferType, data[i].buffer)
-      this.ctx.bufferData(data[i].bufferType, data[i].data, data[i].drawType)
-      this.ctx.enableVertexAttribArray(data[i].attribute)
-      this.ctx.vertexAttribPointer(data[i].attribute, data[i].size, data[i].valueType, true, 0, 0)
+      ctx.bindBuffer(data[i].bufferType, data[i].buffer)
+      ctx.bufferData(data[i].bufferType, data[i].data, data[i].drawType)
+      ctx.enableVertexAttribArray(data[i].attribute)
+      ctx.vertexAttribPointer(data[i].attribute, data[i].size, data[i].valueType, true, 0, 0)
     }
   }
 
@@ -6631,7 +6537,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.sizeAttributeLocation = ctx.getAttribLocation(this.program, 'a_size')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
   }
-  RenderWebglPoints.prototype.writeDataToShaderAttributes = writeDataToShaderAttributes
   RenderWebglPoints.prototype.execute = function (stack) {
     let positionArray = []
     let colorArray = []
@@ -6648,7 +6553,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       pointsSize[i] = stack[i].getAttr('size') || 1.0
     }
 
-    this.writeDataToShaderAttributes([{
+    writeDataToShaderAttributes(this.ctx, [{
       data: new Uint8Array(colorArray),
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.colorBuffer,
@@ -6692,7 +6597,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
   }
-  RenderWebglRects.prototype.writeDataToShaderAttributes = writeDataToShaderAttributes
   RenderWebglRects.prototype.execute = function (stack) {
     let positionArray = []
     let colorArray = []
@@ -6754,7 +6658,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       colorArray[i * 24 + 23] = a
     }
 
-    this.writeDataToShaderAttributes([{
+    writeDataToShaderAttributes(this.ctx, [{
       data: new Uint8Array(colorArray),
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.colorBuffer,
@@ -6791,7 +6695,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
   }
-  RenderWebglLines.prototype.writeDataToShaderAttributes = writeDataToShaderAttributes
   RenderWebglLines.prototype.execute = function (stack) {
     let positionArray = []
     let colorArray = []
@@ -6823,7 +6726,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       colorArray[i * 8 + 7] = a
     }
 
-    this.writeDataToShaderAttributes([{
+    writeDataToShaderAttributes(this.ctx, [{
       data: new Uint8Array(colorArray),
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.colorBuffer,
@@ -6859,7 +6762,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
   }
-  RenderWebglPolyLines.prototype.writeDataToShaderAttributes = writeDataToShaderAttributes
   RenderWebglPolyLines.prototype.execute = function (stack) {
     this.ctx.useProgram(this.program)
     this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
@@ -6884,7 +6786,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         colorArray[j * 4 + 3] = a
       }
 
-      this.writeDataToShaderAttributes([{
+      writeDataToShaderAttributes(this.ctx, [{
         data: new Uint8Array(colorArray),
         bufferType: this.ctx.ARRAY_BUFFER,
         buffer: this.colorBuffer,
@@ -6919,7 +6821,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
   }
-  RenderWebglPolygons.prototype.writeDataToShaderAttributes = writeDataToShaderAttributes
   RenderWebglPolygons.prototype.execute = function (stack) {
     this.ctx.useProgram(this.program)
     this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
@@ -6944,7 +6845,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         colorArray[j * 4 + 3] = a
       }
 
-      this.writeDataToShaderAttributes([{
+      writeDataToShaderAttributes(this.ctx, [{
         data: new Uint8Array(colorArray),
         bufferType: this.ctx.ARRAY_BUFFER,
         buffer: this.colorBuffer,
@@ -6981,7 +6882,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.radiusAttributeLocation = ctx.getAttribLocation(this.program, 'a_radius')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
   }
-  RenderWebglCircles.prototype.writeDataToShaderAttributes = writeDataToShaderAttributes
   // RenderWebglCircles.prototype.setAttr = function (prop, value) {
   //   this.attr[prop] = value
   // }
@@ -7007,7 +6907,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       colorArray[i * 4 + 3] = fill.a || 255.0
     }
 
-    this.writeDataToShaderAttributes([{
+    writeDataToShaderAttributes(this.ctx, [{
       data: new Uint8Array(colorArray),
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.colorBuffer,

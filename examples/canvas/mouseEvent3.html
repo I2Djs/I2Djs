@@ -24,7 +24,7 @@
 </head>
 <body style="height: 100%">
 
-	<div id="mySvg" style="height: 100%;width:100%;background: black"> </div>
+	<div id="myCanvas" style="height: 100%;width:100%;background: black"> </div>
     
 	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
     <script type="text/javascript" src="../../src/earcut.min.js"></script>
@@ -48,23 +48,37 @@
 
 	<script type="text/javascript">
 
-        var renderer_ = i2d.SVGLayer('#mySvg');
+        var renderer_ = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
             var i = 0;
             var sqrt = Math.sqrt
-                window.addEventListener("mousemove",function(e){
-                    renderer_.createEl({
+            var data = []
+
+            for(let i = 0; i <100; i++){
+                data.push(i)
+            }
+               
+        var circles = renderer_.createEls(data,{
                         el:'circle',
-                        attr:{ r:0, cx:e.x, cy:e.y },
-                        style:{ 'stroke-opacity':1, stroke:'hsl('+(i = (i + 1) % 360)+',100%,50%)'}
+                        attr:{ r:0, cx:500, cy:500 },
+                        style:{ 
+                            globalAlpha:1,
+                            strokeStyle: function(d, i){
+                                return 'hsl('+(i = (i + 1) % 360)+',100%,50%)'
+                            }
+                        }
                     })
                     .animateTo({
                             duration: 2000,
+                            delay: function(d) {return d*50;},
                             ease: sqrt,
+                            loop: 100,
                             attr:{ r:100 },
-                            style:{ 'stroke-opacity':0 },
+                            style:{ globalAlpha:0 },
                             end:function(){ this.remove(); }
                     });
-                    
+
+                 window.addEventListener("mousemove",function(e){
+                     circles.setAttr('cx',e.x).setAttr('cy',e.y);
                     e.preventDefault();
                 });
                 

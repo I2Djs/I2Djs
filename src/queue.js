@@ -5,7 +5,6 @@
     module.exports = factory()
   } else {
     root.queue = factory()
-    console.log('queue root')
   }
 }(this, () => {
   'use strict'
@@ -43,7 +42,7 @@
   function Tween (Id, executable, easying) {
     this.executable = executable
     this.duration = executable.duration ? executable.duration : 0
-    this.currTime = Date.now()
+    this.delay = executable.delay ? executable.delay : 0
     this.lastTime = 0 - (executable.delay ? executable.delay : 0)
     this.loopTracker = 0
     this.loop = executable.loop ? executable.loop : 0
@@ -88,7 +87,20 @@
   }
 
   function add (uId, executable, easying) {
-    tweens[tweens.length] = new Tween(uId, executable, easying)
+    let exeObj = new Tween(uId, executable, easying)
+    if (exeObj.delay > 0) {
+      setTimeout(function () {
+        pushAnimeObj(exeObj)
+      }, exeObj.delay)
+    } else {
+      pushAnimeObj(exeObj)
+    }
+  }
+
+  function pushAnimeObj (tween) {
+    tween.currTime = performance.now()
+    tween.lastTime = 0
+    tweens[tweens.length] = tween
   }
 
   function startAnimeFrames () {
@@ -131,7 +143,6 @@
         vDoms.splice(i, 1)
       }
     }
-    console.log(vDoms)
   }
   Animator.prototype.vDomChanged = function AvDomChanged (vDom) {
     if (vDoms[vDom]) {
@@ -148,41 +159,54 @@
   let counter = 0
   let tweensN = []
   function exeFrameCaller () {
-    animeFrameId = window.requestAnimationFrame(exeFrameCaller)
-    // let aIds = Object.keys(tweens)
     tweensN = []
     counter = 0
+    t = performance.now()
     for (let i = 0; i < tweens.length; i += 1) {
       d = tweens[i]
-      t = Date.now()
       d.lastTime += (t - d.currTime)
       d.currTime = t
-      if (d.lastTime <= d.duration && d.lastTime >= 0) {
+      if (d.lastTime < d.duration) {
         d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)))
         tweensN[counter++] = d
-      } else if (d.lastTime > d.duration) {
-        d.execute(1 - d.factor)
-        if (d.loopTracker >= d.loop - 1) {
-          if (d.end) { d.end() }
-        } else {
-          d.loopTracker += 1
-          d.lastTime = 0
-          if (d.direction === 'alternate') { d.factor = 1 - d.factor } else if (d.direction === 'reverse') { d.factor = 1 } else { d.factor = 0 }
-          tweensN[counter++] = d
-        }
-      } else if (d.lastTime < d.duration) {
-        tweensN[counter++] = d
-      } else {
-        console.log('unknown')
+      } else if (d.lastTime >= d.duration) {
+        loopCheck(d)
       }
     }
     tweens = tweensN
     if (onFrameExe.length > 0) {
-      for (let i = 0; i < onFrameExe.length; i += 1) {
-        onFrameExe[i](t)
-      }
+      onFrameExeFun()
     }
+    vDomUpdates()
+    animeFrameId = window.requestAnimationFrame(exeFrameCaller)
+  }
 
+  function loopCheck (d) {
+    if (d.loopTracker >= d.loop - 1) {
+      d.execute(1 - d.factor)
+      if (d.end) { d.end() }
+    } else {
+      d.loopTracker += 1
+      d.lastTime = (d.lastTime - d.duration)
+      if (d.direction === 'alternate') {
+        d.factor = 1 - d.factor
+      } else if (d.direction === 'reverse') {
+        d.factor = 1
+      } else {
+        d.factor = 0
+      }
+      d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)))
+      tweensN[counter++] = d
+    }
+  }
+
+  function onFrameExeFun () {
+    for (let i = 0; i < onFrameExe.length; i += 1) {
+      onFrameExe[i](t)
+    }
+  }
+
+  function vDomUpdates () {
     for (let i = 0, len = vDoms.length; i < len; i += 1) {
       if (vDoms[i].stateModified) {
         vDoms[i].execute()
