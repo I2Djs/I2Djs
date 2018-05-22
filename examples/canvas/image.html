@@ -36,9 +36,7 @@ var img = renderer_.createEl({
                 loop:6,
                 attr:{
                     x:function(f){
-                            var x = f*200+(index*200);
-                                if(f === 1) index++;
-                                return x;
+                                return (index = index + 4, index);
                     },
                     clip:function(f){
                             if(f==1)
