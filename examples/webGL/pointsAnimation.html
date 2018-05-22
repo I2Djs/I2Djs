@@ -7,7 +7,17 @@
 
 	<div id="canvas" style="height: 100%;width:100%;background: black">
 	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+	<script type="text/javascript" src="../../src/earcut.min.js"></script>
+	<script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/shaders.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
 
 	<script type="text/javascript">
         var webglRenderer = i2d.WebglLayer('#canvas',{events:false,selectiveClear:false});
@@ -33,7 +43,7 @@
 				attr:{
 					x: function(d) {return d.x},
 					y: function(d) {return d.y},
-					size: 1.0
+					size: 2.0
 				},
 				style: {
 					fill: function () {
@@ -47,25 +57,43 @@
 			})
 			
 		pointsRef.animateTo({
-				duration:10000,
-				loop: 100,
-				delay: function(d,i) {
-					return i*5
+			duration:1000,
+			delay: function(d,i) {
+				return i*2
+			},
+			attr: {
+				x: function(d, i) {
+					d.randX =  Math.random()*60
+					return path.getPointAtLength(0).x + d.randX
 				},
-				direction: 'alternate',
-				attr:{
-					x: function(d, i) {
-						let rand =  Math.random()*60
-						return function(t){
-						return path.getPointAtLength(totalLen*t).x + rand
-					}},
-					y: function(d, i) {
-						let rand =  Math.random()*60
-						return function(t){
-						return path.getPointAtLength(totalLen*t).y + rand
-					}}
+				y: function(d, i) {
+					d.randY =  Math.random()*60
+					return path.getPointAtLength(0).y + d.randY
 				}
-			})
+			},
+			end : function(d, i) {
+				this.setStyle('fill', {
+                                    r: 255,
+                                    g: 132,
+                                    b: 132,
+                                    a: 255
+                                })
+				this.animateTo({
+					duration:10000,
+					loop: 100,
+					direction: 'alternate',
+					attr:{
+						x: function(t) {
+							return path.getPointAtLength(totalLen*t).x + d.randX
+						},
+						y: function(t){
+							return path.getPointAtLength(totalLen*t).y + d.randY
+						}
+					}
+				})
+			}
+		})
+		
 
 		/************** End Points *****************/
 

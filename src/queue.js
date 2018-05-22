@@ -9,7 +9,6 @@
 }(this, () => {
   'use strict'
   let animatorInstance = null
-  // const currentTime = Date.now()
   let tweens = []
   const vDoms = []
   let animeFrameId
@@ -88,19 +87,8 @@
 
   function add (uId, executable, easying) {
     let exeObj = new Tween(uId, executable, easying)
-    if (exeObj.delay > 0) {
-      setTimeout(function () {
-        pushAnimeObj(exeObj)
-      }, exeObj.delay)
-    } else {
-      pushAnimeObj(exeObj)
-    }
-  }
-
-  function pushAnimeObj (tween) {
-    tween.currTime = performance.now()
-    tween.lastTime = 0
-    tweens[tweens.length] = tween
+    exeObj.currTime = performance.now()
+    tweens[tweens.length] = exeObj
   }
 
   function startAnimeFrames () {
@@ -166,11 +154,13 @@
       d = tweens[i]
       d.lastTime += (t - d.currTime)
       d.currTime = t
-      if (d.lastTime < d.duration) {
+      if (d.lastTime < d.duration && d.lastTime >= 0) {
         d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)))
         tweensN[counter++] = d
-      } else if (d.lastTime >= d.duration) {
+      } else if (d.lastTime > d.duration) {
         loopCheck(d)
+      } else {
+        tweensN[counter++] = d
       }
     }
     tweens = tweensN

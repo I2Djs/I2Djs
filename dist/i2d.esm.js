@@ -744,7 +744,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   'use strict';
 
   var animatorInstance = null;
-  // const currentTime = Date.now()
   var tweens = [];
   var vDoms = [];
   var animeFrameId = void 0;
@@ -815,19 +814,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   function add(uId, executable, easying) {
     var exeObj = new Tween(uId, executable, easying);
-    if (exeObj.delay > 0) {
-      setTimeout(function () {
-        pushAnimeObj(exeObj);
-      }, exeObj.delay);
-    } else {
-      pushAnimeObj(exeObj);
-    }
-  }
-
-  function pushAnimeObj(tween) {
-    tween.currTime = performance.now();
-    tween.lastTime = 0;
-    tweens[tweens.length] = tween;
+    exeObj.currTime = performance.now();
+    tweens[tweens.length] = exeObj;
   }
 
   function startAnimeFrames() {
@@ -897,11 +885,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       d = tweens[i];
       d.lastTime += t - d.currTime;
       d.currTime = t;
-      if (d.lastTime < d.duration) {
+      if (d.lastTime < d.duration && d.lastTime >= 0) {
         d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)));
         tweensN[counter++] = d;
-      } else if (d.lastTime >= d.duration) {
+      } else if (d.lastTime > d.duration) {
         loopCheck(d);
+      } else {
+        tweensN[counter++] = d;
       }
     }
     tweens = tweensN;
@@ -2339,7 +2329,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         break;
       default:
         res = {
-          vertexShader: '\n                    attribute vec2 a_position;\n                    attribute vec4 a_color;\n                    uniform vec2 u_resolution;\n                    varying vec4 v_color;\n                    void main() {\n                    vec2 zeroToOne = a_position / u_resolution;\n                    vec2 zeroToTwo = zeroToOne * 2.0;\n                    vec2 clipSpace = zeroToTwo - 1.0;\n                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                    v_color = a_color;\n                    }\n                    ',
+          vertexShader: '\n                    attribute vec2 a_position;\n                    attribute vec4 a_color;\n                    uniform vec2 u_resolution;\n                    varying vec4 v_color;\n                    void main() {\n                    vec2 zeroToOne = a_position / u_resolution;\n                    vec2 clipSpace = zeroToOne * 2.0 - 1.0;\n                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                    v_color = a_color;\n                    }\n                    ',
           fragmentShader: '\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                        gl_FragColor = v_color;\n                    }\n                    '
         };
     }
@@ -3616,33 +3606,34 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       return function inner(f) {
         self.setStyle(key, value.call(self, self.dataObj, f));
       };
-    }
-    srcValue = self.style[key];
-    if (isNaN(value)) {
-      if (value.startsWith('#') || value.startsWith('rgb') || value.startsWith('hsl')) {
-        var colorExe = colorMap.transition(srcValue, value);
-        return function inner(f) {
-          self.setStyle(key, colorExe(f));
-        };
-      }
-      // else {
-      //   value = colorMap.nameToHex(value)
-      // }
-      srcValue = srcValue.match(/(\d+)/g);
-      destValue = value.match(/(\d+)/g);
-      destUnit = value.match(/\D+$/);
-
-      srcValue = parseInt(srcValue.length > 0 ? srcValue[0] : 0, 10);
-      destValue = parseInt(destValue.length > 0 ? destValue[0] : 0, 10);
-      destUnit = destUnit.length > 0 ? destUnit[0] : 'px';
     } else {
-      srcValue = self.style[key] !== undefined ? self.style[key] : 1;
-      destValue = value;
-      destUnit = 0;
+      srcValue = self.style[key];
+      if (isNaN(value)) {
+        if (value.startsWith('#') || value.startsWith('rgb') || value.startsWith('hsl')) {
+          var colorExe = colorMap.transition(srcValue, value);
+          return function inner(f) {
+            self.setStyle(key, colorExe(f));
+          };
+        }
+        // else {
+        //   value = colorMap.nameToHex(value)
+        // }
+        srcValue = srcValue.match(/(\d+)/g);
+        destValue = value.match(/(\d+)/g);
+        destUnit = value.match(/\D+$/);
+
+        srcValue = parseInt(srcValue.length > 0 ? srcValue[0] : 0, 10);
+        destValue = parseInt(destValue.length > 0 ? destValue[0] : 0, 10);
+        destUnit = destUnit.length > 0 ? destUnit[0] : 'px';
+      } else {
+        srcValue = self.style[key] !== undefined ? self.style[key] : 1;
+        destValue = value;
+        destUnit = 0;
+      }
+      return function inner(f) {
+        self.setStyle(key, t2DGeometry.intermediateValue(srcValue, destValue, f) + destUnit);
+      };
     }
-    return function inner(f) {
-      self.setStyle(key, t2DGeometry.intermediateValue(srcValue, destValue, f) + destUnit);
-    };
   };
 
   var animateTo = function animateTo(targetConfig) {
@@ -4677,6 +4668,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   };
   DomExe.prototype.getAttr = function DMgetAttribute(_) {
     return this.attr[_];
+  };
+  DomExe.prototype.getStyle = function DMgetStyle(_) {
+    return this.style[_];
   };
   DomExe.prototype.execute = function DMexecute() {
     if (!this.styleChanged && !this.attrChanged) {
@@ -5980,6 +5974,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   CanvasNodeExe.prototype.getAttr = function CgetAttribute(_) {
     return this.attr[_];
   };
+  CanvasNodeExe.prototype.getStyle = function DMgetStyle(_) {
+    return this.style[_];
+  };
   CanvasNodeExe.prototype.rotate = function Crotate(angle, x, y) {
     if (!this.attr.transform) {
       this.attr.transform = {};
@@ -6640,35 +6637,36 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.attr = attr || {};
     this.style = style || {};
   }
-  PointNode.prototype.setAttr = function (prop, value) {
-    this.attr[prop] = value;
-  };
-  PointNode.prototype.getAttr = function (key) {
-    return this.attr[key];
-  };
-  PointNode.prototype.setStyle = function (prop, value) {
-    this.attr[prop] = value;
-  };
-  PointNode.prototype.getStyle = function (key) {
-    return this.style[key];
-  };
+  // PointNode.prototype.setAttr = function (prop, value) {
+  //   this.attr[prop] = value
+  // }
+  // PointNode.prototype.getAttr = function (key) {
+  //   return this.attr[key]
+  // }
+  // PointNode.prototype.setStyle = function (prop, value) {
+  //   this.attr[prop] = value
+  // }
+  // PointNode.prototype.getStyle = function (key) {
+  //   return this.style[key]
+  // }
 
   function RectNode(attr, style) {
     this.attr = attr || {};
     this.style = style || {};
   }
-  RectNode.prototype.setAttr = function (key, value) {
-    this.attr[key] = value;
-  };
-  RectNode.prototype.getAttr = function (key) {
-    return this.attr[key];
-  };
-  RectNode.prototype.setStyle = function (key, value) {
-    this.style[key] = value;
-  };
-  RectNode.prototype.getStyle = function (key) {
-    return this.style[key];
-  };
+  // RectNode.prototype.setAttr = function (key, value) {
+  //   this.attr[key] = value
+  //   this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe), this.nodeExe)
+  // }
+  // RectNode.prototype.getAttr = function (key) {
+  //   return this.attr[key]
+  // }
+  // RectNode.prototype.setStyle = function (key, value) {
+  //   this.style[key] = value
+  // }
+  // RectNode.prototype.getStyle = function (key) {
+  //   return this.style[key]
+  // }
 
   function PolyLineNode(attr, style) {
     this.attr = attr || {};
@@ -6693,6 +6691,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   }
   LineNode.prototype.setAttr = function (key, value) {
     this.attr[key] = value;
+    this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe), this.nodeExe);
   };
   LineNode.prototype.getAttr = function (key) {
     return this.attr[key];
@@ -6752,13 +6751,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   };
 
   function writeDataToShaderAttributes(ctx, data) {
-    for (var i = 0; i < data.length; i++) {
-      ctx.bindBuffer(data[i].bufferType, data[i].buffer);
-      ctx.bufferData(data[i].bufferType, data[i].data, data[i].drawType);
-      ctx.enableVertexAttribArray(data[i].attribute);
-      ctx.vertexAttribPointer(data[i].attribute, data[i].size, data[i].valueType, true, 0, 0);
+    var d = void 0;
+    for (var i = 0, len = data.length; i < len; i++) {
+      d = data[i];
+      ctx.bindBuffer(d.bufferType, d.buffer);
+      ctx.bufferData(d.bufferType, d.data, d.drawType);
+      ctx.enableVertexAttribArray(d.attribute);
+      ctx.vertexAttribPointer(d.attribute, d.size, d.valueType, true, 0, 0);
     }
   }
+
+  var defaultColor = { r: 0, g: 0, b: 0, a: 255.0 };
 
   function RenderWebglPoints(ctx, attr, style, vDomIndex) {
     this.ctx = ctx;
@@ -6774,25 +6777,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
     this.sizeAttributeLocation = ctx.getAttribLocation(this.program, 'a_size');
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
-  }
-  RenderWebglPoints.prototype.execute = function (stack) {
-    var positionArray = [];
-    var colorArray = [];
-    var pointsSize = [];
-    for (var i = 0, len = stack.length; i < len; i++) {
-      var fill = stack[i].getStyle('fill');
-      fill = fill || { r: 0, g: 0, b: 0, a: 255 };
-      positionArray[i * 2] = stack[i].getAttr('x');
-      positionArray[i * 2 + 1] = stack[i].getAttr('y');
-      colorArray[i * 4] = fill.r;
-      colorArray[i * 4 + 1] = fill.g;
-      colorArray[i * 4 + 2] = fill.b;
-      colorArray[i * 4 + 3] = fill.a || 255;
-      pointsSize[i] = stack[i].getAttr('size') || 1.0;
-    }
-
-    writeDataToShaderAttributes(this.ctx, [{
-      data: new Uint8Array(colorArray),
+    // this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    this.positionArray = [];
+    this.colorArray = [];
+    this.pointsSize = [];
+    this.inputs = [{
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.colorBuffer,
       drawType: this.ctx.STATIC_DRAW,
@@ -6800,7 +6789,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       size: 4,
       attribute: this.colorAttributeLocation
     }, {
-      data: new Float32Array(pointsSize),
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.sizeBuffer,
       drawType: this.ctx.STATIC_DRAW,
@@ -6808,16 +6796,57 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       size: 1,
       attribute: this.sizeAttributeLocation
     }, {
-      data: new Float32Array(positionArray),
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.positionBuffer,
-      drawType: this.ctx.DYNAMIC_DRAW,
+      drawType: this.ctx.STATIC_DRAW,
       valueType: this.ctx.FLOAT,
       size: 2,
       attribute: this.positionAttributeLocation
-    }]);
+    }];
+  }
+  RenderWebglPoints.prototype.remove = function (position) {
+    this.positionArray.splice(position * 2, 2);
+    this.pointsSize.splice(position, 1);
+    this.colorArray.splice(position * 4, 4);
+  };
+  RenderWebglPoints.prototype.execute = function (stack) {
+    var positionArray = this.positionArray;
+    var colorArray = this.colorArray;
+    var pointsSize = this.pointsSize;
+    var node = void 0;
+    var fill = void 0;
+    var styleFlag = false;
+    var attrFlag = false;
+    for (var i = 0, len = stack.length; i < len; i++) {
+      node = stack[i];
+      if (node.propChanged) {
+        positionArray[i * 2] = node.attr.x;
+        positionArray[i * 2 + 1] = node.attr.y;
+        pointsSize[i] = node.attr.size || 1.0;
+        attrFlag = true;
+        node.propChanged = false;
+      }
+      if (node.styleChanged) {
+        fill = node.style.fill || defaultColor;
+        colorArray[i * 4] = fill.r;
+        colorArray[i * 4 + 1] = fill.g;
+        colorArray[i * 4 + 2] = fill.b;
+        colorArray[i * 4 + 3] = fill.a || 255;
+        styleFlag = true;
+        node.styleChanged = false;
+      }
+    }
 
+    if (attrFlag) {
+      this.inputs[2].data = new Float32Array(positionArray);
+      this.inputs[1].data = new Float32Array(pointsSize);
+    }
+
+    if (styleFlag) {
+      this.inputs[0].data = new Uint8Array(colorArray);
+    }
     this.ctx.useProgram(this.program);
+    writeDataToShaderAttributes(this.ctx, this.inputs);
     this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height);
     this.ctx.drawArrays(this.ctx.POINTS, 0, positionArray.length / 2);
   };
@@ -6834,70 +6863,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position');
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
-  }
-  RenderWebglRects.prototype.execute = function (stack) {
-    var positionArray = [];
-    var colorArray = [];
-    for (var i = 0, len = stack.length; i < len; i++) {
-      var fill = stack[i].getStyle('fill') || { r: 0, g: 0, b: 0, a: 255.0 };
-      var x = stack[i].getAttr('x');
-      var y = stack[i].getAttr('y');
-      var width = stack[i].getAttr('width');
-      var height = stack[i].getAttr('height');
-      var x1 = x;
-      var x2 = x + width;
-      var y1 = y;
-      var y2 = y + height;
-      var r = fill.r;
-      var g = fill.g;
-      var b = fill.b;
-      var a = fill.a || 255.0;
-      positionArray[i * 12] = x1;
-      positionArray[i * 12 + 1] = y1;
-      positionArray[i * 12 + 2] = x2;
-      positionArray[i * 12 + 3] = y1;
-      positionArray[i * 12 + 4] = x1;
-      positionArray[i * 12 + 5] = y2;
-      positionArray[i * 12 + 6] = x1;
-      positionArray[i * 12 + 7] = y2;
-      positionArray[i * 12 + 8] = x2;
-      positionArray[i * 12 + 9] = y1;
-      positionArray[i * 12 + 10] = x2;
-      positionArray[i * 12 + 11] = y2;
-
-      colorArray[i * 24] = r;
-      colorArray[i * 24 + 1] = g;
-      colorArray[i * 24 + 2] = b;
-      colorArray[i * 24 + 3] = a;
-
-      colorArray[i * 24 + 4] = r;
-      colorArray[i * 24 + 5] = g;
-      colorArray[i * 24 + 6] = b;
-      colorArray[i * 24 + 7] = a;
-
-      colorArray[i * 24 + 8] = r;
-      colorArray[i * 24 + 9] = g;
-      colorArray[i * 24 + 10] = b;
-      colorArray[i * 24 + 11] = a;
-
-      colorArray[i * 24 + 12] = r;
-      colorArray[i * 24 + 13] = g;
-      colorArray[i * 24 + 14] = b;
-      colorArray[i * 24 + 15] = a;
-
-      colorArray[i * 24 + 16] = r;
-      colorArray[i * 24 + 17] = g;
-      colorArray[i * 24 + 18] = b;
-      colorArray[i * 24 + 19] = a;
-
-      colorArray[i * 24 + 20] = r;
-      colorArray[i * 24 + 21] = g;
-      colorArray[i * 24 + 22] = b;
-      colorArray[i * 24 + 23] = a;
-    }
-
-    writeDataToShaderAttributes(this.ctx, [{
-      data: new Uint8Array(colorArray),
+    this.positionArray = [];
+    this.colorArray = [];
+    this.inputs = [{
+      data: this.colorArray,
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.colorBuffer,
       drawType: this.ctx.STATIC_DRAW,
@@ -6905,14 +6874,65 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       size: 4,
       attribute: this.colorAttributeLocation
     }, {
-      data: new Float32Array(positionArray),
+      data: new Float32Array(this.positionArray),
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.positionBuffer,
-      drawType: this.ctx.DYNAMIC_DRAW,
+      drawType: this.ctx.STATIC_DRAW,
       valueType: this.ctx.FLOAT,
       size: 2,
       attribute: this.positionAttributeLocation
-    }]);
+    }];
+  }
+  RenderWebglRects.prototype.remove = function (position) {
+    this.positionArray.splice(position * 12, 12);
+    this.colorArray.splice(position * 24, 24);
+  };
+  RenderWebglRects.prototype.execute = function (stack) {
+    var positionArray = this.positionArray;
+    var colorArray = this.colorArray;
+    var fill = void 0,
+        r = void 0,
+        g = void 0,
+        b = void 0,
+        a = void 0,
+        x1 = void 0,
+        x2 = void 0,
+        y1 = void 0,
+        y2 = void 0;
+    var node = void 0;
+    var ti = void 0;
+    var posi = void 0;
+    for (var i = 0, len = stack.length; i < len; i++) {
+      node = stack[i];
+      if (node.propChanged) {
+        x1 = node.attr.x;
+        x2 = x1 + node.attr.width;
+        y1 = node.attr.y;
+        y2 = y1 + node.attr.height;
+        posi = i * 12;
+        positionArray[posi] = positionArray[posi + 4] = positionArray[posi + 6] = x1;
+        positionArray[posi + 1] = positionArray[posi + 3] = positionArray[posi + 9] = y1;
+        positionArray[posi + 2] = positionArray[posi + 8] = positionArray[posi + 10] = x2;
+        positionArray[posi + 5] = positionArray[posi + 7] = positionArray[posi + 11] = y2;
+        node.propChanged = false;
+      }
+      if (node.styleChanged) {
+        fill = node.style.fill || defaultColor;
+        r = fill.r;
+        g = fill.g;
+        b = fill.b;
+        a = fill.a || 255;
+        ti = i * 24;
+        colorArray[ti] = colorArray[ti + 4] = colorArray[ti + 8] = colorArray[ti + 12] = colorArray[ti + 16] = colorArray[ti + 20] = r;
+        colorArray[ti + 1] = colorArray[ti + 5] = colorArray[ti + 9] = colorArray[ti + 13] = colorArray[ti + 17] = colorArray[ti + 21] = g;
+        colorArray[ti + 2] = colorArray[ti + 6] = colorArray[ti + 10] = colorArray[ti + 14] = colorArray[ti + 18] = colorArray[ti + 22] = b;
+        colorArray[ti + 3] = colorArray[ti + 7] = colorArray[ti + 11] = colorArray[ti + 15] = colorArray[ti + 19] = colorArray[ti + 23] = a;
+        node.styleChanged = false;
+      }
+    }
+    this.inputs[0].data = new Uint8Array(this.colorArray);
+    this.inputs[1].data = new Float32Array(this.positionArray);
+    writeDataToShaderAttributes(this.ctx, this.inputs);
 
     this.ctx.useProgram(this.program);
     this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height);
@@ -6931,40 +6951,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position');
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
-  }
-  RenderWebglLines.prototype.execute = function (stack) {
-    var positionArray = [];
-    var colorArray = [];
-    for (var i = 0, len = stack.length; i < len; i++) {
-      var fill = stack[i].getStyle('stroke');
-      var x1 = stack[i].getAttr('x1');
-      var y1 = stack[i].getAttr('y1');
-      var x2 = stack[i].getAttr('x2');
-      var y2 = stack[i].getAttr('y2');
-      positionArray[i * 4] = x1;
-      positionArray[i * 4 + 1] = y1;
-      positionArray[i * 4 + 2] = x2;
-      positionArray[i * 4 + 3] = y2;
-
-      fill = fill || { r: 0, g: 0, b: 0, a: 255.0 };
-
-      var r = fill.r;
-      var g = fill.g;
-      var b = fill.b;
-      var a = fill.a || 255.0;
-
-      colorArray[i * 8] = r;
-      colorArray[i * 8 + 1] = g;
-      colorArray[i * 8 + 2] = b;
-      colorArray[i * 8 + 3] = a;
-      colorArray[i * 8 + 4] = r;
-      colorArray[i * 8 + 5] = g;
-      colorArray[i * 8 + 6] = b;
-      colorArray[i * 8 + 7] = a;
-    }
-
-    writeDataToShaderAttributes(this.ctx, [{
-      data: new Uint8Array(colorArray),
+    this.positionArray = [];
+    this.colorArray = [];
+    this.inputs = [{
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.colorBuffer,
       drawType: this.ctx.STATIC_DRAW,
@@ -6972,14 +6961,56 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       size: 4,
       attribute: this.colorAttributeLocation
     }, {
-      data: new Float32Array(positionArray),
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.positionBuffer,
       drawType: this.ctx.DYNAMIC_DRAW,
       valueType: this.ctx.FLOAT,
       size: 2,
       attribute: this.positionAttributeLocation
-    }]);
+    }];
+  }
+  RenderWebglRects.prototype.remove = function (position) {
+    this.positionArray.splice(position * 4, 4);
+    this.colorArray.splice(position * 8, 8);
+  };
+  RenderWebglLines.prototype.execute = function (stack) {
+    var positionArray = this.positionArray;
+    var colorArray = this.colorArray;
+    var node = void 0,
+        r = void 0,
+        g = void 0,
+        b = void 0,
+        a = void 0,
+        stroke = void 0;
+    for (var i = 0, len = stack.length; i < len; i++) {
+      node = stack[i];
+      if (node.propChanged) {
+        positionArray[i * 4] = node.attr.x1;
+        positionArray[i * 4 + 1] = node.attr.y1;
+        positionArray[i * 4 + 2] = node.attr.x2;
+        positionArray[i * 4 + 3] = node.attr.y2;
+      }
+
+      if (node.styleChanged) {
+        stroke = node.style.stroke || defaultColor;
+        r = stroke.r;
+        g = stroke.g;
+        b = stroke.b;
+        a = stroke.a || 255;
+        colorArray[i * 8] = r;
+        colorArray[i * 8 + 1] = g;
+        colorArray[i * 8 + 2] = b;
+        colorArray[i * 8 + 3] = a;
+        colorArray[i * 8 + 4] = r;
+        colorArray[i * 8 + 5] = g;
+        colorArray[i * 8 + 6] = b;
+        colorArray[i * 8 + 7] = a;
+        node.styleChanged = false;
+      }
+    }
+    this.inputs[0].data = new Uint8Array(this.colorArray);
+    this.inputs[1].data = new Float32Array(this.positionArray);
+    writeDataToShaderAttributes(this.ctx, this.inputs);
 
     this.ctx.useProgram(this.program);
     this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height);
@@ -6998,50 +7029,72 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position');
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
+    this.polyLineArray = [];
+    // this.colorArray = []
+    this.inputs = [{
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.colorBuffer,
+      drawType: this.ctx.STATIC_DRAW,
+      valueType: this.ctx.UNSIGNED_BYTE,
+      size: 4,
+      attribute: this.colorAttributeLocation
+    }, {
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.positionBuffer,
+      drawType: this.ctx.DYNAMIC_DRAW,
+      valueType: this.ctx.FLOAT,
+      size: 2,
+      attribute: this.positionAttributeLocation
+    }];
   }
+  RenderWebglPolyLines.prototype.remove = function (position) {
+    this.polyLineArray.splice(position, 1);
+  };
   RenderWebglPolyLines.prototype.execute = function (stack) {
+    var node = void 0;
+    var fill = void 0;
+    var points = void 0;
+
     this.ctx.useProgram(this.program);
     this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height);
 
     for (var i = 0, len = stack.length; i < len; i++) {
-      var node = stack[i];
-      var fill = node.getStyle('stroke');
-      fill = fill || { r: 0, g: 0, b: 0, a: 255.0 };
-      var points = node.getAttr('points');
-      var positionArray = [];
-      var colorArray = [];
-      var r = fill.r || 0;
-      var g = fill.g || 0;
-      var b = fill.b || 0;
-      var a = fill.a || 255.0;
-      for (var j = 0, jlen = points.length; j < jlen; j++) {
-        positionArray[j * 2] = points[j].x;
-        positionArray[j * 2 + 1] = points[j].y;
-        colorArray[j * 4] = r;
-        colorArray[j * 4 + 1] = g;
-        colorArray[j * 4 + 2] = b;
-        colorArray[j * 4 + 3] = a;
+      node = stack[i];
+      fill = node.style.stroke;
+      points = node.attr.points;
+      fill = fill || defaultColor;
+
+      if (node.propChanged) {
+
+        var positionArray = [];
+        for (var j = 0, jlen = points.length; j < jlen; j++) {
+          positionArray[j * 2] = points[j].x;
+          positionArray[j * 2 + 1] = points[j].y;
+        }
+        if (!this.polyLineArray[i]) {
+          this.polyLineArray[i] = {};
+        }
+        this.polyLineArray[i].positionArray = new Float32Array(positionArray);
       }
 
-      writeDataToShaderAttributes(this.ctx, [{
-        data: new Uint8Array(colorArray),
-        bufferType: this.ctx.ARRAY_BUFFER,
-        buffer: this.colorBuffer,
-        drawType: this.ctx.STATIC_DRAW,
-        valueType: this.ctx.UNSIGNED_BYTE,
-        size: 4,
-        attribute: this.colorAttributeLocation
-      }, {
-        data: new Float32Array(positionArray),
-        bufferType: this.ctx.ARRAY_BUFFER,
-        buffer: this.positionBuffer,
-        drawType: this.ctx.DYNAMIC_DRAW,
-        valueType: this.ctx.FLOAT,
-        size: 2,
-        attribute: this.positionAttributeLocation
-      }]);
-
-      this.ctx.drawArrays(this.ctx.LINE_STRIP, 0, positionArray.length / 2);
+      if (node.styleChanged) {
+        var colorArray = [];
+        var r = fill.r || 0;
+        var g = fill.g || 0;
+        var b = fill.b || 0;
+        var a = fill.a || 255.0;
+        for (var _j3 = 0, _jlen = points.length; _j3 < _jlen; _j3++) {
+          colorArray[_j3 * 4] = r;
+          colorArray[_j3 * 4 + 1] = g;
+          colorArray[_j3 * 4 + 2] = b;
+          colorArray[_j3 * 4 + 3] = a;
+        }
+        this.polyLineArray[i].colorArray = new Uint8Array(colorArray);
+      }
+      this.inputs[0].data = this.polyLineArray[i].colorArray;
+      this.inputs[1].data = this.polyLineArray[i].positionArray;
+      writeDataToShaderAttributes(this.ctx, this.inputs);
+      this.ctx.drawArrays(this.ctx.LINE_STRIP, 0, this.polyLineArray[i].positionArray.length / 2);
     }
   };
 
@@ -7057,50 +7110,63 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position');
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
+    this.polygonArray = [];
+    this.inputs = [{
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.colorBuffer,
+      drawType: this.ctx.STATIC_DRAW,
+      valueType: this.ctx.UNSIGNED_BYTE,
+      size: 4,
+      attribute: this.colorAttributeLocation
+    }, {
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.positionBuffer,
+      drawType: this.ctx.DYNAMIC_DRAW,
+      valueType: this.ctx.FLOAT,
+      size: 2,
+      attribute: this.positionAttributeLocation
+    }];
   }
+  RenderWebglPolygons.prototype.remove = function (position) {
+    this.polygonArray.splice(position, 1);
+  };
   RenderWebglPolygons.prototype.execute = function (stack) {
     this.ctx.useProgram(this.program);
     this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height);
 
     for (var i = 0, len = stack.length; i < len; i++) {
       var node = stack[i];
-      var fill = node.getStyle('fill');
-      fill = fill || { r: 0, g: 0, b: 0, a: 255 };
-      var points = node.getAttr('triangulatedPoints');
-      var positionArray = [];
-      var colorArray = [];
-      var r = fill.r || 0;
-      var g = fill.g || 0;
-      var b = fill.b || 0;
-      var a = fill.a || 255.0;
-      for (var j = 0, jlen = points.length; j < jlen; j++) {
-        positionArray[j * 2] = points[j].x;
-        positionArray[j * 2 + 1] = points[j].y;
-        colorArray[j * 4] = r;
-        colorArray[j * 4 + 1] = g;
-        colorArray[j * 4 + 2] = b;
-        colorArray[j * 4 + 3] = a;
+      var points = node.attr.triangulatedPoints;
+      if (node.propChanged) {
+        var positionArray = [];
+        for (var j = 0, jlen = points.length; j < jlen; j++) {
+          positionArray[j * 2] = points[j].x;
+          positionArray[j * 2 + 1] = points[j].y;
+        }
+        this.polyLineArray[i].positionArray = new Float32Array(positionArray);
       }
 
-      writeDataToShaderAttributes(this.ctx, [{
-        data: new Uint8Array(colorArray),
-        bufferType: this.ctx.ARRAY_BUFFER,
-        buffer: this.colorBuffer,
-        drawType: this.ctx.STATIC_DRAW,
-        valueType: this.ctx.UNSIGNED_BYTE,
-        size: 4,
-        attribute: this.colorAttributeLocation
-      }, {
-        data: new Float32Array(positionArray),
-        bufferType: this.ctx.ARRAY_BUFFER,
-        buffer: this.positionBuffer,
-        drawType: this.ctx.DYNAMIC_DRAW,
-        valueType: this.ctx.FLOAT,
-        size: 2,
-        attribute: this.positionAttributeLocation
-      }]);
+      if (node.styleChanged) {
+        var colorArray = [];
+        var fill = node.style.fill;
+        fill = fill || defaultColor;
+        var r = fill.r || 0;
+        var g = fill.g || 0;
+        var b = fill.b || 0;
+        var a = fill.a || 255.0;
+        for (var _j4 = 0, _jlen2 = points.length; _j4 < _jlen2; _j4++) {
+          colorArray[_j4 * 4] = r;
+          colorArray[_j4 * 4 + 1] = g;
+          colorArray[_j4 * 4 + 2] = b;
+          colorArray[_j4 * 4 + 3] = a;
+        }
+        this.polyLineArray[i].colorArray = new Uint8Array(colorArray);
+      }
+      this.inputs[0].data = this.polyLineArray[i].colorArray;
+      this.inputs[1].data = this.polyLineArray[i].positionArray;
+      writeDataToShaderAttributes(this.ctx, this.inputs);
 
-      this.ctx.drawArrays(this.ctx.TRIANGLES, 0, positionArray.length / 2);
+      this.ctx.drawArrays(this.ctx.TRIANGLES, 0, this.polyLineArray[i].positionArray.length / 2);
     }
   };
 
@@ -7118,34 +7184,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
     this.radiusAttributeLocation = ctx.getAttribLocation(this.program, 'a_radius');
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
-  }
-  // RenderWebglCircles.prototype.setAttr = function (prop, value) {
-  //   this.attr[prop] = value
-  // }
-  RenderWebglCircles.prototype.execute = function (stack) {
-    this.ctx.useProgram(this.program);
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height);
-    var positionArray = [];
-    var colorArray = [];
-    var radius = [];
-    for (var i = 0, len = stack.length; i < len; i++) {
-      var node = stack[i];
-      var fill = node.getStyle('fill');
-      fill = fill || { r: 0, g: 0, b: 0, a: 255.0 };
-
-      positionArray[i * 2] = node.getAttr('cx');
-      positionArray[i * 2 + 1] = node.getAttr('cy');
-
-      radius[i] = node.getAttr('r');
-
-      colorArray[i * 4] = fill.r;
-      colorArray[i * 4 + 1] = fill.g;
-      colorArray[i * 4 + 2] = fill.b;
-      colorArray[i * 4 + 3] = fill.a || 255.0;
-    }
-
-    writeDataToShaderAttributes(this.ctx, [{
-      data: new Uint8Array(colorArray),
+    this.positionArray = [];
+    this.colorArray = [];
+    this.radius = [];
+    this.inputs = [{
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.colorBuffer,
       drawType: this.ctx.STATIC_DRAW,
@@ -7153,7 +7195,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       size: 4,
       attribute: this.colorAttributeLocation
     }, {
-      data: new Float32Array(radius),
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.radiusBuffer,
       drawType: this.ctx.STATIC_DRAW,
@@ -7161,15 +7202,57 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       size: 1,
       attribute: this.radiusAttributeLocation
     }, {
-      data: new Float32Array(positionArray),
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.positionBuffer,
       drawType: this.ctx.DYNAMIC_DRAW,
       valueType: this.ctx.FLOAT,
       size: 2,
       attribute: this.positionAttributeLocation
-    }]);
+    }];
+  }
+  RenderWebglPoints.prototype.remove = function (position) {
+    this.positionArray.splice(position * 2, 2);
+    this.radius.splice(position, 1);
+    this.colorArray.splice(position * 4, 4);
+  };
+  RenderWebglCircles.prototype.execute = function (stack) {
+    this.ctx.useProgram(this.program);
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height);
+    var positionArray = this.positionArray;
+    var colorArray = this.colorArray;
+    var radius = this.radius;
+    var attrFlag = void 0;
+    var styleFlag = void 0;
+    for (var i = 0, len = stack.length; i < len; i++) {
+      var node = stack[i];
+      var fill = node.style.fill;
+      fill = fill || defaultColor;
+      if (node.propChanged) {
+        positionArray[i * 2] = node.attr.cx;
+        positionArray[i * 2 + 1] = node.attr.cy;
+        radius[i] = node.attr.r;
+        node.propChanged = false;
+        attrFlag = true;
+      }
+      if (node.styleChanged) {
+        colorArray[i * 4] = fill.r;
+        colorArray[i * 4 + 1] = fill.g;
+        colorArray[i * 4 + 2] = fill.b;
+        colorArray[i * 4 + 3] = fill.a || 255.0;
+        node.styleChanged = false;
+        styleFlag = true;
+      }
+    }
 
+    if (attrFlag) {
+      this.inputs[2].data = new Float32Array(positionArray);
+      this.inputs[1].data = new Float32Array(radius);
+    }
+
+    if (styleFlag) {
+      this.inputs[0].data = new Uint8Array(colorArray);
+    }
+    writeDataToShaderAttributes(this.ctx, this.inputs);
     this.ctx.drawArrays(this.ctx.POINTS, 0, positionArray.length / 2);
   };
 
@@ -7249,14 +7332,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   WebglNodeExe.prototype.setAttr = function WsetAttr(attr, value) {
     if (arguments.length === 2) {
       this.attr[attr] = value;
-      this.dom.setAttr(attr, value);
     } else if (arguments.length === 1 && (typeof attr === 'undefined' ? 'undefined' : _typeof(attr)) === 'object') {
       var keys = Object.keys(attr);
       for (var i = 0; i < keys.length; i += 1) {
         this.attr[keys[i]] = attr[keys[i]];
-        this.dom.setAttr(keys[i], attr[keys[i]]);
       }
     }
+    this.propChanged = true;
     queueInstance.vDomChanged(this.vDomIndex);
     return this;
   };
@@ -7269,14 +7351,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         this.style[keys[i]] = attr[keys[i]];
       }
     }
+    this.styleChanged = true;
     queueInstance.vDomChanged(this.vDomIndex);
     return this;
   };
   WebglNodeExe.prototype.getAttr = function WgetAttribute(_) {
-    return this.dom.getAttr(_);
+    return this.attr[_];
+    //dom.getAttr(_)
   };
   WebglNodeExe.prototype.getStyle = function WgetStyle(_) {
-    return this.dom.getStyle(_);
+    return this.style[_];
+    //dom.getStyle(_)
   };
   WebglNodeExe.prototype.animateTo = animateTo;
   WebglNodeExe.prototype.animateExe = animateExe;
@@ -7295,11 +7380,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   WebglNodeExe.prototype.child = function child(childrens) {
     var self = this;
-    var childrensLocal = childrens;
+    // const childrensLocal = childrens
     if (self.dom instanceof RenderWebglGroup) {
-      for (var i = 0; i < childrensLocal.length; i += 1) {
-        childrensLocal[i].dom.parent = self;
-        self.children[self.children.length] = childrensLocal[i];
+      for (var i = 0; i < childrens.length; i += 1) {
+        childrens[i].dom.parent = self;
+        childrens[i].nindex = self.children.length;
+        self.children[self.children.length] = childrens[i];
       }
     } else {
       console.log('Error');
@@ -7320,13 +7406,26 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     return e;
   };
 
-  WebglNodeExe.prototype.createEl = function CcreateEl(config) {
+  WebglNodeExe.prototype.createEl = function WcreateEl(config) {
     var e = new WebglNodeExe(this.ctx, config, domId(), this.vDomIndex);
     this.child([e]);
     queueInstance.vDomChanged(this.vDomIndex);
     return e;
   };
-  WebglNodeExe.prototype.removeChild = function CremoveChild(obj) {
+  WebglNodeExe.prototype.remove = function Wremove() {
+    var children = this.dom.parent.children;
+
+    var index = children.indexOf(this);
+    if (index !== -1) {
+      children.splice(index, 1);
+      if (this.dom.parent.dom.shader) {
+        this.dom.parent.dom.shader.remove(index);
+      }
+    }
+    this.BBoxUpdate = true;
+    queueInstance.vDomChanged(this.vDomIndex);
+  };
+  WebglNodeExe.prototype.removeChild = function WremoveChild(obj) {
     var index = -1;
     this.children.forEach(function (d, i) {
       if (d === obj) {

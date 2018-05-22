@@ -7,7 +7,16 @@
 
 	<div id="canvas" style="height: 100%;width:100%;background: black">
 	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+	<script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/shaders.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
 
 	<script type="text/javascript">
         var webglRenderer = i2d.WebglLayer('#canvas',{events:false,selectiveClear:false});
@@ -15,7 +24,7 @@
 		/************** Rects *****************/
 
 		var rectsData = []
-		for(let i=0; i< 10000; i++) {
+		for(let i=0; i< 20000; i++) {
 			rectsData.push({
 				x: parseInt(Math.random()*1400),
 				y: parseInt(Math.random()*1000)
@@ -30,8 +39,8 @@
 				attr:{
 					x: function(d) {return d.x},
 					y: function(d) {return d.y},
-					width: 3,
-					height: 3
+					width: 2,
+					height: 2
 				},
 				style: { fill: {
 							r: 0,
@@ -41,9 +50,9 @@
 			})
 
 		rectsRef.animateTo({
-				duration:function(){return 1000+Math.random()*3000},
-				delay: function(){return Math.random()*4000},
-				loop: 100,
+				duration:function(){return 2000+Math.random()*1000},
+				delay: function(){return Math.random()*2000},
+				loop: 10,
 				direction: 'alternate',
 				attr:{
 					x: 650,
