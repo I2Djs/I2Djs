@@ -1,13 +1,14 @@
 (function renderer (root, factory) {
   if (typeof module === 'object' && module.exports) {
-    module.exports = factory(require('./geometry.js'), require('./queue.js'), require('./easing.js'), require('./chaining.js'), require('./vDom.js'), require('./colorMap.js'), require('./path.js'), require('./shaders.js'))
+    module.exports = factory(require('./geometry.js'), require('./queue.js'), require('./easing.js'), require('./chaining.js'), require('./vDom.js'), require('./colorMap.js'), require('./path.js'), require('./shaders.js'), require('earcut'))
   } else if (typeof define === 'function' && define.amd) {
-    define('i2d', ['./geometry.js', './queue.js', './easing.js', './chaining.js', './vDom.js', './colorMap.js', './path.js', './shaders.js'], (geometry, queue, easing, chain, vDom, colorMap, path, shaders) => factory(geometry, queue, easing, chain, vDom, colorMap, path, shaders))
+    define('i2d', ['./geometry.js', './queue.js', './easing.js', './chaining.js', './vDom.js', './colorMap.js', './path.js', './shaders.js', 'earcut'], (geometry, queue, easing, chain, vDom, colorMap, path, shaders, earcut) => factory(geometry, queue, easing, chain, vDom, colorMap, path, shaders, earcut))
   } else {
-    root.i2d = factory(root.geometry, root.queue, root.easing, root.chain, root.vDom, root.colorMap, root.path)
+    root.i2d = factory(root.geometry, root.queue, root.easing, root.chain, root.vDom, root.colorMap, root.path, root.shaders, root.earcut)
   }
-}(this, (geometry, queue, easing, chain, VDom, colorMap, path, shaders) => {
+}(this, (geometry, queue, easing, chain, VDom, colorMap, path, shaders, earcut) => {
   'use strict'
+  const i2d = {}
   const t2DGeometry = geometry('2D')
   const easying = easing()
   const queueInstance = queue()
@@ -233,11 +234,6 @@
           d.setStyle(key)
         }
       }
-      // if (typeof value === 'function') {
-      //     d.setStyle(key, value.call(d, d.dataObj, i))
-      // } else {
-      //     d.setStyle(key, value)
-      // }
     }
     return this
   }
@@ -278,12 +274,31 @@
     return this
   }
 
+  function exec (value) {
+    let d
+    if (typeof value !== 'function') {
+      return
+    }
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
+      d = this.stack[i]
+      value.call(d, d.dataObj, i)
+    }
+    return this
+  }
+  
   function on (eventType, hndlr) {
     for (let i = 0, len = this.stack.length; i < len; i += 1) {
       this.stack[i].on(eventType, hndlr)
     }
     return this
   }
+
+  // function in (coOr) {
+  //   for (let i = 0, len = this.stack.length; i < len; i += 1) {
+  //     this.stack[i].in(coOr)
+  //   }
+  //   return this
+  // }
   function remove () {
     for (let i = 0, len = this.stack.length; i < len; i += 1) {
       this.stack[i].remove()
@@ -374,7 +389,7 @@
         this.action.exit.call(this, nodes)
       }
       for (let i = 0, len = data.length; i < len; i++) {
-        if (this.data.indexOf(data[i])) {
+        if (this.data.indexOf(data[i]) !== -1) {
           this.data.splice(this.data.indexOf(data[i]), 1)
         }
       }
@@ -402,7 +417,7 @@
   function dataJoin (data, selector, config) {
     const self = this
     const selectors = selector.split(',')
-    let { joinCond } = config
+    let { joinOn } = config
     let joinResult = {
       new: {
 
@@ -414,17 +429,15 @@
 
       }
     }
-    if (!joinCond) { joinCond = function (d, i) { return i } }
+    if (!joinOn) { joinOn = function (d, i) { return i } }
     for (let i = 0, len = selectors.length; i < len; i++) {
       let d = selectors[i]
       const nodes = self.fetchEls(d)
-      const join = performJoin(data, nodes.stack, joinCond)
+      const join = performJoin(data, nodes.stack, joinOn)
       joinResult.new[d] = join.new
       joinResult.update[d] = (new CreateElements()).wrapper(join.update)
       joinResult.old[d] = (new CreateElements()).wrapper(join.old)
     }
-
-    // const joinResult = performJoin(data, nodes.stack, joinCond)
 
     if (config.action) {
       if (config.action.enter) {
@@ -443,7 +456,7 @@
         config.action.update.call(self, joinResult.update)
       }
     }
-    // this.joinCond = joinCond
+    // this.joinOn = joinOn
     CompositeArray.action = {
       value: config.action,
       enumerable: false,
@@ -462,54 +475,53 @@
       configurable: true,
       writable: false
     }
-    // this.action = config.action
-    // this.selector = selector
-    // this.data = data
     return Object.create(self, CompositeArray)
   }
 
   const animate = function animate (self, targetConfig) {
-    // const callerExe = self
     const tattr = targetConfig.attr ? targetConfig.attr : {}
     const tstyles = targetConfig.style ? targetConfig.style : {}
     const runStack = []
     let value
-    let key
 
-    const attrs = tattr ? Object.keys(tattr) : []
-
-    for (let i = 0, len = attrs.length; i < len; i += 1) {
-      key = attrs[i]
-      if (key !== 'transform') {
-        if (key === 'd') {
-          self.morphTo(targetConfig)
-        } else {
-          runStack[runStack.length] = attrTransition(self, key, tattr[key])
-        }
-      } else {
-        value = tattr[key]
-        if (typeof value === 'function') {
-          runStack[runStack.length] = transitionSetAttr(self, key, value)
-        } else {
-          const trans = self.attr.transform
-          if (!trans) {
-            self.attr.transform = {}
+    if (typeof tattr !== 'function') {
+      for (let key in tattr) {
+        if (key !== 'transform') {
+          if (key === 'd') {
+            self.morphTo(targetConfig)
+          } else {
+            runStack[runStack.length] = attrTransition(self, key, tattr[key])
           }
-          const subTrnsKeys = Object.keys(tattr.transform)
-          for (let j = 0, jLen = subTrnsKeys.length; j < jLen; j += 1) {
-            runStack[runStack.length] = transformTransition(
-              self,
-              subTrnsKeys[j],
-              tattr.transform[subTrnsKeys[j]]
-            )
+        } else {
+          value = tattr[key]
+          if (typeof value === 'function') {
+            runStack[runStack.length] = transitionSetAttr(self, key, value)
+          } else {
+            const trans = self.attr.transform
+            if (!trans) {
+              self.attr.transform = {}
+            }
+            const subTrnsKeys = Object.keys(tattr.transform)
+            for (let j = 0, jLen = subTrnsKeys.length; j < jLen; j += 1) {
+              runStack[runStack.length] = transformTransition(
+                self,
+                subTrnsKeys[j],
+                tattr.transform[subTrnsKeys[j]]
+              )
+            }
           }
         }
       }
+    } else {
+      runStack[runStack.length] = tattr.bind(self)
     }
 
-    const styles = tstyles ? Object.keys(tstyles) : []
-    for (let i = 0, len = styles.length; i < len; i += 1) {
-      runStack[runStack.length] = styleTransition(self, styles[i], tstyles[styles[i]])
+    if (typeof tstyles !== 'function') {
+      for (let style in tstyles) {
+        runStack[runStack.length] = styleTransition(self, style, tstyles[style])
+      }
+    } else {
+      runStack[runStack.length] = tstyles.bind(self)
     }
 
     return {
@@ -522,7 +534,8 @@
       delay: targetConfig.delay ? targetConfig.delay : 0,
       end: targetConfig.end ? targetConfig.end.bind(self, self.dataObj) : null,
       loop: targetConfig.loop ? targetConfig.loop : 0,
-      direction: targetConfig.direction ? targetConfig.direction : 'default'
+      direction: targetConfig.direction ? targetConfig.direction : 'default',
+      ease: targetConfig.ease ? targetConfig.ease : 'default'
     }
   }
 
@@ -570,7 +583,6 @@
         self.setAttr(key, value.call(self, f))
       }
     }
-    // const exe = t2DGeometry.intermediateValue.bind(null, srcVal, value)
     return function setAttr_ (f) {
       self.setAttr(key, t2DGeometry.intermediateValue(srcVal, value, f))
     }
@@ -584,29 +596,33 @@
       return function inner (f) {
         self.setStyle(key, value.call(self, self.dataObj, f))
       }
-    }
-    srcValue = self.style[key]
-    if (isNaN(value)) {
-      if (value.startsWith('#') || value.startsWith('rgb') || value.startsWith('hsl')) {
-        const colorExe = colorMap.transition(srcValue, value)
-        return function inner (f) {
-          self.setStyle(key, colorExe(f))
-        }
-      }
-      srcValue = srcValue.match(/(\d+)/g)
-      destValue = value.match(/(\d+)/g)
-      destUnit = value.match(/\D+$/)
-
-      srcValue = parseInt(srcValue.length > 0 ? srcValue[0] : 0, 10)
-      destValue = parseInt(destValue.length > 0 ? destValue[0] : 0, 10)
-      destUnit = destUnit.length > 0 ? destUnit[0] : 'px'
     } else {
-      srcValue = (self.style[key] !== undefined ? self.style[key] : 1)
-      destValue = value
-      destUnit = 0
-    }
-    return function inner (f) {
-      self.setStyle(key, t2DGeometry.intermediateValue(srcValue, destValue, f) + destUnit)
+      srcValue = self.style[key]
+      if (isNaN(value)) {
+        if (value.startsWith('#') || value.startsWith('rgb') || value.startsWith('hsl')) {
+          const colorExe = colorMap.transition(srcValue, value)
+          return function inner (f) {
+            self.setStyle(key, colorExe(f))
+          }
+        }
+        // else {
+        //   value = colorMap.nameToHex(value)
+        // }
+        srcValue = srcValue.match(/(\d+)/g)
+        destValue = value.match(/(\d+)/g)
+        destUnit = value.match(/\D+$/)
+
+        srcValue = parseInt(srcValue.length > 0 ? srcValue[0] : 0, 10)
+        destValue = parseInt(destValue.length > 0 ? destValue[0] : 0, 10)
+        destUnit = destUnit.length > 0 ? destUnit[0] : 'px'
+      } else {
+        srcValue = (self.style[key] !== undefined ? self.style[key] : 1)
+        destValue = value
+        destUnit = 0
+      }
+      return function inner (f) {
+        self.setStyle(key, t2DGeometry.intermediateValue(srcValue, destValue, f) + destUnit)
+      }
     }
   }
 
@@ -621,10 +637,9 @@
 
   function resolveObject (config, node, i) {
     let obj = {}
-    const attrs = Object.keys(config)
-    for (let j = 0; j < attrs.length; j += 1) {
-      const key = attrs[j]
-      if (key !== 'attr' && key !== 'style' && key !== 'end') {
+    let key
+    for (key in config) {
+      if (key !== 'end') {
         if (typeof config[key] === 'function') {
           obj[key] = config[key].call(node, node.dataObj, i)
         } else {
@@ -644,8 +659,8 @@
       node = this.stack[i]
 
       newConfig = resolveObject(config, node, i)
-      if (config.attr) { newConfig.attr = resolveObject(config.attr, node, i) }
-      if (config.style) { newConfig.style = resolveObject(config.style, node, i) }
+      if (config.attr && typeof config.attr !== 'function') { newConfig.attr = resolveObject(config.attr, node, i) }
+      if (config.style && typeof config.style !== 'function') { newConfig.style = resolveObject(config.style, node, i) }
       if (config.end) { newConfig.end = config.end }
       if (config.ease) { newConfig.ease = config.ease }
 
@@ -663,8 +678,8 @@
       node = this.stack[i]
 
       newConfig = resolveObject(config, node, i)
-      if (config.attr) { newConfig.attr = resolveObject(config.attr, node, i) }
-      if (config.style) { newConfig.style = resolveObject(config.style, node, i) }
+      if (config.attr && typeof config.attr !== 'function') { newConfig.attr = resolveObject(config.attr, node, i) }
+      if (config.style && typeof config.style !== 'function') { newConfig.style = resolveObject(config.style, node, i) }
       if (config.end) { newConfig.end = config.end }
       if (config.ease) { newConfig.ease = config.ease }
 
@@ -676,7 +691,7 @@
   const animatePathArrayTo = function animatePathArrayTo (config) {
     let node
     let keys = Object.keys(config)
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       node = this.stack[i]
       let conf = {}
       for (let j = 0; j < keys.length; j++) {
@@ -994,34 +1009,19 @@
       for (let i = 0; i < dest.length; i += 1) {
         destArr[i].quad = getQuadrant(centroidOfDest, dest[i].p0)
       }
-      // src.forEach((d) => {
-      //   d.quad =
-      // })
-      // dest.forEach((d) => {
-      //   d.quad = getQuadrant(centroidOfDest, d.p0)
-      // })
-
-      // let srcStartingIndex = -1;
-      // let secSrcStartIndex = -1;
-      // let destStartingIndex = -1;
-      // let secDestStartIndex = -1;
       let minDistance = 0
-      // let secminDistance = Infinity;
 
       src.forEach((d, i) => {
         const dis = t2DGeometry.getDistance(d.p0, centroidOfSrc)
         if ((d.quad === 1 && dis >= minDistance)) {
           minDistance = dis
-          // srcStartingIndex = i
         }
       })
       minDistance = 0
-      // secminDistance = Infinity
       dest.forEach((d, i) => {
         const dis = t2DGeometry.getDistance(d.p0, centroidOfDest)
         if (d.quad === 1 && dis > minDistance) {
           minDistance = dis
-          // destStartingIndex = i
         }
       })
 
@@ -1068,8 +1068,6 @@
         nsExe = sExe
         ndExe = dExe
       }
-      // prevSrc = nsExe[nsExe.length - 1]
-      // preDest = ndExe[ndExe.length - 1]
 
       if (getDirection(nsExe) < 0) { nsExe = reverse(nsExe) }
       if (getDirection(ndExe) < 0) { ndExe = reverse(ndExe) }
@@ -1180,7 +1178,7 @@
           run (f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
             newPathInstance.stack[this.id] = this.render.execute(f)
-            self.setAttr('d', newPathInstance)
+            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance)
           },
           id: i,
           render: new LinearTransitionBetweenPoints(arrExe[i].p0, arrExe[0].p0, arrExe[i].segmentLength),
@@ -1192,7 +1190,7 @@
           run (f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
             newPathInstance.stack[this.id] = this.render.execute(f)
-            self.setAttr('d', newPathInstance)
+            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance)
           },
           id: i,
           render: new LinearTransitionBetweenPoints(arrExe[i].p0, arrExe[i].p1, arrExe[i].length),
@@ -1204,7 +1202,7 @@
           run (f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
             newPathInstance.stack[this.id] = this.render.execute(f)
-            self.setAttr('d', newPathInstance)
+            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance)
           },
           id: i,
           render: new BezierTransition(arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].p1, arrExe[i].length),
@@ -1217,7 +1215,7 @@
           run (f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
             newPathInstance.stack[this.id] = this.render.execute(f)
-            self.setAttr('d', newPathInstance)
+            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance)
           },
           id: i,
           co,
@@ -1494,95 +1492,62 @@
     this.execute()
     return this.dom
   }
-  let styles,
-    attrs,
-    transforms,
-    trnX
+
+  function updateAttrsToDom (self, key) {
+    if (key !== 'transform') {
+      let ind = key.indexOf(':')
+      if (ind >= 0) {
+        self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), self.changedAttribute[key])
+      } else {
+        if (key === 'text') {
+          self.dom.textContent = self.changedAttribute[key]
+        } else {
+          self.dom.setAttribute(key, self.changedAttribute[key])
+        }
+      }
+    }
+  }
+
+  function updateTransAttrsToDom (self) {
+    let cmd = ''
+    for (let trnX in self.attr.transform) {
+      if (trnX === 'rotate') {
+        cmd += `${trnX}(${self.attr.transform.rotate[0] + ' ' + (self.attr.transform.rotate[1] || 0) + ' ' + (self.attr.transform.rotate[2] || 0)}) `
+      } else {
+        cmd += `${trnX}(${self.attr.transform[trnX].join(' ')}) `
+      }
+    }
+    self.dom.setAttribute('transform', cmd)
+  }
+
   DomExe.prototype.transFormAttributes = function transFormAttributes () {
-    const self = this
-
-    attrs = Object.keys(self.changedAttribute)
-    for (let i = 0, len = attrs.length; i < len; i += 1) {
-      let key = attrs[i]
-      if (key !== 'transform') {
-        let ind = key.indexOf(':')
-        if (ind >= 0) {
-          self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), this.changedAttribute[key])
-        } else {
-          if (key === 'text') {
-            self.dom.textContent = this.changedAttribute[key]
-          } else {
-            self.dom.setAttribute(key, this.changedAttribute[key])
-          }
-        }
-      }
+    let self = this
+    for (let key in self.changedAttribute) {
+      updateAttrsToDom(self, key)
     }
-
     if (this.changedAttribute.transform) {
-      let cmd = ''
-      transforms = Object.keys(this.attr.transform)
-      for (let i = 0; i < transforms.length; i += 1) {
-        trnX = transforms[i]
-        if (trnX === 'rotate') {
-          // if (!this.attr.transform[trnX][1]) {
-          //   const boundingBox = this.dom.getBBox()
-          //   this.attr.transform[trnX][1] = boundingBox.x + boundingBox.width / 2
-          //   this.attr.transform[trnX][2] = boundingBox.y + boundingBox.height / 2
-          // }
-          cmd += `${trnX}(${this.attr.transform.rotate[0] + ' ' + this.attr.transform.rotate[1] + ' ' + this.attr.transform.rotate[2]}) `
-        } else {
-          cmd += `${trnX}(${this.attr.transform[trnX].join(' ')}) `
-        }
-      }
-      this.dom.setAttribute('transform', cmd)
+      updateTransAttrsToDom(self)
     }
-
     this.changedAttribute = {}
-
-    styles = Object.keys(this.changedStyles)
-
-    for (let i = 0, len = styles.length; i < len; i += 1) {
-      if (this.changedStyles[styles[i]] instanceof DomGradients) {
-        this.changedStyles[styles[i]] = this.changedStyles[styles[i]].exe()
-      }
-      this.dom.style.setProperty(styles[i], this.changedStyles[styles[i]], '')
-      // this.dom.style[styles[i]] = this.changedStyles[styles[i]]
-    }
-
-    this.changedStyles = {}
   }
   DomExe.prototype.scale = function DMscale (XY) {
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.scale = XY
-    this.changedAttribute.transform = true
-    // if (this.changedAttribute.transform) {
-    //   this.changedAttribute.transform.scale = XY
-    // } else {
-    //   this.changedAttribute.transform = {}
-    //   this.changedAttribute.transform.scale = XY
-    // }
+    this.changedAttribute.transform = this.attr.transform
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
   DomExe.prototype.skewX = function DMskewX (x) {
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.skewX = [x]
-    this.changedAttribute.transform = true
-    // if (this.changedAttribute.transform) { this.changedAttribute.transform.skewX = [x] } else {
-    //   this.changedAttribute.transform = {}
-    //   this.changedAttribute.transform.skewX = [x]
-    // }
+    this.changedAttribute.transform = this.attr.transform
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
   DomExe.prototype.skewY = function DMskewY (y) {
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.skewY = [y]
-    this.changedAttribute.transform = true
-    // if (this.changedAttribute.transform) { this.changedAttribute.transform.skewY = [y] } else {
-    //   this.changedAttribute.transform = {}
-    //   this.changedAttribute.transform.skewY = [y]
-    // }
+    this.changedAttribute.transform = this.attr.transform
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -1590,26 +1555,18 @@
   DomExe.prototype.translate = function DMtranslate (XY) {
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.translate = XY
-    this.changedAttribute.transform = true
-    // if (this.changedAttribute.transform) { this.changedAttribute.transform.translate = XY } else {
-    //   this.changedAttribute.transform = {}
-    //   this.changedAttribute.transform.translate = XY
-    // }
+    this.changedAttribute.transform = this.attr.transform
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
   DomExe.prototype.rotate = function DMrotate (angle, x, y) {
     if (!this.attr.transform) { this.attr.transform = {} }
-    this.attr.transform.rotate = [angle % 360, x || 0, y || 0]
-    // this.attr.transform.cx = x ? x : 0
-    // this.attr.transform.cy = y ? y : 0
-    this.changedAttribute.transform = true
-    // if (this.changedAttribute.transform) {
-    //   this.changedAttribute.transform.rotate = this.attr.transform.rotate
-    // } else {
-    //   this.changedAttribute.transform = {}
-    //   this.changedAttribute.transform.rotate = this.attr.transform.rotate
-    // }
+    if (Object.prototype.toString.call(angle) === '[object Array]' && angle.length > 0) {
+      this.attr.transform.rotate = [angle[0] || 0, angle[1] || 0, angle[2] || 0]
+    } else {
+      this.attr.transform.rotate = [angle, x || 0, y || 0]
+    }
+    this.changedAttribute.transform = this.attr.transform
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -1621,10 +1578,8 @@
       this.style[attr] = value
       this.changedStyles[attr] = value
     } else if (arguments.length === 1 && typeof attr === 'object') {
-      const styleAttrs = Object.keys(attr)
-
-      for (let i = 0, len = styleAttrs.length; i < len; i += 1) {
-        const key = styleAttrs[i]
+      let key
+      for (key in attr) {
         this.style[key] = attr[key]
         this.changedStyles[key] = attr[key]
       }
@@ -1654,6 +1609,9 @@
   DomExe.prototype.getAttr = function DMgetAttribute (_) {
     return this.attr[_]
   }
+  DomExe.prototype.getStyle = function DMgetStyle (_) {
+    return this.style[_]
+  }
   DomExe.prototype.execute = function DMexecute () {
     if (!this.styleChanged && !this.attrChanged) {
       for (let i = 0, len = this.children.length; i < len; i += 1) {
@@ -1666,11 +1624,19 @@
     for (let i = 0, len = this.children.length; i < len; i += 1) {
       this.children[i].execute()
     }
+
+    for (let style in this.changedStyles) {
+      if (this.changedStyles[style] instanceof DomGradients) {
+        this.changedStyles[style] = this.changedStyles[style].exe()
+      }
+      this.dom.style.setProperty(style, this.changedStyles[style], '')
+    }
+
+    this.changedStyles = {}
   }
   DomExe.prototype.child = function DMchild (nodes) {
     const parent = this.dom
     const self = this
-    // if (parent.nodeName === 'g' || parent.nodeName === 'svg') {
     if (nodes instanceof CreateElements) {
       var fragment = document.createDocumentFragment()
       for (let i = 0, len = nodes.stack.length; i < len; i++) {
@@ -1679,12 +1645,6 @@
         this.children[this.children.length] = nodes.stack[i]
       }
       parent.appendChild(fragment)
-      // console.log(this.children.length)
-      // nodes.stack.forEach((d) => {
-      //   parent.appendChild(d.dom)
-      //   d.parentNode = self
-      // })
-      // this.children = this.children.concat(nodes.stack)
     } else if (nodes instanceof DomExe) {
       parent.appendChild(nodes.dom)
       nodes.parentNode = self
@@ -1764,20 +1724,6 @@
     if (index !== -1) {
       this.dom.removeChild(children.splice(index, 1)[0].dom)
     }
-    // for (let i = 0; i < children.length; i += 1) {
-    //   if (obj === children[i]) {
-    //     index = i
-    //     this.dom.removeChild(children[i].dom)
-    //   }
-    // }
-    // if (index > -1) {
-    //   for (let i = index; i < children.length - 1; i += 1) {
-    //     children[i] = children[i + 1]
-    //   }
-    //   children.length -= 1
-    // }
-
-    // queueInstance.vDomChanged(this.vDomIndex)
   }
 
   function createDomElement (obj, vDomIndex) {
@@ -1814,9 +1760,9 @@
 
       self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove)
       if (transform.rotate) {
-        self.ctx.translate(transform.rotate[1], transform.rotate[2])
+        self.ctx.translate(transform.rotate[1] || 0, transform.rotate[2] || 0)
         self.ctx.rotate(transform.rotate[0] * (Math.PI / 180))
-        self.ctx.translate(-transform.rotate[1], -transform.rotate[2])
+        self.ctx.translate(-transform.rotate[1] || 0, -transform.rotate[2] || 0)
       }
     }
     for (let i = 0; i < self.stack.length; i += 1) {
@@ -1870,7 +1816,6 @@
     return lGradient
   }
   CanvasGradients.prototype.absoluteLinearGradient = function absoluteGralinearGradient (ctx) {
-    console.log('called')
     const lGradient = ctx.createLinearGradient(
       this.config.x1, this.config.y1,
       this.config.x2, this.config.y2
@@ -1969,9 +1914,6 @@
   }
 
   function createCanvasPattern (patternObj, repeatInd) {
-    // const self = this
-    // self.children = []
-    // self.stack = [self]
   }
   createCanvasPattern.prototype = {
   }
@@ -2847,27 +2789,25 @@
     return this.dom
   }
   CanvasNodeExe.prototype.stylesExe = function CstylesExe () {
-    const props = Object.keys(this.style)
     let value
+    let key
 
-    for (let i = 0, len = props.length; i < len; i += 1) {
-      if (typeof this.style[props[i]] !== 'function' && !(this.style[props[i]] instanceof CanvasGradients)) {
-        value = this.style[props[i]]
-      } else if (typeof this.style[props[i]] === 'function') {
-        this.style[props[i]] = this.style[props[i]].call(this, this.dataObj)
-        value = this.style[props[i]]
-      } else if (this.style[props[i]] instanceof CanvasGradients) {
-        value = this.style[props[i]].exe(this.ctx, this.dom.BBox)
+    for (key in this.style) {
+      if (typeof this.style[key] !== 'function' && !(this.style[key] instanceof CanvasGradients)) {
+        value = this.style[key]
+      } else if (typeof this.style[key] === 'function') {
+        this.style[key] = this.style[key].call(this, this.dataObj)
+        value = this.style[key]
+      } else if (this.style[key] instanceof CanvasGradients) {
+        value = this.style[key].exe(this.ctx, this.dom.BBox)
       } else {
         console.log('unkonwn Style')
       }
 
-      if (typeof this.ctx[props[i]] !== 'function') {
-        this.ctx[props[i]] = value
-      } else if (typeof this.ctx[props[i]] === 'function') {
-        // console.log(value);
-        // this.ctx.setLineDash([5, 5])
-        this.ctx[props[i]](value)
+      if (typeof this.ctx[key] !== 'function') {
+        this.ctx[key] = value
+      } else if (typeof this.ctx[key] === 'function') {
+        this.ctx[key](value)
       } else { console.log('junk comp') }
     }
   }
@@ -2921,9 +2861,16 @@
   CanvasNodeExe.prototype.getAttr = function CgetAttribute (_) {
     return this.attr[_]
   }
+  CanvasNodeExe.prototype.getStyle = function DMgetStyle (_) {
+    return this.style[_]
+  }
   CanvasNodeExe.prototype.rotate = function Crotate (angle, x, y) {
     if (!this.attr.transform) { this.attr.transform = {} }
-    this.attr.transform.rotate = [angle, !x ? 0 : x, !y ? 0 : y]
+    if (Object.prototype.toString.call(angle) === '[object Array]') {
+      this.attr.transform.rotate = [angle[0] || 0, angle[1] || 0, angle[2] || 0]
+    } else {
+      this.attr.transform.rotate = [angle, x || 0, y || 0]
+    }
     // this.attr.transform.cx = x
     // this.attr.transform.cy = y
     this.dom.setAttr('transform', this.attr.transform)
@@ -2992,7 +2939,7 @@
         childrensLocal[i].dom.parent = self
         self.children[self.children.length] = childrensLocal[i]
       }
-    } else { console.log('Error') }
+    } else { console.error('Trying to insert child to nonGroup Element') }
 
     this.BBoxUpdate = true
     queueInstance.vDomChanged(this.vDomIndex)
@@ -3147,6 +3094,7 @@
     translate,
     rotate,
     scale,
+    exec,
     animateTo: animateArrayTo,
     animateExe: animateArrayExe,
     animatePathTo: animatePathArrayTo,
@@ -3182,8 +3130,6 @@
 
     return dpr / bsr
   }
-
-  const i2d = {}
 
   // function createCanvasPattern(config) {
   //   const self = this
@@ -3235,7 +3181,7 @@
     return Object.create(dragObject)
   }
 
-  i2d.CanvasLayer = function CanvasLayer (context, config) {
+  i2d.CanvasLayer = function CanvasLayer (context, config = {}) {
     let originalRatio
     let selectedNode
     // const selectiveClearing = config.selectiveClear ? config.selectiveClear : false
@@ -3274,21 +3220,29 @@
     root.domEl = layer
     root.height = height
     root.width = width
+    root.type = 'CANVAS'
     root.execute = function executeExe () {
-      // if (!this.dom.BBoxHit) {
-      //   this.dom.BBoxHit = {
-      //     x: 0, y: 0, width: width * originalRatio, height: height * originalRatio
-      //   }
-      // } else {
-      //   this.dom.BBoxHit.width = this.width * originalRatio
-      //   this.dom.BBoxHit.height = this.height * originalRatio
-      // }
       onClear(ctx)
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
       root.updateBBox()
       execute()
     }
-    root.resize = function () {
+
+    root.setAttr = function (prop, value) {
+      if (arguments.length === 2) {
+        config[prop] = value
+      } else if (arguments.length === 1 && typeof prop === 'object') {
+        const props = Object.keys(prop)
+        for (let i = 0, len = props.length; i < len; i += 1) {
+          config[props[i]] = prop[props[i]]
+        }
+      }
+      renderVdom.call(this)
+    }
+
+    root.resize = renderVdom
+
+    function renderVdom () {
       let width = config.width ? config.width : this.container.clientWidth
       let height = config.height ? config.height : this.container.clientHeight
       this.domEl.setAttribute('height', height * originalRatio)
@@ -3307,7 +3261,6 @@
     }
 
     function canvasResize () {
-      console.log('resize called')
       root.resize()
     }
 
@@ -3318,8 +3271,6 @@
       layer.remove()
       queueInstance.removeVdom(vDomInstance)
     }
-
-    root.type = 'CANVAS'
 
     vDomInstance.root(root)
 
@@ -3381,7 +3332,6 @@
         }
       })
       res.addEventListener('click', (e) => {
-        console.log('click')
         e.preventDefault()
         if (selectedNode && selectedNode.dom.click) { selectedNode.dom.click.call(selectedNode, selectedNode.dataObj, e) }
       })
@@ -3389,7 +3339,6 @@
         if (selectedNode && selectedNode.dom.dblclick) { selectedNode.dom.dblclick.call(selectedNode, selectedNode.dataObj, e) }
       })
       res.addEventListener('mousedown', (e) => {
-        console.log('down')
         e.preventDefault()
         if (selectedNode && selectedNode.dom.mousedown) {
           selectedNode.dom.mousedown.call(selectedNode, selectedNode.dataObj, e)
@@ -3439,7 +3388,7 @@
     return root
   }
 
-  i2d.SVGLayer = function SVGLayer (context, config) {
+  i2d.SVGLayer = function SVGLayer (context, config = {}) {
     const vDomInstance = new VDom()
     const vDomIndex = queueInstance.addVdom(vDomInstance)
     const res = document.querySelector(context)
@@ -3458,7 +3407,21 @@
     root.height = height
     vDomInstance.root(root)
 
-    root.resize = function () {
+    // root.resize = renderVdom
+
+    root.setAttr = function (prop, value) {
+      if (arguments.length === 2) {
+        config[prop] = value
+      } else if (arguments.length === 1 && typeof prop === 'object') {
+        const props = Object.keys(prop)
+        for (let i = 0, len = props.length; i < len; i += 1) {
+          config[props[i]] = prop[props[i]]
+        }
+      }
+      renderVdom.call(this)
+    }
+
+    function renderVdom () {
       let width = config.width ? config.width : this.container.clientWidth
       let height = config.height ? config.height : this.container.clientHeight
       let newWidthRatio = (width / this.width)
@@ -3471,8 +3434,10 @@
     }
 
     function svgResize () {
-      console.log('resize called')
-      root.resize()
+      if (typeof config.resize === 'function') {
+        config.resize.call(root)
+      }
+      renderVdom.call(root)
     }
 
     window.addEventListener('resize', svgResize)
@@ -3487,116 +3452,684 @@
     return root
   }
 
-
-  function getShader (ctx, shaderSource, type) {
-    var shader
-    if (type === 'x-shader/x-fragment') {
-      shader = ctx.createShader(ctx.FRAGMENT_SHADER)
-    } else if (type === 'x-shader/x-vertex') {
-      shader = ctx.createShader(ctx.VERTEX_SHADER)
-    } else {
-      return null
-    }
-
+  function loadShader (ctx, shaderSource, shaderType) {
+    var shader = ctx.createShader(shaderType)
     ctx.shaderSource(shader, shaderSource)
     ctx.compileShader(shader)
-
-    if (!ctx.getShaderParameter(shader, ctx.COMPILE_STATUS)) {
+    var compiled = ctx.getShaderParameter(shader, ctx.COMPILE_STATUS)
+    if (!compiled) {
+      var lastError = ctx.getShaderInfoLog(shader)
+      console.error("*** Error compiling shader '" + shader + "':" + lastError)
+      ctx.deleteShader(shader)
       return null
     }
     return shader
   }
 
-  function getProgram (ctx, shaderCode) {
-    // return webglUtils.createProgramFromSources(ctx, [shaderCode.vertexShader, shaderCode.fragmentShader])
-  }
+  function createProgram (ctx, shaders) {
+    var program = ctx.createProgram()
+    shaders.forEach(function (shader) {
+      ctx.attachShader(program, shader)
+    })
+    ctx.linkProgram(program)
 
-
-
-  // renderer.createEls(data, {
-  //   el: 'point',
-  //   attr: {
-  //     x: function (d) {
-  //       return d.x
-  //     },
-  //     y: function (d) {
-  //       return d.y
-  //     },
-  //     size: function (d) {
-  //       return d.size
-  //     }
-  //   },
-  //   style: {
-  //     fillStyle: function (d) {
-  //       return d.color
-  //     }
-  //   }
-  // })
-
-  function PointNode (x, y, fill) {
-    this.x = x
-    this.y = y
-    this.color = {
-      r: 255,
-      g: 0,
-      b: 0
+    var linked = ctx.getProgramParameter(program, ctx.LINK_STATUS)
+    if (!linked) {
+      var lastError = ctx.getProgramInfoLog(program)
+      console.error('Error in program linking:' + lastError)
+      ctx.deleteProgram(program)
+      return null
     }
-    // this.ctx = ctx
-    // this.attr = attr ? attr : {}
-    // this.style = style ? style : {}
+    return program
   }
-  // PointNode.prototype.setAttr = function(prop, value) {
-  //   this.attr[prop] = value
-  // }
-  // PointNode.prototype.setStyle = function(prop, value) {
-  //   this.attr[prop] = value
-  // }
 
+  function getProgram (ctx, shaderCode) {
+    var shaders = [
+      loadShader(ctx, shaderCode.vertexShader, ctx.VERTEX_SHADER),
+      loadShader(ctx, shaderCode.fragmentShader, ctx.FRAGMENT_SHADER)
+    ]
+    return createProgram(ctx, shaders)
+  }
 
-  function RenderWebglPoints (ctx, attr, style) {
-    this.ctx = ctx
-    this.colorArray = []
-    this.child = []
+  function PointNode (attr, style) {
     this.attr = attr || {}
     this.style = style || {}
+  }
+  // PointNode.prototype.setAttr = function (prop, value) {
+  //   this.attr[prop] = value
+  // }
+  // PointNode.prototype.getAttr = function (key) {
+  //   return this.attr[key]
+  // }
+  // PointNode.prototype.setStyle = function (prop, value) {
+  //   this.attr[prop] = value
+  // }
+  // PointNode.prototype.getStyle = function (key) {
+  //   return this.style[key]
+  // }
+
+  function RectNode (attr, style) {
+    this.attr = attr || {}
+    this.style = style || {}
+  }
+  // RectNode.prototype.setAttr = function (key, value) {
+  //   this.attr[key] = value
+  //   this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe), this.nodeExe)
+  // }
+  // RectNode.prototype.getAttr = function (key) {
+  //   return this.attr[key]
+  // }
+  // RectNode.prototype.setStyle = function (key, value) {
+  //   this.style[key] = value
+  // }
+  // RectNode.prototype.getStyle = function (key) {
+  //   return this.style[key]
+  // }
+
+  function PolyLineNode (attr, style) {
+    this.attr = attr || {}
+    this.style = style || {}
+  }
+  PolyLineNode.prototype.setAttr = function (key, value) {
+    this.attr[key] = value
+  }
+  PolyLineNode.prototype.getAttr = function (key) {
+    return this.attr[key]
+  }
+  PolyLineNode.prototype.setStyle = function (key, value) {
+    this.style[key] = value
+  }
+  PolyLineNode.prototype.getStyle = function (key) {
+    return this.style[key]
+  }
+
+  function LineNode (attr, style) {
+    this.attr = attr || {}
+    this.style = style || {}
+  }
+  LineNode.prototype.setAttr = function (key, value) {
+    this.attr[key] = value
+    this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe), this.nodeExe)
+  }
+  LineNode.prototype.getAttr = function (key) {
+    return this.attr[key]
+  }
+  LineNode.prototype.setStyle = function (key, value) {
+    this.style[key] = value
+  }
+  LineNode.prototype.getStyle = function (key) {
+    return this.style[key]
+  }
+
+  function PolygonNode (attr, style) {
+    this.attr = attr
+    this.style = style
+    if (this.attr['points']) {
+      this.attr.triangulatedPoints = earcut(this.attr['points'].reduce(function (p, c) {
+        p.push(c.x)
+        p.push(c.y)
+        return p
+      }, [])).map(function (d) {
+        return value[d]
+      })
+      // console.log(triangulatedPoints)
+    }
+  }
+  PolygonNode.prototype.setAttr = function (key, value) {
+    if (key === 'points') {
+      this.attr.triangulatedPoints = earcut(value.reduce(function (p, c) {
+        p.push(c.x)
+        p.push(c.y)
+        return p
+      }, [])).map(function (d) {
+        return value[d]
+      })
+      // this.attr.triangulatedPoints = triangulatedPoints.map(function (d) { return value[d] })
+    }
+  }
+  PolygonNode.prototype.getAttr = function (key) {
+    return this.attr[key]
+  }
+  PolygonNode.prototype.getStyle = function (key) {
+    return this.style[key]
+  }
+
+  function CircleNode (attr, style) {
+    this.attr = attr
+    this.style = style
+  }
+  CircleNode.prototype.setAttr = function (key, value) {
+    this.attr[key] = value
+  }
+  CircleNode.prototype.getAttr = function (key) {
+    return this.attr[key]
+  }
+  CircleNode.prototype.getStyle = function (key) {
+    return this.style[key]
+  }
+
+  function writeDataToShaderAttributes (ctx, data) {
+    let d
+    for (let i = 0, len = data.length; i < len; i++) {
+      d = data[i]
+      ctx.bindBuffer(d.bufferType, d.buffer)
+      ctx.bufferData(d.bufferType, d.data, d.drawType)
+      ctx.enableVertexAttribArray(d.attribute)
+      ctx.vertexAttribPointer(d.attribute, d.size, d.valueType, true, 0, 0)
+    }
+  }
+
+  let defaultColor = {r: 0, g: 0, b: 0, a: 255.0}
+
+  function RenderWebglPoints (ctx, attr, style, vDomIndex) {
+    this.ctx = ctx
+    this.dom = {}
+    this.attr = attr || {}
+    this.style = style || {}
+    this.vDomIndex = vDomIndex
     this.program = getProgram(ctx, shaders('point'))
     this.colorBuffer = ctx.createBuffer()
+    this.sizeBuffer = ctx.createBuffer()
     this.positionBuffer = ctx.createBuffer()
+    this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
+    this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
+    this.sizeAttributeLocation = ctx.getAttribLocation(this.program, 'a_size')
+    this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    // this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    this.positionArray = []
+    this.colorArray = []
+    this.pointsSize = []
+    this.inputs = [{
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.colorBuffer,
+      drawType: this.ctx.STATIC_DRAW,
+      valueType: this.ctx.UNSIGNED_BYTE,
+      size: 4,
+      attribute: this.colorAttributeLocation
+    }, {
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.sizeBuffer,
+      drawType: this.ctx.STATIC_DRAW,
+      valueType: this.ctx.FLOAT,
+      size: 1,
+      attribute: this.sizeAttributeLocation
+    }, {
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.positionBuffer,
+      drawType: this.ctx.STATIC_DRAW,
+      valueType: this.ctx.FLOAT,
+      size: 2,
+      attribute: this.positionAttributeLocation
+    }]
   }
-  RenderWebglPoints.prototype.createEl = function (conf) {
-    this.child.push(new PointNode(conf.attr.x, conf.attr.y, conf.style))
+  RenderWebglPoints.prototype.remove = function (position) {
+    this.positionArray.splice(position * 2, 2)
+    this.pointsSize.splice(position, 1)
+    this.colorArray.splice(position * 4, 4)
   }
-  RenderWebglPoints.prototype.setAttr = function (prop, value) {
-    this.attr[prop] = value
-  }
-  RenderWebglPoints.prototype.execute = function () {
-    let positionArray = []
-    let colorArray = []
-    for (var i = 0, len = this.child.length; i < len; i++) {
-      positionArray[i * 2] = this.child[i].x
-      positionArray[i * 2 + 1] = this.child[i].y
-      colorArray[i * 3] = this.child[i].r
-      colorArray[i * 3 + 1] = this.child[i].g
-      colorArray[i * 3 + 2] = this.child[i].b
+  RenderWebglPoints.prototype.execute = function (stack) {
+    let positionArray = this.positionArray
+    let colorArray = this.colorArray
+    let pointsSize = this.pointsSize
+    let node
+    let fill
+    let styleFlag = false
+    let attrFlag = false
+    for (var i = 0, len = stack.length; i < len; i++) {
+      node = stack[i]
+      if (node.propChanged) {
+        positionArray[i * 2] = node.attr.x
+        positionArray[i * 2 + 1] = node.attr.y
+        pointsSize[i] = node.attr.size || 1.0
+        attrFlag = true
+        node.propChanged = false
+      }
+      if (node.styleChanged) {
+        fill = node.style.fill || defaultColor
+        colorArray[i * 4] = fill.r
+        colorArray[i * 4 + 1] = fill.g
+        colorArray[i * 4 + 2] = fill.b
+        colorArray[i * 4 + 3] = fill.a || 255
+        styleFlag = true
+        node.styleChanged = false
+      }
     }
 
-    this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, this.colorBuffer)
-    this.ctx.bufferData(this.ctx.ARRAY_BUFFER, new Uint8Array(colorArray), this.ctx.STATIC_DRAW)
+    if (attrFlag) {
+      this.inputs[2].data = new Float32Array(positionArray)
+      this.inputs[1].data = new Float32Array(pointsSize)
+    }
 
-    this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, this.positionBuffer)
-    this.ctx.bufferSubData(this.ctx.ARRAY_BUFFER, 0, new Float32Array(positionArray))
+    if (styleFlag) {
+      this.inputs[0].data = new Uint8Array(colorArray)
+    }
+    this.ctx.useProgram(this.program)
+    writeDataToShaderAttributes(this.ctx, this.inputs)
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
     this.ctx.drawArrays(this.ctx.POINTS, 0, positionArray.length / 2)
   }
 
-  function RenderWebglCircleGroup (ctx, attr, style) {
+  function RenderWebglRects (ctx, attr, style, vDomIndex) {
     this.ctx = ctx
-    this.attr = style
+    this.dom = {}
+    this.attr = attr || {}
+    this.style = style || {}
+    this.vDomIndex = vDomIndex
+    this.program = getProgram(ctx, shaders('rect'))
+    this.colorBuffer = ctx.createBuffer()
+    this.positionBuffer = ctx.createBuffer()
+    this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
+    this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
+    this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.positionArray = []
+    this.colorArray = []
+    this.inputs = [{
+      data: this.colorArray,
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.colorBuffer,
+      drawType: this.ctx.STATIC_DRAW,
+      valueType: this.ctx.UNSIGNED_BYTE,
+      size: 4,
+      attribute: this.colorAttributeLocation
+    }, {
+      data: new Float32Array(this.positionArray),
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.positionBuffer,
+      drawType: this.ctx.STATIC_DRAW,
+      valueType: this.ctx.FLOAT,
+      size: 2,
+      attribute: this.positionAttributeLocation
+    }]
   }
-  function RenderWebglRects () {
+  RenderWebglRects.prototype.remove = function (position) {
+    this.positionArray.splice(position * 12, 12)
+    this.colorArray.splice(position * 24, 24)
   }
-  function RenderWebglLines () {
+  RenderWebglRects.prototype.execute = function (stack) {
+    let positionArray = this.positionArray
+    let colorArray = this.colorArray
+    let fill, r, g, b, a, x1, x2, y1, y2
+    let node
+    let ti
+    let posi
+    for (var i = 0, len = stack.length; i < len; i++) {
+      node = stack[i]
+      if (node.propChanged) {
+        x1 = node.attr.x
+        x2 = x1 + node.attr.width
+        y1 = node.attr.y
+        y2 = y1 + node.attr.height
+        posi = i * 12
+        positionArray[posi] = positionArray[posi + 4] = positionArray[posi + 6] = x1
+        positionArray[posi + 1] = positionArray[posi + 3] = positionArray[posi + 9] = y1
+        positionArray[posi + 2] = positionArray[posi + 8] = positionArray[posi + 10] = x2
+        positionArray[posi + 5] = positionArray[posi + 7] = positionArray[posi + 11] = y2
+        node.propChanged = false
+      }
+      if (node.styleChanged) {
+        fill = node.style.fill || defaultColor
+        r = fill.r
+        g = fill.g
+        b = fill.b
+        a = fill.a || 255
+        ti = i * 24
+        colorArray[ti] = colorArray[ti + 4] = colorArray[ti + 8] = colorArray[ti + 12] = colorArray[ti + 16] = colorArray[ti + 20] = r
+        colorArray[ti + 1] = colorArray[ti + 5] = colorArray[ti + 9] = colorArray[ti + 13] = colorArray[ti + 17] = colorArray[ti + 21] = g
+        colorArray[ti + 2] = colorArray[ti + 6] = colorArray[ti + 10] = colorArray[ti + 14] = colorArray[ti + 18] = colorArray[ti + 22] = b
+        colorArray[ti + 3] = colorArray[ti + 7] = colorArray[ti + 11] = colorArray[ti + 15] = colorArray[ti + 19] = colorArray[ti + 23] = a
+        node.styleChanged = false
+      }
+    }
+    this.inputs[0].data = new Uint8Array(this.colorArray)
+    this.inputs[1].data = new Float32Array(this.positionArray)
+    writeDataToShaderAttributes(this.ctx, this.inputs)
+
+    this.ctx.useProgram(this.program)
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    this.ctx.drawArrays(this.ctx.TRIANGLES, 0, positionArray.length / 2)
   }
-  function RenderWebglGroup () {
+
+  function RenderWebglLines (ctx, attr, style, vDomIndex) {
+    this.ctx = ctx
+    this.dom = {}
+    this.attr = attr || {}
+    this.style = style || {}
+    this.vDomIndex = vDomIndex
+    this.program = getProgram(ctx, shaders('line'))
+    this.colorBuffer = ctx.createBuffer()
+    this.positionBuffer = ctx.createBuffer()
+    this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
+    this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
+    this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.positionArray = []
+    this.colorArray = []
+    this.inputs = [{
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.colorBuffer,
+      drawType: this.ctx.STATIC_DRAW,
+      valueType: this.ctx.UNSIGNED_BYTE,
+      size: 4,
+      attribute: this.colorAttributeLocation
+    }, {
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.positionBuffer,
+      drawType: this.ctx.DYNAMIC_DRAW,
+      valueType: this.ctx.FLOAT,
+      size: 2,
+      attribute: this.positionAttributeLocation
+    }]
+  }
+  RenderWebglRects.prototype.remove = function (position) {
+    this.positionArray.splice(position * 4, 4)
+    this.colorArray.splice(position * 8, 8)
+  }
+  RenderWebglLines.prototype.execute = function (stack) {
+    let positionArray = this.positionArray
+    let colorArray = this.colorArray
+    let node, r, g, b, a, stroke
+    for (var i = 0, len = stack.length; i < len; i++) {
+      node = stack[i]
+      if (node.propChanged) {
+        positionArray[i * 4] = node.attr.x1
+        positionArray[i * 4 + 1] = node.attr.y1
+        positionArray[i * 4 + 2] = node.attr.x2
+        positionArray[i * 4 + 3] = node.attr.y2
+      }
+
+      if (node.styleChanged) {
+        stroke = node.style.stroke || defaultColor
+        r = stroke.r
+        g = stroke.g
+        b = stroke.b
+        a = stroke.a || 255
+        colorArray[i * 8] = r
+        colorArray[i * 8 + 1] = g
+        colorArray[i * 8 + 2] = b
+        colorArray[i * 8 + 3] = a
+        colorArray[i * 8 + 4] = r
+        colorArray[i * 8 + 5] = g
+        colorArray[i * 8 + 6] = b
+        colorArray[i * 8 + 7] = a
+        node.styleChanged = false
+      }
+    }
+    this.inputs[0].data = new Uint8Array(this.colorArray)
+    this.inputs[1].data = new Float32Array(this.positionArray)
+    writeDataToShaderAttributes(this.ctx, this.inputs)
+
+    this.ctx.useProgram(this.program)
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    this.ctx.drawArrays(this.ctx.LINES, 0, positionArray.length / 2)
+  }
+
+  function RenderWebglPolyLines (ctx, attr, style, vDomIndex) {
+    this.ctx = ctx
+    this.dom = {}
+    this.attr = attr || {}
+    this.style = style || {}
+    this.vDomIndex = vDomIndex
+    this.program = getProgram(ctx, shaders('line'))
+    this.colorBuffer = ctx.createBuffer()
+    this.positionBuffer = ctx.createBuffer()
+    this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
+    this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
+    this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.polyLineArray= []
+    // this.colorArray = []
+    this.inputs = [{
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.colorBuffer,
+      drawType: this.ctx.STATIC_DRAW,
+      valueType: this.ctx.UNSIGNED_BYTE,
+      size: 4,
+      attribute: this.colorAttributeLocation
+    }, {
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.positionBuffer,
+      drawType: this.ctx.DYNAMIC_DRAW,
+      valueType: this.ctx.FLOAT,
+      size: 2,
+      attribute: this.positionAttributeLocation
+    }]
+  }
+  RenderWebglPolyLines.prototype.remove = function (position) {
+    this.polyLineArray.splice(position, 1)
+  }
+  RenderWebglPolyLines.prototype.execute = function (stack) {
+    let node
+    let fill
+    let points
+
+    this.ctx.useProgram(this.program)
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+
+    for (let i = 0, len = stack.length; i < len; i++) {
+      node = stack[i]
+      fill = node.style.stroke
+      points = node.attr.points
+      fill = fill || defaultColor
+      
+      if (node.propChanged) {
+        
+        let positionArray = []
+        for (let j = 0, jlen = points.length; j < jlen; j++) {
+          positionArray[j * 2] = points[j].x
+          positionArray[j * 2 + 1] = points[j].y
+        }
+        if (!this.polyLineArray[i]) {
+          this.polyLineArray[i] = {}
+        }
+        this.polyLineArray[i].positionArray = new Float32Array(positionArray)
+      }
+
+      if (node.styleChanged) {
+        let colorArray = []
+        let r = fill.r || 0
+        let g = fill.g || 0
+        let b = fill.b || 0
+        let a = fill.a || 255.0
+        for (let j = 0, jlen = points.length; j < jlen; j++) {
+          colorArray[j * 4] = r
+          colorArray[j * 4 + 1] = g
+          colorArray[j * 4 + 2] = b
+          colorArray[j * 4 + 3] = a
+        }
+        this.polyLineArray[i].colorArray = new Uint8Array(colorArray)
+      }
+      this.inputs[0].data = this.polyLineArray[i].colorArray
+      this.inputs[1].data = this.polyLineArray[i].positionArray
+      writeDataToShaderAttributes(this.ctx, this.inputs)
+      this.ctx.drawArrays(this.ctx.LINE_STRIP, 0, this.polyLineArray[i].positionArray.length / 2)
+    }
+  }
+
+  function RenderWebglPolygons (ctx, attr, style, vDomIndex) {
+    this.ctx = ctx
+    this.dom = {}
+    this.attr = attr || {}
+    this.style = style || {}
+    this.vDomIndex = vDomIndex
+    this.program = getProgram(ctx, shaders('line'))
+    this.colorBuffer = ctx.createBuffer()
+    this.positionBuffer = ctx.createBuffer()
+    this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
+    this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
+    this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.polygonArray = []
+    this.inputs = [{
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.colorBuffer,
+      drawType: this.ctx.STATIC_DRAW,
+      valueType: this.ctx.UNSIGNED_BYTE,
+      size: 4,
+      attribute: this.colorAttributeLocation
+    }, {
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.positionBuffer,
+      drawType: this.ctx.DYNAMIC_DRAW,
+      valueType: this.ctx.FLOAT,
+      size: 2,
+      attribute: this.positionAttributeLocation
+    }]
+  }
+  RenderWebglPolygons.prototype.remove = function (position) {
+    this.polygonArray.splice(position, 1)
+  }
+  RenderWebglPolygons.prototype.execute = function (stack) {
+    this.ctx.useProgram(this.program)
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+
+    for (var i = 0, len = stack.length; i < len; i++) {
+      let node = stack[i]
+      let points = node.attr.triangulatedPoints
+      if (node.propChanged) {
+        let positionArray = []
+        for (let j = 0, jlen = points.length; j < jlen; j++) {
+          positionArray[j * 2] = points[j].x
+          positionArray[j * 2 + 1] = points[j].y
+        }
+        this.polyLineArray[i].positionArray = new Float32Array(positionArray)
+      }
+
+      if (node.styleChanged) {
+        let colorArray = []
+        let fill = node.style.fill
+        fill = fill || defaultColor
+        let r = fill.r || 0
+        let g = fill.g || 0
+        let b = fill.b || 0
+        let a = fill.a || 255.0
+        for (let j = 0, jlen = points.length; j < jlen; j++) {
+          colorArray[j * 4] = r
+          colorArray[j * 4 + 1] = g
+          colorArray[j * 4 + 2] = b
+          colorArray[j * 4 + 3] = a
+        }
+        this.polyLineArray[i].colorArray = new Uint8Array(colorArray)
+      }
+      this.inputs[0].data = this.polyLineArray[i].colorArray
+      this.inputs[1].data = this.polyLineArray[i].positionArray
+      writeDataToShaderAttributes(this.ctx, this.inputs)
+
+      this.ctx.drawArrays(this.ctx.TRIANGLES, 0, this.polyLineArray[i].positionArray.length / 2)
+    }
+  }
+
+  function RenderWebglCircles (ctx, attr, style, vDomIndex) {
+    this.ctx = ctx
+    this.dom = {}
+    this.attr = attr || {}
+    this.style = style || {}
+    this.vDomIndex = vDomIndex
+    this.program = getProgram(ctx, shaders('circle'))
+    this.colorBuffer = ctx.createBuffer()
+    this.radiusBuffer = ctx.createBuffer()
+    this.positionBuffer = ctx.createBuffer()
+    this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
+    this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
+    this.radiusAttributeLocation = ctx.getAttribLocation(this.program, 'a_radius')
+    this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.positionArray = []
+    this.colorArray = []
+    this.radius = []
+    this.inputs = [{
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.colorBuffer,
+      drawType: this.ctx.STATIC_DRAW,
+      valueType: this.ctx.UNSIGNED_BYTE,
+      size: 4,
+      attribute: this.colorAttributeLocation
+    }, {
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.radiusBuffer,
+      drawType: this.ctx.STATIC_DRAW,
+      valueType: this.ctx.FLOAT,
+      size: 1,
+      attribute: this.radiusAttributeLocation
+    }, {
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.positionBuffer,
+      drawType: this.ctx.DYNAMIC_DRAW,
+      valueType: this.ctx.FLOAT,
+      size: 2,
+      attribute: this.positionAttributeLocation
+    }]
+  }
+  RenderWebglPoints.prototype.remove = function (position) {
+    this.positionArray.splice(position * 2, 2)
+    this.radius.splice(position, 1)
+    this.colorArray.splice(position * 4, 4)
+  }
+  RenderWebglCircles.prototype.execute = function (stack) {
+    this.ctx.useProgram(this.program)
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    let positionArray = this.positionArray
+    let colorArray = this.colorArray
+    let radius = this.radius
+    let attrFlag
+    let styleFlag
+    for (var i = 0, len = stack.length; i < len; i++) {
+      let node = stack[i]
+      let fill = node.style.fill
+      fill = fill || defaultColor
+      if (node.propChanged) {
+        positionArray[i * 2] = node.attr.cx
+        positionArray[i * 2 + 1] = node.attr.cy
+        radius[i] = node.attr.r
+        node.propChanged = false
+        attrFlag = true
+      }
+      if (node.styleChanged) {
+        colorArray[i * 4] = fill.r
+        colorArray[i * 4 + 1] = fill.g
+        colorArray[i * 4 + 2] = fill.b
+        colorArray[i * 4 + 3] = fill.a || 255.0
+        node.styleChanged = false
+        styleFlag = true
+      }
+    }
+
+    if (attrFlag) {
+      this.inputs[2].data = new Float32Array(positionArray)
+      this.inputs[1].data = new Float32Array(radius)
+    }
+
+    if (styleFlag) {
+      this.inputs[0].data = new Uint8Array(colorArray)
+    }
+    writeDataToShaderAttributes(this.ctx, this.inputs)
+    this.ctx.drawArrays(this.ctx.POINTS, 0, positionArray.length / 2)
+  }
+
+  function RenderWebglGroup (ctx, attr, style, shader, vDomIndex) {
+    let e
+    switch (shader) {
+      case 'rects':
+        e = new RenderWebglRects(ctx, attr, style, vDomIndex)
+        break
+      case 'points':
+        e = new RenderWebglPoints(ctx, attr, style, vDomIndex)
+        break
+      case 'lines':
+        e = new RenderWebglLines(ctx, attr, style, vDomIndex)
+        break
+      case 'polylines':
+        e = new RenderWebglPolyLines(ctx, attr, style, vDomIndex)
+        break
+      case 'polygons':
+        e = new RenderWebglPolygons(ctx, attr, style, vDomIndex)
+        break
+      case 'circles':
+        e = new RenderWebglCircles(ctx, attr, style, vDomIndex)
+        break
+      default:
+        e = null
+        break
+    }
+    this.shader = e
+  }
+  RenderWebglGroup.prototype.execute = function (stack) {
+    this.shader.execute(stack)
   }
 
   function WebglNodeExe (ctx, config, id, vDomIndex) {
@@ -3609,19 +4142,30 @@
     this.children = []
     this.ctx = ctx
     this.vDomIndex = vDomIndex
+    this.el = config.el
+    this.shaderType = config.shaderType
 
     switch (config.el) {
-      case 'circles':
-        this.dom = new RenderWebglCircleGroup(this.ctx, this.attr, this.style)
+      case 'point':
+        this.dom = new PointNode(this.attr, this.style)
         break
-      case 'rects':
-        this.dom = new RenderWebglRectGroup(this.ctx, this.attr, this.style)
+      case 'rect':
+        this.dom = new RectNode(this.attr, this.style)
         break
-      case 'points':
-        this.dom = new RenderWebglPoints(this.ctx, this.attr, this.style)
+      case 'line':
+        this.dom = new LineNode(this.attr, this.style)
         break
-      case 'lines':
-        this.dom = new RenderWebglPointGroup(this.ctx, this.attr, this.style)
+      case 'polyline':
+        this.dom = new PolyLineNode(this.attr, this.style)
+        break
+      case 'polygon':
+        this.dom = new PolygonNode(this.attr, this.style)
+        break
+      case 'circle':
+        this.dom = new CircleNode(this.attr, this.style)
+        break
+      case 'group':
+        this.dom = new RenderWebglGroup(this.ctx, this.attr, this.style, this.shaderType, this.vDomIndex)
         break
       default:
         this.dom = null
@@ -3630,23 +4174,63 @@
     this.dom.nodeExe = this
   }
 
+  WebglNodeExe.prototype.setAttr = function WsetAttr (attr, value) {
+    if (arguments.length === 2) {
+      this.attr[attr] = value
+    } else if (arguments.length === 1 && typeof attr === 'object') {
+      const keys = Object.keys(attr)
+      for (let i = 0; i < keys.length; i += 1) {
+        this.attr[keys[i]] = attr[keys[i]]
+      }
+    }
+    this.propChanged = true
+    queueInstance.vDomChanged(this.vDomIndex)
+    return this
+  }
+  WebglNodeExe.prototype.setStyle = function WsetStyle (attr, value) {
+    if (arguments.length === 2) {
+      this.style[attr] = value
+    } else if (arguments.length === 1 && typeof attr === 'object') {
+      const keys = Object.keys(attr)
+      for (let i = 0; i < keys.length; i += 1) {
+        this.style[keys[i]] = attr[keys[i]]
+      }
+    }
+    this.styleChanged = true
+    queueInstance.vDomChanged(this.vDomIndex)
+    return this
+  }
+  WebglNodeExe.prototype.getAttr = function WgetAttribute (_) {
+    return this.attr[_]
+    //dom.getAttr(_)
+  }
+  WebglNodeExe.prototype.getStyle = function WgetStyle (_) {
+    return this.style[_]
+    //dom.getStyle(_)
+  }
+  WebglNodeExe.prototype.animateTo = animateTo
+  WebglNodeExe.prototype.animateExe = animateExe
+
   WebglNodeExe.prototype.execute = function Cexecute () {
-    this.stylesExe()
-    this.attributesExe()
-    if (this.dom instanceof RenderGroup) {
+    // this.stylesExe()
+    // this.attributesExe()
+    if (!this.dom.shader && this.dom instanceof RenderWebglGroup) {
       for (let i = 0, len = this.children.length; i < len; i += 1) {
         this.children[i].execute()
       }
+    } else if (this.dom.shader && this.dom instanceof RenderWebglGroup) {
+      this.dom.execute(this.children)
     }
   }
 
   WebglNodeExe.prototype.child = function child (childrens) {
     const self = this
-    const childrensLocal = childrens
-    if (self.dom instanceof RenderGroup) {
-      for (let i = 0; i < childrensLocal.length; i += 1) {
-        childrensLocal[i].dom.parent = self
-        self.children[self.children.length] = childrensLocal[i]
+    // const childrensLocal = childrens
+    if (self.dom instanceof RenderWebglGroup) {
+      for (let i = 0; i < childrens.length; i += 1) {
+        childrens[i].dom.parent = self
+        childrens[i].nindex = self.children.length
+        self.children[self.children.length] = childrens[i]
       }
     } else { console.log('Error') }
 
@@ -3654,51 +4238,61 @@
     queueInstance.vDomChanged(this.vDomIndex)
     return self
   }
-  // WebglNodeExe.prototype.fetchEl = cfetchEl
-  // WebglNodeExe.prototype.fetchEls = cfetchEls
+  WebglNodeExe.prototype.fetchEl = cfetchEl
+  WebglNodeExe.prototype.fetchEls = cfetchEls
   // WebglNodeExe.prototype.vDomIndex = null
-  // WebglNodeExe.prototype.join = dataJoin
+  WebglNodeExe.prototype.join = dataJoin
   WebglNodeExe.prototype.createEls = function CcreateEls (data, config) {
     const e = new CreateElements({ type: 'WEBGL', ctx: this.dom.ctx }, data, config, this.vDomIndex)
     this.child(e.stack)
     queueInstance.vDomChanged(this.vDomIndex)
     return e
   }
-  WebglNodeExe.prototype.createEl = function CcreateEl (config) {
-    const e = new CanvasNodeExe(this.dom.ctx, config, domId(), this.vDomIndex)
+
+  WebglNodeExe.prototype.createEl = function WcreateEl (config) {
+    const e = new WebglNodeExe(this.ctx, config, domId(), this.vDomIndex)
     this.child([e])
     queueInstance.vDomChanged(this.vDomIndex)
     return e
   }
-  // WebglNodeExe.prototype.removeChild = function CremoveChild (obj) {
-  //   let index = -1
-  //   this.children.forEach((d, i) => {
-  //     if (d === obj) { index = i }
-  //   })
-  //   if (index !== -1) {
-  //     const removedNode = this.children.splice(index, 1)[0]
-  //     this.dom.removeChild(removedNode.dom)
-  //   }
+  WebglNodeExe.prototype.remove = function Wremove () {
+    const { children } = this.dom.parent
+    const index = children.indexOf(this)
+    if (index !== -1) {
+      children.splice(index, 1)
+      if (this.dom.parent.dom.shader) {
+        this.dom.parent.dom.shader.remove(index)
+      }
+    }
+    this.BBoxUpdate = true
+    queueInstance.vDomChanged(this.vDomIndex)
+  }
+  WebglNodeExe.prototype.removeChild = function WremoveChild (obj) {
+    let index = -1
+    this.children.forEach((d, i) => {
+      if (d === obj) { index = i }
+    })
+    if (index !== -1) {
+      const removedNode = this.children.splice(index, 1)[0]
+      this.dom.removeChild(removedNode.dom)
+    }
 
-  //   queueInstance.vDomChanged(this.vDomIndex)
-  // }
+    queueInstance.vDomChanged(this.vDomIndex)
+  }
 
-  i2d.webglLayer = function webGLLayer (context, config) {
+  i2d.WebglLayer = function WebGLLayer (context, config) {
     const res = document.querySelector(context)
     const height = config.height ? config.height : res.clientHeight
     const width = config.width ? config.width : res.clientWidth
     const layer = document.createElement('canvas')
-    const ctx = layer.getContext('webgl2')
-    const shaderSource = shaders('rect')
-
-    // var program = webglUtils.createProgramFromSources(ctx, [shaderSource.vertexShader, shaderSource.fragmentShader])
-
-    // var positionAttrLoc = ctx.getAttribLocation(program, "a_position")
-    // var colorAttrLoc = ctx.getAttribLocation(program, "a_color")
-    // var resolutionUniLoc = ctx.getUniformLocation(program, "u_resolution")
-
-    layer.setAttribute('height', height * ratio)
-    layer.setAttribute('width', width * ratio)
+    const ctx = layer.getContext('webgl', {
+      premultipliedAlpha: false,
+      depth: false,
+      antialias: true,
+      alpha: true
+    })
+    layer.height = height
+    layer.width = width
     layer.style.height = `${height}px`
     layer.style.width = `${width}px`
     layer.style.position = 'absolute'
@@ -3720,16 +4314,16 @@
     root.domEl = layer
     root.height = height
     root.width = width
+    root.type = 'WEBGL'
+    ctx.clearColor(0, 0, 0, 0)
     root.execute = function executeExe () {
+      this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
+      this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT)
       execute()
     }
-
     root.destroy = function () {
       queueInstance.removeVdom(vDomInstance)
     }
-
-    root.type = 'CANVAS'
-
     vDomInstance.root(root)
 
     if (config.resize) {

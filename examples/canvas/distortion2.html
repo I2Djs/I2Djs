@@ -8,44 +8,43 @@
 		<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
 	</div>
 	<script type="text/javascript" src="../../dist/i2d.js"></script>
-    <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
-	<script type="text/javascript" src="../../src/geometry.js"></script>
-	<script type="text/javascript" src="../../src/easing.js"></script>
-    <script type="text/javascript" src="../../src/vDom.js"></script>
-	<script type="text/javascript" src="../../src/queue.js"></script>
-    <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/path.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>-->
 
 	<script type="text/javascript">
 
         var height = 820, width = 1430;
         var renderer_ = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
+        var group = renderer_.createEl({
+            el: 'group',
+            bbox: false
+        })
         var queue = i2d.queue
         var circlesGrid = []
         var gridSize = parseInt(Math.sqrt(10000))
-        var rad = Math.pow( 100, 2 );
+        var rad = Math.pow( 300, 2 );
         var dis, dx, dy, f;
         var mx, my;
+        var atan2 = Math.atan2;
+        var cos = Math.cos;
+        var sin = Math.sin;
         
-        for(var i=0; i< 140; i++){
-            for(var j=0; j < 230; j++){
+        for(var i=0; i< 150; i++){
+            for(var j=0; j < 200; j++){
                 circlesGrid.push({
-                    x:j*5,
-                    ox:j*5,
-                    y:i*5,
-                    oy:i*5,
+                    x:150+j*4,
+                    ox:150+j*4,
+                    y:100+i*4,
+                    oy:100+i*4,
                     vx:0,
                     vy:0
                 });
             }
         }
         
-    var circles = renderer_.createEls(circlesGrid,{
+    var rects = group.createEls(circlesGrid,{
             el:'rect',
             attr:{
-                width:2,
-                height:2,
+                width:1,
+                height:1,
                 x:function(d){
                     return d.x
                 },
@@ -69,19 +68,19 @@
             if(!mx|| !my)
                 return;
 
-            circles.forEach(function(d){
+            rects.forEach(function(d){
 
                             dis = ( dx = mx - d.x ) * dx + ( dy = my - d.y ) * dy;
                             f = -rad / dis
                             
                             if(dis < rad){
-                                t = Math.atan2( dy, dx );
-                                d.vx = f * Math.cos(t);
-                                d.vy = f * Math.sin(t);
+                                t = atan2( dy, dx );
+                                d.vx = f * cos(t);
+                                d.vy = f * sin(t);
                             }
 
-                            d.x += ( d.vx *= 1) + (d.ox - d.x) * 0.25;
-                            d.y += ( d.vy *= 1 ) + (d.oy - d.y) * 0.25;
+                            d.x += ( d.vx *= 0.8) + (d.ox - d.x) * 0.1;
+                            d.y += ( d.vy *= 0.8 ) + (d.oy - d.y) * 0.1;
                             
                         this.setAttr('x',d.x)
                             .setAttr('y',d.y)

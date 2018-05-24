@@ -2,31 +2,34 @@
 <html style="height: 100%">
 <head>
 	<title></title>
-    <style>
-        rect {
-            fill: #fff
-        }
-    </style>
 </head>
 <body style="height: 100%">
-	<div id="mySvg" style="height: 100%;width:100%;position: absolute;background: black" >
+	<div id="myCanvas" style="height: 100%;width:100%;position: absolute;background: black" >
 		<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
 	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
-    <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+    <script type="text/javascript" src="../../src/earcut.min.js"></script>
+	<script type="text/javascript" src="../../src/colorMap.js"></script>
 	<script type="text/javascript" src="../../src/geometry.js"></script>
 	<script type="text/javascript" src="../../src/easing.js"></script>
     <script type="text/javascript" src="../../src/vDom.js"></script>
 	<script type="text/javascript" src="../../src/queue.js"></script>
     <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>-->
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/shaders.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
 
 	<script type="text/javascript">
 
         var height = 820, width = 1430;
-        var renderer_ = i2d.SVGLayer('#mySvg');
+        var renderer_ = i2d.WebglLayer('#myCanvas',{events:false,selectiveClear:false});
+        var group = renderer_.createEl({
+            el: 'group',
+			shaderType:'points'
+        })
+        var queue = i2d.queue
         var circlesGrid = []
-        var gridSize = parseInt(Math.sqrt(10000))
+        var gridSize = parseInt(Math.sqrt(70000))
         var rad = Math.pow( 100, 2 );
         var dis, dx, dy, f;
         var mx, my;
@@ -34,29 +37,37 @@
         var cos = Math.cos;
         var sin = Math.sin;
         
-        for(var i=0; i< 70; i++){
-            for(var j=0; j < 80; j++){
+        for(var i=0; i< gridSize; i++){
+            for(var j=0; j < gridSize; j++){
                 circlesGrid.push({
-                    x:j*10,
-                    ox:j*10,
-                    y:i*10,
-                    oy:i*10,
+                    x:j*3,
+                    ox:j*3,
+                    y:i*3,
+                    oy:i*3,
                     vx:0,
                     vy:0
                 });
             }
         }
         
-    var circles = renderer_.createEls(circlesGrid,{
-            el:'rect',
+    var rects = group.createEls(circlesGrid,{
+            el:'point',
             attr:{
-                width:4,
-                height:4,
+                // width:2,
+                size: 2,
                 x:function(d){
                     return d.x
                 },
                 y:function(d){
                     return d.y
+                }
+            },
+            style:{
+                fill:{
+                    r: 255,
+                    g: 255,
+                    b: 255,
+                    a: 255
                 }
             }
         })
@@ -64,16 +75,14 @@
         window.addEventListener("mousemove",function(e){
             mx = e.pageX;
             my = e.pageY;
+            e.preventDefault();
         })
         
+        
        i2d.queue.onRequestFrame(function(t){
-
-            if(!mx|| !my)
-                return;
-            
-            for(let i=0, len = circles.stack.length; i < len; i++) {
-                let node = circles.stack[i]
-                let d = node.dataObj
+            let d
+            for(let i=0, len = rects.stack.length; i < len; i++) {
+                d = rects.stack[i].dataObj
                     
                     dis = ( dx = mx - d.x ) * dx + ( dy = my - d.y ) * dy;
                             f = -rad / dis
@@ -86,26 +95,28 @@
 
                             d.x += ( d.vx *= 0.8) + (d.ox - d.x) * 0.1;
                             d.y += ( d.vy *= 0.8 ) + (d.oy - d.y) * 0.1;
-
-                     node.setAttr('x',d.x)
+                    if(d.ox !== d.x || d.oy !== d.y) {
+                        rects.stack[i].setAttr('x',d.x)
                             .setAttr('y',d.y)
+                    }
             }
+            // rects.forEach(function(d){
 
-            // circles.forEach(function(d){
             //                 dis = ( dx = mx - d.x ) * dx + ( dy = my - d.y ) * dy;
             //                 f = -rad / dis
                             
             //                 if(dis < rad){
             //                     t = atan2( dy, dx );
-            //                     d.vx += f * cos(t);
-            //                     d.vy += f * sin(t);
+            //                     d.vx = f * cos(t);
+            //                     d.vy = f * sin(t);
             //                 }
 
             //                 d.x += ( d.vx *= 0.8) + (d.ox - d.x) * 0.1;
             //                 d.y += ( d.vy *= 0.8 ) + (d.oy - d.y) * 0.1;
                             
-            //             this.setAttr('x',d.x)
-            //                 .setAttr('y',d.y)
+            //             this.setAttr({x:d.x,
+            //                         y: d.y})
+            //                 // .setAttr('y',d.y)
             // })
         });
 

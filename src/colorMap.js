@@ -109,8 +109,6 @@
     // console.log(src)
     // console.log(dest)
     return function trans (f) {
-      // console.log(src)
-      // console.log(dest)
       return `rgb(${Math.round(src.r + (dest.r - src.r) * f)},${Math.round(src.g + (dest.g - src.g) * f)},${Math.round(src.b + (dest.b - src.b) * f)})`
     }
   }

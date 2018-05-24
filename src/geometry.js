@@ -506,7 +506,7 @@
       let point3 = { x: BBox.x, y: BBox.y + BBox.height }
       let point4 = { x: BBox.x + BBox.width, y: BBox.y + BBox.height }
       const {translate, rotate} = transform
-      const cen = {x: rotate[1], y: rotate[2]}
+      const cen = {x: rotate[1] || 0, y: rotate[2] || 0}
       const rotateAngle = rotate[0]
 
       if (translate && translate.length > 0) {

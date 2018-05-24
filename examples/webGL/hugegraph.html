@@ -2,15 +2,9 @@
 <html style="height: 100%">
 <head>
 	<title></title>
-    <style>
-        label {
-            position: absolute;
-            color: white;
-        }
-    </style>
 </head>
 <body style="height: 100%">
-    <label> Webgl Example </label>
+
 	<div id="canvas" style="height: 100%;width:100%;background: black">
 	</div>
     <script type="text/javascript" src="../../dist/i2d.js"></script>
@@ -46,30 +40,32 @@
 
         var rectsRef = webglRenderer.createEl({
 			el: 'group',
-			shaderType:'rects'
+			shaderType:'circles'
 		})
 
+    
+        
         function renderChart(graph){
             
             links = linesRef.createEls(graph.links,{
                             el:'line',
                             style:{ stroke:{
-                                r:255,
-                                g:255,
+                                r:0,
+                                g:203,
                                 b:255,
-                                a:255
+								a: 100
                             } }
                         });
 
             circles = rectsRef.createEls(graph.nodes,{
-                            el:'rect',
-                            attr:{ width:15.0, height:15.0, x:-2.5, y:-2.5 },
+                            el:'circle',
+                            attr:{ r:5.0, cx:0, cy:0 },
                             style:{ fill: function(){
                                 return {
                                 r: parseInt(Math.random()*255),
                                 g: parseInt(Math.random()*255),
                                 b: parseInt(Math.random()*255),
-								a: 100
+								a: 255
                             }
                             } }
                         })
@@ -83,8 +79,8 @@
 
             function ticked(){
                 circles
-                        .setAttr('y',function(d){return 400 + d.y * 0.2 -2.5})
-                        .setAttr('x',function(d){return 600 + d.x * 0.2 - 2.5})
+                        .setAttr('cy',function(d){return 400 + d.y * 0.2 })
+                        .setAttr('cx',function(d){return 600 + d.x * 0.2})
 
                 links.forEach(function(d){
                     this.setAttr({x1: 600 + d.source.x  * 0.2,

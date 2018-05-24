@@ -6,39 +6,39 @@
 <body style="height: 100%">
 	<!--<div style="height: 400px;width:400px;position: absolute;background: black" id='myCanvas'>
 	</div>-->
-	<div style="height: 50%;width:50%;position: absolute;background: black" id='myCanvas'>
+	<div style="height: 100%;width:100%;position: absolute;background: black" id='myCanvas'>
 	</div>
     <script type="text/javascript" src="../../dist/i2d.js"></script>
-    <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
-	<script type="text/javascript" src="../../src/geometry.js"></script>
-	<script type="text/javascript" src="../../src/easing.js"></script>
-    <script type="text/javascript" src="../../src/vDom.js"></script>
-	<script type="text/javascript" src="../../src/queue.js"></script>
-    <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/path.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>-->
-
 	<script type="text/javascript">
 
             var renderer_ = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
+            var group = renderer_.createEl({
+                el: 'group',
+                bbox: false
+            })
             var i = 0;
             var sqrt = Math.sqrt
                 window.addEventListener("mousemove",function(e){
-                        renderer_.createEl({
-                            el:'circle',
-                            attr:{ r:0, cx:e.x, cy:e.y },
-                            style:{ globalAlpha:1,lineWidth:2,strokeStyle:'hsl('+(i = (i + 1) % 360)+',100%,50%)' },
-                            bbox: false
-                        })
-                        .animateTo({
-                                duration:2000,
-                                ease:sqrt,
-                                attr:{ r:100},
-                                style:{globalAlpha:0},
-                                end:function(){ this.remove(); }
-                        });
-                        e.preventDefault();
-                    },false);
+                    group.createEl({
+                        el:'circle',
+                        attr:{ r:0, cx:e.offsetX, cy:e.offsetY },
+                        style:{
+                            globalAlpha:1,
+                            lineWidth:2,
+                            strokeStyle:'hsl('+(i = (i + 1) % 360)+',100%,50%,1)' 
+                        }
+                    })
+                    .animateTo({
+                            duration:3000,
+                            ease:sqrt,
+                            attr:{ 
+                                r:100
+                            },
+                            style:{globalAlpha:0},
+                            end:function(){ this.remove(); }
+                    });
+                    e.preventDefault();
+                },false);
 
 	</script>
 </body>

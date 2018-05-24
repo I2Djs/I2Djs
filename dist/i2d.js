@@ -652,12 +652,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root,
     module.exports = factory()
   } else {
     root.queue = factory()
-    console.log('queue root')
   }
 }(this, () => {
   'use strict'
   let animatorInstance = null
-  // const currentTime = Date.now()
   let tweens = []
   const vDoms = []
   let animeFrameId
@@ -690,7 +688,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root,
   function Tween (Id, executable, easying) {
     this.executable = executable
     this.duration = executable.duration ? executable.duration : 0
-    this.currTime = Date.now()
+    this.delay = executable.delay ? executable.delay : 0
     this.lastTime = 0 - (executable.delay ? executable.delay : 0)
     this.loopTracker = 0
     this.loop = executable.loop ? executable.loop : 0
@@ -735,7 +733,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root,
   }
 
   function add (uId, executable, easying) {
-    tweens[tweens.length] = new Tween(uId, executable, easying)
+    let exeObj = new Tween(uId, executable, easying)
+    exeObj.currTime = performance.now()
+    tweens[tweens.length] = exeObj
   }
 
   function startAnimeFrames () {
@@ -778,7 +778,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root,
         vDoms.splice(i, 1)
       }
     }
-    console.log(vDoms)
   }
   Animator.prototype.vDomChanged = function AvDomChanged (vDom) {
     if (vDoms[vDom]) {
@@ -795,41 +794,56 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root,
   let counter = 0
   let tweensN = []
   function exeFrameCaller () {
-    animeFrameId = window.requestAnimationFrame(exeFrameCaller)
-    // let aIds = Object.keys(tweens)
     tweensN = []
     counter = 0
+    t = performance.now()
     for (let i = 0; i < tweens.length; i += 1) {
       d = tweens[i]
-      t = Date.now()
       d.lastTime += (t - d.currTime)
       d.currTime = t
-      if (d.lastTime <= d.duration && d.lastTime >= 0) {
+      if (d.lastTime < d.duration && d.lastTime >= 0) {
         d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)))
         tweensN[counter++] = d
       } else if (d.lastTime > d.duration) {
-        d.execute(1 - d.factor)
-        if (d.loopTracker >= d.loop - 1) {
-          if (d.end) { d.end() }
-        } else {
-          d.loopTracker += 1
-          d.lastTime = 0
-          if (d.direction === 'alternate') { d.factor = 1 - d.factor } else if (d.direction === 'reverse') { d.factor = 1 } else { d.factor = 0 }
-          tweensN[counter++] = d
-        }
-      } else if (d.lastTime < d.duration) {
-        tweensN[counter++] = d
+        loopCheck(d)
       } else {
-        console.log('unknown')
+        tweensN[counter++] = d
       }
     }
     tweens = tweensN
     if (onFrameExe.length > 0) {
-      for (let i = 0; i < onFrameExe.length; i += 1) {
-        onFrameExe[i](t)
-      }
+      onFrameExeFun()
     }
+    vDomUpdates()
+    animeFrameId = window.requestAnimationFrame(exeFrameCaller)
+  }
 
+  function loopCheck (d) {
+    if (d.loopTracker >= d.loop - 1) {
+      d.execute(1 - d.factor)
+      if (d.end) { d.end() }
+    } else {
+      d.loopTracker += 1
+      d.lastTime = (d.lastTime - d.duration)
+      if (d.direction === 'alternate') {
+        d.factor = 1 - d.factor
+      } else if (d.direction === 'reverse') {
+        d.factor = 1
+      } else {
+        d.factor = 0
+      }
+      d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)))
+      tweensN[counter++] = d
+    }
+  }
+
+  function onFrameExeFun () {
+    for (let i = 0; i < onFrameExe.length; i += 1) {
+      onFrameExe[i](t)
+    }
+  }
+
+  function vDomUpdates () {
     for (let i = 0, len = vDoms.length; i < len; i += 1) {
       if (vDoms[i].stateModified) {
         vDoms[i].execute()
@@ -1565,8 +1579,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function colorM
     // console.log(src)
     // console.log(dest)
     return function trans (f) {
-      // console.log(src)
-      // console.log(dest)
       return `rgb(${Math.round(src.r + (dest.r - src.r) * f)},${Math.round(src.g + (dest.g - src.g) * f)},${Math.round(src.b + (dest.b - src.b) * f)})`
     }
   }
@@ -2149,7 +2161,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
             vec2 zeroToOne = a_position / u_resolution;
             vec2 zeroToTwo = zeroToOne * 2.0;
             vec2 clipSpace = zeroToTwo - 1.0;
-
             gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
             gl_PointSize = a_size;
             v_color = a_color;
@@ -2184,7 +2195,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
           fragmentShader: `
                     precision mediump float;
                     varying vec4 v_color;
-                    // out vec4 outColor;
                     void main() {
                       float r = 0.0, delta = 0.0, alpha = 1.0;
                       vec2 cxy = 2.0 * gl_PointCoord - 1.0;
@@ -2192,7 +2202,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
                       if(r > 1.0) {
                         discard;
                       }
-                      delta = fwidth(r);
+                      delta = 0.09;
                       alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);                      
                       gl_FragColor = v_color * alpha;
                     }
@@ -2206,11 +2216,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
                     attribute vec4 a_color;
                     uniform vec2 u_resolution;
                     varying vec4 v_color;
-
                     void main() {
                     vec2 zeroToOne = a_position / u_resolution;
-                    vec2 zeroToTwo = zeroToOne * 2.0;
-                    vec2 clipSpace = zeroToTwo - 1.0;
+                    vec2 clipSpace = zeroToOne * 2.0 - 1.0;
                     gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
                     v_color = a_color;
                     }
@@ -2218,7 +2226,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
           fragmentShader: `
                     precision mediump float;
                     varying vec4 v_color;
-                    // out vec4 outColor;
                     void main() {
                         gl_FragColor = v_color;
                     }
@@ -3130,11 +3137,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
           d.setStyle(key)
         }
       }
-      // if (typeof value === 'function') {
-      //     d.setStyle(key, value.call(d, d.dataObj, i))
-      // } else {
-      //     d.setStyle(key, value)
-      // }
     }
     return this
   }
@@ -3175,12 +3177,31 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return this
   }
 
+  function exec (value) {
+    let d
+    if (typeof value !== 'function') {
+      return
+    }
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
+      d = this.stack[i]
+      value.call(d, d.dataObj, i)
+    }
+    return this
+  }
+  
   function on (eventType, hndlr) {
     for (let i = 0, len = this.stack.length; i < len; i += 1) {
       this.stack[i].on(eventType, hndlr)
     }
     return this
   }
+
+  // function in (coOr) {
+  //   for (let i = 0, len = this.stack.length; i < len; i += 1) {
+  //     this.stack[i].in(coOr)
+  //   }
+  //   return this
+  // }
   function remove () {
     for (let i = 0, len = this.stack.length; i < len; i += 1) {
       this.stack[i].remove()
@@ -3321,8 +3342,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       joinResult.old[d] = (new CreateElements()).wrapper(join.old)
     }
 
-    // const joinResult = performJoin(data, nodes.stack, joinOn)
-
     if (config.action) {
       if (config.action.enter) {
         config.action.enter.call(self, joinResult.new)
@@ -3359,25 +3378,17 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       configurable: true,
       writable: false
     }
-    // this.action = config.action
-    // this.selector = selector
-    // this.data = data
     return Object.create(self, CompositeArray)
   }
 
   const animate = function animate (self, targetConfig) {
-    // const callerExe = self
     const tattr = targetConfig.attr ? targetConfig.attr : {}
     const tstyles = targetConfig.style ? targetConfig.style : {}
     const runStack = []
     let value
-    let key
 
     if (typeof tattr !== 'function') {
-      const attrs = tattr ? Object.keys(tattr) : []
-
-      for (let i = 0, len = attrs.length; i < len; i += 1) {
-        key = attrs[i]
+      for (let key in tattr) {
         if (key !== 'transform') {
           if (key === 'd') {
             self.morphTo(targetConfig)
@@ -3409,9 +3420,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     }
 
     if (typeof tstyles !== 'function') {
-      const styles = tstyles ? Object.keys(tstyles) : []
-      for (let i = 0, len = styles.length; i < len; i += 1) {
-        runStack[runStack.length] = styleTransition(self, styles[i], tstyles[styles[i]])
+      for (let style in tstyles) {
+        runStack[runStack.length] = styleTransition(self, style, tstyles[style])
       }
     } else {
       runStack[runStack.length] = tstyles.bind(self)
@@ -3476,7 +3486,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         self.setAttr(key, value.call(self, f))
       }
     }
-    // const exe = t2DGeometry.intermediateValue.bind(null, srcVal, value)
     return function setAttr_ (f) {
       self.setAttr(key, t2DGeometry.intermediateValue(srcVal, value, f))
     }
@@ -3490,32 +3499,33 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       return function inner (f) {
         self.setStyle(key, value.call(self, self.dataObj, f))
       }
-    }
-    srcValue = self.style[key]
-    if (isNaN(value)) {
-      if (value.startsWith('#') || value.startsWith('rgb') || value.startsWith('hsl')) {
-        const colorExe = colorMap.transition(srcValue, value)
-        return function inner (f) {
-          self.setStyle(key, colorExe(f))
-        }
-      }
-      // else {
-      //   value = colorMap.nameToHex(value)
-      // }
-      srcValue = srcValue.match(/(\d+)/g)
-      destValue = value.match(/(\d+)/g)
-      destUnit = value.match(/\D+$/)
-
-      srcValue = parseInt(srcValue.length > 0 ? srcValue[0] : 0, 10)
-      destValue = parseInt(destValue.length > 0 ? destValue[0] : 0, 10)
-      destUnit = destUnit.length > 0 ? destUnit[0] : 'px'
     } else {
-      srcValue = (self.style[key] !== undefined ? self.style[key] : 1)
-      destValue = value
-      destUnit = 0
-    }
-    return function inner (f) {
-      self.setStyle(key, t2DGeometry.intermediateValue(srcValue, destValue, f) + destUnit)
+      srcValue = self.style[key]
+      if (isNaN(value)) {
+        if (value.startsWith('#') || value.startsWith('rgb') || value.startsWith('hsl')) {
+          const colorExe = colorMap.transition(srcValue, value)
+          return function inner (f) {
+            self.setStyle(key, colorExe(f))
+          }
+        }
+        // else {
+        //   value = colorMap.nameToHex(value)
+        // }
+        srcValue = srcValue.match(/(\d+)/g)
+        destValue = value.match(/(\d+)/g)
+        destUnit = value.match(/\D+$/)
+
+        srcValue = parseInt(srcValue.length > 0 ? srcValue[0] : 0, 10)
+        destValue = parseInt(destValue.length > 0 ? destValue[0] : 0, 10)
+        destUnit = destUnit.length > 0 ? destUnit[0] : 'px'
+      } else {
+        srcValue = (self.style[key] !== undefined ? self.style[key] : 1)
+        destValue = value
+        destUnit = 0
+      }
+      return function inner (f) {
+        self.setStyle(key, t2DGeometry.intermediateValue(srcValue, destValue, f) + destUnit)
+      }
     }
   }
 
@@ -3530,10 +3540,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
 
   function resolveObject (config, node, i) {
     let obj = {}
-    const attrs = Object.keys(config)
-    for (let j = 0; j < attrs.length; j += 1) {
-      const key = attrs[j]
-      // if (key !== 'attr' && key !== 'style' && key !== 'end') {
+    let key
+    for (key in config) {
       if (key !== 'end') {
         if (typeof config[key] === 'function') {
           obj[key] = config[key].call(node, node.dataObj, i)
@@ -3586,7 +3594,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   const animatePathArrayTo = function animatePathArrayTo (config) {
     let node
     let keys = Object.keys(config)
-    for (let i = 0; i < this.stack.length; i += 1) {
+    for (let i = 0, len = this.stack.length; i < len; i += 1) {
       node = this.stack[i]
       let conf = {}
       for (let j = 0; j < keys.length; j++) {
@@ -3904,34 +3912,19 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       for (let i = 0; i < dest.length; i += 1) {
         destArr[i].quad = getQuadrant(centroidOfDest, dest[i].p0)
       }
-      // src.forEach((d) => {
-      //   d.quad =
-      // })
-      // dest.forEach((d) => {
-      //   d.quad = getQuadrant(centroidOfDest, d.p0)
-      // })
-
-      // let srcStartingIndex = -1;
-      // let secSrcStartIndex = -1;
-      // let destStartingIndex = -1;
-      // let secDestStartIndex = -1;
       let minDistance = 0
-      // let secminDistance = Infinity;
 
       src.forEach((d, i) => {
         const dis = t2DGeometry.getDistance(d.p0, centroidOfSrc)
         if ((d.quad === 1 && dis >= minDistance)) {
           minDistance = dis
-          // srcStartingIndex = i
         }
       })
       minDistance = 0
-      // secminDistance = Infinity
       dest.forEach((d, i) => {
         const dis = t2DGeometry.getDistance(d.p0, centroidOfDest)
         if (d.quad === 1 && dis > minDistance) {
           minDistance = dis
-          // destStartingIndex = i
         }
       })
 
@@ -3978,8 +3971,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         nsExe = sExe
         ndExe = dExe
       }
-      // prevSrc = nsExe[nsExe.length - 1]
-      // preDest = ndExe[ndExe.length - 1]
 
       if (getDirection(nsExe) < 0) { nsExe = reverse(nsExe) }
       if (getDirection(ndExe) < 0) { ndExe = reverse(ndExe) }
@@ -4404,68 +4395,48 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.execute()
     return this.dom
   }
-  let styles,
-    attrs,
-    transforms,
-    trnX
+
+  function updateAttrsToDom (self, key) {
+    if (key !== 'transform') {
+      let ind = key.indexOf(':')
+      if (ind >= 0) {
+        self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), self.changedAttribute[key])
+      } else {
+        if (key === 'text') {
+          self.dom.textContent = self.changedAttribute[key]
+        } else {
+          self.dom.setAttribute(key, self.changedAttribute[key])
+        }
+      }
+    }
+  }
+
+  function updateTransAttrsToDom (self) {
+    let cmd = ''
+    for (let trnX in self.attr.transform) {
+      if (trnX === 'rotate') {
+        cmd += `${trnX}(${self.attr.transform.rotate[0] + ' ' + (self.attr.transform.rotate[1] || 0) + ' ' + (self.attr.transform.rotate[2] || 0)}) `
+      } else {
+        cmd += `${trnX}(${self.attr.transform[trnX].join(' ')}) `
+      }
+    }
+    self.dom.setAttribute('transform', cmd)
+  }
+
   DomExe.prototype.transFormAttributes = function transFormAttributes () {
-    const self = this
-
-    attrs = Object.keys(self.changedAttribute)
-    for (let i = 0, len = attrs.length; i < len; i += 1) {
-      let key = attrs[i]
-      if (key !== 'transform') {
-        let ind = key.indexOf(':')
-        if (ind >= 0) {
-          self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), this.changedAttribute[key])
-        } else {
-          if (key === 'text') {
-            self.dom.textContent = this.changedAttribute[key]
-          } else {
-            self.dom.setAttribute(key, this.changedAttribute[key])
-          }
-        }
-      }
+    let self = this
+    for (let key in self.changedAttribute) {
+      updateAttrsToDom(self, key)
     }
-
     if (this.changedAttribute.transform) {
-      let cmd = ''
-      transforms = Object.keys(this.attr.transform)
-      for (let i = 0; i < transforms.length; i += 1) {
-        trnX = transforms[i]
-        if (trnX === 'rotate') {
-          cmd += `${trnX}(${this.attr.transform.rotate[0] + ' ' + (this.attr.transform.rotate[1] || 0) + ' ' + (this.attr.transform.rotate[2] || 0)}) `
-        } else {
-          cmd += `${trnX}(${this.attr.transform[trnX].join(' ')}) `
-        }
-      }
-      this.dom.setAttribute('transform', cmd)
+      updateTransAttrsToDom(self)
     }
-
     this.changedAttribute = {}
-
-    styles = Object.keys(this.changedStyles)
-
-    for (let i = 0, len = styles.length; i < len; i += 1) {
-      if (this.changedStyles[styles[i]] instanceof DomGradients) {
-        this.changedStyles[styles[i]] = this.changedStyles[styles[i]].exe()
-      }
-      this.dom.style.setProperty(styles[i], this.changedStyles[styles[i]], '')
-      // this.dom.style[styles[i]] = this.changedStyles[styles[i]]
-    }
-
-    this.changedStyles = {}
   }
   DomExe.prototype.scale = function DMscale (XY) {
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.scale = XY
     this.changedAttribute.transform = this.attr.transform
-    // if (this.changedAttribute.transform) {
-    //   this.changedAttribute.transform.scale = XY
-    // } else {
-    //   this.changedAttribute.transform = {}
-    //   this.changedAttribute.transform.scale = XY
-    // }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -4473,10 +4444,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.skewX = [x]
     this.changedAttribute.transform = this.attr.transform
-    // if (this.changedAttribute.transform) { this.changedAttribute.transform.skewX = [x] } else {
-    //   this.changedAttribute.transform = {}
-    //   this.changedAttribute.transform.skewX = [x]
-    // }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -4484,10 +4451,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.skewY = [y]
     this.changedAttribute.transform = this.attr.transform
-    // if (this.changedAttribute.transform) { this.changedAttribute.transform.skewY = [y] } else {
-    //   this.changedAttribute.transform = {}
-    //   this.changedAttribute.transform.skewY = [y]
-    // }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -4496,10 +4459,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.translate = XY
     this.changedAttribute.transform = this.attr.transform
-    // if (this.changedAttribute.transform) { this.changedAttribute.transform.translate = XY } else {
-    //   this.changedAttribute.transform = {}
-    //   this.changedAttribute.transform.translate = XY
-    // }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -4510,15 +4469,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     } else {
       this.attr.transform.rotate = [angle, x || 0, y || 0]
     }
-    // this.attr.transform.cx = x ? x : 0
-    // this.attr.transform.cy = y ? y : 0
     this.changedAttribute.transform = this.attr.transform
-    // if (this.changedAttribute.transform) {
-    //   this.changedAttribute.transform.rotate = this.attr.transform.rotate
-    // } else {
-    //   this.changedAttribute.transform = {}
-    //   this.changedAttribute.transform.rotate = this.attr.transform.rotate
-    // }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -4530,10 +4481,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       this.style[attr] = value
       this.changedStyles[attr] = value
     } else if (arguments.length === 1 && typeof attr === 'object') {
-      const styleAttrs = Object.keys(attr)
-
-      for (let i = 0, len = styleAttrs.length; i < len; i += 1) {
-        const key = styleAttrs[i]
+      let key
+      for (key in attr) {
         this.style[key] = attr[key]
         this.changedStyles[key] = attr[key]
       }
@@ -4563,6 +4512,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   DomExe.prototype.getAttr = function DMgetAttribute (_) {
     return this.attr[_]
   }
+  DomExe.prototype.getStyle = function DMgetStyle (_) {
+    return this.style[_]
+  }
   DomExe.prototype.execute = function DMexecute () {
     if (!this.styleChanged && !this.attrChanged) {
       for (let i = 0, len = this.children.length; i < len; i += 1) {
@@ -4575,11 +4527,19 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     for (let i = 0, len = this.children.length; i < len; i += 1) {
       this.children[i].execute()
     }
+
+    for (let style in this.changedStyles) {
+      if (this.changedStyles[style] instanceof DomGradients) {
+        this.changedStyles[style] = this.changedStyles[style].exe()
+      }
+      this.dom.style.setProperty(style, this.changedStyles[style], '')
+    }
+
+    this.changedStyles = {}
   }
   DomExe.prototype.child = function DMchild (nodes) {
     const parent = this.dom
     const self = this
-    // if (parent.nodeName === 'g' || parent.nodeName === 'svg') {
     if (nodes instanceof CreateElements) {
       var fragment = document.createDocumentFragment()
       for (let i = 0, len = nodes.stack.length; i < len; i++) {
@@ -4588,12 +4548,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         this.children[this.children.length] = nodes.stack[i]
       }
       parent.appendChild(fragment)
-      // console.log(this.children.length)
-      // nodes.stack.forEach((d) => {
-      //   parent.appendChild(d.dom)
-      //   d.parentNode = self
-      // })
-      // this.children = this.children.concat(nodes.stack)
     } else if (nodes instanceof DomExe) {
       parent.appendChild(nodes.dom)
       nodes.parentNode = self
@@ -4673,20 +4627,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     if (index !== -1) {
       this.dom.removeChild(children.splice(index, 1)[0].dom)
     }
-    // for (let i = 0; i < children.length; i += 1) {
-    //   if (obj === children[i]) {
-    //     index = i
-    //     this.dom.removeChild(children[i].dom)
-    //   }
-    // }
-    // if (index > -1) {
-    //   for (let i = index; i < children.length - 1; i += 1) {
-    //     children[i] = children[i + 1]
-    //   }
-    //   children.length -= 1
-    // }
-
-    // queueInstance.vDomChanged(this.vDomIndex)
   }
 
   function createDomElement (obj, vDomIndex) {
@@ -4779,7 +4719,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return lGradient
   }
   CanvasGradients.prototype.absoluteLinearGradient = function absoluteGralinearGradient (ctx) {
-    console.log('called')
     const lGradient = ctx.createLinearGradient(
       this.config.x1, this.config.y1,
       this.config.x2, this.config.y2
@@ -4878,9 +4817,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   }
 
   function createCanvasPattern (patternObj, repeatInd) {
-    // const self = this
-    // self.children = []
-    // self.stack = [self]
   }
   createCanvasPattern.prototype = {
   }
@@ -5756,27 +5692,25 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return this.dom
   }
   CanvasNodeExe.prototype.stylesExe = function CstylesExe () {
-    const props = Object.keys(this.style)
     let value
+    let key
 
-    for (let i = 0, len = props.length; i < len; i += 1) {
-      if (typeof this.style[props[i]] !== 'function' && !(this.style[props[i]] instanceof CanvasGradients)) {
-        value = this.style[props[i]]
-      } else if (typeof this.style[props[i]] === 'function') {
-        this.style[props[i]] = this.style[props[i]].call(this, this.dataObj)
-        value = this.style[props[i]]
-      } else if (this.style[props[i]] instanceof CanvasGradients) {
-        value = this.style[props[i]].exe(this.ctx, this.dom.BBox)
+    for (key in this.style) {
+      if (typeof this.style[key] !== 'function' && !(this.style[key] instanceof CanvasGradients)) {
+        value = this.style[key]
+      } else if (typeof this.style[key] === 'function') {
+        this.style[key] = this.style[key].call(this, this.dataObj)
+        value = this.style[key]
+      } else if (this.style[key] instanceof CanvasGradients) {
+        value = this.style[key].exe(this.ctx, this.dom.BBox)
       } else {
         console.log('unkonwn Style')
       }
 
-      if (typeof this.ctx[props[i]] !== 'function') {
-        this.ctx[props[i]] = value
-      } else if (typeof this.ctx[props[i]] === 'function') {
-        // console.log(value);
-        // this.ctx.setLineDash([5, 5])
-        this.ctx[props[i]](value)
+      if (typeof this.ctx[key] !== 'function') {
+        this.ctx[key] = value
+      } else if (typeof this.ctx[key] === 'function') {
+        this.ctx[key](value)
       } else { console.log('junk comp') }
     }
   }
@@ -5829,6 +5763,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
 
   CanvasNodeExe.prototype.getAttr = function CgetAttribute (_) {
     return this.attr[_]
+  }
+  CanvasNodeExe.prototype.getStyle = function DMgetStyle (_) {
+    return this.style[_]
   }
   CanvasNodeExe.prototype.rotate = function Crotate (angle, x, y) {
     if (!this.attr.transform) { this.attr.transform = {} }
@@ -5905,7 +5842,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         childrensLocal[i].dom.parent = self
         self.children[self.children.length] = childrensLocal[i]
       }
-    } else { console.log('Error') }
+    } else { console.error('Trying to insert child to nonGroup Element') }
 
     this.BBoxUpdate = true
     queueInstance.vDomChanged(this.vDomIndex)
@@ -6060,6 +5997,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     translate,
     rotate,
     scale,
+    exec,
     animateTo: animateArrayTo,
     animateExe: animateArrayExe,
     animatePathTo: animatePathArrayTo,
@@ -6187,14 +6125,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     root.width = width
     root.type = 'CANVAS'
     root.execute = function executeExe () {
-      // if (!this.dom.BBoxHit) {
-      //   this.dom.BBoxHit = {
-      //     x: 0, y: 0, width: width * originalRatio, height: height * originalRatio
-      //   }
-      // } else {
-      //   this.dom.BBoxHit.width = this.width * originalRatio
-      //   this.dom.BBoxHit.height = this.height * originalRatio
-      // }
       onClear(ctx)
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
       root.updateBBox()
@@ -6305,7 +6235,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         }
       })
       res.addEventListener('click', (e) => {
-        console.log('click')
         e.preventDefault()
         if (selectedNode && selectedNode.dom.click) { selectedNode.dom.click.call(selectedNode, selectedNode.dataObj, e) }
       })
@@ -6313,7 +6242,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         if (selectedNode && selectedNode.dom.dblclick) { selectedNode.dom.dblclick.call(selectedNode, selectedNode.dataObj, e) }
       })
       res.addEventListener('mousedown', (e) => {
-        console.log('down')
         e.preventDefault()
         if (selectedNode && selectedNode.dom.mousedown) {
           selectedNode.dom.mousedown.call(selectedNode, selectedNode.dataObj, e)
@@ -6417,12 +6345,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
 
     window.addEventListener('resize', svgResize)
 
-    // function destroy () {
-    //   window.removeEventListener('resize', svgResize)
-    //   layer.remove()
-    //   queueInstance.removeVdom(vDomInstance)
-    // }
-
     root.destroy = function () {
       window.removeEventListener('resize', svgResize)
       layer.remove()
@@ -6476,35 +6398,36 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.attr = attr || {}
     this.style = style || {}
   }
-  PointNode.prototype.setAttr = function (prop, value) {
-    this.attr[prop] = value
-  }
-  PointNode.prototype.getAttr = function (key) {
-    return this.attr[key]
-  }
-  PointNode.prototype.setStyle = function (prop, value) {
-    this.attr[prop] = value
-  }
-  PointNode.prototype.getStyle = function (key) {
-    return this.style[key]
-  }
+  // PointNode.prototype.setAttr = function (prop, value) {
+  //   this.attr[prop] = value
+  // }
+  // PointNode.prototype.getAttr = function (key) {
+  //   return this.attr[key]
+  // }
+  // PointNode.prototype.setStyle = function (prop, value) {
+  //   this.attr[prop] = value
+  // }
+  // PointNode.prototype.getStyle = function (key) {
+  //   return this.style[key]
+  // }
 
   function RectNode (attr, style) {
     this.attr = attr || {}
     this.style = style || {}
   }
-  RectNode.prototype.setAttr = function (key, value) {
-    this.attr[key] = value
-  }
-  RectNode.prototype.getAttr = function (key) {
-    return this.attr[key]
-  }
-  RectNode.prototype.setStyle = function (key, value) {
-    this.style[key] = value
-  }
-  RectNode.prototype.getStyle = function (key) {
-    return this.style[key]
-  }
+  // RectNode.prototype.setAttr = function (key, value) {
+  //   this.attr[key] = value
+  //   this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe), this.nodeExe)
+  // }
+  // RectNode.prototype.getAttr = function (key) {
+  //   return this.attr[key]
+  // }
+  // RectNode.prototype.setStyle = function (key, value) {
+  //   this.style[key] = value
+  // }
+  // RectNode.prototype.getStyle = function (key) {
+  //   return this.style[key]
+  // }
 
   function PolyLineNode (attr, style) {
     this.attr = attr || {}
@@ -6529,6 +6452,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   }
   LineNode.prototype.setAttr = function (key, value) {
     this.attr[key] = value
+    this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe), this.nodeExe)
   }
   LineNode.prototype.getAttr = function (key) {
     return this.attr[key]
@@ -6587,38 +6511,18 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return this.style[key]
   }
 
-  // function WebGlWrapper () {
-  //   this.stack = []
-  //   this.colorArray = []
-  // }
-  // WebGlWrapper.prototype.createEl = function (config) {
-  //   const e = new WebglNodeExe(this.ctx, config, domId(), this.vDomIndex)
-  //   this.stack.push(e)
-  // }
-  // WebGlWrapper.prototype.createEls = function WcreateEls (data, config) {
-  //   const e = new CreateElements({ type: 'WEBGL', ctx: this.dom.ctx }, data, config, this.vDomIndex)
-  //   this.stack = this.stack.concat(e.stack)
-  //   queueInstance.vDomChanged(this.vDomIndex)
-  //   return e
-  // }
-  // WebGlWrapper.prototype.forEach = forEach
-  // WebGlWrapper.prototype.setAttr = setAttribute
-  // WebGlWrapper.prototype.animateTo = animateArrayTo
-  // WebGlWrapper.prototype.animateExe = animateArrayExe
-  // WebGlWrapper.prototype.remove = remove
-  // // WebGlWrapper.prototype.fetchEl = fetchEl
-  // // WebGlWrapper.prototype.fetchEls = fetchEls
-  // WebGlWrapper.prototype.join = join
-
-
-  function writeDataToShaderAttributes (data) {
-    for (let i = 0; i < data.length; i++) {
-      this.ctx.bindBuffer(data[i].bufferType, data[i].buffer)
-      this.ctx.bufferData(data[i].bufferType, data[i].data, data[i].drawType)
-      this.ctx.enableVertexAttribArray(data[i].attribute)
-      this.ctx.vertexAttribPointer(data[i].attribute, data[i].size, data[i].valueType, true, 0, 0)
+  function writeDataToShaderAttributes (ctx, data) {
+    let d
+    for (let i = 0, len = data.length; i < len; i++) {
+      d = data[i]
+      ctx.bindBuffer(d.bufferType, d.buffer)
+      ctx.bufferData(d.bufferType, d.data, d.drawType)
+      ctx.enableVertexAttribArray(d.attribute)
+      ctx.vertexAttribPointer(d.attribute, d.size, d.valueType, true, 0, 0)
     }
   }
+
+  let defaultColor = {r: 0, g: 0, b: 0, a: 255.0}
 
   function RenderWebglPoints (ctx, attr, style, vDomIndex) {
     this.ctx = ctx
@@ -6634,26 +6538,11 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.sizeAttributeLocation = ctx.getAttribLocation(this.program, 'a_size')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
-  }
-  RenderWebglPoints.prototype.writeDataToShaderAttributes = writeDataToShaderAttributes
-  RenderWebglPoints.prototype.execute = function (stack) {
-    let positionArray = []
-    let colorArray = []
-    let pointsSize = []
-    for (var i = 0, len = stack.length; i < len; i++) {
-      let fill = stack[i].getStyle('fill')
-      fill = fill || {r: 0, g: 0, b: 0, a: 0}
-      positionArray[i * 2] = stack[i].getAttr('x')
-      positionArray[i * 2 + 1] = stack[i].getAttr('y')
-      colorArray[i * 4] = fill.r
-      colorArray[i * 4 + 1] = fill.g
-      colorArray[i * 4 + 2] = fill.b
-      colorArray[i * 4 + 3] = fill.a || 255
-      pointsSize[i] = stack[i].getAttr('size') || 1.0
-    }
-
-    this.writeDataToShaderAttributes([{
-      data: new Uint8Array(colorArray),
+    // this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    this.positionArray = []
+    this.colorArray = []
+    this.pointsSize = []
+    this.inputs = [{
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.colorBuffer,
       drawType: this.ctx.STATIC_DRAW,
@@ -6661,7 +6550,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       size: 4,
       attribute: this.colorAttributeLocation
     }, {
-      data: new Float32Array(pointsSize),
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.sizeBuffer,
       drawType: this.ctx.STATIC_DRAW,
@@ -6669,16 +6557,57 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       size: 1,
       attribute: this.sizeAttributeLocation
     }, {
-      data: new Float32Array(positionArray),
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.positionBuffer,
-      drawType: this.ctx.DYNAMIC_DRAW,
+      drawType: this.ctx.STATIC_DRAW,
       valueType: this.ctx.FLOAT,
       size: 2,
       attribute: this.positionAttributeLocation
-    }])
+    }]
+  }
+  RenderWebglPoints.prototype.remove = function (position) {
+    this.positionArray.splice(position * 2, 2)
+    this.pointsSize.splice(position, 1)
+    this.colorArray.splice(position * 4, 4)
+  }
+  RenderWebglPoints.prototype.execute = function (stack) {
+    let positionArray = this.positionArray
+    let colorArray = this.colorArray
+    let pointsSize = this.pointsSize
+    let node
+    let fill
+    let styleFlag = false
+    let attrFlag = false
+    for (var i = 0, len = stack.length; i < len; i++) {
+      node = stack[i]
+      if (node.propChanged) {
+        positionArray[i * 2] = node.attr.x
+        positionArray[i * 2 + 1] = node.attr.y
+        pointsSize[i] = node.attr.size || 1.0
+        attrFlag = true
+        node.propChanged = false
+      }
+      if (node.styleChanged) {
+        fill = node.style.fill || defaultColor
+        colorArray[i * 4] = fill.r
+        colorArray[i * 4 + 1] = fill.g
+        colorArray[i * 4 + 2] = fill.b
+        colorArray[i * 4 + 3] = fill.a || 255
+        styleFlag = true
+        node.styleChanged = false
+      }
+    }
 
+    if (attrFlag) {
+      this.inputs[2].data = new Float32Array(positionArray)
+      this.inputs[1].data = new Float32Array(pointsSize)
+    }
+
+    if (styleFlag) {
+      this.inputs[0].data = new Uint8Array(colorArray)
+    }
     this.ctx.useProgram(this.program)
+    writeDataToShaderAttributes(this.ctx, this.inputs)
     this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
     this.ctx.drawArrays(this.ctx.POINTS, 0, positionArray.length / 2)
   }
@@ -6695,71 +6624,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
-  }
-  RenderWebglRects.prototype.writeDataToShaderAttributes = writeDataToShaderAttributes
-  RenderWebglRects.prototype.execute = function (stack) {
-    let positionArray = []
-    let colorArray = []
-    for (var i = 0, len = stack.length; i < len; i++) {
-      let fill = stack[i].getStyle('fill') || {r: 0, g: 0, b: 0, a: 1.0}
-      let x = stack[i].getAttr('x')
-      let y = stack[i].getAttr('y')
-      let width = stack[i].getAttr('width')
-      let height = stack[i].getAttr('height')
-      let x1 = x
-      let x2 = x + width
-      let y1 = y
-      let y2 = y + height
-      let r = fill.r 
-      let g = fill.g 
-      let b = fill.b 
-      let a = fill.a || 1.0
-      positionArray[i * 12] = x1
-      positionArray[i * 12 + 1] = y1
-      positionArray[i * 12 + 2] = x2
-      positionArray[i * 12 + 3] = y1
-      positionArray[i * 12 + 4] = x1
-      positionArray[i * 12 + 5] = y2
-      positionArray[i * 12 + 6] = x1
-      positionArray[i * 12 + 7] = y2
-      positionArray[i * 12 + 8] = x2
-      positionArray[i * 12 + 9] = y1
-      positionArray[i * 12 + 10] = x2
-      positionArray[i * 12 + 11] = y2
-
-      colorArray[i * 24] = r
-      colorArray[i * 24 + 1] = g
-      colorArray[i * 24 + 2] = b
-      colorArray[i * 24 + 3] = a
-
-      colorArray[i * 24 + 4] = r
-      colorArray[i * 24 + 5] = g
-      colorArray[i * 24 + 6] = b
-      colorArray[i * 24 + 7] = a
-
-      colorArray[i * 24 + 8] = r
-      colorArray[i * 24 + 9] = g
-      colorArray[i * 24 + 10] = b
-      colorArray[i * 24 + 11] = a
-
-      colorArray[i * 24 + 12] = r
-      colorArray[i * 24 + 13] = g
-      colorArray[i * 24 + 14] = b
-      colorArray[i * 24 + 15] = a
-
-      colorArray[i * 24 + 16] = r
-      colorArray[i * 24 + 17] = g
-      colorArray[i * 24 + 18] = b
-      colorArray[i * 24 + 19] = a
-
-      colorArray[i * 24 + 20] = r
-      colorArray[i * 24 + 21] = g
-      colorArray[i * 24 + 22] = b
-      colorArray[i * 24 + 23] = a
-    }
-
-    this.writeDataToShaderAttributes([{
-      data: new Uint8Array(colorArray),
+    this.positionArray = []
+    this.colorArray = []
+    this.inputs = [{
+      data: this.colorArray,
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.colorBuffer,
       drawType: this.ctx.STATIC_DRAW,
@@ -6767,20 +6635,62 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       size: 4,
       attribute: this.colorAttributeLocation
     }, {
-      data: new Float32Array(positionArray),
+      data: new Float32Array(this.positionArray),
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.positionBuffer,
-      drawType: this.ctx.DYNAMIC_DRAW,
+      drawType: this.ctx.STATIC_DRAW,
       valueType: this.ctx.FLOAT,
       size: 2,
       attribute: this.positionAttributeLocation
-    }])
+    }]
+  }
+  RenderWebglRects.prototype.remove = function (position) {
+    this.positionArray.splice(position * 12, 12)
+    this.colorArray.splice(position * 24, 24)
+  }
+  RenderWebglRects.prototype.execute = function (stack) {
+    let positionArray = this.positionArray
+    let colorArray = this.colorArray
+    let fill, r, g, b, a, x1, x2, y1, y2
+    let node
+    let ti
+    let posi
+    for (var i = 0, len = stack.length; i < len; i++) {
+      node = stack[i]
+      if (node.propChanged) {
+        x1 = node.attr.x
+        x2 = x1 + node.attr.width
+        y1 = node.attr.y
+        y2 = y1 + node.attr.height
+        posi = i * 12
+        positionArray[posi] = positionArray[posi + 4] = positionArray[posi + 6] = x1
+        positionArray[posi + 1] = positionArray[posi + 3] = positionArray[posi + 9] = y1
+        positionArray[posi + 2] = positionArray[posi + 8] = positionArray[posi + 10] = x2
+        positionArray[posi + 5] = positionArray[posi + 7] = positionArray[posi + 11] = y2
+        node.propChanged = false
+      }
+      if (node.styleChanged) {
+        fill = node.style.fill || defaultColor
+        r = fill.r
+        g = fill.g
+        b = fill.b
+        a = fill.a || 255
+        ti = i * 24
+        colorArray[ti] = colorArray[ti + 4] = colorArray[ti + 8] = colorArray[ti + 12] = colorArray[ti + 16] = colorArray[ti + 20] = r
+        colorArray[ti + 1] = colorArray[ti + 5] = colorArray[ti + 9] = colorArray[ti + 13] = colorArray[ti + 17] = colorArray[ti + 21] = g
+        colorArray[ti + 2] = colorArray[ti + 6] = colorArray[ti + 10] = colorArray[ti + 14] = colorArray[ti + 18] = colorArray[ti + 22] = b
+        colorArray[ti + 3] = colorArray[ti + 7] = colorArray[ti + 11] = colorArray[ti + 15] = colorArray[ti + 19] = colorArray[ti + 23] = a
+        node.styleChanged = false
+      }
+    }
+    this.inputs[0].data = new Uint8Array(this.colorArray)
+    this.inputs[1].data = new Float32Array(this.positionArray)
+    writeDataToShaderAttributes(this.ctx, this.inputs)
 
     this.ctx.useProgram(this.program)
     this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
     this.ctx.drawArrays(this.ctx.TRIANGLES, 0, positionArray.length / 2)
   }
-
 
   function RenderWebglLines (ctx, attr, style, vDomIndex) {
     this.ctx = ctx
@@ -6794,41 +6704,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
-  }
-  RenderWebglLines.prototype.writeDataToShaderAttributes = writeDataToShaderAttributes
-  RenderWebglLines.prototype.execute = function (stack) {
-    let positionArray = []
-    let colorArray = []
-    for (var i = 0, len = stack.length; i < len; i++) {
-      let fill = stack[i].getStyle('stroke')
-      let x1 = stack[i].getAttr('x1')
-      let y1 = stack[i].getAttr('y1')
-      let x2 = stack[i].getAttr('x2')
-      let y2 = stack[i].getAttr('y2')
-      positionArray[i * 4] = x1
-      positionArray[i * 4 + 1] = y1
-      positionArray[i * 4 + 2] = x2
-      positionArray[i * 4 + 3] = y2
-
-      fill = fill || {r: 0, g: 0, b: 0, a: 1.0}
-
-      let r = fill.r
-      let g = fill.g
-      let b = fill.b
-      let a = fill.a || 1.0
-
-      colorArray[i * 8] = r
-      colorArray[i * 8 + 1] = g
-      colorArray[i * 8 + 2] = b
-      colorArray[i * 8 + 3] = a
-      colorArray[i * 8 + 4] = r
-      colorArray[i * 8 + 5] = g
-      colorArray[i * 8 + 6] = b
-      colorArray[i * 8 + 7] = a
-    }
-
-    this.writeDataToShaderAttributes([{
-      data: new Uint8Array(colorArray),
+    this.positionArray = []
+    this.colorArray = []
+    this.inputs = [{
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.colorBuffer,
       drawType: this.ctx.STATIC_DRAW,
@@ -6836,14 +6714,51 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       size: 4,
       attribute: this.colorAttributeLocation
     }, {
-      data: new Float32Array(positionArray),
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.positionBuffer,
       drawType: this.ctx.DYNAMIC_DRAW,
       valueType: this.ctx.FLOAT,
       size: 2,
       attribute: this.positionAttributeLocation
-    }])
+    }]
+  }
+  RenderWebglRects.prototype.remove = function (position) {
+    this.positionArray.splice(position * 4, 4)
+    this.colorArray.splice(position * 8, 8)
+  }
+  RenderWebglLines.prototype.execute = function (stack) {
+    let positionArray = this.positionArray
+    let colorArray = this.colorArray
+    let node, r, g, b, a, stroke
+    for (var i = 0, len = stack.length; i < len; i++) {
+      node = stack[i]
+      if (node.propChanged) {
+        positionArray[i * 4] = node.attr.x1
+        positionArray[i * 4 + 1] = node.attr.y1
+        positionArray[i * 4 + 2] = node.attr.x2
+        positionArray[i * 4 + 3] = node.attr.y2
+      }
+
+      if (node.styleChanged) {
+        stroke = node.style.stroke || defaultColor
+        r = stroke.r
+        g = stroke.g
+        b = stroke.b
+        a = stroke.a || 255
+        colorArray[i * 8] = r
+        colorArray[i * 8 + 1] = g
+        colorArray[i * 8 + 2] = b
+        colorArray[i * 8 + 3] = a
+        colorArray[i * 8 + 4] = r
+        colorArray[i * 8 + 5] = g
+        colorArray[i * 8 + 6] = b
+        colorArray[i * 8 + 7] = a
+        node.styleChanged = false
+      }
+    }
+    this.inputs[0].data = new Uint8Array(this.colorArray)
+    this.inputs[1].data = new Float32Array(this.positionArray)
+    writeDataToShaderAttributes(this.ctx, this.inputs)
 
     this.ctx.useProgram(this.program)
     this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
@@ -6862,51 +6777,72 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.polyLineArray= []
+    // this.colorArray = []
+    this.inputs = [{
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.colorBuffer,
+      drawType: this.ctx.STATIC_DRAW,
+      valueType: this.ctx.UNSIGNED_BYTE,
+      size: 4,
+      attribute: this.colorAttributeLocation
+    }, {
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.positionBuffer,
+      drawType: this.ctx.DYNAMIC_DRAW,
+      valueType: this.ctx.FLOAT,
+      size: 2,
+      attribute: this.positionAttributeLocation
+    }]
   }
-  RenderWebglPolyLines.prototype.writeDataToShaderAttributes = writeDataToShaderAttributes
+  RenderWebglPolyLines.prototype.remove = function (position) {
+    this.polyLineArray.splice(position, 1)
+  }
   RenderWebglPolyLines.prototype.execute = function (stack) {
+    let node
+    let fill
+    let points
+
     this.ctx.useProgram(this.program)
     this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
 
-    for (var i = 0, len = stack.length; i < len; i++) {
-      let node = stack[i]
-      let fill = node.getStyle('fill')
-      fill = fill || {r: 0, g: 0, b: 0}
-      let points = node.getAttr('points')
-      let positionArray = []
-      let colorArray = []
-      let r = fill.r
-      let g = fill.g
-      let b = fill.b
-      let a = fill.a
-      for (let j = 0, jlen = points.length; j < jlen; j++) {
-        positionArray[j * 2] = points[j].x
-        positionArray[j * 2 + 1] = points[j].y
-        colorArray[j * 4] = r
-        colorArray[j * 4 + 1] = g
-        colorArray[j * 4 + 2] = b
-        colorArray[j * 4 + 3] = a || 1.0
+    for (let i = 0, len = stack.length; i < len; i++) {
+      node = stack[i]
+      fill = node.style.stroke
+      points = node.attr.points
+      fill = fill || defaultColor
+      
+      if (node.propChanged) {
+        
+        let positionArray = []
+        for (let j = 0, jlen = points.length; j < jlen; j++) {
+          positionArray[j * 2] = points[j].x
+          positionArray[j * 2 + 1] = points[j].y
+        }
+        if (!this.polyLineArray[i]) {
+          this.polyLineArray[i] = {}
+        }
+        this.polyLineArray[i].positionArray = new Float32Array(positionArray)
       }
 
-      this.writeDataToShaderAttributes([{
-        data: new Uint8Array(colorArray),
-        bufferType: this.ctx.ARRAY_BUFFER,
-        buffer: this.colorBuffer,
-        drawType: this.ctx.STATIC_DRAW,
-        valueType: this.ctx.UNSIGNED_BYTE,
-        size: 4,
-        attribute: this.colorAttributeLocation
-      }, {
-        data: new Float32Array(positionArray),
-        bufferType: this.ctx.ARRAY_BUFFER,
-        buffer: this.positionBuffer,
-        drawType: this.ctx.DYNAMIC_DRAW,
-        valueType: this.ctx.FLOAT,
-        size: 2,
-        attribute: this.positionAttributeLocation
-      }])
-
-      this.ctx.drawArrays(this.ctx.LINE_STRIP, 0, positionArray.length / 2)
+      if (node.styleChanged) {
+        let colorArray = []
+        let r = fill.r || 0
+        let g = fill.g || 0
+        let b = fill.b || 0
+        let a = fill.a || 255.0
+        for (let j = 0, jlen = points.length; j < jlen; j++) {
+          colorArray[j * 4] = r
+          colorArray[j * 4 + 1] = g
+          colorArray[j * 4 + 2] = b
+          colorArray[j * 4 + 3] = a
+        }
+        this.polyLineArray[i].colorArray = new Uint8Array(colorArray)
+      }
+      this.inputs[0].data = this.polyLineArray[i].colorArray
+      this.inputs[1].data = this.polyLineArray[i].positionArray
+      writeDataToShaderAttributes(this.ctx, this.inputs)
+      this.ctx.drawArrays(this.ctx.LINE_STRIP, 0, this.polyLineArray[i].positionArray.length / 2)
     }
   }
 
@@ -6922,51 +6858,63 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.polygonArray = []
+    this.inputs = [{
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.colorBuffer,
+      drawType: this.ctx.STATIC_DRAW,
+      valueType: this.ctx.UNSIGNED_BYTE,
+      size: 4,
+      attribute: this.colorAttributeLocation
+    }, {
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.positionBuffer,
+      drawType: this.ctx.DYNAMIC_DRAW,
+      valueType: this.ctx.FLOAT,
+      size: 2,
+      attribute: this.positionAttributeLocation
+    }]
   }
-  RenderWebglPolygons.prototype.writeDataToShaderAttributes = writeDataToShaderAttributes
+  RenderWebglPolygons.prototype.remove = function (position) {
+    this.polygonArray.splice(position, 1)
+  }
   RenderWebglPolygons.prototype.execute = function (stack) {
     this.ctx.useProgram(this.program)
     this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
 
     for (var i = 0, len = stack.length; i < len; i++) {
       let node = stack[i]
-      let fill = node.getStyle('fill')
-      fill = fill || {r: 255, g: 0, b: 0}
-      let points = node.getAttr('triangulatedPoints')
-      let positionArray = []
-      let colorArray = []
-      let r = fill.r
-      let g = fill.g
-      let b = fill.b
-      let a = fill.a
-      for (let j = 0, jlen = points.length; j < jlen; j++) {
-        positionArray[j * 2] = points[j].x
-        positionArray[j * 2 + 1] = points[j].y
-        colorArray[j * 4] = r
-        colorArray[j * 4 + 1] = g
-        colorArray[j * 4 + 2] = b
-        colorArray[j * 4 + 3] = a  || 1.0
+      let points = node.attr.triangulatedPoints
+      if (node.propChanged) {
+        let positionArray = []
+        for (let j = 0, jlen = points.length; j < jlen; j++) {
+          positionArray[j * 2] = points[j].x
+          positionArray[j * 2 + 1] = points[j].y
+        }
+        this.polyLineArray[i].positionArray = new Float32Array(positionArray)
       }
 
-      this.writeDataToShaderAttributes([{
-        data: new Uint8Array(colorArray),
-        bufferType: this.ctx.ARRAY_BUFFER,
-        buffer: this.colorBuffer,
-        drawType: this.ctx.STATIC_DRAW,
-        valueType: this.ctx.UNSIGNED_BYTE,
-        size: 4,
-        attribute: this.colorAttributeLocation
-      }, {
-        data: new Float32Array(positionArray),
-        bufferType: this.ctx.ARRAY_BUFFER,
-        buffer: this.positionBuffer,
-        drawType: this.ctx.DYNAMIC_DRAW,
-        valueType: this.ctx.FLOAT,
-        size: 2,
-        attribute: this.positionAttributeLocation
-      }])
+      if (node.styleChanged) {
+        let colorArray = []
+        let fill = node.style.fill
+        fill = fill || defaultColor
+        let r = fill.r || 0
+        let g = fill.g || 0
+        let b = fill.b || 0
+        let a = fill.a || 255.0
+        for (let j = 0, jlen = points.length; j < jlen; j++) {
+          colorArray[j * 4] = r
+          colorArray[j * 4 + 1] = g
+          colorArray[j * 4 + 2] = b
+          colorArray[j * 4 + 3] = a
+        }
+        this.polyLineArray[i].colorArray = new Uint8Array(colorArray)
+      }
+      this.inputs[0].data = this.polyLineArray[i].colorArray
+      this.inputs[1].data = this.polyLineArray[i].positionArray
+      writeDataToShaderAttributes(this.ctx, this.inputs)
 
-      this.ctx.drawArrays(this.ctx.TRIANGLES, 0, positionArray.length / 2)
+      this.ctx.drawArrays(this.ctx.TRIANGLES, 0, this.polyLineArray[i].positionArray.length / 2)
     }
   }
 
@@ -6984,35 +6932,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.radiusAttributeLocation = ctx.getAttribLocation(this.program, 'a_radius')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
-  }
-  RenderWebglCircles.prototype.writeDataToShaderAttributes = writeDataToShaderAttributes
-  // RenderWebglCircles.prototype.setAttr = function (prop, value) {
-  //   this.attr[prop] = value
-  // }
-  RenderWebglCircles.prototype.execute = function (stack) {
-    this.ctx.useProgram(this.program)
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
-    let positionArray = []
-    let colorArray = []
-    let radius = []
-    for (var i = 0, len = stack.length; i < len; i++) {
-      let node = stack[i]
-      let fill = node.getStyle('fill')
-      fill = fill || {r: 0, g: 0, b: 0, a: 1.0}
-
-      positionArray[i * 2] = node.getAttr('cx')
-      positionArray[i * 2 + 1] = node.getAttr('cy')
-
-      radius[i] = node.getAttr('r')
-
-      colorArray[i * 4] = fill.r
-      colorArray[i * 4 + 1] = fill.g
-      colorArray[i * 4 + 2] = fill.b
-      colorArray[i * 4 + 3] = fill.a || 1.0
-    }
-
-    this.writeDataToShaderAttributes([{
-      data: new Uint8Array(colorArray),
+    this.positionArray = []
+    this.colorArray = []
+    this.radius = []
+    this.inputs = [{
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.colorBuffer,
       drawType: this.ctx.STATIC_DRAW,
@@ -7020,7 +6943,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       size: 4,
       attribute: this.colorAttributeLocation
     }, {
-      data: new Float32Array(radius),
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.radiusBuffer,
       drawType: this.ctx.STATIC_DRAW,
@@ -7028,15 +6950,57 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       size: 1,
       attribute: this.radiusAttributeLocation
     }, {
-      data: new Float32Array(positionArray),
       bufferType: this.ctx.ARRAY_BUFFER,
       buffer: this.positionBuffer,
       drawType: this.ctx.DYNAMIC_DRAW,
       valueType: this.ctx.FLOAT,
       size: 2,
       attribute: this.positionAttributeLocation
-    }])
+    }]
+  }
+  RenderWebglPoints.prototype.remove = function (position) {
+    this.positionArray.splice(position * 2, 2)
+    this.radius.splice(position, 1)
+    this.colorArray.splice(position * 4, 4)
+  }
+  RenderWebglCircles.prototype.execute = function (stack) {
+    this.ctx.useProgram(this.program)
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    let positionArray = this.positionArray
+    let colorArray = this.colorArray
+    let radius = this.radius
+    let attrFlag
+    let styleFlag
+    for (var i = 0, len = stack.length; i < len; i++) {
+      let node = stack[i]
+      let fill = node.style.fill
+      fill = fill || defaultColor
+      if (node.propChanged) {
+        positionArray[i * 2] = node.attr.cx
+        positionArray[i * 2 + 1] = node.attr.cy
+        radius[i] = node.attr.r
+        node.propChanged = false
+        attrFlag = true
+      }
+      if (node.styleChanged) {
+        colorArray[i * 4] = fill.r
+        colorArray[i * 4 + 1] = fill.g
+        colorArray[i * 4 + 2] = fill.b
+        colorArray[i * 4 + 3] = fill.a || 255.0
+        node.styleChanged = false
+        styleFlag = true
+      }
+    }
 
+    if (attrFlag) {
+      this.inputs[2].data = new Float32Array(positionArray)
+      this.inputs[1].data = new Float32Array(radius)
+    }
+
+    if (styleFlag) {
+      this.inputs[0].data = new Uint8Array(colorArray)
+    }
+    writeDataToShaderAttributes(this.ctx, this.inputs)
     this.ctx.drawArrays(this.ctx.POINTS, 0, positionArray.length / 2)
   }
 
@@ -7116,14 +7080,13 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   WebglNodeExe.prototype.setAttr = function WsetAttr (attr, value) {
     if (arguments.length === 2) {
       this.attr[attr] = value
-      this.dom.setAttr(attr, value)
     } else if (arguments.length === 1 && typeof attr === 'object') {
       const keys = Object.keys(attr)
       for (let i = 0; i < keys.length; i += 1) {
         this.attr[keys[i]] = attr[keys[i]]
-        this.dom.setAttr(keys[i], attr[keys[i]])
       }
     }
+    this.propChanged = true
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -7136,14 +7099,17 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         this.style[keys[i]] = attr[keys[i]]
       }
     }
+    this.styleChanged = true
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
   WebglNodeExe.prototype.getAttr = function WgetAttribute (_) {
-    return this.dom.getAttr(_)
+    return this.attr[_]
+    //dom.getAttr(_)
   }
   WebglNodeExe.prototype.getStyle = function WgetStyle (_) {
-    return this.dom.getStyle(_)
+    return this.style[_]
+    //dom.getStyle(_)
   }
   WebglNodeExe.prototype.animateTo = animateTo
   WebglNodeExe.prototype.animateExe = animateExe
@@ -7162,11 +7128,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
 
   WebglNodeExe.prototype.child = function child (childrens) {
     const self = this
-    const childrensLocal = childrens
+    // const childrensLocal = childrens
     if (self.dom instanceof RenderWebglGroup) {
-      for (let i = 0; i < childrensLocal.length; i += 1) {
-        childrensLocal[i].dom.parent = self
-        self.children[self.children.length] = childrensLocal[i]
+      for (let i = 0; i < childrens.length; i += 1) {
+        childrens[i].dom.parent = self
+        childrens[i].nindex = self.children.length
+        self.children[self.children.length] = childrens[i]
       }
     } else { console.log('Error') }
 
@@ -7185,13 +7152,25 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return e
   }
 
-  WebglNodeExe.prototype.createEl = function CcreateEl (config) {
+  WebglNodeExe.prototype.createEl = function WcreateEl (config) {
     const e = new WebglNodeExe(this.ctx, config, domId(), this.vDomIndex)
     this.child([e])
     queueInstance.vDomChanged(this.vDomIndex)
     return e
   }
-  WebglNodeExe.prototype.removeChild = function CremoveChild (obj) {
+  WebglNodeExe.prototype.remove = function Wremove () {
+    const { children } = this.dom.parent
+    const index = children.indexOf(this)
+    if (index !== -1) {
+      children.splice(index, 1)
+      if (this.dom.parent.dom.shader) {
+        this.dom.parent.dom.shader.remove(index)
+      }
+    }
+    this.BBoxUpdate = true
+    queueInstance.vDomChanged(this.vDomIndex)
+  }
+  WebglNodeExe.prototype.removeChild = function WremoveChild (obj) {
     let index = -1
     this.children.forEach((d, i) => {
       if (d === obj) { index = i }
@@ -7209,11 +7188,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     const height = config.height ? config.height : res.clientHeight
     const width = config.width ? config.width : res.clientWidth
     const layer = document.createElement('canvas')
-    const ctx = layer.getContext('webgl', { 
+    const ctx = layer.getContext('webgl', {
       premultipliedAlpha: false,
       depth: false,
       antialias: true,
-      alpha: true })
+      alpha: true
+    })
     layer.height = height
     layer.width = width
     layer.style.height = `${height}px`
@@ -7238,17 +7218,11 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     root.height = height
     root.width = width
     root.type = 'WEBGL'
-    ctx.clearColor(0,0,0,0)
-    ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT)
+    ctx.clearColor(0, 0, 0, 0)
     root.execute = function executeExe () {
       this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
-      // this.ctx.colorMask(true, true, true, false);
       this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT)
       execute()
-      
-      // this.ctx.clearColor(1, 1, 1, 1);
-      // this.ctx.colorMask(false, false, false, true);
-      // this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT)
     }
     root.destroy = function () {
       queueInstance.removeVdom(vDomInstance)

@@ -2,15 +2,9 @@
 <html style="height: 100%">
 <head>
 	<title></title>
-	<style>
-        label {
-            position: absolute;
-            color: white;
-        }
-    </style>
 </head>
 <body style="height: 100%">
-	<label> Webgl Example </label>
+
 	<div id="canvas" style="height: 100%;width:100%;background: black">
 	</div>
 	<script type="text/javascript" src="../../dist/i2d.js"></script>
@@ -21,19 +15,18 @@
 		/************** circles *****************/
 
 		var circlesData = []
-		for(let i=0; i< 50000; i++) {
+		for(let i=0; i< 10000; i++) {
 			circlesData.push({
 				cx: Math.random()*1400,
 				cy: Math.random()*1000,
-				r: 5+Math.random()*5
+				r: 7+Math.random()*5
 			})
 		}
 		
 		var circlesRef = webglRenderer.createEl({
 			el:'group',
 			shaderType: 'circles'
-		})
-		circlesRef.createEls(circlesData, {
+		}).createEls(circlesData, {
 				el:'circle',
 				attr:{
 					cx: function(d) {return d.cx},
@@ -44,21 +37,22 @@
                                 return {
                                 r: parseInt(Math.random()*255),
                                 g: parseInt(Math.random()*255),
-                                b: parseInt(Math.random()*255)
+                                b: parseInt(Math.random()*255),
+								a: 255
                             }
                             } 
 						}
 			})
 		
-		// circlesRef.animateTo({
-		// 		duration:5000,
-		// 		loop: 5,
-		// 		direction: 'alternate',
-		// 		attr:{
-		// 			cx: function(d) {return parseInt(Math.random()*1400)},
-		// 			cy: function(d) {return parseInt(Math.random()*1000)}
-		// 		}
-		// 	})
+		circlesRef.animateTo({
+				duration:5000,
+				loop: 10,
+				direction: 'alternate',
+				attr:{
+					cx: function(d) {return parseInt(Math.random()*1400)},
+					cy: function(d) {return parseInt(Math.random()*1000)}
+				}
+			})
 		
 		/************** End circles *****************/
 
