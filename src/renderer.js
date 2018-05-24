@@ -3834,6 +3834,7 @@
         positionArray[i * 4 + 1] = node.attr.y1
         positionArray[i * 4 + 2] = node.attr.x2
         positionArray[i * 4 + 3] = node.attr.y2
+        node.propChanged = false
       }
 
       if (node.styleChanged) {

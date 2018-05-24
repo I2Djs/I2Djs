@@ -10,24 +10,25 @@
     </style>
 </head>
 <body style="height: 100%">
-
-	<div <label> Webgl Example </label>id="canvas" style="height: 100%;width:100%;background: black">
+	<label> Webgl Example </label>
+	<div id="canvas" style="height: 100%;width:100%;background: black">
 	</div>
 	<script type="text/javascript" src="../../dist/i2d.js"></script>
+
 	<script type="text/javascript">
         var webglRenderer = i2d.WebglLayer('#canvas',{events:false,selectiveClear:false});
 
 		/************** Lines *****************/
 
 		var linesData = []
-		for(let i=0; i< 100; i++) {
+		for(let i=0; i< 10000; i++) {
 			let x1 = Math.random()*1400
-			let y1 = Math.random()*1400
+			let y1 = Math.random()*900
 			linesData.push({
 				x1: x1,
 				y1: y1,
-				x2: x1 + 100,
-				y2: y1 + 100
+				x2: x1 + 20,
+				y2: y1 + 20
 			})
 		}
 		
@@ -46,17 +47,23 @@
 					r: 255,
 					g: 0,
 					b: 0,
-					a: 1.0
+					a: 255.0
 				} }
 			})
 		
 		linesRef.animateTo({
-				duration:5000,
+				duration:2000,
 				loop: 100,
 				direction: 'alternate',
 				attr:{
-					x2: function(d) {return parseInt(Math.random()*1400)},
-					y2: function(d) {return parseInt(Math.random()*1000)}
+					x2: function(d) {
+						let x2 = this.getAttr('x2')
+						return x2 + 20
+					},
+					y2: function(d) {
+						let y2 = this.getAttr('x2')
+						return y2 + 20
+					}
 				}
 			})
 		
