@@ -4966,10 +4966,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   createCanvasPattern.prototype.execute = function CPexecute() {};
 
   function applyStyles() {
-    if (this.style.fillStyle) {
+    if (this.ctx.fillStyle !== '#000000') {
       this.ctx.fill();
     }
-    if (this.style.strokeStyle) {
+    if (this.ctx.strokeStyle !== '#000000') {
       this.ctx.stroke();
     }
   }
@@ -5222,10 +5222,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   };
   RenderText.prototype.execute = function RTexecute() {
     if (this.attr.text !== undefined && this.attr.text !== null) {
-      if (this.style.fillStyle) {
+      if (this.ctx.fillStyle !== '#000000') {
         this.ctx.fillText(this.attr.text, this.attr.x, this.attr.y);
       }
-      if (this.style.strokeStyle) {
+      if (this.ctx.strokeStyle !== '#000000') {
         this.ctx.strokeText(this.attr.text, this.attr.x, this.attr.y);
       }
     }
@@ -5438,10 +5438,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   RenderPath.prototype.execute = function RPexecute() {
     if (this.attr.d) {
-      if (this.style.fillStyle) {
+      if (this.ctx.fillStyle !== '#000000') {
         this.ctx.fill(this.pathNode);
       }
-      if (this.style.strokeStyle) {
+      if (this.ctx.strokeStyle !== '#000000') {
         this.ctx.stroke(this.pathNode);
       }
     }
@@ -5561,10 +5561,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   };
   RenderPolygon.prototype.execute = function RPolyexecute() {
     if (this.attr.points) {
-      if (this.style.fillStyle) {
+      if (this.ctx.fillStyle !== '#000000') {
         this.ctx.fill(this.polygon.path);
       }
-      if (this.style.strokeStyle) {
+      if (this.ctx.strokeStyle !== '#000000') {
         this.ctx.stroke(this.polygon.path);
       }
     }
@@ -5712,11 +5712,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   RenderRect.prototype.execute = function RRexecute() {
     var ctx = this.ctx;
 
-    if (this.style.fillStyle) {
-      ctx.fillRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height);
-    }
-    if (this.style.strokeStyle) {
+    if (ctx.strokeStyle !== '#000000') {
       ctx.strokeRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height);
+    }
+    if (ctx.fillStyle !== '#000000') {
+      ctx.fillRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height);
     }
   };
 
@@ -5846,8 +5846,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   /** ***************** End Render Group */
 
   var CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
-    this.style = config.style ? config.style : {};
-    this.attr = config.attr ? config.attr : {};
+    this.style = {};
+    this.attr = {};
     this.id = id;
     this.nodeName = config.el;
     this.nodeType = 'CANVAS';
@@ -5891,7 +5891,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     this.dom.nodeExe = this;
     this.BBoxUpdate = true;
-    // queueInstance.vDomChanged(this.vDomIndex);
+
+    if (config.style) {
+      this.setStyle(config.style);
+    }
+    if (config.attr) {
+      this.setAttr(config.attr);
+    }
   };
 
   CanvasNodeExe.prototype.node = function Cnode() {
@@ -5940,18 +5946,20 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   };
   CanvasNodeExe.prototype.setStyle = function CsetStyle(attr, value) {
     if (arguments.length === 2) {
-      this.style[attr] = value;
-      this.dom.setStyle(attr, value);
+      this.style[attr] = valueCheck(value);
     } else if (arguments.length === 1 && (typeof attr === 'undefined' ? 'undefined' : _typeof(attr)) === 'object') {
       var styleKeys = Object.keys(attr);
       for (var i = 0, len = styleKeys.length; i < len; i += 1) {
-        this.style[styleKeys[i]] = attr[styleKeys[i]];
-        this.dom.setStyle(styleKeys[i], attr[styleKeys[i]]);
+        this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
       }
     }
     queueInstance.vDomChanged(this.vDomIndex);
     return this;
   };
+
+  function valueCheck(value) {
+    return value === '#000' || value === '#000000' || value === 'black' ? 'rgba(0, 0, 0, 0.9)' : value;
+  }
 
   CanvasNodeExe.prototype.setAttr = function CsetAttr(attr, value) {
     if (arguments.length === 2) {
@@ -6044,6 +6052,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     return this;
   };
   CanvasNodeExe.prototype.execute = function Cexecute() {
+    // let fillStyle = this.ctx.fillStyle
+    // let strokeStyle = this.ctx.strokeStyle
     this.ctx.save();
     this.stylesExe();
     this.attributesExe();
@@ -6054,6 +6064,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
     // this.dom.applyStyles()
     this.ctx.restore();
+    // this.ctx.fillStyle = fillStyle
+    // this.ctx.strokeStyle = strokeStyle
   };
 
   CanvasNodeExe.prototype.child = function child(childrens) {
@@ -6332,6 +6344,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     layer.style.height = height + 'px';
     layer.style.width = width + 'px';
     layer.style.position = 'absolute';
+
+    // ctx.strokeStyle = 'rgba(0, 0, 0, 0)';
+    // ctx.fillStyle = 'rgba(0, 0, 0, 0)';
 
     res.appendChild(layer);
 

@@ -117,7 +117,7 @@
                     action: {
                         enter : function(data){
                             if(data.line && data.line.length > 0){
-                                var chainInstance = i2d.chain.sequenceChain()
+                                var chainInstance = i2d.chain.parallelChain()
                                                     .duration(1000)
                                                     .ease('linear');
                         

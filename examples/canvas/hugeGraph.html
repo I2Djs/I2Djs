@@ -8,14 +8,15 @@
 		<!--<canvas width="1400" height="900" id="myCanvas"></canvas>-->
 	</div>
     
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
-    <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+    <script type="text/javascript" src="../../src/colorMap.js"></script>
 	<script type="text/javascript" src="../../src/geometry.js"></script>
 	<script type="text/javascript" src="../../src/easing.js"></script>
     <script type="text/javascript" src="../../src/vDom.js"></script>
 	<script type="text/javascript" src="../../src/queue.js"></script>
     <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>-->
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
     <script src="https://d3js.org/d3-collection.v1.min.js"></script>
     <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
     <script src="https://d3js.org/d3-quadtree.v1.min.js"></script>
@@ -52,17 +53,27 @@
                     bbox: false
                 });
         
+        var edgeGroup = g.createEl({
+            el: 'group',
+            style: { 
+                strokeStyle:'red' 
+            }
+        })
+
+        var NodeGroup = g.createEl({
+            el: 'group',
+            style:{ fillStyle:'#1f77b4' }
+        })
+        
         function renderChart(graph){
             
-            links = g.createEls(graph.links,{
-                            el:'line',
-                            style:{ strokeStyle:'#999' }
+            links = edgeGroup.createEls(graph.links,{
+                            el:'line'
                         });
 
-            circles = g.createEls(graph.nodes,{
+            rects = NodeGroup.createEls(graph.nodes,{
                             el:'rect',
-                            attr:{ height:10, width:10, x:-5, y:-5 },
-                            style:{ fillStyle:'#1f77b4' }
+                            attr:{ height:10, width:10, x:-5, y:-5 }
                         })
 
             simulation
@@ -85,9 +96,9 @@
                     .links(graph.links);
 
             function ticked(){
-                circles//.setAttr(function(d){return {x: d.x, y: d.y} })
-                        .setAttr('y',function(d){return d.y})
-                        .setAttr('x',function(d){return d.x})
+                rects//.setAttr(function(d){return {x: d.x, y: d.y} })
+                        .setAttr('y',function(d){return d.y - 5})
+                        .setAttr('x',function(d){return d.x - 5})
 
                 links.forEach(function(d){
                     this.setAttr({x1:d.source.x,

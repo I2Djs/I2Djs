@@ -44,7 +44,10 @@
 
         var g = renderer.createEl({
             el:'group',
-            bbox: false
+            bbox: false,
+            style:{
+                fillStyle:'red'
+            }
         })
 
         joinRef = g.join(points,'rect',{
@@ -58,10 +61,7 @@
                             x:width/2,
                             y:height/2
                         }
-                        ,
-                        style:{
-                            fillStyle:'red'
-                        }
+                        
                     }).animateTo({
                         duration:1000,
                         ease:'easeInOutSin',

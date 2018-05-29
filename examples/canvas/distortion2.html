@@ -7,28 +7,31 @@
 	<div id="myCanvas" style="height: 100%;width:100%;position: absolute;background: black" >
 		<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
 	</div>
-	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
-    <script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../dist/i2d.js"></script>
+    <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
 	<script type="text/javascript" src="../../src/geometry.js"></script>
 	<script type="text/javascript" src="../../src/easing.js"></script>
     <script type="text/javascript" src="../../src/vDom.js"></script>
 	<script type="text/javascript" src="../../src/queue.js"></script>
     <script type="text/javascript" src="../../src/chaining.js"></script>
     <script type="text/javascript" src="../../src/path.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>-->
 
 	<script type="text/javascript">
 
         var height = 820, width = 1430;
+            height = document.getElementById('myCanvas').offsetHeight;
+			width = document.getElementById('myCanvas').offsetWidth;
+
         var renderer_ = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
         var group = renderer_.createEl({
             el: 'group',
             bbox: false
         })
+        group.setStyle('fillStyle', 'white')
         var queue = i2d.queue
         var circlesGrid = []
-        var gridSize = parseInt(Math.sqrt(10000))
-        var rad = Math.pow( 300, 2 );
+        var rad = Math.pow( 500, 2 );
         var dis, dx, dy, f;
         var mx, my;
         var atan2 = Math.atan2;
@@ -38,10 +41,10 @@
         for(var i=0; i< 150; i++){
             for(var j=0; j < 200; j++){
                 circlesGrid.push({
-                    x:150+j*4,
-                    ox:150+j*4,
-                    y:100+i*4,
-                    oy:100+i*4,
+                    x:150+j*5,
+                    ox:150+j*5,
+                    y:0+i*5,
+                    oy:0+i*5,
                     vx:0,
                     vy:0
                 });
@@ -51,17 +54,14 @@
     var rects = group.createEls(circlesGrid,{
             el:'rect',
             attr:{
-                width:1,
-                height:1,
+                width:2,
+                height:2,
                 x:function(d){
                     return d.x
                 },
                 y:function(d){
                     return d.y
                 }
-            },
-            style:{
-                fillStyle:'#fff'
             }
         })
         
@@ -73,11 +73,7 @@
         
        i2d.queue.onRequestFrame(function(t){
 
-            if(!mx|| !my)
-                return;
-
             rects.forEach(function(d){
-
                             dis = ( dx = mx - d.x ) * dx + ( dy = my - d.y ) * dy;
                             f = -rad / dis
                             

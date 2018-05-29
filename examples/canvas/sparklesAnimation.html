@@ -6,7 +6,6 @@
 <body style="height: 100%;background: black">
 	<div id="myCanvas" style="height: 100%;width:100%">
 	</div>
-	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
     <script type="text/javascript" src="../../src/colorMap.js"></script>
 	<script type="text/javascript" src="../../src/geometry.js"></script>
 	<script type="text/javascript" src="../../src/easing.js"></script>
@@ -23,19 +22,17 @@
     function render () {
         var height = 820, width = 1430;
         var renderer = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
+        var g = renderer.createEl({
+                el: 'group'
+            })
         
-        var renderer2 = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false,onClear:function(ctx){
-                                ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
-                                ctx.fillRect(0, 0, width*2, height*2);
-                        }});
-        
-        var linearGradiant = renderer2.createLinearGradient({id:'linearG',x1:0,y1:0,x2:0,y2:100,
+        var linearGradiant = renderer.createLinearGradient({id:'linearG',x1:0,y1:0,x2:0,y2:100,
                                                             colorStops:[{color:'white',value:10},
                                                                         {color:'rgb(255, 0, 0)',value:50},
                                                                         {color:'yellow',value:90}]
                                                             });
         
-        var blastGradiant = renderer2.createRadialGradient({innerCircle:{x:50,y:50,r:0},
+        var blastGradiant = renderer.createRadialGradient({innerCircle:{x:50,y:50,r:0},
                                                             outerCircle:{x:50,y:50,r:50},
                                                             colorStops:[{color:'rgb(255, 0, 0)',value:0},
                                                                         {color:'white',value:90}]
@@ -90,11 +87,11 @@
                                 }
                             })
                         
-                        var sparkclesNodes = renderer2.createEls(sparkles,{
+                        var sparkclesNodes = g.createEls(sparkles,{
                                 el:'path',
                                 style:{
-                                    strokeStyle: blastGradiant,
-                                    globalAlpha:0.5
+                                    globalAlpha:0.5,
+                                    strokeStyle: blastGradiant
                                 }
                             })
 
@@ -104,67 +101,7 @@
                                 d:function(d){
                                     return d.d
                                 }
-                                // end:function(){
-                                //     this.remove()
-                                // }
                             })
-                        
-                        
-                        // var sparkclesNodes = renderer2.createEls(sparkles,{
-                        //         el:'circle',
-                        //         attr:{
-                        //             r:4,
-                        //             cx:x,
-                        //             cy:y
-                        //         },
-                        //         style:{
-                        //             fillStyle:'#f9d777'
-                        //         }
-                        //     }).forEach(function(d){
-                        //         var angle = (2*Math.PI/20)*(parseInt(d%20))
-                        //         var r = random(30,250)
-                        //         var tx = (r)*Math.cos(angle)
-                        //         var ty = (r)*Math.sin(angle)
-                        //         var path = i2d.path("m"+x+','+y+' q'+(tx*0.7)+','+((ty-y)*0.7) +' '+tx+','+ty)
-                        //         this.path = path;
-                        //         // this.animateTo({
-                        //         //     duration:1000,
-                        //         //     // ease:'easeInSin',
-                        //         //     attr:{
-                        //         //         cx:function(f){
-                        //         //             let point = path.getPointAtLength(path.length*f)
-                        //         //                 // console.log(point)
-                        //         //             return point.x;
-                        //         //         },
-                        //         //         cy:function(f){
-                        //         //             let point = path.getPointAtLength(path.length*f)
-                        //         //                 // console.log(point[1])
-                        //         //             return point.y;
-                        //         //         }
-                        //         //     },
-                        //         //     style:{
-                        //         //         // globalAlpha:0
-                        //         //     },
-                        //         //     end:function(){
-                        //         //         // this.remove()
-                        //         //     }
-                        //         // })
-                        //     })
-                        // var time;
-                        // i2d.queue.onRequestFrame(function(t){
-                        //         // console.log(t);
-                        //         if(!time)
-                        //             time = t;
-                        //         let f = (t-time)/1000
-                        //         if(f<=1){
-                        //             sparkclesNodes.forEach(function(d){
-                        //                 let point = this.path.getPointAtLength(this.path.length*f)
-                        //                 this.setAttr({cx:point.x,cy:point.y});
-                        //             })
-                        //         } else{
-                        //             // i2d.queue.onRequestFrame(null)
-                        //         }
-                        // });
                     }
                 })
         
