@@ -6984,7 +6984,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       attribute: this.positionAttributeLocation
     }];
   }
-  RenderWebglRects.prototype.remove = function (position) {
+  RenderWebglLines.prototype.remove = function (position) {
     this.positionArray.splice(position * 4, 4);
     this.colorArray.splice(position * 8, 8);
   };

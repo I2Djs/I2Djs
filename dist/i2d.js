@@ -6737,7 +6737,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       attribute: this.positionAttributeLocation
     }]
   }
-  RenderWebglRects.prototype.remove = function (position) {
+  RenderWebglLines.prototype.remove = function (position) {
     this.positionArray.splice(position * 4, 4)
     this.colorArray.splice(position * 8, 8)
   }
