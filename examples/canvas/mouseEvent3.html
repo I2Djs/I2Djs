@@ -23,13 +23,32 @@
     </style>
 </head>
 <body style="height: 100%">
-    <label style="position: absolute; color: white;z-index: 1;"> Canvas Example </label>
+    <label style="position: absolute; color: white"> Canvas Example </label>
 	<div id="myCanvas" style="height: 100%;width:100%;background: black"> </div>
     
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+    <script type="text/javascript" src="../../src/earcut.min.js"></script>
+	<script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/shaders.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
+    <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>-->
 
 	<script type="text/javascript">
-
+        var height = document.getElementById('myCanvas').offsetHeight;
+		var	width = document.getElementById('myCanvas').offsetWidth;
         var renderer_ = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
             var i = 0;
             var sqrt = Math.sqrt
@@ -38,20 +57,29 @@
             for(let i = 0; i <100; i++){
                 data.push(i)
             }
-               
-        var circles = renderer_.createEls(data,{
+        
+        var g = renderer_.createEl({
+                    el: 'group',
+                    attr: {
+                        transform: {
+                            translate: [width/2, height/2]
+                        }
+                    }
+                })
+                    g.createEls(data,{
                         el:'circle',
-                        attr:{ r:0, cx:500, cy:500 },
+                        attr:{ r:0, cx:0, cy:0 },
                         style:{ 
                             globalAlpha:1,
+                            lineWidth: 2,
                             strokeStyle: function(d, i){
                                 return 'hsl('+(i = (i + 1) % 360)+',100%,50%)'
                             }
                         }
                     })
                     .animateTo({
-                            duration: 2000,
-                            delay: function(d) {return d*50;},
+                            duration: 7000,
+                            delay: function(d) {return d*70;},
                             ease: sqrt,
                             loop: 100,
                             attr:{ r:100 },
@@ -60,7 +88,9 @@
                     });
 
                  window.addEventListener("mousemove",function(e){
-                     circles.setAttr('cx',e.x).setAttr('cy',e.y);
+                    g.setAttr('transform',{
+                        translate: [e.x, e.y]
+                    })
                     e.preventDefault();
                 });
                 

@@ -2,15 +2,9 @@
 <html style="height: 100%">
 <head>
 	<title></title>
-    <style>
-        label {
-            position: absolute;
-            color: white;
-        }
-    </style>
 </head>
 <body style="height: 100%">
-    <label> Webgl Example </label>
+    <label style="position: absolute;color: white"> Webgl Example </label>
 	<div id="myCanvas" style="height: 100%;width:100%;position: absolute;background: black" >
 		<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
 	</div>
@@ -36,16 +30,16 @@
         })
         var queue = i2d.queue
         var circlesGrid = []
-        var gridSize = parseInt(Math.sqrt(70000))
-        var rad = Math.pow( 100, 2 );
+        var gridSize = parseInt(Math.sqrt(100000))
+        var rad = Math.pow( 300, 2 );
         var dis, dx, dy, f;
         var mx, my;
         var atan2 = Math.atan2;
         var cos = Math.cos;
         var sin = Math.sin;
         
-        for(var i=0; i< gridSize; i++){
-            for(var j=0; j < gridSize; j++){
+        for(var i=0; i< 200; i++){
+            for(var j=0; j < 400; j++){
                 circlesGrid.push({
                     x:j*3,
                     ox:j*3,
@@ -57,10 +51,9 @@
             }
         }
         
-    var rects = group.createEls(circlesGrid,{
+    var points = group.createEls(circlesGrid,{
             el:'point',
             attr:{
-                // width:2,
                 size: 2,
                 x:function(d){
                     return d.x
@@ -88,8 +81,8 @@
         
        i2d.queue.onRequestFrame(function(t){
             let d
-            for(let i=0, len = rects.stack.length; i < len; i++) {
-                d = rects.stack[i].dataObj
+            for(let i=0, len = points.stack.length; i < len; i++) {
+                d = points.stack[i].dataObj
                     
                     dis = ( dx = mx - d.x ) * dx + ( dy = my - d.y ) * dy;
                             f = -rad / dis
@@ -103,11 +96,11 @@
                             d.x += ( d.vx *= 0.8) + (d.ox - d.x) * 0.1;
                             d.y += ( d.vy *= 0.8 ) + (d.oy - d.y) * 0.1;
                     if(d.ox !== d.x || d.oy !== d.y) {
-                        rects.stack[i].setAttr('x',d.x)
+                        points.stack[i].setAttr('x',d.x)
                             .setAttr('y',d.y)
                     }
             }
-            // rects.forEach(function(d){
+            // points.forEach(function(d){
 
             //                 dis = ( dx = mx - d.x ) * dx + ( dy = my - d.y ) * dy;
             //                 f = -rad / dis

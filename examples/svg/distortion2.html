@@ -34,24 +34,24 @@
         var cos = Math.cos;
         var sin = Math.sin;
         
-        for(var i=0; i< 70; i++){
-            for(var j=0; j < 80; j++){
+        for(var i=0; i< 50; i++){
+            for(var j=0; j < 50; j++){
                 circlesGrid.push({
-                    x:j*10,
-                    ox:j*10,
-                    y:i*10,
-                    oy:i*10,
+                    x:350+j*10,
+                    ox:350+j*10,
+                    y:150+i*10,
+                    oy:150+i*10,
                     vx:0,
                     vy:0
                 });
             }
         }
         
-    var circles = renderer_.createEls(circlesGrid,{
+    var rects = renderer_.createEls(circlesGrid,{
             el:'rect',
             attr:{
-                width:4,
-                height:4,
+                width:3,
+                height:3,
                 x:function(d){
                     return d.x
                 },
@@ -71,8 +71,8 @@
             if(!mx|| !my)
                 return;
             
-            for(let i=0, len = circles.stack.length; i < len; i++) {
-                let node = circles.stack[i]
+            for(let i=0, len = rects.stack.length; i < len; i++) {
+                let node = rects.stack[i]
                 let d = node.dataObj
                     
                     dis = ( dx = mx - d.x ) * dx + ( dy = my - d.y ) * dy;
@@ -91,7 +91,7 @@
                             .setAttr('y',d.y)
             }
 
-            // circles.forEach(function(d){
+            // rects.forEach(function(d){
             //                 dis = ( dx = mx - d.x ) * dx + ( dy = my - d.y ) * dy;
             //                 f = -rad / dis
                             

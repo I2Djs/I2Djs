@@ -1924,8 +1924,8 @@
   }
 
   function applyStyles () {
-    if (this.style.fillStyle) { this.ctx.fill() }
-    if (this.style.strokeStyle) { this.ctx.stroke() }
+    if (this.ctx.fillStyle !== '#000000') { this.ctx.fill() }
+    if (this.ctx.strokeStyle !== '#000000') { this.ctx.stroke() }
   }
 
   function CanvasDom () {
@@ -2164,10 +2164,10 @@
   }
   RenderText.prototype.execute = function RTexecute () {
     if (this.attr.text !== undefined && this.attr.text !== null) {
-      if (this.style.fillStyle) {
+      if (this.ctx.fillStyle  !== '#000000') {
         this.ctx.fillText(this.attr.text, this.attr.x, this.attr.y)
       }
-      if (this.style.strokeStyle) {
+      if (this.ctx.strokeStyle !== '#000000') {
         this.ctx.strokeText(this.attr.text, this.attr.x, this.attr.y)
       }
     }
@@ -2365,8 +2365,8 @@
 
   RenderPath.prototype.execute = function RPexecute () {
     if (this.attr.d) {
-      if (this.style.fillStyle) { this.ctx.fill(this.pathNode) }
-      if (this.style.strokeStyle) { this.ctx.stroke(this.pathNode) }
+      if (this.ctx.fillStyle !== '#000000') { this.ctx.fill(this.pathNode) }
+      if (this.ctx.strokeStyle !== '#000000') { this.ctx.stroke(this.pathNode) }
     }
   }
   RenderPath.prototype.applyStyles = function RPapplyStyles () {}
@@ -2477,8 +2477,8 @@
   }
   RenderPolygon.prototype.execute = function RPolyexecute () {
     if (this.attr.points) {
-      if (this.style.fillStyle) { this.ctx.fill(this.polygon.path) }
-      if (this.style.strokeStyle) { this.ctx.stroke(this.polygon.path) }
+      if (this.ctx.fillStyle !== '#000000') { this.ctx.fill(this.polygon.path) }
+      if (this.ctx.strokeStyle !== '#000000') { this.ctx.stroke(this.polygon.path) }
     }
   }
   RenderPolygon.prototype.applyStyles = function RPolyapplyStyles () {}
@@ -2613,8 +2613,12 @@
   }
   RenderRect.prototype.execute = function RRexecute () {
     const { ctx } = this
-    if (this.style.fillStyle) { ctx.fillRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height) }
-    if (this.style.strokeStyle) { ctx.strokeRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height) }
+    if (ctx.strokeStyle !== '#000000') {
+      ctx.strokeRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height)
+    }
+    if (ctx.fillStyle !== '#000000') {
+      ctx.fillRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height)
+    }
   }
 
   RenderRect.prototype.in = function RRinfun (co) {
@@ -2736,8 +2740,8 @@
   /** ***************** End Render Group */
 
   let CanvasNodeExe = function CanvasNodeExe (context, config, id, vDomIndex) {
-    this.style = config.style ? config.style : {}
-    this.attr = config.attr ? config.attr : {}
+    this.style = {}
+    this.attr = {}
     this.id = id
     this.nodeName = config.el
     this.nodeType = 'CANVAS'
@@ -2781,7 +2785,9 @@
 
     this.dom.nodeExe = this
     this.BBoxUpdate = true
-    // queueInstance.vDomChanged(this.vDomIndex);
+
+    if (config.style) { this.setStyle(config.style) }
+    if (config.attr) { this.setAttr(config.attr) }
   }
 
   CanvasNodeExe.prototype.node = function Cnode () {
@@ -2827,17 +2833,19 @@
   }
   CanvasNodeExe.prototype.setStyle = function CsetStyle (attr, value) {
     if (arguments.length === 2) {
-      this.style[attr] = value
-      this.dom.setStyle(attr, value)
+      this.style[attr] = valueCheck(value)
     } else if (arguments.length === 1 && typeof attr === 'object') {
       const styleKeys = Object.keys(attr)
       for (let i = 0, len = styleKeys.length; i < len; i += 1) {
-        this.style[styleKeys[i]] = attr[styleKeys[i]]
-        this.dom.setStyle(styleKeys[i], attr[styleKeys[i]])
+        this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]])
       }
     }
     queueInstance.vDomChanged(this.vDomIndex)
     return this
+  }
+
+  function valueCheck (value) {
+    return (value === '#000' || value === '#000000' || value === 'black') ? 'rgba(0, 0, 0, 0.9)' : value
   }
 
   CanvasNodeExe.prototype.setAttr = function CsetAttr (attr, value) {
@@ -2919,6 +2927,8 @@
     return this
   }
   CanvasNodeExe.prototype.execute = function Cexecute () {
+    // let fillStyle = this.ctx.fillStyle
+    // let strokeStyle = this.ctx.strokeStyle
     this.ctx.save()
     this.stylesExe()
     this.attributesExe()
@@ -2929,6 +2939,8 @@
     }
     // this.dom.applyStyles()
     this.ctx.restore()
+    // this.ctx.fillStyle = fillStyle
+    // this.ctx.strokeStyle = strokeStyle
   }
 
   CanvasNodeExe.prototype.child = function child (childrens) {
@@ -3202,6 +3214,9 @@
     layer.style.height = `${height}px`
     layer.style.width = `${width}px`
     layer.style.position = 'absolute'
+
+    // ctx.strokeStyle = 'rgba(0, 0, 0, 0)';
+    // ctx.fillStyle = 'rgba(0, 0, 0, 0)';
 
     res.appendChild(layer)
 
@@ -3819,7 +3834,7 @@
       attribute: this.positionAttributeLocation
     }]
   }
-  RenderWebglRects.prototype.remove = function (position) {
+  RenderWebglLines.prototype.remove = function (position) {
     this.positionArray.splice(position * 4, 4)
     this.colorArray.splice(position * 8, 8)
   }
@@ -3834,7 +3849,6 @@
         positionArray[i * 4 + 1] = node.attr.y1
         positionArray[i * 4 + 2] = node.attr.x2
         positionArray[i * 4 + 3] = node.attr.y2
-        node.propChanged = false
       }
 
       if (node.styleChanged) {
