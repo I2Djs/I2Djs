@@ -6,9 +6,8 @@
 
 ### I2dJs - SVG + Canvas + WebGL
 
-Integrated-2D is a Javascript framework for rendering 2D graphics on SVG, Canvas and WebGL contexts. It's simple syntax and semantics lets you combine the power of Vector graphics and Bitmap to achieve complex visualisations easily.
 
-For efficient rendering I2D creates elements called mini Virtual Doms, virtual representation of render trees.
+Integrated-2D - is an OpenSource Javascript framework for rendering 2D graphics on SVG, Canvas and WebGL contexts. I2D's simple syntax and semantics lets you combine the power of Vector graphics and Bitmap to achieve complex visualisations easily.
 
 ## Installing
 
@@ -69,6 +68,7 @@ Examples (SVG + Canvas + WebGL)
 </table>
 
 ### To Begin
+---
 
 #### Create Layer
 Below specified methods are to create the respective Canvas/SVG/WebGl layers. It accepts container ID as an input, gives renderer instance as an output.
