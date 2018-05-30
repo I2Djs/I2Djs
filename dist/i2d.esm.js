@@ -3500,12 +3500,19 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var value = void 0;
 
     if (typeof tattr !== 'function') {
-      for (var key in tattr) {
+      var _loop = function _loop(key) {
         if (key !== 'transform') {
-          if (key === 'd') {
-            self.morphTo(targetConfig);
+          var _value = tattr[key];
+          if (typeof _value === 'function') {
+            runStack[runStack.length] = function setAttr_(f) {
+              self.setAttr(key, _value.call(self, f));
+            };
           } else {
-            runStack[runStack.length] = attrTransition(self, key, tattr[key]);
+            if (key === 'd') {
+              self.morphTo(targetConfig);
+            } else {
+              runStack[runStack.length] = attrTransition(self, key, tattr[key]);
+            }
           }
         } else {
           value = tattr[key];
@@ -3522,6 +3529,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             }
           }
         }
+      };
+
+      for (var key in tattr) {
+        _loop(key);
       }
     } else {
       runStack[runStack.length] = tattr.bind(self);
@@ -3537,8 +3548,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     return {
       run: function run(f) {
-        for (var _j = 0, len = runStack.length; _j < len; _j += 1) {
-          runStack[_j](f);
+        for (var j = 0, len = runStack.length; j < len; j += 1) {
+          runStack[j](f);
         }
       },
 
@@ -3588,11 +3599,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   var attrTransition = function attrTransition(self, key, value) {
     var srcVal = self.attr[key];
-    if (typeof value === 'function') {
-      return function setAttr_(f) {
-        self.setAttr(key, value.call(self, f));
-      };
-    }
+    // if (typeof value === 'function') {
+    //   return function setAttr_ (f) {
+    //     self.setAttr(key, value.call(self, f))
+    //   }
+    // }
     return function setAttr_(f) {
       self.setAttr(key, t2DGeometry.intermediateValue(srcVal, value, f));
     };
@@ -3721,11 +3732,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       node = this.stack[i];
       var conf = {};
       for (var j = 0; j < keys.length; j++) {
-        var _value = config[keys[j]];
-        if (typeof _value === 'function') {
-          _value = _value.call(node, node.dataObj, i);
+        var _value2 = config[keys[j]];
+        if (typeof _value2 === 'function') {
+          _value2 = _value2.call(node, node.dataObj, i);
         }
-        conf[keys[j]] = _value;
+        conf[keys[j]] = _value2;
       }
       node.animatePathTo(conf);
     }
@@ -4209,7 +4220,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }, []);
     var mappedArr = [];
 
-    var _loop = function _loop(i) {
+    var _loop2 = function _loop2(i) {
       if (arrExe[i].type === 'Z') {
         mappedArr.push({
           run: function run(f) {
@@ -4288,7 +4299,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     };
 
     for (var i = 0; i < arrExe.length; i += 1) {
-      _loop(i);
+      _loop2(i);
     }
 
     mappedArr.forEach(function (d) {
@@ -6215,8 +6226,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
         }
       }
-      for (var _j2 = 0, _len2 = styleKeys.length; _j2 < _len2; _j2 += 1) {
-        key = styleKeys[_j2];
+      for (var _j = 0, _len2 = styleKeys.length; _j < _len2; _j += 1) {
+        key = styleKeys[_j];
         if (typeof config.style[key] === 'function') {
           var _resValue = config.style[key].call(node, d, i);
           node.setStyle(key, _resValue);
@@ -7098,11 +7109,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         var g = fill.g || 0;
         var b = fill.b || 0;
         var a = fill.a || 255.0;
-        for (var _j3 = 0, _jlen = points.length; _j3 < _jlen; _j3++) {
-          colorArray[_j3 * 4] = r;
-          colorArray[_j3 * 4 + 1] = g;
-          colorArray[_j3 * 4 + 2] = b;
-          colorArray[_j3 * 4 + 3] = a;
+        for (var _j2 = 0, _jlen = points.length; _j2 < _jlen; _j2++) {
+          colorArray[_j2 * 4] = r;
+          colorArray[_j2 * 4 + 1] = g;
+          colorArray[_j2 * 4 + 2] = b;
+          colorArray[_j2 * 4 + 3] = a;
         }
         this.polyLineArray[i].colorArray = new Uint8Array(colorArray);
       }
@@ -7169,11 +7180,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         var g = fill.g || 0;
         var b = fill.b || 0;
         var a = fill.a || 255.0;
-        for (var _j4 = 0, _jlen2 = points.length; _j4 < _jlen2; _j4++) {
-          colorArray[_j4 * 4] = r;
-          colorArray[_j4 * 4 + 1] = g;
-          colorArray[_j4 * 4 + 2] = b;
-          colorArray[_j4 * 4 + 3] = a;
+        for (var _j3 = 0, _jlen2 = points.length; _j3 < _jlen2; _j3++) {
+          colorArray[_j3 * 4] = r;
+          colorArray[_j3 * 4 + 1] = g;
+          colorArray[_j3 * 4 + 2] = b;
+          colorArray[_j3 * 4 + 3] = a;
         }
         this.polyLineArray[i].colorArray = new Uint8Array(colorArray);
       }

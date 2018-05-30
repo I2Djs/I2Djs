@@ -487,10 +487,17 @@
     if (typeof tattr !== 'function') {
       for (let key in tattr) {
         if (key !== 'transform') {
-          if (key === 'd') {
-            self.morphTo(targetConfig)
+          let value = tattr[key]
+          if (typeof value === 'function') {
+            runStack[runStack.length] = function setAttr_ (f) {
+              self.setAttr(key, value.call(self, f))
+            }
           } else {
-            runStack[runStack.length] = attrTransition(self, key, tattr[key])
+            if (key === 'd') {
+              self.morphTo(targetConfig)
+            } else {
+              runStack[runStack.length] = attrTransition(self, key, tattr[key])
+            }
           }
         } else {
           value = tattr[key]
@@ -578,11 +585,11 @@
 
   let attrTransition = function attrTransition (self, key, value) {
     let srcVal = self.attr[key]
-    if (typeof value === 'function') {
-      return function setAttr_ (f) {
-        self.setAttr(key, value.call(self, f))
-      }
-    }
+    // if (typeof value === 'function') {
+    //   return function setAttr_ (f) {
+    //     self.setAttr(key, value.call(self, f))
+    //   }
+    // }
     return function setAttr_ (f) {
       self.setAttr(key, t2DGeometry.intermediateValue(srcVal, value, f))
     }
