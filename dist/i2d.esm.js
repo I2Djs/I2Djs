@@ -6405,8 +6405,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       this.domEl.setAttribute('width', width * originalRatio);
       this.domEl.style.height = height + 'px';
       this.domEl.style.width = width + 'px';
-      this.height = height;
-      this.width = width;
       if (config.rescale) {
         var newWidthRatio = width / this.width;
         var newHeightRatio = height / this.height;
@@ -6414,9 +6412,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       } else {
         this.execute();
       }
+      this.height = height;
+      this.width = width;
     }
 
     function canvasResize() {
+      if (config.resize && _typeof(config.resize)) {
+        config.resize();
+      }
       root.resize();
     }
 
@@ -6605,8 +6608,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
 
     function svgResize() {
-      if (typeof config.resize === 'function') {
-        config.resize.call(root);
+      if (config.resize && _typeof(config.resize)) {
+        config.resize();
       }
       renderVdom.call(root);
     }

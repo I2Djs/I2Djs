@@ -6174,8 +6174,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       this.domEl.setAttribute('width', width * originalRatio)
       this.domEl.style.height = `${height}px`
       this.domEl.style.width = `${width}px`
-      this.height = height
-      this.width = width
       if (config.rescale) {
         let newWidthRatio = (width / this.width)
         let newHeightRatio = (height / this.height)
@@ -6183,9 +6181,14 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       } else {
         this.execute()
       }
+      this.height = height
+      this.width = width
     }
 
     function canvasResize () {
+      if (config.resize && typeof config.resize) {
+        config.resize()
+      }
       root.resize()
     }
 
@@ -6359,8 +6362,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     }
 
     function svgResize () {
-      if (typeof config.resize === 'function') {
-        config.resize.call(root)
+      if (config.resize && typeof config.resize) {
+        config.resize()
       }
       renderVdom.call(root)
     }
