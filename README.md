@@ -22,6 +22,9 @@ Download source code from below links
 npm install i2djs --save
 ```
 
+## Resources
+[API reference](https://github.com/I2djs/I2D/wiki/API-Reference)
+
 Examples (SVG + Canvas + WebGL)
 ---
 
@@ -124,12 +127,7 @@ rect.animateTo({
            })
 ```
 
-Resources
----
-[API reference](https://github.com/I2djs/I2D/wiki/API-Reference)
-
 
 ### Support & Compatibility
-I2D is implemented in ES2016. It supports Universal Module Definition(UMD)(AMD,CommonJS and vanilla environments) , based on the environment it can be imported accordingly.
-It is compatible with all modern browsers.
-    
+I2D supports Universal Module Definition(UMD)(AMD,CommonJS and vanilla environments) , based on the environment it can be imported accordingly.
+It is compatible with all modern browsers with latest versions.
