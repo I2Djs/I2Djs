@@ -233,7 +233,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       };
     }
 
-    function cubicBezierCoefficients(p, f) {
+    function cubicBezierCoefficients(p) {
       var cx = 3 * (p.cntrl1.x - p.p0.x);
       var bx = 3 * (p.cntrl2.x - p.cntrl1.x) - cx;
       var ax = p.p1.x - p.p0.x - cx - bx;
@@ -1749,19 +1749,27 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 (function path(root, factory) {
   var i2d = root;
   if (( false ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
-    module.exports = factory(__webpack_require__(0));
+    module.exports = factory(__webpack_require__(0), __webpack_require__(2), __webpack_require__(3));
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry) {
-      return factory(geometry);
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(2), __webpack_require__(3)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry) {
+      return factory(geometry, queue, easing);
     }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
   } else {
-    i2d.path = factory(root.geometry);
+    i2d.path = factory(root.geometry, root.queue, root.easing);
   }
-})(undefined, function (geometry) {
+})(undefined, function (geometry, queue, easing) {
   'use strict';
 
+  var morphIdentifier = 0;
   var t2DGeometry = geometry('2D');
+  var queueInstance = queue();
+  var easying = easing();
+
+  function animeId() {
+    morphIdentifier += 1;
+    return 'morph_' + morphIdentifier;
+  }
 
   function pathParser(path) {
     var pathStr = path.replace(/e-/g, '$');
@@ -1823,6 +1831,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       x: 0,
       y: 0
     });
+    this.cntrl = null;
     this.cp = addVectors(p0, temp);
     this.start = this.cp;
     this.segmentLength = 0;
@@ -1854,6 +1863,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       x: this.pp.x,
       y: 0
     });
+    this.cntrl = null;
     this.cp = addVectors(p1, temp);
     this.segmentLength = t2DGeometry.getDistance(this.pp, this.cp);
     this.stack.push({
@@ -1875,13 +1885,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       x: 0,
       y: 0
     });
-
+    this.cntrl = null;
     this.cp = addVectors(p1, temp);
     this.segmentLength = t2DGeometry.getDistance(this.pp, this.cp);
     this.stack.push({
-      type: 'L',
+      type: rel ? 'L' : 'l',
       p0: this.pp,
       p1: this.cp,
+      relative: {
+        p1: p1
+      },
       length: this.segmentLength,
       pointAt: function pointAt(f) {
         return t2DGeometry.linearTransitionBetweenPoints(this.p0, this.p1, f);
@@ -1898,13 +1911,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       y: this.pp.y
     });
     this.cp = addVectors(p1, temp);
-
+    this.cntrl = null;
     this.segmentLength = t2DGeometry.getDistance(this.pp, this.cp);
     this.stack.push({
-      type: 'H',
+      type: rel ? 'H' : 'h',
       p0: this.pp,
       p1: this.cp,
       length: this.segmentLength,
+      relative: {
+        p1: p1
+      },
       pointAt: function pointAt(f) {
         return t2DGeometry.linearTransitionBetweenPoints(this.p0, this.p1, f);
       }
@@ -1949,11 +1965,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     this.cp = endPoint;
     this.stack.push({
-      type: 'Q',
+      type: rel ? 'Q' : 'q',
       p0: this.pp,
       cntrl1: cntrl1,
       cntrl2: cntrl1,
       p1: this.cp,
+      relative: {
+        cntrl1: c1,
+        p1: ep
+      },
       length: this.segmentLength,
       pointAt: function pointAt(f) {
         return t2DGeometry.bezierTransition(this.p0, this.cntrl1, this.p1, f);
@@ -1962,6 +1982,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     this.length += this.segmentLength;
     this.pp = this.cp;
+    this.cntrl = null;
     return this;
   }
 
@@ -1985,13 +2006,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.cp = endPoint;
     this.segmentLength = t2DGeometry.cubicBezierLength(this.pp, co);
     this.stack.push({
-      type: 'C',
+      type: rel ? 'C' : 'c',
       p0: this.pp,
       cntrl1: cntrl1,
       cntrl2: cntrl2,
       p1: this.cp,
       length: this.segmentLength,
       co: co,
+      relative: {
+        cntrl1: c1,
+        cntrl2: c2,
+        p1: ep
+      },
       pointAt: function pointAt(f) {
         return t2DGeometry.cubicBezierTransition(this.p0, this.co, f);
       }
@@ -2016,17 +2042,22 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       p0: this.pp,
       cntrl1: cntrl1,
       cntrl2: cntrl2,
-      p1: this.cp
+      p1: endPoint
     });
     this.segmentLength = t2DGeometry.cubicBezierLength(this.pp, co);
 
     this.stack.push({
-      type: 'S',
+      type: rel ? 'S' : 's',
       p0: this.pp,
       cntrl1: cntrl1,
       cntrl2: cntrl2,
       p1: this.cp,
+      co: co,
       length: this.segmentLength,
+      relative: {
+        cntrl2: c2,
+        p1: ep
+      },
       pointAt: function pointAt(f) {
         return t2DGeometry.cubicBezierTransition(this.p0, this.co, f);
       }
@@ -2034,6 +2065,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     // this.stack.segmentLength += this.segmentLength
     this.length += this.segmentLength;
     this.pp = this.cp;
+    this.cntrl = cntrl2;
     return this;
   }
 
@@ -2092,7 +2124,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           return t2DGeometry.bezierTransition(this.p0, this.cntrl1, this.cntrl2, this.p1, f);
         }
       });
-      // self.stack.segmentLength += segmentLength
       self.length += segmentLength;
     });
     this.pp = this.cp;
@@ -2106,7 +2137,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     if (path) {
       this.path = path;
       this.parse();
-      // this.stackGroup.push(this.stack)
     }
   }
   Path.prototype = {
@@ -2145,16 +2175,28 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         p += 'z';
       } else if (c.type === 'C') {
         p += c.type + ' ' + c.cntrl1.x + ',' + c.cntrl1.y + ' ' + c.cntrl2.x + ',' + c.cntrl2.y + ' ' + c.p1.x + ',' + c.p1.y + ' ';
+      } else if (c.type === 'c') {
+        p += c.type + ' ' + c.relative.cntrl1.x + ',' + c.relative.cntrl1.y + ' ' + c.relative.cntrl2.x + ',' + c.relative.cntrl2.y + ' ' + c.relative.p1.x + ',' + c.relative.p1.y + ' ';
       } else if (c.type === 'Q') {
         p += c.type + ' ' + c.cntrl1.x + ',' + c.cntrl1.y + ' ' + c.p1.x + ',' + c.p1.y + ' ';
+      } else if (c.type === 'q') {
+        p += c.type + ' ' + c.relative.cntrl1.x + ',' + c.relative.cntrl1.y + ' ' + c.relative.p1.x + ',' + c.relative.p1.y + ' ';
       } else if (c.type === 'S') {
         p += c.type + ' ' + c.cntrl2.x + ',' + c.cntrl2.y + ' ' + c.p1.x + ',' + c.p1.y + ' ';
+      } else if (c.type === 's') {
+        p += c.type + ' ' + c.relative.cntrl2.x + ',' + c.relative.cntrl2.y + ' ' + c.relative.p1.x + ',' + c.relative.p1.y + ' ';
       } else if (c.type === 'V') {
         p += c.type + ' ' + c.p1.y + ' ';
+      } else if (c.type === 'v') {
+        p += c.type + ' ' + c.relative.p1.y + ' ';
       } else if (c.type === 'H') {
         p += c.type + ' ' + c.p1.x + ' ';
+      } else if (c.type === 'h') {
+        p += c.type + ' ' + c.relative.p1.x + ' ';
       } else if (c.type === 'L') {
         p += c.type + ' ' + c.p1.x + ',' + c.p1.y + ' ';
+      } else if (c.type === 'l') {
+        p += c.type + ' ' + c.relative.p1.x + ',' + c.relative.p1.y + ' ';
       }
     }
     return p;
@@ -2277,13 +2319,664 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
   };
 
+  function relativeCheck(type) {
+    return ['S', 'C', 'V', 'L', 'H', 'Q'].indexOf(type) > -1;
+  }
+
+  var CubicBezierTransition = function CubicBezierTransition(type, p0, c1, c2, co, length) {
+    this.type = type;
+    this.p0 = p0;
+    this.c1_src = c1;
+    this.c2_src = c2;
+    this.co = co;
+    this.length_src = length;
+  };
+  CubicBezierTransition.prototype.execute = function (f) {
+    var co = this.co;
+    var p0 = this.p0;
+    var c1 = this.c1_src;
+    var c2 = this.c2_src;
+    var c1Temp = {
+      x: p0.x + (c1.x - p0.x) * f,
+      y: p0.y + (c1.y - p0.y) * f
+    };
+    var c2Temp = {
+      x: c1.x + (c2.x - c1.x) * f,
+      y: c1.y + (c2.y - c1.y) * f
+    };
+    this.cntrl1 = c1Temp;
+    this.cntrl2 = { x: c1Temp.x + (c2Temp.x - c1Temp.x) * f, y: c1Temp.y + (c2Temp.y - c1Temp.y) * f };
+    this.p1 = { x: co.ax * t2DGeometry.pow(f, 3) + co.bx * t2DGeometry.pow(f, 2) + co.cx * f + p0.x,
+      y: co.ay * t2DGeometry.pow(f, 3) + co.by * t2DGeometry.pow(f, 2) + co.cy * f + p0.y
+    };
+    this.length = this.length_src * f;
+
+    this.relative = {
+      cntrl1: relativeCheck(this.type) ? this.cntrl1 : subVectors(this.cntrl1, this.p0),
+      cntrl2: relativeCheck(this.type) ? this.cntrl2 : subVectors(this.cntrl2, this.p0),
+      p1: relativeCheck(this.type) ? this.p1 : subVectors(this.p1, this.p0)
+    };
+    return this;
+  };
+  CubicBezierTransition.prototype.pointAt = function (f) {
+    return t2DGeometry.cubicBezierTransition(this.p0, this.co, f);
+  };
+
+  var BezierTransition = function BezierTransition(type, p0, p1, p2, length, f) {
+    this.type = type;
+    this.p0 = p0;
+    this.p1_src = p1;
+    this.p2_src = p2;
+    this.length_src = length;
+    this.length = 0;
+  };
+  BezierTransition.prototype.execute = function (f) {
+    var p0 = this.p0;
+    var p1 = this.p1_src;
+    var p2 = this.p2_src;
+    this.length = this.length_src * f;
+    this.cntrl1 = { x: p0.x + (p1.x - p0.x) * f, y: p0.y + (p1.y - p0.y) * f };
+    this.cntrl2 = this.cntrl1;
+    this.p1 = { x: (p0.x - 2 * p1.x + p2.x) * f * f + (2 * p1.x - 2 * p0.x) * f + p0.x, y: (p0.y - 2 * p1.y + p2.y) * f * f + (2 * p1.y - 2 * p0.y) * f + p0.y };
+    this.relative = {
+      cntrl1: relativeCheck(this.type) ? this.cntrl1 : subVectors(this.cntrl1, this.p0),
+      p1: relativeCheck(this.type) ? this.p1 : subVectors(this.p1, this.p0)
+    };
+    return this;
+  };
+  BezierTransition.prototype.pointAt = function (f) {
+    return t2DGeometry.bezierTransition(this.p0, this.cntrl1, this.p1, f);
+  };
+
+  var LinearTransitionBetweenPoints = function LinearTransitionBetweenPoints(type, p0, p2, length, f) {
+    this.type = type;
+    this.p0 = p0;
+    this.p1 = p0;
+    this.p2_src = p2;
+    this.length_src = length;
+    this.length = 0;
+  };
+  LinearTransitionBetweenPoints.prototype.execute = function (f) {
+    var p0 = this.p0;
+    var p2 = this.p2_src;
+
+    this.p1 = { x: p0.x + (p2.x - p0.x) * f, y: p0.y + (p2.y - p0.y) * f };
+    this.length = this.length_src * f;
+    this.relative = {
+      p1: relativeCheck(this.type) ? this.p1 : subVectors(this.p1, this.p0)
+    };
+    return this;
+  };
+  LinearTransitionBetweenPoints.prototype.pointAt = function (f) {
+    return t2DGeometry.linearTransitionBetweenPoints(this.p0, this.p1, f);
+  };
+
+  function animatePathTo(targetConfig) {
+    var self = this;
+    var duration = targetConfig.duration,
+        ease = targetConfig.ease,
+        end = targetConfig.end,
+        loop = targetConfig.loop,
+        direction = targetConfig.direction,
+        d = targetConfig.d;
+
+    var src = d || self.attr.d;
+    var totalLength = 0;
+
+    self.arrayStack = [];
+
+    if (!src) {
+      throw Error('Path Not defined');
+    }
+
+    var chainInstance = chain.sequenceChain();
+    var newPathInstance = isTypePath(src) ? src : new Path(src);
+    var arrExe = newPathInstance.stackGroup.reduce(function (p, c) {
+      p = p.concat(c);
+      return p;
+    }, []);
+    var mappedArr = [];
+
+    var _loop = function _loop(i) {
+      if (arrExe[i].type === 'Z') {
+        mappedArr.push({
+          run: function run(f) {
+            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+            newPathInstance.stack[this.id] = this.render.execute(f);
+            self.setAttr('d', newPathInstance);
+          },
+
+          id: i,
+          render: new LinearTransitionBetweenPoints(arrExe[i].type, arrExe[i].p0, arrExe[0].p0, arrExe[i].segmentLength),
+          length: arrExe[i].length
+        });
+        totalLength += 0;
+      } else if (['V', 'v', 'H', 'h', 'L', 'l'].indexOf(arrExe[i].type) !== -1) {
+        mappedArr.push({
+          run: function run(f) {
+            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+            newPathInstance.stack[this.id] = this.render.execute(f);
+            self.setAttr('d', newPathInstance);
+          },
+
+          id: i,
+          render: new LinearTransitionBetweenPoints(arrExe[i].type, arrExe[i].p0, arrExe[i].p1, arrExe[i].length),
+          length: arrExe[i].length
+        });
+        totalLength += arrExe[i].length;
+      } else if (arrExe[i].type === 'Q') {
+        mappedArr.push({
+          run: function run(f) {
+            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+            newPathInstance.stack[this.id] = this.render.execute(f);
+            self.setAttr('d', newPathInstance);
+          },
+
+          id: i,
+          render: new BezierTransition(arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].p1, arrExe[i].length),
+          length: arrExe[i].length
+        });
+        totalLength += arrExe[i].length;
+      } else if (arrExe[i].type === 'C' || arrExe[i].type === 'S' || arrExe[i].type === 'c' || arrExe[i].type === 's') {
+        var co = t2DGeometry.cubicBezierCoefficients(arrExe[i]);
+        mappedArr.push({
+          run: function run(f) {
+            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+            newPathInstance.stack[this.id] = this.render.execute(f);
+            self.setAttr('d', newPathInstance);
+          },
+
+          id: i,
+          co: co,
+          render: new CubicBezierTransition(arrExe[i].type, arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].cntrl2, co, arrExe[i].length),
+          length: arrExe[i].length
+        });
+        totalLength += arrExe[i].length;
+      } else if (arrExe[i].type === 'M') {
+        mappedArr.push({
+          run: function run() {
+            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+            newPathInstance.stack[this.id] = {
+              type: 'M',
+              p0: arrExe[i].p0,
+              length: 0,
+              pointAt: function pointAt(f) {
+                return this.p0;
+              }
+            };
+          },
+
+          id: i,
+          length: 0
+        });
+        totalLength += 0;
+      } else {
+        // console.log('M Or Other Type')
+      }
+    };
+
+    for (var i = 0; i < arrExe.length; i += 1) {
+      _loop(i);
+    }
+
+    mappedArr.forEach(function (d) {
+      d.duration = d.length / totalLength * duration;
+    });
+    chainInstance.duration(duration).add(mappedArr).ease(ease).loop(loop || 0).direction(direction || 'default');
+
+    if (typeof end === 'function') {
+      chainInstance.end(end.bind(self));
+    }
+
+    chainInstance.commit();
+
+    return this;
+  }
+
+  function morphTo(targetConfig) {
+    var self = this;
+    var duration = targetConfig.duration;
+    var ease = targetConfig.ease;
+
+    var loop = targetConfig.loop ? targetConfig.loop : 0;
+    var direction = targetConfig.direction ? targetConfig.direction : 'default';
+    var destD = targetConfig.attr.d ? targetConfig.attr.d : self.attr.d;
+
+    var srcPath = isTypePath(self.attr.d) ? self.attr.d.stackGroup : new Path(self.attr.d).stackGroup;
+    var destPath = isTypePath(destD) ? destD.stackGroup : new Path(destD).stackGroup;
+
+    var chainInstance = [];
+
+    self.arrayStack = [];
+
+    if (srcPath.length > 1) {
+      srcPath = srcPath.sort(function (aa, bb) {
+        return bb.segmentLength - aa.segmentLength;
+      });
+    }
+    if (destPath.length > 1) {
+      destPath = destPath.sort(function (aa, bb) {
+        return bb.segmentLength - aa.segmentLength;
+      });
+    }
+
+    var maxGroupLength = srcPath.length > destPath.length ? srcPath.length : destPath.length;
+
+    mapper(toCubicCurves(srcPath[0]), toCubicCurves(destPath[0]));
+
+    for (var j = 1; j < maxGroupLength; j += 1) {
+      if (srcPath[j]) {
+        mapper(toCubicCurves(srcPath[j]), [{
+          type: 'M',
+          p0: srcPath[j][0].p0
+        }]);
+      }
+      if (destPath[j]) {
+        mapper([{
+          type: 'M',
+          p0: destPath[j][0].p0
+        }], toCubicCurves(destPath[j]));
+      }
+    }
+
+    function toCubicCurves(stack) {
+      if (!stack.length) {
+        return;
+      }
+      var _ = stack;
+      var mappedArr = [];
+      for (var i = 0; i < _.length; i += 1) {
+        if (['M', 'C', 'S', 'Q'].indexOf(_[i].type) !== -1) {
+          mappedArr.push(_[i]);
+        } else if (['V', 'H', 'L', 'Z'].indexOf(_[i].type) !== -1) {
+          var ctrl1 = {
+            x: (_[i].p0.x + _[i].p1.x) / 2,
+            y: (_[i].p0.y + _[i].p1.y) / 2
+          };
+          mappedArr.push({
+            p0: _[i].p0,
+            cntrl1: ctrl1,
+            cntrl2: ctrl1,
+            p1: _[i].p1,
+            type: 'C',
+            length: _[i].length
+          });
+        } else {
+          // console.log('wrong cmd type')
+        }
+      }
+      return mappedArr;
+    }
+
+    function buildMTransitionobj(src, dest) {
+      chainInstance.push({
+        run: function run(path, f) {
+          var point = this.pointTansition(f);
+          path.m(true, { x: point.x, y: point.y });
+        },
+
+        pointTansition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.p0, dest.p0)
+      });
+    }
+
+    function buildTransitionObj(src, dest) {
+      chainInstance.push({
+        run: function run(path, f) {
+          var t = this;
+          var c1 = t.ctrl1Transition(f);
+          var c2 = t.ctrl2Transition(f);
+          var p1 = t.destTransition(f);
+          path.c(true, { x: c1.x, y: c1.y }, { x: c2.x, y: c2.y }, { x: p1.x, y: p1.y });
+        },
+
+        srcTransition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.p0, dest.p0),
+        ctrl1Transition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.cntrl1, dest.cntrl1),
+        ctrl2Transition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.cntrl2, dest.cntrl2),
+        destTransition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.p1, dest.p1)
+      });
+    }
+
+    function normalizeCmds(cmd, n) {
+      if (cmd.length === n) {
+        return cmd;
+      }
+      var totalLength = cmd.reduce(function (pp, cc) {
+        return pp + cc.length;
+      }, 0);
+      var arr = [];
+
+      for (var i = 0; i < cmd.length; i += 1) {
+        var len = cmd[i].length;
+        var counter = Math.floor(n / totalLength * len);
+        if (counter <= 1) {
+          arr.push(cmd[i]);
+        } else {
+          var t = cmd[i];
+          var split = void 0;
+          while (counter > 1) {
+            var cmdX = t;
+            split = splitBezier([cmdX.p0, cmdX.cntrl1, cmdX.cntrl2, cmdX.p1].slice(0), 1 / counter);
+            arr.push({
+              p0: cmdX.p0,
+              cntrl1: split.b1[0],
+              cntrl2: split.b1[1],
+              p1: split.b1[2],
+              type: 'C'
+            });
+            t = {
+              p0: split.b1[2],
+              cntrl1: split.b2[0],
+              cntrl2: split.b2[1],
+              p1: split.b2[2],
+              type: 'C'
+            };
+            counter -= 1;
+          }
+          arr.push(t);
+        }
+      }
+      return arr;
+    }
+
+    function splitBezier(arr, perc) {
+      var coll = [];
+      var arrayLocal = arr;
+      while (arrayLocal.length > 0) {
+        for (var i = 0; i < arrayLocal.length - 1; i += 1) {
+          coll.unshift(arrayLocal[i]);
+          arrayLocal[i] = interpolate(arrayLocal[i], arrayLocal[i + 1], perc);
+        }
+        coll.unshift(arrayLocal.pop());
+      }
+      return {
+        b1: [{
+          x: coll[5].x,
+          y: coll[5].y
+        }, {
+          x: coll[2].x,
+          y: coll[2].y
+        }, {
+          x: coll[0].x,
+          y: coll[0].y
+        }],
+        b2: [{
+          x: coll[1].x,
+          y: coll[1].y
+        }, {
+          x: coll[3].x,
+          y: coll[3].y
+        }, {
+          x: coll[6].x,
+          y: coll[6].y
+        }]
+      };
+    }
+
+    function interpolate(p0, p1, percent) {
+      return {
+        x: p0.x + (p1.x - p0.x) * (percent !== undefined ? percent : 0.5),
+        y: p0.y + (p1.y - p0.y) * (percent !== undefined ? percent : 0.5)
+      };
+    }
+
+    // function getRightBeginPoint (src, dest) {
+    //   let closestPoint = 0,
+    //     minDistance = 99999999
+
+    //   for (let i = 0; i < dest.length; i += 1) {
+    //     if (t2DGeometry.getDistance(src[0].p0, dest[i].p0) < minDistance) {
+    //       minDistance = t2DGeometry.getDistance(src[0].p0, dest[i].p0)
+    //       closestPoint = i
+    //     }
+    //   }
+
+    //   return closestPoint
+    // }
+
+    function getDirection(data) {
+      var dir = 0;
+
+      for (var i = 0; i < data.length; i += 1) {
+        if (data[i].type !== 'M') {
+          dir += (data[i].p1.x - data[i].p0.x) * (data[i].p1.y + data[i].p0.y);
+        }
+      }
+
+      return dir;
+    }
+
+    function reverse(data) {
+      var dataLocal = data.reverse();
+      var newArray = [{
+        type: 'M',
+        p0: dataLocal[0].p1
+      }];
+
+      dataLocal.forEach(function (d) {
+        if (d.type === 'C') {
+          var dLocal = d;
+          var tp0 = dLocal.p0;
+          var tc1 = dLocal.cntrl1;
+          dLocal.p0 = d.p1;
+          dLocal.p1 = tp0;
+          dLocal.cntrl1 = d.cntrl2;
+          dLocal.cntrl2 = tc1;
+
+          newArray.push(dLocal);
+        }
+      });
+      return newArray;
+    }
+
+    function centroid(path) {
+      var sumX = 0;
+      var sumY = 0;
+      var counterX = 0;
+      var counterY = 0;
+
+      path.forEach(function (d) {
+        if (d.p0) {
+          sumX += d.p0.x;
+          sumY += d.p0.y;
+          counterX += 1;
+          counterY += 1;
+        }
+        if (d.p1) {
+          sumX += d.p1.x;
+          sumY += d.p1.y;
+          counterX += 1;
+          counterY += 1;
+        }
+      });
+
+      return {
+        x: sumX / counterX,
+        y: sumY / counterY
+      };
+    }
+
+    function getQuadrant(centroidP, point) {
+      if (point.x >= centroidP.x && point.y <= centroidP.y) {
+        return 1;
+      } else if (point.x <= centroidP.x && point.y <= centroidP.y) {
+        return 2;
+      } else if (point.x <= centroidP.x && point.y >= centroidP.y) {
+        return 3;
+      }
+      return 4;
+    }
+
+    function getSrcBeginPoint(src, dest) {
+      var centroidOfSrc = centroid(src);
+      var centroidOfDest = centroid(dest);
+      var srcArr = src;
+      var destArr = dest;
+      for (var i = 0; i < src.length; i += 1) {
+        srcArr[i].quad = getQuadrant(centroidOfSrc, src[i].p0);
+      }
+      for (var _i = 0; _i < dest.length; _i += 1) {
+        destArr[_i].quad = getQuadrant(centroidOfDest, dest[_i].p0);
+      }
+      var minDistance = 0;
+
+      src.forEach(function (d, i) {
+        var dis = t2DGeometry.getDistance(d.p0, centroidOfSrc);
+        if (d.quad === 1 && dis >= minDistance) {
+          minDistance = dis;
+        }
+      });
+      minDistance = 0;
+      dest.forEach(function (d, i) {
+        var dis = t2DGeometry.getDistance(d.p0, centroidOfDest);
+        if (d.quad === 1 && dis > minDistance) {
+          minDistance = dis;
+        }
+      });
+
+      return {
+        src: setStartingPoint(src, 0), // srcStartingIndex
+        dest: setStartingPoint(dest, 0), // destStartingIndex
+        srcCentroid: centroidOfSrc,
+        destCentroid: centroidOfDest
+      };
+    }
+
+    function setStartingPoint(path, closestPoint) {
+      if (closestPoint <= 0) {
+        return path;
+      }
+      var pathLocal = path;
+      var subSet = pathLocal.splice(0, closestPoint);
+      subSet.shift();
+      pathLocal = pathLocal.concat(subSet);
+      pathLocal.unshift({
+        type: 'M',
+        p0: pathLocal[0].p0
+      });
+      pathLocal.push({
+        type: 'M',
+        p0: pathLocal[0].p0
+      });
+
+      return pathLocal;
+    }
+
+    function mapper(sExe, dExe) {
+      var nsExe = void 0;
+      var ndExe = void 0;
+      var maxLength = sExe.length > dExe.length ? sExe.length : dExe.length;
+
+      if (dExe.length > 2 && sExe.length > 2) {
+        if (maxLength > 50) {
+          maxLength += 30;
+        } else {
+          maxLength = maxLength >= 20 ? maxLength + 15 : maxLength + 4;
+        }
+        nsExe = normalizeCmds(sExe, maxLength);
+        ndExe = normalizeCmds(dExe, maxLength);
+      } else {
+        nsExe = sExe;
+        ndExe = dExe;
+      }
+
+      if (getDirection(nsExe) < 0) {
+        nsExe = reverse(nsExe);
+      }
+      if (getDirection(ndExe) < 0) {
+        ndExe = reverse(ndExe);
+      }
+
+      var res = getSrcBeginPoint(nsExe, ndExe, this);
+      nsExe = res.src.length > 1 ? res.src : [{
+        type: 'M',
+        p0: res.destCentroid
+      }];
+      ndExe = res.dest.length > 1 ? res.dest : [{
+        type: 'M',
+        p0: res.srcCentroid
+      }];
+
+      var length = ndExe.length < nsExe.length ? nsExe.length : ndExe.length;
+
+      for (var i = 0; i < nsExe.length; i += 1) {
+        nsExe[i].index = i;
+      }
+      for (var _i2 = 0; _i2 < ndExe.length; _i2 += 1) {
+        ndExe[_i2].index = _i2;
+      }
+      for (var _i3 = 0; _i3 < length; _i3 += 1) {
+        var sP0 = nsExe[nsExe.length - 1].p0 ? nsExe[nsExe.length - 1].p0 : nsExe[nsExe.length - 1].p1;
+        var dP0 = ndExe[ndExe.length - 1].p0 ? ndExe[ndExe.length - 1].p0 : ndExe[ndExe.length - 1].p1;
+        var sCmd = nsExe[_i3] ? nsExe[_i3] : {
+          type: 'C',
+          p0: sP0,
+          p1: sP0,
+          cntrl1: sP0,
+          cntrl2: sP0,
+          length: 0
+        };
+        var dCmd = ndExe[_i3] ? ndExe[_i3] : {
+          type: 'C',
+          p0: dP0,
+          p1: dP0,
+          cntrl1: dP0,
+          cntrl2: dP0,
+          length: 0 // ndExe[ndExe.length - 1]
+
+        };if (sCmd.type === 'M' && dCmd.type === 'M') {
+          buildMTransitionobj(sCmd, dCmd);
+        } else if (sCmd.type === 'M' || dCmd.type === 'M') {
+          if (sCmd.type === 'M') {
+            buildTransitionObj({
+              type: 'C',
+              p0: sCmd.p0,
+              p1: sCmd.p0,
+              cntrl1: sCmd.p0,
+              cntrl2: sCmd.p0,
+              length: 0
+            }, dCmd);
+          } else {
+            buildTransitionObj(sCmd, {
+              type: 'C',
+              p0: dCmd.p0,
+              p1: dCmd.p0,
+              cntrl1: dCmd.p0,
+              cntrl2: dCmd.p0,
+              length: 0
+            });
+          }
+        } else {
+          buildTransitionObj(sCmd, dCmd);
+        }
+      }
+    }
+
+    queueInstance.add(animeId(), {
+      run: function run(f) {
+        var ppath = new Path();
+        for (var i = 0, len = chainInstance.length; i < len; i++) {
+          chainInstance[i].run(ppath, f);
+        }
+        self.setAttr('d', ppath);
+      },
+
+      duration: duration,
+      loop: loop,
+      direction: direction
+    }, easying(ease));
+  }
+
+  function isTypePath(pathInstance) {
+    return pathInstance instanceof Path;
+  }
+
   return {
     instance: function instance(d) {
       return new Path(d);
     },
-    isTypePath: function isTypePath(pathInstance) {
-      return pathInstance instanceof Path;
-    }
+    isTypePath: isTypePath,
+    animatePathTo: animatePathTo,
+    morphTo: morphTo
   };
 });
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)(module)))
@@ -3757,639 +4450,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         node.text(value.call(node, node.dataObj, _i));
       }
     }
-
     return this;
   };
 
-  var morphTo = function morphTo(targetConfig) {
-    var self = this;
-    var duration = targetConfig.duration;
-    var ease = targetConfig.ease;
-
-    var loop = targetConfig.loop ? targetConfig.loop : 0;
-    var direction = targetConfig.direction ? targetConfig.direction : 'default';
-    var destD = targetConfig.attr.d ? targetConfig.attr.d : self.attr.d;
-
-    var srcPath = path.isTypePath(self.attr.d) ? self.attr.d.stackGroup : i2d.Path(self.attr.d).stackGroup;
-    var destPath = path.isTypePath(destD) ? destD.stackGroup : i2d.Path(destD).stackGroup;
-
-    var chainInstance = [];
-
-    self.arrayStack = [];
-
-    if (srcPath.length > 1) {
-      srcPath = srcPath.sort(function (aa, bb) {
-        return bb.segmentLength - aa.segmentLength;
-      });
-    }
-    if (destPath.length > 1) {
-      destPath = destPath.sort(function (aa, bb) {
-        return bb.segmentLength - aa.segmentLength;
-      });
-    }
-
-    var maxGroupLength = srcPath.length > destPath.length ? srcPath.length : destPath.length;
-
-    mapper(toCubicCurves(srcPath[0]), toCubicCurves(destPath[0]));
-
-    for (var j = 1; j < maxGroupLength; j += 1) {
-      if (srcPath[j]) {
-        mapper(toCubicCurves(srcPath[j]), [{
-          type: 'M',
-          p0: srcPath[j][0].p0
-        }]);
-      }
-      if (destPath[j]) {
-        mapper([{
-          type: 'M',
-          p0: destPath[j][0].p0
-        }], toCubicCurves(destPath[j]));
-      }
-    }
-
-    function toCubicCurves(stack) {
-      if (!stack.length) {
-        return;
-      }
-      var _ = stack;
-      var mappedArr = [];
-      for (var i = 0; i < _.length; i += 1) {
-        if (['M', 'C', 'S', 'Q'].indexOf(_[i].type) !== -1) {
-          mappedArr.push(_[i]);
-        } else if (['V', 'H', 'L', 'Z'].indexOf(_[i].type) !== -1) {
-          var ctrl1 = {
-            x: (_[i].p0.x + _[i].p1.x) / 2,
-            y: (_[i].p0.y + _[i].p1.y) / 2
-          };
-          mappedArr.push({
-            p0: _[i].p0,
-            cntrl1: ctrl1,
-            cntrl2: ctrl1,
-            p1: _[i].p1,
-            type: 'C',
-            length: _[i].length
-          });
-        } else {
-          // console.log('wrong cmd type')
-        }
-      }
-      return mappedArr;
-    }
-
-    function buildMTransitionobj(src, dest) {
-      chainInstance.push({
-        run: function run(path, f) {
-          var point = this.pointTansition(f);
-          path.m(true, { x: point.x, y: point.y });
-        },
-
-        pointTansition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.p0, dest.p0)
-      });
-    }
-
-    function buildTransitionObj(src, dest) {
-      chainInstance.push({
-        run: function run(path, f) {
-          var t = this;
-          var c1 = t.ctrl1Transition(f);
-          var c2 = t.ctrl2Transition(f);
-          var p1 = t.destTransition(f);
-          path.c(true, { x: c1.x, y: c1.y }, { x: c2.x, y: c2.y }, { x: p1.x, y: p1.y });
-        },
-
-        srcTransition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.p0, dest.p0),
-        ctrl1Transition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.cntrl1, dest.cntrl1),
-        ctrl2Transition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.cntrl2, dest.cntrl2),
-        destTransition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.p1, dest.p1)
-      });
-    }
-
-    function normalizeCmds(cmd, n) {
-      if (cmd.length === n) {
-        return cmd;
-      }
-      var totalLength = cmd.reduce(function (pp, cc) {
-        return pp + cc.length;
-      }, 0);
-      var arr = [];
-
-      for (var i = 0; i < cmd.length; i += 1) {
-        var len = cmd[i].length;
-        var counter = Math.floor(n / totalLength * len);
-        if (counter <= 1) {
-          arr.push(cmd[i]);
-        } else {
-          var t = cmd[i];
-          var split = void 0;
-          while (counter > 1) {
-            var cmdX = t;
-            split = splitBezier([cmdX.p0, cmdX.cntrl1, cmdX.cntrl2, cmdX.p1].slice(0), 1 / counter);
-            arr.push({
-              p0: cmdX.p0,
-              cntrl1: split.b1[0],
-              cntrl2: split.b1[1],
-              p1: split.b1[2],
-              type: 'C'
-            });
-            t = {
-              p0: split.b1[2],
-              cntrl1: split.b2[0],
-              cntrl2: split.b2[1],
-              p1: split.b2[2],
-              type: 'C'
-            };
-            counter -= 1;
-          }
-          arr.push(t);
-        }
-      }
-      return arr;
-    }
-
-    function splitBezier(arr, perc) {
-      var coll = [];
-      var arrayLocal = arr;
-      while (arrayLocal.length > 0) {
-        for (var i = 0; i < arrayLocal.length - 1; i += 1) {
-          coll.unshift(arrayLocal[i]);
-          arrayLocal[i] = interpolate(arrayLocal[i], arrayLocal[i + 1], perc);
-        }
-        coll.unshift(arrayLocal.pop());
-      }
-      return {
-        b1: [{
-          x: coll[5].x,
-          y: coll[5].y
-        }, {
-          x: coll[2].x,
-          y: coll[2].y
-        }, {
-          x: coll[0].x,
-          y: coll[0].y
-        }],
-        b2: [{
-          x: coll[1].x,
-          y: coll[1].y
-        }, {
-          x: coll[3].x,
-          y: coll[3].y
-        }, {
-          x: coll[6].x,
-          y: coll[6].y
-        }]
-      };
-    }
-
-    function interpolate(p0, p1, percent) {
-      return {
-        x: p0.x + (p1.x - p0.x) * (percent !== undefined ? percent : 0.5),
-        y: p0.y + (p1.y - p0.y) * (percent !== undefined ? percent : 0.5)
-      };
-    }
-
-    // function getRightBeginPoint (src, dest) {
-    //   let closestPoint = 0,
-    //     minDistance = 99999999
-
-    //   for (let i = 0; i < dest.length; i += 1) {
-    //     if (t2DGeometry.getDistance(src[0].p0, dest[i].p0) < minDistance) {
-    //       minDistance = t2DGeometry.getDistance(src[0].p0, dest[i].p0)
-    //       closestPoint = i
-    //     }
-    //   }
-
-    //   return closestPoint
-    // }
-
-    function getDirection(data) {
-      var dir = 0;
-
-      for (var i = 0; i < data.length; i += 1) {
-        if (data[i].type !== 'M') {
-          dir += (data[i].p1.x - data[i].p0.x) * (data[i].p1.y + data[i].p0.y);
-        }
-      }
-
-      return dir;
-    }
-
-    function reverse(data) {
-      var dataLocal = data.reverse();
-      var newArray = [{
-        type: 'M',
-        p0: dataLocal[0].p1
-      }];
-
-      dataLocal.forEach(function (d) {
-        if (d.type === 'C') {
-          var dLocal = d;
-          var tp0 = dLocal.p0;
-          var tc1 = dLocal.cntrl1;
-          dLocal.p0 = d.p1;
-          dLocal.p1 = tp0;
-          dLocal.cntrl1 = d.cntrl2;
-          dLocal.cntrl2 = tc1;
-
-          newArray.push(dLocal);
-        }
-      });
-      return newArray;
-    }
-
-    function centroid(path) {
-      var sumX = 0;
-      var sumY = 0;
-      var counterX = 0;
-      var counterY = 0;
-
-      path.forEach(function (d) {
-        if (d.p0) {
-          sumX += d.p0.x;
-          sumY += d.p0.y;
-          counterX += 1;
-          counterY += 1;
-        }
-        if (d.p1) {
-          sumX += d.p1.x;
-          sumY += d.p1.y;
-          counterX += 1;
-          counterY += 1;
-        }
-      });
-
-      return {
-        x: sumX / counterX,
-        y: sumY / counterY
-      };
-    }
-
-    function getQuadrant(centroidP, point) {
-      if (point.x >= centroidP.x && point.y <= centroidP.y) {
-        return 1;
-      } else if (point.x <= centroidP.x && point.y <= centroidP.y) {
-        return 2;
-      } else if (point.x <= centroidP.x && point.y >= centroidP.y) {
-        return 3;
-      }
-      return 4;
-    }
-
-    function getSrcBeginPoint(src, dest) {
-      var centroidOfSrc = centroid(src);
-      var centroidOfDest = centroid(dest);
-      var srcArr = src;
-      var destArr = dest;
-      for (var i = 0; i < src.length; i += 1) {
-        srcArr[i].quad = getQuadrant(centroidOfSrc, src[i].p0);
-      }
-      for (var _i2 = 0; _i2 < dest.length; _i2 += 1) {
-        destArr[_i2].quad = getQuadrant(centroidOfDest, dest[_i2].p0);
-      }
-      var minDistance = 0;
-
-      src.forEach(function (d, i) {
-        var dis = t2DGeometry.getDistance(d.p0, centroidOfSrc);
-        if (d.quad === 1 && dis >= minDistance) {
-          minDistance = dis;
-        }
-      });
-      minDistance = 0;
-      dest.forEach(function (d, i) {
-        var dis = t2DGeometry.getDistance(d.p0, centroidOfDest);
-        if (d.quad === 1 && dis > minDistance) {
-          minDistance = dis;
-        }
-      });
-
-      return {
-        src: setStartingPoint(src, 0), // srcStartingIndex
-        dest: setStartingPoint(dest, 0), // destStartingIndex
-        srcCentroid: centroidOfSrc,
-        destCentroid: centroidOfDest
-      };
-    }
-
-    function setStartingPoint(path, closestPoint) {
-      if (closestPoint <= 0) {
-        return path;
-      }
-      var pathLocal = path;
-      var subSet = pathLocal.splice(0, closestPoint);
-      subSet.shift();
-      pathLocal = pathLocal.concat(subSet);
-      pathLocal.unshift({
-        type: 'M',
-        p0: pathLocal[0].p0
-      });
-      pathLocal.push({
-        type: 'M',
-        p0: pathLocal[0].p0
-      });
-
-      return pathLocal;
-    }
-
-    function mapper(sExe, dExe) {
-      var nsExe = void 0;
-      var ndExe = void 0;
-      var maxLength = sExe.length > dExe.length ? sExe.length : dExe.length;
-
-      if (dExe.length > 2 && sExe.length > 2) {
-        if (maxLength > 50) {
-          maxLength += 30;
-        } else {
-          maxLength = maxLength >= 20 ? maxLength + 15 : maxLength + 4;
-        }
-        nsExe = normalizeCmds(sExe, maxLength);
-        ndExe = normalizeCmds(dExe, maxLength);
-      } else {
-        nsExe = sExe;
-        ndExe = dExe;
-      }
-
-      if (getDirection(nsExe) < 0) {
-        nsExe = reverse(nsExe);
-      }
-      if (getDirection(ndExe) < 0) {
-        ndExe = reverse(ndExe);
-      }
-
-      var res = getSrcBeginPoint(nsExe, ndExe, this);
-      nsExe = res.src.length > 1 ? res.src : [{
-        type: 'M',
-        p0: res.destCentroid
-      }];
-      ndExe = res.dest.length > 1 ? res.dest : [{
-        type: 'M',
-        p0: res.srcCentroid
-      }];
-
-      var length = ndExe.length < nsExe.length ? nsExe.length : ndExe.length;
-
-      for (var i = 0; i < nsExe.length; i += 1) {
-        nsExe[i].index = i;
-      }
-      for (var _i3 = 0; _i3 < ndExe.length; _i3 += 1) {
-        ndExe[_i3].index = _i3;
-      }
-      for (var _i4 = 0; _i4 < length; _i4 += 1) {
-        var sP0 = nsExe[nsExe.length - 1].p0 ? nsExe[nsExe.length - 1].p0 : nsExe[nsExe.length - 1].p1;
-        var dP0 = ndExe[ndExe.length - 1].p0 ? ndExe[ndExe.length - 1].p0 : ndExe[ndExe.length - 1].p1;
-        var sCmd = nsExe[_i4] ? nsExe[_i4] : {
-          type: 'C',
-          p0: sP0,
-          p1: sP0,
-          cntrl1: sP0,
-          cntrl2: sP0,
-          length: 0
-        };
-        var dCmd = ndExe[_i4] ? ndExe[_i4] : {
-          type: 'C',
-          p0: dP0,
-          p1: dP0,
-          cntrl1: dP0,
-          cntrl2: dP0,
-          length: 0 // ndExe[ndExe.length - 1]
-
-        };if (sCmd.type === 'M' && dCmd.type === 'M') {
-          buildMTransitionobj(sCmd, dCmd);
-        } else if (sCmd.type === 'M' || dCmd.type === 'M') {
-          if (sCmd.type === 'M') {
-            buildTransitionObj({
-              type: 'C',
-              p0: sCmd.p0,
-              p1: sCmd.p0,
-              cntrl1: sCmd.p0,
-              cntrl2: sCmd.p0,
-              length: 0
-            }, dCmd);
-          } else {
-            buildTransitionObj(sCmd, {
-              type: 'C',
-              p0: dCmd.p0,
-              p1: dCmd.p0,
-              cntrl1: dCmd.p0,
-              cntrl2: dCmd.p0,
-              length: 0
-            });
-          }
-        } else {
-          buildTransitionObj(sCmd, dCmd);
-        }
-      }
-    }
-
-    queueInstance.add(animeId(), {
-      run: function run(f) {
-        var ppath = i2d.Path();
-        for (var i = 0, len = chainInstance.length; i < len; i++) {
-          chainInstance[i].run(ppath, f);
-        }
-        self.setAttr('d', self instanceof DomExe ? ppath.fetchPathString() : ppath);
-      },
-
-      duration: duration,
-      loop: loop,
-      direction: direction
-    }, easying(ease));
-  };
-
-  var animatePathTo = function animatePathTo(targetConfig) {
-    var self = this;
-    var duration = targetConfig.duration,
-        ease = targetConfig.ease,
-        end = targetConfig.end,
-        loop = targetConfig.loop,
-        direction = targetConfig.direction,
-        d = targetConfig.d;
-
-    var src = d || self.attr.d;
-    var totalLength = 0;
-
-    self.arrayStack = [];
-
-    if (!src) {
-      throw Error('Path Not defined');
-    }
-
-    var chainInstance = chain.sequenceChain();
-    var newPathInstance = path.isTypePath(src) ? src : i2d.Path(src);
-    var arrExe = newPathInstance.stackGroup.reduce(function (p, c) {
-      p = p.concat(c);
-      return p;
-    }, []);
-    var mappedArr = [];
-
-    var _loop2 = function _loop2(i) {
-      if (arrExe[i].type === 'Z') {
-        mappedArr.push({
-          run: function run(f) {
-            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id);
-            newPathInstance.stack[this.id] = this.render.execute(f);
-            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance);
-          },
-
-          id: i,
-          render: new LinearTransitionBetweenPoints(arrExe[i].p0, arrExe[0].p0, arrExe[i].segmentLength),
-          length: arrExe[i].length
-        });
-        totalLength += 0;
-      } else if (['V', 'H', 'L'].indexOf(arrExe[i].type) !== -1) {
-        mappedArr.push({
-          run: function run(f) {
-            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id);
-            newPathInstance.stack[this.id] = this.render.execute(f);
-            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance);
-          },
-
-          id: i,
-          render: new LinearTransitionBetweenPoints(arrExe[i].p0, arrExe[i].p1, arrExe[i].length),
-          length: arrExe[i].length
-        });
-        totalLength += arrExe[i].length;
-      } else if (arrExe[i].type === 'Q') {
-        mappedArr.push({
-          run: function run(f) {
-            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id);
-            newPathInstance.stack[this.id] = this.render.execute(f);
-            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance);
-          },
-
-          id: i,
-          render: new BezierTransition(arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].p1, arrExe[i].length),
-          length: arrExe[i].length
-        });
-        totalLength += arrExe[i].length;
-      } else if (arrExe[i].type === 'C' || arrExe[i].type === 'S') {
-        var co = t2DGeometry.cubicBezierCoefficients(arrExe[i]);
-        mappedArr.push({
-          run: function run(f) {
-            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id);
-            newPathInstance.stack[this.id] = this.render.execute(f);
-            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance);
-          },
-
-          id: i,
-          co: co,
-          render: new CubicBezierTransition(arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].cntrl2, co, arrExe[i].length),
-          length: arrExe[i].length
-        });
-        totalLength += arrExe[i].length;
-      } else if (arrExe[i].type === 'M') {
-        mappedArr.push({
-          run: function run() {
-            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id);
-            newPathInstance.stack[this.id] = {
-              type: 'M',
-              p0: arrExe[i].p0,
-              length: 0,
-              pointAt: function pointAt(f) {
-                return this.p0;
-              }
-            };
-          },
-
-          id: i,
-          length: 0
-        });
-        totalLength += 0;
-      } else {
-        // console.log('M Or Other Type')
-      }
-    };
-
-    for (var i = 0; i < arrExe.length; i += 1) {
-      _loop2(i);
-    }
-
-    mappedArr.forEach(function (d) {
-      d.duration = d.length / totalLength * duration;
-    });
-    chainInstance.duration(duration).add(mappedArr).ease(ease).loop(loop || 0).direction(direction || 'default');
-
-    if (typeof end === 'function') {
-      chainInstance.end(end.bind(self));
-    }
-
-    chainInstance.commit();
-
-    return this;
-  };
-
-  var CubicBezierTransition = function CubicBezierTransition(p0, c1, c2, co, length) {
-    this.type = 'C';
-    this.p0 = p0;
-    this.c1_src = c1;
-    this.c2_src = c2;
-    this.co = co;
-    this.length_src = length;
-  };
-  CubicBezierTransition.prototype.execute = function (f) {
-    var co = this.co;
-    var p0 = this.p0;
-    var c1 = this.c1_src;
-    var c2 = this.c2_src;
-    var c1Temp = {
-      x: p0.x + (c1.x - p0.x) * f,
-      y: p0.y + (c1.y - p0.y) * f
-    };
-    var c2Temp = {
-      x: c1.x + (c2.x - c1.x) * f,
-      y: c1.y + (c2.y - c1.y) * f
-    };
-    this.cntrl1 = c1Temp;
-    this.cntrl2 = { x: c1Temp.x + (c2Temp.x - c1Temp.x) * f, y: c1Temp.y + (c2Temp.y - c1Temp.y) * f };
-    this.p1 = { x: co.ax * t2DGeometry.pow(f, 3) + co.bx * t2DGeometry.pow(f, 2) + co.cx * f + p0.x,
-      y: co.ay * t2DGeometry.pow(f, 3) + co.by * t2DGeometry.pow(f, 2) + co.cy * f + p0.y
-    };
-    this.length = this.length_src * f;
-    return this;
-  };
-  CubicBezierTransition.prototype.pointAt = function (f) {
-    return t2DGeometry.cubicBezierTransition(this.p0, this.co, f);
-  };
-
-  var BezierTransition = function BezierTransition(p0, p1, p2, length, f) {
-    this.type = 'Q';
-    this.p0 = p0;
-    this.p1_src = p1;
-    this.p2_src = p2;
-    this.length_src = length;
-    this.length = 0;
-  };
-  BezierTransition.prototype.execute = function (f) {
-    var p0 = this.p0;
-    var p1 = this.p1_src;
-    var p2 = this.p2_src;
-    this.length = this.length_src * f;
-    this.cntrl1 = { x: p0.x + (p1.x - p0.x) * f, y: p0.y + (p1.y - p0.y) * f };
-    this.cntrl2 = this.cntrl1;
-    this.p1 = { x: (p0.x - 2 * p1.x + p2.x) * f * f + (2 * p1.x - 2 * p0.x) * f + p0.x, y: (p0.y - 2 * p1.y + p2.y) * f * f + (2 * p1.y - 2 * p0.y) * f + p0.y };
-    return this;
-  };
-  BezierTransition.prototype.pointAt = function (f) {
-    return t2DGeometry.bezierTransition(this.p0, this.cntrl1, this.p1, f);
-  };
-
-  var LinearTransitionBetweenPoints = function LinearTransitionBetweenPoints(p0, p2, length, f) {
-    this.type = 'L';
-    this.p0 = p0;
-    this.p1 = p0;
-    this.p2_src = p2;
-    this.length_src = length;
-    this.length = 0;
-  };
-  LinearTransitionBetweenPoints.prototype.execute = function (f) {
-    var p0 = this.p0;
-    var p2 = this.p2_src;
-
-    this.p1 = { x: p0.x + (p2.x - p0.x) * f, y: p0.y + (p2.y - p0.y) * f };
-    this.length = this.length_src * f;
-    return this;
-  };
-  LinearTransitionBetweenPoints.prototype.pointAt = function (f) {
-    return t2DGeometry.linearTransitionBetweenPoints(this.p0, this.p1, f);
-  };
   function DomGradients(config, type, pDom) {
     this.config = config;
     this.type = type || 'linear';
@@ -4662,6 +4725,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   };
   DomExe.prototype.setAttr = function DMsetAttr(attr, value) {
     if (arguments.length === 2) {
+      if (attr === 'd' && path.isTypePath(value)) {
+        value = value.fetchPathString();
+      }
       this.attr[attr] = value;
       this.changedAttribute[attr] = value;
     } else if (arguments.length === 1 && (typeof attr === 'undefined' ? 'undefined' : _typeof(attr)) === 'object') {
@@ -4692,8 +4758,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
     this.transFormAttributes();
 
-    for (var _i5 = 0, _len = this.children.length; _i5 < _len; _i5 += 1) {
-      this.children[_i5].execute();
+    for (var _i2 = 0, _len = this.children.length; _i2 < _len; _i2 += 1) {
+      this.children[_i2].execute();
     }
 
     for (var style in this.changedStyles) {
@@ -4730,8 +4796,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   DomExe.prototype.fetchEls = cfetchEls;
   DomExe.prototype.animateTo = animateTo;
   DomExe.prototype.animateExe = animateExe;
-  DomExe.prototype.animatePathTo = animatePathTo;
-  DomExe.prototype.morphTo = morphTo;
+  DomExe.prototype.animatePathTo = path.animatePathTo;
+  DomExe.prototype.morphTo = path.morphTo;
 
   DomExe.prototype.exec = function Cexe(exe) {
     if (typeof exe !== 'function') {
@@ -6132,8 +6198,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   };
   CanvasNodeExe.prototype.animateTo = animateTo;
   CanvasNodeExe.prototype.animateExe = animateExe;
-  CanvasNodeExe.prototype.animatePathTo = animatePathTo;
-  CanvasNodeExe.prototype.morphTo = morphTo;
+  CanvasNodeExe.prototype.animatePathTo = path.animatePathTo;
+  CanvasNodeExe.prototype.morphTo = path.morphTo;
   CanvasNodeExe.prototype.vDomIndex = null;
   CanvasNodeExe.prototype.join = dataJoin;
   CanvasNodeExe.prototype.createRadialGradient = createRadialGradient;
@@ -7092,9 +7158,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       fill = node.style.stroke;
       points = node.attr.points;
       fill = fill || defaultColor;
-
       if (node.propChanged) {
-
         var positionArray = [];
         for (var j = 0, jlen = points.length; j < jlen; j++) {
           positionArray[j * 2] = points[j].x;
@@ -7386,11 +7450,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   };
   WebglNodeExe.prototype.getAttr = function WgetAttribute(_) {
     return this.attr[_];
-    //dom.getAttr(_)
   };
   WebglNodeExe.prototype.getStyle = function WgetStyle(_) {
     return this.style[_];
-    //dom.getStyle(_)
   };
   WebglNodeExe.prototype.animateTo = animateTo;
   WebglNodeExe.prototype.animateExe = animateExe;
