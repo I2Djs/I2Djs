@@ -30,12 +30,40 @@
   }
 
   function hslParse (hsl) {
-    const res = rgb.replace(/[^0-9\.,]+/g, '').split(',')
-    const obj = {}
-    const flags = ['h', 's', 'l', 'a']
-    for (let i = 0; i < res.length; i += 1) {
-      obj[flags[i]] = res[i]
+    var r
+    var g
+    var b
+    var a
+    var h
+    var s
+    var l
+    var obj = {}
+    const res = hsl.replace(/[^0-9\.,]+/g, '').split(',').map(function (d) { return parseFloat(d) })
+    h = res[0] / 360
+    s = res[1] / 100
+    l = res[2] / 100
+    a = res[3]
+    console.log(res)
+    if (s === 0) {
+      r = g = b = l // achromatic
+    } else {
+      var hue2rgb = function hue2rgb (p, q, t) {
+        if (t < 0) t += 1
+        if (t > 1) t -= 1
+        if (t < 1 / 6) return p + (q - p) * 6 * t
+        if (t < 1 / 2) return q
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
+        return p
+      }
+
+      var q = l < 0.5 ? l * (1 + s) : l + s - l * s
+      var p = 2 * l - q
+      obj.r = hue2rgb(p, q, h + 1 / 3) * 255
+      obj.g = hue2rgb(p, q, h) * 255
+      obj.b = hue2rgb(p, q, h - 1 / 3) * 255
     }
+    if (a !== undefined) obj.a = a
+    console.log(obj)
     return obj
   }
 
@@ -64,36 +92,7 @@
     return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
   }
 
-  colorMapper.hslToRgb = function hslToRgb (hsl) {
-    let r
-    let g
-    let b
-    let h
-    let s
-    let l
-    if (s === 0) {
-      r = l
-      g = l
-      b = l // achromatic
-    } else {
-      const hue2rgb = function hue2rgb (p, q, t) {
-        if (t < 0) t += 1
-        if (t > 1) t -= 1
-        if (t < 1 / 6) return p + (q - p) * 6 * t
-        if (t < 1 / 2) return q
-        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
-        return p
-      }
-
-      const q = l < 0.5 ? l * (1 + s) : l + s - l * s
-      const p = 2 * l - q
-      r = hue2rgb(p, q, h + 1 / 3)
-      g = hue2rgb(p, q, h)
-      b = hue2rgb(p, q, h - 1 / 3)
-    }
-
-    return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) }
-  }
+  colorMapper.hslToRgb = hslParse
 
   colorMapper.transition = function transition (src, dest) {
     src = src || 'rgb(0,0,0)'
@@ -106,8 +105,7 @@
     dest = dest.startsWith('#') ? this.hexToRgb(dest)
       : dest.startsWith('rgb') ? rgbParse(dest)
         : dest.startsWith('hsl') ? hslParse(dest) : { r: 0, g: 0, b: 0 }
-    // console.log(src)
-    // console.log(dest)
+        
     return function trans (f) {
       return `rgb(${Math.round(src.r + (dest.r - src.r) * f)},${Math.round(src.g + (dest.g - src.g) * f)},${Math.round(src.b + (dest.b - src.b) * f)})`
     }

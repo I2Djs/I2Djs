@@ -1653,12 +1653,42 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   }
 
   function hslParse(hsl) {
-    var res = rgb.replace(/[^0-9\.,]+/g, '').split(',');
+    var r;
+    var g;
+    var b;
+    var a;
+    var h;
+    var s;
+    var l;
     var obj = {};
-    var flags = ['h', 's', 'l', 'a'];
-    for (var _i2 = 0; _i2 < res.length; _i2 += 1) {
-      obj[flags[_i2]] = res[_i2];
+    var res = hsl.replace(/[^0-9\.,]+/g, '').split(',').map(function (d) {
+      return parseFloat(d);
+    });
+    h = res[0] / 360;
+    s = res[1] / 100;
+    l = res[2] / 100;
+    a = res[3];
+    console.log(res);
+    if (s === 0) {
+      r = g = b = l; // achromatic
+    } else {
+      var hue2rgb = function hue2rgb(p, q, t) {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1 / 6) return p + (q - p) * 6 * t;
+        if (t < 1 / 2) return q;
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+        return p;
+      };
+
+      var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      var p = 2 * l - q;
+      obj.r = hue2rgb(p, q, h + 1 / 3) * 255;
+      obj.g = hue2rgb(p, q, h) * 255;
+      obj.b = hue2rgb(p, q, h - 1 / 3) * 255;
     }
+    if (a !== undefined) obj.a = a;
+    console.log(obj);
     return obj;
   }
 
@@ -1689,36 +1719,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
   };
 
-  colorMapper.hslToRgb = function hslToRgb(hsl) {
-    var r = void 0;
-    var g = void 0;
-    var b = void 0;
-    var h = void 0;
-    var s = void 0;
-    var l = void 0;
-    if (s === 0) {
-      r = l;
-      g = l;
-      b = l; // achromatic
-    } else {
-      var hue2rgb = function hue2rgb(p, q, t) {
-        if (t < 0) t += 1;
-        if (t > 1) t -= 1;
-        if (t < 1 / 6) return p + (q - p) * 6 * t;
-        if (t < 1 / 2) return q;
-        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-        return p;
-      };
-
-      var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-      var p = 2 * l - q;
-      r = hue2rgb(p, q, h + 1 / 3);
-      g = hue2rgb(p, q, h);
-      b = hue2rgb(p, q, h - 1 / 3);
-    }
-
-    return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
-  };
+  colorMapper.hslToRgb = hslParse;
 
   colorMapper.transition = function transition(src, dest) {
     src = src || 'rgb(0,0,0)';
@@ -1726,10 +1727,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     dest = dest || 'rgb(0,0,0)';
 
     src = src.startsWith('#') ? this.hexToRgb(src) : src.startsWith('rgb') ? rgbParse(src) : src.startsWith('hsl') ? hslParse(src) : { r: 0, g: 0, b: 0 };
-    dest = dest.startsWith('#') ? this.hexToRgb(dest) : dest.startsWith('rgb') ? rgbParse(dest) : dest.startsWith('hsl') ? hslParse(dest) : { r: 0, g: 0, b: 0
-      // console.log(src)
-      // console.log(dest)
-    };return function trans(f) {
+    dest = dest.startsWith('#') ? this.hexToRgb(dest) : dest.startsWith('rgb') ? rgbParse(dest) : dest.startsWith('hsl') ? hslParse(dest) : { r: 0, g: 0, b: 0 };
+
+    return function trans(f) {
       return 'rgb(' + Math.round(src.r + (dest.r - src.r) * f) + ',' + Math.round(src.g + (dest.g - src.g) * f) + ',' + Math.round(src.b + (dest.b - src.b) * f) + ')';
     };
   };
