@@ -72,12 +72,7 @@
 				}
 			},
 			end : function(d, i) {
-				this.setStyle('fill', {
-                                    r: 255,
-                                    g: 132,
-                                    b: 132,
-                                    a: 255
-                                })
+				this.setStyle('fill', i2d.color.rgba(255,132,132,255))
 				this.animateTo({
 					duration:10000,
 					loop: 100,

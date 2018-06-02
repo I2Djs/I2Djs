@@ -606,15 +606,12 @@
     } else {
       srcValue = self.style[key]
       if (isNaN(value)) {
-        if (value.startsWith('#') || value.startsWith('rgb') || value.startsWith('hsl')) {
-          const colorExe = colorMap.transition(srcValue, value)
+        if (colorMap.isTypeColor(value)) {
+          const colorExe = self instanceof WebglNodeExe ? colorMap.transitionObj(srcValue, value) : colorMap.transition(srcValue, value)
           return function inner (f) {
             self.setStyle(key, colorExe(f))
           }
         }
-        // else {
-        //   value = colorMap.nameToHex(value)
-        // }
         srcValue = srcValue.match(/(\d+)/g)
         destValue = value.match(/(\d+)/g)
         destUnit = value.match(/\D+$/)
@@ -1555,7 +1552,7 @@
   }
   RenderText.prototype.execute = function RTexecute () {
     if (this.attr.text !== undefined && this.attr.text !== null) {
-      if (this.ctx.fillStyle  !== '#000000') {
+      if (this.ctx.fillStyle !== '#000000') {
         this.ctx.fillText(this.attr.text, this.attr.x, this.attr.y)
       }
       if (this.ctx.strokeStyle !== '#000000') {
@@ -3098,7 +3095,7 @@
         colorArray[i * 4] = fill.r
         colorArray[i * 4 + 1] = fill.g
         colorArray[i * 4 + 2] = fill.b
-        colorArray[i * 4 + 3] = fill.a || 255
+        colorArray[i * 4 + 3] = (fill.a === undefined ? 255 : fill.a)
         styleFlag = true
         node.styleChanged = false
       }
@@ -3180,7 +3177,7 @@
         r = fill.r
         g = fill.g
         b = fill.b
-        a = fill.a || 255
+        a = (fill.a === undefined ? 255 : fill.a)
         ti = i * 24
         colorArray[ti] = colorArray[ti + 4] = colorArray[ti + 8] = colorArray[ti + 12] = colorArray[ti + 16] = colorArray[ti + 20] = r
         colorArray[ti + 1] = colorArray[ti + 5] = colorArray[ti + 9] = colorArray[ti + 13] = colorArray[ti + 17] = colorArray[ti + 21] = g
@@ -3250,7 +3247,7 @@
         r = stroke.r
         g = stroke.g
         b = stroke.b
-        a = stroke.a || 255
+        a = (stroke.a === undefined ? 255 : stroke.a)
         colorArray[i * 8] = r
         colorArray[i * 8 + 1] = g
         colorArray[i * 8 + 2] = b
@@ -3334,7 +3331,7 @@
         let r = fill.r || 0
         let g = fill.g || 0
         let b = fill.b || 0
-        let a = fill.a || 255.0
+        let a = (fill.a === undefined ? 255 : fill.a)
         for (let j = 0, jlen = points.length; j < jlen; j++) {
           colorArray[j * 4] = r
           colorArray[j * 4 + 1] = g
@@ -3405,7 +3402,7 @@
         let r = fill.r || 0
         let g = fill.g || 0
         let b = fill.b || 0
-        let a = fill.a || 255.0
+        let a = (fill.a === undefined ? 255 : fill.a)
         for (let j = 0, jlen = points.length; j < jlen; j++) {
           colorArray[j * 4] = r
           colorArray[j * 4 + 1] = g
@@ -3490,7 +3487,7 @@
         colorArray[i * 4] = fill.r
         colorArray[i * 4 + 1] = fill.g
         colorArray[i * 4 + 2] = fill.b
-        colorArray[i * 4 + 3] = fill.a || 255.0
+        colorArray[i * 4 + 3] = (fill.a === undefined ? 255 : fill.a)
         node.styleChanged = false
         styleFlag = true
       }
@@ -3596,11 +3593,17 @@
   }
   WebglNodeExe.prototype.setStyle = function WsetStyle (attr, value) {
     if (arguments.length === 2) {
+      if (attr === 'fill' || attr === 'stroke') {
+        value = colorMap.colorToRGB(value)
+      }
       this.style[attr] = value
     } else if (arguments.length === 1 && typeof attr === 'object') {
-      const keys = Object.keys(attr)
-      for (let i = 0; i < keys.length; i += 1) {
-        this.style[keys[i]] = attr[keys[i]]
+      for (let key in attr) {
+        value = attr[key]
+        if (key === 'fill' || key === 'stroke') {
+          value = colorMap.colorToRGB(attr[key])
+        }
+        this.style[key] = value
       }
     }
     this.styleChanged = true
@@ -3744,6 +3747,7 @@
   i2d.queue = queueInstance
   i2d.geometry = t2DGeometry
   i2d.chain = chain
+  i2d.color = colorMap
 
   return i2d
 }))

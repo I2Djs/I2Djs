@@ -38,12 +38,7 @@
                             y:e.offsetY
                         },
                         style:{
-                            fill:{
-                                r: 0,
-                                g: 203,
-                                b: 255,
-                                a: 255
-                            }
+                            fill:i2d.color.rgba(0,203,255,255)
                         },
                         bbox: false
                     })
@@ -54,6 +49,9 @@
                                     x:function(d){ return e.offsetX+Math.cos((2*Math.PI/29)*d)*300; },
                                     y:function(d){ return e.offsetY+Math.sin((2*Math.PI/29)*d)*300; },
                                     width:20
+                                },
+                                style:{
+                                    fill:i2d.color.rgba(0,203,255,0)
                                 },
                                 end:function(){
                                     this.remove();

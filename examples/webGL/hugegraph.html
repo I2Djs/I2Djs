@@ -49,24 +49,16 @@
             
             links = linesRef.createEls(graph.links,{
                             el:'line',
-                            style:{ stroke:{
-                                r:0,
-                                g:203,
-                                b:255,
-								a: 100
-                            } }
+                            style:{ 
+                                stroke: i2d.color.rgba(0,203,255,100)
+                            }
                         });
 
             circles = rectsRef.createEls(graph.nodes,{
                             el:'circle',
                             attr:{ r:5.0, cx:0, cy:0 },
                             style:{ fill: function(){
-                                return {
-                                r: parseInt(Math.random()*255),
-                                g: parseInt(Math.random()*255),
-                                b: parseInt(Math.random()*255),
-								a: 255
-                            }
+                                return i2d.color.rgba(parseInt(Math.random()*255),parseInt(Math.random()*255),parseInt(Math.random()*255),100)
                             } }
                         })
 

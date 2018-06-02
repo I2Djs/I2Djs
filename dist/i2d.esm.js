@@ -1637,9 +1637,42 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   var preDefinedColorHex = ['f0f8ff', 'faebd7', '00ffff', '7fffd4', 'f0ffff', 'f5f5dc', 'ffe4c4', '000000', 'ffebcd', '0000ff', '8a2be2', 'a52a2a', 'deb887', '5f9ea0', '7fff00', 'd2691e', 'ff7f50', '6495ed', 'fff8dc', 'dc143c', '00ffff', '00008b', '008b8b', 'b8860b', 'a9a9a9', 'a9a9a9', '006400', 'bdb76b', '8b008b', '556b2f', 'ff8c00', '9932cc', '8b0000', 'e9967a', '8fbc8f', '483d8b', '2f4f4f', '2f4f4f', '00ced1', '9400d3', 'ff1493', '00bfff', '696969', '696969', '1e90ff', 'b22222', 'fffaf0', '228b22', 'ff00ff', 'dcdcdc', 'f8f8ff', 'ffd700', 'daa520', '808080', '808080', '008000', 'adff2f', 'f0fff0', 'ff69b4', 'cd5c5c', '4b0082', 'fffff0', 'f0e68c', 'e6e6fa', 'fff0f5', '7cfc00', 'fffacd', 'add8e6', 'f08080', 'e0ffff', 'fafad2', 'd3d3d3', 'd3d3d3', '90ee90', 'ffb6c1', 'ffa07a', '20b2aa', '87cefa', '778899', '778899', 'b0c4de', 'ffffe0', '00ff00', '32cd32', 'faf0e6', 'ff00ff', '800000', '66cdaa', '0000cd', 'ba55d3', '9370db', '3cb371', '7b68ee', '00fa9a', '48d1cc', 'c71585', '191970', 'f5fffa', 'ffe4e1', 'ffe4b5', 'ffdead', '000080', 'fdf5e6', '808000', '6b8e23', 'ffa500', 'ff4500', 'da70d6', 'eee8aa', '98fb98', 'afeeee', 'db7093', 'ffefd5', 'ffdab9', 'cd853f', 'ffc0cb', 'dda0dd', 'b0e0e6', '800080', '663399', 'ff0000', 'bc8f8f', '4169e1', '8b4513', 'fa8072', 'f4a460', '2e8b57', 'fff5ee', 'a0522d', 'c0c0c0', '87ceeb', '6a5acd', '708090', '708090', 'fffafa', '00ff7f', '4682b4', 'd2b48c', '008080', 'd8bfd8', 'ff6347', '40e0d0', 'ee82ee', 'f5deb3', 'ffffff', 'f5f5f5', 'ffff00', '9acd32'];
 
   var colorMap = {};
+  var round = Math.round;
+  var defaultColor = 'rgba(0,0,0,0)';
 
   for (var i = 0; i < preDefinedColors.length; i += 1) {
     colorMap[preDefinedColors[i]] = preDefinedColorHex[i];
+  }
+
+  function RGBA(r, g, b, a) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+    this.a = a || 255;
+    this.rgba = 'rgb(' + r + ',' + g + ',' + b + ',' + a + ')';
+  }
+
+  function nameToHex(name) {
+    return colorMap[name] ? '#' + colorMap[name] : '#000';
+  }
+
+  function hexToRgb(hex) {
+    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    hex = hex.replace(shorthandRegex, function (m, r, g, b) {
+      return r + r + g + g + b + b;
+    });
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+
+    return new RGBA(parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16), 255);
+  }
+
+  function rgbToHex(rgb) {
+    var rgbComponents = rgb.substring(rgb.lastIndexOf('(') + 1, rgb.lastIndexOf(')')).split(',');
+    var r = parseInt(rgbComponents[0], 10);
+    var g = parseInt(rgbComponents[1], 10);
+    var b = parseInt(rgbComponents[2], 10);
+
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
   }
 
   function rgbParse(rgb) {
@@ -1649,7 +1682,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     for (var _i = 0; _i < res.length; _i += 1) {
       obj[flags[_i]] = parseFloat(res[_i]);
     }
-    return obj;
+    return new RGBA(obj.r, obj.g, obj.b, obj.a);
   }
 
   function hslParse(hsl) {
@@ -1668,9 +1701,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     s = res[1] / 100;
     l = res[2] / 100;
     a = res[3];
-    console.log(res);
     if (s === 0) {
-      r = g = b = l; // achromatic
+      r = g = b = l;
     } else {
       var hue2rgb = function hue2rgb(p, q, t) {
         if (t < 0) t += 1;
@@ -1683,55 +1715,58 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
       var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
       var p = 2 * l - q;
-      obj.r = hue2rgb(p, q, h + 1 / 3) * 255;
-      obj.g = hue2rgb(p, q, h) * 255;
-      obj.b = hue2rgb(p, q, h - 1 / 3) * 255;
+      r = hue2rgb(p, q, h + 1 / 3) * 255;
+      g = hue2rgb(p, q, h) * 255;
+      b = hue2rgb(p, q, h - 1 / 3) * 255;
     }
     if (a !== undefined) obj.a = a;
-    console.log(obj);
-    return obj;
+    return new RGBA(r, g, b, a);
   }
 
-  var colorMapper = {};
+  function colorToRGB(val) {
+    return val instanceof RGBA ? val : val.startsWith('#') ? this.hexToRgb(val) : val.startsWith('rgb') ? rgbParse(val) : val.startsWith('hsl') ? hslParse(val) : { r: 0, g: 0, b: 0 };
+  }
 
-  colorMapper.nameToHex = function nameToHex(name) {
-    return colorMap[name] ? '#' + colorMap[name] : '#000';
-  };
-  colorMapper.hexToRgb = function hexToRgb(hex) {
-    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-    hex = hex.replace(shorthandRegex, function (m, r, g, b) {
-      return r + r + g + g + b + b;
-    });
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  function colorTransition(src, dest) {
+    src = src || defaultColor;
+    dest = dest || defaultColor;
 
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : null;
-  };
-  colorMapper.rgbToHex = function rgbToHex(rgb) {
-    var rgbComponents = rgb.substring(rgb.lastIndexOf('(') + 1, rgb.lastIndexOf(')')).split(',');
-    var r = parseInt(rgbComponents[0], 10);
-    var g = parseInt(rgbComponents[1], 10);
-    var b = parseInt(rgbComponents[2], 10);
-
-    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-  };
-
-  colorMapper.hslToRgb = hslParse;
-
-  colorMapper.transition = function transition(src, dest) {
-    src = src || 'rgb(0,0,0)';
-
-    dest = dest || 'rgb(0,0,0)';
-
-    src = src.startsWith('#') ? this.hexToRgb(src) : src.startsWith('rgb') ? rgbParse(src) : src.startsWith('hsl') ? hslParse(src) : { r: 0, g: 0, b: 0 };
-    dest = dest.startsWith('#') ? this.hexToRgb(dest) : dest.startsWith('rgb') ? rgbParse(dest) : dest.startsWith('hsl') ? hslParse(dest) : { r: 0, g: 0, b: 0 };
-
+    src = colorToRGB(src);
+    dest = colorToRGB(dest);
     return function trans(f) {
       return 'rgb(' + Math.round(src.r + (dest.r - src.r) * f) + ',' + Math.round(src.g + (dest.g - src.g) * f) + ',' + Math.round(src.b + (dest.b - src.b) * f) + ')';
     };
+  }
+
+  function colorRGBtransition(src, dest) {
+    src = src || defaultColor;
+    dest = dest || defaultColor;
+
+    src = colorToRGB(src);
+    dest = colorToRGB(dest);
+    return function trans(f) {
+      return new RGBA(round(src.r + (dest.r - src.r) * f), round(src.g + (dest.g - src.g) * f), round(src.b + (dest.b - src.b) * f), round(src.a + (dest.a - src.a) * f));
+    };
+  }
+
+  function rgbaInstance(r, g, b, a) {
+    return new RGBA(r, g, b, a);
+  }
+
+  function isTypeColor(value) {
+    return value instanceof RGBA || value.startsWith('#') || value.startsWith('rgb') || value.startsWith('hsl');
+  }
+
+  var colorMapper = {
+    nameToHex: nameToHex,
+    hexToRgb: hexToRgb,
+    rgbToHex: rgbToHex,
+    hslToRgb: hslParse,
+    transition: colorTransition,
+    transitionObj: colorRGBtransition,
+    colorToRGB: colorToRGB,
+    rgba: rgbaInstance,
+    isTypeColor: isTypeColor
   };
 
   return colorMapper;
@@ -4313,15 +4348,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     } else {
       srcValue = self.style[key];
       if (isNaN(value)) {
-        if (value.startsWith('#') || value.startsWith('rgb') || value.startsWith('hsl')) {
-          var colorExe = colorMap.transition(srcValue, value);
+        if (colorMap.isTypeColor(value)) {
+          var colorExe = self instanceof WebglNodeExe ? colorMap.transitionObj(srcValue, value) : colorMap.transition(srcValue, value);
           return function inner(f) {
             self.setStyle(key, colorExe(f));
           };
         }
-        // else {
-        //   value = colorMap.nameToHex(value)
-        // }
         srcValue = srcValue.match(/(\d+)/g);
         destValue = value.match(/(\d+)/g);
         destUnit = value.match(/\D+$/);
@@ -7437,11 +7469,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   };
   WebglNodeExe.prototype.setStyle = function WsetStyle(attr, value) {
     if (arguments.length === 2) {
+      if (attr === 'fill' || attr === 'stroke') {
+        value = colorMap.colorToRGB(value);
+      }
       this.style[attr] = value;
     } else if (arguments.length === 1 && (typeof attr === 'undefined' ? 'undefined' : _typeof(attr)) === 'object') {
-      var keys = Object.keys(attr);
-      for (var i = 0; i < keys.length; i += 1) {
-        this.style[keys[i]] = attr[keys[i]];
+      for (var key in attr) {
+        value = attr[key];
+        if (key === 'fill' || key === 'stroke') {
+          value = colorMap.colorToRGB(attr[key]);
+        }
+        this.style[key] = value;
       }
     }
     this.styleChanged = true;
@@ -7590,6 +7628,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   i2d.queue = queueInstance;
   i2d.geometry = t2DGeometry;
   i2d.chain = chain;
+  i2d.color = colorMap;
 
   return i2d;
 });

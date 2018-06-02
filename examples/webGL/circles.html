@@ -7,19 +7,28 @@
 
 	<div id="canvas" style="height: 100%;width:100%;background: black">
 	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+	 <script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/shaders.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
 
 	<script type="text/javascript">
         var webglRenderer = i2d.WebglLayer('#canvas',{events:false,selectiveClear:false});
-
+		console.log(i2d)
 		/************** circles *****************/
 
 		var circlesData = []
-		for(let i=0; i< 10000; i++) {
+		for(let i=0; i< 20000; i++) {
 			circlesData.push({
-				cx: Math.random()*1400,
-				cy: Math.random()*1000,
-				r: 7+Math.random()*5
+				cx: Math.random()*1200,
+				cy: Math.random()*800,
+				r: 4+Math.random()*3
 			})
 		}
 		
@@ -35,14 +44,9 @@
 				},
 				style: { 
 					fill: function(){
-                                return {
-                                r: parseInt(Math.random()*255),
-                                g: parseInt(Math.random()*255),
-                                b: parseInt(Math.random()*255),
-								a: 255
-                            }
-                            } 
-						}
+							return i2d.color.rgba(parseInt(Math.random()*255), parseInt(Math.random()*255), parseInt(Math.random()*255), 255)
+                        } 
+				}
 			})
 		
 		circlesRef.animateTo({
@@ -52,6 +56,11 @@
 				attr:{
 					cx: function(d) {return parseInt(Math.random()*1400)},
 					cy: function(d) {return parseInt(Math.random()*1000)}
+				},
+				style: { 
+					fill: function(){
+							return i2d.color.rgba(parseInt(Math.random()*255), parseInt(Math.random()*255), parseInt(Math.random()*255), 255)
+                        }
 				}
 			})
 		
