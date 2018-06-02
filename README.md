@@ -64,9 +64,9 @@ Examples (SVG + Canvas + WebGL)
 ### Graphs
 <table>
     <tr>
-        <td width="25%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="150" src="https://i2djs.github.io/I2Djs/examples/snaps/graph.gif"></a></td>
-        <td width="25%"><a href="https://i2djs.github.io/I2Djs/examples/webGL/hugegraph.html"><img width="150" src="https://i2djs.github.io/I2Djs/examples/snaps/hugeGraph.gif"></a></td>
-        <td width="25%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/networkSystem.html"><img width="150" src="https://i2djs.github.io/I2Djs/examples/snaps/graphAnimation.gif"></a></td>
+        <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/graph.gif"></a></td>
+        <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/webGL/hugegraph.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/hugeGraph.gif"></a></td>
+        <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/networkSystem.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/graphAnimation.gif"></a></td>
     </tr>
 </table>
 
