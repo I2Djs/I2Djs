@@ -44,29 +44,29 @@ Examples (SVG + Canvas + WebGL)
 ### Animation 
 <table>
     <tr>
-      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/attributesAnimation.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/attributeAnimation.gif"></a></td>
-      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/circleMovementAnimation.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/circleMoveMent.gif"></a></td>
-      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent2.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/mouse2Animation.gif"></a></td>
-      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/mouseAnimation.gif"></a></td>
-      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/image.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/imageAnimation.gif"></a></td>
-      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathAnimator.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/PathAnimation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/attributesAnimation.html"><img src="https://i2djs.github.io/I2Djs/examples/snaps/attributeAnimation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/circleMovementAnimation.html"><img src="https://i2djs.github.io/I2Djs/examples/snaps/circleMoveMent.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent2.html"><img src="https://i2djs.github.io/I2Djs/examples/snaps/mouse2Animation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent.html"><img src="https://i2djs.github.io/I2Djs/examples/snaps/mouseAnimation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/image.html"><img src="https://i2djs.github.io/I2Djs/examples/snaps/imageAnimation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathAnimator.html"><img  src="https://i2djs.github.io/I2Djs/examples/snaps/PathAnimation.gif"></a></td>
     </tr>
   <tr>
-    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathMorph.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/PathMorphAnimation.gif"></a></td>
-    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/solarSystem.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/solarAnimation.gif"></a></td>
-    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/distortion.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/distortion.gif"></a></td>
-    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/radarAnimation.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/radarScanner.gif"></a></td>
-    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/sparklesAnimation.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/sparkles.gif"></a></td>
-    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/webGL/I2dAnimation.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/I2DAnimation.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathMorph.html"><img  src="https://i2djs.github.io/I2Djs/examples/snaps/PathMorphAnimation.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/solarSystem.html"><img  src="https://i2djs.github.io/I2Djs/examples/snaps/solarAnimation.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/distortion.html"><img  src="https://i2djs.github.io/I2Djs/examples/snaps/distortion.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/radarAnimation.html"><img  src="https://i2djs.github.io/I2Djs/examples/snaps/radarScanner.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/sparklesAnimation.html"><img  src="https://i2djs.github.io/I2Djs/examples/snaps/sparkles.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/webGL/I2dAnimation.html"><img  src="https://i2djs.github.io/I2Djs/examples/snaps/I2DAnimation.gif"></a></td>
   </tr>
 </table>
 
 ### Graphs
 <table>
     <tr>
-        <td width="25%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="150" src="https://i2djs.github.io/I2Djs/examples/snaps/graph.gif"></a></td>
-        <td width="25%"><a href="https://i2djs.github.io/I2Djs/examples/webGL/hugegraph.html"><img width="150" src="https://i2djs.github.io/I2Djs/examples/snaps/hugeGraph.gif"></a></td>
-        <td width="25%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/networkSystem.html"><img width="150" src="https://i2djs.github.io/I2Djs/examples/snaps/graphAnimation.gif"></a></td>
+        <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/graph.gif"></a></td>
+        <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/webGL/hugegraph.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/hugeGraph.gif"></a></td>
+        <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/networkSystem.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/graphAnimation.gif"></a></td>
     </tr>
 </table>
 
