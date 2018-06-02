@@ -6764,9 +6764,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.attr = attr || {};
     this.style = style || {};
   }
-  // PointNode.prototype.setAttr = function (prop, value) {
-  //   this.attr[prop] = value
-  // }
+  PointNode.prototype.setAttr = function (prop, value) {
+    this.attr[prop] = value;
+  };
   // PointNode.prototype.getAttr = function (key) {
   //   return this.attr[key]
   // }
@@ -6781,10 +6781,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.attr = attr || {};
     this.style = style || {};
   }
-  // RectNode.prototype.setAttr = function (key, value) {
-  //   this.attr[key] = value
-  //   this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe), this.nodeExe)
-  // }
+  RectNode.prototype.setAttr = function (key, value) {
+    this.attr[key] = value;
+    // this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe), this.nodeExe)
+  };
   // RectNode.prototype.getAttr = function (key) {
   //   return this.attr[key]
   // }
@@ -7268,7 +7268,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           positionArray[j * 2] = points[j].x;
           positionArray[j * 2 + 1] = points[j].y;
         }
-        this.polyLineArray[i].positionArray = new Float32Array(positionArray);
+        if (!this.polygonArray[i]) {
+          this.polygonArray[i] = {};
+        }
+        this.polygonArray[i].positionArray = new Float32Array(positionArray);
       }
 
       if (node.styleChanged) {
@@ -7285,13 +7288,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           colorArray[_j3 * 4 + 2] = b;
           colorArray[_j3 * 4 + 3] = a;
         }
-        this.polyLineArray[i].colorArray = new Uint8Array(colorArray);
+        this.polygonArray[i].colorArray = new Uint8Array(colorArray);
       }
-      this.inputs[0].data = this.polyLineArray[i].colorArray;
-      this.inputs[1].data = this.polyLineArray[i].positionArray;
+      this.inputs[0].data = this.polygonArray[i].colorArray;
+      this.inputs[1].data = this.polygonArray[i].positionArray;
       writeDataToShaderAttributes(this.ctx, this.inputs);
 
-      this.ctx.drawArrays(this.ctx.TRIANGLES, 0, this.polyLineArray[i].positionArray.length / 2);
+      this.ctx.drawArrays(this.ctx.TRIANGLES, 0, this.polygonArray[i].positionArray.length / 2);
     }
   };
 
@@ -7457,10 +7460,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   WebglNodeExe.prototype.setAttr = function WsetAttr(attr, value) {
     if (arguments.length === 2) {
       this.attr[attr] = value;
+      this.dom.setAttr(attr, value);
     } else if (arguments.length === 1 && (typeof attr === 'undefined' ? 'undefined' : _typeof(attr)) === 'object') {
-      var keys = Object.keys(attr);
-      for (var i = 0; i < keys.length; i += 1) {
-        this.attr[keys[i]] = attr[keys[i]];
+      for (var key in attr) {
+        this.attr[key] = attr[key];
+        this.dom.setAttr(key, attr[key]);
       }
     }
     this.propChanged = true;
