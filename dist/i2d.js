@@ -1495,7 +1495,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function colorM
     this.r = r
     this.g = g
     this.b = b
-    this.a = a || 255
+    this.a = (a === undefined ? 255 : a)
     this.rgba = `rgb(${r},${g},${b},${a})`
   }
 
@@ -6713,7 +6713,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         colorArray[i * 4] = fill.r
         colorArray[i * 4 + 1] = fill.g
         colorArray[i * 4 + 2] = fill.b
-        colorArray[i * 4 + 3] = fill.a || 255
+        colorArray[i * 4 + 3] = (fill.a === undefined ? 255 : fill.a)
         styleFlag = true
         node.styleChanged = false
       }
@@ -6795,7 +6795,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         r = fill.r
         g = fill.g
         b = fill.b
-        a = fill.a || 255
+        a = (fill.a === undefined ? 255 : fill.a)
         ti = i * 24
         colorArray[ti] = colorArray[ti + 4] = colorArray[ti + 8] = colorArray[ti + 12] = colorArray[ti + 16] = colorArray[ti + 20] = r
         colorArray[ti + 1] = colorArray[ti + 5] = colorArray[ti + 9] = colorArray[ti + 13] = colorArray[ti + 17] = colorArray[ti + 21] = g
@@ -6865,7 +6865,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         r = stroke.r
         g = stroke.g
         b = stroke.b
-        a = stroke.a || 255
+        a = (stroke.a === undefined ? 255 : stroke.a)
         colorArray[i * 8] = r
         colorArray[i * 8 + 1] = g
         colorArray[i * 8 + 2] = b
@@ -6949,7 +6949,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         let r = fill.r || 0
         let g = fill.g || 0
         let b = fill.b || 0
-        let a = fill.a || 255.0
+        let a = (fill.a === undefined ? 255 : fill.a)
         for (let j = 0, jlen = points.length; j < jlen; j++) {
           colorArray[j * 4] = r
           colorArray[j * 4 + 1] = g
@@ -7020,7 +7020,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         let r = fill.r || 0
         let g = fill.g || 0
         let b = fill.b || 0
-        let a = fill.a || 255.0
+        let a = (fill.a === undefined ? 255 : fill.a)
         for (let j = 0, jlen = points.length; j < jlen; j++) {
           colorArray[j * 4] = r
           colorArray[j * 4 + 1] = g
@@ -7105,7 +7105,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         colorArray[i * 4] = fill.r
         colorArray[i * 4 + 1] = fill.g
         colorArray[i * 4 + 2] = fill.b
-        colorArray[i * 4 + 3] = fill.a || 255.0
+        colorArray[i * 4 + 3] = (fill.a === undefined ? 255 : fill.a)
         node.styleChanged = false
         styleFlag = true
       }
