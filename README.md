@@ -79,8 +79,8 @@ Examples (SVG + Canvas + WebGL)
 ---
 
 #### Create Layer
-Below specified methods are to create the respective Canvas/SVG/WebGl layers. It accepts container ID as an input, gives renderer instance as an output.
-Multiple SVG/Canvas/WebGl layers can be defined. Each layer represents corresponding Dom element - SVG for SVGlayer, Canvas for Canvas/Webgl layer.
+Below specified methods are to create the respective Canvas/SVG/WebGl layers. Layer renders corresponding Dom element - SVGlayer for SVG, Canvas for Canvas 2D , Webgllayer for WebGl. It accepts container ID as an input, gives renderer instance as an output.
+Multiple SVG/Canvas/WebGl layers can be defined.
 
 | Canvas  | SVG |  WebGl |
 | ------------- | ------------- | ------------- |
