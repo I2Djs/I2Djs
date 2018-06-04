@@ -4,11 +4,10 @@
 
 # Integrated-2D js [![npm](https://img.shields.io/npm/v/i2djs.svg)](https://www.npmjs.com/package/i2djs) [![Downloads](https://img.shields.io/npm/dm/i2djs.svg)](https://www.npmjs.com/package/i2djs)
 
-### I2dJs (SVG + Canvas + WebGL)
+### I2dJs - SVG + Canvas + WebGL
 
-Integrated-2D is a Javascript framework, for rendering 2D graphics on SVG, Canvas and WebGL contexts. It's simple syntax and semantics lets you combine the power of Vector graphics and Bitmap to achieve complex visualisations easily.
 
-For efficient rendering I2D creates elements called mini Virtual Doms, virtual representation of render trees.
+Integrated-2D - is an OpenSource Javascript framework for rendering 2D graphics on SVG, Canvas and WebGL contexts. I2D's simple syntax and semantics lets you combine the power of Vector graphics and Bitmap to achieve complex visualisations easily.
 
 ## Installing
 
@@ -22,6 +21,9 @@ Download source code from below links
 ```
 npm install i2djs --save
 ```
+
+## Resources
+[API reference](https://github.com/I2djs/I2D/wiki/API-Reference)
 
 Examples (SVG + Canvas + WebGL)
 ---
@@ -42,45 +44,58 @@ Examples (SVG + Canvas + WebGL)
 ### Animation 
 <table>
     <tr>
-      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/attributesAnimation.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/attributeAnimation.gif"></a></td>
-      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/circleMovementAnimation.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/circleMoveMent.gif"></a></td>
-      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent2.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/mouse2Animation.gif"></a></td>
-      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/mouseAnimation.gif"></a></td>
-      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/image.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/imageAnimation.gif"></a></td>
-      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathAnimator.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/PathAnimation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/attributesAnimation.html"><img src="https://i2djs.github.io/I2Djs/examples/snaps/attributeAnimation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/circleMovementAnimation.html"><img src="https://i2djs.github.io/I2Djs/examples/snaps/circleMoveMent.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent2.html"><img src="https://i2djs.github.io/I2Djs/examples/snaps/mouse2Animation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent.html"><img src="https://i2djs.github.io/I2Djs/examples/snaps/mouseAnimation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/image.html"><img src="https://i2djs.github.io/I2Djs/examples/snaps/imageAnimation.gif"></a></td>
+      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathAnimator.html"><img  src="https://i2djs.github.io/I2Djs/examples/snaps/PathAnimation.gif"></a></td>
     </tr>
   <tr>
-    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathMorph.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/PathMorphAnimation.gif"></a></td>
-    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/solarSystem.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/solarAnimation.gif"></a></td>
-    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/distortion.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/distortion.gif"></a></td>
-    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/radarAnimation.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/radarScanner.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathMorph.html"><img  src="https://i2djs.github.io/I2Djs/examples/snaps/PathMorphAnimation.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/solarSystem.html"><img  src="https://i2djs.github.io/I2Djs/examples/snaps/solarAnimation.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/distortion.html"><img  src="https://i2djs.github.io/I2Djs/examples/snaps/distortion.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/radarAnimation.html"><img  src="https://i2djs.github.io/I2Djs/examples/snaps/radarScanner.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/sparklesAnimation.html"><img  src="https://i2djs.github.io/I2Djs/examples/snaps/sparkles.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/webGL/I2dAnimation.html"><img  src="https://i2djs.github.io/I2Djs/examples/snaps/I2DAnimation.gif"></a></td>
   </tr>
 </table>
 
 ### Graphs
 <table>
     <tr>
-        <td width="25%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="150" src="https://i2djs.github.io/I2Djs/examples/snaps/graph.gif"></a></td>
-        <td width="25%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/hugeGraph.html"><img width="150" src="https://i2djs.github.io/I2Djs/examples/snaps/hugeGraph.gif"></a></td>
-        <td width="25%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/networkSystem.html"><img width="150" src="https://i2djs.github.io/I2Djs/examples/snaps/graphAnimation.gif"></a></td>
+        <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/graph.gif"></a></td>
+        <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/webGL/hugegraph.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/hugeGraph.gif"></a></td>
+        <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/networkSystem.html"><img width="100" src="https://i2djs.github.io/I2Djs/examples/snaps/graphAnimation.gif"></a></td>
     </tr>
 </table>
 
+### Scale
+| SVG  | Canvas |  WebGl |
+| ------------- | ------------- | ------------- |
+|  [5000 Particles ](https://i2djs.github.io/I2Djs/examples/svg/distortion2.html) | [30000 Particles ](https://i2djs.github.io/I2Djs/examples/canvas/distortion2.html)  | [100000 Particles ](https://i2djs.github.io/I2Djs/examples/webGL/distortion2.html) |
+
 ### To Begin
+---
 
 #### Create Layer
-Below specified methods are to create the respective Canvas/SVG layers. It accepts container ID as an input, gives renderer instance as an output.
-Multiple SVG/Canvas can be defined. Each layer represents corresponding Dom element - SVG for SVGlayer, Canvas for Canvas layer.
+Below specified methods are to create the respective Canvas/SVG/WebGl layers. Layer renders corresponding Dom element - SVGlayer for SVG, Canvas for Canvas 2D , Webgllayer for WebGl. It accepts container ID as an input, gives renderer instance as an output.
+Multiple SVG/Canvas/WebGl layers can be defined.
 
-| Canvas  | SVG |
-| ------------- | ------------- |
-| canvasRenderer = i2d.CanvasLayer('#containerId', ConfigObj)  | svgRenderer = i2d.SVGLayer('#containerId')  |
+| Canvas  | SVG |  WebGl |
+| ------------- | ------------- | ------------- |
+| i2d.CanvasLayer('#containerId', Config)  | i2d.SVGLayer('#containerId', Config)  | i2d.WebglLayer('#containerId', Config) |
 
 #### Create Shape
 Lets use renderer instance to create shapes, animate attributes.. etc.
 
+** Incase of Webgl **
+
+   Group node with specific element type to be created before creating Elements
+   For example: 'Points' group to be created by setting 'shaderType' in config object.
+
 ```javascript
-  layerRenderer.createEl({
+  var rect = layerRenderer.createEl({
                   el:'rect',
                   attr:{
                       //Attributes goes here
@@ -96,13 +111,28 @@ Lets use renderer instance to create shapes, animate attributes.. etc.
               })
 ```
 
+#### Animate Shape
+Attribute Animation can be performed easily using <b>animateTo</b> api
 
-Resources
----
-[API reference](https://github.com/I2djs/I2D/wiki/API-Reference)
+```javascript
+rect.animateTo({
+               duration : 1000,
+               ease : 'easeInOutSin',
+               loop : 10,
+               direction : 'alternate'
+               attr : {
+                   width: 200
+               },
+               style : {
+                   opacity: 0
+               },
+               end: function(){
+                   this.remove();
+               }
+           })
+```
 
 
 ### Support & Compatibility
-I2D is implemented in ES2016. It supports Universal Module Definition(UMD)(AMD,CommonJS and vanilla environments) , based on the environment it can be imported accordingly.
-It is compatible with all modern browsers.
-    
+I2D supports Universal Module Definition(UMD)(AMD,CommonJS and vanilla environments) , based on the environment it can be imported accordingly.
+It is compatible with all modern browsers with latest versions.

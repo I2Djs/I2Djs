@@ -7,18 +7,7 @@
 	<label style="position: absolute;color: white"> Webgl Example </label>
 	<div id="canvas" style="height: 100%;width:100%;background: black">
 	</div>
-	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
-	<script type="text/javascript" src="../../src/earcut.min.js"></script>
-	<script type="text/javascript" src="../../src/colorMap.js"></script>
-	<script type="text/javascript" src="../../src/geometry.js"></script>
-	<script type="text/javascript" src="../../src/easing.js"></script>
-    <script type="text/javascript" src="../../src/vDom.js"></script>
-	<script type="text/javascript" src="../../src/queue.js"></script>
-    <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/path.js"></script>
-    <script type="text/javascript" src="../../src/shaders.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>
-
+	<script type="text/javascript" src="../../dist/i2d.js"></script>
 	<script type="text/javascript">
         var webglRenderer = i2d.WebglLayer('#canvas',{events:false,selectiveClear:false});
 
@@ -46,12 +35,7 @@
 				attr:{
 					points: function(d) {return d.points}
 				},
-				style: { fill: {
-							r: 0,
-							g: 203,
-							b: 255,
-							a: 255
-						} }
+				style: { fill: i2d.color.rgba(0,203,255,255) }
 			})
 		
 		/************** End polygons *****************/

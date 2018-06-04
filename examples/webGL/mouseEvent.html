@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+	<!--<div style="height: 400px;width:400px;position: absolute;background: black" id='myCanvas'>
+	</div>-->
+	<div style="height: 100%;width:100%;position: absolute;background: black" id='myCanvas'>
+	</div>
+    <!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+    <script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/shaders.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>
+	<script type="text/javascript">
+
+            var renderer_ = i2d.WebglLayer('#myCanvas',{events:false,selectiveClear:false});
+            var rectsRef = renderer_.createEl({
+                el:'group',
+                shaderType:'rects'
+            })
+
+            var i = 0;
+            var sqrt = Math.sqrt
+                window.addEventListener("mousemove",function(e){
+                    rectsRef.createEls([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],{
+                        el:'rect',
+                        attr:{
+                            width:7,
+                            height:5,
+                            x:e.offsetX,
+                            y:e.offsetY
+                        },
+                        style:{
+                            fill:'hsl('+(i = (i + 1) % 360)+',100%,50%)'
+                        },
+                        bbox: false
+                    })
+                    .animateTo({
+                                duration:2000,
+                                ease:'easeOutCubic',
+                                attr:{
+                                    x:function(d){ return e.offsetX+Math.cos((2*Math.PI/29)*d)*300; },
+                                    y:function(d){ return e.offsetY+Math.sin((2*Math.PI/29)*d)*300; },
+                                    width:100
+                                },
+                                style:{
+                                    fill:'hsl('+(i % 360)+',100%,0%)'
+                                },
+                                end:function(){
+                                    this.remove();
+                                }
+                            });
+                    e.preventDefault();
+                },false);
+
+	</script>
+</body>
+</html>

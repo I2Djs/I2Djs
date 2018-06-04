@@ -487,10 +487,17 @@
     if (typeof tattr !== 'function') {
       for (let key in tattr) {
         if (key !== 'transform') {
-          if (key === 'd') {
-            self.morphTo(targetConfig)
+          let value = tattr[key]
+          if (typeof value === 'function') {
+            runStack[runStack.length] = function setAttr_ (f) {
+              self.setAttr(key, value.call(self, f))
+            }
           } else {
-            runStack[runStack.length] = attrTransition(self, key, tattr[key])
+            if (key === 'd') {
+              self.morphTo(targetConfig)
+            } else {
+              runStack[runStack.length] = attrTransition(self, key, tattr[key])
+            }
           }
         } else {
           value = tattr[key]
@@ -578,11 +585,11 @@
 
   let attrTransition = function attrTransition (self, key, value) {
     let srcVal = self.attr[key]
-    if (typeof value === 'function') {
-      return function setAttr_ (f) {
-        self.setAttr(key, value.call(self, f))
-      }
-    }
+    // if (typeof value === 'function') {
+    //   return function setAttr_ (f) {
+    //     self.setAttr(key, value.call(self, f))
+    //   }
+    // }
     return function setAttr_ (f) {
       self.setAttr(key, t2DGeometry.intermediateValue(srcVal, value, f))
     }
@@ -599,15 +606,12 @@
     } else {
       srcValue = self.style[key]
       if (isNaN(value)) {
-        if (value.startsWith('#') || value.startsWith('rgb') || value.startsWith('hsl')) {
-          const colorExe = colorMap.transition(srcValue, value)
+        if (colorMap.isTypeColor(value)) {
+          const colorExe = self instanceof WebglNodeExe ? colorMap.transitionObj(srcValue, value) : colorMap.transition(srcValue, value)
           return function inner (f) {
             self.setStyle(key, colorExe(f))
           }
         }
-        // else {
-        //   value = colorMap.nameToHex(value)
-        // }
         srcValue = srcValue.match(/(\d+)/g)
         destValue = value.match(/(\d+)/g)
         destUnit = value.match(/\D+$/)
@@ -720,628 +724,9 @@
         node.text(value.call(node, node.dataObj, i))
       }
     }
-
     return this
   }
 
-  const morphTo = function morphTo (targetConfig) {
-    const self = this
-    const { duration } = targetConfig
-    const { ease } = targetConfig
-    const loop = targetConfig.loop ? targetConfig.loop : 0
-    const direction = targetConfig.direction ? targetConfig.direction : 'default'
-    const destD = targetConfig.attr.d ? targetConfig.attr.d : self.attr.d
-
-    let srcPath = path.isTypePath(self.attr.d) ? self.attr.d.stackGroup : (i2d.Path(self.attr.d)).stackGroup
-    let destPath = path.isTypePath(destD) ? destD.stackGroup : (i2d.Path(destD)).stackGroup
-
-    const chainInstance = []
-
-    self.arrayStack = []
-
-    if (srcPath.length > 1) {
-      srcPath = srcPath.sort((aa, bb) => bb.segmentLength - aa.segmentLength)
-    }
-    if (destPath.length > 1) {
-      destPath = destPath.sort((aa, bb) => bb.segmentLength - aa.segmentLength)
-    }
-
-    const maxGroupLength = srcPath.length > destPath.length ? srcPath.length : destPath.length
-
-    mapper(toCubicCurves(srcPath[0]), toCubicCurves(destPath[0]))
-
-    for (let j = 1; j < maxGroupLength; j += 1) {
-      if (srcPath[j]) {
-        mapper(toCubicCurves(srcPath[j]), [{
-          type: 'M',
-          p0: srcPath[j][0].p0
-        }])
-      }
-      if (destPath[j]) {
-        mapper([{
-          type: 'M',
-          p0: destPath[j][0].p0
-        }], toCubicCurves(destPath[j]))
-      }
-    }
-
-    function toCubicCurves (stack) {
-      if (!stack.length) { return }
-      const _ = stack
-      const mappedArr = []
-      for (let i = 0; i < _.length; i += 1) {
-        if (['M', 'C', 'S', 'Q'].indexOf(_[i].type) !== -1) {
-          mappedArr.push(_[i])
-        } else if (['V', 'H', 'L', 'Z'].indexOf(_[i].type) !== -1) {
-          const ctrl1 = {
-            x: (_[i].p0.x + _[i].p1.x) / 2,
-            y: (_[i].p0.y + _[i].p1.y) / 2
-          }
-          mappedArr.push({
-            p0: _[i].p0,
-            cntrl1: ctrl1,
-            cntrl2: ctrl1,
-            p1: _[i].p1,
-            type: 'C',
-            length: _[i].length
-          })
-        } else {
-          // console.log('wrong cmd type')
-        }
-      }
-      return mappedArr
-    }
-
-    function buildMTransitionobj (src, dest) {
-      chainInstance.push({
-        run (path, f) {
-          const point = this.pointTansition(f)
-          path.m(true, {x: point.x, y: point.y})
-        },
-        pointTansition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.p0, dest.p0)
-      })
-    }
-
-    function buildTransitionObj (src, dest) {
-      chainInstance.push({
-        run (path, f) {
-          const t = this
-          const c1 = t.ctrl1Transition(f)
-          const c2 = t.ctrl2Transition(f)
-          const p1 = t.destTransition(f)
-          path.c(true, {x: c1.x, y: c1.y}, {x: c2.x, y: c2.y}, {x: p1.x, y: p1.y})
-        },
-        srcTransition: t2DGeometry.linearTransitionBetweenPoints.bind(
-          null,
-          src.p0,
-          dest.p0
-        ),
-        ctrl1Transition: t2DGeometry.linearTransitionBetweenPoints.bind(
-          null,
-          src.cntrl1,
-          dest.cntrl1
-        ),
-        ctrl2Transition: t2DGeometry.linearTransitionBetweenPoints.bind(
-          null,
-          src.cntrl2,
-          dest.cntrl2
-        ),
-        destTransition: t2DGeometry.linearTransitionBetweenPoints.bind(
-          null,
-          src.p1,
-          dest.p1
-        )
-      })
-    }
-
-    function normalizeCmds (cmd, n) {
-      if (cmd.length === n) { return cmd }
-      const totalLength = cmd.reduce((pp, cc) => pp + cc.length, 0)
-      const arr = []
-
-      for (let i = 0; i < cmd.length; i += 1) {
-        const len = cmd[i].length
-        let counter = Math.floor((n / totalLength) * len)
-        if (counter <= 1) {
-          arr.push(cmd[i])
-        } else {
-          let t = cmd[i]
-          let split
-          while (counter > 1) {
-            const cmdX = t
-            split = splitBezier([cmdX.p0, cmdX.cntrl1, cmdX.cntrl2, cmdX.p1].slice(0), 1 / counter)
-            arr.push({
-              p0: cmdX.p0,
-              cntrl1: split.b1[0],
-              cntrl2: split.b1[1],
-              p1: split.b1[2],
-              type: 'C'
-            })
-            t = {
-              p0: split.b1[2],
-              cntrl1: split.b2[0],
-              cntrl2: split.b2[1],
-              p1: split.b2[2],
-              type: 'C'
-            }
-            counter -= 1
-          }
-          arr.push(t)
-        }
-      }
-      return arr
-    }
-
-    function splitBezier (arr, perc) {
-      const coll = []
-      const arrayLocal = arr
-      while (arrayLocal.length > 0) {
-        for (let i = 0; i < arrayLocal.length - 1; i += 1) {
-          coll.unshift(arrayLocal[i])
-          arrayLocal[i] = interpolate(arrayLocal[i], arrayLocal[i + 1], perc)
-        }
-        coll.unshift(arrayLocal.pop())
-      }
-      return {
-        b1: [{
-          x: coll[5].x,
-          y: coll[5].y
-        }, {
-          x: coll[2].x,
-          y: coll[2].y
-        }, {
-          x: coll[0].x,
-          y: coll[0].y
-        }],
-        b2: [{
-          x: coll[1].x,
-          y: coll[1].y
-        }, {
-          x: coll[3].x,
-          y: coll[3].y
-        }, {
-          x: coll[6].x,
-          y: coll[6].y
-        }]
-      }
-    }
-
-    function interpolate (p0, p1, percent) {
-      return {
-        x: p0.x + (p1.x - p0.x) * (percent !== undefined ? percent : 0.5),
-        y: p0.y + (p1.y - p0.y) * (percent !== undefined ? percent : 0.5)
-      }
-    }
-
-    // function getRightBeginPoint (src, dest) {
-    //   let closestPoint = 0,
-    //     minDistance = 99999999
-
-    //   for (let i = 0; i < dest.length; i += 1) {
-    //     if (t2DGeometry.getDistance(src[0].p0, dest[i].p0) < minDistance) {
-    //       minDistance = t2DGeometry.getDistance(src[0].p0, dest[i].p0)
-    //       closestPoint = i
-    //     }
-    //   }
-
-    //   return closestPoint
-    // }
-
-    function getDirection (data) {
-      let dir = 0
-
-      for (let i = 0; i < data.length; i += 1) {
-        if (data[i].type !== 'M') { dir += (data[i].p1.x - data[i].p0.x) * (data[i].p1.y + data[i].p0.y) }
-      }
-
-      return dir
-    }
-
-    function reverse (data) {
-      const dataLocal = data.reverse()
-      const newArray = [{
-        type: 'M',
-        p0: dataLocal[0].p1
-      }]
-
-      dataLocal.forEach((d) => {
-        if (d.type === 'C') {
-          const dLocal = d
-          const tp0 = dLocal.p0
-          const tc1 = dLocal.cntrl1
-          dLocal.p0 = d.p1
-          dLocal.p1 = tp0
-          dLocal.cntrl1 = d.cntrl2
-          dLocal.cntrl2 = tc1
-
-          newArray.push(dLocal)
-        }
-      })
-      return newArray
-    }
-
-    function centroid (path) {
-      let sumX = 0
-      let sumY = 0
-      let counterX = 0
-      let counterY = 0
-
-      path.forEach((d) => {
-        if (d.p0) {
-          sumX += d.p0.x
-          sumY += d.p0.y
-          counterX += 1
-          counterY += 1
-        }
-        if (d.p1) {
-          sumX += d.p1.x
-          sumY += d.p1.y
-          counterX += 1
-          counterY += 1
-        }
-      })
-
-      return {
-        x: sumX / counterX,
-        y: sumY / counterY
-      }
-    }
-
-    function getQuadrant (centroidP, point) {
-      if (point.x >= centroidP.x && point.y <= centroidP.y) {
-        return 1
-      } else if (point.x <= centroidP.x && point.y <= centroidP.y) {
-        return 2
-      } else if (point.x <= centroidP.x && point.y >= centroidP.y) {
-        return 3
-      }
-      return 4
-    }
-
-    function getSrcBeginPoint (src, dest) {
-      const centroidOfSrc = centroid(src)
-      const centroidOfDest = centroid(dest)
-      const srcArr = src
-      const destArr = dest
-      for (let i = 0; i < src.length; i += 1) {
-        srcArr[i].quad = getQuadrant(centroidOfSrc, src[i].p0)
-      }
-      for (let i = 0; i < dest.length; i += 1) {
-        destArr[i].quad = getQuadrant(centroidOfDest, dest[i].p0)
-      }
-      let minDistance = 0
-
-      src.forEach((d, i) => {
-        const dis = t2DGeometry.getDistance(d.p0, centroidOfSrc)
-        if ((d.quad === 1 && dis >= minDistance)) {
-          minDistance = dis
-        }
-      })
-      minDistance = 0
-      dest.forEach((d, i) => {
-        const dis = t2DGeometry.getDistance(d.p0, centroidOfDest)
-        if (d.quad === 1 && dis > minDistance) {
-          minDistance = dis
-        }
-      })
-
-      return {
-        src: setStartingPoint(src, 0), // srcStartingIndex
-        dest: setStartingPoint(dest, 0), // destStartingIndex
-        srcCentroid: centroidOfSrc,
-        destCentroid: centroidOfDest
-      }
-    }
-
-    function setStartingPoint (path, closestPoint) {
-      if (closestPoint <= 0) { return path }
-      let pathLocal = path
-      const subSet = pathLocal.splice(0, closestPoint)
-      subSet.shift()
-      pathLocal = pathLocal.concat(subSet)
-      pathLocal.unshift({
-        type: 'M',
-        p0: pathLocal[0].p0
-      })
-      pathLocal.push({
-        type: 'M',
-        p0: pathLocal[0].p0
-      })
-
-      return pathLocal
-    }
-
-    function mapper (sExe, dExe) {
-      let nsExe
-      let ndExe
-      let maxLength = sExe.length > dExe.length ? sExe.length : (dExe.length)
-
-      if (dExe.length > 2 && sExe.length > 2) {
-        if (maxLength > 50) {
-          maxLength += 30
-        } else {
-          maxLength = (maxLength >= 20 ? maxLength + 15 : maxLength + 4)
-        }
-        nsExe = normalizeCmds(sExe, maxLength)
-        ndExe = normalizeCmds(dExe, maxLength)
-      } else {
-        nsExe = sExe
-        ndExe = dExe
-      }
-
-      if (getDirection(nsExe) < 0) { nsExe = reverse(nsExe) }
-      if (getDirection(ndExe) < 0) { ndExe = reverse(ndExe) }
-
-      const res = getSrcBeginPoint(nsExe, ndExe, this)
-      nsExe = res.src.length > 1 ? res.src : [{
-        type: 'M',
-        p0: res.destCentroid
-      }]
-      ndExe = res.dest.length > 1 ? res.dest : [{
-        type: 'M',
-        p0: res.srcCentroid
-      }]
-
-      const length = ndExe.length < nsExe.length ? nsExe.length : ndExe.length
-
-      for (let i = 0; i < nsExe.length; i += 1) {
-        nsExe[i].index = i
-      }
-      for (let i = 0; i < ndExe.length; i += 1) {
-        ndExe[i].index = i
-      }
-      for (let i = 0; i < length; i += 1) {
-        const sP0 = nsExe[nsExe.length - 1].p0 ? nsExe[nsExe.length - 1].p0
-          : nsExe[nsExe.length - 1].p1
-        const dP0 = ndExe[ndExe.length - 1].p0 ? ndExe[ndExe.length - 1].p0
-          : ndExe[ndExe.length - 1].p1
-        const sCmd = nsExe[i] ? nsExe[i] : {
-          type: 'C',
-          p0: sP0,
-          p1: sP0,
-          cntrl1: sP0,
-          cntrl2: sP0,
-          length: 0
-        }
-        const dCmd = ndExe[i] ? ndExe[i] : {
-          type: 'C',
-          p0: dP0,
-          p1: dP0,
-          cntrl1: dP0,
-          cntrl2: dP0,
-          length: 0
-        } // ndExe[ndExe.length - 1]
-
-        if (sCmd.type === 'M' && dCmd.type === 'M') {
-          buildMTransitionobj(sCmd, dCmd)
-        } else if (sCmd.type === 'M' || dCmd.type === 'M') {
-          if (sCmd.type === 'M') {
-            buildTransitionObj({
-              type: 'C',
-              p0: sCmd.p0,
-              p1: sCmd.p0,
-              cntrl1: sCmd.p0,
-              cntrl2: sCmd.p0,
-              length: 0
-            }, dCmd)
-          } else {
-            buildTransitionObj(sCmd, {
-              type: 'C',
-              p0: dCmd.p0,
-              p1: dCmd.p0,
-              cntrl1: dCmd.p0,
-              cntrl2: dCmd.p0,
-              length: 0
-            })
-          }
-        } else { buildTransitionObj(sCmd, dCmd) }
-      }
-    }
-
-    queueInstance.add(animeId(), {
-      run (f) {
-        let ppath = i2d.Path()
-        for (let i = 0, len = chainInstance.length; i < len; i++) {
-          chainInstance[i].run(ppath, f)
-        }
-        self.setAttr('d', self instanceof DomExe ? ppath.fetchPathString() : ppath)
-      },
-      duration: duration,
-      loop: loop,
-      direction: direction
-    }, easying(ease))
-  }
-
-  const animatePathTo = function animatePathTo (targetConfig) {
-    const self = this
-    const {
-      duration, ease, end, loop, direction, d
-    } = targetConfig
-    const src = d || self.attr.d
-    let totalLength = 0
-
-    self.arrayStack = []
-
-    if (!src) { throw Error('Path Not defined') }
-
-    const chainInstance = chain.sequenceChain()
-    const newPathInstance = path.isTypePath(src) ? src : i2d.Path(src)
-    const arrExe = newPathInstance.stackGroup.reduce((p, c) => {
-      p = p.concat(c)
-      return p
-    }, [])
-    const mappedArr = []
-
-    for (let i = 0; i < arrExe.length; i += 1) {
-      if (arrExe[i].type === 'Z') {
-        mappedArr.push({
-          run (f) {
-            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
-            newPathInstance.stack[this.id] = this.render.execute(f)
-            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance)
-          },
-          id: i,
-          render: new LinearTransitionBetweenPoints(arrExe[i].p0, arrExe[0].p0, arrExe[i].segmentLength),
-          length: arrExe[i].length
-        })
-        totalLength += 0
-      } else if (['V', 'H', 'L'].indexOf(arrExe[i].type) !== -1) {
-        mappedArr.push({
-          run (f) {
-            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
-            newPathInstance.stack[this.id] = this.render.execute(f)
-            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance)
-          },
-          id: i,
-          render: new LinearTransitionBetweenPoints(arrExe[i].p0, arrExe[i].p1, arrExe[i].length),
-          length: arrExe[i].length
-        })
-        totalLength += arrExe[i].length
-      } else if (arrExe[i].type === 'Q') {
-        mappedArr.push({
-          run (f) {
-            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
-            newPathInstance.stack[this.id] = this.render.execute(f)
-            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance)
-          },
-          id: i,
-          render: new BezierTransition(arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].p1, arrExe[i].length),
-          length: arrExe[i].length
-        })
-        totalLength += arrExe[i].length
-      } else if (arrExe[i].type === 'C' || arrExe[i].type === 'S') {
-        const co = t2DGeometry.cubicBezierCoefficients(arrExe[i])
-        mappedArr.push({
-          run (f) {
-            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
-            newPathInstance.stack[this.id] = this.render.execute(f)
-            self.setAttr('d', self instanceof DomExe ? newPathInstance.fetchPathString() : newPathInstance)
-          },
-          id: i,
-          co,
-          render: new CubicBezierTransition(
-            arrExe[i].p0,
-            arrExe[i].cntrl1,
-            arrExe[i].cntrl2,
-            co,
-            arrExe[i].length
-          ),
-          length: arrExe[i].length
-        })
-        totalLength += arrExe[i].length
-      } else if (arrExe[i].type === 'M') {
-        mappedArr.push({
-          run () {
-            newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1 - self.id)
-            newPathInstance.stack[this.id] = {
-              type: 'M',
-              p0: arrExe[i].p0,
-              length: 0,
-              pointAt (f) {
-                return this.p0
-              }
-            }
-          },
-          id: i,
-          length: 0
-        })
-        totalLength += 0
-      } else {
-        // console.log('M Or Other Type')
-      }
-    }
-
-    mappedArr.forEach(function (d) {
-      d.duration = (d.length / totalLength) * duration
-    })
-    chainInstance.duration(duration)
-      .add(mappedArr)
-      .ease(ease)
-      .loop(loop || 0)
-      .direction(direction || 'default')
-
-    if (typeof end === 'function') { chainInstance.end(end.bind(self)) }
-
-    chainInstance.commit()
-
-    return this
-  }
-
-  let CubicBezierTransition = function CubicBezierTransition (p0, c1, c2, co, length) {
-    this.type = 'C'
-    this.p0 = p0
-    this.c1_src = c1
-    this.c2_src = c2
-    this.co = co
-    this.length_src = length
-  }
-  CubicBezierTransition.prototype.execute = function (f) {
-    const co = this.co
-    const p0 = this.p0
-    const c1 = this.c1_src
-    const c2 = this.c2_src
-    const c1Temp = {
-      x: (p0.x + ((c1.x - p0.x)) * f),
-      y: (p0.y + ((c1.y - p0.y)) * f)
-    }
-    const c2Temp = {
-      x: (c1.x + ((c2.x - c1.x)) * f),
-      y: (c1.y + ((c2.y - c1.y)) * f)
-    }
-    this.cntrl1 = c1Temp
-    this.cntrl2 = {x: c1Temp.x + (c2Temp.x - c1Temp.x) * f, y: c1Temp.y + ((c2Temp.y - c1Temp.y)) * f}
-    this.p1 = {x: co.ax * t2DGeometry.pow(f, 3) + co.bx * t2DGeometry.pow(f, 2) + co.cx * f + p0.x,
-      y: co.ay * t2DGeometry.pow(f, 3) + co.by * t2DGeometry.pow(f, 2) + co.cy * f + p0.y
-    }
-    this.length = this.length_src * f
-    return this
-  }
-  CubicBezierTransition.prototype.pointAt = function (f) {
-    return t2DGeometry.cubicBezierTransition(this.p0, this.co, f)
-  }
-
-
-  let BezierTransition = function BezierTransition (p0, p1, p2, length, f) {
-    this.type = 'Q'
-    this.p0 = p0
-    this.p1_src = p1
-    this.p2_src = p2
-    this.length_src = length
-    this.length = 0
-  }
-  BezierTransition.prototype.execute = function (f) {
-    let p0 = this.p0
-    let p1 = this.p1_src
-    let p2 = this.p2_src
-    this.length = this.length_src * f
-    this.cntrl1 = {x: p0.x + ((p1.x - p0.x)) * f, y: p0.y + ((p1.y - p0.y)) * (f)}
-    this.cntrl2 = this.cntrl1
-    this.p1 = {x: (p0.x - 2 * p1.x + p2.x) * f * f + (2 * p1.x - 2 * p0.x) * f + p0.x, y: (p0.y - 2 * p1.y + p2.y) * f * f + (2 * p1.y - 2 * p0.y) * f + p0.y}
-    return this
-  }
-  BezierTransition.prototype.pointAt = function (f) {
-    return t2DGeometry.bezierTransition(this.p0, this.cntrl1, this.p1, f)
-  }
-
-  let LinearTransitionBetweenPoints = function LinearTransitionBetweenPoints (p0, p2, length, f) {
-    this.type = 'L'
-    this.p0 = p0
-    this.p1 = p0
-    this.p2_src = p2
-    this.length_src = length
-    this.length = 0
-  }
-  LinearTransitionBetweenPoints.prototype.execute = function (f) {
-    let p0 = this.p0
-    let p2 = this.p2_src
-
-    this.p1 = { x: p0.x + (p2.x - p0.x) * f, y: p0.y + (p2.y - p0.y) * f }
-    this.length = this.length_src * f
-    return this
-  }
-  LinearTransitionBetweenPoints.prototype.pointAt = function (f) {
-    return t2DGeometry.linearTransitionBetweenPoints(this.p0, this.p1, f)
-  }
   function DomGradients (config, type, pDom) {
     this.config = config
     this.type = type || 'linear'
@@ -1591,6 +976,9 @@
   }
   DomExe.prototype.setAttr = function DMsetAttr (attr, value) {
     if (arguments.length === 2) {
+      if (attr === 'd' && path.isTypePath(value)) {
+        value = value.fetchPathString()
+      }
       this.attr[attr] = value
       this.changedAttribute[attr] = value
     } else if (arguments.length === 1 && typeof attr === 'object') {
@@ -1659,8 +1047,8 @@
   DomExe.prototype.fetchEls = cfetchEls
   DomExe.prototype.animateTo = animateTo
   DomExe.prototype.animateExe = animateExe
-  DomExe.prototype.animatePathTo = animatePathTo
-  DomExe.prototype.morphTo = morphTo
+  DomExe.prototype.animatePathTo = path.animatePathTo
+  DomExe.prototype.morphTo = path.morphTo
 
   DomExe.prototype.exec = function Cexe (exe) {
     if (typeof exe !== 'function') {
@@ -2164,7 +1552,7 @@
   }
   RenderText.prototype.execute = function RTexecute () {
     if (this.attr.text !== undefined && this.attr.text !== null) {
-      if (this.ctx.fillStyle  !== '#000000') {
+      if (this.ctx.fillStyle !== '#000000') {
         this.ctx.fillText(this.attr.text, this.attr.x, this.attr.y)
       }
       if (this.ctx.strokeStyle !== '#000000') {
@@ -2994,8 +2382,8 @@
   }
   CanvasNodeExe.prototype.animateTo = animateTo
   CanvasNodeExe.prototype.animateExe = animateExe
-  CanvasNodeExe.prototype.animatePathTo = animatePathTo
-  CanvasNodeExe.prototype.morphTo = morphTo
+  CanvasNodeExe.prototype.animatePathTo = path.animatePathTo
+  CanvasNodeExe.prototype.morphTo = path.morphTo
   CanvasNodeExe.prototype.vDomIndex = null
   CanvasNodeExe.prototype.join = dataJoin
   CanvasNodeExe.prototype.createRadialGradient = createRadialGradient
@@ -3264,8 +2652,6 @@
       this.domEl.setAttribute('width', width * originalRatio)
       this.domEl.style.height = `${height}px`
       this.domEl.style.width = `${width}px`
-      this.height = height
-      this.width = width
       if (config.rescale) {
         let newWidthRatio = (width / this.width)
         let newHeightRatio = (height / this.height)
@@ -3273,9 +2659,14 @@
       } else {
         this.execute()
       }
+      this.height = height
+      this.width = width
     }
 
     function canvasResize () {
+      if (config.resize && typeof config.resize) {
+        config.resize()
+      }
       root.resize()
     }
 
@@ -3449,8 +2840,8 @@
     }
 
     function svgResize () {
-      if (typeof config.resize === 'function') {
-        config.resize.call(root)
+      if (config.resize && typeof config.resize) {
+        config.resize()
       }
       renderVdom.call(root)
     }
@@ -3510,9 +2901,9 @@
     this.attr = attr || {}
     this.style = style || {}
   }
-  // PointNode.prototype.setAttr = function (prop, value) {
-  //   this.attr[prop] = value
-  // }
+  PointNode.prototype.setAttr = function (prop, value) {
+    this.attr[prop] = value
+  }
   // PointNode.prototype.getAttr = function (key) {
   //   return this.attr[key]
   // }
@@ -3527,10 +2918,10 @@
     this.attr = attr || {}
     this.style = style || {}
   }
-  // RectNode.prototype.setAttr = function (key, value) {
-  //   this.attr[key] = value
-  //   this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe), this.nodeExe)
-  // }
+  RectNode.prototype.setAttr = function (key, value) {
+    this.attr[key] = value
+    // this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe), this.nodeExe)
+  }
   // RectNode.prototype.getAttr = function (key) {
   //   return this.attr[key]
   // }
@@ -3704,7 +3095,7 @@
         colorArray[i * 4] = fill.r
         colorArray[i * 4 + 1] = fill.g
         colorArray[i * 4 + 2] = fill.b
-        colorArray[i * 4 + 3] = fill.a || 255
+        colorArray[i * 4 + 3] = (fill.a === undefined ? 255 : fill.a)
         styleFlag = true
         node.styleChanged = false
       }
@@ -3786,7 +3177,7 @@
         r = fill.r
         g = fill.g
         b = fill.b
-        a = fill.a || 255
+        a = (fill.a === undefined ? 255 : fill.a)
         ti = i * 24
         colorArray[ti] = colorArray[ti + 4] = colorArray[ti + 8] = colorArray[ti + 12] = colorArray[ti + 16] = colorArray[ti + 20] = r
         colorArray[ti + 1] = colorArray[ti + 5] = colorArray[ti + 9] = colorArray[ti + 13] = colorArray[ti + 17] = colorArray[ti + 21] = g
@@ -3856,7 +3247,7 @@
         r = stroke.r
         g = stroke.g
         b = stroke.b
-        a = stroke.a || 255
+        a = (stroke.a === undefined ? 255 : stroke.a)
         colorArray[i * 8] = r
         colorArray[i * 8 + 1] = g
         colorArray[i * 8 + 2] = b
@@ -3923,9 +3314,7 @@
       fill = node.style.stroke
       points = node.attr.points
       fill = fill || defaultColor
-      
       if (node.propChanged) {
-        
         let positionArray = []
         for (let j = 0, jlen = points.length; j < jlen; j++) {
           positionArray[j * 2] = points[j].x
@@ -3942,7 +3331,7 @@
         let r = fill.r || 0
         let g = fill.g || 0
         let b = fill.b || 0
-        let a = fill.a || 255.0
+        let a = (fill.a === undefined ? 255 : fill.a)
         for (let j = 0, jlen = points.length; j < jlen; j++) {
           colorArray[j * 4] = r
           colorArray[j * 4 + 1] = g
@@ -4003,7 +3392,10 @@
           positionArray[j * 2] = points[j].x
           positionArray[j * 2 + 1] = points[j].y
         }
-        this.polyLineArray[i].positionArray = new Float32Array(positionArray)
+        if (!this.polygonArray[i]) {
+          this.polygonArray[i] = {}
+        }
+        this.polygonArray[i].positionArray = new Float32Array(positionArray)
       }
 
       if (node.styleChanged) {
@@ -4013,20 +3405,20 @@
         let r = fill.r || 0
         let g = fill.g || 0
         let b = fill.b || 0
-        let a = fill.a || 255.0
+        let a = (fill.a === undefined ? 255 : fill.a)
         for (let j = 0, jlen = points.length; j < jlen; j++) {
           colorArray[j * 4] = r
           colorArray[j * 4 + 1] = g
           colorArray[j * 4 + 2] = b
           colorArray[j * 4 + 3] = a
         }
-        this.polyLineArray[i].colorArray = new Uint8Array(colorArray)
+        this.polygonArray[i].colorArray = new Uint8Array(colorArray)
       }
-      this.inputs[0].data = this.polyLineArray[i].colorArray
-      this.inputs[1].data = this.polyLineArray[i].positionArray
+      this.inputs[0].data = this.polygonArray[i].colorArray
+      this.inputs[1].data = this.polygonArray[i].positionArray
       writeDataToShaderAttributes(this.ctx, this.inputs)
 
-      this.ctx.drawArrays(this.ctx.TRIANGLES, 0, this.polyLineArray[i].positionArray.length / 2)
+      this.ctx.drawArrays(this.ctx.TRIANGLES, 0, this.polygonArray[i].positionArray.length / 2)
     }
   }
 
@@ -4098,7 +3490,7 @@
         colorArray[i * 4] = fill.r
         colorArray[i * 4 + 1] = fill.g
         colorArray[i * 4 + 2] = fill.b
-        colorArray[i * 4 + 3] = fill.a || 255.0
+        colorArray[i * 4 + 3] = (fill.a === undefined ? 255 : fill.a)
         node.styleChanged = false
         styleFlag = true
       }
@@ -4192,10 +3584,11 @@
   WebglNodeExe.prototype.setAttr = function WsetAttr (attr, value) {
     if (arguments.length === 2) {
       this.attr[attr] = value
+      this.dom.setAttr(attr, value)
     } else if (arguments.length === 1 && typeof attr === 'object') {
-      const keys = Object.keys(attr)
-      for (let i = 0; i < keys.length; i += 1) {
-        this.attr[keys[i]] = attr[keys[i]]
+      for (let key in attr) {
+        this.attr[key] = attr[key]
+        this.dom.setAttr(key, attr[key])
       }
     }
     this.propChanged = true
@@ -4204,11 +3597,17 @@
   }
   WebglNodeExe.prototype.setStyle = function WsetStyle (attr, value) {
     if (arguments.length === 2) {
+      if (attr === 'fill' || attr === 'stroke') {
+        value = colorMap.colorToRGB(value)
+      }
       this.style[attr] = value
     } else if (arguments.length === 1 && typeof attr === 'object') {
-      const keys = Object.keys(attr)
-      for (let i = 0; i < keys.length; i += 1) {
-        this.style[keys[i]] = attr[keys[i]]
+      for (let key in attr) {
+        value = attr[key]
+        if (key === 'fill' || key === 'stroke') {
+          value = colorMap.colorToRGB(attr[key])
+        }
+        this.style[key] = value
       }
     }
     this.styleChanged = true
@@ -4217,11 +3616,9 @@
   }
   WebglNodeExe.prototype.getAttr = function WgetAttribute (_) {
     return this.attr[_]
-    //dom.getAttr(_)
   }
   WebglNodeExe.prototype.getStyle = function WgetStyle (_) {
     return this.style[_]
-    //dom.getStyle(_)
   }
   WebglNodeExe.prototype.animateTo = animateTo
   WebglNodeExe.prototype.animateExe = animateExe
@@ -4354,6 +3751,7 @@
   i2d.queue = queueInstance
   i2d.geometry = t2DGeometry
   i2d.chain = chain
+  i2d.color = colorMap
 
   return i2d
 }))

@@ -66,12 +66,7 @@
 					size: 1.0
 				},
 				style: {
-					fill: {
-							r: 0,
-							g: 203,
-							b: 255,
-                            a: 255
-						}
+					fill: i2d.color.rgba(0,203,255,255)
 				}
 			})
 
@@ -114,11 +109,7 @@
 
         chainInstance.add(function () {
             var parallelChain2 = i2d.chain.parallelChain()
-                pointsRef.setStyle('fill',{
-                                r: 255,
-                                g: 132,
-                                b: 132
-                            })
+                pointsRef.setStyle('fill',i2d.color.rgba(255,132,132,255))
             let exe = pointsRef.animateExe({
                         duration: 1000+Math.random()*1000,
                         ease:'easeOutCubic',
@@ -156,11 +147,7 @@
         
         chainInstance.add(function(){
             var parallelChain3 = i2d.chain.parallelChain()
-                pointsRef.setStyle('fill',{
-                                r: 0,
-                                g: 203,
-                                b: 255
-                            })
+                pointsRef.setStyle('fill',i2d.color.rgba(0,203,255,255))
             let exe = pointsRef.animateExe({
                         duration: 1000+Math.random()*1000,
                         ease:'easeOutCubic',

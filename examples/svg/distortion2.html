@@ -35,10 +35,10 @@
         var sin = Math.sin;
         
         for(var i=0; i< 50; i++){
-            for(var j=0; j < 50; j++){
+            for(var j=0; j < 100; j++){
                 circlesGrid.push({
-                    x:350+j*10,
-                    ox:350+j*10,
+                    x:150+j*10,
+                    ox:150+j*10,
                     y:150+i*10,
                     oy:150+i*10,
                     vx:0,
@@ -90,23 +90,6 @@
                      node.setAttr('x',d.x)
                             .setAttr('y',d.y)
             }
-
-            // rects.forEach(function(d){
-            //                 dis = ( dx = mx - d.x ) * dx + ( dy = my - d.y ) * dy;
-            //                 f = -rad / dis
-                            
-            //                 if(dis < rad){
-            //                     t = atan2( dy, dx );
-            //                     d.vx += f * cos(t);
-            //                     d.vy += f * sin(t);
-            //                 }
-
-            //                 d.x += ( d.vx *= 0.8) + (d.ox - d.x) * 0.1;
-            //                 d.y += ( d.vy *= 0.8 ) + (d.oy - d.y) * 0.1;
-                            
-            //             this.setAttr('x',d.x)
-            //                 .setAttr('y',d.y)
-            // })
         });
 
 	</script>

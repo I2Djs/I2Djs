@@ -137,7 +137,7 @@
       }
     }
 
-    function cubicBezierCoefficients (p, f) {
+    function cubicBezierCoefficients (p) {
       const cx = 3 * (p.cntrl1.x - p.p0.x)
       const bx = 3 * (p.cntrl2.x - p.cntrl1.x) - cx
       const ax = p.p1.x - p.p0.x - cx - bx
