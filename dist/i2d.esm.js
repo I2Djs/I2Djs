@@ -4628,21 +4628,25 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     return document.createElementNS(nameSpace.svg, ele);
   };
 
-  var DomExe = function DomExe(dom, _, id, vDomIndex) {
+  var DomExe = function DomExe(dom, config, id, vDomIndex) {
     this.dom = dom;
     this.nodeName = dom.nodeName;
-    this.attr = _.attr ? _.attr : {};
-    this.changedAttribute = this.attr;
-    this.style = _.style ? _.style : {};
-    this.changedStyles = this.style;
+    this.attr = {};
+    this.style = {};
+    this.changedAttribute = {};
+    this.changedStyles = {};
     this.id = id;
     this.nodeType = 'svg';
     this.dom.nodeId = id;
-    this.attrChanged = true;
-    this.styleChanged = true;
     this.children = [];
     this.vDomIndex = vDomIndex;
-    // queueInstance.vDomChanged(this.vDomIndex)
+
+    if (config.style) {
+      this.setStyle(config.style);
+    }
+    if (config.attr) {
+      this.setAttr(config.attr);
+    }
   };
   DomExe.prototype.node = function node() {
     this.execute();
@@ -4755,17 +4759,26 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     queueInstance.vDomChanged(this.vDomIndex);
     return this;
   };
+  function pointsToString(points) {
+    if (Object.prototype.toString.call(points) !== '[object Array]') {
+      return;
+    }
+    return points.reduce(function (p, c) {
+      return p + c.x + ',' + c.y + ' ';
+    }, '');
+  }
   DomExe.prototype.setAttr = function DMsetAttr(attr, value) {
     if (arguments.length === 2) {
-      if (attr === 'd' && path.isTypePath(value)) {
-        value = value.fetchPathString();
+      if (attr === 'points') {
+        value = pointsToString(value);
       }
       this.attr[attr] = value;
       this.changedAttribute[attr] = value;
     } else if (arguments.length === 1 && (typeof attr === 'undefined' ? 'undefined' : _typeof(attr)) === 'object') {
-      var props = Object.keys(attr);
-      for (var i = 0, len = props.length; i < len; i += 1) {
-        var key = props[i];
+      for (var key in attr) {
+        if (key === 'points') {
+          attr[key] = pointsToString(attr[key]);
+        }
         this.attr[key] = attr[key];
         this.changedAttribute[key] = attr[key];
       }
@@ -4943,6 +4956,63 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
     for (var i = 0; i < self.stack.length; i += 1) {
       self.stack[i].execute();
+    }
+  }
+
+  function RPolyupdateBBox() {
+    var self = this;
+    var translateX = 0;
+    var translateY = 0;
+    var scaleX = 1;
+    var scaleY = 1;
+    var transform = self.attr.transform;
+
+    if (self.polygon && self.polygon.points.length > 0) {
+      var points = self.polygon.points;
+
+      if (transform && transform.translate) {
+        var _transform$translate = _slicedToArray(transform.translate, 2);
+
+        translateX = _transform$translate[0];
+        translateY = _transform$translate[1];
+      }
+      if (transform && transform.scale) {
+        var _transform$scale = _slicedToArray(transform.scale, 2);
+
+        scaleX = _transform$scale[0];
+        scaleY = _transform$scale[1];
+      }
+      var minX = points[0].x;
+      var maxX = points[0].x;
+      var minY = points[0].y;
+      var maxY = points[0].y;
+
+      for (var i = 1; i < points.length; i += 1) {
+        if (minX > points[i].x) minX = points[i].x;
+        if (maxX < points[i].x) maxX = points[i].x;
+        if (minY > points[i].y) minY = points[i].y;
+        if (maxY < points[i].y) maxY = points[i].y;
+      }
+
+      self.BBox = {
+        x: translateX + minX * scaleX,
+        y: translateY + minY * scaleY,
+        width: (maxX - minX) * scaleX,
+        height: (maxY - minY) * scaleY
+      };
+    } else {
+      self.BBox = {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0
+      };
+    }
+
+    if (transform && transform.rotate) {
+      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+    } else {
+      self.BBoxHit = this.BBox;
     }
   }
 
@@ -5236,10 +5306,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     if (transform) {
       if (transform.translate) {
-        var _transform$translate = _slicedToArray(transform.translate, 2);
+        var _transform$translate2 = _slicedToArray(transform.translate, 2);
 
-        translateX = _transform$translate[0];
-        translateY = _transform$translate[1];
+        translateX = _transform$translate2[0];
+        translateY = _transform$translate2[1];
       }
       if (transform.scale) {
         scaleX = transform.scale[0] !== undefined ? transform.scale[0] : 1;
@@ -5300,16 +5370,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var transform = self.attr.transform;
 
     if (transform && transform.translate) {
-      var _transform$translate2 = _slicedToArray(transform.translate, 2);
+      var _transform$translate3 = _slicedToArray(transform.translate, 2);
 
-      translateX = _transform$translate2[0];
-      translateY = _transform$translate2[1];
+      translateX = _transform$translate3[0];
+      translateY = _transform$translate3[1];
     }
     if (transform && transform.scale) {
-      var _transform$scale = _slicedToArray(transform.scale, 2);
+      var _transform$scale2 = _slicedToArray(transform.scale, 2);
 
-      scaleX = _transform$scale[0];
-      scaleY = _transform$scale[1];
+      scaleX = _transform$scale2[0];
+      scaleY = _transform$scale2[1];
     }
     if (this.style.font) {
       this.ctx.font = this.style.font;
@@ -5368,16 +5438,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     if (transform) {
       if (transform.translate) {
-        var _transform$translate3 = _slicedToArray(transform.translate, 2);
+        var _transform$translate4 = _slicedToArray(transform.translate, 2);
 
-        translateX = _transform$translate3[0];
-        translateY = _transform$translate3[1];
+        translateX = _transform$translate4[0];
+        translateY = _transform$translate4[1];
       }
       if (transform.scale) {
-        var _transform$scale2 = _slicedToArray(transform.scale, 2);
+        var _transform$scale3 = _slicedToArray(transform.scale, 2);
 
-        scaleX = _transform$scale2[0];
-        scaleY = _transform$scale2[1];
+        scaleX = _transform$scale3[0];
+        scaleY = _transform$scale3[1];
       }
     }
 
@@ -5426,16 +5496,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var transform = self.attr.transform;
 
     if (transform && transform.translate) {
-      var _transform$translate4 = _slicedToArray(transform.translate, 2);
+      var _transform$translate5 = _slicedToArray(transform.translate, 2);
 
-      translateX = _transform$translate4[0];
-      translateY = _transform$translate4[1];
+      translateX = _transform$translate5[0];
+      translateY = _transform$translate5[1];
     }
     if (transform && transform.scale) {
-      var _transform$scale3 = _slicedToArray(transform.scale, 2);
+      var _transform$scale4 = _slicedToArray(transform.scale, 2);
 
-      scaleX = _transform$scale3[0];
-      scaleY = _transform$scale3[1];
+      scaleX = _transform$scale4[0];
+      scaleY = _transform$scale4[1];
     }
 
     self.BBox = {
@@ -5464,6 +5534,32 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     return parseFloat(t2DGeometry.getDistance({ x: this.attr.x1, y: this.attr.y1 }, co) + t2DGeometry.getDistance(co, { x: this.attr.x2, y: this.attr.y2 })).toFixed(1) === parseFloat(t2DGeometry.getDistance({ x: this.attr.x1, y: this.attr.y1 }, { x: this.attr.x2, y: this.attr.y2 })).toFixed(1);
   };
 
+  function RenderPolyline(ctx, props, stylesProps) {
+    var self = this;
+    self.ctx = ctx;
+    self.attr = props;
+    self.style = stylesProps;
+    self.nodeName = 'polyline';
+
+    self.stack = [self];
+  }
+  RenderPolyline.prototype = new CanvasDom();
+  RenderPolyline.constructor = RenderPolyline;
+  RenderPolyline.prototype.execute = function polylineExe() {
+    var self = this;
+    if (!this.attr.points) return;
+    this.ctx.beginPath();
+    this.attr.points.forEach(function (d, i) {
+      if (i === 0) {
+        self.ctx.moveTo(d.x, d.y);
+      } else {
+        self.ctx.lineTo(d.x, d.y);
+      }
+    });
+    this.applyStyles();
+    this.ctx.closePath();
+  };
+  RenderPolyline.prototype.updateBBox = RPolyupdateBBox;
   /** ***************** Render Path */
 
   var RenderPath = function RenderPath(ctx, props, styleProps) {
@@ -5498,16 +5594,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var transform = self.attr.transform;
 
     if (transform && transform.translate) {
-      var _transform$translate5 = _slicedToArray(transform.translate, 2);
+      var _transform$translate6 = _slicedToArray(transform.translate, 2);
 
-      translateX = _transform$translate5[0];
-      translateY = _transform$translate5[1];
+      translateX = _transform$translate6[0];
+      translateY = _transform$translate6[1];
     }
     if (transform && transform.scale) {
-      var _transform$scale4 = _slicedToArray(transform.scale, 2);
+      var _transform$scale5 = _slicedToArray(transform.scale, 2);
 
-      scaleX = _transform$scale4[0];
-      scaleY = _transform$scale4[1];
+      scaleX = _transform$scale5[0];
+      scaleY = _transform$scale5[1];
     }
     self.BBox = self.path ? t2DGeometry.getBBox(self.path.stack) : {
       x: 0, y: 0, width: 0, height: 0
@@ -5612,62 +5708,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       this.polygon = polygonExe(this.attr[attr]);
     }
   };
-  RenderPolygon.prototype.updateBBox = function RPolyupdateBBox() {
-    var self = this;
-    var translateX = 0;
-    var translateY = 0;
-    var scaleX = 1;
-    var scaleY = 1;
-    var transform = self.attr.transform;
-
-    if (self.polygon && self.polygon.points.length > 0) {
-      var points = self.polygon.points;
-
-      if (transform && transform.translate) {
-        var _transform$translate6 = _slicedToArray(transform.translate, 2);
-
-        translateX = _transform$translate6[0];
-        translateY = _transform$translate6[1];
-      }
-      if (transform && transform.scale) {
-        var _transform$scale5 = _slicedToArray(transform.scale, 2);
-
-        scaleX = _transform$scale5[0];
-        scaleY = _transform$scale5[1];
-      }
-      var minX = points[0].x;
-      var maxX = points[0].x;
-      var minY = points[0].y;
-      var maxY = points[0].y;
-
-      for (var i = 1; i < points.length; i += 1) {
-        if (minX > points[i].x) minX = points[i].x;
-        if (maxX < points[i].x) maxX = points[i].x;
-        if (minY > points[i].y) minY = points[i].y;
-        if (maxY < points[i].y) maxY = points[i].y;
-      }
-
-      self.BBox = {
-        x: translateX + minX * scaleX,
-        y: translateY + minY * scaleY,
-        width: (maxX - minX) * scaleX,
-        height: (maxY - minY) * scaleY
-      };
-    } else {
-      self.BBox = {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0
-      };
-    }
-
-    if (transform && transform.rotate) {
-      self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
-    } else {
-      self.BBoxHit = this.BBox;
-    }
-  };
+  RenderPolygon.prototype.updateBBox = RPolyupdateBBox;
   RenderPolygon.prototype.execute = function RPolyexecute() {
     if (this.attr.points) {
       if (this.ctx.fillStyle !== '#000000') {
@@ -5743,9 +5784,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var ctx = this.ctx;
 
     ctx.beginPath();
-    ctx.moveTo(this.attr.cx, this.attr.cy - this.attr.ry);
-    ctx.bezierCurveTo(this.attr.cx + this.attr.rx, this.attr.cy - this.attr.ry, this.attr.cx + this.attr.rx, this.attr.cy + this.attr.ry, this.attr.cx, this.attr.cy + this.attr.ry);
-    ctx.bezierCurveTo(this.attr.cx - this.attr.rx, this.attr.cy + this.attr.ry, this.attr.cx - this.attr.rx, this.attr.cy - this.attr.ry, this.attr.cx, this.attr.cy - this.attr.ry);
+    ctx.ellipse(this.attr.cx, this.attr.cy, this.attr.rx, this.attr.ry, 0, 0, 2 * Math.PI);
     this.applyStyles();
     ctx.closePath();
   };
@@ -5974,6 +6013,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         break;
       case 'line':
         this.dom = new RenderLine(this.ctx, this.attr, this.style);
+        break;
+      case 'polyline':
+        this.dom = new RenderPolyline(this.ctx, this.attr, this.style);
         break;
       case 'path':
         this.dom = new RenderPath(this.ctx, this.attr, this.style);

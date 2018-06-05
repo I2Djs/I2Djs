@@ -97,7 +97,7 @@
         var polygon = renderer.createEl({
                     el:'polygon',
                     attr:{
-                        points:"100,10 40,198 190,78 10,78 160,198",
+                        points:[{x:100,y:10},{x:40,y:198},{x:190,y:78},{x:10,y:78},{x:160,y:198}],
                         transform:{
                             translate:[200,50]
                         }
@@ -194,6 +194,21 @@
                     // })
                 }
             });
+
+            renderer.createEl({
+                    el:'polyline',
+                    attr:{
+                        points:[{x:100,y:10},{x:150,y:100},{x:250,y:0}],
+                        transform:{
+                            translate:[50,400]
+                        }
+                    },
+                    style:{
+                        stroke:'red',
+                        fill: 'none',
+                        'stroke-width': 4
+                    }
+                });
 	</script>
 
 </body>
