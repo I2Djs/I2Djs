@@ -179,6 +179,20 @@
                     // })
                 }
             });
+
+            renderer.createEl({
+                    el:'polyline',
+                    attr:{
+                        points:[{x:100,y:10},{x:150,y:100},{x:250,y:0}],
+                        transform:{
+                            translate:[50,400]
+                        }
+                    },
+                    style:{
+                        strokeStyle:'red',
+                        lineWidth: 4
+                    }
+                });
            
 	</script>
 
