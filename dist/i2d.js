@@ -2924,6 +2924,30 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
                     `
         }
         break
+      case 'image':
+        res = {
+          vertexShader: `
+                    attribute vec2 a_position;
+                    attribute vec2 a_texCoord;
+                    uniform vec2 u_resolution;
+                    varying vec2 v_texCoord;
+                    void main() {
+                      vec2 zeroToOne = a_position / u_resolution;
+                      vec2 clipSpace = zeroToOne * 2.0 - 1.0;
+                      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+                      v_texCoord = a_texCoord;
+                    }
+          `,
+          fragmentShader: `
+                    precision mediump float;
+                    uniform sampler2D u_image;
+                    varying vec2 v_texCoord;
+                    void main() {
+                      gl_FragColor = texture2D(u_image, v_texCoord);
+                    }
+                    `
+        }
+        break
       default:
         res = {
           vertexShader: `
@@ -6662,6 +6686,52 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return this.style[key]
   }
 
+  let webGLImageTextures = {}
+
+  function ImageNode (ctx, attr, style) {
+    let self = this
+    this.attr = attr
+    this.style = style
+    this.image = new Image()
+    // self.image.crossOrigin="anonymous"
+    // self.image.setAttribute('crossOrigin', '*');
+
+    this.image.onload = function onload () {
+      this.crossOrigin = 'anonymous'
+      queueInstance.vDomChanged(self.nodeExe.vDomIndex)
+      if (!webGLImageTextures[self.attr.src]) {
+        let texture = ctx.createTexture()
+        ctx.bindTexture(ctx.TEXTURE_2D, texture)
+        ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE)
+        ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE)
+        ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST)
+        ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST)
+        ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, ctx.RGBA, ctx.UNSIGNED_BYTE, self.image)
+        webGLImageTextures[self.attr.src] = texture
+      }
+      // self.loadStatus = true
+    }
+    this.image.onerror = function onerror (onerrorExe) {
+      if (onerrorExe && typeof onerrorExe === 'function') {
+        // onerrorExe.call(nodeExe)
+      }
+    }
+    if (this.attr.src) { this.image.src = this.attr.src }
+  }
+  ImageNode.prototype.setAttr = function (key, value) {
+    this.attr[key] = value
+    if (key === 'src') {
+      this.image.src = this.attr.src
+    }
+  }
+  ImageNode.prototype.getAttr = function (key) {
+    return this.attr[key]
+  }
+  ImageNode.prototype.getStyle = function (key) {
+    return this.style[key]
+  }
+
+
   function writeDataToShaderAttributes (ctx, data) {
     let d
     for (let i = 0, len = data.length; i < len; i++) {
@@ -7110,7 +7180,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       attribute: this.positionAttributeLocation
     }]
   }
-  RenderWebglPoints.prototype.remove = function (position) {
+  RenderWebglCircles.prototype.remove = function (position) {
     this.positionArray.splice(position * 2, 2)
     this.radius.splice(position, 1)
     this.colorArray.splice(position * 4, 4)
@@ -7156,8 +7226,83 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.ctx.drawArrays(this.ctx.POINTS, 0, positionArray.length / 2)
   }
 
+  function RenderWebglImages (ctx, attr, style, vDomIndex) {
+    this.ctx = ctx
+    this.dom = {}
+    this.attr = attr || {}
+    this.style = style || {}
+    this.vDomIndex = vDomIndex
+    this.program = getProgram(ctx, shaders('image'))
+    this.texture = ctx.createTexture()
+    this.texCoordBuffer = ctx.createBuffer()
+    this.positionBuffer = ctx.createBuffer()
+    this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
+    this.texCoordAttributeLocation = ctx.getAttribLocation(this.program, 'a_texCoord')
+    this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.imagesArray = []
+    this.texArray = new Float32Array([
+      0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0
+    ])
+    this.inputs = [{
+      bufferType: this.ctx.ARRAY_BUFFER,
+      buffer: this.positionBuffer,
+      drawType: this.ctx.DYNAMIC_DRAW,
+      valueType: this.ctx.FLOAT,
+      size: 2,
+      attribute: this.positionAttributeLocation
+    }]
+  }
+  RenderWebglImages.prototype.remove = function (position) {
+    this.imagesArray.splice(position, 1)
+  }
+  RenderWebglImages.prototype.execute = function (stack) {
+    this.ctx.useProgram(this.program)
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    writeDataToShaderAttributes(this.ctx, [{
+      bufferType: this.ctx.ARRAY_BUFFER,
+      data: this.texArray,
+      buffer: this.texCoordBuffer,
+      drawType: this.ctx.STATIC_DRAW,
+      valueType: this.ctx.FLOAT,
+      size: 2,
+      attribute: this.texCoordAttributeLocation
+    }])
+    let x1, x2, y1, y2, posi
+
+    for (var i = 0, len = stack.length; i < len; i++) {
+      let positionArray = this.imagesArray[i] ? this.imagesArray[i].positionArray : []
+      let node = stack[i]
+      if (node.propChanged) {
+        x1 = node.attr.x
+        x2 = x1 + node.attr.width
+        y1 = node.attr.y
+        y2 = y1 + node.attr.height
+        posi = 0
+        positionArray[posi] = positionArray[posi + 4] = positionArray[posi + 6] = x1
+        positionArray[posi + 1] = positionArray[posi + 3] = positionArray[posi + 9] = y1
+        positionArray[posi + 2] = positionArray[posi + 8] = positionArray[posi + 10] = x2
+        positionArray[posi + 5] = positionArray[posi + 7] = positionArray[posi + 11] = y2
+        node.propChanged = false
+        if (!this.imagesArray[i]) {
+          this.imagesArray[i] = {}
+        }
+        this.imagesArray[i].positionArray = new Float32Array(positionArray)
+      }
+      if (!webGLImageTextures[node.attr.src]) {
+        continue
+      }
+      this.inputs[0].data = this.imagesArray[i].positionArray
+      writeDataToShaderAttributes(this.ctx, this.inputs)
+      // this.ctx.texImage2D(this.ctx.TEXTURE_2D, 0, this.ctx.RGBA, this.ctx.RGBA, this.ctx.UNSIGNED_BYTE, node.dom.image)
+      // this.ctx.enableVertexAttribArray(this.texCoordAttributeLocation)
+      this.ctx.bindTexture(this.ctx.TEXTURE_2D, webGLImageTextures[node.attr.src])
+      this.ctx.drawArrays(this.ctx.TRIANGLES, 0, this.imagesArray[i].positionArray.length / 2)
+    }
+  }
+
   function RenderWebglGroup (ctx, attr, style, shader, vDomIndex) {
     let e
+    this.ctx = ctx
     switch (shader) {
       case 'rects':
         e = new RenderWebglRects(ctx, attr, style, vDomIndex)
@@ -7176,6 +7321,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         break
       case 'circles':
         e = new RenderWebglCircles(ctx, attr, style, vDomIndex)
+        break
+      case 'images':
+        e = new RenderWebglImages(ctx, attr, style, vDomIndex)
         break
       default:
         e = null
@@ -7219,6 +7367,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       case 'circle':
         this.dom = new CircleNode(this.attr, this.style)
         break
+      case 'image':
+        this.dom = new ImageNode(ctx, this.attr, this.style)
+        break
       case 'group':
         this.dom = new RenderWebglGroup(this.ctx, this.attr, this.style, this.shaderType, this.vDomIndex)
         break
@@ -7227,6 +7378,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         break
     }
     this.dom.nodeExe = this
+    this.propChanged = true
   }
 
   WebglNodeExe.prototype.setAttr = function WsetAttr (attr, value) {

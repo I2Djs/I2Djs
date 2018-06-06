@@ -4,8 +4,8 @@
 	<title></title>
 </head>
 <body style="height: 100%">
-    <label style="position: absolute; color: white"> Canvas Example </label>
-	<div id="myCanvas" style="position: absolute; height: 100%;width:100%; background: black">
+    <label style="position: absolute; color: white"> SVG Example </label>
+	<div id="mySVG" style="position: absolute; height: 100%;width:100%; background: black">
 	</div>
 	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
     <script type="text/javascript" src="../../src/colorMap.js"></script>
@@ -22,8 +22,8 @@
         
         
         
-        var renderer_ = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
-        const n = 500
+        var renderer_ = i2d.SVGLayer('#mySVG',{events:false,selectiveClear:false});
+        const n = 1000
         const v = 2
         const m = 12
         let height = renderer_.height;
@@ -36,43 +36,36 @@
             count: 0
         }));
         
-        var ellipseGroup = renderer_.createEl({
+        var group = renderer_.createEl({
                         el: 'group',
-                        bbox: false,
-                        style:{ 
-                            fillStyle:'white'
-                        }
-                    }).createEls(tadpoles,{
-                        el: 'ellipse',
-                        attr: { cx:0, cy:0, rx:6.5, ry:4 }
-                    })
-        var tailsGroup = renderer_.createEl({
-                        el: 'group',
-                        bbox: false,
-                        style:{ 
-                            strokeStyle:'white',
-                            lineJoin: 'round',
-                            lineCap: 'round'
-                        }
-                    }).createEls(tadpoles,{
-                        el: 'group'
+                        style:{ stroke:'white' }
                     })
 
-            tailsGroup.forEach(function(d){
-                        this.createEl({
-                            el: 'polyline',
-                            attr:{ points:[], class:'mid' },
-                            style:{ lineWidth: 4 }
-                        })
-                        this.createEl({
-                            el: 'polyline',
-                            attr:{ points:[], class:'tail' }
-                        })
+            var nodes = group.createEls(tadpoles, {
+            el:'group',
+            bbox: false
+            }).forEach(function(d){
+                    this.createEl({
+                        el: 'ellipse',
+                        attr: { cx:0, cy:0, rx:6.5, ry:4 },
+                        style:{ fill:'white' }
                     })
+                    this.createEl({
+                        el: 'polyline',
+                        attr:{ points:[], class:'mid' },
+                        style:{ 'stroke-width': 4, fill: 'none' }
+                    })
+                    this.createEl({
+                        el: 'polyline',
+                        attr:{ points:[], class:'tail' },
+                        style:{ 'stroke-width': 1, fill: 'none'  }
+                    })
+            });
+            
 
         i2d.queue.onRequestFrame(function(t){
                             var time = new Date()
-                            ellipseGroup.forEach(function(t){
+                            nodes.forEach(function(t){
                                     let dx = t.vx;
                                     let dy = t.vy;
                                     let x = t.px[0] += dx;
@@ -94,15 +87,7 @@
                                         t.py[j] = (y += dy / speed * k1) + dx * k2;
                                         speed = Math.sqrt((dx = vx) * dx + (dy = vy) * dy);
                                     }
-
-                                    this.setAttr('transform',{
-                                            translate: [t.px[0], t.py[0]],
-                                            rotate: [Math.atan2(t.vy, t.vx)* (360 / (2 * Math.PI)) , 0, 0]
-                                        });
                                     
-                            })
-
-                            tailsGroup.forEach(function(t){
                                     let midArr = []
                                     for (let i = 0; i < 3; ++i) 
                                         midArr.push({x:t.px[i], y:t.py[i]});
@@ -110,6 +95,12 @@
                                     let tail = []
                                     for (let i = 0; i < m; ++i) 
                                         tail.push({x:t.px[i], y:t.py[i]});
+                                    
+                                    this.fetchEl('ellipse')
+                                        .setAttr('transform',{
+                                            translate: [t.px[0], t.py[0]],
+                                            rotate: [Math.atan2(t.vy, t.vx)* (360 / (2 * Math.PI)) , 0, 0]
+                                        });
 
                                     this.fetchEl('.mid')
                                         .setAttr('points',midArr);
