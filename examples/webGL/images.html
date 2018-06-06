@@ -21,8 +21,6 @@
 	<script type="text/javascript">
         var webglRenderer = i2d.WebglLayer('#canvas',{events:false,selectiveClear:false});
 
-		/************** Rects *****************/
-
 		var rectsData = []
 		for(let i=0; i< 100; i++) {
 			rectsData.push({
@@ -32,10 +30,11 @@
 			})
 		}
 
-		var rectsRef = webglRenderer.createEl({
+		var imagesRef = webglRenderer.createEl({
                 el:'group',
                 shaderType:'images'
-            }).createEls(rectsData,{
+            })
+            .createEls(rectsData,{
                     el:'image',
                     attr:{
                         x: function() { return Math.random()*1400 },
@@ -46,36 +45,13 @@
                             return d.image
                         }
                     }
-                })
-        
-        var dotsRef = webglRenderer.createEl({
-                el:'group',
-                shaderType:'points'
-            }).createEls([1],{
-                    el:'point',
+                }).animateTo({
+                    duration:5000,
                     attr:{
-                        x: function() { return Math.random()*1000 },
-                        y: function() { return Math.random()*800 },
-                        size: 80
-                    },
-                    style: {
-                        fill: i2d.color.rgba(255,132,132,255)
+                        x: function() { return Math.random()*1400 },
+                        y: function() { return Math.random()*900 },
                     }
                 })
-
-		rectsRef.animateTo({
-				duration:5000,
-				// loop: 10,
-				// direction: 'alternate',
-				attr:{
-                    // width: 150,
-                    // height: 150
-                    x: function() { return Math.random()*1400 },
-					y: function() { return Math.random()*900 },
-				}
-			})
-		
-		/************** End Rects *****************/
 	</script>   
 
 </body>
