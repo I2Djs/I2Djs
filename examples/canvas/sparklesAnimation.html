@@ -39,7 +39,7 @@
                                                             });
         var sparkles = []
 
-            for(var i=0;i<500;i++){
+            for(var i=0;i<300;i++){
                     var angle = (2*Math.PI/50)*(parseInt(i%50))
                                         var r = random(50,450)
                                         var tx = r*Math.cos(angle)
@@ -55,7 +55,7 @@
         renderer.createEl({
                     el:'circle',
                     attr:{
-                        r:10,
+                        r:20,
                         cx:700,
                         cy:700
                     },
@@ -66,7 +66,8 @@
                     duration:2000,
                     ease:'easeInCubic',
                     attr:{
-                        cy:350
+                        cy:350,
+                        r:10
                     },
                     end:function(){
 
@@ -75,7 +76,7 @@
 
                             this.animateTo({
                                 duration:300,
-                                ease:'easeInSin',
+                                // ease:'easeInSin',
                                 attr:{
                                     r:30
                                 },
@@ -92,6 +93,7 @@
                                 style:{
                                     globalAlpha:0.5,
                                     strokeStyle: blastGradiant
+                                    // strokeStyle:'rgb(255,255,255)'
                                 }
                             })
 

@@ -19,34 +19,34 @@
     <script type="text/javascript" src="../../src/renderer.js"></script>
 
 	<script type="text/javascript">
-        var webglRenderer = i2d.WebglLayer('#canvas',{events:false,selectiveClear:false});
+        var webglRenderer = i2d.CanvasLayer('#canvas',{events:false,selectiveClear:false});
 
 		var rectsData = []
-		for(let i=0; i< 2000; i++) {
+		for(let i=0; i< 50000; i++) {
 			rectsData.push({
 				x: parseInt(Math.random()*1400),
 				y: parseInt(Math.random()*1000),
-                image: '../images/leaves.jpg'
+                image: i%2 === 0? '../images/leaves.jpg' : '../images/Canvas_sun.png'
 			})
 		}
 
-		var imagesRef = webglRenderer.createEl({
+		var imagesRef = webglRenderer
+            .createEl({
                 el:'group',
-                shaderType:'images'
+                bbox: false
             })
             .createEls(rectsData,{
                     el:'image',
                     attr:{
-                        x: function() { return Math.random()*1000 },
-                        y: function() { return Math.random()*600 },
-                        width: 512,
-                        height: 512,
+                        x: function() { return Math.random()*1400 },
+                        y: function() { return Math.random()*900 },
+                        width: 8,
+                        height: 8,
                         src: function (d) {
                             return d.image
                         }
                     }
-                })
-                .animateTo({
+                }).animateTo({
                     duration:5000,
                     attr:{
                         x: function() { return Math.random()*1400 },

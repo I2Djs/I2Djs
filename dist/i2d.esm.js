@@ -314,7 +314,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       var point = void 0;
       for (var i = 0; i < cmxArr.length; i += 1) {
         d = cmxArr[i];
-        if (['V', 'H', 'L'].indexOf(d.type) !== -1) {
+        if (['V', 'H', 'L', 'v', 'h', 'l'].indexOf(d.type) !== -1) {
           [d.p0 ? d.p0 : cmxArr[i - 1].p1, d.p1].forEach(function (point) {
             if (point.x < minX) {
               minX = point.x;
@@ -330,7 +330,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
               maxY = point.y;
             }
           });
-        } else if (['Q', 'C'].indexOf(d.type) !== -1) {
+        } else if (['Q', 'C', 'q', 'c'].indexOf(d.type) !== -1) {
           var co = cubicBezierCoefficients(d);
           var exe = cubicBezierTransition.bind(null, d.p0, co);
           var ii = 0;
@@ -1724,7 +1724,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   }
 
   function colorToRGB(val) {
-    return val instanceof RGBA ? val : val.startsWith('#') ? this.hexToRgb(val) : val.startsWith('rgb') ? rgbParse(val) : val.startsWith('hsl') ? hslParse(val) : { r: 0, g: 0, b: 0 };
+    return val instanceof RGBA ? val : val.startsWith('#') ? hexToRgb(val) : val.startsWith('rgb') ? rgbParse(val) : val.startsWith('hsl') ? hslParse(val) : { r: 0, g: 0, b: 0 };
   }
 
   function colorTransition(src, dest) {
@@ -2499,7 +2499,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           length: arrExe[i].length
         });
         totalLength += arrExe[i].length;
-      } else if (arrExe[i].type === 'Q') {
+      } else if (arrExe[i].type === 'Q' || arrExe[i].type === 'q') {
         mappedArr.push({
           run: function run(f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
@@ -2508,7 +2508,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           },
 
           id: i,
-          render: new BezierTransition(arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].p1, arrExe[i].length),
+          render: new BezierTransition(arrExe[i].type, arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].p1, arrExe[i].length),
           length: arrExe[i].length
         });
         totalLength += arrExe[i].length;
@@ -6927,6 +6927,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   var webGLImageTextures = {};
 
+  function isPowerOf2(value) {
+    return (value & value - 1) === 0;
+  }
+
   function ImageNode(ctx, attr, style) {
     var self = this;
     this.attr = attr;
@@ -6941,11 +6945,25 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       if (!webGLImageTextures[self.attr.src]) {
         var texture = ctx.createTexture();
         ctx.bindTexture(ctx.TEXTURE_2D, texture);
-        ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE);
-        ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE);
-        ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST);
-        ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST);
         ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, ctx.RGBA, ctx.UNSIGNED_BYTE, self.image);
+        if (isPowerOf2(self.image.width) && isPowerOf2(self.image.height)) {
+          // Yes, it's a power of 2. Generate mips.
+          console.log('mips');
+          ctx.generateMipmap(ctx.TEXTURE_2D);
+          ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST_MIPMAP_LINEAR);
+          ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST);
+        } else {
+          ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE);
+          ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE);
+          ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST);
+          ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST);
+        }
+        // ctx.generateMipmap(ctx.TEXTURE_2D)
+        // ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE)
+        // ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE)
+        // ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST_MIPMAP_LINEAR)
+        // ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST)
+        // ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_BASE_LEVEL, 2)
         webGLImageTextures[self.attr.src] = texture;
       }
       // self.loadStatus = true
@@ -7507,6 +7525,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.imagesArray.splice(position, 1);
   };
   RenderWebglImages.prototype.execute = function (stack) {
+    this.ctx.enable(this.ctx.BLEND);
+    this.ctx.blendFunc(this.ctx.ONE, this.ctx.ONE_MINUS_SRC_ALPHA);
     this.ctx.useProgram(this.program);
     this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height);
     writeDataToShaderAttributes(this.ctx, [{
@@ -7521,27 +7541,26 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var x1 = void 0,
         x2 = void 0,
         y1 = void 0,
-        y2 = void 0,
-        posi = void 0;
+        y2 = void 0;
 
     for (var i = 0, len = stack.length; i < len; i++) {
-      var positionArray = this.imagesArray[i] ? this.imagesArray[i].positionArray : [];
+      if (!this.imagesArray[i]) {
+        this.imagesArray[i] = {
+          positionArray: new Float32Array(12)
+        };
+      }
+      var positionArray = this.imagesArray[i].positionArray;
       var node = stack[i];
       if (node.propChanged) {
         x1 = node.attr.x;
         x2 = x1 + node.attr.width;
         y1 = node.attr.y;
         y2 = y1 + node.attr.height;
-        posi = 0;
-        positionArray[posi] = positionArray[posi + 4] = positionArray[posi + 6] = x1;
-        positionArray[posi + 1] = positionArray[posi + 3] = positionArray[posi + 9] = y1;
-        positionArray[posi + 2] = positionArray[posi + 8] = positionArray[posi + 10] = x2;
-        positionArray[posi + 5] = positionArray[posi + 7] = positionArray[posi + 11] = y2;
+        positionArray[0] = positionArray[4] = positionArray[6] = x1;
+        positionArray[1] = positionArray[3] = positionArray[9] = y1;
+        positionArray[2] = positionArray[8] = positionArray[10] = x2;
+        positionArray[5] = positionArray[7] = positionArray[11] = y2;
         node.propChanged = false;
-        if (!this.imagesArray[i]) {
-          this.imagesArray[i] = {};
-        }
-        this.imagesArray[i].positionArray = new Float32Array(positionArray);
       }
       if (!webGLImageTextures[node.attr.src]) {
         continue;
