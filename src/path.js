@@ -705,7 +705,7 @@
           length: arrExe[i].length
         })
         totalLength += arrExe[i].length
-      } else if (arrExe[i].type === 'Q') {
+      } else if (arrExe[i].type === 'Q' || arrExe[i].type === 'q') {
         mappedArr.push({
           run (f) {
             newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1)
@@ -713,7 +713,7 @@
             self.setAttr('d', newPathInstance)
           },
           id: i,
-          render: new BezierTransition(arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].p1, arrExe[i].length),
+          render: new BezierTransition(arrExe[i].type, arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].p1, arrExe[i].length),
           length: arrExe[i].length
         })
         totalLength += arrExe[i].length
