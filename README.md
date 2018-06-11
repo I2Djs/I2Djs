@@ -75,64 +75,6 @@ Examples (SVG + Canvas + WebGL)
 | ------------- | ------------- | ------------- |
 |  [5000 Particles ](https://i2djs.github.io/I2Djs/examples/svg/distortion2.html) | [30000 Particles ](https://i2djs.github.io/I2Djs/examples/canvas/distortion2.html)  | [100000 Particles ](https://i2djs.github.io/I2Djs/examples/webGL/distortion2.html) |
 
-### To Begin
----
-
-#### Create Layer
-Below specified methods are to create the respective Canvas/SVG/WebGl layers. Layer renders corresponding Dom element - SVGlayer for SVG, Canvas for Canvas 2D , Webgllayer for WebGl. It accepts container ID as an input, gives renderer instance as an output.
-Multiple SVG/Canvas/WebGl layers can be defined.
-
-| Canvas  | SVG |  WebGl |
-| ------------- | ------------- | ------------- |
-| i2d.CanvasLayer('#containerId', Config)  | i2d.SVGLayer('#containerId', Config)  | i2d.WebglLayer('#containerId', Config) |
-
-#### Create Shape
-Lets use renderer instance to create shapes, animate attributes.. etc.
-
-** Incase of Webgl **
-
-   Group node with specific element type to be created before creating Elements
-   For example: 'Points' group to be created by setting 'shaderType' in config object.
-
-```javascript
-  var rect = layerRenderer.createEl({
-                  el:'rect',
-                  attr:{
-                      //Attributes goes here
-                      height:100,
-                      width:100,
-                      x:0,
-                      y:0
-                  },
-                  style:{
-                    //Styles goes here
-                    fill:'red' //if its Canvas renderer, then it will be canvas style attr 'fillStyle'
-                  }
-              })
-```
-
-#### Animate Shape
-Attribute Animation can be performed easily using <b>animateTo</b> api
-
-```javascript
-rect.animateTo({
-               duration : 1000,
-               ease : 'easeInOutSin',
-               loop : 10,
-               direction : 'alternate'
-               attr : {
-                   width: 200
-               },
-               style : {
-                   opacity: 0
-               },
-               end: function(){
-                   this.remove();
-               }
-           })
-```
-
-
 ### Support & Compatibility
 I2D supports Universal Module Definition(UMD)(AMD,CommonJS and vanilla environments) , based on the environment it can be imported accordingly.
 It is compatible with all modern browsers with latest versions.
