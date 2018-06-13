@@ -161,10 +161,10 @@
         run (f) {
           currObj.run(f)
         },
+        delay: currObj.delay !== undefined ? currObj.delay : 0,
         duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
-        // ,
-        // loop: self.loopValue,
-        direction: self.factor < 0 ? 'reverse' : 'default',
+        loop: currObj.loop ? currObj.loop : 1,
+        direction: self.factor < 0 ? 'reverse' : 'default', // self.factor < 0 ? 'reverse' : 'default',
         end: self.triggerEnd.bind(self, currObj)
       }, (c, v) =>
         c / v)
@@ -255,33 +255,14 @@
           run (f) {
             currObj.run(f)
           },
+          delay: currObj.delay !== undefined ? currObj.delay : 0,
           duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
           loop: currObj.loop ? currObj.loop : 1,
           direction: currObj.direction ? currObj.direction : 'default', // self.factor < 0 ? 'reverse' : 'default',
           end: self.triggerEnd.bind(self, currObj)
-        }, self.easying ? self.easying : easying(currObj.ease))
+        }, currObj.ease ? easying(currObj.ease) : self.easying)
       }
     }
-    // self.group.forEach((d, i) => {
-    //   const currObj = d
-
-    //   if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
-    //     currObj
-    //       // .duration(currObj.durationP ? currObj.durationP : self.durationP)
-    //       .end(self.triggerEnd.bind(self, currObj)).commit()
-    //   } else {
-    //     self.queue.add(generateChainId(), {
-    //       run (f) {
-    //         d.run(f)
-    //       },
-    //       duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
-    //       loop: 1,
-    //       direction: self.factor < 0 ? 'reverse' : 'default',
-    //       end: self.triggerEnd.bind(self, currObj)
-    //     }, self.easying)
-    //   }
-    // })
-
     return self
   }
 

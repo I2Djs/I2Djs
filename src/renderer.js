@@ -2694,7 +2694,7 @@
     }
 
     function canvasResize () {
-      if (config.resize && typeof config.resize) {
+      if (config.resize && typeof config.resize === 'function') {
         config.resize()
       }
       root.resize()
@@ -2870,7 +2870,7 @@
     }
 
     function svgResize () {
-      if (config.resize && typeof config.resize) {
+      if (config.resize && typeof config.resize === 'function') {
         config.resize()
       }
       renderVdom.call(root)
