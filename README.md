@@ -1,5 +1,5 @@
 <p align="center"> 
-  <img src="https://avatars0.githubusercontent.com/u/33233302?s=400&u=5fce4d3bd8100ad7ea284d12b948e5f09444dd55&v=4">
+  <img src="https://github.com/I2Djs/I2Djs/blob/master/i2djsLogo.png" width=500>
 </p>
 
 # Integrated-2D js [![npm](https://img.shields.io/npm/v/i2djs.svg)](https://www.npmjs.com/package/i2djs) [![Downloads](https://img.shields.io/npm/dm/i2djs.svg)](https://www.npmjs.com/package/i2djs)
