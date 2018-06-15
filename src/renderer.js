@@ -2985,7 +2985,6 @@
   }
   LineNode.prototype.setAttr = function (key, value) {
     this.attr[key] = value
-    this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe), this.nodeExe)
   }
   LineNode.prototype.getAttr = function (key) {
     return this.attr[key]
@@ -3077,12 +3076,6 @@
           ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST)
           ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST)
         }
-        // ctx.generateMipmap(ctx.TEXTURE_2D)
-        // ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE)
-        // ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE)
-        // ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST_MIPMAP_LINEAR)
-        // ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST)
-        // ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_BASE_LEVEL, 2)
         webGLImageTextures[self.attr.src] = texture
       }
       // self.loadStatus = true
@@ -3708,6 +3701,7 @@
       attribute: this.texCoordAttributeLocation
     }])
     let x1, x2, y1, y2
+    let activeTexture = null
 
     for (var i = 0, len = stack.length; i < len; i++) {
       if (!this.imagesArray[i]) {
@@ -3733,9 +3727,10 @@
       }
       this.inputs[0].data = this.imagesArray[i].positionArray
       writeDataToShaderAttributes(this.ctx, this.inputs)
-      // this.ctx.texImage2D(this.ctx.TEXTURE_2D, 0, this.ctx.RGBA, this.ctx.RGBA, this.ctx.UNSIGNED_BYTE, node.dom.image)
-      // this.ctx.enableVertexAttribArray(this.texCoordAttributeLocation)
-      this.ctx.bindTexture(this.ctx.TEXTURE_2D, webGLImageTextures[node.attr.src])
+      if (activeTexture !== webGLImageTextures[node.attr.src]) {
+        this.ctx.bindTexture(this.ctx.TEXTURE_2D, webGLImageTextures[node.attr.src])
+        activeTexture = webGLImageTextures[node.attr.src]
+      }
       this.ctx.drawArrays(this.ctx.TRIANGLES, 0, this.imagesArray[i].positionArray.length / 2)
     }
   }
