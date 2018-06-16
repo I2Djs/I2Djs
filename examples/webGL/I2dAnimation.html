@@ -36,9 +36,9 @@
         var path3 = i2d.Path('M461,359.245249 L461,230 L561.860025,230.999803 C561.860025,230.999803 672.401935,230 672.401935,353.481856 C672.401935,486.963711 561.860025,479.591179 561.860025,479.591179')
         var path2 = i2d.Path('M286,227 L556.149478,227 L556.149478,352.5 L418.443053,352.5 L418.443053,478 L675.470664,478')
 
-        animate(ichainInstance, path, {x:-120,y:0})
+        animate(ichainInstance, path, {x:-220,y:0})
         animate(mchainInstance, path2, {x:100,y:0})
-        animate(dchainInstance, path3, {x:260,y:0})
+        animate(dchainInstance, path3, {x:360,y:0})
 
         function animate(chain, path, position) {
             var pointsData = []
@@ -60,12 +60,17 @@
 
             var pointsRef = webglRenderer.createEl({
                 el:'group',
-                shaderType:'points'
+                shaderType:'points',
+                attr:{
+                    transform:{
+                        translate: [position.x, position.y]
+                    }
+                }
             }).createEls(pointsData, {
                     el:'point',
                     attr:{
-                        x: function(d) {return d.x + position.x+Math.cos(d.angle) * (Math.random()*300+200)},
-                        y: function(d) {return d.y + position.y+ Math.sin(d.angle) * (Math.random()*300+200)},
+                        x: function(d) {return d.x + Math.cos(d.angle) * (Math.random()*300+200)},
+                        y: function(d) {return d.y + Math.sin(d.angle) * (Math.random()*300+200)},
                         size: 2.0
                     },
                     style: {
@@ -78,13 +83,13 @@
                     var parallelChain = i2d.chain.parallelChain()
                         parallelChain.add(pointsRef.animateExe({
                                 duration: 3000,//1000+Math.random()*1000,
-                                ease:'easeInCubic',
+                                // ease:'easeInCubic',
                                 attr:{
                                     x: function(d){
-                                        return d.x + position.x
+                                        return d.x 
                                     },
                                     y: function(d){
-                                        return d.y + position.y
+                                        return d.y
                                     }
                                 }
                             }))
@@ -98,8 +103,8 @@
                                 attr: function(d) {
                                     return function (t) {
                                         let point = path.getPointAtLength(path.length*((t+d.pos)%1))
-                                        this.setAttr('x',point.x + d.xrand + position.x)
-                                            .setAttr('y',point.y + d.yrand + position.y)
+                                        this.setAttr('x',point.x + d.xrand )
+                                            .setAttr('y',point.y + d.yrand )
                                     }
                                 }
                             }))
@@ -115,10 +120,10 @@
                     var parallelChain4 = i2d.chain.parallelChain()
                         parallelChain4.add(pointsRef.animateExe({
                             duration: 3000,//+Math.random()*1000,
-                            ease:'easeOutCubic',
+                            // ease:'easeOutCubic',
                             attr:{
-                                x: function(d) {return d.x+ position.x +Math.cos(d.angle) * (Math.random()*300+200)},
-                                y: function(d) {return d.y+ position.y+Math.sin(d.angle) * (Math.random()*300+200)}
+                                x: function(d) {return d.x+ Math.cos(d.angle) * (Math.random()*300+200)},
+                                y: function(d) {return d.y+ Math.sin(d.angle) * (Math.random()*300+200)}
                             }
                         }))
                     return parallelChain4

@@ -190,10 +190,7 @@
         let d = 2
         let n = Math.pow(2, 18)
         let k = Math.sin(Date.now() / 5000) * 5
-        var shaderRef2 = webglRenderer.createEl({
-                el:'group',
-                shaderType:'shader',
-                shaderObject: {
+        var shaderRef2 = webglRenderer.createShaderEl({
                     fragmentShader: fragmentShader2,
                     vertexShader: vertexShader2,
                     uniforms:{
@@ -218,12 +215,8 @@
                             end: 4
                         }
                     }
-                }
-            })
-		var shaderRef = webglRenderer.createEl({
-                el:'group',
-                shaderType:'shader',
-                shaderObject: {
+                })
+		var shaderRef = webglRenderer.createShaderEl({
                     fragmentShader: fragmentShader,
                     vertexShader: vertexShader,
                     uniforms:{
@@ -260,8 +253,7 @@
                             end: n
                         }
                     }
-                }
-            })
+                })
             // .addUniform('u_a',{
             //     type: 'uniform1f',
             //     data: 10
@@ -278,8 +270,8 @@
 
 
             i2d.queue.onRequestFrame(function (t) {
-                shaderRef.dom.setUniformData('u_a', -2.0 + Math.sin(t / 8000))
-                shaderRef2.dom.setUniformData('u_k', Math.sin(t / 5000) * 5)
+                shaderRef.setUniformData('u_a', -2.0 + Math.sin(t / 8000))
+                shaderRef2.setUniformData('u_k', Math.sin(t / 5000) * 5)
             });
         
 	</script>   

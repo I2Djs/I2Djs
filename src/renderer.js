@@ -2996,30 +2996,26 @@
     return this.style[key]
   }
 
+  function polygonPointsMapper (value) {
+    return earcut(value.reduce(function (p, c) {
+      p.push(c.x)
+      p.push(c.y)
+      return p
+    }, [])).map(function (d) {
+      return value[d]
+    })
+  }
+
   function PolygonNode (attr, style) {
     this.attr = attr
     this.style = style
     if (this.attr['points']) {
-      this.attr.triangulatedPoints = earcut(this.attr['points'].reduce(function (p, c) {
-        p.push(c.x)
-        p.push(c.y)
-        return p
-      }, [])).map(function (d) {
-        return value[d]
-      })
-      // console.log(triangulatedPoints)
+      this.attr.triangulatedPoints = polygonPointsMapper(this.attr['points'])
     }
   }
   PolygonNode.prototype.setAttr = function (key, value) {
     if (key === 'points') {
-      this.attr.triangulatedPoints = earcut(value.reduce(function (p, c) {
-        p.push(c.x)
-        p.push(c.y)
-        return p
-      }, [])).map(function (d) {
-        return value[d]
-      })
-      // this.attr.triangulatedPoints = triangulatedPoints.map(function (d) { return value[d] })
+      this.attr.triangulatedPoints = polygonPointsMapper(value)
     }
   }
   PolygonNode.prototype.getAttr = function (key) {
@@ -3190,6 +3186,8 @@
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.sizeAttributeLocation = ctx.getAttribLocation(this.program, 'a_size')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate')
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale')
     // this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
     this.positionArray = []
     this.colorArray = []
@@ -3216,6 +3214,13 @@
       size: 2,
       attribute: this.positionAttributeLocation
     }]
+
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      }
+    }
   }
   RenderWebglPoints.prototype.remove = function (position) {
     this.positionArray.splice(position * 2, 2)
@@ -3233,9 +3238,9 @@
     for (var i = 0, len = stack.length; i < len; i++) {
       node = stack[i]
       if (node.propChanged) {
-        positionArray[i * 2] = node.attr.x * ratio
-        positionArray[i * 2 + 1] = node.attr.y * ratio
-        pointsSize[i] = node.attr.size || 1.0
+        positionArray[i * 2] = node.attr.x
+        positionArray[i * 2 + 1] = node.attr.y
+        pointsSize[i] = (node.attr.size || 1.0) * ratio
         attrFlag = true
         node.propChanged = false
       }
@@ -3258,9 +3263,17 @@
     if (styleFlag) {
       this.inputs[0].data = new Uint8Array(colorArray)
     }
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0]
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0]
+    }
     this.ctx.useProgram(this.program)
     writeDataToShaderAttributes(this.ctx, this.inputs)
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio)
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]])
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]])
     this.ctx.drawArrays(this.ctx.POINTS, 0, positionArray.length / 2)
   }
 
@@ -3276,6 +3289,8 @@
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate')
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale')
     this.positionArray = []
     this.colorArray = []
     this.inputs = [{
@@ -3295,6 +3310,12 @@
       size: 2,
       attribute: this.positionAttributeLocation
     }]
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      }
+    }
   }
   RenderWebglRects.prototype.remove = function (position) {
     this.positionArray.splice(position * 12, 12)
@@ -3310,10 +3331,10 @@
     for (var i = 0, len = stack.length; i < len; i++) {
       node = stack[i]
       if (node.propChanged) {
-        x1 = node.attr.x * ratio
-        x2 = x1 + node.attr.width * ratio
-        y1 = node.attr.y * ratio
-        y2 = y1 + node.attr.height * ratio
+        x1 = node.attr.x
+        x2 = x1 + node.attr.width
+        y1 = node.attr.y
+        y2 = y1 + node.attr.height
         posi = i * 12
         positionArray[posi] = positionArray[posi + 4] = positionArray[posi + 6] = x1
         positionArray[posi + 1] = positionArray[posi + 3] = positionArray[posi + 9] = y1
@@ -3335,12 +3356,20 @@
         node.styleChanged = false
       }
     }
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0]
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0]
+    }
     this.inputs[0].data = new Uint8Array(this.colorArray)
     this.inputs[1].data = new Float32Array(this.positionArray)
     writeDataToShaderAttributes(this.ctx, this.inputs)
 
     this.ctx.useProgram(this.program)
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio)
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]])
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]])
     this.ctx.drawArrays(this.ctx.TRIANGLES, 0, positionArray.length / 2)
   }
 
@@ -3356,6 +3385,8 @@
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate')
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale')
     this.positionArray = []
     this.colorArray = []
     this.inputs = [{
@@ -3373,6 +3404,12 @@
       size: 2,
       attribute: this.positionAttributeLocation
     }]
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      }
+    }
   }
   RenderWebglLines.prototype.remove = function (position) {
     this.positionArray.splice(position * 4, 4)
@@ -3385,10 +3422,10 @@
     for (var i = 0, len = stack.length; i < len; i++) {
       node = stack[i]
       if (node.propChanged) {
-        positionArray[i * 4] = node.attr.x1 * ratio
-        positionArray[i * 4 + 1] = node.attr.y1 * ratio
-        positionArray[i * 4 + 2] = node.attr.x2 * ratio
-        positionArray[i * 4 + 3] = node.attr.y2 * ratio
+        positionArray[i * 4] = node.attr.x1
+        positionArray[i * 4 + 1] = node.attr.y1
+        positionArray[i * 4 + 2] = node.attr.x2
+        positionArray[i * 4 + 3] = node.attr.y2
       }
 
       if (node.styleChanged) {
@@ -3408,12 +3445,18 @@
         node.styleChanged = false
       }
     }
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0]
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0]
+    }
     this.inputs[0].data = new Uint8Array(this.colorArray)
     this.inputs[1].data = new Float32Array(this.positionArray)
     writeDataToShaderAttributes(this.ctx, this.inputs)
 
     this.ctx.useProgram(this.program)
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio)
     this.ctx.drawArrays(this.ctx.LINES, 0, positionArray.length / 2)
   }
 
@@ -3429,6 +3472,8 @@
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate')
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale')
     this.polyLineArray= []
     // this.colorArray = []
     this.inputs = [{
@@ -3446,6 +3491,12 @@
       size: 2,
       attribute: this.positionAttributeLocation
     }]
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      }
+    }
   }
   RenderWebglPolyLines.prototype.remove = function (position) {
     this.polyLineArray.splice(position, 1)
@@ -3455,8 +3506,17 @@
     let fill
     let points
 
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0]
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0]
+    }
+
     this.ctx.useProgram(this.program)
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio)
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]])
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]])
 
     for (let i = 0, len = stack.length; i < len; i++) {
       node = stack[i]
@@ -3466,8 +3526,8 @@
       if (node.propChanged) {
         let positionArray = []
         for (let j = 0, jlen = points.length; j < jlen; j++) {
-          positionArray[j * 2] = points[j].x * ratio
-          positionArray[j * 2 + 1] = points[j].y * ratio
+          positionArray[j * 2] = points[j].x
+          positionArray[j * 2 + 1] = points[j].y
         }
         if (!this.polyLineArray[i]) {
           this.polyLineArray[i] = {}
@@ -3489,6 +3549,7 @@
         }
         this.polyLineArray[i].colorArray = new Uint8Array(colorArray)
       }
+      
       this.inputs[0].data = this.polyLineArray[i].colorArray
       this.inputs[1].data = this.polyLineArray[i].positionArray
       writeDataToShaderAttributes(this.ctx, this.inputs)
@@ -3508,6 +3569,8 @@
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate')
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale')
     this.polygonArray = []
     this.inputs = [{
       bufferType: this.ctx.ARRAY_BUFFER,
@@ -3524,13 +3587,28 @@
       size: 2,
       attribute: this.positionAttributeLocation
     }]
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      }
+    }
   }
   RenderWebglPolygons.prototype.remove = function (position) {
     this.polygonArray.splice(position, 1)
   }
   RenderWebglPolygons.prototype.execute = function (stack) {
     this.ctx.useProgram(this.program)
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0]
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0]
+    }
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio)
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]])
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]])
 
     for (var i = 0, len = stack.length; i < len; i++) {
       let node = stack[i]
@@ -3538,8 +3616,8 @@
       if (node.propChanged) {
         let positionArray = []
         for (let j = 0, jlen = points.length; j < jlen; j++) {
-          positionArray[j * 2] = points[j].x * ratio
-          positionArray[j * 2 + 1] = points[j].y * ratio
+          positionArray[j * 2] = points[j].x
+          positionArray[j * 2 + 1] = points[j].y
         }
         if (!this.polygonArray[i]) {
           this.polygonArray[i] = {}
@@ -3585,6 +3663,8 @@
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.radiusAttributeLocation = ctx.getAttribLocation(this.program, 'a_radius')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate')
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale')
     this.positionArray = []
     this.colorArray = []
     this.radius = []
@@ -3610,6 +3690,12 @@
       size: 2,
       attribute: this.positionAttributeLocation
     }]
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      }
+    }
   }
   RenderWebglCircles.prototype.remove = function (position) {
     this.positionArray.splice(position * 2, 2)
@@ -3618,7 +3704,15 @@
   }
   RenderWebglCircles.prototype.execute = function (stack) {
     this.ctx.useProgram(this.program)
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0]
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0]
+    }
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio)
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]])
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]])
     let positionArray = this.positionArray
     let colorArray = this.colorArray
     let radius = this.radius
@@ -3629,8 +3723,8 @@
       let fill = node.style.fill
       fill = fill || defaultColor
       if (node.propChanged) {
-        positionArray[i * 2] = node.attr.cx * ratio
-        positionArray[i * 2 + 1] = node.attr.cy * ratio
+        positionArray[i * 2] = node.attr.cx
+        positionArray[i * 2 + 1] = node.attr.cy
         radius[i] = node.attr.r * ratio
         node.propChanged = false
         attrFlag = true
@@ -3670,6 +3764,8 @@
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
     this.texCoordAttributeLocation = ctx.getAttribLocation(this.program, 'a_texCoord')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate')
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale')
     this.imagesArray = []
     this.texArray = new Float32Array([
       0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0
@@ -3682,6 +3778,12 @@
       size: 2,
       attribute: this.positionAttributeLocation
     }]
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      }
+    }
   }
   RenderWebglImages.prototype.remove = function (position) {
     this.imagesArray.splice(position, 1)
@@ -3690,7 +3792,15 @@
     this.ctx.enable(this.ctx.BLEND)
     this.ctx.blendFunc(this.ctx.ONE, this.ctx.ONE_MINUS_SRC_ALPHA)
     this.ctx.useProgram(this.program)
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0]
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0]
+    }
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio)
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]])
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]])
     writeDataToShaderAttributes(this.ctx, [{
       bufferType: this.ctx.ARRAY_BUFFER,
       data: this.texArray,
@@ -3712,10 +3822,10 @@
       let positionArray = this.imagesArray[i].positionArray
       let node = stack[i]
       if (node.propChanged) {
-        x1 = node.attr.x * ratio
-        x2 = x1 + node.attr.width * ratio
-        y1 = node.attr.y * ratio
-        y2 = y1 + node.attr.height * ratio
+        x1 = node.attr.x
+        x2 = x1 + node.attr.width
+        y1 = node.attr.y
+        y2 = y1 + node.attr.height
         positionArray[0] = positionArray[4] = positionArray[6] = x1
         positionArray[1] = positionArray[3] = positionArray[9] = y1
         positionArray[2] = positionArray[8] = positionArray[10] = x2
@@ -3759,9 +3869,6 @@
         break
       case 'images':
         e = new RenderWebglImages(ctx, attr, style, vDomIndex)
-        break
-      case 'shader':
-        e = new RenderWebglShader(ctx, shaderObject, vDomIndex)
         break
       default:
         e = null
@@ -3908,6 +4015,15 @@
     queueInstance.vDomChanged(this.vDomIndex)
     return e
   }
+
+  WebglNodeExe.prototype.createShaderEl = function createShader (shaderObject) {
+    const e = new RenderWebglShader(this.ctx, shaderObject, this.vDomIndex)
+    this.child([e])
+    queueInstance.vDomChanged(this.vDomIndex)
+    return e
+  }
+
+
   WebglNodeExe.prototype.remove = function Wremove () {
     const { children } = this.dom.parent
     const index = children.indexOf(this)
@@ -3937,6 +4053,7 @@
     const res = document.querySelector(context)
     const height = config.height ? config.height : res.clientHeight
     const width = config.width ? config.width : res.clientWidth
+    const clearColor = config.clearColor ? color.colorToRGB(config.clearColor) : {r: 0, g: 0, b: 0, a: 0}
     const layer = document.createElement('canvas')
     const ctx = layer.getContext('webgl', {
       premultipliedAlpha: false,
@@ -3945,24 +4062,12 @@
       alpha: true
     })
     ratio = getPixlRatio(ctx)
-    // console.log(ratio);
-    // originalRatio = ratio
-
-    // const onClear = (config.onClear === 'clear' || !config.onClear) ? function (ctx) {
-    //   ctx.clearRect(0, 0, width * ratio, height * ratio)
-    // } : config.onClear
 
     layer.setAttribute('height', height * ratio)
     layer.setAttribute('width', width * ratio)
     layer.style.height = `${height}px`
     layer.style.width = `${width}px`
     layer.style.position = 'absolute'
-    // layer.height = height
-    // layer.width = width
-    // layer.style.height = `${height}px`
-    // layer.style.width = `${width}px`
-    // layer.style.position = 'absolute'
-
     res.appendChild(layer)
 
     const vDomInstance = new VDom()
@@ -3981,7 +4086,9 @@
     root.height = height
     root.width = width
     root.type = 'WEBGL'
-    ctx.clearColor(0, 0, 0, 0)
+    root.pixelRatio = ratio
+
+    ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a)
     root.execute = function executeExe () {
       this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
       this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT)
