@@ -1705,7 +1705,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   }
 
   function colorToRGB(val) {
-    return val instanceof RGBA ? val : val.startsWith('#') ? hexToRgb(val) : val.startsWith('rgb') ? rgbParse(val) : val.startsWith('hsl') ? hslParse(val) : { r: 0, g: 0, b: 0 };
+    return val instanceof RGBA ? val : val.startsWith('#') ? hexToRgb(val) : val.startsWith('rgb') ? rgbParse(val) : val.startsWith('hsl') ? hslParse(val) : { r: 0, g: 0, b: 0, a: 255 };
   }
 
   function colorTransition(src, dest) {
@@ -3026,25 +3026,25 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     switch (el) {
       case 'point':
         res = {
-          vertexShader: '\n          attribute vec2 a_position;\n          attribute vec4 a_color;\n          attribute float a_size;\n          uniform vec2 u_resolution;\n          varying vec4 v_color;\n          void main() {\n            vec2 zeroToOne = a_position / u_resolution;\n            vec2 zeroToTwo = zeroToOne * 2.0;\n            vec2 clipSpace = zeroToTwo - 1.0;\n            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n            gl_PointSize = a_size;\n            v_color = a_color;\n          }\n          ',
+          vertexShader: '\n          attribute vec2 a_position;\n          attribute vec4 a_color;\n          attribute float a_size;\n          \n          uniform vec2 u_resolution;\n          uniform vec2 u_translate;\n          uniform vec2 u_scale;\n          \n          varying vec4 v_color;\n          void main() {\n            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;\n            vec2 clipSpace = ((zeroToOne) * 2.0) - 1.0;\n            gl_Position = vec4((clipSpace * vec2(1, -1)), 0, 1);\n            gl_PointSize = a_size;\n            v_color = a_color;\n          }\n          ',
           fragmentShader: '\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                        gl_FragColor = v_color;\n                    }\n                    '
         };
         break;
       case 'circle':
         res = {
-          vertexShader: '\n          attribute vec2 a_position;\n          attribute vec4 a_color;\n          attribute float a_radius;\n          uniform vec2 u_resolution;\n          varying vec4 v_color;\n          void main() {\n            vec2 zeroToOne = a_position / u_resolution;\n            vec2 zeroToTwo = zeroToOne * 2.0;\n            vec2 clipSpace = zeroToTwo - 1.0;\n            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n            gl_PointSize = a_radius;\n            v_color = a_color;\n          }\n          ',
+          vertexShader: '\n          attribute vec2 a_position;\n          attribute vec4 a_color;\n          attribute float a_radius;\n          uniform vec2 u_resolution;\n          uniform vec2 u_translate;\n          uniform vec2 u_scale;\n          varying vec4 v_color;\n          void main() {\n            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;\n            vec2 zeroToTwo = zeroToOne * 2.0;\n            vec2 clipSpace = zeroToTwo - 1.0;\n            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n            gl_PointSize = a_radius;\n            v_color = a_color;\n          }\n          ',
           fragmentShader: '\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                      float r = 0.0, delta = 0.0, alpha = 1.0;\n                      vec2 cxy = 2.0 * gl_PointCoord - 1.0;\n                      r = dot(cxy, cxy);\n                      if(r > 1.0) {\n                        discard;\n                      }\n                      delta = 0.09;\n                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);                      \n                      gl_FragColor = v_color * alpha;\n                    }\n                    '
         };
         break;
       case 'image':
         res = {
-          vertexShader: '\n                    attribute vec2 a_position;\n                    attribute vec2 a_texCoord;\n                    uniform vec2 u_resolution;\n                    varying vec2 v_texCoord;\n                    void main() {\n                      vec2 zeroToOne = a_position / u_resolution;\n                      vec2 clipSpace = zeroToOne * 2.0 - 1.0;\n                      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                      v_texCoord = a_texCoord;\n                    }\n          ',
+          vertexShader: '\n                    attribute vec2 a_position;\n                    attribute vec2 a_texCoord;\n                    uniform vec2 u_resolution;\n                    uniform vec2 u_translate;\n                    uniform vec2 u_scale;\n                    varying vec2 v_texCoord;\n                    void main() {\n                      vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;\n                      vec2 clipSpace = zeroToOne * 2.0 - 1.0;\n                      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                      v_texCoord = a_texCoord;\n                    }\n          ',
           fragmentShader: '\n                    precision mediump float;\n                    uniform sampler2D u_image;\n                    varying vec2 v_texCoord;\n                    void main() {\n                      gl_FragColor = texture2D(u_image, v_texCoord);\n                    }\n                    '
         };
         break;
       default:
         res = {
-          vertexShader: '\n                    attribute vec2 a_position;\n                    attribute vec4 a_color;\n                    uniform vec2 u_resolution;\n                    varying vec4 v_color;\n                    void main() {\n                    vec2 zeroToOne = a_position / u_resolution;\n                    vec2 clipSpace = zeroToOne * 2.0 - 1.0;\n                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                    v_color = a_color;\n                    }\n                    ',
+          vertexShader: '\n                    attribute vec2 a_position;\n                    attribute vec4 a_color;\n                    uniform vec2 u_resolution;\n                    uniform vec2 u_translate;\n                    uniform vec2 u_scale;\n                    varying vec4 v_color;\n                    void main() {\n                    vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;\n                    vec2 clipSpace = zeroToOne * 2.0 - 1.0;\n                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                    v_color = a_color;\n                    }\n                    ',
           fragmentShader: '\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                        gl_FragColor = v_color;\n                    }\n                    '
         };
     }
@@ -4444,11 +4444,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       node = this.stack[i];
       var conf = {};
       for (var j = 0; j < keys.length; j++) {
-        var _value2 = config[keys[j]];
-        if (typeof _value2 === 'function') {
-          _value2 = _value2.call(node, node.dataObj, i);
+        var value = config[keys[j]];
+        if (typeof value === 'function') {
+          value = value.call(node, node.dataObj, i);
         }
-        conf[keys[j]] = _value2;
+        conf[keys[j]] = value;
       }
       node.animatePathTo(conf);
     }
@@ -6858,30 +6858,26 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     return this.style[key];
   };
 
+  function polygonPointsMapper(value) {
+    return earcut(value.reduce(function (p, c) {
+      p.push(c.x);
+      p.push(c.y);
+      return p;
+    }, [])).map(function (d) {
+      return value[d];
+    });
+  }
+
   function PolygonNode(attr, style) {
     this.attr = attr;
     this.style = style;
     if (this.attr['points']) {
-      this.attr.triangulatedPoints = earcut(this.attr['points'].reduce(function (p, c) {
-        p.push(c.x);
-        p.push(c.y);
-        return p;
-      }, [])).map(function (d) {
-        return value[d];
-      });
-      // console.log(triangulatedPoints)
+      this.attr.triangulatedPoints = polygonPointsMapper(this.attr['points']);
     }
   }
   PolygonNode.prototype.setAttr = function (key, value) {
     if (key === 'points') {
-      this.attr.triangulatedPoints = earcut(value.reduce(function (p, c) {
-        p.push(c.x);
-        p.push(c.y);
-        return p;
-      }, [])).map(function (d) {
-        return value[d];
-      });
-      // this.attr.triangulatedPoints = triangulatedPoints.map(function (d) { return value[d] })
+      this.attr.triangulatedPoints = polygonPointsMapper(value);
     }
   };
   PolygonNode.prototype.getAttr = function (key) {
@@ -7051,6 +7047,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
     this.sizeAttributeLocation = ctx.getAttribLocation(this.program, 'a_size');
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate');
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale');
     // this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
     this.positionArray = [];
     this.colorArray = [];
@@ -7077,6 +7075,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       size: 2,
       attribute: this.positionAttributeLocation
     }];
+
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      };
+    }
   }
   RenderWebglPoints.prototype.remove = function (position) {
     this.positionArray.splice(position * 2, 2);
@@ -7094,9 +7099,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     for (var i = 0, len = stack.length; i < len; i++) {
       node = stack[i];
       if (node.propChanged) {
-        positionArray[i * 2] = node.attr.x * ratio;
-        positionArray[i * 2 + 1] = node.attr.y * ratio;
-        pointsSize[i] = node.attr.size || 1.0;
+        positionArray[i * 2] = node.attr.x;
+        positionArray[i * 2 + 1] = node.attr.y;
+        pointsSize[i] = (node.attr.size || 1.0) * ratio;
         attrFlag = true;
         node.propChanged = false;
       }
@@ -7119,9 +7124,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     if (styleFlag) {
       this.inputs[0].data = new Uint8Array(colorArray);
     }
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0];
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0];
+    }
     this.ctx.useProgram(this.program);
     writeDataToShaderAttributes(this.ctx, this.inputs);
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height);
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio);
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]]);
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]]);
     this.ctx.drawArrays(this.ctx.POINTS, 0, positionArray.length / 2);
   };
 
@@ -7137,6 +7150,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position');
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate');
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale');
     this.positionArray = [];
     this.colorArray = [];
     this.inputs = [{
@@ -7156,6 +7171,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       size: 2,
       attribute: this.positionAttributeLocation
     }];
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      };
+    }
   }
   RenderWebglRects.prototype.remove = function (position) {
     this.positionArray.splice(position * 12, 12);
@@ -7179,10 +7200,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     for (var i = 0, len = stack.length; i < len; i++) {
       node = stack[i];
       if (node.propChanged) {
-        x1 = node.attr.x * ratio;
-        x2 = x1 + node.attr.width * ratio;
-        y1 = node.attr.y * ratio;
-        y2 = y1 + node.attr.height * ratio;
+        x1 = node.attr.x;
+        x2 = x1 + node.attr.width;
+        y1 = node.attr.y;
+        y2 = y1 + node.attr.height;
         posi = i * 12;
         positionArray[posi] = positionArray[posi + 4] = positionArray[posi + 6] = x1;
         positionArray[posi + 1] = positionArray[posi + 3] = positionArray[posi + 9] = y1;
@@ -7204,12 +7225,20 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         node.styleChanged = false;
       }
     }
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0];
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0];
+    }
     this.inputs[0].data = new Uint8Array(this.colorArray);
     this.inputs[1].data = new Float32Array(this.positionArray);
     writeDataToShaderAttributes(this.ctx, this.inputs);
 
     this.ctx.useProgram(this.program);
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height);
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio);
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]]);
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]]);
     this.ctx.drawArrays(this.ctx.TRIANGLES, 0, positionArray.length / 2);
   };
 
@@ -7225,6 +7254,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position');
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate');
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale');
     this.positionArray = [];
     this.colorArray = [];
     this.inputs = [{
@@ -7242,6 +7273,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       size: 2,
       attribute: this.positionAttributeLocation
     }];
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      };
+    }
   }
   RenderWebglLines.prototype.remove = function (position) {
     this.positionArray.splice(position * 4, 4);
@@ -7259,10 +7296,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     for (var i = 0, len = stack.length; i < len; i++) {
       node = stack[i];
       if (node.propChanged) {
-        positionArray[i * 4] = node.attr.x1 * ratio;
-        positionArray[i * 4 + 1] = node.attr.y1 * ratio;
-        positionArray[i * 4 + 2] = node.attr.x2 * ratio;
-        positionArray[i * 4 + 3] = node.attr.y2 * ratio;
+        positionArray[i * 4] = node.attr.x1;
+        positionArray[i * 4 + 1] = node.attr.y1;
+        positionArray[i * 4 + 2] = node.attr.x2;
+        positionArray[i * 4 + 3] = node.attr.y2;
       }
 
       if (node.styleChanged) {
@@ -7282,12 +7319,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         node.styleChanged = false;
       }
     }
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0];
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0];
+    }
     this.inputs[0].data = new Uint8Array(this.colorArray);
     this.inputs[1].data = new Float32Array(this.positionArray);
     writeDataToShaderAttributes(this.ctx, this.inputs);
 
     this.ctx.useProgram(this.program);
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height);
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio);
     this.ctx.drawArrays(this.ctx.LINES, 0, positionArray.length / 2);
   };
 
@@ -7303,6 +7346,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position');
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate');
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale');
     this.polyLineArray = [];
     // this.colorArray = []
     this.inputs = [{
@@ -7320,6 +7365,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       size: 2,
       attribute: this.positionAttributeLocation
     }];
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      };
+    }
   }
   RenderWebglPolyLines.prototype.remove = function (position) {
     this.polyLineArray.splice(position, 1);
@@ -7329,8 +7380,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var fill = void 0;
     var points = void 0;
 
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0];
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0];
+    }
+
     this.ctx.useProgram(this.program);
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height);
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio);
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]]);
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]]);
 
     for (var i = 0, len = stack.length; i < len; i++) {
       node = stack[i];
@@ -7340,8 +7400,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       if (node.propChanged) {
         var positionArray = [];
         for (var j = 0, jlen = points.length; j < jlen; j++) {
-          positionArray[j * 2] = points[j].x * ratio;
-          positionArray[j * 2 + 1] = points[j].y * ratio;
+          positionArray[j * 2] = points[j].x;
+          positionArray[j * 2 + 1] = points[j].y;
         }
         if (!this.polyLineArray[i]) {
           this.polyLineArray[i] = {};
@@ -7363,6 +7423,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         }
         this.polyLineArray[i].colorArray = new Uint8Array(colorArray);
       }
+
       this.inputs[0].data = this.polyLineArray[i].colorArray;
       this.inputs[1].data = this.polyLineArray[i].positionArray;
       writeDataToShaderAttributes(this.ctx, this.inputs);
@@ -7382,6 +7443,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position');
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate');
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale');
     this.polygonArray = [];
     this.inputs = [{
       bufferType: this.ctx.ARRAY_BUFFER,
@@ -7398,13 +7461,28 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       size: 2,
       attribute: this.positionAttributeLocation
     }];
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      };
+    }
   }
   RenderWebglPolygons.prototype.remove = function (position) {
     this.polygonArray.splice(position, 1);
   };
   RenderWebglPolygons.prototype.execute = function (stack) {
     this.ctx.useProgram(this.program);
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height);
+
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0];
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0];
+    }
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio);
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]]);
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]]);
 
     for (var i = 0, len = stack.length; i < len; i++) {
       var node = stack[i];
@@ -7412,8 +7490,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       if (node.propChanged) {
         var positionArray = [];
         for (var j = 0, jlen = points.length; j < jlen; j++) {
-          positionArray[j * 2] = points[j].x * ratio;
-          positionArray[j * 2 + 1] = points[j].y * ratio;
+          positionArray[j * 2] = points[j].x;
+          positionArray[j * 2 + 1] = points[j].y;
         }
         if (!this.polygonArray[i]) {
           this.polygonArray[i] = {};
@@ -7459,6 +7537,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
     this.radiusAttributeLocation = ctx.getAttribLocation(this.program, 'a_radius');
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate');
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale');
     this.positionArray = [];
     this.colorArray = [];
     this.radius = [];
@@ -7484,6 +7564,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       size: 2,
       attribute: this.positionAttributeLocation
     }];
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      };
+    }
   }
   RenderWebglCircles.prototype.remove = function (position) {
     this.positionArray.splice(position * 2, 2);
@@ -7492,7 +7578,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   };
   RenderWebglCircles.prototype.execute = function (stack) {
     this.ctx.useProgram(this.program);
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height);
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0];
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0];
+    }
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio);
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]]);
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]]);
     var positionArray = this.positionArray;
     var colorArray = this.colorArray;
     var radius = this.radius;
@@ -7503,8 +7597,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       var fill = node.style.fill;
       fill = fill || defaultColor;
       if (node.propChanged) {
-        positionArray[i * 2] = node.attr.cx * ratio;
-        positionArray[i * 2 + 1] = node.attr.cy * ratio;
+        positionArray[i * 2] = node.attr.cx;
+        positionArray[i * 2 + 1] = node.attr.cy;
         radius[i] = node.attr.r * ratio;
         node.propChanged = false;
         attrFlag = true;
@@ -7544,6 +7638,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position');
     this.texCoordAttributeLocation = ctx.getAttribLocation(this.program, 'a_texCoord');
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate');
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale');
     this.imagesArray = [];
     this.texArray = new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]);
     this.inputs = [{
@@ -7554,6 +7650,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       size: 2,
       attribute: this.positionAttributeLocation
     }];
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      };
+    }
   }
   RenderWebglImages.prototype.remove = function (position) {
     this.imagesArray.splice(position, 1);
@@ -7562,7 +7664,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.ctx.enable(this.ctx.BLEND);
     this.ctx.blendFunc(this.ctx.ONE, this.ctx.ONE_MINUS_SRC_ALPHA);
     this.ctx.useProgram(this.program);
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height);
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0];
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0];
+    }
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio);
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]]);
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]]);
     writeDataToShaderAttributes(this.ctx, [{
       bufferType: this.ctx.ARRAY_BUFFER,
       data: this.texArray,
@@ -7587,10 +7697,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       var positionArray = this.imagesArray[i].positionArray;
       var node = stack[i];
       if (node.propChanged) {
-        x1 = node.attr.x * ratio;
-        x2 = x1 + node.attr.width * ratio;
-        y1 = node.attr.y * ratio;
-        y2 = y1 + node.attr.height * ratio;
+        x1 = node.attr.x;
+        x2 = x1 + node.attr.width;
+        y1 = node.attr.y;
+        y2 = y1 + node.attr.height;
         positionArray[0] = positionArray[4] = positionArray[6] = x1;
         positionArray[1] = positionArray[3] = positionArray[9] = y1;
         positionArray[2] = positionArray[8] = positionArray[10] = x2;
@@ -7634,9 +7744,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         break;
       case 'images':
         e = new RenderWebglImages(ctx, attr, style, vDomIndex);
-        break;
-      case 'shader':
-        e = new RenderWebglShader(ctx, shaderObject, vDomIndex);
         break;
       default:
         e = null;
@@ -7784,6 +7891,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     queueInstance.vDomChanged(this.vDomIndex);
     return e;
   };
+
+  WebglNodeExe.prototype.createShaderEl = function createShader(shaderObject) {
+    var e = new RenderWebglShader(this.ctx, shaderObject, this.vDomIndex);
+    this.child([e]);
+    queueInstance.vDomChanged(this.vDomIndex);
+    return e;
+  };
+
   WebglNodeExe.prototype.remove = function Wremove() {
     var children = this.dom.parent.children;
 
@@ -7816,6 +7931,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var res = document.querySelector(context);
     var height = config.height ? config.height : res.clientHeight;
     var width = config.width ? config.width : res.clientWidth;
+    var clearColor = config.clearColor ? color.colorToRGB(config.clearColor) : { r: 0, g: 0, b: 0, a: 0 };
     var layer = document.createElement('canvas');
     var ctx = layer.getContext('webgl', {
       premultipliedAlpha: false,
@@ -7824,24 +7940,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       alpha: true
     });
     ratio = getPixlRatio(ctx);
-    // console.log(ratio);
-    // originalRatio = ratio
-
-    // const onClear = (config.onClear === 'clear' || !config.onClear) ? function (ctx) {
-    //   ctx.clearRect(0, 0, width * ratio, height * ratio)
-    // } : config.onClear
 
     layer.setAttribute('height', height * ratio);
     layer.setAttribute('width', width * ratio);
     layer.style.height = height + 'px';
     layer.style.width = width + 'px';
     layer.style.position = 'absolute';
-    // layer.height = height
-    // layer.width = width
-    // layer.style.height = `${height}px`
-    // layer.style.width = `${width}px`
-    // layer.style.position = 'absolute'
-
     res.appendChild(layer);
 
     var vDomInstance = new VDom();
@@ -7860,7 +7964,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     root.height = height;
     root.width = width;
     root.type = 'WEBGL';
-    ctx.clearColor(0, 0, 0, 0);
+    root.pixelRatio = ratio;
+
+    ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
     root.execute = function executeExe() {
       this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
       this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT);
