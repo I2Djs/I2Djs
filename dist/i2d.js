@@ -4806,8 +4806,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     let scaleX = 1
     let scaleY = 1
     const { transform } = self.attr
-    if (self.polygon && self.polygon.points.length > 0) {
-      let points = self.polygon.points
+    if (self.attr.points && self.attr.points.length > 0) {
+      let points = self.attr.points
 
       if (transform && transform.translate) {
         [translateX, translateY] = transform.translate
@@ -5529,6 +5529,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.attr[attr] = value
     if (attr === 'points') {
       this.polygon = polygonExe(this.attr[attr])
+      this.attr.points = this.polygon.points
     }
   }
   RenderPolygon.prototype.updateBBox = RPolyupdateBBox

@@ -4954,8 +4954,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var scaleY = 1;
     var transform = self.attr.transform;
 
-    if (self.polygon && self.polygon.points.length > 0) {
-      var points = self.polygon.points;
+    if (self.attr.points && self.attr.points.length > 0) {
+      var points = self.attr.points;
 
       if (transform && transform.translate) {
         var _transform$translate = _slicedToArray(transform.translate, 2);
@@ -5693,6 +5693,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.attr[attr] = value;
     if (attr === 'points') {
       this.polygon = polygonExe(this.attr[attr]);
+      this.attr.points = this.polygon.points;
     }
   };
   RenderPolygon.prototype.updateBBox = RPolyupdateBBox;
