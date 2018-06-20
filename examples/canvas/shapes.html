@@ -191,6 +191,12 @@
                         strokeStyle:'red',
                         lineWidth: 4
                     }
+                })
+                .on('mouseover', function(){
+                    this.setStyle('strokeStyle','green')
+                })
+                .on('mouseout', function(){
+                    this.setStyle('strokeStyle','red')
                 });
            
 	</script>

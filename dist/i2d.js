@@ -4045,21 +4045,23 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     configurable: true,
     writable: false
   }
+  CompositeArray.join = {
+    value: function (data) {
+      this.join(data, this.selector, this.config)
+    },
+    enumerable: false,
+    configurable: true,
+    writable: false
+  }
 
   function dataJoin (data, selector, config) {
     const self = this
     const selectors = selector.split(',')
     let { joinOn } = config
     let joinResult = {
-      new: {
-
-      },
-      update: {
-
-      },
-      old: {
-
-      }
+      new: {},
+      update: {},
+      old: {}
     }
     if (!joinOn) { joinOn = function (d, i) { return i } }
     for (let i = 0, len = selectors.length; i < len; i++) {
@@ -4076,24 +4078,18 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         config.action.enter.call(self, joinResult.new)
       }
       if (config.action.exit) {
-        // const collection = new CreateElements()
-        // collection.wrapper(joinResult.old)
-        // config.action.exit.call(self, collection, joinResult.old.map(d => d.dataObj))
         config.action.exit.call(self, joinResult.old)
       }
       if (config.action.update) {
-        // const collection = new CreateElements()
-        // collection.wrapper(joinResult.update)
-        // config.action.update.call(self, collection, joinResult.update.map(d => d.dataObj))
         config.action.update.call(self, joinResult.update)
       }
     }
     // this.joinOn = joinOn
-    CompositeArray.action = {
-      value: config.action,
+    CompositeArray.config = {
+      value: config,
       enumerable: false,
       configurable: true,
-      writable: false
+      writable: true
     }
     CompositeArray.selector = {
       value: selector,
@@ -4105,7 +4101,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       value: data,
       enumerable: false,
       configurable: true,
-      writable: false
+      writable: true
     }
     return Object.create(self, CompositeArray)
   }
@@ -5394,6 +5390,20 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.ctx.closePath()
   }
   RenderPolyline.prototype.updateBBox = RPolyupdateBBox
+  RenderPolyline.prototype.in = function RPolyLinfun (co) {
+    let flag = false
+    for (let i = 0, len = this.attr.points.length; i <= len - 2; i++) {
+      let p1 = this.attr.points[i]
+      let p2 = this.attr.points[i + 1]
+      flag = flag || parseFloat(t2DGeometry.getDistance({ x: p1.x, y: p1.y }, co) +
+        t2DGeometry.getDistance(co, { x: p2.x, y: p2.y })).toFixed(1) ===
+      parseFloat(t2DGeometry.getDistance(
+        { x: p1.x, y: p1.y },
+        { x: p2.x, y: p2.y }
+      )).toFixed(1)
+    }
+    return flag
+  }
   /** ***************** Render Path */
 
   const RenderPath = function RenderPath (ctx, props, styleProps) {
