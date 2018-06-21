@@ -4144,6 +4144,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     configurable: true,
     writable: false
   };
+  CompositeArray.join = {
+    value: function value(data) {
+      this.join(data, this.selector, this.config);
+    },
+    enumerable: false,
+    configurable: true,
+    writable: false
+  };
 
   function dataJoin(data, selector, config) {
     var self = this;
@@ -4174,24 +4182,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         config.action.enter.call(self, joinResult.new);
       }
       if (config.action.exit) {
-        // const collection = new CreateElements()
-        // collection.wrapper(joinResult.old)
-        // config.action.exit.call(self, collection, joinResult.old.map(d => d.dataObj))
         config.action.exit.call(self, joinResult.old);
       }
       if (config.action.update) {
-        // const collection = new CreateElements()
-        // collection.wrapper(joinResult.update)
-        // config.action.update.call(self, collection, joinResult.update.map(d => d.dataObj))
         config.action.update.call(self, joinResult.update);
       }
     }
     // this.joinOn = joinOn
-    CompositeArray.action = {
-      value: config.action,
+    CompositeArray.config = {
+      value: config,
       enumerable: false,
       configurable: true,
-      writable: false
+      writable: true
     };
     CompositeArray.selector = {
       value: selector,
@@ -4203,7 +4205,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       value: data,
       enumerable: false,
       configurable: true,
-      writable: false
+      writable: true
     };
     return Object.create(self, CompositeArray);
   }
@@ -4954,8 +4956,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var scaleY = 1;
     var transform = self.attr.transform;
 
-    if (self.polygon && self.polygon.points.length > 0) {
-      var points = self.polygon.points;
+    if (self.attr.points && self.attr.points.length > 0) {
+      var points = self.attr.points;
 
       if (transform && transform.translate) {
         var _transform$translate = _slicedToArray(transform.translate, 2);
@@ -5547,6 +5549,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.ctx.closePath();
   };
   RenderPolyline.prototype.updateBBox = RPolyupdateBBox;
+  RenderPolyline.prototype.in = function RPolyLinfun(co) {
+    var flag = false;
+    for (var i = 0, len = this.attr.points.length; i <= len - 2; i++) {
+      var p1 = this.attr.points[i];
+      var p2 = this.attr.points[i + 1];
+      flag = flag || parseFloat(t2DGeometry.getDistance({ x: p1.x, y: p1.y }, co) + t2DGeometry.getDistance(co, { x: p2.x, y: p2.y })).toFixed(1) === parseFloat(t2DGeometry.getDistance({ x: p1.x, y: p1.y }, { x: p2.x, y: p2.y })).toFixed(1);
+    }
+    return flag;
+  };
   /** ***************** Render Path */
 
   var RenderPath = function RenderPath(ctx, props, styleProps) {
@@ -5693,6 +5704,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.attr[attr] = value;
     if (attr === 'points') {
       this.polygon = polygonExe(this.attr[attr]);
+      this.attr.points = this.polygon.points;
     }
   };
   RenderPolygon.prototype.updateBBox = RPolyupdateBBox;
