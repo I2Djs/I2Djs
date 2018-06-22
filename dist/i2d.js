@@ -1608,13 +1608,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function path (
   if (typeof module === 'object' && module.exports) {
     module.exports = factory(__webpack_require__(0), __webpack_require__(1), __webpack_require__(2), __webpack_require__(3))
   } else if (true) {
-<<<<<<< HEAD
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(1), __webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = (geometry => factory(geometry, queue, easing)).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-        __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
-=======
     !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(1), __webpack_require__(2), __webpack_require__(3)], __WEBPACK_AMD_DEFINE_RESULT__ = (geometry => factory(geometry, queue, easing, chain)).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
->>>>>>> master
   } else {
     i2d.path = factory(root.geometry, root.queue, root.easing, root.chain)
   }
