@@ -1765,16 +1765,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 (function path(root, factory) {
   var i2d = root;
   if (( false ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
-    module.exports = factory(__webpack_require__(0), __webpack_require__(2), __webpack_require__(3));
+    module.exports = factory(__webpack_require__(0), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4));
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(2), __webpack_require__(3)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry) {
-      return factory(geometry, queue, easing);
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry) {
+      return factory(geometry, queue, easing, chain);
     }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
   } else {
-    i2d.path = factory(root.geometry, root.queue, root.easing);
+    i2d.path = factory(root.geometry, root.queue, root.easing, root.chain);
   }
-})(undefined, function (geometry, queue, easing) {
+})(undefined, function (geometry, queue, easing, chain) {
   'use strict';
 
   var morphIdentifier = 0;
@@ -4078,12 +4078,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       for (var i = 0, len = data.length; i < len; i++) {
         this.data.push(data[i]);
       }
-      if (this.action.enter) {
+      if (this.config.action.enter) {
         var nodes = {};
         this.selector.split(',').forEach(function (d) {
           nodes[d] = data;
         });
-        this.action.enter.call(this, nodes);
+        this.config.action.enter.call(this, nodes);
       }
     },
     enumerable: false,
@@ -4094,12 +4094,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     value: function value() {
       var self = this;
       var elData = this.data.pop();
-      if (this.action.exit) {
+      if (this.config.action.exit) {
         var nodes = {};
         this.selector.split(',').forEach(function (d) {
           nodes[d] = self.fetchEls(d, [elData]);
         });
-        this.action.exit.call(this, nodes);
+        this.config.action.exit.call(this, nodes);
       }
     },
     enumerable: false,
@@ -4112,12 +4112,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         data = [data];
       }
       var self = this;
-      if (this.action.exit) {
+      if (this.config.action.exit) {
         var nodes = {};
         this.selector.split(',').forEach(function (d) {
           nodes[d] = self.fetchEls(d, data);
         });
-        this.action.exit.call(this, nodes);
+        this.config.action.exit.call(this, nodes);
       }
       for (var i = 0, len = data.length; i < len; i++) {
         if (this.data.indexOf(data[i]) !== -1) {
@@ -4132,12 +4132,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   CompositeArray.update = {
     value: function value() {
       var self = this;
-      if (this.action.update) {
+      if (this.config.action.update) {
         var nodes = {};
         this.selector.split(',').forEach(function (d) {
           nodes[d] = self.fetchEls(d, self.data);
         });
-        this.action.update.call(this, nodes);
+        this.config.action.update.call(this, nodes);
       }
     },
     enumerable: false,
@@ -7763,7 +7763,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
     this.shader = e;
 
-    if (shader === 'shader') return e;
+    // if (shader === 'shader')
+    //   return e
   }
   RenderWebglGroup.prototype.execute = function (stack) {
     this.shader.execute(stack);
@@ -7871,7 +7872,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   WebglNodeExe.prototype.child = function child(childrens) {
     var self = this;
-    // const childrensLocal = childrens
     if (self.dom instanceof RenderWebglGroup) {
       for (var i = 0; i < childrens.length; i += 1) {
         childrens[i].dom.parent = self;
@@ -7888,7 +7888,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   };
   WebglNodeExe.prototype.fetchEl = cfetchEl;
   WebglNodeExe.prototype.fetchEls = cfetchEls;
-  // WebglNodeExe.prototype.vDomIndex = null
   WebglNodeExe.prototype.join = dataJoin;
   WebglNodeExe.prototype.createEls = function CcreateEls(data, config) {
     var e = new CreateElements({ type: 'WEBGL', ctx: this.dom.ctx }, data, config, this.vDomIndex);

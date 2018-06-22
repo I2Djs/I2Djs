@@ -1606,14 +1606,14 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function colorM
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function path (root, factory) {
   const i2d = root
   if (typeof module === 'object' && module.exports) {
-    module.exports = factory(__webpack_require__(0), __webpack_require__(1), __webpack_require__(2))
+    module.exports = factory(__webpack_require__(0), __webpack_require__(1), __webpack_require__(2), __webpack_require__(3))
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(1), __webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = (geometry => factory(geometry, queue, easing)).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(1), __webpack_require__(2), __webpack_require__(3)], __WEBPACK_AMD_DEFINE_RESULT__ = (geometry => factory(geometry, queue, easing, chain)).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
   } else {
-    i2d.path = factory(root.geometry, root.queue, root.easing)
+    i2d.path = factory(root.geometry, root.queue, root.easing, root.chain)
   }
-}(this, (geometry, queue, easing) => {
+}(this, (geometry, queue, easing, chain) => {
   'use strict'
   let morphIdentifier = 0
   const t2DGeometry = geometry('2D')
@@ -1622,7 +1622,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function path (
 
   function animeId () {
     morphIdentifier += 1
-    return 'morph_'+morphIdentifier
+    return 'morph_' + morphIdentifier
   }
 
   function pathParser (path) {
@@ -3979,12 +3979,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       for (let i = 0, len = data.length; i < len; i++) {
         this.data.push(data[i])
       }
-      if (this.action.enter) {
+      if (this.config.action.enter) {
         let nodes = {}
         this.selector.split(',').forEach(function (d) {
           nodes[d] = data
         })
-        this.action.enter.call(this, nodes)
+        this.config.action.enter.call(this, nodes)
       }
     },
     enumerable: false,
@@ -3995,12 +3995,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     value: function () {
       let self = this
       let elData = this.data.pop()
-      if (this.action.exit) {
+      if (this.config.action.exit) {
         let nodes = {}
         this.selector.split(',').forEach(function (d) {
           nodes[d] = self.fetchEls(d, [elData])
         })
-        this.action.exit.call(this, nodes)
+        this.config.action.exit.call(this, nodes)
       }
     },
     enumerable: false,
@@ -4013,12 +4013,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         data = [data]
       }
       let self = this
-      if (this.action.exit) {
+      if (this.config.action.exit) {
         let nodes = {}
         this.selector.split(',').forEach(function (d) {
           nodes[d] = self.fetchEls(d, data)
         })
-        this.action.exit.call(this, nodes)
+        this.config.action.exit.call(this, nodes)
       }
       for (let i = 0, len = data.length; i < len; i++) {
         if (this.data.indexOf(data[i]) !== -1) {
@@ -4033,12 +4033,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   CompositeArray.update = {
     value: function () {
       let self = this
-      if (this.action.update) {
+      if (this.config.action.update) {
         let nodes = {}
         this.selector.split(',').forEach(function (d) {
           nodes[d] = self.fetchEls(d, self.data)
         })
-        this.action.update.call(this, nodes)
+        this.config.action.update.call(this, nodes)
       }
     },
     enumerable: false,
@@ -7519,8 +7519,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     }
     this.shader = e
 
-    if (shader === 'shader')
-      return e
+    // if (shader === 'shader')
+    //   return e
   }
   RenderWebglGroup.prototype.execute = function (stack) {
     this.shader.execute(stack)
@@ -7628,7 +7628,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
 
   WebglNodeExe.prototype.child = function child (childrens) {
     const self = this
-    // const childrensLocal = childrens
     if (self.dom instanceof RenderWebglGroup) {
       for (let i = 0; i < childrens.length; i += 1) {
         childrens[i].dom.parent = self
@@ -7643,7 +7642,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   }
   WebglNodeExe.prototype.fetchEl = cfetchEl
   WebglNodeExe.prototype.fetchEls = cfetchEls
-  // WebglNodeExe.prototype.vDomIndex = null
   WebglNodeExe.prototype.join = dataJoin
   WebglNodeExe.prototype.createEls = function CcreateEls (data, config) {
     const e = new CreateElements({ type: 'WEBGL', ctx: this.dom.ctx }, data, config, this.vDomIndex)

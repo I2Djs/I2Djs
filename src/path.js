@@ -1,13 +1,13 @@
 (function path (root, factory) {
   const i2d = root
   if (typeof module === 'object' && module.exports) {
-    module.exports = factory(require('./geometry.js'), require('./queue.js'), require('./easing.js'))
+    module.exports = factory(require('./geometry.js'), require('./queue.js'), require('./easing.js'), require('./chaining.js'))
   } else if (typeof define === 'function' && define.amd) {
-    define('path', ['./geometry.js', './queue.js', './easing.js'], geometry => factory(geometry, queue, easing))
+    define('path', ['./geometry.js', './queue.js', './easing.js', './chaining.js'], geometry => factory(geometry, queue, easing, chain))
   } else {
-    i2d.path = factory(root.geometry, root.queue, root.easing)
+    i2d.path = factory(root.geometry, root.queue, root.easing, root.chain)
   }
-}(this, (geometry, queue, easing) => {
+}(this, (geometry, queue, easing, chain) => {
   'use strict'
   let morphIdentifier = 0
   const t2DGeometry = geometry('2D')
@@ -16,7 +16,7 @@
 
   function animeId () {
     morphIdentifier += 1
-    return 'morph_'+morphIdentifier
+    return 'morph_' + morphIdentifier
   }
 
   function pathParser (path) {
