@@ -22,7 +22,7 @@
         var webglRenderer = i2d.WebglLayer('#canvas',{events:false,selectiveClear:false});
 
 		var rectsData = []
-		for(let i=0; i< 2000; i++) {
+		for(let i=0; i< 10000; i++) {
 			rectsData.push({
 				x: parseInt(Math.random()*1400),
 				y: parseInt(Math.random()*1000),
@@ -37,10 +37,10 @@
             .createEls(rectsData,{
                     el:'image',
                     attr:{
-                        x: function() { return Math.random()*1000 },
-                        y: function() { return Math.random()*600 },
-                        width: 512,
-                        height: 512,
+                        x: function() { return Math.random()*1400 },
+                        y: function() { return Math.random()*900 },
+                        width: 8,
+                        height: 8,
                         src: function (d) {
                             return d.image
                         }

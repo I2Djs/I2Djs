@@ -18,13 +18,16 @@
           attribute vec2 a_position;
           attribute vec4 a_color;
           attribute float a_size;
+          
           uniform vec2 u_resolution;
+          uniform vec2 u_translate;
+          uniform vec2 u_scale;
+          
           varying vec4 v_color;
           void main() {
-            vec2 zeroToOne = a_position / u_resolution;
-            vec2 zeroToTwo = zeroToOne * 2.0;
-            vec2 clipSpace = zeroToTwo - 1.0;
-            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
+            vec2 clipSpace = ((zeroToOne) * 2.0) - 1.0;
+            gl_Position = vec4((clipSpace * vec2(1, -1)), 0, 1);
             gl_PointSize = a_size;
             v_color = a_color;
           }
@@ -45,9 +48,11 @@
           attribute vec4 a_color;
           attribute float a_radius;
           uniform vec2 u_resolution;
+          uniform vec2 u_translate;
+          uniform vec2 u_scale;
           varying vec4 v_color;
           void main() {
-            vec2 zeroToOne = a_position / u_resolution;
+            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
             vec2 zeroToTwo = zeroToOne * 2.0;
             vec2 clipSpace = zeroToTwo - 1.0;
             gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
@@ -78,9 +83,11 @@
                     attribute vec2 a_position;
                     attribute vec2 a_texCoord;
                     uniform vec2 u_resolution;
+                    uniform vec2 u_translate;
+                    uniform vec2 u_scale;
                     varying vec2 v_texCoord;
                     void main() {
-                      vec2 zeroToOne = a_position / u_resolution;
+                      vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
                       vec2 clipSpace = zeroToOne * 2.0 - 1.0;
                       gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
                       v_texCoord = a_texCoord;
@@ -102,9 +109,11 @@
                     attribute vec2 a_position;
                     attribute vec4 a_color;
                     uniform vec2 u_resolution;
+                    uniform vec2 u_translate;
+                    uniform vec2 u_scale;
                     varying vec4 v_color;
                     void main() {
-                    vec2 zeroToOne = a_position / u_resolution;
+                    vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
                     vec2 clipSpace = zeroToOne * 2.0 - 1.0;
                     gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
                     v_color = a_color;

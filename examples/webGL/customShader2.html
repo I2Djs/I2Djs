@@ -126,10 +126,7 @@
             }
         `
         let k = Math.sin(Date.now() / 5000) * 5
-		var shaderRef = webglRenderer.createEl({
-                el:'group',
-                shaderType:'shader',
-                shaderObject: {
+		var shaderRef = webglRenderer.createShaderEl({
                     fragmentShader: fragmentShader,
                     vertexShader: vertexShader,
                     uniforms:{
@@ -154,10 +151,9 @@
                             end: 4
                         }
                     }
-                }
-            })
+                })
             i2d.queue.onRequestFrame(function (t) {
-                shaderRef.dom.setUniformData('u_k', Math.sin(t / 5000) * 5)
+                shaderRef.setUniformData('u_k', Math.sin(t / 5000) * 5)
             });
         
 	</script>   

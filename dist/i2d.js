@@ -1550,7 +1550,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function colorM
   function colorToRGB (val) {
     return val instanceof RGBA ? val : val.startsWith('#') ? hexToRgb(val)
       : val.startsWith('rgb') ? rgbParse(val)
-        : val.startsWith('hsl') ? hslParse(val) : { r: 0, g: 0, b: 0 }
+        : val.startsWith('hsl') ? hslParse(val) : { r: 0, g: 0, b: 0, a: 255 }
   }
 
   function colorTransition (src, dest) {
@@ -1606,14 +1606,19 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function colorM
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function path (root, factory) {
   const i2d = root
   if (typeof module === 'object' && module.exports) {
-    module.exports = factory(__webpack_require__(0), __webpack_require__(1), __webpack_require__(2))
+    module.exports = factory(__webpack_require__(0), __webpack_require__(1), __webpack_require__(2), __webpack_require__(3))
   } else if (true) {
+<<<<<<< HEAD
     !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(1), __webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = (geometry => factory(geometry, queue, easing)).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
         __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
+=======
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(1), __webpack_require__(2), __webpack_require__(3)], __WEBPACK_AMD_DEFINE_RESULT__ = (geometry => factory(geometry, queue, easing, chain)).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
+>>>>>>> master
   } else {
-    i2d.path = factory(root.geometry, root.queue, root.easing)
+    i2d.path = factory(root.geometry, root.queue, root.easing, root.chain)
   }
-}(this, (geometry, queue, easing) => {
+}(this, (geometry, queue, easing, chain) => {
   'use strict'
   let morphIdentifier = 0
   const t2DGeometry = geometry('2D')
@@ -1622,7 +1627,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function path (
 
   function animeId () {
     morphIdentifier += 1
-    return 'morph_'+morphIdentifier
+    return 'morph_' + morphIdentifier
   }
 
   function pathParser (path) {
@@ -2851,13 +2856,16 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
           attribute vec2 a_position;
           attribute vec4 a_color;
           attribute float a_size;
+          
           uniform vec2 u_resolution;
+          uniform vec2 u_translate;
+          uniform vec2 u_scale;
+          
           varying vec4 v_color;
           void main() {
-            vec2 zeroToOne = a_position / u_resolution;
-            vec2 zeroToTwo = zeroToOne * 2.0;
-            vec2 clipSpace = zeroToTwo - 1.0;
-            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
+            vec2 clipSpace = ((zeroToOne) * 2.0) - 1.0;
+            gl_Position = vec4((clipSpace * vec2(1, -1)), 0, 1);
             gl_PointSize = a_size;
             v_color = a_color;
           }
@@ -2878,9 +2886,11 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
           attribute vec4 a_color;
           attribute float a_radius;
           uniform vec2 u_resolution;
+          uniform vec2 u_translate;
+          uniform vec2 u_scale;
           varying vec4 v_color;
           void main() {
-            vec2 zeroToOne = a_position / u_resolution;
+            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
             vec2 zeroToTwo = zeroToOne * 2.0;
             vec2 clipSpace = zeroToTwo - 1.0;
             gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
@@ -2911,9 +2921,11 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
                     attribute vec2 a_position;
                     attribute vec2 a_texCoord;
                     uniform vec2 u_resolution;
+                    uniform vec2 u_translate;
+                    uniform vec2 u_scale;
                     varying vec2 v_texCoord;
                     void main() {
-                      vec2 zeroToOne = a_position / u_resolution;
+                      vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
                       vec2 clipSpace = zeroToOne * 2.0 - 1.0;
                       gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
                       v_texCoord = a_texCoord;
@@ -2935,9 +2947,11 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
                     attribute vec2 a_position;
                     attribute vec4 a_color;
                     uniform vec2 u_resolution;
+                    uniform vec2 u_translate;
+                    uniform vec2 u_scale;
                     varying vec4 v_color;
                     void main() {
-                    vec2 zeroToOne = a_position / u_resolution;
+                    vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
                     vec2 clipSpace = zeroToOne * 2.0 - 1.0;
                     gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
                     v_color = a_color;
@@ -3970,12 +3984,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       for (let i = 0, len = data.length; i < len; i++) {
         this.data.push(data[i])
       }
-      if (this.action.enter) {
+      if (this.config.action.enter) {
         let nodes = {}
         this.selector.split(',').forEach(function (d) {
           nodes[d] = data
         })
-        this.action.enter.call(this, nodes)
+        this.config.action.enter.call(this, nodes)
       }
     },
     enumerable: false,
@@ -3986,12 +4000,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     value: function () {
       let self = this
       let elData = this.data.pop()
-      if (this.action.exit) {
+      if (this.config.action.exit) {
         let nodes = {}
         this.selector.split(',').forEach(function (d) {
           nodes[d] = self.fetchEls(d, [elData])
         })
-        this.action.exit.call(this, nodes)
+        this.config.action.exit.call(this, nodes)
       }
     },
     enumerable: false,
@@ -4004,12 +4018,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         data = [data]
       }
       let self = this
-      if (this.action.exit) {
+      if (this.config.action.exit) {
         let nodes = {}
         this.selector.split(',').forEach(function (d) {
           nodes[d] = self.fetchEls(d, data)
         })
-        this.action.exit.call(this, nodes)
+        this.config.action.exit.call(this, nodes)
       }
       for (let i = 0, len = data.length; i < len; i++) {
         if (this.data.indexOf(data[i]) !== -1) {
@@ -4024,13 +4038,21 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   CompositeArray.update = {
     value: function () {
       let self = this
-      if (this.action.update) {
+      if (this.config.action.update) {
         let nodes = {}
         this.selector.split(',').forEach(function (d) {
           nodes[d] = self.fetchEls(d, self.data)
         })
-        this.action.update.call(this, nodes)
+        this.config.action.update.call(this, nodes)
       }
+    },
+    enumerable: false,
+    configurable: true,
+    writable: false
+  }
+  CompositeArray.join = {
+    value: function (data) {
+      this.join(data, this.selector, this.config)
     },
     enumerable: false,
     configurable: true,
@@ -4042,15 +4064,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     const selectors = selector.split(',')
     let { joinOn } = config
     let joinResult = {
-      new: {
-
-      },
-      update: {
-
-      },
-      old: {
-
-      }
+      new: {},
+      update: {},
+      old: {}
     }
     if (!joinOn) { joinOn = function (d, i) { return i } }
     for (let i = 0, len = selectors.length; i < len; i++) {
@@ -4067,24 +4083,18 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         config.action.enter.call(self, joinResult.new)
       }
       if (config.action.exit) {
-        // const collection = new CreateElements()
-        // collection.wrapper(joinResult.old)
-        // config.action.exit.call(self, collection, joinResult.old.map(d => d.dataObj))
         config.action.exit.call(self, joinResult.old)
       }
       if (config.action.update) {
-        // const collection = new CreateElements()
-        // collection.wrapper(joinResult.update)
-        // config.action.update.call(self, collection, joinResult.update.map(d => d.dataObj))
         config.action.update.call(self, joinResult.update)
       }
     }
     // this.joinOn = joinOn
-    CompositeArray.action = {
-      value: config.action,
+    CompositeArray.config = {
+      value: config,
       enumerable: false,
       configurable: true,
-      writable: false
+      writable: true
     }
     CompositeArray.selector = {
       value: selector,
@@ -4096,7 +4106,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       value: data,
       enumerable: false,
       configurable: true,
-      writable: false
+      writable: true
     }
     return Object.create(self, CompositeArray)
   }
@@ -4797,8 +4807,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     let scaleX = 1
     let scaleY = 1
     const { transform } = self.attr
-    if (self.polygon && self.polygon.points.length > 0) {
-      let points = self.polygon.points
+    if (self.attr.points && self.attr.points.length > 0) {
+      let points = self.attr.points
 
       if (transform && transform.translate) {
         [translateX, translateY] = transform.translate
@@ -5385,6 +5395,20 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.ctx.closePath()
   }
   RenderPolyline.prototype.updateBBox = RPolyupdateBBox
+  RenderPolyline.prototype.in = function RPolyLinfun (co) {
+    let flag = false
+    for (let i = 0, len = this.attr.points.length; i <= len - 2; i++) {
+      let p1 = this.attr.points[i]
+      let p2 = this.attr.points[i + 1]
+      flag = flag || parseFloat(t2DGeometry.getDistance({ x: p1.x, y: p1.y }, co) +
+        t2DGeometry.getDistance(co, { x: p2.x, y: p2.y })).toFixed(1) ===
+      parseFloat(t2DGeometry.getDistance(
+        { x: p1.x, y: p1.y },
+        { x: p2.x, y: p2.y }
+      )).toFixed(1)
+    }
+    return flag
+  }
   /** ***************** Render Path */
 
   const RenderPath = function RenderPath (ctx, props, styleProps) {
@@ -5520,6 +5544,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.attr[attr] = value
     if (attr === 'points') {
       this.polygon = polygonExe(this.attr[attr])
+      this.attr.points = this.polygon.points
     }
   }
   RenderPolygon.prototype.updateBBox = RPolyupdateBBox
@@ -6608,7 +6633,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   }
   LineNode.prototype.setAttr = function (key, value) {
     this.attr[key] = value
-    this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe), this.nodeExe)
   }
   LineNode.prototype.getAttr = function (key) {
     return this.attr[key]
@@ -6620,30 +6644,26 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return this.style[key]
   }
 
+  function polygonPointsMapper (value) {
+    return earcut(value.reduce(function (p, c) {
+      p.push(c.x)
+      p.push(c.y)
+      return p
+    }, [])).map(function (d) {
+      return value[d]
+    })
+  }
+
   function PolygonNode (attr, style) {
     this.attr = attr
     this.style = style
     if (this.attr['points']) {
-      this.attr.triangulatedPoints = earcut(this.attr['points'].reduce(function (p, c) {
-        p.push(c.x)
-        p.push(c.y)
-        return p
-      }, [])).map(function (d) {
-        return value[d]
-      })
-      // console.log(triangulatedPoints)
+      this.attr.triangulatedPoints = polygonPointsMapper(this.attr['points'])
     }
   }
   PolygonNode.prototype.setAttr = function (key, value) {
     if (key === 'points') {
-      this.attr.triangulatedPoints = earcut(value.reduce(function (p, c) {
-        p.push(c.x)
-        p.push(c.y)
-        return p
-      }, [])).map(function (d) {
-        return value[d]
-      })
-      // this.attr.triangulatedPoints = triangulatedPoints.map(function (d) { return value[d] })
+      this.attr.triangulatedPoints = polygonPointsMapper(value)
     }
   }
   PolygonNode.prototype.getAttr = function (key) {
@@ -6700,12 +6720,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
           ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST)
           ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST)
         }
-        // ctx.generateMipmap(ctx.TEXTURE_2D)
-        // ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE)
-        // ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE)
-        // ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST_MIPMAP_LINEAR)
-        // ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST)
-        // ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_BASE_LEVEL, 2)
         webGLImageTextures[self.attr.src] = texture
       }
       // self.loadStatus = true
@@ -6820,6 +6834,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.sizeAttributeLocation = ctx.getAttribLocation(this.program, 'a_size')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate')
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale')
     // this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
     this.positionArray = []
     this.colorArray = []
@@ -6846,6 +6862,13 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       size: 2,
       attribute: this.positionAttributeLocation
     }]
+
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      }
+    }
   }
   RenderWebglPoints.prototype.remove = function (position) {
     this.positionArray.splice(position * 2, 2)
@@ -6863,9 +6886,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     for (var i = 0, len = stack.length; i < len; i++) {
       node = stack[i]
       if (node.propChanged) {
-        positionArray[i * 2] = node.attr.x * ratio
-        positionArray[i * 2 + 1] = node.attr.y * ratio
-        pointsSize[i] = node.attr.size || 1.0
+        positionArray[i * 2] = node.attr.x
+        positionArray[i * 2 + 1] = node.attr.y
+        pointsSize[i] = (node.attr.size || 1.0) * ratio
         attrFlag = true
         node.propChanged = false
       }
@@ -6888,9 +6911,17 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     if (styleFlag) {
       this.inputs[0].data = new Uint8Array(colorArray)
     }
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0]
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0]
+    }
     this.ctx.useProgram(this.program)
     writeDataToShaderAttributes(this.ctx, this.inputs)
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio)
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]])
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]])
     this.ctx.drawArrays(this.ctx.POINTS, 0, positionArray.length / 2)
   }
 
@@ -6906,6 +6937,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate')
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale')
     this.positionArray = []
     this.colorArray = []
     this.inputs = [{
@@ -6925,6 +6958,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       size: 2,
       attribute: this.positionAttributeLocation
     }]
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      }
+    }
   }
   RenderWebglRects.prototype.remove = function (position) {
     this.positionArray.splice(position * 12, 12)
@@ -6940,10 +6979,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     for (var i = 0, len = stack.length; i < len; i++) {
       node = stack[i]
       if (node.propChanged) {
-        x1 = node.attr.x * ratio
-        x2 = x1 + node.attr.width * ratio
-        y1 = node.attr.y * ratio
-        y2 = y1 + node.attr.height * ratio
+        x1 = node.attr.x
+        x2 = x1 + node.attr.width
+        y1 = node.attr.y
+        y2 = y1 + node.attr.height
         posi = i * 12
         positionArray[posi] = positionArray[posi + 4] = positionArray[posi + 6] = x1
         positionArray[posi + 1] = positionArray[posi + 3] = positionArray[posi + 9] = y1
@@ -6965,12 +7004,20 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         node.styleChanged = false
       }
     }
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0]
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0]
+    }
     this.inputs[0].data = new Uint8Array(this.colorArray)
     this.inputs[1].data = new Float32Array(this.positionArray)
     writeDataToShaderAttributes(this.ctx, this.inputs)
 
     this.ctx.useProgram(this.program)
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio)
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]])
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]])
     this.ctx.drawArrays(this.ctx.TRIANGLES, 0, positionArray.length / 2)
   }
 
@@ -6986,6 +7033,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate')
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale')
     this.positionArray = []
     this.colorArray = []
     this.inputs = [{
@@ -7003,6 +7052,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       size: 2,
       attribute: this.positionAttributeLocation
     }]
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      }
+    }
   }
   RenderWebglLines.prototype.remove = function (position) {
     this.positionArray.splice(position * 4, 4)
@@ -7015,10 +7070,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     for (var i = 0, len = stack.length; i < len; i++) {
       node = stack[i]
       if (node.propChanged) {
-        positionArray[i * 4] = node.attr.x1 * ratio
-        positionArray[i * 4 + 1] = node.attr.y1 * ratio
-        positionArray[i * 4 + 2] = node.attr.x2 * ratio
-        positionArray[i * 4 + 3] = node.attr.y2 * ratio
+        positionArray[i * 4] = node.attr.x1
+        positionArray[i * 4 + 1] = node.attr.y1
+        positionArray[i * 4 + 2] = node.attr.x2
+        positionArray[i * 4 + 3] = node.attr.y2
       }
 
       if (node.styleChanged) {
@@ -7038,12 +7093,18 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         node.styleChanged = false
       }
     }
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0]
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0]
+    }
     this.inputs[0].data = new Uint8Array(this.colorArray)
     this.inputs[1].data = new Float32Array(this.positionArray)
     writeDataToShaderAttributes(this.ctx, this.inputs)
 
     this.ctx.useProgram(this.program)
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio)
     this.ctx.drawArrays(this.ctx.LINES, 0, positionArray.length / 2)
   }
 
@@ -7059,6 +7120,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate')
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale')
     this.polyLineArray= []
     // this.colorArray = []
     this.inputs = [{
@@ -7076,6 +7139,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       size: 2,
       attribute: this.positionAttributeLocation
     }]
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      }
+    }
   }
   RenderWebglPolyLines.prototype.remove = function (position) {
     this.polyLineArray.splice(position, 1)
@@ -7085,8 +7154,17 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     let fill
     let points
 
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0]
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0]
+    }
+
     this.ctx.useProgram(this.program)
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio)
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]])
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]])
 
     for (let i = 0, len = stack.length; i < len; i++) {
       node = stack[i]
@@ -7096,8 +7174,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       if (node.propChanged) {
         let positionArray = []
         for (let j = 0, jlen = points.length; j < jlen; j++) {
-          positionArray[j * 2] = points[j].x * ratio
-          positionArray[j * 2 + 1] = points[j].y * ratio
+          positionArray[j * 2] = points[j].x
+          positionArray[j * 2 + 1] = points[j].y
         }
         if (!this.polyLineArray[i]) {
           this.polyLineArray[i] = {}
@@ -7119,6 +7197,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         }
         this.polyLineArray[i].colorArray = new Uint8Array(colorArray)
       }
+      
       this.inputs[0].data = this.polyLineArray[i].colorArray
       this.inputs[1].data = this.polyLineArray[i].positionArray
       writeDataToShaderAttributes(this.ctx, this.inputs)
@@ -7138,6 +7217,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate')
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale')
     this.polygonArray = []
     this.inputs = [{
       bufferType: this.ctx.ARRAY_BUFFER,
@@ -7154,13 +7235,28 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       size: 2,
       attribute: this.positionAttributeLocation
     }]
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      }
+    }
   }
   RenderWebglPolygons.prototype.remove = function (position) {
     this.polygonArray.splice(position, 1)
   }
   RenderWebglPolygons.prototype.execute = function (stack) {
     this.ctx.useProgram(this.program)
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0]
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0]
+    }
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio)
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]])
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]])
 
     for (var i = 0, len = stack.length; i < len; i++) {
       let node = stack[i]
@@ -7168,8 +7264,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       if (node.propChanged) {
         let positionArray = []
         for (let j = 0, jlen = points.length; j < jlen; j++) {
-          positionArray[j * 2] = points[j].x * ratio
-          positionArray[j * 2 + 1] = points[j].y * ratio
+          positionArray[j * 2] = points[j].x
+          positionArray[j * 2 + 1] = points[j].y
         }
         if (!this.polygonArray[i]) {
           this.polygonArray[i] = {}
@@ -7215,6 +7311,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color')
     this.radiusAttributeLocation = ctx.getAttribLocation(this.program, 'a_radius')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate')
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale')
     this.positionArray = []
     this.colorArray = []
     this.radius = []
@@ -7240,6 +7338,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       size: 2,
       attribute: this.positionAttributeLocation
     }]
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      }
+    }
   }
   RenderWebglCircles.prototype.remove = function (position) {
     this.positionArray.splice(position * 2, 2)
@@ -7248,7 +7352,15 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   }
   RenderWebglCircles.prototype.execute = function (stack) {
     this.ctx.useProgram(this.program)
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0]
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0]
+    }
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio)
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]])
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]])
     let positionArray = this.positionArray
     let colorArray = this.colorArray
     let radius = this.radius
@@ -7259,8 +7371,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       let fill = node.style.fill
       fill = fill || defaultColor
       if (node.propChanged) {
-        positionArray[i * 2] = node.attr.cx * ratio
-        positionArray[i * 2 + 1] = node.attr.cy * ratio
+        positionArray[i * 2] = node.attr.cx
+        positionArray[i * 2 + 1] = node.attr.cy
         radius[i] = node.attr.r * ratio
         node.propChanged = false
         attrFlag = true
@@ -7300,6 +7412,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position')
     this.texCoordAttributeLocation = ctx.getAttribLocation(this.program, 'a_texCoord')
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
+    this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate')
+    this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale')
     this.imagesArray = []
     this.texArray = new Float32Array([
       0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0
@@ -7312,6 +7426,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       size: 2,
       attribute: this.positionAttributeLocation
     }]
+    if (!this.attr.transform) {
+      this.attr.transform = {
+        translate: [0.0, 0.0],
+        scale: [1.0, 1.0]
+      }
+    }
   }
   RenderWebglImages.prototype.remove = function (position) {
     this.imagesArray.splice(position, 1)
@@ -7320,7 +7440,15 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.ctx.enable(this.ctx.BLEND)
     this.ctx.blendFunc(this.ctx.ONE, this.ctx.ONE_MINUS_SRC_ALPHA)
     this.ctx.useProgram(this.program)
-    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width, this.ctx.canvas.height)
+    if (!this.attr.transform.scale) {
+      this.attr.transform.scale = [1.0, 1.0]
+    }
+    if (!this.attr.transform.translate) {
+      this.attr.transform.translate = [0.0, 0.0]
+    }
+    this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio)
+    this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]])
+    this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]])
     writeDataToShaderAttributes(this.ctx, [{
       bufferType: this.ctx.ARRAY_BUFFER,
       data: this.texArray,
@@ -7331,6 +7459,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       attribute: this.texCoordAttributeLocation
     }])
     let x1, x2, y1, y2
+    let activeTexture = null
 
     for (var i = 0, len = stack.length; i < len; i++) {
       if (!this.imagesArray[i]) {
@@ -7341,10 +7470,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       let positionArray = this.imagesArray[i].positionArray
       let node = stack[i]
       if (node.propChanged) {
-        x1 = node.attr.x * ratio
-        x2 = x1 + node.attr.width * ratio
-        y1 = node.attr.y * ratio
-        y2 = y1 + node.attr.height * ratio
+        x1 = node.attr.x
+        x2 = x1 + node.attr.width
+        y1 = node.attr.y
+        y2 = y1 + node.attr.height
         positionArray[0] = positionArray[4] = positionArray[6] = x1
         positionArray[1] = positionArray[3] = positionArray[9] = y1
         positionArray[2] = positionArray[8] = positionArray[10] = x2
@@ -7356,9 +7485,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       }
       this.inputs[0].data = this.imagesArray[i].positionArray
       writeDataToShaderAttributes(this.ctx, this.inputs)
-      // this.ctx.texImage2D(this.ctx.TEXTURE_2D, 0, this.ctx.RGBA, this.ctx.RGBA, this.ctx.UNSIGNED_BYTE, node.dom.image)
-      // this.ctx.enableVertexAttribArray(this.texCoordAttributeLocation)
-      this.ctx.bindTexture(this.ctx.TEXTURE_2D, webGLImageTextures[node.attr.src])
+      if (activeTexture !== webGLImageTextures[node.attr.src]) {
+        this.ctx.bindTexture(this.ctx.TEXTURE_2D, webGLImageTextures[node.attr.src])
+        activeTexture = webGLImageTextures[node.attr.src]
+      }
       this.ctx.drawArrays(this.ctx.TRIANGLES, 0, this.imagesArray[i].positionArray.length / 2)
     }
   }
@@ -7388,17 +7518,14 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       case 'images':
         e = new RenderWebglImages(ctx, attr, style, vDomIndex)
         break
-      case 'shader':
-        e = new RenderWebglShader(ctx, shaderObject, vDomIndex)
-        break
       default:
         e = null
         break
     }
     this.shader = e
 
-    if (shader === 'shader')
-      return e
+    // if (shader === 'shader')
+    //   return e
   }
   RenderWebglGroup.prototype.execute = function (stack) {
     this.shader.execute(stack)
@@ -7506,7 +7633,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
 
   WebglNodeExe.prototype.child = function child (childrens) {
     const self = this
-    // const childrensLocal = childrens
     if (self.dom instanceof RenderWebglGroup) {
       for (let i = 0; i < childrens.length; i += 1) {
         childrens[i].dom.parent = self
@@ -7521,7 +7647,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   }
   WebglNodeExe.prototype.fetchEl = cfetchEl
   WebglNodeExe.prototype.fetchEls = cfetchEls
-  // WebglNodeExe.prototype.vDomIndex = null
   WebglNodeExe.prototype.join = dataJoin
   WebglNodeExe.prototype.createEls = function CcreateEls (data, config) {
     const e = new CreateElements({ type: 'WEBGL', ctx: this.dom.ctx }, data, config, this.vDomIndex)
@@ -7536,6 +7661,15 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     queueInstance.vDomChanged(this.vDomIndex)
     return e
   }
+
+  WebglNodeExe.prototype.createShaderEl = function createShader (shaderObject) {
+    const e = new RenderWebglShader(this.ctx, shaderObject, this.vDomIndex)
+    this.child([e])
+    queueInstance.vDomChanged(this.vDomIndex)
+    return e
+  }
+
+
   WebglNodeExe.prototype.remove = function Wremove () {
     const { children } = this.dom.parent
     const index = children.indexOf(this)
@@ -7565,6 +7699,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     const res = document.querySelector(context)
     const height = config.height ? config.height : res.clientHeight
     const width = config.width ? config.width : res.clientWidth
+    const clearColor = config.clearColor ? color.colorToRGB(config.clearColor) : {r: 0, g: 0, b: 0, a: 0}
     const layer = document.createElement('canvas')
     const ctx = layer.getContext('webgl', {
       premultipliedAlpha: false,
@@ -7573,24 +7708,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       alpha: true
     })
     ratio = getPixlRatio(ctx)
-    // console.log(ratio);
-    // originalRatio = ratio
-
-    // const onClear = (config.onClear === 'clear' || !config.onClear) ? function (ctx) {
-    //   ctx.clearRect(0, 0, width * ratio, height * ratio)
-    // } : config.onClear
 
     layer.setAttribute('height', height * ratio)
     layer.setAttribute('width', width * ratio)
     layer.style.height = `${height}px`
     layer.style.width = `${width}px`
     layer.style.position = 'absolute'
-    // layer.height = height
-    // layer.width = width
-    // layer.style.height = `${height}px`
-    // layer.style.width = `${width}px`
-    // layer.style.position = 'absolute'
-
     res.appendChild(layer)
 
     const vDomInstance = new VDom()
@@ -7609,7 +7732,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     root.height = height
     root.width = width
     root.type = 'WEBGL'
-    ctx.clearColor(0, 0, 0, 0)
+    root.pixelRatio = ratio
+
+    ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a)
     root.execute = function executeExe () {
       this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
       this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT)

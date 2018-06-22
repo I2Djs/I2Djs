@@ -84,10 +84,7 @@
         let c = -1.2
         let d = 2
         let n = Math.pow(2, 18)
-		var shaderRef = webglRenderer.createEl({
-                el:'group',
-                shaderType:'shader',
-                shaderObject: {
+		var shaderRef = webglRenderer.createShaderEl({
                     fragmentShader: fragmentShader,
                     vertexShader: vertexShader,
                     uniforms:{
@@ -124,7 +121,6 @@
                             end: n
                         }
                     }
-                }
             })
             // .addUniform('u_a',{
             //     type: 'uniform1f',
@@ -142,7 +138,7 @@
 
 
             i2d.queue.onRequestFrame(function (t) {
-                shaderRef.dom.setUniformData('u_a', -2.0 + Math.sin(t / 8000))
+                shaderRef.setUniformData('u_a', -2.0 + Math.sin(t / 8000))
             });
         
 	</script>   

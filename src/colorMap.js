@@ -99,7 +99,7 @@
   function colorToRGB (val) {
     return val instanceof RGBA ? val : val.startsWith('#') ? hexToRgb(val)
       : val.startsWith('rgb') ? rgbParse(val)
-        : val.startsWith('hsl') ? hslParse(val) : { r: 0, g: 0, b: 0 }
+        : val.startsWith('hsl') ? hslParse(val) : { r: 0, g: 0, b: 0, a: 255 }
   }
 
   function colorTransition (src, dest) {
