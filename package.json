@@ -1,6 +1,6 @@
 {
   "name": "i2djs",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "Integrated 2d JS -  framework for 2D graphics rendering for SVG/Canvas context",
   "module": "./dist/i2d.esm.js",
   "main": "./dist/i2d.js",
