@@ -4146,7 +4146,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   };
   CompositeArray.join = {
     value: function value(data) {
-      this.join(data, this.selector, this.config);
+      dataJoin.call(this, data, this.selector, this.config);
     },
     enumerable: false,
     configurable: true,
@@ -7762,9 +7762,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         break;
     }
     this.shader = e;
-
-    // if (shader === 'shader')
-    //   return e
   }
   RenderWebglGroup.prototype.execute = function (stack) {
     this.shader.execute(stack);

@@ -415,7 +415,7 @@
   }
   CompositeArray.join = {
     value: function (data) {
-      this.join(data, this.selector, this.config)
+      dataJoin.call(this, data, this.selector, this.config)
     },
     enumerable: false,
     configurable: true,

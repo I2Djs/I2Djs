@@ -4047,7 +4047,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   }
   CompositeArray.join = {
     value: function (data) {
-      this.join(data, this.selector, this.config)
+      dataJoin.call(this, data, this.selector, this.config)
     },
     enumerable: false,
     configurable: true,
@@ -7518,9 +7518,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         break
     }
     this.shader = e
-
-    // if (shader === 'shader')
-    //   return e
   }
   RenderWebglGroup.prototype.execute = function (stack) {
     this.shader.execute(stack)
