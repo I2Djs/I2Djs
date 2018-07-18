@@ -48,8 +48,8 @@ Examples (SVG + Canvas + WebGL)
 ### Animation 
 <table>
     <tr>
-      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/attributesAnimation.html"><img src="https://i2djs.github.io/I2Djs/examples/snaps/attributeAnimation.gif"></a></td>
-      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/circleMovementAnimation.html"><img src="https://i2djs.github.io/I2Djs/examples/snaps/circleMoveMent.gif"></a></td>
+      <td width="15%"><a href="https://codepen.io/nswamy14/pen/BVxjog"><img src="https://i2djs.github.io/I2Djs/examples/snaps/attributeAnimation.gif"></a></td>
+      <td width="15%"><a href="https://codepen.io/nswamy14/pen/PEyvyK"><img src="https://i2djs.github.io/I2Djs/examples/snaps/circleMoveMent.gif"></a></td>
       <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent2.html"><img src="https://i2djs.github.io/I2Djs/examples/snaps/mouse2Animation.gif"></a></td>
       <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent.html"><img src="https://i2djs.github.io/I2Djs/examples/snaps/mouseAnimation.gif"></a></td>
       <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/image.html"><img src="https://i2djs.github.io/I2Djs/examples/snaps/imageAnimation.gif"></a></td>

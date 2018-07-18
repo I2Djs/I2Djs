@@ -415,7 +415,7 @@
   }
   CompositeArray.join = {
     value: function (data) {
-      this.join(data, this.selector, this.config)
+      dataJoin.call(this, data, this.selector, this.config)
     },
     enumerable: false,
     configurable: true,
@@ -915,6 +915,7 @@
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.scale = XY
     this.changedAttribute.transform = this.attr.transform
+    this.attrChanged = true
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -922,6 +923,7 @@
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.skewX = [x]
     this.changedAttribute.transform = this.attr.transform
+    this.attrChanged = true
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -929,6 +931,7 @@
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.skewY = [y]
     this.changedAttribute.transform = this.attr.transform
+    this.attrChanged = true
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -937,6 +940,7 @@
     if (!this.attr.transform) { this.attr.transform = {} }
     this.attr.transform.translate = XY
     this.changedAttribute.transform = this.attr.transform
+    this.attrChanged = true
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
@@ -948,6 +952,7 @@
       this.attr.transform.rotate = [angle, x || 0, y || 0]
     }
     this.changedAttribute.transform = this.attr.transform
+    this.attrChanged = true
     queueInstance.vDomChanged(this.vDomIndex)
     return this
   }
