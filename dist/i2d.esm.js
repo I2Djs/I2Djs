@@ -4685,6 +4685,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
     this.attr.transform.scale = XY;
     this.changedAttribute.transform = this.attr.transform;
+    this.attrChanged = true;
     queueInstance.vDomChanged(this.vDomIndex);
     return this;
   };
@@ -4694,6 +4695,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
     this.attr.transform.skewX = [x];
     this.changedAttribute.transform = this.attr.transform;
+    this.attrChanged = true;
     queueInstance.vDomChanged(this.vDomIndex);
     return this;
   };
@@ -4703,6 +4705,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
     this.attr.transform.skewY = [y];
     this.changedAttribute.transform = this.attr.transform;
+    this.attrChanged = true;
     queueInstance.vDomChanged(this.vDomIndex);
     return this;
   };
@@ -4713,6 +4716,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
     this.attr.transform.translate = XY;
     this.changedAttribute.transform = this.attr.transform;
+    this.attrChanged = true;
     queueInstance.vDomChanged(this.vDomIndex);
     return this;
   };
@@ -4726,6 +4730,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       this.attr.transform.rotate = [angle, x || 0, y || 0];
     }
     this.changedAttribute.transform = this.attr.transform;
+    this.attrChanged = true;
     queueInstance.vDomChanged(this.vDomIndex);
     return this;
   };
