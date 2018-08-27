@@ -1361,14 +1361,22 @@
     return canvas
   }
 
-  function createCanvasPattern (patternObj, repeatInd) {
+
+  function CanvasPattern (self, pattern, repeatInd) {
+    var image = new Image();
+    var selfSelf = this
+    image.src = pattern;
+    image.onload = function () {
+      selfSelf.pattern = self.ctx.createPattern(image, repeatInd);
+      queueInstance.vDomChanged(self.vDomIndex);
+    }
   }
-  createCanvasPattern.prototype = {
+  CanvasPattern.prototype.exe = function () {
+    return this.pattern;
   }
-  createCanvasPattern.prototype.setAttr = function CPsetAttr (attr, value) {
-    // this.attr[attr] = value
-  }
-  createCanvasPattern.prototype.execute = function CPexecute () {
+
+  function createCanvasPattern(patternObj, repeatInd) {
+    return new CanvasPattern (this, patternObj, repeatInd);
   }
 
   function applyStyles () {
@@ -2233,12 +2241,12 @@
     let key
 
     for (key in this.style) {
-      if (typeof this.style[key] !== 'function' && !(this.style[key] instanceof CanvasGradients)) {
+      if (typeof this.style[key] !== 'function' && !(this.style[key] instanceof CanvasGradients || this.style[key] instanceof CanvasPattern)) {
         value = this.style[key]
       } else if (typeof this.style[key] === 'function') {
         this.style[key] = this.style[key].call(this, this.dataObj)
         value = this.style[key]
-      } else if (this.style[key] instanceof CanvasGradients) {
+      } else if (this.style[key] instanceof CanvasGradients || this.style[key] instanceof CanvasPattern) {
         value = this.style[key].exe(this.ctx, this.dom.BBox)
       } else {
         console.log('unkonwn Style')
@@ -2577,31 +2585,6 @@
     return dpr / bsr
   }
 
-  // function createCanvasPattern(config) {
-  //   const self = this
-  //   const vDomIndex = self.vDomIndex
-  //   const layer = document.createElement('canvas')
-  //   const height = config.height ? config.height : 0
-  //   const width = config.width ? config.width : 0
-  //   const ctx = layer.getContext('2d')
-  //   ratio = getPixlRatio(ctx)
-  //   layer.setAttribute('height', height * ratio)
-  //   layer.setAttribute('width', width * ratio)
-  //   layer.style.height = `${height}px`
-  //   layer.style.width = `${width}px`
-
-  //   this.pattern =  new CanvasNodeExe(ctx, {
-  //     el: 'group',
-  //     attr: {
-  //       id: 'pattern',
-  //       transform: {
-  //         scale: [ratio, ratio]
-  //       }
-  //     }
-  //   }, domId(), vDomIndex)
-
-  //   return this.pattern
-  // }
   let dragObject = {
     dragStart: function (fun) {
       if (typeof fun === 'function') {
@@ -2741,7 +2724,7 @@
           selectedNode.dom.drag.event = event
           selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
         } else {
-          const tselectedNode = vDomInstance.eventsCheck([root], { x: e.offsetX, y: e.offsetY })
+          const tselectedNode = vDomInstance.eventsCheck([root], { x: e.offsetX, y: e.offsetY }, e)
           if (selectedNode && tselectedNode !== selectedNode) {
             if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
               if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
@@ -2750,7 +2733,7 @@
             selectedNode.hovered = false
             if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag) {
               selectedNode.dom.drag.dragStartFlag = false
-              selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
+              selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, selectedNode.dom.drag.event)
               selectedNode.dom.drag.event = null
             }
           }
@@ -2818,6 +2801,7 @@
           selectedNode.dom.drag.event = null
           selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
         }
+        selectedNode = null;
       })
       res.addEventListener('mouseleave', (e) => {
         e.preventDefault()
@@ -2829,6 +2813,7 @@
           selectedNode.dom.drag.event = null
           selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
         }
+        selectedNode = null;
       })
       res.addEventListener('contextmenu', (e) => {
         e.preventDefault()

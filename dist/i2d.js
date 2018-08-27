@@ -1364,7 +1364,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function vDom (
     this.root = _
     this.stateModified = true
   }
-  VDom.prototype.eventsCheck = function eventsCheck (nodes, mouseCoor) {
+  VDom.prototype.eventsCheck = function eventsCheck (nodes, mouseCoor, rawEvent) {
     const self = this
     let node,
       temp
@@ -1375,17 +1375,73 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function vDom (
       transformCoOr(d, coOr)
       if (d.in({ x: coOr.x, y: coOr.y })) {
         if (d.children && d.children.length > 0) {
-          temp = self.eventsCheck(d.children, { x: coOr.x, y: coOr.y })
+          temp = self.eventsCheck(d.children, { x: coOr.x, y: coOr.y }, rawEvent)
           if (temp) { node = temp }
         } else {
           node = d
         }
+        callInEvents(d, rawEvent)
+      } else {
+        callOutEvents(d, rawEvent)
       }
     }
     return node
   }
 
   VDom.prototype.transformCoOr = transformCoOr
+
+
+  function callInEvents (node, e) {
+    if ((node.dom.mouseover || node.dom.mouseenter) && !node.hovered) {
+        if (node.dom.mouseover) {
+          node.dom.mouseover.call(node, node.dataObj, e);
+        }
+        if (node.dom.mouseenter) {
+          node.dom.mouseenter.call(node, node.dataObj, e);
+        }
+        node.hovered = true;
+        
+        if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.onDragStart) {
+          selectedNode.dom.drag.dragStartFlag = true
+          selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e)
+          let event = {}
+          event.x = e.offsetX
+          event.y = e.offsetY
+          event.dx = 0
+          event.dy = 0
+          selectedNode.dom.drag.event = event
+        }
+
+        if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDrag) {
+          let event = node.dom.drag.event
+          if (node.dom.drag.event) {
+            event.dx = e.offsetX - event.x
+            event.dy = e.offsetY - event.y
+          }
+          event.x = e.offsetX
+          event.y = e.offsetY
+          node.dom.drag.event = event
+          node.dom.drag.onDrag.call(node, node.dataObj, event)
+        }
+    }
+  }
+
+  function callOutEvents (node, e) {
+    if ((node.dom.mouseout || node.dom.mouseleave) && node.hovered) {
+        if (node.dom.mouseout) {
+          node.dom.mouseout.call(node, node.dataObj, e);
+        }
+        if (node.dom.mouseleave) {
+          node.dom.mouseleave.call(node, node.dataObj, e);
+        }
+        node.hovered = false;
+    }
+    if (node.dom.drag && node.dom.drag.dragStartFlag) {
+      node.dom.drag.dragStartFlag = false
+      node.dom.drag.onDragEnd.call(node, node.dataObj, e)
+      node.dom.drag.event = null
+    }
+  }
 
   function transformCoOr (d, coOr) {
     let hozMove = 0
@@ -4993,14 +5049,22 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return canvas
   }
 
-  function createCanvasPattern (patternObj, repeatInd) {
+
+  function CanvasPattern (self, pattern, repeatInd) {
+    var image = new Image();
+    var selfSelf = this
+    image.src = pattern;
+    image.onload = function () {
+      selfSelf.pattern = self.ctx.createPattern(image, repeatInd);
+      queueInstance.vDomChanged(self.vDomIndex);
+    }
   }
-  createCanvasPattern.prototype = {
+  CanvasPattern.prototype.exe = function () {
+    return this.pattern;
   }
-  createCanvasPattern.prototype.setAttr = function CPsetAttr (attr, value) {
-    // this.attr[attr] = value
-  }
-  createCanvasPattern.prototype.execute = function CPexecute () {
+
+  function createCanvasPattern(patternObj, repeatInd) {
+    return new CanvasPattern (this, patternObj, repeatInd);
   }
 
   function applyStyles () {
@@ -5865,12 +5929,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     let key
 
     for (key in this.style) {
-      if (typeof this.style[key] !== 'function' && !(this.style[key] instanceof CanvasGradients)) {
+      if (typeof this.style[key] !== 'function' && !(this.style[key] instanceof CanvasGradients || this.style[key] instanceof CanvasPattern)) {
         value = this.style[key]
       } else if (typeof this.style[key] === 'function') {
         this.style[key] = this.style[key].call(this, this.dataObj)
         value = this.style[key]
-      } else if (this.style[key] instanceof CanvasGradients) {
+      } else if (this.style[key] instanceof CanvasGradients || this.style[key] instanceof CanvasPattern) {
         value = this.style[key].exe(this.ctx, this.dom.BBox)
       } else {
         console.log('unkonwn Style')
@@ -6209,31 +6273,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return dpr / bsr
   }
 
-  // function createCanvasPattern(config) {
-  //   const self = this
-  //   const vDomIndex = self.vDomIndex
-  //   const layer = document.createElement('canvas')
-  //   const height = config.height ? config.height : 0
-  //   const width = config.width ? config.width : 0
-  //   const ctx = layer.getContext('2d')
-  //   ratio = getPixlRatio(ctx)
-  //   layer.setAttribute('height', height * ratio)
-  //   layer.setAttribute('width', width * ratio)
-  //   layer.style.height = `${height}px`
-  //   layer.style.width = `${width}px`
-
-  //   this.pattern =  new CanvasNodeExe(ctx, {
-  //     el: 'group',
-  //     attr: {
-  //       id: 'pattern',
-  //       transform: {
-  //         scale: [ratio, ratio]
-  //       }
-  //     }
-  //   }, domId(), vDomIndex)
-
-  //   return this.pattern
-  // }
   let dragObject = {
     dragStart: function (fun) {
       if (typeof fun === 'function') {
@@ -6373,7 +6412,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
           selectedNode.dom.drag.event = event
           selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
         } else {
-          const tselectedNode = vDomInstance.eventsCheck([root], { x: e.offsetX, y: e.offsetY })
+          const tselectedNode = vDomInstance.eventsCheck([root], { x: e.offsetX, y: e.offsetY }, e)
           if (selectedNode && tselectedNode !== selectedNode) {
             if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
               if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
@@ -6450,6 +6489,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
           selectedNode.dom.drag.event = null
           selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
         }
+        selectedNode = null;
       })
       res.addEventListener('mouseleave', (e) => {
         e.preventDefault()
@@ -6461,6 +6501,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
           selectedNode.dom.drag.event = null
           selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
         }
+        selectedNode = null;
       })
       res.addEventListener('contextmenu', (e) => {
         e.preventDefault()
