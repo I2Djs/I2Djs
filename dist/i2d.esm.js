@@ -1521,10 +1521,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         } else {
           node = d;
         }
-        callInEvents(d, rawEvent);
-      } else {
-        callOutEvents(d, rawEvent);
+        // callInEvents(d, rawEvent);
       }
+      // else {
+      //   // callOutEvents(d, rawEvent);
+      // }
     }
     return node;
   };
@@ -6157,7 +6158,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     if (index !== -1) {
       children.splice(index, 1);
     }
-    this.BBoxUpdate = true;
+    this.dom.parent.BBoxUpdate = true;
     queueInstance.vDomChanged(this.vDomIndex);
   };
 
@@ -6378,7 +6379,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       var removedNode = this.children.splice(index, 1)[0];
       this.dom.removeChild(removedNode.dom);
     }
-
+    this.BBoxUpdate = true;
     queueInstance.vDomChanged(this.vDomIndex);
   };
 
@@ -6645,7 +6646,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             selectedNode.hovered = false;
             if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag) {
               selectedNode.dom.drag.dragStartFlag = false;
-              selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e);
+              selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, selectedNode.dom.drag.event);
               selectedNode.dom.drag.event = null;
             }
           }
@@ -6719,8 +6720,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           selectedNode.dom.drag.dragStartFlag = false;
           selectedNode.dom.drag.event = null;
           selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e);
+          selectedNode = null;
         }
-        selectedNode = null;
       });
       res.addEventListener('mouseleave', function (e) {
         e.preventDefault();
@@ -6731,8 +6732,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           selectedNode.dom.drag.dragStartFlag = false;
           selectedNode.dom.drag.event = null;
           selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e);
+          selectedNode = null;
         }
-        selectedNode = null;
       });
       res.addEventListener('contextmenu', function (e) {
         e.preventDefault();

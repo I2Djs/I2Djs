@@ -24,21 +24,24 @@
     let node,
       temp
 
-    for (let i = 0; i <= nodes.length - 1; i += 1) {
-      const d = nodes[i]
-      const coOr = { x: mouseCoor.x, y: mouseCoor.y }
-      transformCoOr(d, coOr)
+    for (var i = 0; i <= nodes.length - 1; i += 1) {
+      var d = nodes[i];
+      var coOr = { x: mouseCoor.x, y: mouseCoor.y };
+      transformCoOr(d, coOr);
       if (d.in({ x: coOr.x, y: coOr.y })) {
         if (d.children && d.children.length > 0) {
-          temp = self.eventsCheck(d.children, { x: coOr.x, y: coOr.y }, rawEvent)
-          if (temp) { node = temp }
+          temp = self.eventsCheck(d.children, { x: coOr.x, y: coOr.y }, rawEvent);
+          if (temp) {
+            node = temp;
+          }
         } else {
-          node = d
+          node = d;
         }
-        callInEvents(d, rawEvent)
-      } else {
-        callOutEvents(d, rawEvent)
-      }
+        // callInEvents(d, rawEvent);
+      } 
+      // else {
+      //   // callOutEvents(d, rawEvent);
+      // }
     }
     return node
   }

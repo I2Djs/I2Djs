@@ -1369,21 +1369,24 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function vDom (
     let node,
       temp
 
-    for (let i = 0; i <= nodes.length - 1; i += 1) {
-      const d = nodes[i]
-      const coOr = { x: mouseCoor.x, y: mouseCoor.y }
-      transformCoOr(d, coOr)
+    for (var i = 0; i <= nodes.length - 1; i += 1) {
+      var d = nodes[i];
+      var coOr = { x: mouseCoor.x, y: mouseCoor.y };
+      transformCoOr(d, coOr);
       if (d.in({ x: coOr.x, y: coOr.y })) {
         if (d.children && d.children.length > 0) {
-          temp = self.eventsCheck(d.children, { x: coOr.x, y: coOr.y }, rawEvent)
-          if (temp) { node = temp }
+          temp = self.eventsCheck(d.children, { x: coOr.x, y: coOr.y }, rawEvent);
+          if (temp) {
+            node = temp;
+          }
         } else {
-          node = d
+          node = d;
         }
-        callInEvents(d, rawEvent)
-      } else {
-        callOutEvents(d, rawEvent)
-      }
+        // callInEvents(d, rawEvent);
+      } 
+      // else {
+      //   // callOutEvents(d, rawEvent);
+      // }
     }
     return node
   }
@@ -5954,7 +5957,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     if (index !== -1) {
       children.splice(index, 1)
     }
-    this.BBoxUpdate = true
+    this.dom.parent.BBoxUpdate = true
     queueInstance.vDomChanged(this.vDomIndex)
   }
 
@@ -6157,7 +6160,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       const removedNode = this.children.splice(index, 1)[0]
       this.dom.removeChild(removedNode.dom)
     }
-
+    this.BBoxUpdate = true;
     queueInstance.vDomChanged(this.vDomIndex)
   }
 
@@ -6421,7 +6424,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
             selectedNode.hovered = false
             if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag) {
               selectedNode.dom.drag.dragStartFlag = false
-              selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
+              selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, selectedNode.dom.drag.event)
               selectedNode.dom.drag.event = null
             }
           }
@@ -6488,8 +6491,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
           selectedNode.dom.drag.dragStartFlag = false
           selectedNode.dom.drag.event = null
           selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
+          selectedNode = null;
         }
-        selectedNode = null;
       })
       res.addEventListener('mouseleave', (e) => {
         e.preventDefault()
@@ -6500,8 +6503,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
           selectedNode.dom.drag.dragStartFlag = false
           selectedNode.dom.drag.event = null
           selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
+          selectedNode = null;
         }
-        selectedNode = null;
       })
       res.addEventListener('contextmenu', (e) => {
         e.preventDefault()

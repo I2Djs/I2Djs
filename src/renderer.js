@@ -2266,7 +2266,7 @@
     if (index !== -1) {
       children.splice(index, 1)
     }
-    this.BBoxUpdate = true
+    this.dom.parent.BBoxUpdate = true
     queueInstance.vDomChanged(this.vDomIndex)
   }
 
@@ -2469,7 +2469,7 @@
       const removedNode = this.children.splice(index, 1)[0]
       this.dom.removeChild(removedNode.dom)
     }
-
+    this.BBoxUpdate = true;
     queueInstance.vDomChanged(this.vDomIndex)
   }
 
@@ -2800,8 +2800,8 @@
           selectedNode.dom.drag.dragStartFlag = false
           selectedNode.dom.drag.event = null
           selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
+          selectedNode = null;
         }
-        selectedNode = null;
       })
       res.addEventListener('mouseleave', (e) => {
         e.preventDefault()
@@ -2812,8 +2812,8 @@
           selectedNode.dom.drag.dragStartFlag = false
           selectedNode.dom.drag.event = null
           selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
+          selectedNode = null;
         }
-        selectedNode = null;
       })
       res.addEventListener('contextmenu', (e) => {
         e.preventDefault()
