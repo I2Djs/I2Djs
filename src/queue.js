@@ -103,11 +103,11 @@
     }
   }
 
-  function Animator () {
+  function VDomStack () {
     this.vDoms = []
   }
 
-  Animator.prototype = {
+  VDomStack.prototype = {
     startAnimeFrames,
     stopAnimeFrame,
     add,
@@ -121,23 +121,25 @@
     }
   }
 
-  Animator.prototype.addVdom = function AaddVdom (_) {
+  VDomStack.prototype.addVdom = function AaddVdom (_) {
     vDoms.push(_)
     return vDoms.length - 1
   }
-  Animator.prototype.removeVdom = function removeVdom (_) {
-    for (var i = 0; i < vDoms.length; i++) {
-      if (vDoms[i] === _) {
-        vDoms.splice(i, 1)
-      }
-    }
+  VDomStack.prototype.removeVdom = function removeVdom (_) {
+    let index = vDoms.indexOf(_);
+        vDoms[index] = {};
+    // for (var i = 0; i < vDoms.length; i++) {
+    //   if (vDoms[i] === _) {
+    //     vDoms.splice(i, 1)
+    //   }
+    // }
   }
-  Animator.prototype.vDomChanged = function AvDomChanged (vDom) {
+  VDomStack.prototype.vDomChanged = function AvDomChanged (vDom) {
     if (vDoms[vDom]) {
       vDoms[vDom].stateModified = true
     }
   }
-  Animator.prototype.execute = function Aexecute () {
+  VDomStack.prototype.execute = function Aexecute () {
     if (!animeFrameId) { animeFrameId = window.requestAnimationFrame(exeFrameCaller) }
   }
 
@@ -206,7 +208,7 @@
   }
 
   function animateQueue () {
-    if (!animatorInstance) { animatorInstance = new Animator() }
+    if (!animatorInstance) { animatorInstance = new VDomStack() }
     return animatorInstance
   }
 

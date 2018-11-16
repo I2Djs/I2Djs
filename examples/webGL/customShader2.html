@@ -48,7 +48,7 @@
                                 if (t < 0.0 || t > 1.0) t -= floor(t);
                                 float ts = abs(t - 0.5);
                                 return cubehelix(vec3((360.0 * t - 100.0) / 180.0 * PI, 1.5 - 1.5 * ts, 0.8 - 0.9 * ts));
-                                }
+                                } 
 
                                 float sinh(float x) {
                                 return (exp(x) - exp(-x)) / 2.0;
