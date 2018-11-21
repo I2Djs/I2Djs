@@ -135,7 +135,7 @@
     // }
   }
   VDomStack.prototype.vDomChanged = function AvDomChanged (vDom) {
-    if (vDoms[vDom]) {
+    if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
       vDoms[vDom].stateModified = true
     }
   }
