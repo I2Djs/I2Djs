@@ -882,6 +882,12 @@
       } else {
         if (key === 'text') {
           self.dom.textContent = self.changedAttribute[key]
+        } else if (key === 'd') {
+          if (path.isTypePath(self.changedAttribute[key])) {
+            self.dom.setAttribute(key, self.changedAttribute[key].fetchPathString())
+          } else {
+            self.dom.setAttribute(key, self.changedAttribute[key])
+          }
         } else {
           self.dom.setAttribute(key, self.changedAttribute[key])
         }
