@@ -4169,17 +4169,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         data = [data];
       }
       var self = this;
+      for (var i = 0, len = data.length; i < len; i++) {
+        if (this.data.indexOf(data[i]) !== -1) {
+          this.data.splice(this.data.indexOf(data[i]), 1);
+        }
+      }
       if (this.config.action.exit) {
         var nodes = {};
         this.selector.split(',').forEach(function (d) {
           nodes[d] = self.fetchEls(d, data);
         });
         this.config.action.exit.call(this, nodes);
-      }
-      for (var i = 0, len = data.length; i < len; i++) {
-        if (this.data.indexOf(data[i]) !== -1) {
-          this.data.splice(this.data.indexOf(data[i]), 1);
-        }
       }
     },
     enumerable: false,

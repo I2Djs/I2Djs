@@ -381,17 +381,17 @@
         data = [data]
       }
       let self = this
+      for (let i = 0, len = data.length; i < len; i++) {
+        if (this.data.indexOf(data[i]) !== -1) {
+          this.data.splice(this.data.indexOf(data[i]), 1)
+        }
+      }
       if (this.config.action.exit) {
         let nodes = {}
         this.selector.split(',').forEach(function (d) {
           nodes[d] = self.fetchEls(d, data)
         })
         this.config.action.exit.call(this, nodes)
-      }
-      for (let i = 0, len = data.length; i < len; i++) {
-        if (this.data.indexOf(data[i]) !== -1) {
-          this.data.splice(this.data.indexOf(data[i]), 1)
-        }
       }
     },
     enumerable: false,
