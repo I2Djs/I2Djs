@@ -1,4 +1,5 @@
-(function colorMap (root, factory) {
+/* eslint-disable no-undef */
+;(function colorMap (root, factory) {
   const i2d = root
   if (typeof define === 'function' && define.amd) {
     define('colorMap', [], () => factory())
@@ -51,7 +52,7 @@
   }
 
   function rgbParse (rgb) {
-    const res = rgb.replace(/[^0-9\.,]+/g, '').split(',')
+    const res = rgb.replace(/[^0-9.,]+/g, '').split(',')
     const obj = {}
     const flags = ['r', 'g', 'b', 'a']
     for (let i = 0; i < res.length; i += 1) {
@@ -69,7 +70,7 @@
     var s
     var l
     var obj = {}
-    const res = hsl.replace(/[^0-9\.,]+/g, '').split(',').map(function (d) { return parseFloat(d) })
+    const res = hsl.replace(/[^0-9.,]+/g, '').split(',').map(function (d) { return parseFloat(d) })
     h = res[0] / 360
     s = res[1] / 100
     l = res[2] / 100

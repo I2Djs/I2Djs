@@ -75,6 +75,34 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, exports) {
+
+module.exports = function(module) {
+	if(!module.webpackPolyfill) {
+		module.deprecate = function() {};
+		module.paths = [];
+		// module.parent = undefined by default
+		if(!module.children) module.children = [];
+		Object.defineProperty(module, "loaded", {
+			enumerable: true,
+			get: function() {
+				return module.l;
+			}
+		});
+		Object.defineProperty(module, "id", {
+			enumerable: true,
+			get: function() {
+				return module.i;
+			}
+		});
+		module.webpackPolyfill = 1;
+	}
+	return module;
+};
+
+
+/***/ }),
+/* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -82,7 +110,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-(function (root, factory) {
+/* eslint-disable no-undef */
+;(function (root, factory) {
   if (( false ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
     module.exports = factory();
   } else if (true) {
@@ -97,17 +126,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   'use strict';
 
   function geometry(context) {
-    function cos(a) {
-      return Math.cos(a);
-    }
+    // function cos (a) {
+    //   return Math.cos(a)
+    // }
 
-    function acos(a) {
-      return Math.acos(a);
-    }
+    // function acos (a) {
+    //   return Math.acos(a)
+    // }
 
-    function sin(a) {
-      return Math.sin(a);
-    }
+    // function sin (a) {
+    //   return Math.sin(a)
+    // }
 
     function pw(a, x) {
       var val = 1;
@@ -118,9 +147,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       return val;
     }
 
-    function tan(a) {
-      return Math.tan(a);
-    }
+    // function tan (a) {
+    //   return Math.tan(a)
+    // }
 
     function atan2(a, b) {
       return Math.atan2(a, b);
@@ -129,24 +158,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     function sqrt(a) {
       return Math.sqrt(a);
     }
-    function angleToRadian(_) {
-      if (isNaN(_)) {
-        throw new Error('NaN');
-      }
-      return Math.PI / 180 * _;
-    }
-    function radianToAngle(_) {
-      if (isNaN(_)) {
-        throw new Error('NaN');
-      }
-      return 180 / Math.PI * _;
-    }
-    function getAngularDistance(r1, r2) {
-      if (isNaN(r1 - r2)) {
-        throw new Error('NaN');
-      }
-      return r1 - r2;
-    }
+    // function angleToRadian (_) {
+    //   if (isNaN(_)) { throw new Error('NaN') }
+    //   return (Math.PI / 180) * _
+    // }
+    // function radianToAngle (_) {
+    //   if (isNaN(_)) { throw new Error('NaN') }
+    //   return (180 / Math.PI) * _
+    // }
+    // function getAngularDistance (r1, r2) {
+    //   if (isNaN(r1 - r2)) { throw new Error('NaN') }
+    //   return r1 - r2
+    // }
     function bezierLength(p0, p1, p2) {
       var a = {};
       var b = {};
@@ -171,19 +194,19 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       return (A_32 * Sabc + A_2 * B * (Sabc - C_2) + (4 * C * A - B * B) * Math.log(logVal)) / (4 * A_32);
     }
 
-    function bezierLengthOld(p0, p1, p2) {
-      var interval = 0.001;
-      var sum = 0;
-      var bezierTransitionInstance = bezierTransition.bind(null, p0, p1, p2);
-      // let p1
-      // let p2
-      for (var i = 0; i <= 1 - interval; i += interval) {
-        p1 = bezierTransitionInstance(i);
-        p2 = bezierTransitionInstance(i + interval);
-        sum += sqrt(pw((p2.x - p1.x) / interval, 2) + pw((p2.y - p1.y) / interval, 2)) * interval;
-      }
-      return sum;
-    }
+    // function bezierLengthOld (p0, p1, p2) {
+    //   const interval = 0.001
+    //   let sum = 0
+    //   const bezierTransitionInstance = bezierTransition.bind(null, p0, p1, p2)
+    //   // let p1
+    //   // let p2
+    //   for (let i = 0; i <= 1 - interval; i += interval) {
+    //     p1 = bezierTransitionInstance(i)
+    //     p2 = bezierTransitionInstance(i + interval)
+    //     sum += sqrt(pw((p2.x - p1.x) / interval, 2) + (pw((p2.y - p1.y) / interval, 2))) * interval
+    //   }
+    //   return sum
+    // }
     function cubicBezierLength(p0, co) {
       var interval = 0.001;
       var sum = 0;
@@ -212,9 +235,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     function get2DAngle(p1, p2) {
       return atan2(p2.x - p1.x, p2.y - p1.y);
     }
-    function get3DAngle(p1, p2) {
-      return acos((p1.x * p2.x + p1.y * p2.y + p1.z * p2.z) / (sqrt(p1.x * p1.x + p1.y * p1.y + p1.z * p1.z) * sqrt(p2.x * p2.x + p2.y * p2.y + p2.z * p2.z)));
-    }
+    // function get3DAngle (p1, p2) {
+    //   return acos((p1.x * p2.x + p1.y * p2.y + p1.z * p2.z) / (sqrt(p1.x * p1.x + p1.y * p1.y + p1.z * p1.z) * sqrt(p2.x * p2.x + p2.y * p2.y + p2.z * p2.z)))
+    // }
     function scaleAlongOrigin(co, factor) {
       var co_ = {};
       for (var prop in co) {
@@ -397,7 +420,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           try {
             if (!_n && _i.return) _i.return();
           } finally {
-            if (_d) throw _e;
+            if (_d) {
+              // throw _e
+              console.log('Error -' + _e);
+            }
           }
         }
         return _arr;
@@ -524,7 +550,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       var largeArcFlag = _ref2$largeArcFlag === undefined ? 0 : _ref2$largeArcFlag;
       var _ref2$sweepFlag = _ref2.sweepFlag;
       var sweepFlag = _ref2$sweepFlag === undefined ? 0 : _ref2$sweepFlag;
-
       var curves = [];
 
       if (rx === 0 || ry === 0) {
@@ -690,35 +715,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   return geometry;
 });
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)(module)))
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports) {
-
-module.exports = function(module) {
-	if(!module.webpackPolyfill) {
-		module.deprecate = function() {};
-		module.paths = [];
-		// module.parent = undefined by default
-		if(!module.children) module.children = [];
-		Object.defineProperty(module, "loaded", {
-			enumerable: true,
-			get: function() {
-				return module.l;
-			}
-		});
-		Object.defineProperty(module, "id", {
-			enumerable: true,
-			get: function() {
-				return module.i;
-			}
-		});
-		module.webpackPolyfill = 1;
-	}
-	return module;
-};
-
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)(module)))
 
 /***/ }),
 /* 2 */
@@ -729,7 +726,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-(function (root, factory) {
+/* eslint-disable no-undef */
+;(function (root, factory) {
   if (true) {
     !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function () {
       return factory();
@@ -959,12 +957,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
+/* eslint-disable no-undef */
 (function easing(root, factory) {
   var i2d = root;
   if (( false ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
-    module.exports = factory(__webpack_require__(0));
+    module.exports = factory(__webpack_require__(1));
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry) {
       return factory(geometry);
     }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -1093,7 +1092,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         default:
           res = linear;
       }
-
       return res;
     }
 
@@ -1102,7 +1100,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   return easing;
 });
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)(module)))
 
 /***/ }),
 /* 4 */
@@ -1113,6 +1111,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
+/* eslint-disable no-undef */
 (function chain(root, factory) {
   var i2d = root;
   if (( false ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
@@ -1467,7 +1466,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   return chain;
 });
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)(module)))
 
 /***/ }),
 /* 5 */
@@ -1480,12 +1479,13 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-(function vDom(root, factory) {
+/* eslint-disable no-undef */
+;(function vDom(root, factory) {
   if (( false ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
-    module.exports = factory(__webpack_require__(0));
+    module.exports = factory();
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry) {
-      return factory(geometry);
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry) {
+      return factory();
     }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
   } else {
@@ -1493,8 +1493,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   }
 })(undefined, function (geometry) {
   'use strict';
-
-  var t2DGeometry = geometry('2D');
 
   function VDom() {}
   VDom.prototype.execute = function execute() {
@@ -1523,10 +1521,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         } else {
           node = d;
         }
-        // callInEvents(d, rawEvent);
+        // callInEvents(d, rawEvent)
       }
       // else {
-      //   // callOutEvents(d, rawEvent);
+      //   // callOutEvents(d, rawEvent)
       // }
     }
     return node;
@@ -1534,57 +1532,57 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   VDom.prototype.transformCoOr = transformCoOr;
 
-  function callInEvents(node, e) {
-    if ((node.dom.mouseover || node.dom.mouseenter) && !node.hovered) {
-      if (node.dom.mouseover) {
-        node.dom.mouseover.call(node, node.dataObj, e);
-      }
-      if (node.dom.mouseenter) {
-        node.dom.mouseenter.call(node, node.dataObj, e);
-      }
-      node.hovered = true;
+  // function callInEvents (node, e) {
+  //   if ((node.dom.mouseover || node.dom.mouseenter) && !node.hovered) {
+  //     if (node.dom.mouseover) {
+  //       node.dom.mouseover.call(node, node.dataObj, e)
+  //     }
+  //     if (node.dom.mouseenter) {
+  //       node.dom.mouseenter.call(node, node.dataObj, e)
+  //     }
+  //     node.hovered = true
 
-      if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.onDragStart) {
-        selectedNode.dom.drag.dragStartFlag = true;
-        selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e);
-        var event = {};
-        event.x = e.offsetX;
-        event.y = e.offsetY;
-        event.dx = 0;
-        event.dy = 0;
-        selectedNode.dom.drag.event = event;
-      }
+  //     if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.onDragStart) {
+  //       selectedNode.dom.drag.dragStartFlag = true
+  //       selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e)
+  //       let event = {}
+  //       event.x = e.offsetX
+  //       event.y = e.offsetY
+  //       event.dx = 0
+  //       event.dy = 0
+  //       selectedNode.dom.drag.event = event
+  //     }
 
-      if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDrag) {
-        var _event = node.dom.drag.event;
-        if (node.dom.drag.event) {
-          _event.dx = e.offsetX - _event.x;
-          _event.dy = e.offsetY - _event.y;
-        }
-        _event.x = e.offsetX;
-        _event.y = e.offsetY;
-        node.dom.drag.event = _event;
-        node.dom.drag.onDrag.call(node, node.dataObj, _event);
-      }
-    }
-  }
+  //     if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDrag) {
+  //       let event = node.dom.drag.event
+  //       if (node.dom.drag.event) {
+  //         event.dx = e.offsetX - event.x
+  //         event.dy = e.offsetY - event.y
+  //       }
+  //       event.x = e.offsetX
+  //       event.y = e.offsetY
+  //       node.dom.drag.event = event
+  //       node.dom.drag.onDrag.call(node, node.dataObj, event)
+  //     }
+  //   }
+  // }
 
-  function callOutEvents(node, e) {
-    if ((node.dom.mouseout || node.dom.mouseleave) && node.hovered) {
-      if (node.dom.mouseout) {
-        node.dom.mouseout.call(node, node.dataObj, e);
-      }
-      if (node.dom.mouseleave) {
-        node.dom.mouseleave.call(node, node.dataObj, e);
-      }
-      node.hovered = false;
-    }
-    if (node.dom.drag && node.dom.drag.dragStartFlag) {
-      node.dom.drag.dragStartFlag = false;
-      node.dom.drag.onDragEnd.call(node, node.dataObj, e);
-      node.dom.drag.event = null;
-    }
-  }
+  // function callOutEvents (node, e) {
+  //   if ((node.dom.mouseout || node.dom.mouseleave) && node.hovered) {
+  //     if (node.dom.mouseout) {
+  //       node.dom.mouseout.call(node, node.dataObj, e)
+  //     }
+  //     if (node.dom.mouseleave) {
+  //       node.dom.mouseleave.call(node, node.dataObj, e)
+  //     }
+  //     node.hovered = false
+  //   }
+  //   if (node.dom.drag && node.dom.drag.dragStartFlag) {
+  //     node.dom.drag.dragStartFlag = false
+  //     node.dom.drag.onDragEnd.call(node, node.dataObj, e)
+  //     node.dom.drag.event = null
+  //   }
+  // }
 
   function transformCoOr(d, coOr) {
     var hozMove = 0;
@@ -1612,8 +1610,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     if (d.attr.transform && d.attr.transform.rotate) {
       var rotate = d.attr.transform.rotate[0];
-      var BBox = d.dom.BBox;
-
+      // const { BBox } = d.dom
       var cen = {
         x: d.attr.transform.rotate[1],
         y: d.attr.transform.rotate[2]
@@ -1623,7 +1620,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         // }
         // const dis = t2DGeometry.getDistance(cen, coOr)
         // const angle = Math.atan2(coOr.y - cen.y, coOr.x - cen.x)
-
 
       };var x = coOrLocal.x;
       var y = coOrLocal.y;
@@ -1645,7 +1641,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   return vDomInstance;
 });
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)(module)))
 
 /***/ }),
 /* 6 */
@@ -1656,7 +1652,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-(function colorMap(root, factory) {
+/* eslint-disable no-undef */
+;(function colorMap(root, factory) {
   var i2d = root;
   if (true) {
     !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function () {
@@ -1715,7 +1712,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   }
 
   function rgbParse(rgb) {
-    var res = rgb.replace(/[^0-9\.,]+/g, '').split(',');
+    var res = rgb.replace(/[^0-9.,]+/g, '').split(',');
     var obj = {};
     var flags = ['r', 'g', 'b', 'a'];
     for (var _i = 0; _i < res.length; _i += 1) {
@@ -1733,7 +1730,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var s;
     var l;
     var obj = {};
-    var res = hsl.replace(/[^0-9\.,]+/g, '').split(',').map(function (d) {
+    var res = hsl.replace(/[^0-9.,]+/g, '').split(',').map(function (d) {
       return parseFloat(d);
     });
     h = res[0] / 360;
@@ -1820,12 +1817,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-(function path(root, factory) {
+/* eslint-disable no-undef */
+;(function path(root, factory) {
   var i2d = root;
   if (( false ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
-    module.exports = factory(__webpack_require__(0), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4));
+    module.exports = factory(__webpack_require__(1), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4));
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry) {
       return factory(geometry, queue, easing, chain);
     }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -3053,7 +3051,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     morphTo: morphTo
   };
 });
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)(module)))
 
 /***/ }),
 /* 8 */
@@ -3064,6 +3062,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
+/* eslint-disable no-undef */
 (function easing(root, factory) {
   var i2d = root;
   if (( false ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
@@ -3111,7 +3110,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   return shaders;
 });
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)(module)))
 
 /***/ }),
 /* 9 */
@@ -3781,11 +3780,12 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-(function renderer(root, factory) {
+/* eslint-disable no-undef */
+;(function renderer(root, factory) {
   if (( false ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
-    module.exports = factory(__webpack_require__(0), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6), __webpack_require__(7), __webpack_require__(8), __webpack_require__(9));
+    module.exports = factory(__webpack_require__(1), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6), __webpack_require__(7), __webpack_require__(8), __webpack_require__(9));
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6), __webpack_require__(7), __webpack_require__(8), __webpack_require__(9)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry, queue, easing, chain, vDom, colorMap, path, shaders, earcut) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6), __webpack_require__(7), __webpack_require__(8), __webpack_require__(9)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (geometry, queue, easing, chain, vDom, colorMap, path, shaders, earcut) {
       return factory(geometry, queue, easing, chain, vDom, colorMap, path, shaders, earcut);
     }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -4074,7 +4074,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
     return this;
   }
-
   function on(eventType, hndlr) {
     for (var i = 0, len = this.stack.length; i < len; i += 1) {
       this.stack[i].on(eventType, hndlr);
@@ -4701,22 +4700,20 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   };
 
   function updateAttrsToDom(self, key) {
-    if (key !== 'transform') {
-      var ind = key.indexOf(':');
-      if (ind >= 0) {
-        self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), self.changedAttribute[key]);
-      } else {
-        if (key === 'text') {
-          self.dom.textContent = self.changedAttribute[key];
-        } else if (key === 'd') {
-          if (path.isTypePath(self.changedAttribute[key])) {
-            self.dom.setAttribute(key, self.changedAttribute[key].fetchPathString());
-          } else {
-            self.dom.setAttribute(key, self.changedAttribute[key]);
-          }
+    var ind = key.indexOf(':');
+    if (ind >= 0) {
+      self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), self.changedAttribute[key]);
+    } else {
+      if (key === 'text') {
+        self.dom.textContent = self.changedAttribute[key];
+      } else if (key === 'd') {
+        if (path.isTypePath(self.changedAttribute[key])) {
+          self.dom.setAttribute(key, self.changedAttribute[key].fetchPathString());
         } else {
           self.dom.setAttribute(key, self.changedAttribute[key]);
         }
+      } else {
+        self.dom.setAttribute(key, self.changedAttribute[key]);
       }
     }
   }
@@ -4736,10 +4733,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   DomExe.prototype.transFormAttributes = function transFormAttributes() {
     var self = this;
     for (var key in self.changedAttribute) {
-      updateAttrsToDom(self, key);
-    }
-    if (this.changedAttribute.transform) {
-      updateTransAttrsToDom(self);
+      if (key !== 'transform') {
+        updateAttrsToDom(self, key);
+      } else {
+        updateTransAttrsToDom(self);
+      }
     }
     this.changedAttribute = {};
   };
@@ -4924,12 +4922,20 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   DomExe.prototype.join = dataJoin;
 
   DomExe.prototype.on = function DMon(eventType, hndlr) {
-    var hnd = hndlr.bind(this);
     var self = this;
-    this.dom.addEventListener(eventType, function (event) {
-      hnd(self.dataObj, event);
-    });
-
+    if (eventType === 'drag') {
+      this.drag = hndlr;
+      if (!hndlr) {
+        dragStack.splice(dragStack.indexOf(self), 1);
+      } else {
+        dragStack.push(self);
+      }
+    } else {
+      var hnd = hndlr.bind(this);
+      this.dom.addEventListener(eventType, function (event) {
+        hnd(self.dataObj, event);
+      });
+    }
     return this;
   };
 
@@ -5243,7 +5249,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     self.nodeName = 'Image';
     self.image = new Image();
     // self.image.crossOrigin="anonymous"
-    // self.image.setAttribute('crossOrigin', '*');
+    // self.image.setAttribute('crossOrigin', '*')
 
     self.image.onload = function onload() {
       this.crossOrigin = 'anonymous';
@@ -6549,8 +6555,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     layer.style.width = width + 'px';
     layer.style.position = 'absolute';
 
-    // ctx.strokeStyle = 'rgba(0, 0, 0, 0)';
-    // ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+    // ctx.strokeStyle = 'rgba(0, 0, 0, 0)'
+    // ctx.fillStyle = 'rgba(0, 0, 0, 0)'
 
     res.appendChild(layer);
 
@@ -6629,7 +6635,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     if (config.events || config.events === undefined) {
       res.addEventListener('mousemove', function (e) {
         e.preventDefault();
-
         if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
           var event = selectedNode.dom.drag.event;
           if (selectedNode.dom.drag.event) {
@@ -6727,7 +6732,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDragEnd) {
           selectedNode.dom.drag.dragStartFlag = false;
           selectedNode.dom.drag.event = null;
-          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e);
+          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, selectedNode.dom.drag.event);
+          selectedNode.dom.drag.event = null;
           selectedNode = null;
         }
       });
@@ -6736,10 +6742,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         if (selectedNode && selectedNode.dom.mouseleave) {
           selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e);
         }
-        if (selectedNode && selectedNode.dom.onDragEnd && selectedNode.dom.drag.dragStartFlag) {
+        if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDragEnd) {
           selectedNode.dom.drag.dragStartFlag = false;
+          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, selectedNode.dom.drag.event);
           selectedNode.dom.drag.event = null;
-          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e);
           selectedNode = null;
         }
       });
@@ -6755,6 +6761,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     return root;
   };
 
+  var dragStack = [];
   i2d.SVGLayer = function SVGLayer(context) {
     var config = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
@@ -6816,6 +6823,62 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       layer.remove();
       queueInstance.removeVdom(vDomInstance);
     };
+
+    var dragTargetEl = null;
+    root.dom.addEventListener('mousedown', function (e) {
+      if (dragStack.length) {
+        dragStack.forEach(function (d) {
+          if (e.target === d.dom) {
+            dragTargetEl = d;
+          }
+        });
+        if (dragTargetEl) {
+          var event = {};
+          event.x = e.offsetX;
+          event.y = e.offsetY;
+          event.dx = 0;
+          event.dy = 0;
+          dragTargetEl.drag.event = event;
+          dragTargetEl.drag.dragStartFlag = true;
+          dragTargetEl.drag.onDragStart.call(dragTargetEl, dragTargetEl.dataObj, event);
+        }
+      }
+    });
+
+    root.dom.addEventListener('mousemove', function (e) {
+      if (dragTargetEl) {
+        var event = dragTargetEl.drag.event;
+        event.dx = e.offsetX - event.x;
+        event.dy = e.offsetY - event.y;
+        event.x = e.offsetX;
+        event.y = e.offsetY;
+        dragTargetEl.drag.onDrag.call(dragTargetEl, dragTargetEl.dataObj, event);
+      }
+    });
+
+    root.dom.addEventListener('mouseup', function (e) {
+      if (dragTargetEl) {
+        var event = dragTargetEl.drag.event;
+        event.dx = e.offsetX - event.x;
+        event.dy = e.offsetY - event.y;
+        event.x = e.offsetX;
+        event.y = e.offsetY;
+        dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
+        dragTargetEl = null;
+      }
+    });
+
+    root.dom.addEventListener('mouseleave', function (e) {
+      if (dragTargetEl) {
+        var event = dragTargetEl.drag.event;
+        event.dx = e.offsetX - event.x;
+        event.dy = e.offsetY - event.y;
+        event.x = e.offsetX;
+        event.y = e.offsetY;
+        dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
+        dragTargetEl = null;
+      }
+    });
 
     queueInstance.execute();
     return root;
@@ -6981,7 +7044,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     this.style = style;
     this.image = new Image();
     // self.image.crossOrigin="anonymous"
-    // self.image.setAttribute('crossOrigin', '*');
+    // self.image.setAttribute('crossOrigin', '*')
 
     this.image.onload = function onload() {
       this.crossOrigin = 'anonymous';
@@ -8059,7 +8122,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   return i2d;
 });
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)(module)))
 
 /***/ })
 /******/ ]);

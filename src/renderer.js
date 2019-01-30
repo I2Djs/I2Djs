@@ -1,4 +1,5 @@
-(function renderer (root, factory) {
+/* eslint-disable no-undef */
+;(function renderer (root, factory) {
   if (typeof module === 'object' && module.exports) {
     module.exports = factory(require('./geometry.js'), require('./queue.js'), require('./easing.js'), require('./chaining.js'), require('./vDom.js'), require('./colorMap.js'), require('./path.js'), require('./shaders.js'), require('earcut'))
   } else if (typeof define === 'function' && define.amd) {
@@ -285,7 +286,6 @@
     }
     return this
   }
-  
   function on (eventType, hndlr) {
     for (let i = 0, len = this.stack.length; i < len; i += 1) {
       this.stack[i].on(eventType, hndlr)
@@ -865,7 +865,7 @@
     this.dom.nodeId = id
     this.children = []
     this.vDomIndex = vDomIndex
-    
+
     if (config.style) { this.setStyle(config.style) }
     if (config.attr) { this.setAttr(config.attr) }
   }
@@ -875,22 +875,20 @@
   }
 
   function updateAttrsToDom (self, key) {
-    if (key !== 'transform') {
-      let ind = key.indexOf(':')
-      if (ind >= 0) {
-        self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), self.changedAttribute[key])
-      } else {
-        if (key === 'text') {
-          self.dom.textContent = self.changedAttribute[key]
-        } else if (key === 'd') {
-          if (path.isTypePath(self.changedAttribute[key])) {
-            self.dom.setAttribute(key, self.changedAttribute[key].fetchPathString())
-          } else {
-            self.dom.setAttribute(key, self.changedAttribute[key])
-          }
+    let ind = key.indexOf(':')
+    if (ind >= 0) {
+      self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), self.changedAttribute[key])
+    } else {
+      if (key === 'text') {
+        self.dom.textContent = self.changedAttribute[key]
+      } else if (key === 'd') {
+        if (path.isTypePath(self.changedAttribute[key])) {
+          self.dom.setAttribute(key, self.changedAttribute[key].fetchPathString())
         } else {
           self.dom.setAttribute(key, self.changedAttribute[key])
         }
+      } else {
+        self.dom.setAttribute(key, self.changedAttribute[key])
       }
     }
   }
@@ -910,10 +908,11 @@
   DomExe.prototype.transFormAttributes = function transFormAttributes () {
     let self = this
     for (let key in self.changedAttribute) {
-      updateAttrsToDom(self, key)
-    }
-    if (this.changedAttribute.transform) {
-      updateTransAttrsToDom(self)
+      if (key !== 'transform') {
+        updateAttrsToDom(self, key)
+      } else {
+        updateTransAttrsToDom(self)
+      }
     }
     this.changedAttribute = {}
   }
@@ -1088,10 +1087,20 @@
   DomExe.prototype.join = dataJoin
 
   DomExe.prototype.on = function DMon (eventType, hndlr) {
-    const hnd = hndlr.bind(this)
     const self = this
-    this.dom.addEventListener(eventType, (event) => { hnd(self.dataObj, event) })
-
+    if (eventType === 'drag') {
+      this.drag = hndlr
+      if (!hndlr) {
+        dragStack.splice(dragStack.indexOf(self), 1)
+      } else {
+        dragStack.push(self)
+      }
+    } else {
+      const hnd = hndlr.bind(this)
+      this.dom.addEventListener(eventType, (event) => {
+        hnd(self.dataObj, event)
+      })
+    }
     return this
   }
 
@@ -1367,22 +1376,21 @@
     return canvas
   }
 
-
   function CanvasPattern (self, pattern, repeatInd) {
-    var image = new Image();
+    var image = new Image()
     var selfSelf = this
-    image.src = pattern;
+    image.src = pattern
     image.onload = function () {
-      selfSelf.pattern = self.ctx.createPattern(image, repeatInd);
-      queueInstance.vDomChanged(self.vDomIndex);
+      selfSelf.pattern = self.ctx.createPattern(image, repeatInd)
+      queueInstance.vDomChanged(self.vDomIndex)
     }
   }
   CanvasPattern.prototype.exe = function () {
-    return this.pattern;
+    return this.pattern
   }
 
-  function createCanvasPattern(patternObj, repeatInd) {
-    return new CanvasPattern (this, patternObj, repeatInd);
+  function createCanvasPattern (patternObj, repeatInd) {
+    return new CanvasPattern(this, patternObj, repeatInd)
   }
 
   function applyStyles () {
@@ -1412,7 +1420,7 @@
     self.nodeName = 'Image'
     self.image = new Image()
     // self.image.crossOrigin="anonymous"
-    // self.image.setAttribute('crossOrigin', '*');
+    // self.image.setAttribute('crossOrigin', '*')
 
     self.image.onload = function onload () {
       this.crossOrigin = 'anonymous'
@@ -1430,12 +1438,8 @@
       }
       if (self.attr.clip) {
         let ctxX
-        const {
-          clip, width, height
-        } = self.attr
-        let {
-          sx, sy, swidth, sheight
-        } = clip
+        const { clip, width, height } = self.attr
+        let { sx, sy, swidth, sheight } = clip
         if (!this.rImageObj) {
           self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height)
         }
@@ -1452,9 +1456,7 @@
 
       if (self.attr.pixels) {
         let ctxX
-        const {
-          width, height
-        } = self.attr
+        const { width, height } = self.attr
         if (!self.rImageObj) {
           self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height)
           ctxX = self.rImageObj.getContext('2d')
@@ -1499,12 +1501,8 @@
         this.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height)
       }
       const ctxX = this.rImageObj.getContext('2d')
-      const {
-        clip, width, height
-      } = this.attr
-      let {
-        sx, sy, swidth, sheight
-      } = clip
+      const { clip, width, height } = this.attr
+      let { sx, sy, swidth, sheight } = clip
       sx = sx !== undefined ? sx : 0
       sy = sy !== undefined ? sy : 0
       swidth = swidth !== undefined ? swidth : width
@@ -1531,9 +1529,7 @@
     let scaleX = 1
     let scaleY = 1
     const { transform } = self.attr
-    let {
-      x, y, width, height
-    } = self.attr
+    let { x, y, width, height } = self.attr
 
     if (transform) {
       if (transform.translate) {
@@ -1559,9 +1555,7 @@
     }
   }
   RenderImage.prototype.execute = function RIexecute () {
-    const {
-      width, height, x, y
-    } = this.attr
+    const { width, height, x, y } = this.attr
     if (this.imageObj) {
       this.ctx.drawImage(
         this.rImageObj ? this.rImageObj : this.imageObj,
@@ -1575,7 +1569,7 @@
   RenderImage.prototype.applyStyles = function RIapplyStyles () {}
   RenderImage.prototype.in = function RIinfun (co) {
     return co.x >= this.attr.x && co.x <= this.attr.x + this.attr.width &&
-     co.y >= this.attr.y && co.y <= this.attr.y + this.attr.height
+      co.y >= this.attr.y && co.y <= this.attr.y + this.attr.height
   }
 
   function RenderText (ctx, props, stylesProps) {
@@ -1634,10 +1628,10 @@
       }
     }
   }
-  RenderText.prototype.applyStyles = function RTapplyStyles () { }
+  RenderText.prototype.applyStyles = function RTapplyStyles () {}
   RenderText.prototype.in = function RTinfun (co) {
     return co.x >= this.attr.x && co.x <= this.attr.x + this.attr.width &&
-    co.y >= this.attr.y && co.y <= this.attr.y + this.attr.height
+      co.y >= this.attr.y && co.y <= this.attr.y + this.attr.height
   }
 
   /** ***************** Render Circle */
@@ -1692,7 +1686,7 @@
 
   RenderCircle.prototype.in = function RCinfun (co) {
     const r = Math.sqrt((co.x - this.attr.cx) * (co.x - this.attr.cx) +
-    (co.y - this.attr.cy) * (co.y - this.attr.cy))
+      (co.y - this.attr.cy) * (co.y - this.attr.cy))
     return r <= this.attr.r
   }
 
@@ -1744,11 +1738,11 @@
   }
   RenderLine.prototype.in = function RLinfun (co) {
     return parseFloat(t2DGeometry.getDistance({ x: this.attr.x1, y: this.attr.y1 }, co) +
-      t2DGeometry.getDistance(co, { x: this.attr.x2, y: this.attr.y2 })).toFixed(1) ===
-     parseFloat(t2DGeometry.getDistance(
-       { x: this.attr.x1, y: this.attr.y1 },
-       { x: this.attr.x2, y: this.attr.y2 }
-     )).toFixed(1)
+        t2DGeometry.getDistance(co, { x: this.attr.x2, y: this.attr.y2 })).toFixed(1) ===
+      parseFloat(t2DGeometry.getDistance(
+        { x: this.attr.x1, y: this.attr.y1 },
+        { x: this.attr.x2, y: this.attr.y2 }
+      )).toFixed(1)
   }
 
   function RenderPolyline (ctx, props, stylesProps) {
@@ -1783,11 +1777,11 @@
       let p1 = this.attr.points[i]
       let p2 = this.attr.points[i + 1]
       flag = flag || parseFloat(t2DGeometry.getDistance({ x: p1.x, y: p1.y }, co) +
-        t2DGeometry.getDistance(co, { x: p2.x, y: p2.y })).toFixed(1) ===
-      parseFloat(t2DGeometry.getDistance(
-        { x: p1.x, y: p1.y },
-        { x: p2.x, y: p2.y }
-      )).toFixed(1)
+          t2DGeometry.getDistance(co, { x: p2.x, y: p2.y })).toFixed(1) ===
+        parseFloat(t2DGeometry.getDistance(
+          { x: p1.x, y: p1.y },
+          { x: p2.x, y: p2.y }
+        )).toFixed(1)
     }
     return flag
   }
@@ -1895,10 +1889,10 @@
     localPoints = localPoints.replace(/,/g, ' ').split(' ')
 
     polygon.moveTo(localPoints[0], localPoints[1])
-    points_.push({x: parseFloat(localPoints[0]), y: parseFloat(localPoints[1])})
+    points_.push({ x: parseFloat(localPoints[0]), y: parseFloat(localPoints[1]) })
     for (let i = 2; i < localPoints.length; i += 2) {
       polygon.lineTo(localPoints[i], localPoints[i + 1])
-      points_.push({x: parseFloat(localPoints[i]), y: parseFloat(localPoints[i + 1])})
+      points_.push({ x: parseFloat(localPoints[i]), y: parseFloat(localPoints[i + 1]) })
     }
     polygon.closePath()
 
@@ -2004,9 +1998,7 @@
   // }
 
   RenderEllipse.prototype.in = function REinfun (co) {
-    const {
-      cx, cy, rx, ry
-    } = this.attr
+    const { cx, cy, rx, ry } = this.attr
     return ((((co.x - cx) * (co.x - cx)) / (rx * rx)) + (((co.y - cy) * (co.y - cy)) / (ry * ry))) <= 1
   }
 
@@ -2067,9 +2059,7 @@
   }
 
   RenderRect.prototype.in = function RRinfun (co) {
-    const {
-      x, y, width, height
-    } = this.attr
+    const { x, y, width, height } = this.attr
     return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height
   }
 
@@ -2177,9 +2167,9 @@
     }
 
     return co.x >= (BBox.x - gTranslateX) / scaleX &&
-                co.x <= ((BBox.x - gTranslateX) + BBox.width) / scaleX &&
-                co.y >= (BBox.y - gTranslateY) / scaleY &&
-                co.y <= ((BBox.y - gTranslateY) + BBox.height) / scaleY
+      co.x <= ((BBox.x - gTranslateX) + BBox.width) / scaleX &&
+      co.y >= (BBox.y - gTranslateY) / scaleY &&
+      co.y <= ((BBox.y - gTranslateY) + BBox.height) / scaleY
   }
 
   /** ***************** End Render Group */
@@ -2387,8 +2377,8 @@
     }
     // this.dom.applyStyles()
     this.ctx.restore()
-    // this.ctx.fillStyle = fillStyle
-    // this.ctx.strokeStyle = strokeStyle
+  // this.ctx.fillStyle = fillStyle
+  // this.ctx.strokeStyle = strokeStyle
   }
 
   CanvasNodeExe.prototype.child = function child (childrens) {
@@ -2475,7 +2465,7 @@
       const removedNode = this.children.splice(index, 1)[0]
       this.dom.removeChild(removedNode.dom)
     }
-    this.BBoxUpdate = true;
+    this.BBoxUpdate = true
     queueInstance.vDomChanged(this.vDomIndex)
   }
 
@@ -2570,9 +2560,9 @@
       for (let i = 0, len = nodes.length; i < len; i++) {
         let node = nodes[i]
         if (node instanceof DomExe ||
-            node instanceof CanvasNodeExe ||
-            node instanceof WebglNodeExe ||
-            node instanceof CreateElements) {
+          node instanceof CanvasNodeExe ||
+          node instanceof WebglNodeExe ||
+          node instanceof CreateElements) {
           self.stack.push(node)
         } else { self.stack.push(new DomExe(node, {}, domId())) }
       }
@@ -2583,10 +2573,10 @@
   function getPixlRatio (ctx) {
     const dpr = window.devicePixelRatio || 1
     const bsr = ctx.webkitBackingStorePixelRatio ||
-            ctx.mozBackingStorePixelRatio ||
-            ctx.msBackingStorePixelRatio ||
-            ctx.oBackingStorePixelRatio ||
-            ctx.backingStorePixelRatio || 1
+      ctx.mozBackingStorePixelRatio ||
+      ctx.msBackingStorePixelRatio ||
+      ctx.oBackingStorePixelRatio ||
+      ctx.backingStorePixelRatio || 1
 
     return dpr / bsr
   }
@@ -2638,8 +2628,8 @@
     layer.style.width = `${width}px`
     layer.style.position = 'absolute'
 
-    // ctx.strokeStyle = 'rgba(0, 0, 0, 0)';
-    // ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+    // ctx.strokeStyle = 'rgba(0, 0, 0, 0)'
+    // ctx.fillStyle = 'rgba(0, 0, 0, 0)'
 
     res.appendChild(layer)
 
@@ -2718,7 +2708,6 @@
     if (config.events || config.events === undefined) {
       res.addEventListener('mousemove', (e) => {
         e.preventDefault()
-
         if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
           let event = selectedNode.dom.drag.event
           if (selectedNode.dom.drag.event) {
@@ -2759,7 +2748,7 @@
           if (tselectedNode) {
             selectedNode = tselectedNode
             if ((selectedNode.dom.mouseover || selectedNode.dom.mouseenter) &&
-                !selectedNode.hovered) {
+              !selectedNode.hovered) {
               if (selectedNode.dom.mouseover) { selectedNode.dom.mouseover.call(selectedNode, selectedNode.dataObj, e) }
               if (selectedNode.dom.mouseenter) { selectedNode.dom.mouseenter.call(selectedNode, selectedNode.dataObj, e) }
               selectedNode.hovered = true
@@ -2805,8 +2794,9 @@
         if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDragEnd) {
           selectedNode.dom.drag.dragStartFlag = false
           selectedNode.dom.drag.event = null
-          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
-          selectedNode = null;
+          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, selectedNode.dom.drag.event)
+          selectedNode.dom.drag.event = null
+          selectedNode = null
         }
       })
       res.addEventListener('mouseleave', (e) => {
@@ -2814,11 +2804,11 @@
         if (selectedNode && selectedNode.dom.mouseleave) {
           selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e)
         }
-        if (selectedNode && selectedNode.dom.onDragEnd && selectedNode.dom.drag.dragStartFlag) {
+        if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDragEnd) {
           selectedNode.dom.drag.dragStartFlag = false
+          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, selectedNode.dom.drag.event)
           selectedNode.dom.drag.event = null
-          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
-          selectedNode = null;
+          selectedNode = null
         }
       })
       res.addEventListener('contextmenu', (e) => {
@@ -2831,6 +2821,7 @@
     return root
   }
 
+  let dragStack = []
   i2d.SVGLayer = function SVGLayer (context, config = {}) {
     const vDomInstance = new VDom()
     const vDomIndex = queueInstance.addVdom(vDomInstance)
@@ -2890,6 +2881,62 @@
       layer.remove()
       queueInstance.removeVdom(vDomInstance)
     }
+
+    let dragTargetEl = null
+    root.dom.addEventListener('mousedown', function (e) {
+      if (dragStack.length) {
+        dragStack.forEach(function (d) {
+          if (e.target === d.dom) {
+            dragTargetEl = d
+          }
+        })
+        if (dragTargetEl) {
+          let event = {}
+          event.x = e.offsetX
+          event.y = e.offsetY
+          event.dx = 0
+          event.dy = 0
+          dragTargetEl.drag.event = event
+          dragTargetEl.drag.dragStartFlag = true
+          dragTargetEl.drag.onDragStart.call(dragTargetEl, dragTargetEl.dataObj, event)
+        }
+      }
+    })
+
+    root.dom.addEventListener('mousemove', function (e) {
+      if (dragTargetEl) {
+        let event = dragTargetEl.drag.event
+        event.dx = e.offsetX - event.x
+        event.dy = e.offsetY - event.y
+        event.x = e.offsetX
+        event.y = e.offsetY
+        dragTargetEl.drag.onDrag.call(dragTargetEl, dragTargetEl.dataObj, event)
+      }
+    })
+
+    root.dom.addEventListener('mouseup', function (e) {
+      if (dragTargetEl) {
+        let event = dragTargetEl.drag.event
+        event.dx = e.offsetX - event.x
+        event.dy = e.offsetY - event.y
+        event.x = e.offsetX
+        event.y = e.offsetY
+        dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event)
+        dragTargetEl = null
+      }
+    })
+
+    root.dom.addEventListener('mouseleave', function (e) {
+      if (dragTargetEl) {
+        let event = dragTargetEl.drag.event
+        event.dx = e.offsetX - event.x
+        event.dy = e.offsetY - event.y
+        event.x = e.offsetX
+        event.y = e.offsetY
+        dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event)
+        dragTargetEl = null
+      }
+    })
 
     queueInstance.execute()
     return root
@@ -2957,7 +3004,7 @@
   }
   RectNode.prototype.setAttr = function (key, value) {
     this.attr[key] = value
-    // this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe), this.nodeExe)
+  // this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe), this.nodeExe)
   }
   // RectNode.prototype.getAttr = function (key) {
   //   return this.attr[key]
@@ -3058,7 +3105,7 @@
     this.style = style
     this.image = new Image()
     // self.image.crossOrigin="anonymous"
-    // self.image.setAttribute('crossOrigin', '*');
+    // self.image.setAttribute('crossOrigin', '*')
 
     this.image.onload = function onload () {
       this.crossOrigin = 'anonymous'
@@ -3081,7 +3128,7 @@
         }
         webGLImageTextures[self.attr.src] = texture
       }
-      // self.loadStatus = true
+    // self.loadStatus = true
     }
     this.image.onerror = function onerror (onerrorExe) {
       if (onerrorExe && typeof onerrorExe === 'function') {
@@ -3103,7 +3150,6 @@
     return this.style[key]
   }
 
-
   function writeDataToShaderAttributes (ctx, data) {
     let d
     for (let i = 0, len = data.length; i < len; i++) {
@@ -3115,7 +3161,7 @@
     }
   }
 
-  let defaultColor = {r: 0, g: 0, b: 0, a: 255.0}
+  let defaultColor = { r: 0, g: 0, b: 0, a: 255.0 }
 
   function webGlAttrMapper (ctx, program, attr, attrObj) {
     return {
@@ -3171,9 +3217,7 @@
   RenderWebglShader.prototype.addAttribute = function (key, value) {
     this.attribute[key] = value
   }
-  RenderWebglShader.prototype.setAttribute = function (key, value) {
-
-  }
+  RenderWebglShader.prototype.setAttribute = function (key, value) {}
   RenderWebglShader.prototype.setUniformData = function (key, value) {
     this.uniforms[key].data = value
     queueInstance.vDomChanged(this.vDomIndex)
@@ -3481,7 +3525,7 @@
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
     this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate')
     this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale')
-    this.polyLineArray= []
+    this.polyLineArray = []
     // this.colorArray = []
     this.inputs = [{
       bufferType: this.ctx.ARRAY_BUFFER,
@@ -3556,7 +3600,7 @@
         }
         this.polyLineArray[i].colorArray = new Uint8Array(colorArray)
       }
-      
+
       this.inputs[0].data = this.polyLineArray[i].colorArray
       this.inputs[1].data = this.polyLineArray[i].positionArray
       writeDataToShaderAttributes(this.ctx, this.inputs)
@@ -4025,7 +4069,6 @@
     return e
   }
 
-
   WebglNodeExe.prototype.remove = function Wremove () {
     const { children } = this.dom.parent
     const index = children.indexOf(this)
@@ -4055,7 +4098,7 @@
     const res = document.querySelector(context)
     const height = config.height ? config.height : res.clientHeight
     const width = config.width ? config.width : res.clientWidth
-    const clearColor = config.clearColor ? color.colorToRGB(config.clearColor) : {r: 0, g: 0, b: 0, a: 0}
+    const clearColor = config.clearColor ? color.colorToRGB(config.clearColor) : { r: 0, g: 0, b: 0, a: 0 }
     const layer = document.createElement('canvas')
     const ctx = layer.getContext('webgl', {
       premultipliedAlpha: false,

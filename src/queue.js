@@ -1,4 +1,5 @@
-(function (root, factory) {
+/* eslint-disable no-undef */
+;(function (root, factory) {
   if (typeof define === 'function' && define.amd) {
     define('queue', [], () => factory())
   } else if (typeof module === 'object' && module.exports) {
@@ -17,24 +18,24 @@
 
   window.requestAnimationFrame = (function requestAnimationFrameG () {
     return window.requestAnimationFrame ||
-            window.webkitRequestAnimationFrame ||
-            window.mozRequestAnimationFrame ||
-            window.oRequestAnimationFrame ||
-            window.msRequestAnimationFrame ||
-            function requestAnimationFrame (callback, element) {
-              return window.setTimeout(callback, 1000 / 60)
-            }
+      window.webkitRequestAnimationFrame ||
+      window.mozRequestAnimationFrame ||
+      window.oRequestAnimationFrame ||
+      window.msRequestAnimationFrame ||
+      function requestAnimationFrame (callback, element) {
+        return window.setTimeout(callback, 1000 / 60)
+      }
   })()
   window.cancelAnimFrame = (function cancelAnimFrameG () {
     return (
       window.cancelAnimationFrame ||
-            window.webkitCancelAnimationFrame ||
-            window.mozCancelAnimationFrame ||
-            window.oCancelAnimationFrame ||
-            window.msCancelAnimationFrame ||
-            function cancelAnimFrame (id) {
-              return window.clearTimeout(id)
-            }
+      window.webkitCancelAnimationFrame ||
+      window.mozCancelAnimationFrame ||
+      window.oCancelAnimationFrame ||
+      window.msCancelAnimationFrame ||
+      function cancelAnimFrame (id) {
+        return window.clearTimeout(id)
+      }
     )
   })()
 
@@ -126,13 +127,13 @@
     return vDoms.length - 1
   }
   VDomStack.prototype.removeVdom = function removeVdom (_) {
-    let index = vDoms.indexOf(_);
-        vDoms[index] = {};
-    // for (var i = 0; i < vDoms.length; i++) {
-    //   if (vDoms[i] === _) {
-    //     vDoms.splice(i, 1)
-    //   }
-    // }
+    let index = vDoms.indexOf(_)
+    vDoms[index] = {}
+  // for (var i = 0; i < vDoms.length; i++) {
+  //   if (vDoms[i] === _) {
+  //     vDoms.splice(i, 1)
+  //   }
+  // }
   }
   VDomStack.prototype.vDomChanged = function AvDomChanged (vDom) {
     if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {

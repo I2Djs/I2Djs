@@ -77,7 +77,8 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory) {
+var __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
+;(function (root, factory) {
   if (typeof module === 'object' && module.exports) {
     module.exports = factory()
   } else if (true) {
@@ -89,17 +90,17 @@ var __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory) {
 }(this, () => {
   'use strict'
   function geometry (context) {
-    function cos (a) {
-      return Math.cos(a)
-    }
+    // function cos (a) {
+    //   return Math.cos(a)
+    // }
 
-    function acos (a) {
-      return Math.acos(a)
-    }
+    // function acos (a) {
+    //   return Math.acos(a)
+    // }
 
-    function sin (a) {
-      return Math.sin(a)
-    }
+    // function sin (a) {
+    //   return Math.sin(a)
+    // }
 
     function pw (a, x) {
       let val = 1
@@ -108,9 +109,9 @@ var __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory) {
       return val
     }
 
-    function tan (a) {
-      return Math.tan(a)
-    }
+    // function tan (a) {
+    //   return Math.tan(a)
+    // }
 
     function atan2 (a, b) {
       return Math.atan2(a, b)
@@ -119,18 +120,18 @@ var __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory) {
     function sqrt (a) {
       return Math.sqrt(a)
     }
-    function angleToRadian (_) {
-      if (isNaN(_)) { throw new Error('NaN') }
-      return (Math.PI / 180) * _
-    }
-    function radianToAngle (_) {
-      if (isNaN(_)) { throw new Error('NaN') }
-      return (180 / Math.PI) * _
-    }
-    function getAngularDistance (r1, r2) {
-      if (isNaN(r1 - r2)) { throw new Error('NaN') }
-      return r1 - r2
-    }
+    // function angleToRadian (_) {
+    //   if (isNaN(_)) { throw new Error('NaN') }
+    //   return (Math.PI / 180) * _
+    // }
+    // function radianToAngle (_) {
+    //   if (isNaN(_)) { throw new Error('NaN') }
+    //   return (180 / Math.PI) * _
+    // }
+    // function getAngularDistance (r1, r2) {
+    //   if (isNaN(r1 - r2)) { throw new Error('NaN') }
+    //   return r1 - r2
+    // }
     function bezierLength (p0, p1, p2) {
       const a = {}
       const b = {}
@@ -155,19 +156,19 @@ var __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory) {
       return (A_32 * Sabc + A_2 * B * (Sabc - C_2) + (4 * C * A - B * B) * Math.log(logVal)) / (4 * A_32)
     }
 
-    function bezierLengthOld (p0, p1, p2) {
-      const interval = 0.001
-      let sum = 0
-      const bezierTransitionInstance = bezierTransition.bind(null, p0, p1, p2)
-      // let p1
-      // let p2
-      for (let i = 0; i <= 1 - interval; i += interval) {
-        p1 = bezierTransitionInstance(i)
-        p2 = bezierTransitionInstance(i + interval)
-        sum += sqrt(pw((p2.x - p1.x) / interval, 2) + (pw((p2.y - p1.y) / interval, 2))) * interval
-      }
-      return sum
-    }
+    // function bezierLengthOld (p0, p1, p2) {
+    //   const interval = 0.001
+    //   let sum = 0
+    //   const bezierTransitionInstance = bezierTransition.bind(null, p0, p1, p2)
+    //   // let p1
+    //   // let p2
+    //   for (let i = 0; i <= 1 - interval; i += interval) {
+    //     p1 = bezierTransitionInstance(i)
+    //     p2 = bezierTransitionInstance(i + interval)
+    //     sum += sqrt(pw((p2.x - p1.x) / interval, 2) + (pw((p2.y - p1.y) / interval, 2))) * interval
+    //   }
+    //   return sum
+    // }
     function cubicBezierLength (p0, co) {
       const interval = 0.001
       let sum = 0
@@ -196,9 +197,9 @@ var __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory) {
     function get2DAngle (p1, p2) {
       return atan2(p2.x - p1.x, p2.y - p1.y)
     }
-    function get3DAngle (p1, p2) {
-      return acos((p1.x * p2.x + p1.y * p2.y + p1.z * p2.z) / (sqrt(p1.x * p1.x + p1.y * p1.y + p1.z * p1.z) * sqrt(p2.x * p2.x + p2.y * p2.y + p2.z * p2.z)))
-    }
+    // function get3DAngle (p1, p2) {
+    //   return acos((p1.x * p2.x + p1.y * p2.y + p1.z * p2.z) / (sqrt(p1.x * p1.x + p1.y * p1.y + p1.z * p1.z) * sqrt(p2.x * p2.x + p2.y * p2.y + p2.z * p2.z)))
+    // }
     function scaleAlongOrigin (co, factor) {
       const co_ = {}
       for (const prop in co) {
@@ -355,7 +356,10 @@ var __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory) {
           try {
             if (!_n && _i.return) _i.return()
           } finally {
-            if (_d) throw _e
+            if (_d) {
+              // throw _e
+              console.log('Error -' + _e)
+            }
           }
         }
         return _arr
@@ -467,16 +471,13 @@ var __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory) {
     }
 
     const arcToBezier = function arcToBezier (_ref2) {
-      let {
-        px, py, cx, cy, rx, ry
-      } = _ref2
+      let { px, py, cx, cy, rx, ry } = _ref2
       const _ref2$xAxisRotation = _ref2.xAxisRotation
       const xAxisRotation = _ref2$xAxisRotation === undefined ? 0 : _ref2$xAxisRotation
       const _ref2$largeArcFlag = _ref2.largeArcFlag
       const largeArcFlag = _ref2$largeArcFlag === undefined ? 0 : _ref2$largeArcFlag
       const _ref2$sweepFlag = _ref2.sweepFlag
       const sweepFlag = _ref2$sweepFlag === undefined ? 0 : _ref2$sweepFlag
-
       const curves = []
 
       if (rx === 0 || ry === 0) {
@@ -564,12 +565,9 @@ var __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory) {
       p.x = (cos * (x - cx)) + (sin * (y - cy)) + cx
       p.y = (cos * (y - cy)) - (sin * (x - cx)) + cy
 
-      return { x : (cos * (x - cx)) + (sin * (y - cy)) + cx,
-        y : (cos * (y - cy)) - (sin * (x - cx)) + cy
+      return { x: (cos * (x - cx)) + (sin * (y - cy)) + cx,
+        y: (cos * (y - cy)) - (sin * (x - cx)) + cy
       }
-
-
-
 
       // console.log(point)
       // console.log(currAngle)
@@ -577,7 +575,7 @@ var __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory) {
       // p.x = Math.cos(currAngle + newAngle * (Math.PI / 180) + Math.PI/2) * distance
       // p.y = Math.sin(currAngle + newAngle * (Math.PI / 180) + Math.PI/2) * distance
 
-      // return p
+    // return p
     }
 
     function rotateBBox (BBox, transform) {
@@ -585,8 +583,8 @@ var __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory) {
       let point2 = { x: BBox.x + BBox.width, y: BBox.y }
       let point3 = { x: BBox.x, y: BBox.y + BBox.height }
       let point4 = { x: BBox.x + BBox.width, y: BBox.y + BBox.height }
-      const {translate, rotate} = transform
-      const cen = {x: rotate[1] || 0, y: rotate[2] || 0}
+      const { translate, rotate } = transform
+      const cen = { x: rotate[1] || 0, y: rotate[2] || 0 }
       const rotateAngle = rotate[0]
 
       if (translate && translate.length > 0) {
@@ -640,11 +638,13 @@ var __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory) {
   return geometry
 }))
 
+
 /***/ }),
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory) {
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
+;(function (root, factory) {
   if (true) {
     !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (() => factory()).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
@@ -664,24 +664,24 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root,
 
   window.requestAnimationFrame = (function requestAnimationFrameG () {
     return window.requestAnimationFrame ||
-            window.webkitRequestAnimationFrame ||
-            window.mozRequestAnimationFrame ||
-            window.oRequestAnimationFrame ||
-            window.msRequestAnimationFrame ||
-            function requestAnimationFrame (callback, element) {
-              return window.setTimeout(callback, 1000 / 60)
-            }
+      window.webkitRequestAnimationFrame ||
+      window.mozRequestAnimationFrame ||
+      window.oRequestAnimationFrame ||
+      window.msRequestAnimationFrame ||
+      function requestAnimationFrame (callback, element) {
+        return window.setTimeout(callback, 1000 / 60)
+      }
   })()
   window.cancelAnimFrame = (function cancelAnimFrameG () {
     return (
       window.cancelAnimationFrame ||
-            window.webkitCancelAnimationFrame ||
-            window.mozCancelAnimationFrame ||
-            window.oCancelAnimationFrame ||
-            window.msCancelAnimationFrame ||
-            function cancelAnimFrame (id) {
-              return window.clearTimeout(id)
-            }
+      window.webkitCancelAnimationFrame ||
+      window.mozCancelAnimationFrame ||
+      window.oCancelAnimationFrame ||
+      window.msCancelAnimationFrame ||
+      function cancelAnimFrame (id) {
+        return window.clearTimeout(id)
+      }
     )
   })()
 
@@ -773,13 +773,13 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root,
     return vDoms.length - 1
   }
   VDomStack.prototype.removeVdom = function removeVdom (_) {
-    let index = vDoms.indexOf(_);
-        vDoms[index] = {};
-    // for (var i = 0; i < vDoms.length; i++) {
-    //   if (vDoms[i] === _) {
-    //     vDoms.splice(i, 1)
-    //   }
-    // }
+    let index = vDoms.indexOf(_)
+    vDoms[index] = {}
+  // for (var i = 0; i < vDoms.length; i++) {
+  //   if (vDoms[i] === _) {
+  //     vDoms.splice(i, 1)
+  //   }
+  // }
   }
   VDomStack.prototype.vDomChanged = function AvDomChanged (vDom) {
     if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
@@ -867,7 +867,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root,
 /* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing (root, factory) {
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
+(function easing (root, factory) {
   const i2d = root
   if (typeof module === 'object' && module.exports) {
     module.exports = factory(__webpack_require__(0))
@@ -890,7 +891,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
     const t = starttime / duration
 
     return (1 - (1 - t) * Math.sin(t * duration * force * Math.PI * 2 + (Math.PI / 2)) /
-     Math.exp(t * decay))
+    Math.exp(t * decay))
   }
   function bounce (starttime, duration) {
     const decay = 10
@@ -898,7 +899,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
     const force = t / 100
 
     return (1 - (1 - t) * Math.abs(Math.sin(t * duration * force * Math.PI * 2 + (Math.PI / 2))) /
-     Math.exp(t * decay))
+    Math.exp(t * decay))
   }
   function easeInQuad (starttime, duration) {
     const t = starttime / duration
@@ -1000,7 +1001,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
         default:
           res = linear
       }
-      
       return res
     }
 
@@ -1015,7 +1015,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing
 /* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function chain (root, factory) {
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
+(function chain (root, factory) {
   const i2d = root
   if (typeof module === 'object' && module.exports) {
     module.exports = factory(__webpack_require__(2), __webpack_require__(1))
@@ -1344,19 +1345,18 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function chain 
 /* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function vDom (root, factory) {
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
+;(function vDom (root, factory) {
   if (typeof module === 'object' && module.exports) {
-    module.exports = factory(__webpack_require__(0))
+    module.exports = factory()
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0)], __WEBPACK_AMD_DEFINE_RESULT__ = (geometry => factory(geometry)).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (geometry => factory()).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
   } else {
     root.vDom = factory(geometry)
   }
 }(this, (geometry) => {
   'use strict'
-  const t2DGeometry = geometry('2D')
-
   function VDom () {}
   VDom.prototype.execute = function execute () {
     this.root.execute()
@@ -1372,81 +1372,80 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function vDom (
       temp
 
     for (var i = 0; i <= nodes.length - 1; i += 1) {
-      var d = nodes[i];
-      var coOr = { x: mouseCoor.x, y: mouseCoor.y };
-      transformCoOr(d, coOr);
+      var d = nodes[i]
+      var coOr = { x: mouseCoor.x, y: mouseCoor.y }
+      transformCoOr(d, coOr)
       if (d.in({ x: coOr.x, y: coOr.y })) {
         if (d.children && d.children.length > 0) {
-          temp = self.eventsCheck(d.children, { x: coOr.x, y: coOr.y }, rawEvent);
+          temp = self.eventsCheck(d.children, { x: coOr.x, y: coOr.y }, rawEvent)
           if (temp) {
-            node = temp;
+            node = temp
           }
         } else {
-          node = d;
+          node = d
         }
-        // callInEvents(d, rawEvent);
-      } 
-      // else {
-      //   // callOutEvents(d, rawEvent);
-      // }
+      // callInEvents(d, rawEvent)
+      }
+    // else {
+    //   // callOutEvents(d, rawEvent)
+    // }
     }
     return node
   }
 
   VDom.prototype.transformCoOr = transformCoOr
 
+  // function callInEvents (node, e) {
+  //   if ((node.dom.mouseover || node.dom.mouseenter) && !node.hovered) {
+  //     if (node.dom.mouseover) {
+  //       node.dom.mouseover.call(node, node.dataObj, e)
+  //     }
+  //     if (node.dom.mouseenter) {
+  //       node.dom.mouseenter.call(node, node.dataObj, e)
+  //     }
+  //     node.hovered = true
 
-  function callInEvents (node, e) {
-    if ((node.dom.mouseover || node.dom.mouseenter) && !node.hovered) {
-        if (node.dom.mouseover) {
-          node.dom.mouseover.call(node, node.dataObj, e);
-        }
-        if (node.dom.mouseenter) {
-          node.dom.mouseenter.call(node, node.dataObj, e);
-        }
-        node.hovered = true;
-        
-        if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.onDragStart) {
-          selectedNode.dom.drag.dragStartFlag = true
-          selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e)
-          let event = {}
-          event.x = e.offsetX
-          event.y = e.offsetY
-          event.dx = 0
-          event.dy = 0
-          selectedNode.dom.drag.event = event
-        }
+  //     if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.onDragStart) {
+  //       selectedNode.dom.drag.dragStartFlag = true
+  //       selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e)
+  //       let event = {}
+  //       event.x = e.offsetX
+  //       event.y = e.offsetY
+  //       event.dx = 0
+  //       event.dy = 0
+  //       selectedNode.dom.drag.event = event
+  //     }
 
-        if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDrag) {
-          let event = node.dom.drag.event
-          if (node.dom.drag.event) {
-            event.dx = e.offsetX - event.x
-            event.dy = e.offsetY - event.y
-          }
-          event.x = e.offsetX
-          event.y = e.offsetY
-          node.dom.drag.event = event
-          node.dom.drag.onDrag.call(node, node.dataObj, event)
-        }
-    }
-  }
+  //     if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDrag) {
+  //       let event = node.dom.drag.event
+  //       if (node.dom.drag.event) {
+  //         event.dx = e.offsetX - event.x
+  //         event.dy = e.offsetY - event.y
+  //       }
+  //       event.x = e.offsetX
+  //       event.y = e.offsetY
+  //       node.dom.drag.event = event
+  //       node.dom.drag.onDrag.call(node, node.dataObj, event)
+  //     }
+  //   }
+  // }
 
-  function callOutEvents (node, e) {
-    if ((node.dom.mouseout || node.dom.mouseleave) && node.hovered) {
-        if (node.dom.mouseout) {
-          node.dom.mouseout.call(node, node.dataObj, e);
-        }
-        if (node.dom.mouseleave) {
-          node.dom.mouseleave.call(node, node.dataObj, e);
-        }
-        node.hovered = false;
-    }
-    if (node.dom.drag && node.dom.drag.dragStartFlag) {
-      node.dom.drag.dragStartFlag = false
-      node.dom.drag.onDragEnd.call(node, node.dataObj, e)
-      node.dom.drag.event = null
-    }
-  }
+  // function callOutEvents (node, e) {
+  //   if ((node.dom.mouseout || node.dom.mouseleave) && node.hovered) {
+  //     if (node.dom.mouseout) {
+  //       node.dom.mouseout.call(node, node.dataObj, e)
+  //     }
+  //     if (node.dom.mouseleave) {
+  //       node.dom.mouseleave.call(node, node.dataObj, e)
+  //     }
+  //     node.hovered = false
+  //   }
+  //   if (node.dom.drag && node.dom.drag.dragStartFlag) {
+  //     node.dom.drag.dragStartFlag = false
+  //     node.dom.drag.onDragEnd.call(node, node.dataObj, e)
+  //     node.dom.drag.event = null
+  //   }
+  // }
 
   function transformCoOr (d, coOr) {
     let hozMove = 0
@@ -1470,7 +1469,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function vDom (
 
     if (d.attr.transform && d.attr.transform.rotate) {
       const rotate = d.attr.transform.rotate[0]
-      const { BBox } = d.dom
+      // const { BBox } = d.dom
       const cen = {
         x: d.attr.transform.rotate[1],
         y: d.attr.transform.rotate[2]
@@ -1481,7 +1480,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function vDom (
       // }
       // const dis = t2DGeometry.getDistance(cen, coOr)
       // const angle = Math.atan2(coOr.y - cen.y, coOr.x - cen.x)
-
 
       let x = coOrLocal.x
       let y = coOrLocal.y
@@ -1509,7 +1507,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function vDom (
 /* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function colorMap (root, factory) {
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
+;(function colorMap (root, factory) {
   const i2d = root
   if (true) {
     !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (() => factory()).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
@@ -1563,7 +1562,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function colorM
   }
 
   function rgbParse (rgb) {
-    const res = rgb.replace(/[^0-9\.,]+/g, '').split(',')
+    const res = rgb.replace(/[^0-9.,]+/g, '').split(',')
     const obj = {}
     const flags = ['r', 'g', 'b', 'a']
     for (let i = 0; i < res.length; i += 1) {
@@ -1581,7 +1580,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function colorM
     var s
     var l
     var obj = {}
-    const res = hsl.replace(/[^0-9\.,]+/g, '').split(',').map(function (d) { return parseFloat(d) })
+    const res = hsl.replace(/[^0-9.,]+/g, '').split(',').map(function (d) { return parseFloat(d) })
     h = res[0] / 360
     s = res[1] / 100
     l = res[2] / 100
@@ -1664,7 +1663,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function colorM
 /* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function path (root, factory) {
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
+;(function path (root, factory) {
   const i2d = root
   if (typeof module === 'object' && module.exports) {
     module.exports = factory(__webpack_require__(0), __webpack_require__(1), __webpack_require__(2), __webpack_require__(3))
@@ -1742,7 +1742,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function path (
   }
 
   function m (rel, p0) {
-    const temp = relative(rel, this.pp ? this.pp : {x: 0, y: 0}, {
+    const temp = relative(rel, this.pp ? this.pp : { x: 0, y: 0 }, {
       x: 0,
       y: 0
     })
@@ -1947,7 +1947,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function path (
       x: 0,
       y: 0
     })
-    
+
     const cntrl1 = addVectors(this.pp, subVectors(this.pp, this.cntrl ? this.cntrl : this.pp))
     const cntrl2 = addVectors(c2, temp)
     const endPoint = addVectors(ep, temp)
@@ -2260,8 +2260,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function path (
       y: (c1.y + ((c2.y - c1.y)) * f)
     }
     this.cntrl1 = c1Temp
-    this.cntrl2 = {x: c1Temp.x + (c2Temp.x - c1Temp.x) * f, y: c1Temp.y + ((c2Temp.y - c1Temp.y)) * f}
-    this.p1 = {x: co.ax * t2DGeometry.pow(f, 3) + co.bx * t2DGeometry.pow(f, 2) + co.cx * f + p0.x,
+    this.cntrl2 = { x: c1Temp.x + (c2Temp.x - c1Temp.x) * f, y: c1Temp.y + ((c2Temp.y - c1Temp.y)) * f }
+    this.p1 = { x: co.ax * t2DGeometry.pow(f, 3) + co.bx * t2DGeometry.pow(f, 2) + co.cx * f + p0.x,
       y: co.ay * t2DGeometry.pow(f, 3) + co.by * t2DGeometry.pow(f, 2) + co.cy * f + p0.y
     }
     this.length = this.length_src * f
@@ -2277,7 +2277,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function path (
     return t2DGeometry.cubicBezierTransition(this.p0, this.co, f)
   }
 
-
   let BezierTransition = function BezierTransition (type, p0, p1, p2, length, f) {
     this.type = type
     this.p0 = p0
@@ -2291,9 +2290,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function path (
     let p1 = this.p1_src
     let p2 = this.p2_src
     this.length = this.length_src * f
-    this.cntrl1 = {x: p0.x + ((p1.x - p0.x)) * f, y: p0.y + ((p1.y - p0.y)) * (f)}
+    this.cntrl1 = { x: p0.x + ((p1.x - p0.x)) * f, y: p0.y + ((p1.y - p0.y)) * (f) }
     this.cntrl2 = this.cntrl1
-    this.p1 = {x: (p0.x - 2 * p1.x + p2.x) * f * f + (2 * p1.x - 2 * p0.x) * f + p0.x, y: (p0.y - 2 * p1.y + p2.y) * f * f + (2 * p1.y - 2 * p0.y) * f + p0.y}
+    this.p1 = { x: (p0.x - 2 * p1.x + p2.x) * f * f + (2 * p1.x - 2 * p0.x) * f + p0.x, y: (p0.y - 2 * p1.y + p2.y) * f * f + (2 * p1.y - 2 * p0.y) * f + p0.y }
     this.relative = {
       cntrl1: (relativeCheck(this.type) ? this.cntrl1 : subVectors(this.cntrl1, this.p0)),
       p1: (relativeCheck(this.type) ? this.p1 : subVectors(this.p1, this.p0))
@@ -2329,9 +2328,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function path (
 
   function animatePathTo (targetConfig) {
     const self = this
-    const {
-      duration, ease, end, loop, direction, d
-    } = targetConfig
+    const { duration, ease, end, loop, direction, d } = targetConfig
     const src = d || self.attr.d
     let totalLength = 0
 
@@ -2443,7 +2440,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function path (
     return this
   }
 
-
   function morphTo (targetConfig) {
     const self = this
     const { duration } = targetConfig
@@ -2516,7 +2512,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function path (
       chainInstance.push({
         run (path, f) {
           const point = this.pointTansition(f)
-          path.m(true, {x: point.x, y: point.y})
+          path.m(true, { x: point.x, y: point.y })
         },
         pointTansition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.p0, dest.p0)
       })
@@ -2529,7 +2525,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function path (
           const c1 = t.ctrl1Transition(f)
           const c2 = t.ctrl2Transition(f)
           const p1 = t.destTransition(f)
-          path.c(true, {x: c1.x, y: c1.y}, {x: c2.x, y: c2.y}, {x: p1.x, y: p1.y})
+          path.c(true, { x: c1.x, y: c1.y }, { x: c2.x, y: c2.y }, { x: p1.x, y: p1.y })
         },
         srcTransition: t2DGeometry.linearTransitionBetweenPoints.bind(
           null,
@@ -2891,7 +2887,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function path (
 /* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function easing (root, factory) {
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
+(function easing (root, factory) {
   const i2d = root
   if (typeof module === 'object' && module.exports) {
     module.exports = factory()
@@ -3690,7 +3687,8 @@ earcut.flatten = function (data) {
 /* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function renderer (root, factory) {
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
+;(function renderer (root, factory) {
   if (typeof module === 'object' && module.exports) {
     module.exports = factory(__webpack_require__(0), __webpack_require__(1), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6), __webpack_require__(7), __webpack_require__(8))
   } else if (true) {
@@ -3978,7 +3976,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     }
     return this
   }
-  
   function on (eventType, hndlr) {
     for (let i = 0, len = this.stack.length; i < len; i += 1) {
       this.stack[i].on(eventType, hndlr)
@@ -4558,7 +4555,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.dom.nodeId = id
     this.children = []
     this.vDomIndex = vDomIndex
-    
+
     if (config.style) { this.setStyle(config.style) }
     if (config.attr) { this.setAttr(config.attr) }
   }
@@ -4568,22 +4565,20 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   }
 
   function updateAttrsToDom (self, key) {
-    if (key !== 'transform') {
-      let ind = key.indexOf(':')
-      if (ind >= 0) {
-        self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), self.changedAttribute[key])
-      } else {
-        if (key === 'text') {
-          self.dom.textContent = self.changedAttribute[key]
-        } else if (key === 'd') {
-          if (path.isTypePath(self.changedAttribute[key])) {
-            self.dom.setAttribute(key, self.changedAttribute[key].fetchPathString())
-          } else {
-            self.dom.setAttribute(key, self.changedAttribute[key])
-          }
+    let ind = key.indexOf(':')
+    if (ind >= 0) {
+      self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), self.changedAttribute[key])
+    } else {
+      if (key === 'text') {
+        self.dom.textContent = self.changedAttribute[key]
+      } else if (key === 'd') {
+        if (path.isTypePath(self.changedAttribute[key])) {
+          self.dom.setAttribute(key, self.changedAttribute[key].fetchPathString())
         } else {
           self.dom.setAttribute(key, self.changedAttribute[key])
         }
+      } else {
+        self.dom.setAttribute(key, self.changedAttribute[key])
       }
     }
   }
@@ -4603,10 +4598,11 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   DomExe.prototype.transFormAttributes = function transFormAttributes () {
     let self = this
     for (let key in self.changedAttribute) {
-      updateAttrsToDom(self, key)
-    }
-    if (this.changedAttribute.transform) {
-      updateTransAttrsToDom(self)
+      if (key !== 'transform') {
+        updateAttrsToDom(self, key)
+      } else {
+        updateTransAttrsToDom(self)
+      }
     }
     this.changedAttribute = {}
   }
@@ -4781,10 +4777,20 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   DomExe.prototype.join = dataJoin
 
   DomExe.prototype.on = function DMon (eventType, hndlr) {
-    const hnd = hndlr.bind(this)
     const self = this
-    this.dom.addEventListener(eventType, (event) => { hnd(self.dataObj, event) })
-
+    if (eventType === 'drag') {
+      this.drag = hndlr
+      if (!hndlr) {
+        dragStack.splice(dragStack.indexOf(self), 1)
+      } else {
+        dragStack.push(self)
+      }
+    } else {
+      const hnd = hndlr.bind(this)
+      this.dom.addEventListener(eventType, (event) => {
+        hnd(self.dataObj, event)
+      })
+    }
     return this
   }
 
@@ -5060,22 +5066,21 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return canvas
   }
 
-
   function CanvasPattern (self, pattern, repeatInd) {
-    var image = new Image();
+    var image = new Image()
     var selfSelf = this
-    image.src = pattern;
+    image.src = pattern
     image.onload = function () {
-      selfSelf.pattern = self.ctx.createPattern(image, repeatInd);
-      queueInstance.vDomChanged(self.vDomIndex);
+      selfSelf.pattern = self.ctx.createPattern(image, repeatInd)
+      queueInstance.vDomChanged(self.vDomIndex)
     }
   }
   CanvasPattern.prototype.exe = function () {
-    return this.pattern;
+    return this.pattern
   }
 
-  function createCanvasPattern(patternObj, repeatInd) {
-    return new CanvasPattern (this, patternObj, repeatInd);
+  function createCanvasPattern (patternObj, repeatInd) {
+    return new CanvasPattern(this, patternObj, repeatInd)
   }
 
   function applyStyles () {
@@ -5105,7 +5110,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     self.nodeName = 'Image'
     self.image = new Image()
     // self.image.crossOrigin="anonymous"
-    // self.image.setAttribute('crossOrigin', '*');
+    // self.image.setAttribute('crossOrigin', '*')
 
     self.image.onload = function onload () {
       this.crossOrigin = 'anonymous'
@@ -5123,12 +5128,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       }
       if (self.attr.clip) {
         let ctxX
-        const {
-          clip, width, height
-        } = self.attr
-        let {
-          sx, sy, swidth, sheight
-        } = clip
+        const { clip, width, height } = self.attr
+        let { sx, sy, swidth, sheight } = clip
         if (!this.rImageObj) {
           self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height)
         }
@@ -5145,9 +5146,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
 
       if (self.attr.pixels) {
         let ctxX
-        const {
-          width, height
-        } = self.attr
+        const { width, height } = self.attr
         if (!self.rImageObj) {
           self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height)
           ctxX = self.rImageObj.getContext('2d')
@@ -5192,12 +5191,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         this.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height)
       }
       const ctxX = this.rImageObj.getContext('2d')
-      const {
-        clip, width, height
-      } = this.attr
-      let {
-        sx, sy, swidth, sheight
-      } = clip
+      const { clip, width, height } = this.attr
+      let { sx, sy, swidth, sheight } = clip
       sx = sx !== undefined ? sx : 0
       sy = sy !== undefined ? sy : 0
       swidth = swidth !== undefined ? swidth : width
@@ -5224,9 +5219,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     let scaleX = 1
     let scaleY = 1
     const { transform } = self.attr
-    let {
-      x, y, width, height
-    } = self.attr
+    let { x, y, width, height } = self.attr
 
     if (transform) {
       if (transform.translate) {
@@ -5252,9 +5245,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     }
   }
   RenderImage.prototype.execute = function RIexecute () {
-    const {
-      width, height, x, y
-    } = this.attr
+    const { width, height, x, y } = this.attr
     if (this.imageObj) {
       this.ctx.drawImage(
         this.rImageObj ? this.rImageObj : this.imageObj,
@@ -5268,7 +5259,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   RenderImage.prototype.applyStyles = function RIapplyStyles () {}
   RenderImage.prototype.in = function RIinfun (co) {
     return co.x >= this.attr.x && co.x <= this.attr.x + this.attr.width &&
-     co.y >= this.attr.y && co.y <= this.attr.y + this.attr.height
+      co.y >= this.attr.y && co.y <= this.attr.y + this.attr.height
   }
 
   function RenderText (ctx, props, stylesProps) {
@@ -5327,10 +5318,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       }
     }
   }
-  RenderText.prototype.applyStyles = function RTapplyStyles () { }
+  RenderText.prototype.applyStyles = function RTapplyStyles () {}
   RenderText.prototype.in = function RTinfun (co) {
     return co.x >= this.attr.x && co.x <= this.attr.x + this.attr.width &&
-    co.y >= this.attr.y && co.y <= this.attr.y + this.attr.height
+      co.y >= this.attr.y && co.y <= this.attr.y + this.attr.height
   }
 
   /** ***************** Render Circle */
@@ -5385,7 +5376,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
 
   RenderCircle.prototype.in = function RCinfun (co) {
     const r = Math.sqrt((co.x - this.attr.cx) * (co.x - this.attr.cx) +
-    (co.y - this.attr.cy) * (co.y - this.attr.cy))
+      (co.y - this.attr.cy) * (co.y - this.attr.cy))
     return r <= this.attr.r
   }
 
@@ -5437,11 +5428,11 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   }
   RenderLine.prototype.in = function RLinfun (co) {
     return parseFloat(t2DGeometry.getDistance({ x: this.attr.x1, y: this.attr.y1 }, co) +
-      t2DGeometry.getDistance(co, { x: this.attr.x2, y: this.attr.y2 })).toFixed(1) ===
-     parseFloat(t2DGeometry.getDistance(
-       { x: this.attr.x1, y: this.attr.y1 },
-       { x: this.attr.x2, y: this.attr.y2 }
-     )).toFixed(1)
+        t2DGeometry.getDistance(co, { x: this.attr.x2, y: this.attr.y2 })).toFixed(1) ===
+      parseFloat(t2DGeometry.getDistance(
+        { x: this.attr.x1, y: this.attr.y1 },
+        { x: this.attr.x2, y: this.attr.y2 }
+      )).toFixed(1)
   }
 
   function RenderPolyline (ctx, props, stylesProps) {
@@ -5476,11 +5467,11 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       let p1 = this.attr.points[i]
       let p2 = this.attr.points[i + 1]
       flag = flag || parseFloat(t2DGeometry.getDistance({ x: p1.x, y: p1.y }, co) +
-        t2DGeometry.getDistance(co, { x: p2.x, y: p2.y })).toFixed(1) ===
-      parseFloat(t2DGeometry.getDistance(
-        { x: p1.x, y: p1.y },
-        { x: p2.x, y: p2.y }
-      )).toFixed(1)
+          t2DGeometry.getDistance(co, { x: p2.x, y: p2.y })).toFixed(1) ===
+        parseFloat(t2DGeometry.getDistance(
+          { x: p1.x, y: p1.y },
+          { x: p2.x, y: p2.y }
+        )).toFixed(1)
     }
     return flag
   }
@@ -5588,10 +5579,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     localPoints = localPoints.replace(/,/g, ' ').split(' ')
 
     polygon.moveTo(localPoints[0], localPoints[1])
-    points_.push({x: parseFloat(localPoints[0]), y: parseFloat(localPoints[1])})
+    points_.push({ x: parseFloat(localPoints[0]), y: parseFloat(localPoints[1]) })
     for (let i = 2; i < localPoints.length; i += 2) {
       polygon.lineTo(localPoints[i], localPoints[i + 1])
-      points_.push({x: parseFloat(localPoints[i]), y: parseFloat(localPoints[i + 1])})
+      points_.push({ x: parseFloat(localPoints[i]), y: parseFloat(localPoints[i + 1]) })
     }
     polygon.closePath()
 
@@ -5697,9 +5688,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   // }
 
   RenderEllipse.prototype.in = function REinfun (co) {
-    const {
-      cx, cy, rx, ry
-    } = this.attr
+    const { cx, cy, rx, ry } = this.attr
     return ((((co.x - cx) * (co.x - cx)) / (rx * rx)) + (((co.y - cy) * (co.y - cy)) / (ry * ry))) <= 1
   }
 
@@ -5760,9 +5749,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   }
 
   RenderRect.prototype.in = function RRinfun (co) {
-    const {
-      x, y, width, height
-    } = this.attr
+    const { x, y, width, height } = this.attr
     return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height
   }
 
@@ -5870,9 +5857,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     }
 
     return co.x >= (BBox.x - gTranslateX) / scaleX &&
-                co.x <= ((BBox.x - gTranslateX) + BBox.width) / scaleX &&
-                co.y >= (BBox.y - gTranslateY) / scaleY &&
-                co.y <= ((BBox.y - gTranslateY) + BBox.height) / scaleY
+      co.x <= ((BBox.x - gTranslateX) + BBox.width) / scaleX &&
+      co.y >= (BBox.y - gTranslateY) / scaleY &&
+      co.y <= ((BBox.y - gTranslateY) + BBox.height) / scaleY
   }
 
   /** ***************** End Render Group */
@@ -6080,8 +6067,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     }
     // this.dom.applyStyles()
     this.ctx.restore()
-    // this.ctx.fillStyle = fillStyle
-    // this.ctx.strokeStyle = strokeStyle
+  // this.ctx.fillStyle = fillStyle
+  // this.ctx.strokeStyle = strokeStyle
   }
 
   CanvasNodeExe.prototype.child = function child (childrens) {
@@ -6168,7 +6155,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       const removedNode = this.children.splice(index, 1)[0]
       this.dom.removeChild(removedNode.dom)
     }
-    this.BBoxUpdate = true;
+    this.BBoxUpdate = true
     queueInstance.vDomChanged(this.vDomIndex)
   }
 
@@ -6263,9 +6250,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       for (let i = 0, len = nodes.length; i < len; i++) {
         let node = nodes[i]
         if (node instanceof DomExe ||
-            node instanceof CanvasNodeExe ||
-            node instanceof WebglNodeExe ||
-            node instanceof CreateElements) {
+          node instanceof CanvasNodeExe ||
+          node instanceof WebglNodeExe ||
+          node instanceof CreateElements) {
           self.stack.push(node)
         } else { self.stack.push(new DomExe(node, {}, domId())) }
       }
@@ -6276,10 +6263,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   function getPixlRatio (ctx) {
     const dpr = window.devicePixelRatio || 1
     const bsr = ctx.webkitBackingStorePixelRatio ||
-            ctx.mozBackingStorePixelRatio ||
-            ctx.msBackingStorePixelRatio ||
-            ctx.oBackingStorePixelRatio ||
-            ctx.backingStorePixelRatio || 1
+      ctx.mozBackingStorePixelRatio ||
+      ctx.msBackingStorePixelRatio ||
+      ctx.oBackingStorePixelRatio ||
+      ctx.backingStorePixelRatio || 1
 
     return dpr / bsr
   }
@@ -6331,8 +6318,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     layer.style.width = `${width}px`
     layer.style.position = 'absolute'
 
-    // ctx.strokeStyle = 'rgba(0, 0, 0, 0)';
-    // ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+    // ctx.strokeStyle = 'rgba(0, 0, 0, 0)'
+    // ctx.fillStyle = 'rgba(0, 0, 0, 0)'
 
     res.appendChild(layer)
 
@@ -6411,7 +6398,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     if (config.events || config.events === undefined) {
       res.addEventListener('mousemove', (e) => {
         e.preventDefault()
-
         if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
           let event = selectedNode.dom.drag.event
           if (selectedNode.dom.drag.event) {
@@ -6452,7 +6438,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
           if (tselectedNode) {
             selectedNode = tselectedNode
             if ((selectedNode.dom.mouseover || selectedNode.dom.mouseenter) &&
-                !selectedNode.hovered) {
+              !selectedNode.hovered) {
               if (selectedNode.dom.mouseover) { selectedNode.dom.mouseover.call(selectedNode, selectedNode.dataObj, e) }
               if (selectedNode.dom.mouseenter) { selectedNode.dom.mouseenter.call(selectedNode, selectedNode.dataObj, e) }
               selectedNode.hovered = true
@@ -6498,8 +6484,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDragEnd) {
           selectedNode.dom.drag.dragStartFlag = false
           selectedNode.dom.drag.event = null
-          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
-          selectedNode = null;
+          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, selectedNode.dom.drag.event)
+          selectedNode.dom.drag.event = null
+          selectedNode = null
         }
       })
       res.addEventListener('mouseleave', (e) => {
@@ -6507,11 +6494,11 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         if (selectedNode && selectedNode.dom.mouseleave) {
           selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e)
         }
-        if (selectedNode && selectedNode.dom.onDragEnd && selectedNode.dom.drag.dragStartFlag) {
+        if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDragEnd) {
           selectedNode.dom.drag.dragStartFlag = false
+          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, selectedNode.dom.drag.event)
           selectedNode.dom.drag.event = null
-          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, e)
-          selectedNode = null;
+          selectedNode = null
         }
       })
       res.addEventListener('contextmenu', (e) => {
@@ -6524,6 +6511,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return root
   }
 
+  let dragStack = []
   i2d.SVGLayer = function SVGLayer (context, config = {}) {
     const vDomInstance = new VDom()
     const vDomIndex = queueInstance.addVdom(vDomInstance)
@@ -6583,6 +6571,62 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
       layer.remove()
       queueInstance.removeVdom(vDomInstance)
     }
+
+    let dragTargetEl = null
+    root.dom.addEventListener('mousedown', function (e) {
+      if (dragStack.length) {
+        dragStack.forEach(function (d) {
+          if (e.target === d.dom) {
+            dragTargetEl = d
+          }
+        })
+        if (dragTargetEl) {
+          let event = {}
+          event.x = e.offsetX
+          event.y = e.offsetY
+          event.dx = 0
+          event.dy = 0
+          dragTargetEl.drag.event = event
+          dragTargetEl.drag.dragStartFlag = true
+          dragTargetEl.drag.onDragStart.call(dragTargetEl, dragTargetEl.dataObj, event)
+        }
+      }
+    })
+
+    root.dom.addEventListener('mousemove', function (e) {
+      if (dragTargetEl) {
+        let event = dragTargetEl.drag.event
+        event.dx = e.offsetX - event.x
+        event.dy = e.offsetY - event.y
+        event.x = e.offsetX
+        event.y = e.offsetY
+        dragTargetEl.drag.onDrag.call(dragTargetEl, dragTargetEl.dataObj, event)
+      }
+    })
+
+    root.dom.addEventListener('mouseup', function (e) {
+      if (dragTargetEl) {
+        let event = dragTargetEl.drag.event
+        event.dx = e.offsetX - event.x
+        event.dy = e.offsetY - event.y
+        event.x = e.offsetX
+        event.y = e.offsetY
+        dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event)
+        dragTargetEl = null
+      }
+    })
+
+    root.dom.addEventListener('mouseleave', function (e) {
+      if (dragTargetEl) {
+        let event = dragTargetEl.drag.event
+        event.dx = e.offsetX - event.x
+        event.dy = e.offsetY - event.y
+        event.x = e.offsetX
+        event.y = e.offsetY
+        dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event)
+        dragTargetEl = null
+      }
+    })
 
     queueInstance.execute()
     return root
@@ -6650,7 +6694,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   }
   RectNode.prototype.setAttr = function (key, value) {
     this.attr[key] = value
-    // this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe), this.nodeExe)
+  // this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe), this.nodeExe)
   }
   // RectNode.prototype.getAttr = function (key) {
   //   return this.attr[key]
@@ -6751,7 +6795,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.style = style
     this.image = new Image()
     // self.image.crossOrigin="anonymous"
-    // self.image.setAttribute('crossOrigin', '*');
+    // self.image.setAttribute('crossOrigin', '*')
 
     this.image.onload = function onload () {
       this.crossOrigin = 'anonymous'
@@ -6774,7 +6818,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         }
         webGLImageTextures[self.attr.src] = texture
       }
-      // self.loadStatus = true
+    // self.loadStatus = true
     }
     this.image.onerror = function onerror (onerrorExe) {
       if (onerrorExe && typeof onerrorExe === 'function') {
@@ -6796,7 +6840,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return this.style[key]
   }
 
-
   function writeDataToShaderAttributes (ctx, data) {
     let d
     for (let i = 0, len = data.length; i < len; i++) {
@@ -6808,7 +6851,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     }
   }
 
-  let defaultColor = {r: 0, g: 0, b: 0, a: 255.0}
+  let defaultColor = { r: 0, g: 0, b: 0, a: 255.0 }
 
   function webGlAttrMapper (ctx, program, attr, attrObj) {
     return {
@@ -6864,9 +6907,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
   RenderWebglShader.prototype.addAttribute = function (key, value) {
     this.attribute[key] = value
   }
-  RenderWebglShader.prototype.setAttribute = function (key, value) {
-
-  }
+  RenderWebglShader.prototype.setAttribute = function (key, value) {}
   RenderWebglShader.prototype.setUniformData = function (key, value) {
     this.uniforms[key].data = value
     queueInstance.vDomChanged(this.vDomIndex)
@@ -7174,7 +7215,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution')
     this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate')
     this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale')
-    this.polyLineArray= []
+    this.polyLineArray = []
     // this.colorArray = []
     this.inputs = [{
       bufferType: this.ctx.ARRAY_BUFFER,
@@ -7249,7 +7290,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
         }
         this.polyLineArray[i].colorArray = new Uint8Array(colorArray)
       }
-      
+
       this.inputs[0].data = this.polyLineArray[i].colorArray
       this.inputs[1].data = this.polyLineArray[i].positionArray
       writeDataToShaderAttributes(this.ctx, this.inputs)
@@ -7718,7 +7759,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     return e
   }
 
-
   WebglNodeExe.prototype.remove = function Wremove () {
     const { children } = this.dom.parent
     const index = children.indexOf(this)
@@ -7748,7 +7788,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function render
     const res = document.querySelector(context)
     const height = config.height ? config.height : res.clientHeight
     const width = config.width ? config.width : res.clientWidth
-    const clearColor = config.clearColor ? color.colorToRGB(config.clearColor) : {r: 0, g: 0, b: 0, a: 0}
+    const clearColor = config.clearColor ? color.colorToRGB(config.clearColor) : { r: 0, g: 0, b: 0, a: 0 }
     const layer = document.createElement('canvas')
     const ctx = layer.getContext('webgl', {
       premultipliedAlpha: false,

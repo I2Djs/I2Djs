@@ -1,6 +1,6 @@
-var webpack = require('webpack');
-var path = require('path');
-var PROD = JSON.parse(process.env.PROD_ENV || '0');
+var webpack = require('webpack')
+var path = require('path')
+// var PROD = JSON.parse(process.env.PROD_ENV || '0')
 
 var ESClientConfig = {
   entry: './src/renderer.js',
@@ -14,6 +14,15 @@ var ESClientConfig = {
   module: {
     rules: [
       {
+        enforce: 'pre',
+        test: /\.js$/,
+        exclude: /node_modules/,
+        loader: 'eslint-loader',
+        options: {
+          // eslint options (if necessary)
+        }
+      },
+      {
         test: /\.js$/,
         exclude: /node_modules/,
         use: {
@@ -25,7 +34,7 @@ var ESClientConfig = {
       }
     ]
   }
-};
+}
 
 var ClientConfig = {
   entry: './src/renderer.js',
@@ -36,7 +45,7 @@ var ClientConfig = {
     libraryTarget: 'umd',
     umdNamedDefine: true
   }
-};
+}
 
 var ClientMinConfig = {
   entry: './src/renderer.js',
@@ -66,7 +75,7 @@ var ClientMinConfig = {
       minimize: true
     })
   ]
-};
+}
 
 module.exports = [ESClientConfig, ClientConfig, ClientMinConfig]
 
@@ -98,4 +107,4 @@ module.exports = [ESClientConfig, ClientConfig, ClientMinConfig]
 //       minimize: true
 //     })
 //   ]
-// };
+// }

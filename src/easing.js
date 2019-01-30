@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 (function easing (root, factory) {
   const i2d = root
   if (typeof module === 'object' && module.exports) {
@@ -20,7 +21,7 @@
     const t = starttime / duration
 
     return (1 - (1 - t) * Math.sin(t * duration * force * Math.PI * 2 + (Math.PI / 2)) /
-     Math.exp(t * decay))
+    Math.exp(t * decay))
   }
   function bounce (starttime, duration) {
     const decay = 10
@@ -28,7 +29,7 @@
     const force = t / 100
 
     return (1 - (1 - t) * Math.abs(Math.sin(t * duration * force * Math.PI * 2 + (Math.PI / 2))) /
-     Math.exp(t * decay))
+    Math.exp(t * decay))
   }
   function easeInQuad (starttime, duration) {
     const t = starttime / duration
@@ -130,7 +131,6 @@
         default:
           res = linear
       }
-      
       return res
     }
 
