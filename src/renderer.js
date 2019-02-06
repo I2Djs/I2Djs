@@ -2606,6 +2606,13 @@
     return Object.create(dragObject)
   }
 
+  let Event = function (x, y) {
+    this.x = x
+    this.y = y
+    this.dx = 0
+    this.dy = 0
+  }
+
   i2d.CanvasLayer = function CanvasLayer (context, config = {}) {
     let originalRatio
     let selectedNode
@@ -2716,11 +2723,12 @@
           }
           event.x = e.offsetX
           event.y = e.offsetY
+          event.e = e
           selectedNode.dom.drag.event = event
           selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
         } else {
-          const tselectedNode = vDomInstance.eventsCheck([root], { x: e.offsetX, y: e.offsetY }, e)
-          if (selectedNode && tselectedNode !== selectedNode) {
+          const newSelectedNode = vDomInstance.eventsCheck([root], { x: e.offsetX, y: e.offsetY }, e)
+          if (selectedNode && newSelectedNode !== selectedNode) {
             if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
               if (selectedNode.dom.mouseout) { selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e) }
               if (selectedNode.dom.mouseleave) { selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e) }
@@ -2732,7 +2740,7 @@
               selectedNode.dom.drag.event = null
             }
           }
-          if (selectedNode && tselectedNode === selectedNode) {
+          if (selectedNode && newSelectedNode === selectedNode) {
             if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
               let event = selectedNode.dom.drag.event
               if (selectedNode.dom.drag.event) {
@@ -2741,12 +2749,13 @@
               }
               event.x = e.offsetX
               event.y = e.offsetY
+              event.e = e
               selectedNode.dom.drag.event = event
               selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event)
             }
           }
-          if (tselectedNode) {
-            selectedNode = tselectedNode
+          if (newSelectedNode) {
+            selectedNode = newSelectedNode
             if ((selectedNode.dom.mouseover || selectedNode.dom.mouseenter) &&
               !selectedNode.hovered) {
               if (selectedNode.dom.mouseover) { selectedNode.dom.mouseover.call(selectedNode, selectedNode.dataObj, e) }
@@ -2777,11 +2786,8 @@
         if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.onDragStart) {
           selectedNode.dom.drag.dragStartFlag = true
           selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e)
-          let event = {}
-          event.x = e.offsetX
-          event.y = e.offsetY
-          event.dx = 0
-          event.dy = 0
+          let event = new Event(e.offsetX, e.offsetY)
+          event.e = e
           selectedNode.dom.drag.event = event
         }
       })
@@ -2796,7 +2802,7 @@
           selectedNode.dom.drag.event = null
           selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, selectedNode.dom.drag.event)
           selectedNode.dom.drag.event = null
-          selectedNode = null
+          // selectedNode = null
         }
       })
       res.addEventListener('mouseleave', (e) => {
@@ -2855,6 +2861,13 @@
       renderVdom.call(this)
     }
 
+    function svgResize () {
+      if (config.resize && typeof config.resize === 'function') {
+        config.resize()
+      }
+      renderVdom.call(root)
+    }
+
     function renderVdom () {
       let width = config.width ? config.width : this.container.clientWidth
       let height = config.height ? config.height : this.container.clientHeight
@@ -2867,13 +2880,6 @@
       this.dom.setAttribute('width', width)
     }
 
-    function svgResize () {
-      if (config.resize && typeof config.resize === 'function') {
-        config.resize()
-      }
-      renderVdom.call(root)
-    }
-
     window.addEventListener('resize', svgResize)
 
     root.destroy = function () {
@@ -2883,6 +2889,7 @@
     }
 
     let dragTargetEl = null
+
     root.dom.addEventListener('mousedown', function (e) {
       if (dragStack.length) {
         dragStack.forEach(function (d) {
@@ -2891,11 +2898,8 @@
           }
         })
         if (dragTargetEl) {
-          let event = {}
-          event.x = e.offsetX
-          event.y = e.offsetY
-          event.dx = 0
-          event.dy = 0
+          let event = new Event(e.offsetX, e.offsetY)
+          event.e = e
           dragTargetEl.drag.event = event
           dragTargetEl.drag.dragStartFlag = true
           dragTargetEl.drag.onDragStart.call(dragTargetEl, dragTargetEl.dataObj, event)
@@ -2910,6 +2914,7 @@
         event.dy = e.offsetY - event.y
         event.x = e.offsetX
         event.y = e.offsetY
+        event.e = e
         dragTargetEl.drag.onDrag.call(dragTargetEl, dragTargetEl.dataObj, event)
       }
     })
@@ -2921,6 +2926,7 @@
         event.dy = e.offsetY - event.y
         event.x = e.offsetX
         event.y = e.offsetY
+        event.e = e
         dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event)
         dragTargetEl = null
       }
@@ -2933,6 +2939,7 @@
         event.dy = e.offsetY - event.y
         event.x = e.offsetX
         event.y = e.offsetY
+        event.e = e
         dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event)
         dragTargetEl = null
       }
@@ -3116,7 +3123,7 @@
         ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, ctx.RGBA, ctx.UNSIGNED_BYTE, self.image)
         if (isPowerOf2(self.image.width) && isPowerOf2(self.image.height)) {
           // Yes, it's a power of 2. Generate mips.
-          console.log('mips')
+          // console.log('mips')
           ctx.generateMipmap(ctx.TEXTURE_2D)
           ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST_MIPMAP_LINEAR)
           ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST)
