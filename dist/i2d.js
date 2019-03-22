@@ -3697,11 +3697,11 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
   } else {
     root.i2d = factory(root.geometry, root.queue, root.easing, root.chain, root.vDom, root.colorMap, root.path, root.shaders, root.earcut)
   }
-}(this, (geometry, queue, easing, chain, VDom, colorMap, path, shaders, earcut) => {
+}(this, (geometry, queue, ease, chain, VDom, colorMap, path, shaders, earcut) => {
   'use strict'
   const i2d = {}
   const t2DGeometry = geometry('2D')
-  const easying = easing()
+  const easing = ease()
   const queueInstance = queue()
   let Id = 0
   let animeIdentifier = 0
@@ -3820,7 +3820,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
         const keys = Object.keys(config)
         for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
           const key = keys[j]
-          if (typeof config[key] !== 'object') { cRes[key] = config[key] } else {
+          if (typeof config[key] !== 'object') {
+            cRes[key] = config[key]
+          } else {
             cRes[key] = JSON.parse(JSON.stringify(config[key]))
           }
         }
@@ -4317,7 +4319,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
   }
 
   const animateTo = function animateTo (targetConfig) {
-    queueInstance.add(animeId(), animate(this, targetConfig), easying(targetConfig.ease))
+    queueInstance.add(animeId(), animate(this, targetConfig), easing(targetConfig.ease))
     return this
   }
 
@@ -4412,6 +4414,25 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
     }
     return this
   }
+
+  // function DomPattern (self, pattern, repeatInd) {
+  // }
+  // DomPattern.prototype.exe = function () {
+  //   return this.pattern
+  // }
+
+  // function createDomPattern (url, config) {
+  //   // new DomPattern(this, patternObj, repeatInd)
+  //   let patternEl = this.createEl({
+  //     el: 'pattern'
+  //   })
+  //   patternEl.createEl({
+  //     el: 'image',
+  //     attr: {
+  //       'xlink:href': url
+  //     }
+  //   })
+  // }
 
   function DomGradients (config, type, pDom) {
     this.config = config
@@ -4566,19 +4587,26 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
 
   function updateAttrsToDom (self, key) {
     let ind = key.indexOf(':')
+    let value = self.changedAttribute[key]
     if (ind >= 0) {
-      self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), self.changedAttribute[key])
+      self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), value)
     } else {
       if (key === 'text') {
-        self.dom.textContent = self.changedAttribute[key]
+        self.dom.textContent = value
       } else if (key === 'd') {
-        if (path.isTypePath(self.changedAttribute[key])) {
-          self.dom.setAttribute(key, self.changedAttribute[key].fetchPathString())
+        if (path.isTypePath(value)) {
+          self.dom.setAttribute(key, value.fetchPathString())
         } else {
-          self.dom.setAttribute(key, self.changedAttribute[key])
+          self.dom.setAttribute(key, value)
         }
       } else {
-        self.dom.setAttribute(key, self.changedAttribute[key])
+        if (key === 'onerror' || key === 'onload') {
+          self.dom[key] = function fun (e) {
+            value.call(self, e)
+          }
+        } else {
+          self.dom.setAttribute(key, value)
+        }
       }
     }
   }
@@ -5158,15 +5186,15 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
         ctxX.putImageData(pixels.call(self, self.attr.pixels), 0, 0)
       }
 
-      if (onloadExe && typeof onloadExe === 'function') {
-        onloadExe.call(nodeExe)
+      if (nodeExe.attr.onload && typeof nodeExe.attr.onload === 'function') {
+        nodeExe.attr.onload.call(nodeExe, self.image)
       }
       self.nodeExe.BBoxUpdate = true
       queueInstance.vDomChanged(self.nodeExe.vDomIndex)
     }
-    self.image.onerror = function onerror () {
-      if (onerrorExe && typeof onerrorExe === 'function') {
-        onerrorExe.call(nodeExe)
+    self.image.onerror = function onerror (error) {
+      if (nodeExe.attr.onerror && typeof nodeExe.attr.onerror === 'function') {
+        nodeExe.attr.onerror.call(nodeExe, error)
       }
     }
     if (self.attr.src) { self.image.src = self.attr.src }
@@ -5183,8 +5211,13 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
     this.attr[attr] = value
 
     if (attr === 'src') {
-      this.image.src = value
+      this.image[attr] = value
     }
+    // if ((attr === 'onerror' || attr === 'onload') && typeof value === 'function') {
+    //   this.image[attr] = function (e) {
+    //     value.call(self, this, e)
+    //   }
+    // }
 
     if (attr === 'clip') {
       if (!this.rImageObj) {
@@ -6492,7 +6525,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
           selectedNode.dom.drag.event = null
           selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, selectedNode.dom.drag.event)
           selectedNode.dom.drag.event = null
-          // selectedNode = null
+        // selectedNode = null
         }
       })
       res.addEventListener('mouseleave', (e) => {
@@ -6522,8 +6555,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
     const vDomInstance = new VDom()
     const vDomIndex = queueInstance.addVdom(vDomInstance)
     const res = document.querySelector(context)
-    const height = config.height ? config.height : res.clientHeight
-    const width = config.width ? config.width : res.clientWidth
+    let height = config.height ? config.height : res.clientHeight
+    let width = config.width ? config.width : res.clientWidth
     const layer = document.createElementNS(nameSpace.svg, 'svg')
     layer.setAttribute('height', height)
     layer.setAttribute('width', width)
@@ -6552,6 +6585,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
     }
 
     function svgResize () {
+      height = config.height ? config.height : res.clientHeight
+      width = config.width ? config.width : res.clientWidth
+      layer.setAttribute('height', height)
+      layer.setAttribute('width', width)
+      root.width = width
+      root.height = height
       if (config.resize && typeof config.resize === 'function') {
         config.resize()
       }
@@ -7855,6 +7894,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
   i2d.geometry = t2DGeometry
   i2d.chain = chain
   i2d.color = colorMap
+  i2d.easy = easing
   // i2d.shader = shader
 
   return i2d

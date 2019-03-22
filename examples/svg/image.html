@@ -7,8 +7,16 @@
 
 	<div id="mySvg" style="height: 100%;width:100%">
 	</div>
-    
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+    <script type="text/javascript" src="../../dist/i2d.js"></script>
+	<!--<script type="text/javascript" src="../../src/colorMap.js"></script>
+	<script type="text/javascript" src="../../src/geometry.js"></script>
+	<script type="text/javascript" src="../../src/easing.js"></script>
+    <script type="text/javascript" src="../../src/vDom.js"></script>
+	<script type="text/javascript" src="../../src/queue.js"></script>
+    <script type="text/javascript" src="../../src/chaining.js"></script>
+    <script type="text/javascript" src="../../src/path.js"></script>
+    <script type="text/javascript" src="../../src/shaders.js"></script>
+    <script type="text/javascript" src="../../src/renderer.js"></script>-->
 
 	<script type="text/javascript">
 
@@ -17,39 +25,40 @@
         var img = renderer.createEl({
                 el:'image',
                 attr:{
-                    'xlink:href':'../images/Canvas_sun.png',
+                    'xlink:href':'../images/Canvas_sun2.png',
                     width:150,
                     height:150,
                     x:0,
                     y:0,
                     transform:{
                         translate:[100,100]
+                    },
+                    onerror: function r() {
+                        console.log(this);
+                        this.setAttr('xlink:href','../images/Canvas_sun.png');
                     }
-                },
-                onload:function(){
-                    
-                    // this.animateTo({
-                    //     duration:1000,
-                    //     attr:{
-                    //         pixels:function(f){
-                    //             return function(pixelData){
-                    //                     var data = pixelData.data;
-                    //                     for (var i = 0; i < data.length; i += 4) {
-                    //                         data[i]     =  data[i];     // red
-                    //                         data[i + 1] = 255*f - data[i + 1]; // green
-                    //                         data[i + 2] = 255*f - data[i + 2]; // blue
-                    //                     }
-                    //                     pixelData.data = data;
-                    //                     console.log(f);
-                    //                 return pixelData;
-                    //             }
-                    //         }
-                    //     }
-                    // })
                 }
             });
 
-        
+//   var svg = 
+  var img = document.createElementNS("http://www.w3.org/2000/svg", "image");
+  //img.addEventListener('load', function() { alert('loaded'); });
+  // or alternatively:
+
+  img.setAttribute('width', 100)
+  img.setAttribute('height', 100)
+  img.setAttribute('x', 100)
+  img.setAttribute('y', 100)
+  img.href.baseVal ='../images/Canvas_sun2.png';
+
+    img.onerror = function () { 
+        alert('loaded'); 
+    }
+
+        renderer.dom.appendChild(img);
+
+        console.log(img[onerror]);
+
 
 	</script>
 
