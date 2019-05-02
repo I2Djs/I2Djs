@@ -11,7 +11,8 @@
   'use strict'
   let animatorInstance = null
   let tweens = []
-  const vDoms = []
+  const vDoms = {}
+  const vDomIds = []
   let animeFrameId
 
   const onFrameExe = []
@@ -105,7 +106,6 @@
   }
 
   function VDomStack () {
-    this.vDoms = []
   }
 
   VDomStack.prototype = {
@@ -123,17 +123,17 @@
   }
 
   VDomStack.prototype.addVdom = function AaddVdom (_) {
-    vDoms.push(_)
-    return vDoms.length - 1
+    let ind = vDomIds.length + 1
+    vDoms[ind] = _
+    vDomIds.push(ind)
+    return ind
   }
   VDomStack.prototype.removeVdom = function removeVdom (_) {
-    let index = vDoms.indexOf(_)
-    vDoms[index] = {}
-  // for (var i = 0; i < vDoms.length; i++) {
-  //   if (vDoms[i] === _) {
-  //     vDoms.splice(i, 1)
-  //   }
-  // }
+    let index = vDomIds.indexOf(_)
+    if (index !== -1) {
+      vDomIds.splice(index, 1)
+      delete vDoms[_]
+    }
   }
   VDomStack.prototype.vDomChanged = function AvDomChanged (vDom) {
     if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
@@ -200,10 +200,15 @@
   }
 
   function vDomUpdates () {
-    for (let i = 0, len = vDoms.length; i < len; i += 1) {
-      if (vDoms[i].stateModified) {
-        vDoms[i].execute()
-        vDoms[i].stateModified = false
+    for (let i = 0, len = vDomIds.length; i < len; i += 1) {
+      if (vDomIds[i] && vDoms[vDomIds[i]].stateModified) {
+        vDoms[vDomIds[i]].execute()
+        vDoms[vDomIds[i]].stateModified = false
+      } else if (vDomIds[i]) {
+        var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id)
+        if (!elementExists) {
+          animatorInstance.removeVdom(vDomIds[i])
+        }
       }
     }
   }
