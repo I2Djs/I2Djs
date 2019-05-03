@@ -132,6 +132,7 @@
     let index = vDomIds.indexOf(_)
     if (index !== -1) {
       vDomIds.splice(index, 1)
+      vDoms[_].root.destroy()
       delete vDoms[_]
     }
   }
@@ -204,7 +205,7 @@
       if (vDomIds[i] && vDoms[vDomIds[i]].stateModified) {
         vDoms[vDomIds[i]].execute()
         vDoms[vDomIds[i]].stateModified = false
-      } else if (vDomIds[i]) {
+      } else if (vDomIds[i] && vDoms[vDomIds[i]].root) {
         var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id)
         if (!elementExists) {
           animatorInstance.removeVdom(vDomIds[i])

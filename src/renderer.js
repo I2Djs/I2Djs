@@ -1482,7 +1482,7 @@
         )
       }
 
-      if (self.attr.pixels) {
+      if (self.attr.pixels && self.imageObj) {
         let ctxX
         const { width, height } = self.attr
         if (!self.rImageObj) {
@@ -1547,8 +1547,16 @@
         )
       }
     }
-    if (self.attr.pixels) {
+    if (self.attr.pixels && self.imageObj) {
       let ctxX
+      const { width, height } = self.attr
+      if (!self.rImageObj) {
+        self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height)
+        ctxX = self.rImageObj.getContext('2d')
+        ctxX.drawImage(
+          self.imageObj, 0, 0, width, height
+        )
+      }
       ctxX = self.rImageObj.getContext('2d')
       ctxX.putImageData(pixels.call(self, self.attr.pixels), 0, 0)
     }
@@ -2683,6 +2691,8 @@
       }
     }, domId(), vDomIndex)
 
+    vDomInstance.root(root)
+
     const execute = root.execute.bind(root)
     root.container = res
     root.domEl = layer
@@ -2739,11 +2749,9 @@
 
     root.destroy = function () {
       window.removeEventListener('resize', canvasResize)
-      layer.remove()
-      queueInstance.removeVdom(vDomInstance)
+      // layer.remove()
+      // queueInstance.removeVdom(vDomIndex)
     }
-
-    vDomInstance.root(root)
 
     if (config.events || config.events === undefined) {
       res.addEventListener('mousemove', (e) => {
@@ -2924,7 +2932,7 @@
     root.destroy = function () {
       window.removeEventListener('resize', svgResize)
       layer.remove()
-      queueInstance.removeVdom(vDomInstance)
+      queueInstance.removeVdom(vDomIndex)
     }
 
     let dragTargetEl = null
@@ -4186,7 +4194,7 @@
       execute()
     }
     root.destroy = function () {
-      queueInstance.removeVdom(vDomInstance)
+      queueInstance.removeVdom(vDomIndex)
     }
     vDomInstance.root(root)
 

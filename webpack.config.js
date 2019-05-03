@@ -1,9 +1,14 @@
-var webpack = require('webpack')
+// var webpack = require('webpack')
 var path = require('path')
 // var PROD = JSON.parse(process.env.PROD_ENV || '0')
 
 var ESClientConfig = {
   entry: './src/renderer.js',
+  mode: 'development',
+  devtool: false,
+  optimization: {
+    minimize: false
+  },
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'i2d.esm.js',
@@ -25,11 +30,9 @@ var ESClientConfig = {
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: ['env']
-          }
+        loader: 'babel-loader',
+        options: {
+          presets: ['env']
         }
       }
     ]
@@ -38,6 +41,11 @@ var ESClientConfig = {
 
 var ClientConfig = {
   entry: './src/renderer.js',
+  mode: 'development',
+  devtool: false,
+  optimization: {
+    minimize: false
+  },
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'i2d.js',
@@ -49,6 +57,11 @@ var ClientConfig = {
 
 var ClientMinConfig = {
   entry: './src/renderer.js',
+  mode: 'production',
+  optimization: {
+    minimize: true
+  },
+  devtool: false,
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'i2d.min.js',
@@ -71,9 +84,6 @@ var ClientMinConfig = {
     ]
   },
   plugins: [
-    new webpack.optimize.UglifyJsPlugin({
-      minimize: true
-    })
   ]
 }
 

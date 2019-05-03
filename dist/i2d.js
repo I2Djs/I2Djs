@@ -7,7 +7,7 @@
 		exports["i2d"] = factory();
 	else
 		root["i2d"] = factory();
-})(typeof self !== 'undefined' ? self : this, function() {
+})(window, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -46,12 +46,32 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
 /******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
 /******/ 	};
 /******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
@@ -69,24 +89,1331 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 9);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./src/renderer.js");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ "./node_modules/earcut/src/earcut.js":
+/*!*******************************************!*\
+  !*** ./node_modules/earcut/src/earcut.js ***!
+  \*******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = earcut;
+module.exports.default = earcut;
+
+function earcut(data, holeIndices, dim) {
+
+    dim = dim || 2;
+
+    var hasHoles = holeIndices && holeIndices.length,
+        outerLen = hasHoles ? holeIndices[0] * dim : data.length,
+        outerNode = linkedList(data, 0, outerLen, dim, true),
+        triangles = [];
+
+    if (!outerNode) return triangles;
+
+    var minX, minY, maxX, maxY, x, y, invSize;
+
+    if (hasHoles) outerNode = eliminateHoles(data, holeIndices, outerNode, dim);
+
+    // if the shape is not too simple, we'll use z-order curve hash later; calculate polygon bbox
+    if (data.length > 80 * dim) {
+        minX = maxX = data[0];
+        minY = maxY = data[1];
+
+        for (var i = dim; i < outerLen; i += dim) {
+            x = data[i];
+            y = data[i + 1];
+            if (x < minX) minX = x;
+            if (y < minY) minY = y;
+            if (x > maxX) maxX = x;
+            if (y > maxY) maxY = y;
+        }
+
+        // minX, minY and invSize are later used to transform coords into integers for z-order calculation
+        invSize = Math.max(maxX - minX, maxY - minY);
+        invSize = invSize !== 0 ? 1 / invSize : 0;
+    }
+
+    earcutLinked(outerNode, triangles, dim, minX, minY, invSize);
+
+    return triangles;
+}
+
+// create a circular doubly linked list from polygon points in the specified winding order
+function linkedList(data, start, end, dim, clockwise) {
+    var i, last;
+
+    if (clockwise === (signedArea(data, start, end, dim) > 0)) {
+        for (i = start; i < end; i += dim) last = insertNode(i, data[i], data[i + 1], last);
+    } else {
+        for (i = end - dim; i >= start; i -= dim) last = insertNode(i, data[i], data[i + 1], last);
+    }
+
+    if (last && equals(last, last.next)) {
+        removeNode(last);
+        last = last.next;
+    }
+
+    return last;
+}
+
+// eliminate colinear or duplicate points
+function filterPoints(start, end) {
+    if (!start) return start;
+    if (!end) end = start;
+
+    var p = start,
+        again;
+    do {
+        again = false;
+
+        if (!p.steiner && (equals(p, p.next) || area(p.prev, p, p.next) === 0)) {
+            removeNode(p);
+            p = end = p.prev;
+            if (p === p.next) break;
+            again = true;
+
+        } else {
+            p = p.next;
+        }
+    } while (again || p !== end);
+
+    return end;
+}
+
+// main ear slicing loop which triangulates a polygon (given as a linked list)
+function earcutLinked(ear, triangles, dim, minX, minY, invSize, pass) {
+    if (!ear) return;
+
+    // interlink polygon nodes in z-order
+    if (!pass && invSize) indexCurve(ear, minX, minY, invSize);
+
+    var stop = ear,
+        prev, next;
+
+    // iterate through ears, slicing them one by one
+    while (ear.prev !== ear.next) {
+        prev = ear.prev;
+        next = ear.next;
+
+        if (invSize ? isEarHashed(ear, minX, minY, invSize) : isEar(ear)) {
+            // cut off the triangle
+            triangles.push(prev.i / dim);
+            triangles.push(ear.i / dim);
+            triangles.push(next.i / dim);
+
+            removeNode(ear);
+
+            // skipping the next vertice leads to less sliver triangles
+            ear = next.next;
+            stop = next.next;
+
+            continue;
+        }
+
+        ear = next;
+
+        // if we looped through the whole remaining polygon and can't find any more ears
+        if (ear === stop) {
+            // try filtering points and slicing again
+            if (!pass) {
+                earcutLinked(filterPoints(ear), triangles, dim, minX, minY, invSize, 1);
+
+            // if this didn't work, try curing all small self-intersections locally
+            } else if (pass === 1) {
+                ear = cureLocalIntersections(ear, triangles, dim);
+                earcutLinked(ear, triangles, dim, minX, minY, invSize, 2);
+
+            // as a last resort, try splitting the remaining polygon into two
+            } else if (pass === 2) {
+                splitEarcut(ear, triangles, dim, minX, minY, invSize);
+            }
+
+            break;
+        }
+    }
+}
+
+// check whether a polygon node forms a valid ear with adjacent nodes
+function isEar(ear) {
+    var a = ear.prev,
+        b = ear,
+        c = ear.next;
+
+    if (area(a, b, c) >= 0) return false; // reflex, can't be an ear
+
+    // now make sure we don't have other points inside the potential ear
+    var p = ear.next.next;
+
+    while (p !== ear.prev) {
+        if (pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, p.x, p.y) &&
+            area(p.prev, p, p.next) >= 0) return false;
+        p = p.next;
+    }
+
+    return true;
+}
+
+function isEarHashed(ear, minX, minY, invSize) {
+    var a = ear.prev,
+        b = ear,
+        c = ear.next;
+
+    if (area(a, b, c) >= 0) return false; // reflex, can't be an ear
+
+    // triangle bbox; min & max are calculated like this for speed
+    var minTX = a.x < b.x ? (a.x < c.x ? a.x : c.x) : (b.x < c.x ? b.x : c.x),
+        minTY = a.y < b.y ? (a.y < c.y ? a.y : c.y) : (b.y < c.y ? b.y : c.y),
+        maxTX = a.x > b.x ? (a.x > c.x ? a.x : c.x) : (b.x > c.x ? b.x : c.x),
+        maxTY = a.y > b.y ? (a.y > c.y ? a.y : c.y) : (b.y > c.y ? b.y : c.y);
+
+    // z-order range for the current triangle bbox;
+    var minZ = zOrder(minTX, minTY, minX, minY, invSize),
+        maxZ = zOrder(maxTX, maxTY, minX, minY, invSize);
+
+    var p = ear.prevZ,
+        n = ear.nextZ;
+
+    // look for points inside the triangle in both directions
+    while (p && p.z >= minZ && n && n.z <= maxZ) {
+        if (p !== ear.prev && p !== ear.next &&
+            pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, p.x, p.y) &&
+            area(p.prev, p, p.next) >= 0) return false;
+        p = p.prevZ;
+
+        if (n !== ear.prev && n !== ear.next &&
+            pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, n.x, n.y) &&
+            area(n.prev, n, n.next) >= 0) return false;
+        n = n.nextZ;
+    }
+
+    // look for remaining points in decreasing z-order
+    while (p && p.z >= minZ) {
+        if (p !== ear.prev && p !== ear.next &&
+            pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, p.x, p.y) &&
+            area(p.prev, p, p.next) >= 0) return false;
+        p = p.prevZ;
+    }
+
+    // look for remaining points in increasing z-order
+    while (n && n.z <= maxZ) {
+        if (n !== ear.prev && n !== ear.next &&
+            pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, n.x, n.y) &&
+            area(n.prev, n, n.next) >= 0) return false;
+        n = n.nextZ;
+    }
+
+    return true;
+}
+
+// go through all polygon nodes and cure small local self-intersections
+function cureLocalIntersections(start, triangles, dim) {
+    var p = start;
+    do {
+        var a = p.prev,
+            b = p.next.next;
+
+        if (!equals(a, b) && intersects(a, p, p.next, b) && locallyInside(a, b) && locallyInside(b, a)) {
+
+            triangles.push(a.i / dim);
+            triangles.push(p.i / dim);
+            triangles.push(b.i / dim);
+
+            // remove two nodes involved
+            removeNode(p);
+            removeNode(p.next);
+
+            p = start = b;
+        }
+        p = p.next;
+    } while (p !== start);
+
+    return p;
+}
+
+// try splitting polygon into two and triangulate them independently
+function splitEarcut(start, triangles, dim, minX, minY, invSize) {
+    // look for a valid diagonal that divides the polygon into two
+    var a = start;
+    do {
+        var b = a.next.next;
+        while (b !== a.prev) {
+            if (a.i !== b.i && isValidDiagonal(a, b)) {
+                // split the polygon in two by the diagonal
+                var c = splitPolygon(a, b);
+
+                // filter colinear points around the cuts
+                a = filterPoints(a, a.next);
+                c = filterPoints(c, c.next);
+
+                // run earcut on each half
+                earcutLinked(a, triangles, dim, minX, minY, invSize);
+                earcutLinked(c, triangles, dim, minX, minY, invSize);
+                return;
+            }
+            b = b.next;
+        }
+        a = a.next;
+    } while (a !== start);
+}
+
+// link every hole into the outer loop, producing a single-ring polygon without holes
+function eliminateHoles(data, holeIndices, outerNode, dim) {
+    var queue = [],
+        i, len, start, end, list;
+
+    for (i = 0, len = holeIndices.length; i < len; i++) {
+        start = holeIndices[i] * dim;
+        end = i < len - 1 ? holeIndices[i + 1] * dim : data.length;
+        list = linkedList(data, start, end, dim, false);
+        if (list === list.next) list.steiner = true;
+        queue.push(getLeftmost(list));
+    }
+
+    queue.sort(compareX);
+
+    // process holes from left to right
+    for (i = 0; i < queue.length; i++) {
+        eliminateHole(queue[i], outerNode);
+        outerNode = filterPoints(outerNode, outerNode.next);
+    }
+
+    return outerNode;
+}
+
+function compareX(a, b) {
+    return a.x - b.x;
+}
+
+// find a bridge between vertices that connects hole with an outer ring and and link it
+function eliminateHole(hole, outerNode) {
+    outerNode = findHoleBridge(hole, outerNode);
+    if (outerNode) {
+        var b = splitPolygon(outerNode, hole);
+        filterPoints(b, b.next);
+    }
+}
+
+// David Eberly's algorithm for finding a bridge between hole and outer polygon
+function findHoleBridge(hole, outerNode) {
+    var p = outerNode,
+        hx = hole.x,
+        hy = hole.y,
+        qx = -Infinity,
+        m;
+
+    // find a segment intersected by a ray from the hole's leftmost point to the left;
+    // segment's endpoint with lesser x will be potential connection point
+    do {
+        if (hy <= p.y && hy >= p.next.y && p.next.y !== p.y) {
+            var x = p.x + (hy - p.y) * (p.next.x - p.x) / (p.next.y - p.y);
+            if (x <= hx && x > qx) {
+                qx = x;
+                if (x === hx) {
+                    if (hy === p.y) return p;
+                    if (hy === p.next.y) return p.next;
+                }
+                m = p.x < p.next.x ? p : p.next;
+            }
+        }
+        p = p.next;
+    } while (p !== outerNode);
+
+    if (!m) return null;
+
+    if (hx === qx) return m.prev; // hole touches outer segment; pick lower endpoint
+
+    // look for points inside the triangle of hole point, segment intersection and endpoint;
+    // if there are no points found, we have a valid connection;
+    // otherwise choose the point of the minimum angle with the ray as connection point
+
+    var stop = m,
+        mx = m.x,
+        my = m.y,
+        tanMin = Infinity,
+        tan;
+
+    p = m.next;
+
+    while (p !== stop) {
+        if (hx >= p.x && p.x >= mx && hx !== p.x &&
+                pointInTriangle(hy < my ? hx : qx, hy, mx, my, hy < my ? qx : hx, hy, p.x, p.y)) {
+
+            tan = Math.abs(hy - p.y) / (hx - p.x); // tangential
+
+            if ((tan < tanMin || (tan === tanMin && p.x > m.x)) && locallyInside(p, hole)) {
+                m = p;
+                tanMin = tan;
+            }
+        }
+
+        p = p.next;
+    }
+
+    return m;
+}
+
+// interlink polygon nodes in z-order
+function indexCurve(start, minX, minY, invSize) {
+    var p = start;
+    do {
+        if (p.z === null) p.z = zOrder(p.x, p.y, minX, minY, invSize);
+        p.prevZ = p.prev;
+        p.nextZ = p.next;
+        p = p.next;
+    } while (p !== start);
+
+    p.prevZ.nextZ = null;
+    p.prevZ = null;
+
+    sortLinked(p);
+}
+
+// Simon Tatham's linked list merge sort algorithm
+// http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
+function sortLinked(list) {
+    var i, p, q, e, tail, numMerges, pSize, qSize,
+        inSize = 1;
+
+    do {
+        p = list;
+        list = null;
+        tail = null;
+        numMerges = 0;
+
+        while (p) {
+            numMerges++;
+            q = p;
+            pSize = 0;
+            for (i = 0; i < inSize; i++) {
+                pSize++;
+                q = q.nextZ;
+                if (!q) break;
+            }
+            qSize = inSize;
+
+            while (pSize > 0 || (qSize > 0 && q)) {
+
+                if (pSize !== 0 && (qSize === 0 || !q || p.z <= q.z)) {
+                    e = p;
+                    p = p.nextZ;
+                    pSize--;
+                } else {
+                    e = q;
+                    q = q.nextZ;
+                    qSize--;
+                }
+
+                if (tail) tail.nextZ = e;
+                else list = e;
+
+                e.prevZ = tail;
+                tail = e;
+            }
+
+            p = q;
+        }
+
+        tail.nextZ = null;
+        inSize *= 2;
+
+    } while (numMerges > 1);
+
+    return list;
+}
+
+// z-order of a point given coords and inverse of the longer side of data bbox
+function zOrder(x, y, minX, minY, invSize) {
+    // coords are transformed into non-negative 15-bit integer range
+    x = 32767 * (x - minX) * invSize;
+    y = 32767 * (y - minY) * invSize;
+
+    x = (x | (x << 8)) & 0x00FF00FF;
+    x = (x | (x << 4)) & 0x0F0F0F0F;
+    x = (x | (x << 2)) & 0x33333333;
+    x = (x | (x << 1)) & 0x55555555;
+
+    y = (y | (y << 8)) & 0x00FF00FF;
+    y = (y | (y << 4)) & 0x0F0F0F0F;
+    y = (y | (y << 2)) & 0x33333333;
+    y = (y | (y << 1)) & 0x55555555;
+
+    return x | (y << 1);
+}
+
+// find the leftmost node of a polygon ring
+function getLeftmost(start) {
+    var p = start,
+        leftmost = start;
+    do {
+        if (p.x < leftmost.x) leftmost = p;
+        p = p.next;
+    } while (p !== start);
+
+    return leftmost;
+}
+
+// check if a point lies within a convex triangle
+function pointInTriangle(ax, ay, bx, by, cx, cy, px, py) {
+    return (cx - px) * (ay - py) - (ax - px) * (cy - py) >= 0 &&
+           (ax - px) * (by - py) - (bx - px) * (ay - py) >= 0 &&
+           (bx - px) * (cy - py) - (cx - px) * (by - py) >= 0;
+}
+
+// check if a diagonal between two polygon nodes is valid (lies in polygon interior)
+function isValidDiagonal(a, b) {
+    return a.next.i !== b.i && a.prev.i !== b.i && !intersectsPolygon(a, b) &&
+           locallyInside(a, b) && locallyInside(b, a) && middleInside(a, b);
+}
+
+// signed area of a triangle
+function area(p, q, r) {
+    return (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+}
+
+// check if two points are equal
+function equals(p1, p2) {
+    return p1.x === p2.x && p1.y === p2.y;
+}
+
+// check if two segments intersect
+function intersects(p1, q1, p2, q2) {
+    if ((equals(p1, q1) && equals(p2, q2)) ||
+        (equals(p1, q2) && equals(p2, q1))) return true;
+    return area(p1, q1, p2) > 0 !== area(p1, q1, q2) > 0 &&
+           area(p2, q2, p1) > 0 !== area(p2, q2, q1) > 0;
+}
+
+// check if a polygon diagonal intersects any polygon segments
+function intersectsPolygon(a, b) {
+    var p = a;
+    do {
+        if (p.i !== a.i && p.next.i !== a.i && p.i !== b.i && p.next.i !== b.i &&
+                intersects(p, p.next, a, b)) return true;
+        p = p.next;
+    } while (p !== a);
+
+    return false;
+}
+
+// check if a polygon diagonal is locally inside the polygon
+function locallyInside(a, b) {
+    return area(a.prev, a, a.next) < 0 ?
+        area(a, b, a.next) >= 0 && area(a, a.prev, b) >= 0 :
+        area(a, b, a.prev) < 0 || area(a, a.next, b) < 0;
+}
+
+// check if the middle point of a polygon diagonal is inside the polygon
+function middleInside(a, b) {
+    var p = a,
+        inside = false,
+        px = (a.x + b.x) / 2,
+        py = (a.y + b.y) / 2;
+    do {
+        if (((p.y > py) !== (p.next.y > py)) && p.next.y !== p.y &&
+                (px < (p.next.x - p.x) * (py - p.y) / (p.next.y - p.y) + p.x))
+            inside = !inside;
+        p = p.next;
+    } while (p !== a);
+
+    return inside;
+}
+
+// link two polygon vertices with a bridge; if the vertices belong to the same ring, it splits polygon into two;
+// if one belongs to the outer ring and another to a hole, it merges it into a single ring
+function splitPolygon(a, b) {
+    var a2 = new Node(a.i, a.x, a.y),
+        b2 = new Node(b.i, b.x, b.y),
+        an = a.next,
+        bp = b.prev;
+
+    a.next = b;
+    b.prev = a;
+
+    a2.next = an;
+    an.prev = a2;
+
+    b2.next = a2;
+    a2.prev = b2;
+
+    bp.next = b2;
+    b2.prev = bp;
+
+    return b2;
+}
+
+// create a node and optionally link it with previous one (in a circular doubly linked list)
+function insertNode(i, x, y, last) {
+    var p = new Node(i, x, y);
+
+    if (!last) {
+        p.prev = p;
+        p.next = p;
+
+    } else {
+        p.next = last.next;
+        p.prev = last;
+        last.next.prev = p;
+        last.next = p;
+    }
+    return p;
+}
+
+function removeNode(p) {
+    p.next.prev = p.prev;
+    p.prev.next = p.next;
+
+    if (p.prevZ) p.prevZ.nextZ = p.nextZ;
+    if (p.nextZ) p.nextZ.prevZ = p.prevZ;
+}
+
+function Node(i, x, y) {
+    // vertice index in coordinates array
+    this.i = i;
+
+    // vertex coordinates
+    this.x = x;
+    this.y = y;
+
+    // previous and next vertice nodes in a polygon ring
+    this.prev = null;
+    this.next = null;
+
+    // z-order curve value
+    this.z = null;
+
+    // previous and next nodes in z-order
+    this.prevZ = null;
+    this.nextZ = null;
+
+    // indicates whether this is a steiner point
+    this.steiner = false;
+}
+
+// return a percentage difference between the polygon area and its triangulation area;
+// used to verify correctness of triangulation
+earcut.deviation = function (data, holeIndices, dim, triangles) {
+    var hasHoles = holeIndices && holeIndices.length;
+    var outerLen = hasHoles ? holeIndices[0] * dim : data.length;
+
+    var polygonArea = Math.abs(signedArea(data, 0, outerLen, dim));
+    if (hasHoles) {
+        for (var i = 0, len = holeIndices.length; i < len; i++) {
+            var start = holeIndices[i] * dim;
+            var end = i < len - 1 ? holeIndices[i + 1] * dim : data.length;
+            polygonArea -= Math.abs(signedArea(data, start, end, dim));
+        }
+    }
+
+    var trianglesArea = 0;
+    for (i = 0; i < triangles.length; i += 3) {
+        var a = triangles[i] * dim;
+        var b = triangles[i + 1] * dim;
+        var c = triangles[i + 2] * dim;
+        trianglesArea += Math.abs(
+            (data[a] - data[c]) * (data[b + 1] - data[a + 1]) -
+            (data[a] - data[b]) * (data[c + 1] - data[a + 1]));
+    }
+
+    return polygonArea === 0 && trianglesArea === 0 ? 0 :
+        Math.abs((trianglesArea - polygonArea) / polygonArea);
+};
+
+function signedArea(data, start, end, dim) {
+    var sum = 0;
+    for (var i = start, j = end - dim; i < end; i += dim) {
+        sum += (data[j] - data[i]) * (data[i + 1] + data[j + 1]);
+        j = i;
+    }
+    return sum;
+}
+
+// turn a polygon in a multi-dimensional array form (e.g. as in GeoJSON) into a form Earcut accepts
+earcut.flatten = function (data) {
+    var dim = data[0][0].length,
+        result = {vertices: [], holes: [], dimensions: dim},
+        holeIndex = 0;
+
+    for (var i = 0; i < data.length; i++) {
+        for (var j = 0; j < data[i].length; j++) {
+            for (var d = 0; d < dim; d++) result.vertices.push(data[i][j][d]);
+        }
+        if (i > 0) {
+            holeIndex += data[i - 1].length;
+            result.holes.push(holeIndex);
+        }
+    }
+    return result;
+};
+
+
+/***/ }),
+
+/***/ "./src/chaining.js":
+/*!*************************!*\
+  !*** ./src/chaining.js ***!
+  \*************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
+(function chain (root, factory) {
+  const i2d = root
+  if ( true && module.exports) {
+    module.exports = factory(__webpack_require__(/*! ./easing.js */ "./src/easing.js"), __webpack_require__(/*! ./queue.js */ "./src/queue.js"))
+  } else if (true) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! ./easing.js */ "./src/easing.js"), __webpack_require__(/*! ./queue.js */ "./src/queue.js")], __WEBPACK_AMD_DEFINE_RESULT__ = ((easing, queue) => factory(easing, queue)).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
+  } else {}
+}(this, (easing, queue) => {
+  'use strict'
+  let Id = 0
+  let chainId = 0
+
+  function generateRendererId () {
+    Id += 1
+    return Id
+  }
+
+  function generateChainId () {
+    chainId += 1
+    return chainId
+  }
+
+  const easying = easing()
+
+  function ease (type) {
+    this.easying = easying(type)
+    this.transition = type
+    return this
+  }
+  function duration (value) {
+    if (arguments.length !== 1) { throw new Error('arguments mis match') }
+    this.durationP = value
+    return this
+  }
+  function loopValue (value) {
+    if (arguments.length !== 1) { throw new Error('arguments mis match') }
+    this.loopValue = value
+    return this
+  }
+  function direction (value) {
+    if (arguments.length !== 1) { throw new Error('arguments mis match') }
+    this.directionV = value
+    return this
+  }
+
+  function bind (value) {
+    if (arguments.length !== 1) { throw new Error('arguments mis match') }
+    this.data = value
+
+    if (this.data.nodeName === 'CANVAS') { this.canvasStack = [] }
+
+    return this
+  }
+  function callbckExe (exe) {
+    if (typeof exe !== 'function') { return null }
+    this.callbckExe = exe
+    return this
+  }
+  function reset (value) {
+    this.resetV = value
+    return this
+  }
+  function child (exe) {
+    this.end = exe
+    return this
+  }
+
+  function end (exe) {
+    this.endExe = exe
+    return this
+  }
+
+  function commit () {
+    this.start()
+  }
+
+  function SequenceGroup () {
+    this.queue = queue()
+    this.sequenceQueue = []
+    this.lengthV = 0
+    this.currPos = 0
+    this.ID = generateRendererId()
+    this.loopCounter = 0
+  }
+
+  SequenceGroup.prototype = {
+    duration,
+    loop: loopValue,
+    callbck: callbckExe,
+    bind,
+    child,
+    ease,
+    end,
+    commit,
+    reset,
+    direction
+  }
+
+  SequenceGroup.prototype.add = function SGadd (value) {
+    const self = this
+
+    if (!Array.isArray(value) && typeof value !== 'function') {
+      value = [value]
+    }
+    if (Array.isArray(value)) {
+      value.map((d) => {
+        self.lengthV += (d.length ? d.length : 0)
+        return d
+      })
+    }
+    this.sequenceQueue = this.sequenceQueue.concat(value)
+
+    return this
+  }
+
+  SequenceGroup.prototype.easyingGlobal = function SGeasyingGlobal (completedTime, durationV) {
+    return completedTime / durationV
+  }
+
+  SequenceGroup.prototype.start = function SGstart () {
+    const self = this
+    if (self.directionV === 'alternate') {
+      self.factor = self.factor ? -1 * self.factor : 1
+      self.currPos = self.factor < 0 ? this.sequenceQueue.length - 1 : 0
+    } else if (self.directionV === 'reverse') {
+      for (let i = 0; i < this.sequenceQueue.length; i += 1) {
+        const currObj = this.sequenceQueue[i]
+        if (!(currObj instanceof SequenceGroup) && !(currObj instanceof ParallelGroup)) {
+          currObj.run(1)
+        }
+        self.currPos = i
+      }
+      self.factor = -1
+    } else {
+      self.currPos = 0
+      self.factor = 1
+    }
+    this.execute()
+  }
+
+  SequenceGroup.prototype.execute = function SGexecute () {
+    const self = this
+    let currObj = this.sequenceQueue[self.currPos]
+
+    currObj = (typeof currObj === 'function' ? currObj() : currObj)
+
+    if (!currObj) { return }
+    if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
+      // currObj.duration(currObj.durationP ? currObj.durationP
+      //   : (currObj.length / self.lengthV) * self.durationP)
+      currObj.end(self.triggerEnd.bind(self, currObj)).commit()
+    } else {
+      // const tValue = currObj.duration
+      // const data_ = currObj.data ? currObj.data : self.data
+      // console.log(currObj)
+      this.currObj = currObj
+      // currObj.durationP = tValue
+      this.queue.add(generateChainId(), {
+        run (f) {
+          currObj.run(f)
+        },
+        delay: currObj.delay !== undefined ? currObj.delay : 0,
+        duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
+        loop: currObj.loop ? currObj.loop : 1,
+        direction: self.factor < 0 ? 'reverse' : 'default', // self.factor < 0 ? 'reverse' : 'default',
+        end: self.triggerEnd.bind(self, currObj)
+      }, (c, v) =>
+        c / v)
+    }
+    return this
+  }
+
+  SequenceGroup.prototype.triggerEnd = function SGtriggerEnd (currObj) {
+    const self = this
+    self.currPos += self.factor
+    if (currObj.end) {
+      self.triggerChild(currObj)
+    }
+    if (self.sequenceQueue.length === self.currPos || self.currPos < 0) {
+      if (self.endExe) { self.endExe() }
+      // if (self.end) { self.triggerChild(self) }
+
+      self.loopCounter += 1
+      if (self.loopCounter < self.loopValue) {
+        self.start()
+      }
+      return
+    }
+
+    this.execute()
+  }
+
+  SequenceGroup.prototype.triggerChild = function SGtriggerChild (currObj) {
+    if (currObj.end instanceof ParallelGroup || currObj.end instanceof SequenceGroup) {
+      setTimeout(() => {
+        currObj.end.commit()
+      }, 0)
+    } else {
+      currObj.end()
+      // setTimeout(() => {
+      //   currObj.childExe.start()
+      // }, 0)
+    }
+  }
+
+  function ParallelGroup () {
+    this.queue = queue()
+    this.group = []
+    this.currPos = 0
+    // this.lengthV = 0
+    this.ID = generateRendererId()
+    this.loopCounter = 1
+    // this.transition = 'linear'
+  }
+
+  ParallelGroup.prototype = {
+    duration,
+    loop: loopValue,
+    callbck: callbckExe,
+    bind,
+    child,
+    ease,
+    end,
+    commit,
+    direction
+  }
+
+  ParallelGroup.prototype.add = function PGadd (value) {
+    const self = this
+
+    if (!Array.isArray(value)) { value = [value] }
+
+    this.group = this.group.concat(value)
+    this.group.forEach((d) => {
+      d.durationP = d.durationP ? d.durationP : self.durationP
+    })
+
+    return this
+  }
+
+  ParallelGroup.prototype.execute = function PGexecute () {
+    const self = this
+
+    self.currPos = 0
+    for (let i = 0, len = self.group.length; i < len; i++) {
+      let currObj = self.group[i]
+      if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
+        currObj
+          // .duration(currObj.durationP ? currObj.durationP : self.durationP)
+          .end(self.triggerEnd.bind(self, currObj)).commit()
+      } else {
+        self.queue.add(generateChainId(), {
+          run (f) {
+            currObj.run(f)
+          },
+          delay: currObj.delay !== undefined ? currObj.delay : 0,
+          duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
+          loop: currObj.loop ? currObj.loop : 1,
+          direction: currObj.direction ? currObj.direction : 'default', // self.factor < 0 ? 'reverse' : 'default',
+          end: self.triggerEnd.bind(self, currObj)
+        }, currObj.ease ? easying(currObj.ease) : self.easying)
+      }
+    }
+    return self
+  }
+
+  ParallelGroup.prototype.start = function PGstart () {
+    const self = this
+    if (self.directionV === 'alternate') {
+      self.factor = self.factor ? -1 * self.factor : 1
+    } else if (self.directionV === 'reverse') {
+      self.factor = -1
+    } else {
+      self.factor = 1
+    }
+
+    this.execute()
+  }
+
+  ParallelGroup.prototype.triggerEnd = function PGtriggerEnd (currObj) {
+    const self = this
+    // Call child transition wen Entire parallelChain transition completes
+    this.currPos += 1
+
+    if (currObj.end) {
+      this.triggerChild(currObj.end)
+    }
+    if (this.currPos === this.group.length) {
+      // Call child transition wen Entire parallelChain transition completes
+      if (this.endExe) { this.triggerChild(this.endExe) }
+      // if (this.end) { this.triggerChild(this.end) }
+
+      self.loopCounter += 1
+      if (self.loopCounter < self.loopValue) {
+        self.start()
+      }
+    }
+  }
+
+  ParallelGroup.prototype.triggerChild = function PGtriggerChild (exe) {
+    if (exe instanceof ParallelGroup || exe instanceof SequenceGroup) {
+      exe.commit()
+    } else if (typeof exe === 'function') {
+      exe()
+    } else {
+      console.log('wrong type')
+    }
+  }
+
+  const chain = {}
+
+  chain.sequenceChain = function sequenceChain () {
+    return new SequenceGroup()
+  }
+  chain.parallelChain = function parallelChain () {
+    return new ParallelGroup()
+  }
+
+  return chain
+}))
+
+
+/***/ }),
+
+/***/ "./src/colorMap.js":
+/*!*************************!*\
+  !*** ./src/colorMap.js ***!
+  \*************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
+;(function colorMap (root, factory) {
+  const i2d = root
+  if (true) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (() => factory()).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
+  } else {}
+}(this, () => {
+  'use strict'
+  const preDefinedColors = ['AliceBlue', 'AntiqueWhite', 'Aqua', 'Aquamarine', 'Azure', 'Beige', 'Bisque', 'Black', 'BlanchedAlmond', 'Blue', 'BlueViolet', 'Brown', 'BurlyWood', 'CadetBlue', 'Chartreuse', 'Chocolate', 'Coral', 'CornflowerBlue', 'Cornsilk', 'Crimson', 'Cyan', 'DarkBlue', 'DarkCyan', 'DarkGoldenRod', 'DarkGray', 'DarkGrey', 'DarkGreen', 'DarkKhaki', 'DarkMagenta', 'DarkOliveGreen', 'DarkOrange', 'DarkOrchid', 'DarkRed', 'DarkSalmon', 'DarkSeaGreen', 'DarkSlateBlue', 'DarkSlateGray', 'DarkSlateGrey', 'DarkTurquoise', 'DarkViolet', 'DeepPink', 'DeepSkyBlue', 'DimGray', 'DimGrey', 'DodgerBlue', 'FireBrick', 'FloralWhite', 'ForestGreen', 'Fuchsia', 'Gainsboro', 'GhostWhite', 'Gold', 'GoldenRod', 'Gray', 'Grey', 'Green', 'GreenYellow', 'HoneyDew', 'HotPink', 'IndianRed', 'Indigo', 'Ivory', 'Khaki', 'Lavender', 'LavenderBlush', 'LawnGreen', 'LemonChiffon', 'LightBlue', 'LightCoral', 'LightCyan', 'LightGoldenRodYellow', 'LightGray', 'LightGrey', 'LightGreen', 'LightPink', 'LightSalmon', 'LightSeaGreen', 'LightSkyBlue', 'LightSlateGray', 'LightSlateGrey', 'LightSteelBlue', 'LightYellow', 'Lime', 'LimeGreen', 'Linen', 'Magenta', 'Maroon', 'MediumAquaMarine', 'MediumBlue', 'MediumOrchid', 'MediumPurple', 'MediumSeaGreen', 'MediumSlateBlue', 'MediumSpringGreen', 'MediumTurquoise', 'MediumVioletRed', 'MidnightBlue', 'MintCream', 'MistyRose', 'Moccasin', 'NavajoWhite', 'Navy', 'OldLace', 'Olive', 'OliveDrab', 'Orange', 'OrangeRed', 'Orchid', 'PaleGoldenRod', 'PaleGreen', 'PaleTurquoise', 'PaleVioletRed', 'PapayaWhip', 'PeachPuff', 'Peru', 'Pink', 'Plum', 'PowderBlue', 'Purple', 'RebeccaPurple', 'Red', 'RosyBrown', 'RoyalBlue', 'SaddleBrown', 'Salmon', 'SandyBrown', 'SeaGreen', 'SeaShell', 'Sienna', 'Silver', 'SkyBlue', 'SlateBlue', 'SlateGray', 'SlateGrey', 'Snow', 'SpringGreen', 'SteelBlue', 'Tan', 'Teal', 'Thistle', 'Tomato', 'Turquoise', 'Violet', 'Wheat', 'White', 'WhiteSmoke', 'Yellow', 'YellowGreen']
+
+  const preDefinedColorHex = ['f0f8ff', 'faebd7', '00ffff', '7fffd4', 'f0ffff', 'f5f5dc', 'ffe4c4', '000000', 'ffebcd', '0000ff', '8a2be2', 'a52a2a', 'deb887', '5f9ea0', '7fff00', 'd2691e', 'ff7f50', '6495ed', 'fff8dc', 'dc143c', '00ffff', '00008b', '008b8b', 'b8860b', 'a9a9a9', 'a9a9a9', '006400', 'bdb76b', '8b008b', '556b2f', 'ff8c00', '9932cc', '8b0000', 'e9967a', '8fbc8f', '483d8b', '2f4f4f', '2f4f4f', '00ced1', '9400d3', 'ff1493', '00bfff', '696969', '696969', '1e90ff', 'b22222', 'fffaf0', '228b22', 'ff00ff', 'dcdcdc', 'f8f8ff', 'ffd700', 'daa520', '808080', '808080', '008000', 'adff2f', 'f0fff0', 'ff69b4', 'cd5c5c', '4b0082', 'fffff0', 'f0e68c', 'e6e6fa', 'fff0f5', '7cfc00', 'fffacd', 'add8e6', 'f08080', 'e0ffff', 'fafad2', 'd3d3d3', 'd3d3d3', '90ee90', 'ffb6c1', 'ffa07a', '20b2aa', '87cefa', '778899', '778899', 'b0c4de', 'ffffe0', '00ff00', '32cd32', 'faf0e6', 'ff00ff', '800000', '66cdaa', '0000cd', 'ba55d3', '9370db', '3cb371', '7b68ee', '00fa9a', '48d1cc', 'c71585', '191970', 'f5fffa', 'ffe4e1', 'ffe4b5', 'ffdead', '000080', 'fdf5e6', '808000', '6b8e23', 'ffa500', 'ff4500', 'da70d6', 'eee8aa', '98fb98', 'afeeee', 'db7093', 'ffefd5', 'ffdab9', 'cd853f', 'ffc0cb', 'dda0dd', 'b0e0e6', '800080', '663399', 'ff0000', 'bc8f8f', '4169e1', '8b4513', 'fa8072', 'f4a460', '2e8b57', 'fff5ee', 'a0522d', 'c0c0c0', '87ceeb', '6a5acd', '708090', '708090', 'fffafa', '00ff7f', '4682b4', 'd2b48c', '008080', 'd8bfd8', 'ff6347', '40e0d0', 'ee82ee', 'f5deb3', 'ffffff', 'f5f5f5', 'ffff00', '9acd32']
+
+  const colorMap = {}
+  const round = Math.round
+  var defaultColor = 'rgba(0,0,0,0)'
+
+  for (let i = 0; i < preDefinedColors.length; i += 1) {
+    colorMap[preDefinedColors[i]] = preDefinedColorHex[i]
+  }
+
+  function RGBA (r, g, b, a) {
+    this.r = r
+    this.g = g
+    this.b = b
+    this.a = (a === undefined ? 255 : a)
+    this.rgba = `rgb(${r},${g},${b},${a})`
+  }
+
+  function nameToHex (name) {
+    return colorMap[name] ? `#${colorMap[name]}` : '#000'
+  }
+
+  function hexToRgb (hex) {
+    const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i
+    hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b)
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+
+    return new RGBA(parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16), 255)
+  }
+
+  function rgbToHex (rgb) {
+    const rgbComponents = rgb.substring(rgb.lastIndexOf('(') + 1, rgb.lastIndexOf(')')).split(',')
+    const r = parseInt(rgbComponents[0], 10)
+    const g = parseInt(rgbComponents[1], 10)
+    const b = parseInt(rgbComponents[2], 10)
+
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
+  }
+
+  function rgbParse (rgb) {
+    const res = rgb.replace(/[^0-9.,]+/g, '').split(',')
+    const obj = {}
+    const flags = ['r', 'g', 'b', 'a']
+    for (let i = 0; i < res.length; i += 1) {
+      obj[flags[i]] = parseFloat(res[i])
+    }
+    return new RGBA(obj.r, obj.g, obj.b, obj.a)
+  }
+
+  function hslParse (hsl) {
+    var r
+    var g
+    var b
+    var a
+    var h
+    var s
+    var l
+    var obj = {}
+    const res = hsl.replace(/[^0-9.,]+/g, '').split(',').map(function (d) { return parseFloat(d) })
+    h = res[0] / 360
+    s = res[1] / 100
+    l = res[2] / 100
+    a = res[3]
+    if (s === 0) {
+      r = g = b = l
+    } else {
+      var hue2rgb = function hue2rgb (p, q, t) {
+        if (t < 0) t += 1
+        if (t > 1) t -= 1
+        if (t < 1 / 6) return p + (q - p) * 6 * t
+        if (t < 1 / 2) return q
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
+        return p
+      }
+
+      var q = l < 0.5 ? l * (1 + s) : l + s - l * s
+      var p = 2 * l - q
+      r = hue2rgb(p, q, h + 1 / 3) * 255
+      g = hue2rgb(p, q, h) * 255
+      b = hue2rgb(p, q, h - 1 / 3) * 255
+    }
+    if (a !== undefined) obj.a = a
+    return new RGBA(r, g, b, a)
+  }
+
+  function colorToRGB (val) {
+    return val instanceof RGBA ? val : val.startsWith('#') ? hexToRgb(val)
+      : val.startsWith('rgb') ? rgbParse(val)
+        : val.startsWith('hsl') ? hslParse(val) : { r: 0, g: 0, b: 0, a: 255 }
+  }
+
+  function colorTransition (src, dest) {
+    src = src || defaultColor
+    dest = dest || defaultColor
+
+    src = colorToRGB(src)
+    dest = colorToRGB(dest)
+    return function trans (f) {
+      return `rgb(${Math.round(src.r + (dest.r - src.r) * f)},${Math.round(src.g + (dest.g - src.g) * f)},${Math.round(src.b + (dest.b - src.b) * f)})`
+    }
+  }
+
+  function colorRGBtransition (src, dest) {
+    src = src || defaultColor
+    dest = dest || defaultColor
+
+    src = colorToRGB(src)
+    dest = colorToRGB(dest)
+    return function trans (f) {
+      return new RGBA(round(src.r + (dest.r - src.r) * f), round(src.g + (dest.g - src.g) * f), round(src.b + (dest.b - src.b) * f), round(src.a + (dest.a - src.a) * f))
+    }
+  }
+
+  function rgbaInstance (r, g, b, a) {
+    return new RGBA(r, g, b, a)
+  }
+
+  function isTypeColor (value) {
+    return value instanceof RGBA || value.startsWith('#') || value.startsWith('rgb') || value.startsWith('hsl')
+  }
+
+  const colorMapper = {
+    nameToHex: nameToHex,
+    hexToRgb: hexToRgb,
+    rgbToHex: rgbToHex,
+    hslToRgb: hslParse,
+    transition: colorTransition,
+    transitionObj: colorRGBtransition,
+    colorToRGB: colorToRGB,
+    rgba: rgbaInstance,
+    isTypeColor: isTypeColor
+  }
+
+  return colorMapper
+}))
+
+
+/***/ }),
+
+/***/ "./src/easing.js":
+/*!***********************!*\
+  !*** ./src/easing.js ***!
+  \***********************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
+(function easing (root, factory) {
+  const i2d = root
+  if ( true && module.exports) {
+    module.exports = factory(__webpack_require__(/*! ./geometry.js */ "./src/geometry.js"))
+  } else if (true) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! ./geometry.js */ "./src/geometry.js")], __WEBPACK_AMD_DEFINE_RESULT__ = (geometry => factory(geometry)).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
+  } else {}
+}(this, (geometry) => {
+  'use strict'
+  const t2DGeometry = geometry('2D')
+
+  function linear (starttime, duration) {
+    return (starttime / duration)
+  }
+  function elastic (starttime, duration) {
+    const decay = 8
+    const force = 2 / 1000
+    const t = starttime / duration
+
+    return (1 - (1 - t) * Math.sin(t * duration * force * Math.PI * 2 + (Math.PI / 2)) /
+    Math.exp(t * decay))
+  }
+  function bounce (starttime, duration) {
+    const decay = 10
+    const t = starttime / duration
+    const force = t / 100
+
+    return (1 - (1 - t) * Math.abs(Math.sin(t * duration * force * Math.PI * 2 + (Math.PI / 2))) /
+    Math.exp(t * decay))
+  }
+  function easeInQuad (starttime, duration) {
+    const t = starttime / duration
+    return t * t
+  }
+  function easeOutQuad (starttime, duration) {
+    const t = starttime / duration
+    return t * (2 - t)
+  }
+  function easeInOutQuad (starttime, duration) {
+    const t = starttime / duration
+    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+  }
+  function easeInCubic (starttime, duration) {
+    const t = starttime / duration
+    return t2DGeometry.pow(t, 3)
+  }
+  function easeOutCubic (starttime, duration) {
+    let t = starttime / duration
+    t -= 1
+    return t * t * t + 1
+  }
+  function easeInOutCubic (starttime, duration) {
+    const t = starttime / duration
+    return t < 0.5 ? 4 * t2DGeometry.pow(t, 3) : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
+  }
+  function sinIn (starttime, duration) {
+    const t = starttime / duration
+    return 1 - Math.cos(t * Math.PI / 2)
+  }
+  function easeOutSin (starttime, duration) {
+    const t = starttime / duration
+    return Math.cos(t * Math.PI / 2)
+  }
+  function easeInOutSin (starttime, duration) {
+    const t = starttime / duration
+    return (1 - Math.cos(Math.PI * t)) / 2
+  }
+  // function easeInQuart (starttime, duration) {
+  //   const t = starttime / duration
+  //   return t2DGeometry.pow(t, 4)
+  // }
+  // function easeOutQuart (starttime, duration) {
+  //   let t = starttime / duration
+  //   t -= 1
+  //   return 1 - t * t2DGeometry.pow(t, 3)
+  // }
+  // function easeInOutQuart (starttime, duration) {
+  //   let t = starttime / duration
+  //   t -= 1
+  //   return t < 0.5 ? 8 * t2DGeometry.pow(t, 4) : 1 - 8 * t * t2DGeometry.pow(t, 3)
+  // }
+
+  function easing () {
+    function fetchTransitionType (_) {
+      let res
+      if (typeof _ === 'function') {
+        return function custExe (starttime, duration) {
+          return _(starttime / duration)
+        }
+      }
+      switch (_) {
+        case 'easeOutQuad':
+          res = easeOutQuad
+          break
+        case 'easeInQuad':
+          res = easeInQuad
+          break
+        case 'easeInOutQuad':
+          res = easeInOutQuad
+          break
+        case 'easeInCubic':
+          res = easeInCubic
+          break
+        case 'easeOutCubic':
+          res = easeOutCubic
+          break
+        case 'easeInOutCubic':
+          res = easeInOutCubic
+          break
+        case 'easeInSin':
+          res = sinIn
+          break
+        case 'easeOutSin':
+          res = easeOutSin
+          break
+        case 'easeInOutSin':
+          res = easeInOutSin
+          break
+        case 'bounce':
+          res = bounce
+          break
+        case 'linear':
+          res = linear
+          break
+        case 'elastic':
+          res = elastic
+          break
+        default:
+          res = linear
+      }
+      return res
+    }
+
+    return fetchTransitionType
+  }
+
+  return easing
+}))
+
+
+/***/ }),
+
+/***/ "./src/geometry.js":
+/*!*************************!*\
+  !*** ./src/geometry.js ***!
+  \*************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
 ;(function (root, factory) {
-  if (typeof module === 'object' && module.exports) {
+  if ( true && module.exports) {
     module.exports = factory()
   } else if (true) {
     !(__WEBPACK_AMD_DEFINE_RESULT__ = (() => factory()).call(exports, __webpack_require__, exports, module),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
-  } else {
-    root.geometry = factory()
-  }
+  } else {}
 }(this, () => {
   'use strict'
   function geometry (context) {
@@ -640,1045 +1967,23 @@ var __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
 
 
 /***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
-;(function (root, factory) {
-  if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (() => factory()).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
-  } else if (typeof module === 'object' && module.exports) {
-    module.exports = factory()
-  } else {
-    root.queue = factory()
-  }
-}(this, () => {
-  'use strict'
-  let animatorInstance = null
-  let tweens = []
-  const vDoms = {}
-  const vDomIds = []
-  let animeFrameId
-
-  const onFrameExe = []
-
-  window.requestAnimationFrame = (function requestAnimationFrameG () {
-    return window.requestAnimationFrame ||
-      window.webkitRequestAnimationFrame ||
-      window.mozRequestAnimationFrame ||
-      window.oRequestAnimationFrame ||
-      window.msRequestAnimationFrame ||
-      function requestAnimationFrame (callback, element) {
-        return window.setTimeout(callback, 1000 / 60)
-      }
-  })()
-  window.cancelAnimFrame = (function cancelAnimFrameG () {
-    return (
-      window.cancelAnimationFrame ||
-      window.webkitCancelAnimationFrame ||
-      window.mozCancelAnimationFrame ||
-      window.oCancelAnimationFrame ||
-      window.msCancelAnimationFrame ||
-      function cancelAnimFrame (id) {
-        return window.clearTimeout(id)
-      }
-    )
-  })()
-
-  function Tween (Id, executable, easying) {
-    this.executable = executable
-    this.duration = executable.duration ? executable.duration : 0
-    this.delay = executable.delay ? executable.delay : 0
-    this.lastTime = 0 - (executable.delay ? executable.delay : 0)
-    this.loopTracker = 0
-    this.loop = executable.loop ? executable.loop : 0
-    this.direction = executable.direction
-    this.easying = easying
-    this.end = executable.end ? executable.end : null
-
-    if (this.direction === 'reverse') { this.factor = 1 } else { this.factor = 0 }
-  }
-
-  Tween.prototype.execute = function execute (f) {
-    this.executable.run(f)
-  }
-
-  Tween.prototype.resetCallBack = function resetCallBack (_) {
-    if (typeof _ !== 'function') return
-    this.callBack = _
-  }
-
-  function endExe (_) {
-    this.endExe = _
-    return this
-  }
-
-  function onRequestFrame (_) {
-    if (typeof _ !== 'function') {
-      throw new Error('Wrong input')
-    }
-    onFrameExe.push(_)
-    if (onFrameExe.length > 0 && !animeFrameId) {
-      this.startAnimeFrames()
-    }
-  }
-  function removeRequestFrameCall (_) {
-    if (typeof _ !== 'function') {
-      throw new Error('Wrong input')
-    }
-    let index = onFrameExe.indexOf(_)
-    if (index !== -1) {
-      onFrameExe.splice(index, 1)
-    }
-  }
-
-  function add (uId, executable, easying) {
-    let exeObj = new Tween(uId, executable, easying)
-    exeObj.currTime = performance.now()
-    tweens[tweens.length] = exeObj
-  }
-
-  function startAnimeFrames () {
-    if (!animeFrameId) {
-      animeFrameId = window.requestAnimationFrame(exeFrameCaller)
-    }
-  }
-  function stopAnimeFrame () {
-    if (animeFrameId) {
-      window.cancelAnimFrame(animeFrameId)
-      animeFrameId = null
-    }
-  }
-
-  function VDomStack () {
-  }
-
-  VDomStack.prototype = {
-    startAnimeFrames,
-    stopAnimeFrame,
-    add,
-    // remove: remove,
-    end: endExe,
-    onRequestFrame,
-    removeRequestFrameCall,
-    destroy () {
-      if (this.endExe) { this.endExe() }
-      this.stopAnimeFrame()
-    }
-  }
-
-  VDomStack.prototype.addVdom = function AaddVdom (_) {
-    let ind = vDomIds.length + 1
-    vDoms[ind] = _
-    vDomIds.push(ind)
-    return ind
-  }
-  VDomStack.prototype.removeVdom = function removeVdom (_) {
-    let index = vDomIds.indexOf(_)
-    if (index !== -1) {
-      vDomIds.splice(index, 1)
-      delete vDoms[_]
-    }
-  }
-  VDomStack.prototype.vDomChanged = function AvDomChanged (vDom) {
-    if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
-      vDoms[vDom].stateModified = true
-    }
-  }
-  VDomStack.prototype.execute = function Aexecute () {
-    if (!animeFrameId) { animeFrameId = window.requestAnimationFrame(exeFrameCaller) }
-  }
-
-  let d
-  let t
-  let abs = Math.abs
-  let counter = 0
-  let tweensN = []
-  function exeFrameCaller () {
-    tweensN = []
-    counter = 0
-    t = performance.now()
-    for (let i = 0; i < tweens.length; i += 1) {
-      d = tweens[i]
-      d.lastTime += (t - d.currTime)
-      d.currTime = t
-      if (d.lastTime < d.duration && d.lastTime >= 0) {
-        d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)))
-        tweensN[counter++] = d
-      } else if (d.lastTime > d.duration) {
-        loopCheck(d)
-      } else {
-        tweensN[counter++] = d
-      }
-    }
-    tweens = tweensN
-    if (onFrameExe.length > 0) {
-      onFrameExeFun()
-    }
-    vDomUpdates()
-    animeFrameId = window.requestAnimationFrame(exeFrameCaller)
-  }
-
-  function loopCheck (d) {
-    if (d.loopTracker >= d.loop - 1) {
-      d.execute(1 - d.factor)
-      if (d.end) { d.end() }
-    } else {
-      d.loopTracker += 1
-      d.lastTime = (d.lastTime - d.duration)
-      if (d.direction === 'alternate') {
-        d.factor = 1 - d.factor
-      } else if (d.direction === 'reverse') {
-        d.factor = 1
-      } else {
-        d.factor = 0
-      }
-      d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)))
-      tweensN[counter++] = d
-    }
-  }
-
-  function onFrameExeFun () {
-    for (let i = 0; i < onFrameExe.length; i += 1) {
-      onFrameExe[i](t)
-    }
-  }
-
-  function vDomUpdates () {
-    for (let i = 0, len = vDomIds.length; i < len; i += 1) {
-      if (vDomIds[i] && vDoms[vDomIds[i]].stateModified) {
-        vDoms[vDomIds[i]].execute()
-        vDoms[vDomIds[i]].stateModified = false
-      } else if (vDomIds[i]) {
-        var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id)
-        if (!elementExists) {
-          animatorInstance.removeVdom(vDomIds[i])
-        }
-      }
-    }
-  }
-
-  function animateQueue () {
-    if (!animatorInstance) { animatorInstance = new VDomStack() }
-    return animatorInstance
-  }
-
-  return animateQueue
-}))
-
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
-(function easing (root, factory) {
-  const i2d = root
-  if (typeof module === 'object' && module.exports) {
-    module.exports = factory(__webpack_require__(0))
-  } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0)], __WEBPACK_AMD_DEFINE_RESULT__ = (geometry => factory(geometry)).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
-  } else {
-    i2d.easing = factory(root.geometry)
-  }
-}(this, (geometry) => {
-  'use strict'
-  const t2DGeometry = geometry('2D')
-
-  function linear (starttime, duration) {
-    return (starttime / duration)
-  }
-  function elastic (starttime, duration) {
-    const decay = 8
-    const force = 2 / 1000
-    const t = starttime / duration
-
-    return (1 - (1 - t) * Math.sin(t * duration * force * Math.PI * 2 + (Math.PI / 2)) /
-    Math.exp(t * decay))
-  }
-  function bounce (starttime, duration) {
-    const decay = 10
-    const t = starttime / duration
-    const force = t / 100
-
-    return (1 - (1 - t) * Math.abs(Math.sin(t * duration * force * Math.PI * 2 + (Math.PI / 2))) /
-    Math.exp(t * decay))
-  }
-  function easeInQuad (starttime, duration) {
-    const t = starttime / duration
-    return t * t
-  }
-  function easeOutQuad (starttime, duration) {
-    const t = starttime / duration
-    return t * (2 - t)
-  }
-  function easeInOutQuad (starttime, duration) {
-    const t = starttime / duration
-    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
-  }
-  function easeInCubic (starttime, duration) {
-    const t = starttime / duration
-    return t2DGeometry.pow(t, 3)
-  }
-  function easeOutCubic (starttime, duration) {
-    let t = starttime / duration
-    t -= 1
-    return t * t * t + 1
-  }
-  function easeInOutCubic (starttime, duration) {
-    const t = starttime / duration
-    return t < 0.5 ? 4 * t2DGeometry.pow(t, 3) : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
-  }
-  function sinIn (starttime, duration) {
-    const t = starttime / duration
-    return 1 - Math.cos(t * Math.PI / 2)
-  }
-  function easeOutSin (starttime, duration) {
-    const t = starttime / duration
-    return Math.cos(t * Math.PI / 2)
-  }
-  function easeInOutSin (starttime, duration) {
-    const t = starttime / duration
-    return (1 - Math.cos(Math.PI * t)) / 2
-  }
-  // function easeInQuart (starttime, duration) {
-  //   const t = starttime / duration
-  //   return t2DGeometry.pow(t, 4)
-  // }
-  // function easeOutQuart (starttime, duration) {
-  //   let t = starttime / duration
-  //   t -= 1
-  //   return 1 - t * t2DGeometry.pow(t, 3)
-  // }
-  // function easeInOutQuart (starttime, duration) {
-  //   let t = starttime / duration
-  //   t -= 1
-  //   return t < 0.5 ? 8 * t2DGeometry.pow(t, 4) : 1 - 8 * t * t2DGeometry.pow(t, 3)
-  // }
-
-  function easing () {
-    function fetchTransitionType (_) {
-      let res
-      if (typeof _ === 'function') {
-        return function custExe (starttime, duration) {
-          return _(starttime / duration)
-        }
-      }
-      switch (_) {
-        case 'easeOutQuad':
-          res = easeOutQuad
-          break
-        case 'easeInQuad':
-          res = easeInQuad
-          break
-        case 'easeInOutQuad':
-          res = easeInOutQuad
-          break
-        case 'easeInCubic':
-          res = easeInCubic
-          break
-        case 'easeOutCubic':
-          res = easeOutCubic
-          break
-        case 'easeInOutCubic':
-          res = easeInOutCubic
-          break
-        case 'easeInSin':
-          res = sinIn
-          break
-        case 'easeOutSin':
-          res = easeOutSin
-          break
-        case 'easeInOutSin':
-          res = easeInOutSin
-          break
-        case 'bounce':
-          res = bounce
-          break
-        case 'linear':
-          res = linear
-          break
-        case 'elastic':
-          res = elastic
-          break
-        default:
-          res = linear
-      }
-      return res
-    }
-
-    return fetchTransitionType
-  }
-
-  return easing
-}))
-
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
-(function chain (root, factory) {
-  const i2d = root
-  if (typeof module === 'object' && module.exports) {
-    module.exports = factory(__webpack_require__(2), __webpack_require__(1))
-  } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(2), __webpack_require__(1)], __WEBPACK_AMD_DEFINE_RESULT__ = ((easing, queue) => factory(easing, queue)).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
-  } else {
-    i2d.chain = factory(root.easing, root.queue)
-  }
-}(this, (easing, queue) => {
-  'use strict'
-  let Id = 0
-  let chainId = 0
-
-  function generateRendererId () {
-    Id += 1
-    return Id
-  }
-
-  function generateChainId () {
-    chainId += 1
-    return chainId
-  }
-
-  const easying = easing()
-
-  function ease (type) {
-    this.easying = easying(type)
-    this.transition = type
-    return this
-  }
-  function duration (value) {
-    if (arguments.length !== 1) { throw new Error('arguments mis match') }
-    this.durationP = value
-    return this
-  }
-  function loopValue (value) {
-    if (arguments.length !== 1) { throw new Error('arguments mis match') }
-    this.loopValue = value
-    return this
-  }
-  function direction (value) {
-    if (arguments.length !== 1) { throw new Error('arguments mis match') }
-    this.directionV = value
-    return this
-  }
-
-  function bind (value) {
-    if (arguments.length !== 1) { throw new Error('arguments mis match') }
-    this.data = value
-
-    if (this.data.nodeName === 'CANVAS') { this.canvasStack = [] }
-
-    return this
-  }
-  function callbckExe (exe) {
-    if (typeof exe !== 'function') { return null }
-    this.callbckExe = exe
-    return this
-  }
-  function reset (value) {
-    this.resetV = value
-    return this
-  }
-  function child (exe) {
-    this.end = exe
-    return this
-  }
-
-  function end (exe) {
-    this.endExe = exe
-    return this
-  }
-
-  function commit () {
-    this.start()
-  }
-
-  function SequenceGroup () {
-    this.queue = queue()
-    this.sequenceQueue = []
-    this.lengthV = 0
-    this.currPos = 0
-    this.ID = generateRendererId()
-    this.loopCounter = 0
-  }
-
-  SequenceGroup.prototype = {
-    duration,
-    loop: loopValue,
-    callbck: callbckExe,
-    bind,
-    child,
-    ease,
-    end,
-    commit,
-    reset,
-    direction
-  }
-
-  SequenceGroup.prototype.add = function SGadd (value) {
-    const self = this
-
-    if (!Array.isArray(value) && typeof value !== 'function') {
-      value = [value]
-    }
-    if (Array.isArray(value)) {
-      value.map((d) => {
-        self.lengthV += (d.length ? d.length : 0)
-        return d
-      })
-    }
-    this.sequenceQueue = this.sequenceQueue.concat(value)
-
-    return this
-  }
-
-  SequenceGroup.prototype.easyingGlobal = function SGeasyingGlobal (completedTime, durationV) {
-    return completedTime / durationV
-  }
-
-  SequenceGroup.prototype.start = function SGstart () {
-    const self = this
-    if (self.directionV === 'alternate') {
-      self.factor = self.factor ? -1 * self.factor : 1
-      self.currPos = self.factor < 0 ? this.sequenceQueue.length - 1 : 0
-    } else if (self.directionV === 'reverse') {
-      for (let i = 0; i < this.sequenceQueue.length; i += 1) {
-        const currObj = this.sequenceQueue[i]
-        if (!(currObj instanceof SequenceGroup) && !(currObj instanceof ParallelGroup)) {
-          currObj.run(1)
-        }
-        self.currPos = i
-      }
-      self.factor = -1
-    } else {
-      self.currPos = 0
-      self.factor = 1
-    }
-    this.execute()
-  }
-
-  SequenceGroup.prototype.execute = function SGexecute () {
-    const self = this
-    let currObj = this.sequenceQueue[self.currPos]
-
-    currObj = (typeof currObj === 'function' ? currObj() : currObj)
-
-    if (!currObj) { return }
-    if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
-      // currObj.duration(currObj.durationP ? currObj.durationP
-      //   : (currObj.length / self.lengthV) * self.durationP)
-      currObj.end(self.triggerEnd.bind(self, currObj)).commit()
-    } else {
-      // const tValue = currObj.duration
-      // const data_ = currObj.data ? currObj.data : self.data
-      // console.log(currObj)
-      this.currObj = currObj
-      // currObj.durationP = tValue
-      this.queue.add(generateChainId(), {
-        run (f) {
-          currObj.run(f)
-        },
-        delay: currObj.delay !== undefined ? currObj.delay : 0,
-        duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
-        loop: currObj.loop ? currObj.loop : 1,
-        direction: self.factor < 0 ? 'reverse' : 'default', // self.factor < 0 ? 'reverse' : 'default',
-        end: self.triggerEnd.bind(self, currObj)
-      }, (c, v) =>
-        c / v)
-    }
-    return this
-  }
-
-  SequenceGroup.prototype.triggerEnd = function SGtriggerEnd (currObj) {
-    const self = this
-    self.currPos += self.factor
-    if (currObj.end) {
-      self.triggerChild(currObj)
-    }
-    if (self.sequenceQueue.length === self.currPos || self.currPos < 0) {
-      if (self.endExe) { self.endExe() }
-      // if (self.end) { self.triggerChild(self) }
-
-      self.loopCounter += 1
-      if (self.loopCounter < self.loopValue) {
-        self.start()
-      }
-      return
-    }
-
-    this.execute()
-  }
-
-  SequenceGroup.prototype.triggerChild = function SGtriggerChild (currObj) {
-    if (currObj.end instanceof ParallelGroup || currObj.end instanceof SequenceGroup) {
-      setTimeout(() => {
-        currObj.end.commit()
-      }, 0)
-    } else {
-      currObj.end()
-      // setTimeout(() => {
-      //   currObj.childExe.start()
-      // }, 0)
-    }
-  }
-
-  function ParallelGroup () {
-    this.queue = queue()
-    this.group = []
-    this.currPos = 0
-    // this.lengthV = 0
-    this.ID = generateRendererId()
-    this.loopCounter = 1
-    // this.transition = 'linear'
-  }
-
-  ParallelGroup.prototype = {
-    duration,
-    loop: loopValue,
-    callbck: callbckExe,
-    bind,
-    child,
-    ease,
-    end,
-    commit,
-    direction
-  }
-
-  ParallelGroup.prototype.add = function PGadd (value) {
-    const self = this
-
-    if (!Array.isArray(value)) { value = [value] }
-
-    this.group = this.group.concat(value)
-    this.group.forEach((d) => {
-      d.durationP = d.durationP ? d.durationP : self.durationP
-    })
-
-    return this
-  }
-
-  ParallelGroup.prototype.execute = function PGexecute () {
-    const self = this
-
-    self.currPos = 0
-    for (let i = 0, len = self.group.length; i < len; i++) {
-      let currObj = self.group[i]
-      if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
-        currObj
-          // .duration(currObj.durationP ? currObj.durationP : self.durationP)
-          .end(self.triggerEnd.bind(self, currObj)).commit()
-      } else {
-        self.queue.add(generateChainId(), {
-          run (f) {
-            currObj.run(f)
-          },
-          delay: currObj.delay !== undefined ? currObj.delay : 0,
-          duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
-          loop: currObj.loop ? currObj.loop : 1,
-          direction: currObj.direction ? currObj.direction : 'default', // self.factor < 0 ? 'reverse' : 'default',
-          end: self.triggerEnd.bind(self, currObj)
-        }, currObj.ease ? easying(currObj.ease) : self.easying)
-      }
-    }
-    return self
-  }
-
-  ParallelGroup.prototype.start = function PGstart () {
-    const self = this
-    if (self.directionV === 'alternate') {
-      self.factor = self.factor ? -1 * self.factor : 1
-    } else if (self.directionV === 'reverse') {
-      self.factor = -1
-    } else {
-      self.factor = 1
-    }
-
-    this.execute()
-  }
-
-  ParallelGroup.prototype.triggerEnd = function PGtriggerEnd (currObj) {
-    const self = this
-    // Call child transition wen Entire parallelChain transition completes
-    this.currPos += 1
-
-    if (currObj.end) {
-      this.triggerChild(currObj.end)
-    }
-    if (this.currPos === this.group.length) {
-      // Call child transition wen Entire parallelChain transition completes
-      if (this.endExe) { this.triggerChild(this.endExe) }
-      // if (this.end) { this.triggerChild(this.end) }
-
-      self.loopCounter += 1
-      if (self.loopCounter < self.loopValue) {
-        self.start()
-      }
-    }
-  }
-
-  ParallelGroup.prototype.triggerChild = function PGtriggerChild (exe) {
-    if (exe instanceof ParallelGroup || exe instanceof SequenceGroup) {
-      exe.commit()
-    } else if (typeof exe === 'function') {
-      exe()
-    } else {
-      console.log('wrong type')
-    }
-  }
-
-  const chain = {}
-
-  chain.sequenceChain = function sequenceChain () {
-    return new SequenceGroup()
-  }
-  chain.parallelChain = function parallelChain () {
-    return new ParallelGroup()
-  }
-
-  return chain
-}))
-
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
-;(function vDom (root, factory) {
-  if (typeof module === 'object' && module.exports) {
-    module.exports = factory()
-  } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (geometry => factory()).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
-  } else {
-    root.vDom = factory(geometry)
-  }
-}(this, (geometry) => {
-  'use strict'
-  function VDom () {}
-  VDom.prototype.execute = function execute () {
-    this.root.execute()
-    this.stateModified = false
-  }
-  VDom.prototype.root = function root (_) {
-    this.root = _
-    this.stateModified = true
-  }
-  VDom.prototype.eventsCheck = function eventsCheck (nodes, mouseCoor, rawEvent) {
-    const self = this
-    let node,
-      temp
-
-    for (var i = 0; i <= nodes.length - 1; i += 1) {
-      var d = nodes[i]
-      var coOr = { x: mouseCoor.x, y: mouseCoor.y }
-      transformCoOr(d, coOr)
-      if (d.in({ x: coOr.x, y: coOr.y })) {
-        if (d.children && d.children.length > 0) {
-          temp = self.eventsCheck(d.children, { x: coOr.x, y: coOr.y }, rawEvent)
-          if (temp) {
-            node = temp
-          }
-        } else {
-          node = d
-        }
-      // callInEvents(d, rawEvent)
-      }
-    // else {
-    //   // callOutEvents(d, rawEvent)
-    // }
-    }
-    return node
-  }
-
-  VDom.prototype.transformCoOr = transformCoOr
-
-  // function callInEvents (node, e) {
-  //   if ((node.dom.mouseover || node.dom.mouseenter) && !node.hovered) {
-  //     if (node.dom.mouseover) {
-  //       node.dom.mouseover.call(node, node.dataObj, e)
-  //     }
-  //     if (node.dom.mouseenter) {
-  //       node.dom.mouseenter.call(node, node.dataObj, e)
-  //     }
-  //     node.hovered = true
-
-  //     if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.onDragStart) {
-  //       selectedNode.dom.drag.dragStartFlag = true
-  //       selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e)
-  //       let event = {}
-  //       event.x = e.offsetX
-  //       event.y = e.offsetY
-  //       event.dx = 0
-  //       event.dy = 0
-  //       selectedNode.dom.drag.event = event
-  //     }
-
-  //     if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDrag) {
-  //       let event = node.dom.drag.event
-  //       if (node.dom.drag.event) {
-  //         event.dx = e.offsetX - event.x
-  //         event.dy = e.offsetY - event.y
-  //       }
-  //       event.x = e.offsetX
-  //       event.y = e.offsetY
-  //       node.dom.drag.event = event
-  //       node.dom.drag.onDrag.call(node, node.dataObj, event)
-  //     }
-  //   }
-  // }
-
-  // function callOutEvents (node, e) {
-  //   if ((node.dom.mouseout || node.dom.mouseleave) && node.hovered) {
-  //     if (node.dom.mouseout) {
-  //       node.dom.mouseout.call(node, node.dataObj, e)
-  //     }
-  //     if (node.dom.mouseleave) {
-  //       node.dom.mouseleave.call(node, node.dataObj, e)
-  //     }
-  //     node.hovered = false
-  //   }
-  //   if (node.dom.drag && node.dom.drag.dragStartFlag) {
-  //     node.dom.drag.dragStartFlag = false
-  //     node.dom.drag.onDragEnd.call(node, node.dataObj, e)
-  //     node.dom.drag.event = null
-  //   }
-  // }
-
-  function transformCoOr (d, coOr) {
-    let hozMove = 0
-    let verMove = 0
-    let scaleX = 1
-    let scaleY = 1
-    const coOrLocal = coOr
-
-    if (d.attr.transform && d.attr.transform.translate) {
-      [hozMove, verMove] = d.attr.transform.translate
-      coOrLocal.x -= hozMove
-      coOrLocal.y -= verMove
-    }
-
-    if (d.attr.transform && d.attr.transform.scale) {
-      scaleX = d.attr.transform.scale[0] !== undefined ? d.attr.transform.scale[0] : 1
-      scaleY = d.attr.transform.scale[1] !== undefined ? d.attr.transform.scale[1] : scaleX
-      coOrLocal.x /= scaleX
-      coOrLocal.y /= scaleY
-    }
-
-    if (d.attr.transform && d.attr.transform.rotate) {
-      const rotate = d.attr.transform.rotate[0]
-      // const { BBox } = d.dom
-      const cen = {
-        x: d.attr.transform.rotate[1],
-        y: d.attr.transform.rotate[2]
-      }
-      // {
-      //   x: (BBox.x + (BBox.width / 2) - hozMove) / scaleX,
-      //   y: (BBox.y + (BBox.height / 2) - verMove) / scaleY
-      // }
-      // const dis = t2DGeometry.getDistance(cen, coOr)
-      // const angle = Math.atan2(coOr.y - cen.y, coOr.x - cen.x)
-
-      let x = coOrLocal.x
-      let y = coOrLocal.y
-      let cx = cen.x
-      let cy = cen.y
-
-      var radians = (Math.PI / 180) * rotate
-      var cos = Math.cos(radians)
-      var sin = Math.sin(radians)
-
-      coOrLocal.x = (cos * (x - cx)) + (sin * (y - cy)) + cx
-      coOrLocal.y = (cos * (y - cy)) - (sin * (x - cx)) + cy
-    }
-  }
-
-  const vDomInstance = function vDomInstance () {
-    return new VDom()
-  }
-
-  return vDomInstance
-}))
-
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
-;(function colorMap (root, factory) {
-  const i2d = root
-  if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (() => factory()).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
-  } else if (typeof module === 'object' && module.exports) {
-    module.exports.colorMap = factory()
-  } else {
-    i2d.colorMap = factory()
-  }
-}(this, () => {
-  'use strict'
-  const preDefinedColors = ['AliceBlue', 'AntiqueWhite', 'Aqua', 'Aquamarine', 'Azure', 'Beige', 'Bisque', 'Black', 'BlanchedAlmond', 'Blue', 'BlueViolet', 'Brown', 'BurlyWood', 'CadetBlue', 'Chartreuse', 'Chocolate', 'Coral', 'CornflowerBlue', 'Cornsilk', 'Crimson', 'Cyan', 'DarkBlue', 'DarkCyan', 'DarkGoldenRod', 'DarkGray', 'DarkGrey', 'DarkGreen', 'DarkKhaki', 'DarkMagenta', 'DarkOliveGreen', 'DarkOrange', 'DarkOrchid', 'DarkRed', 'DarkSalmon', 'DarkSeaGreen', 'DarkSlateBlue', 'DarkSlateGray', 'DarkSlateGrey', 'DarkTurquoise', 'DarkViolet', 'DeepPink', 'DeepSkyBlue', 'DimGray', 'DimGrey', 'DodgerBlue', 'FireBrick', 'FloralWhite', 'ForestGreen', 'Fuchsia', 'Gainsboro', 'GhostWhite', 'Gold', 'GoldenRod', 'Gray', 'Grey', 'Green', 'GreenYellow', 'HoneyDew', 'HotPink', 'IndianRed', 'Indigo', 'Ivory', 'Khaki', 'Lavender', 'LavenderBlush', 'LawnGreen', 'LemonChiffon', 'LightBlue', 'LightCoral', 'LightCyan', 'LightGoldenRodYellow', 'LightGray', 'LightGrey', 'LightGreen', 'LightPink', 'LightSalmon', 'LightSeaGreen', 'LightSkyBlue', 'LightSlateGray', 'LightSlateGrey', 'LightSteelBlue', 'LightYellow', 'Lime', 'LimeGreen', 'Linen', 'Magenta', 'Maroon', 'MediumAquaMarine', 'MediumBlue', 'MediumOrchid', 'MediumPurple', 'MediumSeaGreen', 'MediumSlateBlue', 'MediumSpringGreen', 'MediumTurquoise', 'MediumVioletRed', 'MidnightBlue', 'MintCream', 'MistyRose', 'Moccasin', 'NavajoWhite', 'Navy', 'OldLace', 'Olive', 'OliveDrab', 'Orange', 'OrangeRed', 'Orchid', 'PaleGoldenRod', 'PaleGreen', 'PaleTurquoise', 'PaleVioletRed', 'PapayaWhip', 'PeachPuff', 'Peru', 'Pink', 'Plum', 'PowderBlue', 'Purple', 'RebeccaPurple', 'Red', 'RosyBrown', 'RoyalBlue', 'SaddleBrown', 'Salmon', 'SandyBrown', 'SeaGreen', 'SeaShell', 'Sienna', 'Silver', 'SkyBlue', 'SlateBlue', 'SlateGray', 'SlateGrey', 'Snow', 'SpringGreen', 'SteelBlue', 'Tan', 'Teal', 'Thistle', 'Tomato', 'Turquoise', 'Violet', 'Wheat', 'White', 'WhiteSmoke', 'Yellow', 'YellowGreen']
-
-  const preDefinedColorHex = ['f0f8ff', 'faebd7', '00ffff', '7fffd4', 'f0ffff', 'f5f5dc', 'ffe4c4', '000000', 'ffebcd', '0000ff', '8a2be2', 'a52a2a', 'deb887', '5f9ea0', '7fff00', 'd2691e', 'ff7f50', '6495ed', 'fff8dc', 'dc143c', '00ffff', '00008b', '008b8b', 'b8860b', 'a9a9a9', 'a9a9a9', '006400', 'bdb76b', '8b008b', '556b2f', 'ff8c00', '9932cc', '8b0000', 'e9967a', '8fbc8f', '483d8b', '2f4f4f', '2f4f4f', '00ced1', '9400d3', 'ff1493', '00bfff', '696969', '696969', '1e90ff', 'b22222', 'fffaf0', '228b22', 'ff00ff', 'dcdcdc', 'f8f8ff', 'ffd700', 'daa520', '808080', '808080', '008000', 'adff2f', 'f0fff0', 'ff69b4', 'cd5c5c', '4b0082', 'fffff0', 'f0e68c', 'e6e6fa', 'fff0f5', '7cfc00', 'fffacd', 'add8e6', 'f08080', 'e0ffff', 'fafad2', 'd3d3d3', 'd3d3d3', '90ee90', 'ffb6c1', 'ffa07a', '20b2aa', '87cefa', '778899', '778899', 'b0c4de', 'ffffe0', '00ff00', '32cd32', 'faf0e6', 'ff00ff', '800000', '66cdaa', '0000cd', 'ba55d3', '9370db', '3cb371', '7b68ee', '00fa9a', '48d1cc', 'c71585', '191970', 'f5fffa', 'ffe4e1', 'ffe4b5', 'ffdead', '000080', 'fdf5e6', '808000', '6b8e23', 'ffa500', 'ff4500', 'da70d6', 'eee8aa', '98fb98', 'afeeee', 'db7093', 'ffefd5', 'ffdab9', 'cd853f', 'ffc0cb', 'dda0dd', 'b0e0e6', '800080', '663399', 'ff0000', 'bc8f8f', '4169e1', '8b4513', 'fa8072', 'f4a460', '2e8b57', 'fff5ee', 'a0522d', 'c0c0c0', '87ceeb', '6a5acd', '708090', '708090', 'fffafa', '00ff7f', '4682b4', 'd2b48c', '008080', 'd8bfd8', 'ff6347', '40e0d0', 'ee82ee', 'f5deb3', 'ffffff', 'f5f5f5', 'ffff00', '9acd32']
-
-  const colorMap = {}
-  const round = Math.round
-  var defaultColor = 'rgba(0,0,0,0)'
-
-  for (let i = 0; i < preDefinedColors.length; i += 1) {
-    colorMap[preDefinedColors[i]] = preDefinedColorHex[i]
-  }
-
-  function RGBA (r, g, b, a) {
-    this.r = r
-    this.g = g
-    this.b = b
-    this.a = (a === undefined ? 255 : a)
-    this.rgba = `rgb(${r},${g},${b},${a})`
-  }
-
-  function nameToHex (name) {
-    return colorMap[name] ? `#${colorMap[name]}` : '#000'
-  }
-
-  function hexToRgb (hex) {
-    const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i
-    hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b)
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-
-    return new RGBA(parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16), 255)
-  }
-
-  function rgbToHex (rgb) {
-    const rgbComponents = rgb.substring(rgb.lastIndexOf('(') + 1, rgb.lastIndexOf(')')).split(',')
-    const r = parseInt(rgbComponents[0], 10)
-    const g = parseInt(rgbComponents[1], 10)
-    const b = parseInt(rgbComponents[2], 10)
-
-    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
-  }
-
-  function rgbParse (rgb) {
-    const res = rgb.replace(/[^0-9.,]+/g, '').split(',')
-    const obj = {}
-    const flags = ['r', 'g', 'b', 'a']
-    for (let i = 0; i < res.length; i += 1) {
-      obj[flags[i]] = parseFloat(res[i])
-    }
-    return new RGBA(obj.r, obj.g, obj.b, obj.a)
-  }
-
-  function hslParse (hsl) {
-    var r
-    var g
-    var b
-    var a
-    var h
-    var s
-    var l
-    var obj = {}
-    const res = hsl.replace(/[^0-9.,]+/g, '').split(',').map(function (d) { return parseFloat(d) })
-    h = res[0] / 360
-    s = res[1] / 100
-    l = res[2] / 100
-    a = res[3]
-    if (s === 0) {
-      r = g = b = l
-    } else {
-      var hue2rgb = function hue2rgb (p, q, t) {
-        if (t < 0) t += 1
-        if (t > 1) t -= 1
-        if (t < 1 / 6) return p + (q - p) * 6 * t
-        if (t < 1 / 2) return q
-        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
-        return p
-      }
-
-      var q = l < 0.5 ? l * (1 + s) : l + s - l * s
-      var p = 2 * l - q
-      r = hue2rgb(p, q, h + 1 / 3) * 255
-      g = hue2rgb(p, q, h) * 255
-      b = hue2rgb(p, q, h - 1 / 3) * 255
-    }
-    if (a !== undefined) obj.a = a
-    return new RGBA(r, g, b, a)
-  }
-
-  function colorToRGB (val) {
-    return val instanceof RGBA ? val : val.startsWith('#') ? hexToRgb(val)
-      : val.startsWith('rgb') ? rgbParse(val)
-        : val.startsWith('hsl') ? hslParse(val) : { r: 0, g: 0, b: 0, a: 255 }
-  }
-
-  function colorTransition (src, dest) {
-    src = src || defaultColor
-    dest = dest || defaultColor
-
-    src = colorToRGB(src)
-    dest = colorToRGB(dest)
-    return function trans (f) {
-      return `rgb(${Math.round(src.r + (dest.r - src.r) * f)},${Math.round(src.g + (dest.g - src.g) * f)},${Math.round(src.b + (dest.b - src.b) * f)})`
-    }
-  }
-
-  function colorRGBtransition (src, dest) {
-    src = src || defaultColor
-    dest = dest || defaultColor
-
-    src = colorToRGB(src)
-    dest = colorToRGB(dest)
-    return function trans (f) {
-      return new RGBA(round(src.r + (dest.r - src.r) * f), round(src.g + (dest.g - src.g) * f), round(src.b + (dest.b - src.b) * f), round(src.a + (dest.a - src.a) * f))
-    }
-  }
-
-  function rgbaInstance (r, g, b, a) {
-    return new RGBA(r, g, b, a)
-  }
-
-  function isTypeColor (value) {
-    return value instanceof RGBA || value.startsWith('#') || value.startsWith('rgb') || value.startsWith('hsl')
-  }
-
-  const colorMapper = {
-    nameToHex: nameToHex,
-    hexToRgb: hexToRgb,
-    rgbToHex: rgbToHex,
-    hslToRgb: hslParse,
-    transition: colorTransition,
-    transitionObj: colorRGBtransition,
-    colorToRGB: colorToRGB,
-    rgba: rgbaInstance,
-    isTypeColor: isTypeColor
-  }
-
-  return colorMapper
-}))
-
-
-/***/ }),
-/* 6 */
+/***/ "./src/path.js":
+/*!*********************!*\
+  !*** ./src/path.js ***!
+  \*********************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
 ;(function path (root, factory) {
   const i2d = root
-  if (typeof module === 'object' && module.exports) {
-    module.exports = factory(__webpack_require__(0), __webpack_require__(1), __webpack_require__(2), __webpack_require__(3))
+  if ( true && module.exports) {
+    module.exports = factory(__webpack_require__(/*! ./geometry.js */ "./src/geometry.js"), __webpack_require__(/*! ./queue.js */ "./src/queue.js"), __webpack_require__(/*! ./easing.js */ "./src/easing.js"), __webpack_require__(/*! ./chaining.js */ "./src/chaining.js"))
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(1), __webpack_require__(2), __webpack_require__(3)], __WEBPACK_AMD_DEFINE_RESULT__ = (geometry => factory(geometry, queue, easing, chain)).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! ./geometry.js */ "./src/geometry.js"), __webpack_require__(/*! ./queue.js */ "./src/queue.js"), __webpack_require__(/*! ./easing.js */ "./src/easing.js"), __webpack_require__(/*! ./chaining.js */ "./src/chaining.js")], __WEBPACK_AMD_DEFINE_RESULT__ = (geometry => factory(geometry, queue, easing, chain)).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
-  } else {
-    i2d.path = factory(root.geometry, root.queue, root.easing, root.chain)
-  }
+  } else {}
 }(this, (geometry, queue, easing, chain) => {
   'use strict'
   let morphIdentifier = 0
@@ -2889,819 +3194,253 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
 
 
 /***/ }),
-/* 7 */
+
+/***/ "./src/queue.js":
+/*!**********************!*\
+  !*** ./src/queue.js ***!
+  \**********************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
-(function easing (root, factory) {
-  const i2d = root
-  if (typeof module === 'object' && module.exports) {
-    module.exports = factory()
-  } else if (true) {
+;(function (root, factory) {
+  if (true) {
     !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (() => factory()).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
-  } else {
-    i2d.shaders = factory()
-  }
+  } else {}
 }(this, () => {
   'use strict'
-  function shaders (el) {
-    let res
-    switch (el) {
-      case 'point':
-        res = {
-          vertexShader: `
-          attribute vec2 a_position;
-          attribute vec4 a_color;
-          attribute float a_size;
-          
-          uniform vec2 u_resolution;
-          uniform vec2 u_translate;
-          uniform vec2 u_scale;
-          
-          varying vec4 v_color;
-          void main() {
-            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
-            vec2 clipSpace = ((zeroToOne) * 2.0) - 1.0;
-            gl_Position = vec4((clipSpace * vec2(1, -1)), 0, 1);
-            gl_PointSize = a_size;
-            v_color = a_color;
-          }
-          `,
-          fragmentShader: `
-                    precision mediump float;
-                    varying vec4 v_color;
-                    void main() {
-                        gl_FragColor = v_color;
-                    }
-                    `
-        }
-        break
-      case 'circle':
-        res = {
-          vertexShader: `
-          attribute vec2 a_position;
-          attribute vec4 a_color;
-          attribute float a_radius;
-          uniform vec2 u_resolution;
-          uniform vec2 u_translate;
-          uniform vec2 u_scale;
-          varying vec4 v_color;
-          void main() {
-            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
-            vec2 zeroToTwo = zeroToOne * 2.0;
-            vec2 clipSpace = zeroToTwo - 1.0;
-            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-            gl_PointSize = a_radius;
-            v_color = a_color;
-          }
-          `,
-          fragmentShader: `
-                    precision mediump float;
-                    varying vec4 v_color;
-                    void main() {
-                      float r = 0.0, delta = 0.0, alpha = 1.0;
-                      vec2 cxy = 2.0 * gl_PointCoord - 1.0;
-                      r = dot(cxy, cxy);
-                      if(r > 1.0) {
-                        discard;
-                      }
-                      delta = 0.09;
-                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);                      
-                      gl_FragColor = v_color * alpha;
-                    }
-                    `
-        }
-        break
-      case 'image':
-        res = {
-          vertexShader: `
-                    attribute vec2 a_position;
-                    attribute vec2 a_texCoord;
-                    uniform vec2 u_resolution;
-                    uniform vec2 u_translate;
-                    uniform vec2 u_scale;
-                    varying vec2 v_texCoord;
-                    void main() {
-                      vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
-                      vec2 clipSpace = zeroToOne * 2.0 - 1.0;
-                      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-                      v_texCoord = a_texCoord;
-                    }
-          `,
-          fragmentShader: `
-                    precision mediump float;
-                    uniform sampler2D u_image;
-                    varying vec2 v_texCoord;
-                    void main() {
-                      gl_FragColor = texture2D(u_image, v_texCoord);
-                    }
-                    `
-        }
-        break
-      default:
-        res = {
-          vertexShader: `
-                    attribute vec2 a_position;
-                    attribute vec4 a_color;
-                    uniform vec2 u_resolution;
-                    uniform vec2 u_translate;
-                    uniform vec2 u_scale;
-                    varying vec4 v_color;
-                    void main() {
-                    vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
-                    vec2 clipSpace = zeroToOne * 2.0 - 1.0;
-                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-                    v_color = a_color;
-                    }
-                    `,
-          fragmentShader: `
-                    precision mediump float;
-                    varying vec4 v_color;
-                    void main() {
-                        gl_FragColor = v_color;
-                    }
-                    `
-        }
-    }
-    return res
+  let animatorInstance = null
+  let tweens = []
+  const vDoms = {}
+  const vDomIds = []
+  let animeFrameId
+
+  const onFrameExe = []
+
+  window.requestAnimationFrame = (function requestAnimationFrameG () {
+    return window.requestAnimationFrame ||
+      window.webkitRequestAnimationFrame ||
+      window.mozRequestAnimationFrame ||
+      window.oRequestAnimationFrame ||
+      window.msRequestAnimationFrame ||
+      function requestAnimationFrame (callback, element) {
+        return window.setTimeout(callback, 1000 / 60)
+      }
+  })()
+  window.cancelAnimFrame = (function cancelAnimFrameG () {
+    return (
+      window.cancelAnimationFrame ||
+      window.webkitCancelAnimationFrame ||
+      window.mozCancelAnimationFrame ||
+      window.oCancelAnimationFrame ||
+      window.msCancelAnimationFrame ||
+      function cancelAnimFrame (id) {
+        return window.clearTimeout(id)
+      }
+    )
+  })()
+
+  function Tween (Id, executable, easying) {
+    this.executable = executable
+    this.duration = executable.duration ? executable.duration : 0
+    this.delay = executable.delay ? executable.delay : 0
+    this.lastTime = 0 - (executable.delay ? executable.delay : 0)
+    this.loopTracker = 0
+    this.loop = executable.loop ? executable.loop : 0
+    this.direction = executable.direction
+    this.easying = easying
+    this.end = executable.end ? executable.end : null
+
+    if (this.direction === 'reverse') { this.factor = 1 } else { this.factor = 0 }
   }
 
-  return shaders
+  Tween.prototype.execute = function execute (f) {
+    this.executable.run(f)
+  }
+
+  Tween.prototype.resetCallBack = function resetCallBack (_) {
+    if (typeof _ !== 'function') return
+    this.callBack = _
+  }
+
+  function endExe (_) {
+    this.endExe = _
+    return this
+  }
+
+  function onRequestFrame (_) {
+    if (typeof _ !== 'function') {
+      throw new Error('Wrong input')
+    }
+    onFrameExe.push(_)
+    if (onFrameExe.length > 0 && !animeFrameId) {
+      this.startAnimeFrames()
+    }
+  }
+  function removeRequestFrameCall (_) {
+    if (typeof _ !== 'function') {
+      throw new Error('Wrong input')
+    }
+    let index = onFrameExe.indexOf(_)
+    if (index !== -1) {
+      onFrameExe.splice(index, 1)
+    }
+  }
+
+  function add (uId, executable, easying) {
+    let exeObj = new Tween(uId, executable, easying)
+    exeObj.currTime = performance.now()
+    tweens[tweens.length] = exeObj
+  }
+
+  function startAnimeFrames () {
+    if (!animeFrameId) {
+      animeFrameId = window.requestAnimationFrame(exeFrameCaller)
+    }
+  }
+  function stopAnimeFrame () {
+    if (animeFrameId) {
+      window.cancelAnimFrame(animeFrameId)
+      animeFrameId = null
+    }
+  }
+
+  function VDomStack () {
+  }
+
+  VDomStack.prototype = {
+    startAnimeFrames,
+    stopAnimeFrame,
+    add,
+    // remove: remove,
+    end: endExe,
+    onRequestFrame,
+    removeRequestFrameCall,
+    destroy () {
+      if (this.endExe) { this.endExe() }
+      this.stopAnimeFrame()
+    }
+  }
+
+  VDomStack.prototype.addVdom = function AaddVdom (_) {
+    let ind = vDomIds.length + 1
+    vDoms[ind] = _
+    vDomIds.push(ind)
+    return ind
+  }
+  VDomStack.prototype.removeVdom = function removeVdom (_) {
+    let index = vDomIds.indexOf(_)
+    if (index !== -1) {
+      vDomIds.splice(index, 1)
+      vDoms[_].root.destroy()
+      delete vDoms[_]
+    }
+  }
+  VDomStack.prototype.vDomChanged = function AvDomChanged (vDom) {
+    if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
+      vDoms[vDom].stateModified = true
+    }
+  }
+  VDomStack.prototype.execute = function Aexecute () {
+    if (!animeFrameId) { animeFrameId = window.requestAnimationFrame(exeFrameCaller) }
+  }
+
+  let d
+  let t
+  let abs = Math.abs
+  let counter = 0
+  let tweensN = []
+  function exeFrameCaller () {
+    tweensN = []
+    counter = 0
+    t = performance.now()
+    for (let i = 0; i < tweens.length; i += 1) {
+      d = tweens[i]
+      d.lastTime += (t - d.currTime)
+      d.currTime = t
+      if (d.lastTime < d.duration && d.lastTime >= 0) {
+        d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)))
+        tweensN[counter++] = d
+      } else if (d.lastTime > d.duration) {
+        loopCheck(d)
+      } else {
+        tweensN[counter++] = d
+      }
+    }
+    tweens = tweensN
+    if (onFrameExe.length > 0) {
+      onFrameExeFun()
+    }
+    vDomUpdates()
+    animeFrameId = window.requestAnimationFrame(exeFrameCaller)
+  }
+
+  function loopCheck (d) {
+    if (d.loopTracker >= d.loop - 1) {
+      d.execute(1 - d.factor)
+      if (d.end) { d.end() }
+    } else {
+      d.loopTracker += 1
+      d.lastTime = (d.lastTime - d.duration)
+      if (d.direction === 'alternate') {
+        d.factor = 1 - d.factor
+      } else if (d.direction === 'reverse') {
+        d.factor = 1
+      } else {
+        d.factor = 0
+      }
+      d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)))
+      tweensN[counter++] = d
+    }
+  }
+
+  function onFrameExeFun () {
+    for (let i = 0; i < onFrameExe.length; i += 1) {
+      onFrameExe[i](t)
+    }
+  }
+
+  function vDomUpdates () {
+    for (let i = 0, len = vDomIds.length; i < len; i += 1) {
+      if (vDomIds[i] && vDoms[vDomIds[i]].stateModified) {
+        vDoms[vDomIds[i]].execute()
+        vDoms[vDomIds[i]].stateModified = false
+      } else if (vDomIds[i] && vDoms[vDomIds[i]].root) {
+        var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id)
+        if (!elementExists) {
+          animatorInstance.removeVdom(vDomIds[i])
+        }
+      }
+    }
+  }
+
+  function animateQueue () {
+    if (!animatorInstance) { animatorInstance = new VDomStack() }
+    return animatorInstance
+  }
+
+  return animateQueue
 }))
 
 
 /***/ }),
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
-module.exports = earcut;
-module.exports.default = earcut;
-
-function earcut(data, holeIndices, dim) {
-
-    dim = dim || 2;
-
-    var hasHoles = holeIndices && holeIndices.length,
-        outerLen = hasHoles ? holeIndices[0] * dim : data.length,
-        outerNode = linkedList(data, 0, outerLen, dim, true),
-        triangles = [];
-
-    if (!outerNode) return triangles;
-
-    var minX, minY, maxX, maxY, x, y, invSize;
-
-    if (hasHoles) outerNode = eliminateHoles(data, holeIndices, outerNode, dim);
-
-    // if the shape is not too simple, we'll use z-order curve hash later; calculate polygon bbox
-    if (data.length > 80 * dim) {
-        minX = maxX = data[0];
-        minY = maxY = data[1];
-
-        for (var i = dim; i < outerLen; i += dim) {
-            x = data[i];
-            y = data[i + 1];
-            if (x < minX) minX = x;
-            if (y < minY) minY = y;
-            if (x > maxX) maxX = x;
-            if (y > maxY) maxY = y;
-        }
-
-        // minX, minY and invSize are later used to transform coords into integers for z-order calculation
-        invSize = Math.max(maxX - minX, maxY - minY);
-        invSize = invSize !== 0 ? 1 / invSize : 0;
-    }
-
-    earcutLinked(outerNode, triangles, dim, minX, minY, invSize);
-
-    return triangles;
-}
-
-// create a circular doubly linked list from polygon points in the specified winding order
-function linkedList(data, start, end, dim, clockwise) {
-    var i, last;
-
-    if (clockwise === (signedArea(data, start, end, dim) > 0)) {
-        for (i = start; i < end; i += dim) last = insertNode(i, data[i], data[i + 1], last);
-    } else {
-        for (i = end - dim; i >= start; i -= dim) last = insertNode(i, data[i], data[i + 1], last);
-    }
-
-    if (last && equals(last, last.next)) {
-        removeNode(last);
-        last = last.next;
-    }
-
-    return last;
-}
-
-// eliminate colinear or duplicate points
-function filterPoints(start, end) {
-    if (!start) return start;
-    if (!end) end = start;
-
-    var p = start,
-        again;
-    do {
-        again = false;
-
-        if (!p.steiner && (equals(p, p.next) || area(p.prev, p, p.next) === 0)) {
-            removeNode(p);
-            p = end = p.prev;
-            if (p === p.next) break;
-            again = true;
-
-        } else {
-            p = p.next;
-        }
-    } while (again || p !== end);
-
-    return end;
-}
-
-// main ear slicing loop which triangulates a polygon (given as a linked list)
-function earcutLinked(ear, triangles, dim, minX, minY, invSize, pass) {
-    if (!ear) return;
-
-    // interlink polygon nodes in z-order
-    if (!pass && invSize) indexCurve(ear, minX, minY, invSize);
-
-    var stop = ear,
-        prev, next;
-
-    // iterate through ears, slicing them one by one
-    while (ear.prev !== ear.next) {
-        prev = ear.prev;
-        next = ear.next;
-
-        if (invSize ? isEarHashed(ear, minX, minY, invSize) : isEar(ear)) {
-            // cut off the triangle
-            triangles.push(prev.i / dim);
-            triangles.push(ear.i / dim);
-            triangles.push(next.i / dim);
-
-            removeNode(ear);
-
-            // skipping the next vertice leads to less sliver triangles
-            ear = next.next;
-            stop = next.next;
-
-            continue;
-        }
-
-        ear = next;
-
-        // if we looped through the whole remaining polygon and can't find any more ears
-        if (ear === stop) {
-            // try filtering points and slicing again
-            if (!pass) {
-                earcutLinked(filterPoints(ear), triangles, dim, minX, minY, invSize, 1);
-
-            // if this didn't work, try curing all small self-intersections locally
-            } else if (pass === 1) {
-                ear = cureLocalIntersections(ear, triangles, dim);
-                earcutLinked(ear, triangles, dim, minX, minY, invSize, 2);
-
-            // as a last resort, try splitting the remaining polygon into two
-            } else if (pass === 2) {
-                splitEarcut(ear, triangles, dim, minX, minY, invSize);
-            }
-
-            break;
-        }
-    }
-}
-
-// check whether a polygon node forms a valid ear with adjacent nodes
-function isEar(ear) {
-    var a = ear.prev,
-        b = ear,
-        c = ear.next;
-
-    if (area(a, b, c) >= 0) return false; // reflex, can't be an ear
-
-    // now make sure we don't have other points inside the potential ear
-    var p = ear.next.next;
-
-    while (p !== ear.prev) {
-        if (pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, p.x, p.y) &&
-            area(p.prev, p, p.next) >= 0) return false;
-        p = p.next;
-    }
-
-    return true;
-}
-
-function isEarHashed(ear, minX, minY, invSize) {
-    var a = ear.prev,
-        b = ear,
-        c = ear.next;
-
-    if (area(a, b, c) >= 0) return false; // reflex, can't be an ear
-
-    // triangle bbox; min & max are calculated like this for speed
-    var minTX = a.x < b.x ? (a.x < c.x ? a.x : c.x) : (b.x < c.x ? b.x : c.x),
-        minTY = a.y < b.y ? (a.y < c.y ? a.y : c.y) : (b.y < c.y ? b.y : c.y),
-        maxTX = a.x > b.x ? (a.x > c.x ? a.x : c.x) : (b.x > c.x ? b.x : c.x),
-        maxTY = a.y > b.y ? (a.y > c.y ? a.y : c.y) : (b.y > c.y ? b.y : c.y);
-
-    // z-order range for the current triangle bbox;
-    var minZ = zOrder(minTX, minTY, minX, minY, invSize),
-        maxZ = zOrder(maxTX, maxTY, minX, minY, invSize);
-
-    var p = ear.prevZ,
-        n = ear.nextZ;
-
-    // look for points inside the triangle in both directions
-    while (p && p.z >= minZ && n && n.z <= maxZ) {
-        if (p !== ear.prev && p !== ear.next &&
-            pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, p.x, p.y) &&
-            area(p.prev, p, p.next) >= 0) return false;
-        p = p.prevZ;
-
-        if (n !== ear.prev && n !== ear.next &&
-            pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, n.x, n.y) &&
-            area(n.prev, n, n.next) >= 0) return false;
-        n = n.nextZ;
-    }
-
-    // look for remaining points in decreasing z-order
-    while (p && p.z >= minZ) {
-        if (p !== ear.prev && p !== ear.next &&
-            pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, p.x, p.y) &&
-            area(p.prev, p, p.next) >= 0) return false;
-        p = p.prevZ;
-    }
-
-    // look for remaining points in increasing z-order
-    while (n && n.z <= maxZ) {
-        if (n !== ear.prev && n !== ear.next &&
-            pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, n.x, n.y) &&
-            area(n.prev, n, n.next) >= 0) return false;
-        n = n.nextZ;
-    }
-
-    return true;
-}
-
-// go through all polygon nodes and cure small local self-intersections
-function cureLocalIntersections(start, triangles, dim) {
-    var p = start;
-    do {
-        var a = p.prev,
-            b = p.next.next;
-
-        if (!equals(a, b) && intersects(a, p, p.next, b) && locallyInside(a, b) && locallyInside(b, a)) {
-
-            triangles.push(a.i / dim);
-            triangles.push(p.i / dim);
-            triangles.push(b.i / dim);
-
-            // remove two nodes involved
-            removeNode(p);
-            removeNode(p.next);
-
-            p = start = b;
-        }
-        p = p.next;
-    } while (p !== start);
-
-    return p;
-}
-
-// try splitting polygon into two and triangulate them independently
-function splitEarcut(start, triangles, dim, minX, minY, invSize) {
-    // look for a valid diagonal that divides the polygon into two
-    var a = start;
-    do {
-        var b = a.next.next;
-        while (b !== a.prev) {
-            if (a.i !== b.i && isValidDiagonal(a, b)) {
-                // split the polygon in two by the diagonal
-                var c = splitPolygon(a, b);
-
-                // filter colinear points around the cuts
-                a = filterPoints(a, a.next);
-                c = filterPoints(c, c.next);
-
-                // run earcut on each half
-                earcutLinked(a, triangles, dim, minX, minY, invSize);
-                earcutLinked(c, triangles, dim, minX, minY, invSize);
-                return;
-            }
-            b = b.next;
-        }
-        a = a.next;
-    } while (a !== start);
-}
-
-// link every hole into the outer loop, producing a single-ring polygon without holes
-function eliminateHoles(data, holeIndices, outerNode, dim) {
-    var queue = [],
-        i, len, start, end, list;
-
-    for (i = 0, len = holeIndices.length; i < len; i++) {
-        start = holeIndices[i] * dim;
-        end = i < len - 1 ? holeIndices[i + 1] * dim : data.length;
-        list = linkedList(data, start, end, dim, false);
-        if (list === list.next) list.steiner = true;
-        queue.push(getLeftmost(list));
-    }
-
-    queue.sort(compareX);
-
-    // process holes from left to right
-    for (i = 0; i < queue.length; i++) {
-        eliminateHole(queue[i], outerNode);
-        outerNode = filterPoints(outerNode, outerNode.next);
-    }
-
-    return outerNode;
-}
-
-function compareX(a, b) {
-    return a.x - b.x;
-}
-
-// find a bridge between vertices that connects hole with an outer ring and and link it
-function eliminateHole(hole, outerNode) {
-    outerNode = findHoleBridge(hole, outerNode);
-    if (outerNode) {
-        var b = splitPolygon(outerNode, hole);
-        filterPoints(b, b.next);
-    }
-}
-
-// David Eberly's algorithm for finding a bridge between hole and outer polygon
-function findHoleBridge(hole, outerNode) {
-    var p = outerNode,
-        hx = hole.x,
-        hy = hole.y,
-        qx = -Infinity,
-        m;
-
-    // find a segment intersected by a ray from the hole's leftmost point to the left;
-    // segment's endpoint with lesser x will be potential connection point
-    do {
-        if (hy <= p.y && hy >= p.next.y && p.next.y !== p.y) {
-            var x = p.x + (hy - p.y) * (p.next.x - p.x) / (p.next.y - p.y);
-            if (x <= hx && x > qx) {
-                qx = x;
-                if (x === hx) {
-                    if (hy === p.y) return p;
-                    if (hy === p.next.y) return p.next;
-                }
-                m = p.x < p.next.x ? p : p.next;
-            }
-        }
-        p = p.next;
-    } while (p !== outerNode);
-
-    if (!m) return null;
-
-    if (hx === qx) return m.prev; // hole touches outer segment; pick lower endpoint
-
-    // look for points inside the triangle of hole point, segment intersection and endpoint;
-    // if there are no points found, we have a valid connection;
-    // otherwise choose the point of the minimum angle with the ray as connection point
-
-    var stop = m,
-        mx = m.x,
-        my = m.y,
-        tanMin = Infinity,
-        tan;
-
-    p = m.next;
-
-    while (p !== stop) {
-        if (hx >= p.x && p.x >= mx && hx !== p.x &&
-                pointInTriangle(hy < my ? hx : qx, hy, mx, my, hy < my ? qx : hx, hy, p.x, p.y)) {
-
-            tan = Math.abs(hy - p.y) / (hx - p.x); // tangential
-
-            if ((tan < tanMin || (tan === tanMin && p.x > m.x)) && locallyInside(p, hole)) {
-                m = p;
-                tanMin = tan;
-            }
-        }
-
-        p = p.next;
-    }
-
-    return m;
-}
-
-// interlink polygon nodes in z-order
-function indexCurve(start, minX, minY, invSize) {
-    var p = start;
-    do {
-        if (p.z === null) p.z = zOrder(p.x, p.y, minX, minY, invSize);
-        p.prevZ = p.prev;
-        p.nextZ = p.next;
-        p = p.next;
-    } while (p !== start);
-
-    p.prevZ.nextZ = null;
-    p.prevZ = null;
-
-    sortLinked(p);
-}
-
-// Simon Tatham's linked list merge sort algorithm
-// http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.html
-function sortLinked(list) {
-    var i, p, q, e, tail, numMerges, pSize, qSize,
-        inSize = 1;
-
-    do {
-        p = list;
-        list = null;
-        tail = null;
-        numMerges = 0;
-
-        while (p) {
-            numMerges++;
-            q = p;
-            pSize = 0;
-            for (i = 0; i < inSize; i++) {
-                pSize++;
-                q = q.nextZ;
-                if (!q) break;
-            }
-            qSize = inSize;
-
-            while (pSize > 0 || (qSize > 0 && q)) {
-
-                if (pSize !== 0 && (qSize === 0 || !q || p.z <= q.z)) {
-                    e = p;
-                    p = p.nextZ;
-                    pSize--;
-                } else {
-                    e = q;
-                    q = q.nextZ;
-                    qSize--;
-                }
-
-                if (tail) tail.nextZ = e;
-                else list = e;
-
-                e.prevZ = tail;
-                tail = e;
-            }
-
-            p = q;
-        }
-
-        tail.nextZ = null;
-        inSize *= 2;
-
-    } while (numMerges > 1);
-
-    return list;
-}
-
-// z-order of a point given coords and inverse of the longer side of data bbox
-function zOrder(x, y, minX, minY, invSize) {
-    // coords are transformed into non-negative 15-bit integer range
-    x = 32767 * (x - minX) * invSize;
-    y = 32767 * (y - minY) * invSize;
-
-    x = (x | (x << 8)) & 0x00FF00FF;
-    x = (x | (x << 4)) & 0x0F0F0F0F;
-    x = (x | (x << 2)) & 0x33333333;
-    x = (x | (x << 1)) & 0x55555555;
-
-    y = (y | (y << 8)) & 0x00FF00FF;
-    y = (y | (y << 4)) & 0x0F0F0F0F;
-    y = (y | (y << 2)) & 0x33333333;
-    y = (y | (y << 1)) & 0x55555555;
-
-    return x | (y << 1);
-}
-
-// find the leftmost node of a polygon ring
-function getLeftmost(start) {
-    var p = start,
-        leftmost = start;
-    do {
-        if (p.x < leftmost.x) leftmost = p;
-        p = p.next;
-    } while (p !== start);
-
-    return leftmost;
-}
-
-// check if a point lies within a convex triangle
-function pointInTriangle(ax, ay, bx, by, cx, cy, px, py) {
-    return (cx - px) * (ay - py) - (ax - px) * (cy - py) >= 0 &&
-           (ax - px) * (by - py) - (bx - px) * (ay - py) >= 0 &&
-           (bx - px) * (cy - py) - (cx - px) * (by - py) >= 0;
-}
-
-// check if a diagonal between two polygon nodes is valid (lies in polygon interior)
-function isValidDiagonal(a, b) {
-    return a.next.i !== b.i && a.prev.i !== b.i && !intersectsPolygon(a, b) &&
-           locallyInside(a, b) && locallyInside(b, a) && middleInside(a, b);
-}
-
-// signed area of a triangle
-function area(p, q, r) {
-    return (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
-}
-
-// check if two points are equal
-function equals(p1, p2) {
-    return p1.x === p2.x && p1.y === p2.y;
-}
-
-// check if two segments intersect
-function intersects(p1, q1, p2, q2) {
-    if ((equals(p1, q1) && equals(p2, q2)) ||
-        (equals(p1, q2) && equals(p2, q1))) return true;
-    return area(p1, q1, p2) > 0 !== area(p1, q1, q2) > 0 &&
-           area(p2, q2, p1) > 0 !== area(p2, q2, q1) > 0;
-}
-
-// check if a polygon diagonal intersects any polygon segments
-function intersectsPolygon(a, b) {
-    var p = a;
-    do {
-        if (p.i !== a.i && p.next.i !== a.i && p.i !== b.i && p.next.i !== b.i &&
-                intersects(p, p.next, a, b)) return true;
-        p = p.next;
-    } while (p !== a);
-
-    return false;
-}
-
-// check if a polygon diagonal is locally inside the polygon
-function locallyInside(a, b) {
-    return area(a.prev, a, a.next) < 0 ?
-        area(a, b, a.next) >= 0 && area(a, a.prev, b) >= 0 :
-        area(a, b, a.prev) < 0 || area(a, a.next, b) < 0;
-}
-
-// check if the middle point of a polygon diagonal is inside the polygon
-function middleInside(a, b) {
-    var p = a,
-        inside = false,
-        px = (a.x + b.x) / 2,
-        py = (a.y + b.y) / 2;
-    do {
-        if (((p.y > py) !== (p.next.y > py)) && p.next.y !== p.y &&
-                (px < (p.next.x - p.x) * (py - p.y) / (p.next.y - p.y) + p.x))
-            inside = !inside;
-        p = p.next;
-    } while (p !== a);
-
-    return inside;
-}
-
-// link two polygon vertices with a bridge; if the vertices belong to the same ring, it splits polygon into two;
-// if one belongs to the outer ring and another to a hole, it merges it into a single ring
-function splitPolygon(a, b) {
-    var a2 = new Node(a.i, a.x, a.y),
-        b2 = new Node(b.i, b.x, b.y),
-        an = a.next,
-        bp = b.prev;
-
-    a.next = b;
-    b.prev = a;
-
-    a2.next = an;
-    an.prev = a2;
-
-    b2.next = a2;
-    a2.prev = b2;
-
-    bp.next = b2;
-    b2.prev = bp;
-
-    return b2;
-}
-
-// create a node and optionally link it with previous one (in a circular doubly linked list)
-function insertNode(i, x, y, last) {
-    var p = new Node(i, x, y);
-
-    if (!last) {
-        p.prev = p;
-        p.next = p;
-
-    } else {
-        p.next = last.next;
-        p.prev = last;
-        last.next.prev = p;
-        last.next = p;
-    }
-    return p;
-}
-
-function removeNode(p) {
-    p.next.prev = p.prev;
-    p.prev.next = p.next;
-
-    if (p.prevZ) p.prevZ.nextZ = p.nextZ;
-    if (p.nextZ) p.nextZ.prevZ = p.prevZ;
-}
-
-function Node(i, x, y) {
-    // vertice index in coordinates array
-    this.i = i;
-
-    // vertex coordinates
-    this.x = x;
-    this.y = y;
-
-    // previous and next vertice nodes in a polygon ring
-    this.prev = null;
-    this.next = null;
-
-    // z-order curve value
-    this.z = null;
-
-    // previous and next nodes in z-order
-    this.prevZ = null;
-    this.nextZ = null;
-
-    // indicates whether this is a steiner point
-    this.steiner = false;
-}
-
-// return a percentage difference between the polygon area and its triangulation area;
-// used to verify correctness of triangulation
-earcut.deviation = function (data, holeIndices, dim, triangles) {
-    var hasHoles = holeIndices && holeIndices.length;
-    var outerLen = hasHoles ? holeIndices[0] * dim : data.length;
-
-    var polygonArea = Math.abs(signedArea(data, 0, outerLen, dim));
-    if (hasHoles) {
-        for (var i = 0, len = holeIndices.length; i < len; i++) {
-            var start = holeIndices[i] * dim;
-            var end = i < len - 1 ? holeIndices[i + 1] * dim : data.length;
-            polygonArea -= Math.abs(signedArea(data, start, end, dim));
-        }
-    }
-
-    var trianglesArea = 0;
-    for (i = 0; i < triangles.length; i += 3) {
-        var a = triangles[i] * dim;
-        var b = triangles[i + 1] * dim;
-        var c = triangles[i + 2] * dim;
-        trianglesArea += Math.abs(
-            (data[a] - data[c]) * (data[b + 1] - data[a + 1]) -
-            (data[a] - data[b]) * (data[c + 1] - data[a + 1]));
-    }
-
-    return polygonArea === 0 && trianglesArea === 0 ? 0 :
-        Math.abs((trianglesArea - polygonArea) / polygonArea);
-};
-
-function signedArea(data, start, end, dim) {
-    var sum = 0;
-    for (var i = start, j = end - dim; i < end; i += dim) {
-        sum += (data[j] - data[i]) * (data[i + 1] + data[j + 1]);
-        j = i;
-    }
-    return sum;
-}
-
-// turn a polygon in a multi-dimensional array form (e.g. as in GeoJSON) into a form Earcut accepts
-earcut.flatten = function (data) {
-    var dim = data[0][0].length,
-        result = {vertices: [], holes: [], dimensions: dim},
-        holeIndex = 0;
-
-    for (var i = 0; i < data.length; i++) {
-        for (var j = 0; j < data[i].length; j++) {
-            for (var d = 0; d < dim; d++) result.vertices.push(data[i][j][d]);
-        }
-        if (i > 0) {
-            holeIndex += data[i - 1].length;
-            result.holes.push(holeIndex);
-        }
-    }
-    return result;
-};
-
-
-/***/ }),
-/* 9 */
+/***/ "./src/renderer.js":
+/*!*************************!*\
+  !*** ./src/renderer.js ***!
+  \*************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
 ;(function renderer (root, factory) {
-  if (typeof module === 'object' && module.exports) {
-    module.exports = factory(__webpack_require__(0), __webpack_require__(1), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6), __webpack_require__(7), __webpack_require__(8))
+  if ( true && module.exports) {
+    module.exports = factory(__webpack_require__(/*! ./geometry.js */ "./src/geometry.js"), __webpack_require__(/*! ./queue.js */ "./src/queue.js"), __webpack_require__(/*! ./easing.js */ "./src/easing.js"), __webpack_require__(/*! ./chaining.js */ "./src/chaining.js"), __webpack_require__(/*! ./vDom.js */ "./src/vDom.js"), __webpack_require__(/*! ./colorMap.js */ "./src/colorMap.js"), __webpack_require__(/*! ./path.js */ "./src/path.js"), __webpack_require__(/*! ./shaders.js */ "./src/shaders.js"), __webpack_require__(/*! earcut */ "./node_modules/earcut/src/earcut.js"))
   } else if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0), __webpack_require__(1), __webpack_require__(2), __webpack_require__(3), __webpack_require__(4), __webpack_require__(5), __webpack_require__(6), __webpack_require__(7), __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = ((geometry, queue, easing, chain, vDom, colorMap, path, shaders, earcut) => factory(geometry, queue, easing, chain, vDom, colorMap, path, shaders, earcut)).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! ./geometry.js */ "./src/geometry.js"), __webpack_require__(/*! ./queue.js */ "./src/queue.js"), __webpack_require__(/*! ./easing.js */ "./src/easing.js"), __webpack_require__(/*! ./chaining.js */ "./src/chaining.js"), __webpack_require__(/*! ./vDom.js */ "./src/vDom.js"), __webpack_require__(/*! ./colorMap.js */ "./src/colorMap.js"), __webpack_require__(/*! ./path.js */ "./src/path.js"), __webpack_require__(/*! ./shaders.js */ "./src/shaders.js"), __webpack_require__(/*! earcut */ "./node_modules/earcut/src/earcut.js")], __WEBPACK_AMD_DEFINE_RESULT__ = ((geometry, queue, easing, chain, vDom, colorMap, path, shaders, earcut) => factory(geometry, queue, easing, chain, vDom, colorMap, path, shaders, earcut)).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
-  } else {
-    root.i2d = factory(root.geometry, root.queue, root.easing, root.chain, root.vDom, root.colorMap, root.path, root.shaders, root.earcut)
-  }
+  } else {}
 }(this, (geometry, queue, ease, chain, VDom, colorMap, path, shaders, earcut) => {
   'use strict'
   const i2d = {}
@@ -5177,7 +4916,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
         )
       }
 
-      if (self.attr.pixels) {
+      if (self.attr.pixels && self.imageObj) {
         let ctxX
         const { width, height } = self.attr
         if (!self.rImageObj) {
@@ -5242,8 +4981,16 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
         )
       }
     }
-    if (self.attr.pixels) {
+    if (self.attr.pixels && self.imageObj) {
       let ctxX
+      const { width, height } = self.attr
+      if (!self.rImageObj) {
+        self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height)
+        ctxX = self.rImageObj.getContext('2d')
+        ctxX.drawImage(
+          self.imageObj, 0, 0, width, height
+        )
+      }
       ctxX = self.rImageObj.getContext('2d')
       ctxX.putImageData(pixels.call(self, self.attr.pixels), 0, 0)
     }
@@ -6378,6 +6125,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
       }
     }, domId(), vDomIndex)
 
+    vDomInstance.root(root)
+
     const execute = root.execute.bind(root)
     root.container = res
     root.domEl = layer
@@ -6434,11 +6183,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
 
     root.destroy = function () {
       window.removeEventListener('resize', canvasResize)
-      layer.remove()
-      queueInstance.removeVdom(vDomInstance)
+      // layer.remove()
+      // queueInstance.removeVdom(vDomIndex)
     }
-
-    vDomInstance.root(root)
 
     if (config.events || config.events === undefined) {
       res.addEventListener('mousemove', (e) => {
@@ -6619,7 +6366,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
     root.destroy = function () {
       window.removeEventListener('resize', svgResize)
       layer.remove()
-      queueInstance.removeVdom(vDomInstance)
+      queueInstance.removeVdom(vDomIndex)
     }
 
     let dragTargetEl = null
@@ -7881,7 +7628,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
       execute()
     }
     root.destroy = function () {
-      queueInstance.removeVdom(vDomInstance)
+      queueInstance.removeVdom(vDomIndex)
     }
     vDomInstance.root(root)
 
@@ -7906,6 +7653,318 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
 }))
 
 
+/***/ }),
+
+/***/ "./src/shaders.js":
+/*!************************!*\
+  !*** ./src/shaders.js ***!
+  \************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
+(function easing (root, factory) {
+  const i2d = root
+  if ( true && module.exports) {
+    module.exports = factory()
+  } else if (true) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (() => factory()).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
+  } else {}
+}(this, () => {
+  'use strict'
+  function shaders (el) {
+    let res
+    switch (el) {
+      case 'point':
+        res = {
+          vertexShader: `
+          attribute vec2 a_position;
+          attribute vec4 a_color;
+          attribute float a_size;
+          
+          uniform vec2 u_resolution;
+          uniform vec2 u_translate;
+          uniform vec2 u_scale;
+          
+          varying vec4 v_color;
+          void main() {
+            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
+            vec2 clipSpace = ((zeroToOne) * 2.0) - 1.0;
+            gl_Position = vec4((clipSpace * vec2(1, -1)), 0, 1);
+            gl_PointSize = a_size;
+            v_color = a_color;
+          }
+          `,
+          fragmentShader: `
+                    precision mediump float;
+                    varying vec4 v_color;
+                    void main() {
+                        gl_FragColor = v_color;
+                    }
+                    `
+        }
+        break
+      case 'circle':
+        res = {
+          vertexShader: `
+          attribute vec2 a_position;
+          attribute vec4 a_color;
+          attribute float a_radius;
+          uniform vec2 u_resolution;
+          uniform vec2 u_translate;
+          uniform vec2 u_scale;
+          varying vec4 v_color;
+          void main() {
+            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
+            vec2 zeroToTwo = zeroToOne * 2.0;
+            vec2 clipSpace = zeroToTwo - 1.0;
+            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+            gl_PointSize = a_radius;
+            v_color = a_color;
+          }
+          `,
+          fragmentShader: `
+                    precision mediump float;
+                    varying vec4 v_color;
+                    void main() {
+                      float r = 0.0, delta = 0.0, alpha = 1.0;
+                      vec2 cxy = 2.0 * gl_PointCoord - 1.0;
+                      r = dot(cxy, cxy);
+                      if(r > 1.0) {
+                        discard;
+                      }
+                      delta = 0.09;
+                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);                      
+                      gl_FragColor = v_color * alpha;
+                    }
+                    `
+        }
+        break
+      case 'image':
+        res = {
+          vertexShader: `
+                    attribute vec2 a_position;
+                    attribute vec2 a_texCoord;
+                    uniform vec2 u_resolution;
+                    uniform vec2 u_translate;
+                    uniform vec2 u_scale;
+                    varying vec2 v_texCoord;
+                    void main() {
+                      vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
+                      vec2 clipSpace = zeroToOne * 2.0 - 1.0;
+                      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+                      v_texCoord = a_texCoord;
+                    }
+          `,
+          fragmentShader: `
+                    precision mediump float;
+                    uniform sampler2D u_image;
+                    varying vec2 v_texCoord;
+                    void main() {
+                      gl_FragColor = texture2D(u_image, v_texCoord);
+                    }
+                    `
+        }
+        break
+      default:
+        res = {
+          vertexShader: `
+                    attribute vec2 a_position;
+                    attribute vec4 a_color;
+                    uniform vec2 u_resolution;
+                    uniform vec2 u_translate;
+                    uniform vec2 u_scale;
+                    varying vec4 v_color;
+                    void main() {
+                    vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
+                    vec2 clipSpace = zeroToOne * 2.0 - 1.0;
+                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+                    v_color = a_color;
+                    }
+                    `,
+          fragmentShader: `
+                    precision mediump float;
+                    varying vec4 v_color;
+                    void main() {
+                        gl_FragColor = v_color;
+                    }
+                    `
+        }
+    }
+    return res
+  }
+
+  return shaders
+}))
+
+
+/***/ }),
+
+/***/ "./src/vDom.js":
+/*!*********************!*\
+  !*** ./src/vDom.js ***!
+  \*********************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disable no-undef */
+;(function vDom (root, factory) {
+  if ( true && module.exports) {
+    module.exports = factory()
+  } else if (true) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (geometry => factory()).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
+  } else {}
+}(this, (geometry) => {
+  'use strict'
+  function VDom () {}
+  VDom.prototype.execute = function execute () {
+    this.root.execute()
+    this.stateModified = false
+  }
+  VDom.prototype.root = function root (_) {
+    this.root = _
+    this.stateModified = true
+  }
+  VDom.prototype.eventsCheck = function eventsCheck (nodes, mouseCoor, rawEvent) {
+    const self = this
+    let node,
+      temp
+
+    for (var i = 0; i <= nodes.length - 1; i += 1) {
+      var d = nodes[i]
+      var coOr = { x: mouseCoor.x, y: mouseCoor.y }
+      transformCoOr(d, coOr)
+      if (d.in({ x: coOr.x, y: coOr.y })) {
+        if (d.children && d.children.length > 0) {
+          temp = self.eventsCheck(d.children, { x: coOr.x, y: coOr.y }, rawEvent)
+          if (temp) {
+            node = temp
+          }
+        } else {
+          node = d
+        }
+      // callInEvents(d, rawEvent)
+      }
+    // else {
+    //   // callOutEvents(d, rawEvent)
+    // }
+    }
+    return node
+  }
+
+  VDom.prototype.transformCoOr = transformCoOr
+
+  // function callInEvents (node, e) {
+  //   if ((node.dom.mouseover || node.dom.mouseenter) && !node.hovered) {
+  //     if (node.dom.mouseover) {
+  //       node.dom.mouseover.call(node, node.dataObj, e)
+  //     }
+  //     if (node.dom.mouseenter) {
+  //       node.dom.mouseenter.call(node, node.dataObj, e)
+  //     }
+  //     node.hovered = true
+
+  //     if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.onDragStart) {
+  //       selectedNode.dom.drag.dragStartFlag = true
+  //       selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e)
+  //       let event = {}
+  //       event.x = e.offsetX
+  //       event.y = e.offsetY
+  //       event.dx = 0
+  //       event.dy = 0
+  //       selectedNode.dom.drag.event = event
+  //     }
+
+  //     if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDrag) {
+  //       let event = node.dom.drag.event
+  //       if (node.dom.drag.event) {
+  //         event.dx = e.offsetX - event.x
+  //         event.dy = e.offsetY - event.y
+  //       }
+  //       event.x = e.offsetX
+  //       event.y = e.offsetY
+  //       node.dom.drag.event = event
+  //       node.dom.drag.onDrag.call(node, node.dataObj, event)
+  //     }
+  //   }
+  // }
+
+  // function callOutEvents (node, e) {
+  //   if ((node.dom.mouseout || node.dom.mouseleave) && node.hovered) {
+  //     if (node.dom.mouseout) {
+  //       node.dom.mouseout.call(node, node.dataObj, e)
+  //     }
+  //     if (node.dom.mouseleave) {
+  //       node.dom.mouseleave.call(node, node.dataObj, e)
+  //     }
+  //     node.hovered = false
+  //   }
+  //   if (node.dom.drag && node.dom.drag.dragStartFlag) {
+  //     node.dom.drag.dragStartFlag = false
+  //     node.dom.drag.onDragEnd.call(node, node.dataObj, e)
+  //     node.dom.drag.event = null
+  //   }
+  // }
+
+  function transformCoOr (d, coOr) {
+    let hozMove = 0
+    let verMove = 0
+    let scaleX = 1
+    let scaleY = 1
+    const coOrLocal = coOr
+
+    if (d.attr.transform && d.attr.transform.translate) {
+      [hozMove, verMove] = d.attr.transform.translate
+      coOrLocal.x -= hozMove
+      coOrLocal.y -= verMove
+    }
+
+    if (d.attr.transform && d.attr.transform.scale) {
+      scaleX = d.attr.transform.scale[0] !== undefined ? d.attr.transform.scale[0] : 1
+      scaleY = d.attr.transform.scale[1] !== undefined ? d.attr.transform.scale[1] : scaleX
+      coOrLocal.x /= scaleX
+      coOrLocal.y /= scaleY
+    }
+
+    if (d.attr.transform && d.attr.transform.rotate) {
+      const rotate = d.attr.transform.rotate[0]
+      // const { BBox } = d.dom
+      const cen = {
+        x: d.attr.transform.rotate[1],
+        y: d.attr.transform.rotate[2]
+      }
+      // {
+      //   x: (BBox.x + (BBox.width / 2) - hozMove) / scaleX,
+      //   y: (BBox.y + (BBox.height / 2) - verMove) / scaleY
+      // }
+      // const dis = t2DGeometry.getDistance(cen, coOr)
+      // const angle = Math.atan2(coOr.y - cen.y, coOr.x - cen.x)
+
+      let x = coOrLocal.x
+      let y = coOrLocal.y
+      let cx = cen.x
+      let cy = cen.y
+
+      var radians = (Math.PI / 180) * rotate
+      var cos = Math.cos(radians)
+      var sin = Math.sin(radians)
+
+      coOrLocal.x = (cos * (x - cx)) + (sin * (y - cy)) + cx
+      coOrLocal.y = (cos * (y - cy)) - (sin * (x - cx)) + cy
+    }
+  }
+
+  const vDomInstance = function vDomInstance () {
+    return new VDom()
+  }
+
+  return vDomInstance
+}))
+
+
 /***/ })
-/******/ ]);
+
+/******/ });
 });

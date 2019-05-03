@@ -7,9 +7,15 @@
 	<div style="height: 50%;width:100%;position: relative;" id='myCanvas2'></div>
     <div style="height: 20%;width:100%;position: relative;" id='myCanvas1'></div>
     
-    <script type="text/javascript" src="../../dist/i2d.min.js"></script>
+    <script type="text/javascript" src="../../dist/i2d.esm.js"></script>
 
 	<script type="text/javascript">
+
+
+    setTimeout(function () {
+        let el = document.getElementById('myCanvas2');
+        el.parentNode.removeChild(el);
+    }, 5000)
 
         var renderer_ = i2d.CanvasLayer('#myCanvas1',{events:false,selectiveClear:false});
         var nodes = [];
