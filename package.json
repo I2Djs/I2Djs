@@ -1,6 +1,6 @@
 {
   "name": "i2djs",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "Integrated 2d JS -  framework for 2D graphics rendering for SVG/Canvas context",
   "module": "./dist/i2d.esm.js",
   "main": "./dist/i2d.js",
@@ -43,12 +43,20 @@
   },
   "homepage": "https://github.com/i2djs/I2D#readme",
   "devDependencies": {
-    "babel-core": "^6.26.0",
-    "babel-loader": "^7.1.2",
-    "babel-preset-env": "^1.6.1",
-    "eslint": "^4.9.0",
+    "@babel/core": "^7.4.4",
+    "@babel/preset-env": "^7.4.4",
+    "babel-loader": "^8.0.5",
+    "eslint": "^5.16.0",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-loader": "^2.1.1",
+    "eslint-plugin-import": "^2.15.0",
+    "eslint-plugin-node": "^8.0.1",
+    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-standard": "^4.0.0",
+    "source-map-loader": "^0.2.4",
     "uglify-js": "^3.1.5",
-    "webpack": "^3.8.1"
+    "webpack": "^4.30.0",
+    "webpack-cli": "^3.3.1"
   },
   "dependencies": {
     "earcut": "^2.1.3"

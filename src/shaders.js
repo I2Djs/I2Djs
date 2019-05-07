@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 (function easing (root, factory) {
   const i2d = root
   if (typeof module === 'object' && module.exports) {

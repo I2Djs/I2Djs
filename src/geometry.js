@@ -1,4 +1,5 @@
-(function (root, factory) {
+/* eslint-disable no-undef */
+;(function (root, factory) {
   if (typeof module === 'object' && module.exports) {
     module.exports = factory()
   } else if (typeof define === 'function' && define.amd) {
@@ -9,17 +10,17 @@
 }(this, () => {
   'use strict'
   function geometry (context) {
-    function cos (a) {
-      return Math.cos(a)
-    }
+    // function cos (a) {
+    //   return Math.cos(a)
+    // }
 
-    function acos (a) {
-      return Math.acos(a)
-    }
+    // function acos (a) {
+    //   return Math.acos(a)
+    // }
 
-    function sin (a) {
-      return Math.sin(a)
-    }
+    // function sin (a) {
+    //   return Math.sin(a)
+    // }
 
     function pw (a, x) {
       let val = 1
@@ -28,9 +29,9 @@
       return val
     }
 
-    function tan (a) {
-      return Math.tan(a)
-    }
+    // function tan (a) {
+    //   return Math.tan(a)
+    // }
 
     function atan2 (a, b) {
       return Math.atan2(a, b)
@@ -39,18 +40,18 @@
     function sqrt (a) {
       return Math.sqrt(a)
     }
-    function angleToRadian (_) {
-      if (isNaN(_)) { throw new Error('NaN') }
-      return (Math.PI / 180) * _
-    }
-    function radianToAngle (_) {
-      if (isNaN(_)) { throw new Error('NaN') }
-      return (180 / Math.PI) * _
-    }
-    function getAngularDistance (r1, r2) {
-      if (isNaN(r1 - r2)) { throw new Error('NaN') }
-      return r1 - r2
-    }
+    // function angleToRadian (_) {
+    //   if (isNaN(_)) { throw new Error('NaN') }
+    //   return (Math.PI / 180) * _
+    // }
+    // function radianToAngle (_) {
+    //   if (isNaN(_)) { throw new Error('NaN') }
+    //   return (180 / Math.PI) * _
+    // }
+    // function getAngularDistance (r1, r2) {
+    //   if (isNaN(r1 - r2)) { throw new Error('NaN') }
+    //   return r1 - r2
+    // }
     function bezierLength (p0, p1, p2) {
       const a = {}
       const b = {}
@@ -75,19 +76,19 @@
       return (A_32 * Sabc + A_2 * B * (Sabc - C_2) + (4 * C * A - B * B) * Math.log(logVal)) / (4 * A_32)
     }
 
-    function bezierLengthOld (p0, p1, p2) {
-      const interval = 0.001
-      let sum = 0
-      const bezierTransitionInstance = bezierTransition.bind(null, p0, p1, p2)
-      // let p1
-      // let p2
-      for (let i = 0; i <= 1 - interval; i += interval) {
-        p1 = bezierTransitionInstance(i)
-        p2 = bezierTransitionInstance(i + interval)
-        sum += sqrt(pw((p2.x - p1.x) / interval, 2) + (pw((p2.y - p1.y) / interval, 2))) * interval
-      }
-      return sum
-    }
+    // function bezierLengthOld (p0, p1, p2) {
+    //   const interval = 0.001
+    //   let sum = 0
+    //   const bezierTransitionInstance = bezierTransition.bind(null, p0, p1, p2)
+    //   // let p1
+    //   // let p2
+    //   for (let i = 0; i <= 1 - interval; i += interval) {
+    //     p1 = bezierTransitionInstance(i)
+    //     p2 = bezierTransitionInstance(i + interval)
+    //     sum += sqrt(pw((p2.x - p1.x) / interval, 2) + (pw((p2.y - p1.y) / interval, 2))) * interval
+    //   }
+    //   return sum
+    // }
     function cubicBezierLength (p0, co) {
       const interval = 0.001
       let sum = 0
@@ -116,9 +117,9 @@
     function get2DAngle (p1, p2) {
       return atan2(p2.x - p1.x, p2.y - p1.y)
     }
-    function get3DAngle (p1, p2) {
-      return acos((p1.x * p2.x + p1.y * p2.y + p1.z * p2.z) / (sqrt(p1.x * p1.x + p1.y * p1.y + p1.z * p1.z) * sqrt(p2.x * p2.x + p2.y * p2.y + p2.z * p2.z)))
-    }
+    // function get3DAngle (p1, p2) {
+    //   return acos((p1.x * p2.x + p1.y * p2.y + p1.z * p2.z) / (sqrt(p1.x * p1.x + p1.y * p1.y + p1.z * p1.z) * sqrt(p2.x * p2.x + p2.y * p2.y + p2.z * p2.z)))
+    // }
     function scaleAlongOrigin (co, factor) {
       const co_ = {}
       for (const prop in co) {
@@ -275,7 +276,10 @@
           try {
             if (!_n && _i.return) _i.return()
           } finally {
-            if (_d) throw _e
+            if (_d) {
+              // throw _e
+              console.log('Error -' + _e)
+            }
           }
         }
         return _arr
@@ -387,16 +391,13 @@
     }
 
     const arcToBezier = function arcToBezier (_ref2) {
-      let {
-        px, py, cx, cy, rx, ry
-      } = _ref2
+      let { px, py, cx, cy, rx, ry } = _ref2
       const _ref2$xAxisRotation = _ref2.xAxisRotation
       const xAxisRotation = _ref2$xAxisRotation === undefined ? 0 : _ref2$xAxisRotation
       const _ref2$largeArcFlag = _ref2.largeArcFlag
       const largeArcFlag = _ref2$largeArcFlag === undefined ? 0 : _ref2$largeArcFlag
       const _ref2$sweepFlag = _ref2.sweepFlag
       const sweepFlag = _ref2$sweepFlag === undefined ? 0 : _ref2$sweepFlag
-
       const curves = []
 
       if (rx === 0 || ry === 0) {
@@ -484,12 +485,9 @@
       p.x = (cos * (x - cx)) + (sin * (y - cy)) + cx
       p.y = (cos * (y - cy)) - (sin * (x - cx)) + cy
 
-      return { x : (cos * (x - cx)) + (sin * (y - cy)) + cx,
-        y : (cos * (y - cy)) - (sin * (x - cx)) + cy
+      return { x: (cos * (x - cx)) + (sin * (y - cy)) + cx,
+        y: (cos * (y - cy)) - (sin * (x - cx)) + cy
       }
-
-
-
 
       // console.log(point)
       // console.log(currAngle)
@@ -497,7 +495,7 @@
       // p.x = Math.cos(currAngle + newAngle * (Math.PI / 180) + Math.PI/2) * distance
       // p.y = Math.sin(currAngle + newAngle * (Math.PI / 180) + Math.PI/2) * distance
 
-      // return p
+    // return p
     }
 
     function rotateBBox (BBox, transform) {
@@ -505,8 +503,8 @@
       let point2 = { x: BBox.x + BBox.width, y: BBox.y }
       let point3 = { x: BBox.x, y: BBox.y + BBox.height }
       let point4 = { x: BBox.x + BBox.width, y: BBox.y + BBox.height }
-      const {translate, rotate} = transform
-      const cen = {x: rotate[1] || 0, y: rotate[2] || 0}
+      const { translate, rotate } = transform
+      const cen = { x: rotate[1] || 0, y: rotate[2] || 0 }
       const rotateAngle = rotate[0]
 
       if (translate && translate.length > 0) {

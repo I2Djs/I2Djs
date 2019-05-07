@@ -31,6 +31,7 @@ npm install i2djs --save
 
 Examples (SVG + Canvas + WebGL)
 ---
+[Codepen Examples](https://codepen.io/tag/i2djs/2/)
 
 ### Basic Shapes
 <table>

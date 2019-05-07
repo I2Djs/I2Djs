@@ -1,9 +1,14 @@
-var webpack = require('webpack');
-var path = require('path');
-var PROD = JSON.parse(process.env.PROD_ENV || '0');
+// var webpack = require('webpack')
+var path = require('path')
+// var PROD = JSON.parse(process.env.PROD_ENV || '0')
 
 var ESClientConfig = {
   entry: './src/renderer.js',
+  mode: 'development',
+  devtool: false,
+  optimization: {
+    minimize: false
+  },
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'i2d.esm.js',
@@ -14,21 +19,33 @@ var ESClientConfig = {
   module: {
     rules: [
       {
+        enforce: 'pre',
         test: /\.js$/,
         exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: ['env']
-          }
+        loader: 'eslint-loader',
+        options: {
+          // eslint options (if necessary)
+        }
+      },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        loader: 'babel-loader',
+        options: {
+          presets: ['@babel/preset-env']
         }
       }
     ]
   }
-};
+}
 
 var ClientConfig = {
   entry: './src/renderer.js',
+  mode: 'development',
+  devtool: false,
+  optimization: {
+    minimize: false
+  },
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'i2d.js',
@@ -36,10 +53,15 @@ var ClientConfig = {
     libraryTarget: 'umd',
     umdNamedDefine: true
   }
-};
+}
 
 var ClientMinConfig = {
   entry: './src/renderer.js',
+  mode: 'production',
+  optimization: {
+    minimize: true
+  },
+  devtool: false,
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'i2d.min.js',
@@ -55,18 +77,15 @@ var ClientMinConfig = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['env']
+            presets: ['@babel/preset-env']
           }
         }
       }
     ]
   },
   plugins: [
-    new webpack.optimize.UglifyJsPlugin({
-      minimize: true
-    })
   ]
-};
+}
 
 module.exports = [ESClientConfig, ClientConfig, ClientMinConfig]
 
@@ -98,4 +117,4 @@ module.exports = [ESClientConfig, ClientConfig, ClientMinConfig]
 //       minimize: true
 //     })
 //   ]
-// };
+// }

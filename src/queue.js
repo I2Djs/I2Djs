@@ -1,4 +1,5 @@
-(function (root, factory) {
+/* eslint-disable no-undef */
+;(function (root, factory) {
   if (typeof define === 'function' && define.amd) {
     define('queue', [], () => factory())
   } else if (typeof module === 'object' && module.exports) {
@@ -10,31 +11,32 @@
   'use strict'
   let animatorInstance = null
   let tweens = []
-  const vDoms = []
+  const vDoms = {}
+  const vDomIds = []
   let animeFrameId
 
   const onFrameExe = []
 
   window.requestAnimationFrame = (function requestAnimationFrameG () {
     return window.requestAnimationFrame ||
-            window.webkitRequestAnimationFrame ||
-            window.mozRequestAnimationFrame ||
-            window.oRequestAnimationFrame ||
-            window.msRequestAnimationFrame ||
-            function requestAnimationFrame (callback, element) {
-              return window.setTimeout(callback, 1000 / 60)
-            }
+      window.webkitRequestAnimationFrame ||
+      window.mozRequestAnimationFrame ||
+      window.oRequestAnimationFrame ||
+      window.msRequestAnimationFrame ||
+      function requestAnimationFrame (callback, element) {
+        return window.setTimeout(callback, 1000 / 60)
+      }
   })()
   window.cancelAnimFrame = (function cancelAnimFrameG () {
     return (
       window.cancelAnimationFrame ||
-            window.webkitCancelAnimationFrame ||
-            window.mozCancelAnimationFrame ||
-            window.oCancelAnimationFrame ||
-            window.msCancelAnimationFrame ||
-            function cancelAnimFrame (id) {
-              return window.clearTimeout(id)
-            }
+      window.webkitCancelAnimationFrame ||
+      window.mozCancelAnimationFrame ||
+      window.oCancelAnimationFrame ||
+      window.msCancelAnimationFrame ||
+      function cancelAnimFrame (id) {
+        return window.clearTimeout(id)
+      }
     )
   })()
 
@@ -61,10 +63,10 @@
     this.callBack = _
   }
 
-  function endExe (_) {
-    this.endExe = _
-    return this
-  }
+  // function endExe (_) {
+  //   this.endExe = _
+  //   return this
+  // }
 
   function onRequestFrame (_) {
     if (typeof _ !== 'function') {
@@ -89,6 +91,7 @@
     let exeObj = new Tween(uId, executable, easying)
     exeObj.currTime = performance.now()
     tweens[tweens.length] = exeObj
+    this.startAnimeFrames()
   }
 
   function startAnimeFrames () {
@@ -100,44 +103,47 @@
     if (animeFrameId) {
       window.cancelAnimFrame(animeFrameId)
       animeFrameId = null
+      tweens = []
     }
   }
 
-  function Animator () {
-    this.vDoms = []
+  function ExeQueue () {
   }
 
-  Animator.prototype = {
+  ExeQueue.prototype = {
     startAnimeFrames,
     stopAnimeFrame,
     add,
     // remove: remove,
-    end: endExe,
+    // end: endExe,
     onRequestFrame,
     removeRequestFrameCall,
-    destroy () {
-      if (this.endExe) { this.endExe() }
+    clearAll () {
+      // if (this.endExe) { this.endExe() }
       this.stopAnimeFrame()
     }
   }
 
-  Animator.prototype.addVdom = function AaddVdom (_) {
-    vDoms.push(_)
-    return vDoms.length - 1
+  ExeQueue.prototype.addVdom = function AaddVdom (_) {
+    let ind = vDomIds.length + 1
+    vDoms[ind] = _
+    vDomIds.push(ind)
+    return ind
   }
-  Animator.prototype.removeVdom = function removeVdom (_) {
-    for (var i = 0; i < vDoms.length; i++) {
-      if (vDoms[i] === _) {
-        vDoms.splice(i, 1)
-      }
+  ExeQueue.prototype.removeVdom = function removeVdom (_) {
+    let index = vDomIds.indexOf(_)
+    if (index !== -1) {
+      vDomIds.splice(index, 1)
+      vDoms[_].root.destroy()
+      delete vDoms[_]
     }
   }
-  Animator.prototype.vDomChanged = function AvDomChanged (vDom) {
-    if (vDoms[vDom]) {
+  ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom) {
+    if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
       vDoms[vDom].stateModified = true
     }
   }
-  Animator.prototype.execute = function Aexecute () {
+  ExeQueue.prototype.execute = function Aexecute () {
     if (!animeFrameId) { animeFrameId = window.requestAnimationFrame(exeFrameCaller) }
   }
 
@@ -197,16 +203,21 @@
   }
 
   function vDomUpdates () {
-    for (let i = 0, len = vDoms.length; i < len; i += 1) {
-      if (vDoms[i].stateModified) {
-        vDoms[i].execute()
-        vDoms[i].stateModified = false
+    for (let i = 0, len = vDomIds.length; i < len; i += 1) {
+      if (vDomIds[i] && vDoms[vDomIds[i]].stateModified) {
+        vDoms[vDomIds[i]].execute()
+        vDoms[vDomIds[i]].stateModified = false
+      } else if (vDomIds[i] && vDoms[vDomIds[i]].root) {
+        var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id)
+        if (!elementExists) {
+          animatorInstance.removeVdom(vDomIds[i])
+        }
       }
     }
   }
 
   function animateQueue () {
-    if (!animatorInstance) { animatorInstance = new Animator() }
+    if (!animatorInstance) { animatorInstance = new ExeQueue() }
     return animatorInstance
   }
 

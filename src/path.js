@@ -1,4 +1,5 @@
-(function path (root, factory) {
+/* eslint-disable no-undef */
+;(function path (root, factory) {
   const i2d = root
   if (typeof module === 'object' && module.exports) {
     module.exports = factory(require('./geometry.js'), require('./queue.js'), require('./easing.js'), require('./chaining.js'))
@@ -75,7 +76,7 @@
   }
 
   function m (rel, p0) {
-    const temp = relative(rel, this.pp ? this.pp : {x: 0, y: 0}, {
+    const temp = relative(rel, this.pp ? this.pp : { x: 0, y: 0 }, {
       x: 0,
       y: 0
     })
@@ -280,7 +281,7 @@
       x: 0,
       y: 0
     })
-    
+
     const cntrl1 = addVectors(this.pp, subVectors(this.pp, this.cntrl ? this.cntrl : this.pp))
     const cntrl2 = addVectors(c2, temp)
     const endPoint = addVectors(ep, temp)
@@ -593,8 +594,8 @@
       y: (c1.y + ((c2.y - c1.y)) * f)
     }
     this.cntrl1 = c1Temp
-    this.cntrl2 = {x: c1Temp.x + (c2Temp.x - c1Temp.x) * f, y: c1Temp.y + ((c2Temp.y - c1Temp.y)) * f}
-    this.p1 = {x: co.ax * t2DGeometry.pow(f, 3) + co.bx * t2DGeometry.pow(f, 2) + co.cx * f + p0.x,
+    this.cntrl2 = { x: c1Temp.x + (c2Temp.x - c1Temp.x) * f, y: c1Temp.y + ((c2Temp.y - c1Temp.y)) * f }
+    this.p1 = { x: co.ax * t2DGeometry.pow(f, 3) + co.bx * t2DGeometry.pow(f, 2) + co.cx * f + p0.x,
       y: co.ay * t2DGeometry.pow(f, 3) + co.by * t2DGeometry.pow(f, 2) + co.cy * f + p0.y
     }
     this.length = this.length_src * f
@@ -610,7 +611,6 @@
     return t2DGeometry.cubicBezierTransition(this.p0, this.co, f)
   }
 
-
   let BezierTransition = function BezierTransition (type, p0, p1, p2, length, f) {
     this.type = type
     this.p0 = p0
@@ -624,9 +624,9 @@
     let p1 = this.p1_src
     let p2 = this.p2_src
     this.length = this.length_src * f
-    this.cntrl1 = {x: p0.x + ((p1.x - p0.x)) * f, y: p0.y + ((p1.y - p0.y)) * (f)}
+    this.cntrl1 = { x: p0.x + ((p1.x - p0.x)) * f, y: p0.y + ((p1.y - p0.y)) * (f) }
     this.cntrl2 = this.cntrl1
-    this.p1 = {x: (p0.x - 2 * p1.x + p2.x) * f * f + (2 * p1.x - 2 * p0.x) * f + p0.x, y: (p0.y - 2 * p1.y + p2.y) * f * f + (2 * p1.y - 2 * p0.y) * f + p0.y}
+    this.p1 = { x: (p0.x - 2 * p1.x + p2.x) * f * f + (2 * p1.x - 2 * p0.x) * f + p0.x, y: (p0.y - 2 * p1.y + p2.y) * f * f + (2 * p1.y - 2 * p0.y) * f + p0.y }
     this.relative = {
       cntrl1: (relativeCheck(this.type) ? this.cntrl1 : subVectors(this.cntrl1, this.p0)),
       p1: (relativeCheck(this.type) ? this.p1 : subVectors(this.p1, this.p0))
@@ -662,9 +662,7 @@
 
   function animatePathTo (targetConfig) {
     const self = this
-    const {
-      duration, ease, end, loop, direction, d
-    } = targetConfig
+    const { duration, ease, end, loop, direction, d } = targetConfig
     const src = d || self.attr.d
     let totalLength = 0
 
@@ -776,7 +774,6 @@
     return this
   }
 
-
   function morphTo (targetConfig) {
     const self = this
     const { duration } = targetConfig
@@ -849,7 +846,7 @@
       chainInstance.push({
         run (path, f) {
           const point = this.pointTansition(f)
-          path.m(true, {x: point.x, y: point.y})
+          path.m(true, { x: point.x, y: point.y })
         },
         pointTansition: t2DGeometry.linearTransitionBetweenPoints.bind(null, src.p0, dest.p0)
       })
@@ -862,7 +859,7 @@
           const c1 = t.ctrl1Transition(f)
           const c2 = t.ctrl2Transition(f)
           const p1 = t.destTransition(f)
-          path.c(true, {x: c1.x, y: c1.y}, {x: c2.x, y: c2.y}, {x: p1.x, y: p1.y})
+          path.c(true, { x: c1.x, y: c1.y }, { x: c2.x, y: c2.y }, { x: p1.x, y: p1.y })
         },
         srcTransition: t2DGeometry.linearTransitionBetweenPoints.bind(
           null,
