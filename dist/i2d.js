@@ -3264,10 +3264,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
     this.callBack = _
   }
 
-  function endExe (_) {
-    this.endExe = _
-    return this
-  }
+  // function endExe (_) {
+  //   this.endExe = _
+  //   return this
+  // }
 
   function onRequestFrame (_) {
     if (typeof _ !== 'function') {
@@ -3292,6 +3292,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
     let exeObj = new Tween(uId, executable, easying)
     exeObj.currTime = performance.now()
     tweens[tweens.length] = exeObj
+    this.startAnimeFrames()
   }
 
   function startAnimeFrames () {
@@ -3303,33 +3304,34 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
     if (animeFrameId) {
       window.cancelAnimFrame(animeFrameId)
       animeFrameId = null
+      tweens = []
     }
   }
 
-  function VDomStack () {
+  function ExeQueue () {
   }
 
-  VDomStack.prototype = {
+  ExeQueue.prototype = {
     startAnimeFrames,
     stopAnimeFrame,
     add,
     // remove: remove,
-    end: endExe,
+    // end: endExe,
     onRequestFrame,
     removeRequestFrameCall,
-    destroy () {
-      if (this.endExe) { this.endExe() }
+    clearAll () {
+      // if (this.endExe) { this.endExe() }
       this.stopAnimeFrame()
     }
   }
 
-  VDomStack.prototype.addVdom = function AaddVdom (_) {
+  ExeQueue.prototype.addVdom = function AaddVdom (_) {
     let ind = vDomIds.length + 1
     vDoms[ind] = _
     vDomIds.push(ind)
     return ind
   }
-  VDomStack.prototype.removeVdom = function removeVdom (_) {
+  ExeQueue.prototype.removeVdom = function removeVdom (_) {
     let index = vDomIds.indexOf(_)
     if (index !== -1) {
       vDomIds.splice(index, 1)
@@ -3337,12 +3339,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
       delete vDoms[_]
     }
   }
-  VDomStack.prototype.vDomChanged = function AvDomChanged (vDom) {
+  ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom) {
     if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
       vDoms[vDom].stateModified = true
     }
   }
-  VDomStack.prototype.execute = function Aexecute () {
+  ExeQueue.prototype.execute = function Aexecute () {
     if (!animeFrameId) { animeFrameId = window.requestAnimationFrame(exeFrameCaller) }
   }
 
@@ -3416,7 +3418,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
   }
 
   function animateQueue () {
-    if (!animatorInstance) { animatorInstance = new VDomStack() }
+    if (!animatorInstance) { animatorInstance = new ExeQueue() }
     return animatorInstance
   }
 

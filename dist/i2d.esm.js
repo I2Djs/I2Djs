@@ -3531,12 +3531,11 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
   Tween.prototype.resetCallBack = function resetCallBack(_) {
     if (typeof _ !== 'function') return;
     this.callBack = _;
-  };
+  }; // function endExe (_) {
+  //   this.endExe = _
+  //   return this
+  // }
 
-  function endExe(_) {
-    this.endExe = _;
-    return this;
-  }
 
   function onRequestFrame(_) {
     if (typeof _ !== 'function') {
@@ -3566,6 +3565,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
     var exeObj = new Tween(uId, executable, easying);
     exeObj.currTime = performance.now();
     tweens[tweens.length] = exeObj;
+    this.startAnimeFrames();
   }
 
   function startAnimeFrames() {
@@ -3578,36 +3578,34 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
     if (animeFrameId) {
       window.cancelAnimFrame(animeFrameId);
       animeFrameId = null;
+      tweens = [];
     }
   }
 
-  function VDomStack() {}
+  function ExeQueue() {}
 
-  VDomStack.prototype = {
+  ExeQueue.prototype = {
     startAnimeFrames: startAnimeFrames,
     stopAnimeFrame: stopAnimeFrame,
     add: add,
     // remove: remove,
-    end: endExe,
+    // end: endExe,
     onRequestFrame: onRequestFrame,
     removeRequestFrameCall: removeRequestFrameCall,
-    destroy: function destroy() {
-      if (this.endExe) {
-        this.endExe();
-      }
-
+    clearAll: function clearAll() {
+      // if (this.endExe) { this.endExe() }
       this.stopAnimeFrame();
     }
   };
 
-  VDomStack.prototype.addVdom = function AaddVdom(_) {
+  ExeQueue.prototype.addVdom = function AaddVdom(_) {
     var ind = vDomIds.length + 1;
     vDoms[ind] = _;
     vDomIds.push(ind);
     return ind;
   };
 
-  VDomStack.prototype.removeVdom = function removeVdom(_) {
+  ExeQueue.prototype.removeVdom = function removeVdom(_) {
     var index = vDomIds.indexOf(_);
 
     if (index !== -1) {
@@ -3619,13 +3617,13 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
     }
   };
 
-  VDomStack.prototype.vDomChanged = function AvDomChanged(vDom) {
+  ExeQueue.prototype.vDomChanged = function AvDomChanged(vDom) {
     if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
       vDoms[vDom].stateModified = true;
     }
   };
 
-  VDomStack.prototype.execute = function Aexecute() {
+  ExeQueue.prototype.execute = function Aexecute() {
     if (!animeFrameId) {
       animeFrameId = window.requestAnimationFrame(exeFrameCaller);
     }
@@ -3714,7 +3712,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
 
   function animateQueue() {
     if (!animatorInstance) {
-      animatorInstance = new VDomStack();
+      animatorInstance = new ExeQueue();
     }
 
     return animatorInstance;
