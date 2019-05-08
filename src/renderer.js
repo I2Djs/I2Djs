@@ -1095,7 +1095,7 @@
 
   DomExe.prototype.exec = function Cexe (exe) {
     if (typeof exe !== 'function') {
-      console.Error('Wrong Exe type')
+      console.error('Wrong Exe type')
     }
     exe.call(this, this.dataObj)
     return this
@@ -1292,7 +1292,7 @@
     } else if (this.type === 'radial' && this.mode === 'absolute') {
       return this.absoluteRadialGradient(ctx)
     }
-    console.Error('wrong Gradiant type')
+    console.error('wrong Gradiant type')
   }
   CanvasGradients.prototype.linearGradient = function GralinearGradient (ctx, BBox) {
     const lGradient = ctx.createLinearGradient(
@@ -2466,7 +2466,7 @@
   }
   CanvasNodeExe.prototype.exec = function Cexe (exe) {
     if (typeof exe !== 'function') {
-      console.Error('Wrong Exe type')
+      console.error('Wrong Exe type')
     }
     exe.call(this, this.dataObj)
     return this

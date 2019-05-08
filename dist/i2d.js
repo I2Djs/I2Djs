@@ -3359,28 +3359,33 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
   let counter = 0
   let tweensN = []
   function exeFrameCaller () {
-    tweensN = []
-    counter = 0
-    t = performance.now()
-    for (let i = 0; i < tweens.length; i += 1) {
-      d = tweens[i]
-      d.lastTime += (t - d.currTime)
-      d.currTime = t
-      if (d.lastTime < d.duration && d.lastTime >= 0) {
-        d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)))
-        tweensN[counter++] = d
-      } else if (d.lastTime > d.duration) {
-        loopCheck(d)
-      } else {
-        tweensN[counter++] = d
+    try {
+      tweensN = []
+      counter = 0
+      t = performance.now()
+      for (let i = 0; i < tweens.length; i += 1) {
+        d = tweens[i]
+        d.lastTime += (t - d.currTime)
+        d.currTime = t
+        if (d.lastTime < d.duration && d.lastTime >= 0) {
+          d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)))
+          tweensN[counter++] = d
+        } else if (d.lastTime > d.duration) {
+          loopCheck(d)
+        } else {
+          tweensN[counter++] = d
+        }
       }
+      tweens = tweensN
+      if (onFrameExe.length > 0) {
+        onFrameExeFun()
+      }
+      vDomUpdates()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      animeFrameId = window.requestAnimationFrame(exeFrameCaller)
     }
-    tweens = tweensN
-    if (onFrameExe.length > 0) {
-      onFrameExeFun()
-    }
-    vDomUpdates()
-    animeFrameId = window.requestAnimationFrame(exeFrameCaller)
   }
 
   function loopCheck (d) {
@@ -3413,7 +3418,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
       if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].stateModified) {
         vDoms[vDomIds[i]].execute()
         vDoms[vDomIds[i]].stateModified = false
-      } else if (vDomIds[i] && vDoms[vDomIds[i]].root) {
+      } else if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].root) {
         var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id)
         if (!elementExists) {
           animatorInstance.removeVdom(vDomIds[i])
@@ -4536,7 +4541,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
 
   DomExe.prototype.exec = function Cexe (exe) {
     if (typeof exe !== 'function') {
-      console.Error('Wrong Exe type')
+      console.error('Wrong Exe type')
     }
     exe.call(this, this.dataObj)
     return this
@@ -4733,7 +4738,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
     } else if (this.type === 'radial' && this.mode === 'absolute') {
       return this.absoluteRadialGradient(ctx)
     }
-    console.Error('wrong Gradiant type')
+    console.error('wrong Gradiant type')
   }
   CanvasGradients.prototype.linearGradient = function GralinearGradient (ctx, BBox) {
     const lGradient = ctx.createLinearGradient(
@@ -5907,7 +5912,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
   }
   CanvasNodeExe.prototype.exec = function Cexe (exe) {
     if (typeof exe !== 'function') {
-      console.Error('Wrong Exe type')
+      console.error('Wrong Exe type')
     }
     exe.call(this, this.dataObj)
     return this

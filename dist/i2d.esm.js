@@ -3639,33 +3639,38 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
   var tweensN = [];
 
   function exeFrameCaller() {
-    tweensN = [];
-    counter = 0;
-    t = performance.now();
+    try {
+      tweensN = [];
+      counter = 0;
+      t = performance.now();
 
-    for (var i = 0; i < tweens.length; i += 1) {
-      d = tweens[i];
-      d.lastTime += t - d.currTime;
-      d.currTime = t;
+      for (var i = 0; i < tweens.length; i += 1) {
+        d = tweens[i];
+        d.lastTime += t - d.currTime;
+        d.currTime = t;
 
-      if (d.lastTime < d.duration && d.lastTime >= 0) {
-        d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)));
-        tweensN[counter++] = d;
-      } else if (d.lastTime > d.duration) {
-        loopCheck(d);
-      } else {
-        tweensN[counter++] = d;
+        if (d.lastTime < d.duration && d.lastTime >= 0) {
+          d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)));
+          tweensN[counter++] = d;
+        } else if (d.lastTime > d.duration) {
+          loopCheck(d);
+        } else {
+          tweensN[counter++] = d;
+        }
       }
+
+      tweens = tweensN;
+
+      if (onFrameExe.length > 0) {
+        onFrameExeFun();
+      }
+
+      vDomUpdates();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      animeFrameId = window.requestAnimationFrame(exeFrameCaller);
     }
-
-    tweens = tweensN;
-
-    if (onFrameExe.length > 0) {
-      onFrameExeFun();
-    }
-
-    vDomUpdates();
-    animeFrameId = window.requestAnimationFrame(exeFrameCaller);
   }
 
   function loopCheck(d) {
@@ -3703,7 +3708,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
       if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].stateModified) {
         vDoms[vDomIds[i]].execute();
         vDoms[vDomIds[i]].stateModified = false;
-      } else if (vDomIds[i] && vDoms[vDomIds[i]].root) {
+      } else if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].root) {
         var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id);
 
         if (!elementExists) {
@@ -5017,7 +5022,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
   DomExe.prototype.exec = function Cexe(exe) {
     if (typeof exe !== 'function') {
-      console.Error('Wrong Exe type');
+      console.error('Wrong Exe type');
     }
 
     exe.call(this, this.dataObj);
@@ -5248,7 +5253,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
       return this.absoluteRadialGradient(ctx);
     }
 
-    console.Error('wrong Gradiant type');
+    console.error('wrong Gradiant type');
   };
 
   CanvasGradients.prototype.linearGradient = function GralinearGradient(ctx, BBox) {
@@ -6655,7 +6660,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
   CanvasNodeExe.prototype.exec = function Cexe(exe) {
     if (typeof exe !== 'function') {
-      console.Error('Wrong Exe type');
+      console.error('Wrong Exe type');
     }
 
     exe.call(this, this.dataObj);
