@@ -3216,7 +3216,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
   const vDomIds = []
   let animeFrameId
 
-  const onFrameExe = []
+  let onFrameExe = []
 
   window.requestAnimationFrame = (function requestAnimationFrameG () {
     return window.requestAnimationFrame ||
@@ -3304,7 +3304,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
     if (animeFrameId) {
       window.cancelAnimFrame(animeFrameId)
       animeFrameId = null
-      tweens = []
     }
   }
 
@@ -3320,8 +3319,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
     onRequestFrame,
     removeRequestFrameCall,
     clearAll () {
+      tweens = []
+      onFrameExe = []
       // if (this.endExe) { this.endExe() }
-      this.stopAnimeFrame()
+      // this.stopAnimeFrame()
     }
   }
 
@@ -3329,6 +3330,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
     let ind = vDomIds.length + 1
     vDoms[ind] = _
     vDomIds.push(ind)
+    this.startAnimeFrames()
     return ind
   }
   ExeQueue.prototype.removeVdom = function removeVdom (_) {
@@ -3338,6 +3340,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
       vDoms[_].root.destroy()
       delete vDoms[_]
     }
+    if (vDomIds.length === 0 && tweens.length === 0 && onFrameExe.length === 0) {
+      this.stopAnimeFrame()
+    }
   }
   ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom) {
     if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
@@ -3345,7 +3350,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* eslint-disabl
     }
   }
   ExeQueue.prototype.execute = function Aexecute () {
-    if (!animeFrameId) { animeFrameId = window.requestAnimationFrame(exeFrameCaller) }
+    this.startAnimeFrames()
   }
 
   let d

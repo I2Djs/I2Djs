@@ -3578,7 +3578,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
     if (animeFrameId) {
       window.cancelAnimFrame(animeFrameId);
       animeFrameId = null;
-      tweens = [];
     }
   }
 
@@ -3593,8 +3592,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
     onRequestFrame: onRequestFrame,
     removeRequestFrameCall: removeRequestFrameCall,
     clearAll: function clearAll() {
-      // if (this.endExe) { this.endExe() }
-      this.stopAnimeFrame();
+      tweens = [];
+      onFrameExe = []; // if (this.endExe) { this.endExe() }
+      // this.stopAnimeFrame()
     }
   };
 
@@ -3602,6 +3602,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
     var ind = vDomIds.length + 1;
     vDoms[ind] = _;
     vDomIds.push(ind);
+    this.startAnimeFrames();
     return ind;
   };
 
@@ -3615,6 +3616,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
 
       delete vDoms[_];
     }
+
+    if (vDomIds.length === 0 && tweens.length === 0 && onFrameExe.length === 0) {
+      this.stopAnimeFrame();
+    }
   };
 
   ExeQueue.prototype.vDomChanged = function AvDomChanged(vDom) {
@@ -3624,9 +3629,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
   };
 
   ExeQueue.prototype.execute = function Aexecute() {
-    if (!animeFrameId) {
-      animeFrameId = window.requestAnimationFrame(exeFrameCaller);
-    }
+    this.startAnimeFrames();
   };
 
   var d;
