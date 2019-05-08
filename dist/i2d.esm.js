@@ -3700,7 +3700,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
 
   function vDomUpdates() {
     for (var i = 0, len = vDomIds.length; i < len; i += 1) {
-      if (vDomIds[i] && vDoms[vDomIds[i]].stateModified) {
+      if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].stateModified) {
         vDoms[vDomIds[i]].execute();
         vDoms[vDomIds[i]].stateModified = false;
       } else if (vDomIds[i] && vDoms[vDomIds[i]].root) {
