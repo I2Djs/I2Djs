@@ -27,8 +27,8 @@ npm install i2djs --save
 ```
 
 ## Resources
-[API reference](https://github.com/I2Djs/I2Djs/wiki)
-[I2Djs Medium Article](https://medium.com/@narayanaswamy14/i2djs-integrated-2d-js-328549ef642)
+* [API reference](https://github.com/I2Djs/I2Djs/wiki)  
+* [I2Djs Medium Article](https://medium.com/@narayanaswamy14/i2djs-integrated-2d-js-328549ef642)
 
 Examples (SVG + Canvas + WebGL)
 ---
