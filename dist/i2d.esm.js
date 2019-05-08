@@ -3578,7 +3578,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
     if (animeFrameId) {
       window.cancelAnimFrame(animeFrameId);
       animeFrameId = null;
-      tweens = [];
     }
   }
 
@@ -3593,8 +3592,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
     onRequestFrame: onRequestFrame,
     removeRequestFrameCall: removeRequestFrameCall,
     clearAll: function clearAll() {
-      // if (this.endExe) { this.endExe() }
-      this.stopAnimeFrame();
+      tweens = [];
+      onFrameExe = []; // if (this.endExe) { this.endExe() }
+      // this.stopAnimeFrame()
     }
   };
 
@@ -3602,6 +3602,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
     var ind = vDomIds.length + 1;
     vDoms[ind] = _;
     vDomIds.push(ind);
+    this.startAnimeFrames();
     return ind;
   };
 
@@ -3615,6 +3616,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
 
       delete vDoms[_];
     }
+
+    if (vDomIds.length === 0 && tweens.length === 0 && onFrameExe.length === 0) {
+      this.stopAnimeFrame();
+    }
   };
 
   ExeQueue.prototype.vDomChanged = function AvDomChanged(vDom) {
@@ -3624,9 +3629,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
   };
 
   ExeQueue.prototype.execute = function Aexecute() {
-    if (!animeFrameId) {
-      animeFrameId = window.requestAnimationFrame(exeFrameCaller);
-    }
+    this.startAnimeFrames();
   };
 
   var d;
@@ -3636,33 +3639,38 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
   var tweensN = [];
 
   function exeFrameCaller() {
-    tweensN = [];
-    counter = 0;
-    t = performance.now();
+    try {
+      tweensN = [];
+      counter = 0;
+      t = performance.now();
 
-    for (var i = 0; i < tweens.length; i += 1) {
-      d = tweens[i];
-      d.lastTime += t - d.currTime;
-      d.currTime = t;
+      for (var i = 0; i < tweens.length; i += 1) {
+        d = tweens[i];
+        d.lastTime += t - d.currTime;
+        d.currTime = t;
 
-      if (d.lastTime < d.duration && d.lastTime >= 0) {
-        d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)));
-        tweensN[counter++] = d;
-      } else if (d.lastTime > d.duration) {
-        loopCheck(d);
-      } else {
-        tweensN[counter++] = d;
+        if (d.lastTime < d.duration && d.lastTime >= 0) {
+          d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)));
+          tweensN[counter++] = d;
+        } else if (d.lastTime > d.duration) {
+          loopCheck(d);
+        } else {
+          tweensN[counter++] = d;
+        }
       }
+
+      tweens = tweensN;
+
+      if (onFrameExe.length > 0) {
+        onFrameExeFun();
+      }
+
+      vDomUpdates();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      animeFrameId = window.requestAnimationFrame(exeFrameCaller);
     }
-
-    tweens = tweensN;
-
-    if (onFrameExe.length > 0) {
-      onFrameExeFun();
-    }
-
-    vDomUpdates();
-    animeFrameId = window.requestAnimationFrame(exeFrameCaller);
   }
 
   function loopCheck(d) {
@@ -3697,10 +3705,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof
 
   function vDomUpdates() {
     for (var i = 0, len = vDomIds.length; i < len; i += 1) {
-      if (vDomIds[i] && vDoms[vDomIds[i]].stateModified) {
+      if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].stateModified) {
         vDoms[vDomIds[i]].execute();
         vDoms[vDomIds[i]].stateModified = false;
-      } else if (vDomIds[i] && vDoms[vDomIds[i]].root) {
+      } else if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].root) {
         var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id);
 
         if (!elementExists) {
@@ -5014,7 +5022,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
   DomExe.prototype.exec = function Cexe(exe) {
     if (typeof exe !== 'function') {
-      console.Error('Wrong Exe type');
+      console.error('Wrong Exe type');
     }
 
     exe.call(this, this.dataObj);
@@ -5245,7 +5253,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
       return this.absoluteRadialGradient(ctx);
     }
 
-    console.Error('wrong Gradiant type');
+    console.error('wrong Gradiant type');
   };
 
   CanvasGradients.prototype.linearGradient = function GralinearGradient(ctx, BBox) {
@@ -6652,7 +6660,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
   CanvasNodeExe.prototype.exec = function Cexe(exe) {
     if (typeof exe !== 'function') {
-      console.Error('Wrong Exe type');
+      console.error('Wrong Exe type');
     }
 
     exe.call(this, this.dataObj);
