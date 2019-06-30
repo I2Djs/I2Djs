@@ -15,16 +15,19 @@ I2D also provides a unique data-driven approach with **join-actions** for DOM ma
 
 ## Installing
 
+### If npm
+```
+npm install i2djs --save
+```
 Download source code from below links
 
 * [i2D.min.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.min.js)
 * [i2D.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.js) 
 * [i2D.esm.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.esm.js)
 
-### npm Installation
-```
-npm install i2djs --save
-```
+I2Djs is written in ES6 Modules.
+
+
 
 ## Resources
 * [API reference](https://github.com/I2Djs/I2Djs/wiki)  
