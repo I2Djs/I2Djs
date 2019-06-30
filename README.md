@@ -25,7 +25,17 @@ Download source code from below links
 * [i2D.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.js) 
 * [i2D.esm.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.esm.js)
 
-I2Djs is written in ES6 Modules.
+I2Djs is written in ES6 Modules. To import use below syntax
+
+Importing everthing into namespace
+```
+import * as i2d from 'i2djs'
+```
+
+Importing individual modules:
+```
+import {CanvasLayer} from 'Canvas'
+```
 
 
 
