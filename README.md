@@ -15,7 +15,7 @@ I2D also provides a unique data-driven approach with **join-actions** for DOM ma
 
 ## Installing
 
-### If npm
+If npm
 ```
 npm install i2djs --save
 ```
