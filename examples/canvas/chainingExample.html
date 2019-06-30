@@ -12,16 +12,7 @@
         </form>
     </div>
     
-	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
-     <script type="text/javascript" src="../../src/queue.js"></script>
-    <script type="text/javascript" src="../../src/colorMap.js"></script>
-	<script type="text/javascript" src="../../src/geometry.js"></script>
-	<script type="text/javascript" src="../../src/easing.js"></script>
-    <script type="text/javascript" src="../../src/vDom.js"></script>
-    <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/path.js"></script>
-    <script type="text/javascript" src="../../src/shaders.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>
+	<script type="text/javascript" src="../../dist/i2d.js"></script>
 
 	<script type="text/javascript">
 var renderer_ = i2d.CanvasLayer('#Mycanvas', {
@@ -42,8 +33,13 @@ let selectedtype = 'parallel';
 function onRadiobuttonClick (type) {
   selectedtype = type;
   var data = DataGen({x:0,y:0, width: 100, p: {x: 0, y:0}});
-  g.fetchEls('line').remove();
-  g.fetchEls('circle').remove();
+  if (g.fetchEls('line')){
+    g.fetchEls('line').remove();
+  }
+  if (g.fetchEls('circle')) {
+    g.fetchEls('circle').remove();
+  }
+  
   i2d.queue.clearAll();
   render(data);
 }
