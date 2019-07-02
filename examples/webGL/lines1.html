@@ -16,13 +16,13 @@
 
 		var linesData = []
 		for(let i=0; i< 10000; i++) {
-			let x1 = Math.random()*1400
+			let x1 = Math.random()*900
 			let y1 = Math.random()*900
 			linesData.push({
 				x1: x1,
 				y1: y1,
-				x2: x1 + 20,
-				y2: y1 + 20
+				x2: x1 + 1,
+				y2: y1 + 1
 			})
 		}
 		
@@ -41,7 +41,7 @@
 			})
 		
 		linesRef.animateTo({
-				duration:2000,
+				duration:500,
 				loop: 100,
 				direction: 'alternate',
 				attr:{
@@ -51,7 +51,7 @@
 					},
 					y2: function(d) {
 						let y2 = this.getAttr('x2')
-						return y2 + 20
+						return y2
 					}
 				}
 			})

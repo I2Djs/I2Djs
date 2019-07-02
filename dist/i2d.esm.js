@@ -122,9 +122,7 @@ ExeQueue.prototype.removeVdom = function removeVdom (_) {
 
   if (index !== -1) {
     vDomIds.splice(index, 1);
-
     vDoms[_].root.destroy();
-
     delete vDoms[_];
   }
 
@@ -141,6 +139,21 @@ ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom) {
 
 ExeQueue.prototype.execute = function Aexecute () {
   this.startAnimeFrames();
+};
+
+ExeQueue.prototype.vDomUpdates = function () {
+  for (let i = 0, len = vDomIds.length; i < len; i += 1) {
+    if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].stateModified) {
+      vDoms[vDomIds[i]].execute();
+      vDoms[vDomIds[i]].stateModified = false;
+    } else if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].root) {
+      var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id);
+
+      if (!elementExists) {
+        this.removeVdom(vDomIds[i]);
+      }
+    }
+  }
 };
 
 let d;
@@ -176,7 +189,7 @@ function exeFrameCaller () {
       onFrameExeFun();
     }
 
-    vDomUpdates();
+    animatorInstance.vDomUpdates();
   } catch (err) {
     console.error(err);
   } finally {
@@ -214,22 +227,9 @@ function onFrameExeFun () {
   }
 }
 
-function vDomUpdates () {
-  for (let i = 0, len = vDomIds.length; i < len; i += 1) {
-    if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].stateModified) {
-      vDoms[vDomIds[i]].execute();
-      vDoms[vDomIds[i]].stateModified = false;
-    } else if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].root) {
-      var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id);
+animatorInstance = new ExeQueue();
 
-      if (!elementExists) {
-        animatorInstance.removeVdom(vDomIds[i]);
-      }
-    }
-  }
-}
-
-var queue = new ExeQueue(); // default function animateQueue () {
+var queue = animatorInstance; // default function animateQueue () {
 //   if (!animatorInstance) { animatorInstance = new ExeQueue() }
 //   return animatorInstance
 // }
