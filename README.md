@@ -34,7 +34,7 @@ import * as i2d from 'i2djs'
 
 Importing individual modules:
 ```
-import {CanvasLayer} from 'Canvas'
+import {CanvasLayer} from 'i2djs'
 ```
 
 
