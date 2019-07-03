@@ -11,14 +11,7 @@
 	</div>
 	<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/webcola@3.3.6/WebCola/cola.min.js"></script>
-    <script type="text/javascript" src="../../src/colorMap.js"></script>
-	<script type="text/javascript" src="../../src/geometry.js"></script>
-	<script type="text/javascript" src="../../src/easing.js"></script>
-    <script type="text/javascript" src="../../src/vDom.js"></script>
-	<script type="text/javascript" src="../../src/queue.js"></script>
-    <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/path.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>
+    <script type="text/javascript" src="../../dist/i2d.js"></script>
 
 	<script type="text/javascript">
 
@@ -28,7 +21,7 @@
         var nodeToEdgeTree = {}
         var width = 1200, height = 600
         var renderer_ = i2d.CanvasLayer('#myCanvas',{events:true,selectiveClear:false});
-        var dragEvent = i2d.dragEvent()
+        var dragEvent = i2d.behaviour.drag()
 
             dragEvent.dragStart(function(d,e){
 

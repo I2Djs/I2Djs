@@ -1,21 +1,11 @@
 /* eslint-disable no-undef */
-(function easing (root, factory) {
-  const i2d = root
-  if (typeof module === 'object' && module.exports) {
-    module.exports = factory()
-  } else if (typeof define === 'function' && define.amd) {
-    define('shaders', [], () => factory())
-  } else {
-    i2d.shaders = factory()
-  }
-}(this, () => {
-  'use strict'
-  function shaders (el) {
-    let res
-    switch (el) {
-      case 'point':
-        res = {
-          vertexShader: `
+function shaders (el) {
+  let res
+
+  switch (el) {
+    case 'point':
+      res = {
+        vertexShader: `
           attribute vec2 a_position;
           attribute vec4 a_color;
           attribute float a_size;
@@ -33,18 +23,19 @@
             v_color = a_color;
           }
           `,
-          fragmentShader: `
+        fragmentShader: `
                     precision mediump float;
                     varying vec4 v_color;
                     void main() {
                         gl_FragColor = v_color;
                     }
                     `
-        }
-        break
-      case 'circle':
-        res = {
-          vertexShader: `
+      }
+      break
+
+    case 'circle':
+      res = {
+        vertexShader: `
           attribute vec2 a_position;
           attribute vec4 a_color;
           attribute float a_radius;
@@ -61,7 +52,7 @@
             v_color = a_color;
           }
           `,
-          fragmentShader: `
+        fragmentShader: `
                     precision mediump float;
                     varying vec4 v_color;
                     void main() {
@@ -72,15 +63,16 @@
                         discard;
                       }
                       delta = 0.09;
-                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);                      
+                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);
                       gl_FragColor = v_color * alpha;
                     }
                     `
-        }
-        break
-      case 'image':
-        res = {
-          vertexShader: `
+      }
+      break
+
+    case 'image':
+      res = {
+        vertexShader: `
                     attribute vec2 a_position;
                     attribute vec2 a_texCoord;
                     uniform vec2 u_resolution;
@@ -94,7 +86,7 @@
                       v_texCoord = a_texCoord;
                     }
           `,
-          fragmentShader: `
+        fragmentShader: `
                     precision mediump float;
                     uniform sampler2D u_image;
                     varying vec2 v_texCoord;
@@ -102,11 +94,12 @@
                       gl_FragColor = texture2D(u_image, v_texCoord);
                     }
                     `
-        }
-        break
-      default:
-        res = {
-          vertexShader: `
+      }
+      break
+
+    default:
+      res = {
+        vertexShader: `
                     attribute vec2 a_position;
                     attribute vec4 a_color;
                     uniform vec2 u_resolution;
@@ -120,17 +113,17 @@
                     v_color = a_color;
                     }
                     `,
-          fragmentShader: `
+        fragmentShader: `
                     precision mediump float;
                     varying vec4 v_color;
                     void main() {
                         gl_FragColor = v_color;
                     }
                     `
-        }
-    }
-    return res
+      }
   }
 
-  return shaders
-}))
+  return res
+}
+
+export default shaders

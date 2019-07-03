@@ -1,5 +1,5 @@
 <p align="center"> 
-  <img src="https://github.com/I2Djs/I2Djs/blob/master/i2djsLogo.png" width=500>
+  <img src="https://github.com/I2Djs/I2Djs/blob/master/i2djsLogo.png?raw=true" width=500>
 </p>
 
 # Integrated-2D js [![npm](https://img.shields.io/npm/v/i2djs.svg)](https://www.npmjs.com/package/i2djs) [![Downloads](https://img.shields.io/npm/dm/i2djs.svg)](https://www.npmjs.com/package/i2djs)
@@ -15,16 +15,29 @@ I2D also provides a unique data-driven approach with **join-actions** for DOM ma
 
 ## Installing
 
+If npm
+```
+npm install i2djs --save
+```
 Download source code from below links
 
 * [i2D.min.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.min.js)
 * [i2D.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.js) 
 * [i2D.esm.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.esm.js)
 
-### npm Installation
+I2Djs is written in ES6 Modules. To import use below syntax
+
+Importing everthing into namespace
 ```
-npm install i2djs --save
+import * as i2d from 'i2djs'
 ```
+
+Importing individual modules:
+```
+import {CanvasLayer} from 'i2djs'
+```
+
+
 
 ## Resources
 * [API reference](https://github.com/I2Djs/I2Djs/wiki)  

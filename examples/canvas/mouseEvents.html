@@ -28,11 +28,8 @@
                     attr:{
                         x:50,
                         y:100,
-                        width:100,
-                        height:100,
-                        transform:{
-                            translate:[100,100]
-                        }
+                        width:0,
+                        height:100
                     },
                     style:{
                         fillStyle:'red',
@@ -42,7 +39,10 @@
                         shadowOffsetY:15
                     }
                 })
-                .on('mouseover',function(){
+                .on('click', () => {
+                    console.log('sdssfsdf');
+                })
+                .on('mouseover',() => {
                     console.log('mouseover');
                 })
                 .on('mousemove',function(){
@@ -50,7 +50,9 @@
                 })
                 .on('mouseout',function(){
                     console.log('mouseout');
-                });
+                })
+                
+            rect.setAttr('width', 100);
         
         var linearGradient = renderer.createLinearGradient({id: 'linearG', x1: 0, y1: 0, x2: 0, y2: 100, colorStops: [{color: '#948e4e', value: 0}, {color: '#faed68', value: 50}, {color: '#948e4e', value: 100}]});
 			
