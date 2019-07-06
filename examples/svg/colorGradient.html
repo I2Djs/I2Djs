@@ -5,58 +5,71 @@
 </head>
 <body style="height: 100%">
 
-	<div id="mySvg" style="height: 100%;width:100%">
-	</div>
-    <script type="text/javascript" src="../../dist/i2d.js"></script>
+<div id="mySvg" style="height: 100%;width:100%">
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-	<script type="text/javascript">
+<script type="text/javascript">
 
-        var renderer_ = i2d.SVGLayer('#mySvg');
-        var nodes = [];
+var renderer_ = i2d.SVGLayer('#mySvg');
+var nodes = [];
 
-        var linearGradiant = renderer_.createLinearGradient({id:'linearG',x1:0,y1:0,x2:0,y2:100,colorStops:[{color:'red',value:0},{color:'green',value:100}]})
-        var radialGradiant = renderer_.createRadialGradient({
-                                                            id:'radialG',
-                                                            mode:'absolute',
-                                                            innerCircle:{x:50,y:50,r:0},
-                                                            outerCircle:{x:50,y:50,r:50},
-                                                            colorStops:[{color:'red',value:0},
-                                                                        {color:'yellow',value:25},
-                                                                        {color:'green',value:50},
-                                                                        {color:'blue',value:75},
-                                                                        {color:'rgba(255,255,255,0)',value:100}]
-                                                            });
+var linearGradiant = renderer_.createLinearGradient({
+	id: 'linearG',
+	x1: 0,
+	y1: 0,
+	x2: 0,
+	y2: 100,
+	colorStops: [{ color: 'red', value: 0 }, { color: 'green', value: 100 }]
+});
+var radialGradiant = renderer_.createRadialGradient({
+	id: 'radialG',
+	mode: 'absolute',
+	innerCircle: { x: 50, y: 50, r: 0 },
+	outerCircle: { x: 50, y: 50, r: 50 },
+	colorStops: [{ color: 'red', value: 0 },
+		{ color: 'yellow', value: 25 },
+		{ color: 'green', value: 50 },
+		{ color: 'blue', value: 75 },
+		{ color: 'rgba(255,255,255,0)', value: 100 }]
+});
 
-                
+renderer_.createEls([1, 2, 3, 4, 5, 6], {
+	el: 'rect',
+	attr: {
+		x: function (d, i) {
+			return Math.random() * 600;
+		},
+		y: function (d, i) {
+			return Math.random() * 600;
+		}
+	},
+	style: {
+		fill: linearGradiant
+	}
+}).forEach(function (d, i) {
+	var size = Math.random() * 100 + 50;
+	this.setAttr('width', size)
+		.setAttr('height', size);
+});
 
-                renderer_.createEls([1,2,3,4,5,6],{
-                    el:'rect',
-                    attr:{
-                        x:function(d,i){return Math.random()*600},
-                        y:function(d,i){return Math.random()*600}
-                    },
-                    style:{
-                            fill:linearGradiant
-                        }
-                }).forEach(function(d,i){
-                    var size = Math.random()*100+50;
-                    this.setAttr('width',size)
-                        .setAttr('height',size)
-                });
+renderer_.createEls([1, 2, 3, 4, 5, 6], {
+	el: 'circle',
+	attr: {
+		cx: function (d, i) {
+			return Math.random() * 600;
+		},
+		cy: function (d, i) {
+			return Math.random() * 600;
+		},
+		r: Math.random() * 100
+	},
+	style: {
+		fill: radialGradiant
+	}
+});
 
-                renderer_.createEls([1,2,3,4,5,6],{
-                    el:'circle',
-                    attr:{
-                        cx:function(d,i){return Math.random()*600},
-                        cy:function(d,i){return Math.random()*600},
-                        r: Math.random()*100
-                    },
-                    style:{
-                            fill:radialGradiant
-                        }
-                })
-
-	</script>
+</script>
 
 </body>
 </html>

@@ -2,12 +2,12 @@
 <html lang="en" style="height: 100%">
 
 <head>
-    <title></title>
+	<title></title>
 </head>
 <body style="height: 100%">
 <input type="file" onchange="onFileSelected(event)" value="chose picture">
 <div id="imgParent" style="display: none">
-    <img id="myimage">
+	<img id="myimage">
 </div>
 <div id="myCanvas" style="height: 100%;width:100%">
 
@@ -16,106 +16,114 @@
 
 <script type="text/javascript">
 
-        var imgtag = document.getElementById("myimage");
-        imgtag.onload = render;
+var imgtag = document.getElementById('myimage');
+imgtag.onload = render;
 
-        function onFileSelected(event) {
-            var selectedFile = event.target.files[0];
-            var reader = new FileReader();
-            imgtag.title = selectedFile.name;
+function onFileSelected (event) {
+	var selectedFile = event.target.files[0];
+	var reader = new FileReader();
+	imgtag.title = selectedFile.name;
 
-            reader.onload = function (event) {
-                imgtag.src = event.target.result;
-            };
-            reader.readAsDataURL(selectedFile);
-        }
+	reader.onload = function (event) {
+		imgtag.src = event.target.result;
+	};
+	reader.readAsDataURL(selectedFile);
+}
 
-        var renderer_ = i2d.SVGLayer('#myCanvas', {
-            events: true,
-            selectiveClear: false
-        });
-        var height = renderer_.height
-        var width = renderer_.width
-        var wh = Math.min(height, width)
-        var canvas;
-        var diameter;
+var renderer_ = i2d.SVGLayer('#myCanvas', {
+	events: true,
+	selectiveClear: false
+});
+var height = renderer_.height;
+var width = renderer_.width;
+var wh = Math.min(height, width);
+var canvas;
+var diameter;
 
-        var g = renderer_.createEl({
-            el: 'group'
-        })
+var g = renderer_.createEl({
+	el: 'group'
+});
 
-        function buildCanvas() {
+function buildCanvas () {
 
-            var img = imgtag;
+	var img = imgtag;
 
-            width = img.naturalWidth,
-            height = img.naturalHeight;
+	width = img.naturalWidth,
+		height = img.naturalHeight;
 
-            diameter = Math.max(width, height);
-            canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            context = canvas.getContext('2d')
-            context.drawImage(img, 0, 0, width, height);
-        };
-        function breakCircle(d, i) {
-            var t_x = (this.getAttr('cx'));
-            var t_y = (this.getAttr('cy'));
-            var t_r = this.getAttr('r');
-            if (t_r < 2) {
-                return
-            };
-            var r_ = (t_r / 2);
-            var newCircleArr = [{ x: t_x - r_, y: t_y - r_, r: r_}, {x: t_x + r_, y: t_y - r_, r: r_}, 
-            {x: t_x - r_, y: t_y + r_, r: r_ }, { x: t_x + r_, y: t_y + r_, r: r_}];
+	diameter = Math.max(width, height);
+	canvas = document.createElement('canvas');
+	canvas.width = width;
+	canvas.height = height;
+	context = canvas.getContext('2d');
+	context.drawImage(img, 0, 0, width, height);
+};
 
-            this.remove();
+function breakCircle (d, i) {
+	var t_x = (this.getAttr('cx'));
+	var t_y = (this.getAttr('cy'));
+	var t_r = this.getAttr('r');
+	if (t_r < 2) {
+		return;
+	}
+	;
+	var r_ = (t_r / 2);
+	var newCircleArr = [{ x: t_x - r_, y: t_y - r_, r: r_ }, { x: t_x + r_, y: t_y - r_, r: r_ },
+		{ x: t_x - r_, y: t_y + r_, r: r_ }, { x: t_x + r_, y: t_y + r_, r: r_ }];
 
-            g.createEls(newCircleArr, {
-                el: 'circle',
-                attr: {
-                    cx: t_x, cy: t_y, r: r_
-                },
-                style: {
-                    fill: function (d) {
-                        var pixelData = context.getImageData(parseInt(t_x), parseInt(t_y), 1, 1).data;
-                        return 'rgba(' + pixelData[0] + ',' + pixelData[1] + ',' + pixelData[2] + ',' + pixelData[3] + ')';
-                    }
-                }
-            }).animateTo({
-                duration: r_ * 10 > 1000 ? 1000 : r_ * 10,
-                attr: {
-                    cx: function (d) { return d.x },
-                    cy: function (d) { return d.y },
-                    r: function (d) { return d.r }
-                },
-                style: {
-                    fill: function (d) {
-                        var pixelData = context.getImageData(parseInt(d.x), parseInt(d.y), 1, 1).data;
-                        return 'rgba(' + (pixelData[0] + 1) + ',' + pixelData[1] + ',' + pixelData[2] + ',' + pixelData[3] + ')';
-                    }
-                },
-                end: function (d) {
-                    this.on('mouseover', breakCircle);
-                }
-            });
-        }
+	this.remove();
 
-        function render() {
-            buildCanvas();
-            var pixelData = context.getImageData(parseInt(width / 2), parseInt(height / 2), 1, 1).data;
+	g.createEls(newCircleArr, {
+		el: 'circle',
+		attr: {
+			cx: t_x, cy: t_y, r: r_
+		},
+		style: {
+			fill: function (d) {
+				var pixelData = context.getImageData(parseInt(t_x), parseInt(t_y), 1, 1).data;
+				return 'rgba(' + pixelData[0] + ',' + pixelData[1] + ',' + pixelData[2] + ',' + pixelData[3] + ')';
+			}
+		}
+	}).animateTo({
+		duration: r_ * 10 > 1000 ? 1000 : r_ * 10,
+		attr: {
+			cx: function (d) {
+				return d.x;
+			},
+			cy: function (d) {
+				return d.y;
+			},
+			r: function (d) {
+				return d.r;
+			}
+		},
+		style: {
+			fill: function (d) {
+				var pixelData = context.getImageData(parseInt(d.x), parseInt(d.y), 1, 1).data;
+				return 'rgba(' + (pixelData[0] + 1) + ',' + pixelData[1] + ',' + pixelData[2] + ',' + pixelData[3] + ')';
+			}
+		},
+		end: function (d) {
+			this.on('mouseover', breakCircle);
+		}
+	});
+}
 
-            g.createEl({
-                el: 'circle',
-                attr: {
-                    cx: width / 2, cy: height / 2,r: diameter / 2
-                },
-                style: {
-                    fill: 'rgba(' + (pixelData[0] + 1) + ',' + pixelData[1] + ',' + pixelData[2] + ', ' + pixelData[3] + ')'
-                }
-            }).on('mouseover', breakCircle)
-        }
-    </script>
+function render () {
+	buildCanvas();
+	var pixelData = context.getImageData(parseInt(width / 2), parseInt(height / 2), 1, 1).data;
+
+	g.createEl({
+		el: 'circle',
+		attr: {
+			cx: width / 2, cy: height / 2, r: diameter / 2
+		},
+		style: {
+			fill: 'rgba(' + (pixelData[0] + 1) + ',' + pixelData[1] + ',' + pixelData[2] + ', ' + pixelData[3] + ')'
+		}
+	}).on('mouseover', breakCircle);
+}
+</script>
 
 </body>
 

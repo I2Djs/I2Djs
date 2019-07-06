@@ -4,143 +4,146 @@
 	<title></title>
 </head>
 <body style="height: 100%">
-    <label style="position: absolute; color: black"> Canvas Example </label>
-	<div id="myCanvas" style="height: 100%;width:100%">
-	</div>
-    <script src="https://d3js.org/d3.v4.min.js"></script>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+<label style="position: absolute; color: black"> Canvas Example </label>
+<div id="myCanvas" style="height: 100%;width:100%">
+</div>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-	<script type="text/javascript">
+<script type="text/javascript">
 
-        var width = 600
-        var height = 600
-        var renderer = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
-        var noOfPoints = 7000
-        var points = []
-        var pointSize = 4
-            for( var i = 0; i< noOfPoints; i++){
-                points.push({id:i})
-            }
-        var joinRef;
-        
-        points = spiralLayout(points, pointSize, width, height)
-        // points = phyllotaxisLayout(points, pointSize+3, width/2, height/2)
-        setTimeout(function(){
-            phyllotaxisLayout(points, pointSize+3, width/2, height/2)
-            joinRef.update()
+var width = 600;
+var height = 600;
+var renderer = i2d.CanvasLayer('#myCanvas', { events: false, selectiveClear: false });
+var noOfPoints = 7000;
+var points = [];
+var pointSize = 4;
+for (var i = 0; i < noOfPoints; i++) {
+	points.push({ id: i });
+}
+var joinRef;
 
-            setTimeout(function(){
-                gridLayout(points, pointSize+3, width)
-                joinRef.update()
-            },1500)
+points = spiralLayout(points, pointSize, width, height);
+// points = phyllotaxisLayout(points, pointSize+3, width/2, height/2)
+setTimeout(function () {
+	phyllotaxisLayout(points, pointSize + 3, width / 2, height / 2);
+	joinRef.update();
 
-        },1500)
+	setTimeout(function () {
+		gridLayout(points, pointSize + 3, width);
+		joinRef.update();
+	}, 1500);
 
-        var g = renderer.createEl({
-            el:'group',
-            bbox: false,
-            style:{
-                fillStyle:'red'
-            }
-        })
+}, 1500);
 
-        joinRef = g.join(points,'rect',{
-            action:{
-                enter: function(data){
-                    this.createEls(data.rect,{
-                        el:'rect',
-                        attr:{
-                            width:pointSize,
-                            height:pointSize,
-                            x:width/2,
-                            y:height/2
-                        }
-                        
-                    }).animateTo({
-                        duration:1000,
-                        ease:'easeInOutSin',
-                        attr:{
-                            x:function(d){return d.x},
-                            y:function(d){return d.y}
-                        }
-                    })
-                },
-                exit: function(){
+var g = renderer.createEl({
+	el: 'group',
+	bbox: false,
+	style: {
+		fillStyle: 'red'
+	}
+});
 
-                },
-                update: function(nodes){
-                    nodes.rect.animateTo({
-                        duration:1000,
-                        ease:'easeInOutSin',
-                        attr:{
-                            x:function(d){return d.x},
-                            y:function(d){return d.y}
-                        }
-                    })
-                }
-            }
-        })
+joinRef = g.join(points, 'rect', {
+	action: {
+		enter: function (data) {
+			this.createEls(data.rect, {
+				el: 'rect',
+				attr: {
+					width: pointSize,
+					height: pointSize,
+					x: width / 2,
+					y: height / 2
+				}
 
-        function phyllotaxisLayout(points, pointSize, xOffset = 0, yOffset = 0, iOffset = 0) {
-            // theta determines the spiral of the layout
-            const theta = Math.PI * (3 - Math.sqrt(5));
+			}).animateTo({
+				duration: 1000,
+				ease: 'easeInOutSin',
+				attr: {
+					x: function (d) {
+						return d.x;
+					},
+					y: function (d) {
+						return d.y;
+					}
+				}
+			});
+		},
+		exit: function () {
 
-            const pointRadius = pointSize / 2;
+		},
+		update: function (nodes) {
+			nodes.rect.animateTo({
+				duration: 1000,
+				ease: 'easeInOutSin',
+				attr: {
+					x: function (d) {
+						return d.x;
+					},
+					y: function (d) {
+						return d.y;
+					}
+				}
+			});
+		}
+	}
+});
 
-            points.forEach((point, i) => {
-                const index = (i + iOffset) % points.length;
-                const phylloX = pointRadius * Math.sqrt(index) * Math.cos(index * theta);
-                const phylloY = pointRadius * Math.sqrt(index) * Math.sin(index * theta);
+function phyllotaxisLayout (points, pointSize, xOffset = 0, yOffset = 0, iOffset = 0) {
+	// theta determines the spiral of the layout
+	const theta = Math.PI * (3 - Math.sqrt(5));
 
-                point.x = xOffset + phylloX - pointRadius;
-                point.y = yOffset + phylloY - pointRadius;
-            });
+	const pointRadius = pointSize / 2;
 
-            return points;
-        }
+	points.forEach((point, i) => {
+		const index = (i + iOffset) % points.length;
+		const phylloX = pointRadius * Math.sqrt(index) * Math.cos(index * theta);
+		const phylloY = pointRadius * Math.sqrt(index) * Math.sin(index * theta);
 
-        function gridLayout(points, pointWidth, gridWidth) {
-            const pointHeight = pointWidth;
-            const pointsPerRow = Math.floor(gridWidth / pointWidth);
-            const numRows = points.length / pointsPerRow;
+		point.x = xOffset + phylloX - pointRadius;
+		point.y = yOffset + phylloY - pointRadius;
+	});
 
-            points.forEach((point, i) => {
-                point.x = pointWidth * (i % pointsPerRow);
-                point.y = pointHeight * Math.floor(i / pointsPerRow);
-            });
+	return points;
+}
 
-            return points;
-        }
+function gridLayout (points, pointWidth, gridWidth) {
+	const pointHeight = pointWidth;
+	const pointsPerRow = Math.floor(gridWidth / pointWidth);
+	const numRows = points.length / pointsPerRow;
 
-        function spiralLayout(points, pointWidth, width, height) {
-        const amplitude = 0.3 * (height / 2);
-        const xOffset = width / 2;
-        const yOffset = height / 2;
-        const periods = 20;
+	points.forEach((point, i) => {
+		point.x = pointWidth * (i % pointsPerRow);
+		point.y = pointHeight * Math.floor(i / pointsPerRow);
+	});
 
-        const rScale = d3.scaleLinear()
-            .domain([0, points.length -1])
-            .range([0, Math.min(width / 2, height / 2) - pointWidth]);
+	return points;
+}
 
-        const thetaScale = d3.scaleLinear()
-            .domain([0, points.length - 1])
-            .range([0, periods * 2 * Math.PI]);
+function spiralLayout (points, pointWidth, width, height) {
+	const amplitude = 0.3 * (height / 2);
+	const xOffset = width / 2;
+	const yOffset = height / 2;
+	const periods = 20;
 
-        points.forEach((point, i) => {
-            point.x = rScale(i) * Math.cos(thetaScale(i)) + xOffset
-            point.y = rScale(i) * Math.sin(thetaScale(i)) + yOffset;
-        });
+	const rScale = d3.scaleLinear()
+		.domain([0, points.length - 1])
+		.range([0, Math.min(width / 2, height / 2) - pointWidth]);
 
-        return points;
-        }
+	const thetaScale = d3.scaleLinear()
+		.domain([0, points.length - 1])
+		.range([0, periods * 2 * Math.PI]);
 
-        
+	points.forEach((point, i) => {
+		point.x = rScale(i) * Math.cos(thetaScale(i)) + xOffset;
+		point.y = rScale(i) * Math.sin(thetaScale(i)) + yOffset;
+	});
 
-        
+	return points;
+}
 
 
-
-	</script>
+</script>
 
 </body>
 </html>

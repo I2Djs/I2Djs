@@ -2,55 +2,57 @@
 <html style="height: 100%">
 <head>
 	<title></title>
-    <style>
+	<style>
 
-        body {
-        margin: 0;
-        background: #222;
-        min-width: 960px;
-        }
+		body {
+			margin: 0;
+			background: #222;
+			min-width: 960px;
+		}
 
-        rect {
-        fill: none;
-        pointer-events: all;
-        }
+		rect {
+			fill: none;
+			pointer-events: all;
+		}
 
-        circle {
-        fill: none;
-        stroke-width: 2.5px;
-        }
+		circle {
+			fill: none;
+			stroke-width: 2.5px;
+		}
 
-    </style>
+	</style>
 </head>
 <body style="height: 100%">
 
-	<div id="mySvg" style="height: 100%;width:100%;background: black"> </div>
-    
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+<div id="mySvg" style="height: 100%;width:100%;background: black"></div>
 
-	<script type="text/javascript">
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-        var renderer_ = i2d.SVGLayer('#mySvg');
-            var i = 0;
-            var sqrt = Math.sqrt
-                window.addEventListener("mousemove",function(e){
-                    renderer_.createEl({
-                        el:'circle',
-                        attr:{ r:0, cx:e.x, cy:e.y },
-                        style:{ 'stroke-opacity':1, stroke:'hsl('+(i = (i + 1) % 360)+',100%,50%)'}
-                    })
-                    .animateTo({
-                            duration: 2000,
-                            ease: sqrt,
-                            attr:{ r:100 },
-                            style:{ 'stroke-opacity':0 },
-                            end:function(){ this.remove(); }
-                    });
-                    
-                    e.preventDefault();
-                });
-                
-	</script>
+<script type="text/javascript">
+
+var renderer_ = i2d.SVGLayer('#mySvg');
+var i = 0;
+var sqrt = Math.sqrt;
+window.addEventListener('mousemove', function (e) {
+	renderer_.createEl({
+		el: 'circle',
+		attr: { r: 0, cx: e.x, cy: e.y },
+		style: { 'stroke-opacity': 1, stroke: 'hsl(' + (i = (i + 1) % 360) + ',100%,50%)' }
+	})
+		.animateTo({
+			duration: 2000,
+			ease: sqrt,
+			attr: { r: 100 },
+			style: { 'stroke-opacity': 0 },
+			end: function () {
+				this.remove();
+			}
+		});
+
+	e.preventDefault();
+});
+
+</script>
 
 </body>
 </html>
