@@ -2,70 +2,74 @@
 <html style="height: 100%">
 <head>
 	<title></title>
-    <style>
+	<style>
 
-        body {
-        margin: 0;
-        background: #222;
-        min-width: 960px;
-        }
+		body {
+			margin: 0;
+			background: #222;
+			min-width: 960px;
+		}
 
-        rect {
-        fill: none;
-        pointer-events: all;
-        }
+		rect {
+			fill: none;
+			pointer-events: all;
+		}
 
-        circle {
-        fill: none;
-        stroke-width: 2.5px;
-        }
+		circle {
+			fill: none;
+			stroke-width: 2.5px;
+		}
 
-    </style>
+	</style>
 </head>
 <body style="height: 100%">
 
-	<div id="mySvg" style="height: 100%;width:100%;background: black"> </div>
-    
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+<div id="mySvg" style="height: 100%;width:100%;background: black"></div>
 
-	<script type="text/javascript">
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-        var renderer_ = i2d.SVGLayer('#mySvg');
-            var i = 0;
-            var sqrt = Math.sqrt
-            var data = []
+<script type="text/javascript">
 
-            for(let i = 0; i <60; i++){
-                data.push(i)
-            }
-               
-        var circles = renderer_.createEls(data,{
-                        el:'circle',
-                        attr:{ r:0, cx:500, cy:500 },
-                        style:{ 
-                            'stroke-opacity':1,
-                            fill: 'none',
-                            stroke: function(d, i){
-                                return 'hsl('+(i = (i + 1) % 360)+',100%,50%)'
-                            }
-                        }
-                    })
-                    .animateTo({
-                            duration: 3000,
-                            delay: function(d) {return d*50;},
-                            ease: sqrt,
-                            loop: 100,
-                            attr:{ r:200 },
-                            style:{ 'stroke-opacity':0 },
-                            end:function(){ this.remove(); }
-                    });
+var renderer_ = i2d.SVGLayer('#mySvg');
+var i = 0;
+var sqrt = Math.sqrt;
+var data = [];
 
-                //  window.addEventListener("mousemove",function(e){
-                //      circles.setAttr('cx',e.x).setAttr('cy',e.y);
-                //     e.preventDefault();
-                // });
-                
-	</script>
+for (let i = 0; i < 60; i++) {
+	data.push(i);
+}
+
+var circles = renderer_.createEls(data, {
+	el: 'circle',
+	attr: { r: 0, cx: 500, cy: 500 },
+	style: {
+		'stroke-opacity': 1,
+		fill: 'none',
+		stroke: function (d, i) {
+			return 'hsl(' + (i = (i + 1) % 360) + ',100%,50%)';
+		}
+	}
+})
+	.animateTo({
+		duration: 3000,
+		delay: function (d) {
+			return d * 50;
+		},
+		ease: sqrt,
+		loop: 100,
+		attr: { r: 200 },
+		style: { 'stroke-opacity': 0 },
+		end: function () {
+			this.remove();
+		}
+	});
+
+//  window.addEventListener("mousemove",function(e){
+//      circles.setAttr('cx',e.x).setAttr('cy',e.y);
+//     e.preventDefault();
+// });
+
+</script>
 
 </body>
 </html>

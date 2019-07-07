@@ -5,124 +5,125 @@
 </head>
 <body style="height: 100%">
 
-	<div id="Mycanvas" style="height: 100%;width:100%;position: absolute;background: black; color: #27ace5">
-        <form>
-            <input type="radio" name="type" value="parallel" checked onclick="onRadiobuttonClick('parallel');"> Parallel Chain
-            <input type="radio" name="type" value="sequence" onclick="onRadiobuttonClick('sequence');"> Sequence Chain
-        </form>
-    </div>
-    
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+<div id="Mycanvas" style="height: 100%;width:100%;position: absolute;background: black; color: #27ace5">
+	<form>
+		<input type="radio" name="type" value="parallel" checked onclick="onRadiobuttonClick('parallel');"> Parallel
+		Chain
+		<input type="radio" name="type" value="sequence" onclick="onRadiobuttonClick('sequence');"> Sequence Chain
+	</form>
+</div>
 
-	<script type="text/javascript">
+<script type="text/javascript" src="../../dist/i2d.js"></script>
+
+<script type="text/javascript">
 var renderer_ = i2d.CanvasLayer('#Mycanvas', {
-    events: false,
-    selectiveClear: false
+	events: false,
+	selectiveClear: false
 });
 
 var g = renderer_.createEl({
-  el: 'group',
-  attr: {
-    transform: {
-      translate: [renderer_.width/2, 200]
-    }
-  }
+	el: 'group',
+	attr: {
+		transform: {
+			translate: [renderer_.width / 2, 200]
+		}
+	}
 });
 
 let selectedtype = 'parallel';
+
 function onRadiobuttonClick (type) {
-  selectedtype = type;
-  var data = DataGen({x:0,y:0, width: 100, p: {x: 0, y:0}});
-  if (g.fetchEls('line')){
-    g.fetchEls('line').remove();
-  }
-  if (g.fetchEls('circle')) {
-    g.fetchEls('circle').remove();
-  }
-  
-  i2d.queue.clearAll();
-  render(data);
+	selectedtype = type;
+	var data = DataGen({ x: 0, y: 0, width: 100, p: { x: 0, y: 0 } });
+	if (g.fetchEls('line')) {
+		g.fetchEls('line').remove();
+	}
+	if (g.fetchEls('circle')) {
+		g.fetchEls('circle').remove();
+	}
+
+	i2d.queue.clearAll();
+	render(data);
 }
 
-onRadiobuttonClick ('parallel')
+onRadiobuttonClick('parallel');
 
 function render (d) {
-  var chain = (selectedtype === 'parallel' ? i2d.chain.parallelChain() : i2d.chain.sequenceChain());
-  g.createEls(d.children, {
-    el: 'line',
-    attr: {
-      x1: d.x, y1: d.y,
-      x2: d.x, y2: d.y
-    },
-    style: {
-      strokeStyle: 'green'
-    }
-  }).forEach(function (da) {
-    
-    g.createEl({
-      el: 'circle',
-      attr: {
-        cx: da.p.x, cy: da.p.y, r: 0
-      },
-      style: { fillStyle: 'white' }
-    }).animateTo({
-        duration: 500,
-        attr: {
-            r: 2
-        }
-    });
-    
-    chain.add(this.animateExe({
-      duration: 2000,
-      ease: 'easeInOutSin',
-      attr: {
-        x2: da.x,
-        y2: da.y
-      },
-      end: function (d) {
-        render(d);
-      }
-    }))
-  });
-  
-  chain.start();
-}
+	var chain = (selectedtype === 'parallel' ? i2d.chain.parallelChain() : i2d.chain.sequenceChain());
+	g.createEls(d.children, {
+		el: 'line',
+		attr: {
+			x1: d.x, y1: d.y,
+			x2: d.x, y2: d.y
+		},
+		style: {
+			strokeStyle: 'green'
+		}
+	}).forEach(function (da) {
 
+		g.createEl({
+			el: 'circle',
+			attr: {
+				cx: da.p.x, cy: da.p.y, r: 0
+			},
+			style: { fillStyle: 'white' }
+		}).animateTo({
+			duration: 500,
+			attr: {
+				r: 2
+			}
+		});
+
+		chain.add(this.animateExe({
+			duration: 2000,
+			ease: 'easeInOutSin',
+			attr: {
+				x2: da.x,
+				y2: da.y
+			},
+			end: function (d) {
+				render(d);
+			}
+		}));
+	});
+
+	chain.start();
+}
 
 function DataGen (obj) {
-  let child = [];
-  if (obj.x === 0 && obj.y === 0 && obj.width > 25) {
-    child.push(DataGen({x: obj.width, y: obj.width, width: obj.width, p: obj}))
-    child.push(DataGen({x: -obj.width, y: obj.width, width: obj.width, p: obj}))
-    child.push(DataGen({x: obj.width, y: -obj.width, width: obj.width, p: obj}))
-    child.push(DataGen({x: -obj.width, y: -obj.width, width: obj.width, p: obj}))
-  }
-  if ((obj.x - obj.p.x) > 0 && (obj.y - obj.p.y) > 0 && obj.width > 10) {
-    child.push(DataGen({x: (obj.x + obj.width / 2), y: (obj.y + obj.width / 2), width: obj.width / 2, p: obj}))
-    child.push(DataGen({x: (obj.x - obj.width / 2), y: (obj.y + obj.width / 2), width: obj.width / 2, p: obj}))
-    child.push(DataGen({x: (obj.x + obj.width / 2), y: (obj.y - obj.width / 2), width: obj.width / 2, p: obj}))
-  }
-  if ((obj.x - obj.p.x) < 0 && (obj.y - obj.p.y) < 0 && obj.width > 10) {
-    child.push(DataGen({x: (obj.x - obj.width / 2), y: (obj.y - obj.width / 2), width: obj.width / 2, p: obj}))
-    child.push(DataGen({x: (obj.x - obj.width / 2), y: (obj.y + obj.width / 2), width: obj.width / 2, p: obj}))
-    child.push(DataGen({x: (obj.x + obj.width / 2), y: (obj.y - obj.width / 2), width: obj.width / 2, p: obj}))
-  }
-  if ((obj.x - obj.p.x) > 0 && (obj.y - obj.p.y) < 0 && obj.width > 10) {
-    child.push(DataGen({x: (obj.x + obj.width / 2), y: (obj.y - obj.width / 2), width: obj.width / 2, p: obj}))
-    child.push(DataGen({x: (obj.x - obj.width / 2), y: (obj.y - obj.width / 2), width: obj.width / 2, p: obj}))
-    child.push(DataGen({x: (obj.x + obj.width / 2), y: (obj.y + obj.width / 2), width: obj.width / 2, p: obj}))
-  }
-  if ((obj.x - obj.p.x) < 0 && (obj.y - obj.p.y) > 0 && obj.width > 10) {
-    child.push(DataGen({x: (obj.x - obj.width / 2), y: (obj.y + obj.width / 2), width: obj.width / 2, p: obj}))
-    child.push(DataGen({x: (obj.x - obj.width / 2), y: (obj.y - obj.width / 2), width: obj.width / 2, p: obj}))
-    child.push(DataGen({x: (obj.x + obj.width / 2), y: (obj.y + obj.width / 2), width: obj.width / 2, p: obj}))
-  }
-  
-  obj.children = child;
-  return obj;
+	let child = [];
+	if (obj.x === 0 && obj.y === 0 && obj.width > 25) {
+		child.push(DataGen({ x: obj.width, y: obj.width, width: obj.width, p: obj }));
+		child.push(DataGen({ x: -obj.width, y: obj.width, width: obj.width, p: obj }));
+		child.push(DataGen({ x: obj.width, y: -obj.width, width: obj.width, p: obj }));
+		child.push(DataGen({ x: -obj.width, y: -obj.width, width: obj.width, p: obj }));
+	}
+	if ((obj.x - obj.p.x) > 0 && (obj.y - obj.p.y) > 0 && obj.width > 10) {
+		child.push(DataGen({ x: (obj.x + obj.width / 2), y: (obj.y + obj.width / 2), width: obj.width / 2, p: obj }));
+		child.push(DataGen({ x: (obj.x - obj.width / 2), y: (obj.y + obj.width / 2), width: obj.width / 2, p: obj }));
+		child.push(DataGen({ x: (obj.x + obj.width / 2), y: (obj.y - obj.width / 2), width: obj.width / 2, p: obj }));
+	}
+	if ((obj.x - obj.p.x) < 0 && (obj.y - obj.p.y) < 0 && obj.width > 10) {
+		child.push(DataGen({ x: (obj.x - obj.width / 2), y: (obj.y - obj.width / 2), width: obj.width / 2, p: obj }));
+		child.push(DataGen({ x: (obj.x - obj.width / 2), y: (obj.y + obj.width / 2), width: obj.width / 2, p: obj }));
+		child.push(DataGen({ x: (obj.x + obj.width / 2), y: (obj.y - obj.width / 2), width: obj.width / 2, p: obj }));
+	}
+	if ((obj.x - obj.p.x) > 0 && (obj.y - obj.p.y) < 0 && obj.width > 10) {
+		child.push(DataGen({ x: (obj.x + obj.width / 2), y: (obj.y - obj.width / 2), width: obj.width / 2, p: obj }));
+		child.push(DataGen({ x: (obj.x - obj.width / 2), y: (obj.y - obj.width / 2), width: obj.width / 2, p: obj }));
+		child.push(DataGen({ x: (obj.x + obj.width / 2), y: (obj.y + obj.width / 2), width: obj.width / 2, p: obj }));
+	}
+	if ((obj.x - obj.p.x) < 0 && (obj.y - obj.p.y) > 0 && obj.width > 10) {
+		child.push(DataGen({ x: (obj.x - obj.width / 2), y: (obj.y + obj.width / 2), width: obj.width / 2, p: obj }));
+		child.push(DataGen({ x: (obj.x - obj.width / 2), y: (obj.y - obj.width / 2), width: obj.width / 2, p: obj }));
+		child.push(DataGen({ x: (obj.x + obj.width / 2), y: (obj.y + obj.width / 2), width: obj.width / 2, p: obj }));
+	}
+
+	obj.children = child;
+	return obj;
 }
 
-	</script>
+</script>
 
 </body>
 </html>

@@ -5,42 +5,58 @@
 </head>
 <body style="height: 100%">
 
-	<div id="mySvg" style="height: 100%;width:100%">
-	</div>
-    
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+<div id="mySvg" style="height: 100%;width:100%">
+</div>
 
-	<script type="text/javascript">
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-        var renderer = i2d.SVGLayer('#mySvg');
+<script type="text/javascript">
 
-        var data= [];
-            for(var i=1;i<=10;i++){ data.push(i); }
+var renderer = i2d.SVGLayer('#mySvg');
 
-        var g = renderer.createEl({
-                    el:'g',
-                    attr:{
-                        transform:{
-                            translate:[100,100]
-                        }
-                    }
-                })
+var data = [];
+for (var i = 1; i <= 10; i++) {
+	data.push(i);
+}
 
-            g.createEls(data,{
-                    el:'circle',
-                    attr:{
-                        r:function(d,i){ return Math.abs(Math.sin(d*20*3.142/180))*10; },
-                        cx:function(d,i){ return (d/Math.sqrt(data.length))*100+100; },
-                        cy:function(d,i){ return (d%Math.sqrt(data.length))*70+100; }
-                    },
-                    style:{ fill:'red' }
-                })
-                .on('click',function(){ console.log('circle click'); })
-                .on('dblclick',function(){ this.setStyle('fill','#a1d99b'); })
-                .on('mouseover',function(){ this.setStyle('stroke','black').setStyle('stroke-width','2px'); })
-                .on('mouseout',function(){ this.setStyle('stroke','black').setStyle('stroke-width','1px'); })
+var g = renderer.createEl({
+	el: 'g',
+	attr: {
+		transform: {
+			translate: [100, 100]
+		}
+	}
+});
 
-	</script>
+g.createEls(data, {
+	el: 'circle',
+	attr: {
+		r: function (d, i) {
+			return Math.abs(Math.sin(d * 20 * 3.142 / 180)) * 10;
+		},
+		cx: function (d, i) {
+			return (d / Math.sqrt(data.length)) * 100 + 100;
+		},
+		cy: function (d, i) {
+			return (d % Math.sqrt(data.length)) * 70 + 100;
+		}
+	},
+	style: { fill: 'red' }
+})
+	.on('click', function () {
+		console.log('circle click');
+	})
+	.on('dblclick', function () {
+		this.setStyle('fill', '#a1d99b');
+	})
+	.on('mouseover', function () {
+		this.setStyle('stroke', 'black').setStyle('stroke-width', '2px');
+	})
+	.on('mouseout', function () {
+		this.setStyle('stroke', 'black').setStyle('stroke-width', '1px');
+	});
+
+</script>
 
 </body>
 </html>

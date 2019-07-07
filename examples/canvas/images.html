@@ -5,53 +5,53 @@
 </head>
 <body style="height: 100%">
 
-	<div id="canvas" style="height: 100%;width:100%;">
-	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+<div id="canvas" style="height: 100%;width:100%;">
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-	<script type="text/javascript">
-        var canvasRenderer = i2d.CanvasLayer('#canvas',{events:false,selectiveClear:false});
+<script type="text/javascript">
+var canvasRenderer = i2d.CanvasLayer('#canvas', { events: false, selectiveClear: false });
 
-		var imagesRef = canvasRenderer
-            .createEl({
-                    el:'image',
-                    attr:{
-                        x: Math.random() * 1100,
-                        y: Math.random() * 800,
-                        width: 100,
-                        height: 100,
-                        src: '../images/leaves2.jpg',
-                        onload: function () {
-                            console.log();
-                        },
-                        onerror: function (error) {
-                                this.setAttr('src', '../images/leaves.jpg')
-                        }
-                    }
-                })
-        
-        // var rectsRef = webglRenderer.createEl({
-        //         el:'group',
-        //         shaderType:'points'
-        //     })
-        //     .createEls(rectsData,{
-        //             el:'point',
-        //             attr:{
-        //                 x: function() { return Math.random()*1400 },
-        //                 y: function() { return Math.random()*900 },
-        //                 size: 4
-        //             },
-        //             style: {
-        //                 fill: i2d.color.rgba(parseInt(Math.random()*255), parseInt(Math.random()*255), parseInt(Math.random()*255), 255)
-        //             }
-        //         }).animateTo({
-        //             duration:5000,
-        //             attr:{
-        //                 x: function() { return Math.random()*1400 },
-        //                 y: function() { return Math.random()*900 },
-        //             }
-        //         })
-	</script>   
+var imagesRef = canvasRenderer
+	.createEl({
+		el: 'image',
+		attr: {
+			x: Math.random() * 1100,
+			y: Math.random() * 800,
+			width: 100,
+			height: 100,
+			src: '../images/leaves2.jpg',
+			onload: function () {
+				console.log();
+			},
+			onerror: function (error) {
+				this.setAttr('src', '../images/leaves.jpg');
+			}
+		}
+	});
+
+// var rectsRef = webglRenderer.createEl({
+//         el:'group',
+//         shaderType:'points'
+//     })
+//     .createEls(rectsData,{
+//             el:'point',
+//             attr:{
+//                 x: function() { return Math.random()*1400 },
+//                 y: function() { return Math.random()*900 },
+//                 size: 4
+//             },
+//             style: {
+//                 fill: i2d.color.rgba(parseInt(Math.random()*255), parseInt(Math.random()*255), parseInt(Math.random()*255), 255)
+//             }
+//         }).animateTo({
+//             duration:5000,
+//             attr:{
+//                 x: function() { return Math.random()*1400 },
+//                 y: function() { return Math.random()*900 },
+//             }
+//         })
+</script>
 
 </body>
 </html>
