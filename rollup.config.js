@@ -7,10 +7,11 @@ import buble from 'rollup-plugin-buble';
 const version = process.env.VERSION || require('./package.json').version;
 const author = require('./package.json').author;
 const license = require('./package.json').license;
+
 const banner =
 	`/*!
       * i2djs v${version}
-      * (c) ${new Date().getFullYear()} ${author}
+      * (c) ${new Date().getFullYear()} ${author} (narayanaswamy14@gmail.com)
       * @license ${license}
       */`;
 

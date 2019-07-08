@@ -1,6 +1,6 @@
 /*!
       * i2djs v2.0.2
-      * (c) 2019 Narayana Swamy
+      * (c) 2019 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
 (function (global, factory) {
