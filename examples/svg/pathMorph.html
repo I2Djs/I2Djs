@@ -5,37 +5,37 @@
 </head>
 <body style="height: 100%">
 
-	<div id="mySvg" style="height: 100%;width:100%">
-	</div>
-    
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+<div id="mySvg" style="height: 100%;width:100%">
+</div>
 
-	<script type="text/javascript">
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-        var renderer = i2d.SVGLayer('#mySvg', {});
-                
-                    renderer.createEl({
-                        el:'path',
-                        attr:{
-                            d:"M100,250 C100,100 400,100 400,250 z"
-                        },
-                        style:{
-                            'stroke-width':'2px',
-                            stroke:'#f00000',
-                            fill:'none'
-                        }
-                    })
-                    .morphTo({
-                        duration:1000,
-                        direction:'alternate',
-                        ease:'linear',
-                        loop:10,
-                        attr:{
-                            d:"M100,250 C500,66 -1,48 400,250"                            
-                        }
-                    })
+<script type="text/javascript">
 
-	</script>
+var renderer = i2d.SVGLayer('#mySvg', {});
+
+renderer.createEl({
+	el: 'path',
+	attr: {
+		d: 'M100,250 C100,100 400,100 400,250 z'
+	},
+	style: {
+		'stroke-width': '2px',
+		stroke: '#f00000',
+		fill: 'none'
+	}
+})
+	.morphTo({
+		duration: 1000,
+		direction: 'alternate',
+		ease: 'linear',
+		loop: 10,
+		attr: {
+			d: 'M100,250 C500,66 -1,48 400,250'
+		}
+	});
+
+</script>
 
 </body>
 </html>

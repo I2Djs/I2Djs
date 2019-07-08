@@ -5,13 +5,13 @@
 </head>
 <body style="height: 100%">
 
-	<div id="canvas" style="height: 100%;width:100%;background: black">
-	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+<div id="canvas" style="height: 100%;width:100%;background: black">
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-	<script type="text/javascript">
-        var webglRenderer = i2d.WebglLayer('#canvas',{events:false,selectiveClear:false});
-        var fragmentShader = `
+<script type="text/javascript">
+var webglRenderer = i2d.WebglLayer('#canvas', { events: false, selectiveClear: false });
+var fragmentShader = `
                                 precision highp float;
 
                                 varying float v_t;
@@ -42,8 +42,8 @@
                                 void main() {
                                 gl_FragColor = vec4(rainbow(v_t / 4.0 + 0.25), 1.0);
                                 }
-                                `
-        var vertexShader = `
+                                `;
+var vertexShader = `
                                 precision highp float;
 
                                 const float PI = 3.14159265359;
@@ -69,70 +69,69 @@
                                 gl_Position = vec4(x2 / 2.0, y2 / 2.0, 0.0, 1.0);
                                 gl_PointSize = 1.5;
                                 }
-                                `
-        let a = -2
-        let b = -2
-        let c = -1.2
-        let d = 2
-        let n = Math.pow(2, 18)
-		var shaderRef = webglRenderer.createShaderEl({
-                    fragmentShader: fragmentShader,
-                    vertexShader: vertexShader,
-                    uniforms:{
-                        u_a: {
-                            type: 'uniform1f',
-                            data: a
-                        },
-                        u_b: {
-                            type: 'uniform1f',
-                            data: b
-                        },
-                        u_c: {
-                            type: 'uniform1f',
-                            data: c
-                        },
-                        u_d: {
-                            type: 'uniform1f',
-                            data: d
-                        }
-                    },
-                    attributes:{
-                        a_position: {
-                            bufferType: 'ARRAY_BUFFER',
-                            drawType: 'STATIC_DRAW',
-                            valueType: 'FLOAT',
-                            size: 2,
-                            data: new Float32Array(n * 2).map(() => Math.random() * 2 - 1)
-                        }
-                    },
-                    drawArrays: {
-                        a_position: {
-                            type: 'POINTS',
-                            start:0,
-                            end: n
-                        }
-                    }
-            })
-            // .addUniform('u_a',{
-            //     type: 'uniform1f',
-            //     data: 10
-            // })
-            // .setUniform('u_a', 10)
-            // .addAttribute('a_position', {
-            //     bufferType: 'ARRAY_BUFFER',
-            //     drawType: 'STATIC_DRAW',
-            //     valueType: 'UNSIGNED_BYTE',
-            //     size: 2,
-            //     drawType: 'POINTS'
-            // })
-            // .setAttribute('a_position',)
+                                `;
+let a = -2;
+let b = -2;
+let c = -1.2;
+let d = 2;
+let n = Math.pow(2, 18);
+var shaderRef = webglRenderer.createShaderEl({
+	fragmentShader: fragmentShader,
+	vertexShader: vertexShader,
+	uniforms: {
+		u_a: {
+			type: 'uniform1f',
+			data: a
+		},
+		u_b: {
+			type: 'uniform1f',
+			data: b
+		},
+		u_c: {
+			type: 'uniform1f',
+			data: c
+		},
+		u_d: {
+			type: 'uniform1f',
+			data: d
+		}
+	},
+	attributes: {
+		a_position: {
+			bufferType: 'ARRAY_BUFFER',
+			drawType: 'STATIC_DRAW',
+			valueType: 'FLOAT',
+			size: 2,
+			data: new Float32Array(n * 2).map(() => Math.random() * 2 - 1)
+		}
+	},
+	drawArrays: {
+		a_position: {
+			type: 'POINTS',
+			start: 0,
+			end: n
+		}
+	}
+});
+// .addUniform('u_a',{
+//     type: 'uniform1f',
+//     data: 10
+// })
+// .setUniform('u_a', 10)
+// .addAttribute('a_position', {
+//     bufferType: 'ARRAY_BUFFER',
+//     drawType: 'STATIC_DRAW',
+//     valueType: 'UNSIGNED_BYTE',
+//     size: 2,
+//     drawType: 'POINTS'
+// })
+// .setAttribute('a_position',)
 
+i2d.queue.onRequestFrame(function (t) {
+	shaderRef.setUniformData('u_a', -2.0 + Math.sin(t / 8000));
+});
 
-            i2d.queue.onRequestFrame(function (t) {
-                shaderRef.setUniformData('u_a', -2.0 + Math.sin(t / 8000))
-            });
-        
-	</script>   
+</script>
 
 </body>
 </html>

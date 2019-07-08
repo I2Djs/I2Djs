@@ -22,12 +22,12 @@
 		};
 	}());
 
-	let animatorInstance = null;
-	let tweens = [];
-	const vDoms = {};
-	const vDomIds = [];
-	let animeFrameId;
-	let onFrameExe = [];
+	var animatorInstance = null;
+	var tweens = [];
+	var vDoms = {};
+	var vDomIds = [];
+	var animeFrameId;
+	var onFrameExe = [];
 
 	function Tween (Id, executable, easying) {
 		this.executable = executable;
@@ -52,7 +52,7 @@
 	};
 
 	Tween.prototype.resetCallBack = function resetCallBack (_) {
-		if (typeof _ !== 'function') return;
+		if (typeof _ !== 'function') { return; }
 		this.callBack = _;
 	}; // function endExe (_) {
 	//   this.endExe = _
@@ -76,7 +76,7 @@
 			throw new Error('Wrong input');
 		}
 
-		let index = onFrameExe.indexOf(_);
+		var index = onFrameExe.indexOf(_);
 
 		if (index !== -1) {
 			onFrameExe.splice(index, 1);
@@ -84,7 +84,7 @@
 	}
 
 	function add (uId, executable, easying) {
-		let exeObj = new Tween(uId, executable, easying);
+		var exeObj = new Tween(uId, executable, easying);
 		exeObj.currTime = performance.now();
 		tweens[tweens.length] = exeObj;
 		this.startAnimeFrames();
@@ -107,13 +107,13 @@
 	}
 
 	ExeQueue.prototype = {
-		startAnimeFrames,
-		stopAnimeFrame,
-		add,
+		startAnimeFrames: startAnimeFrames,
+		stopAnimeFrame: stopAnimeFrame,
+		add: add,
 		// remove: remove,
 		// end: endExe,
-		onRequestFrame,
-		removeRequestFrameCall,
+		onRequestFrame: onRequestFrame,
+		removeRequestFrameCall: removeRequestFrameCall,
 		clearAll: function () {
 			tweens = [];
 			onFrameExe = []; // if (this.endExe) { this.endExe() }
@@ -122,7 +122,7 @@
 	};
 
 	ExeQueue.prototype.addVdom = function AaddVdom (_) {
-		let ind = vDomIds.length + 1;
+		var ind = vDomIds.length + 1;
 		vDoms[ind] = _;
 		vDomIds.push(ind);
 		this.startAnimeFrames();
@@ -130,7 +130,7 @@
 	};
 
 	ExeQueue.prototype.removeVdom = function removeVdom (_) {
-		let index = vDomIds.indexOf(_);
+		var index = vDomIds.indexOf(_);
 
 		if (index !== -1) {
 			vDomIds.splice(index, 1);
@@ -154,7 +154,7 @@
 	};
 
 	ExeQueue.prototype.vDomUpdates = function () {
-		for (let i = 0, len = vDomIds.length; i < len; i += 1) {
+		for (var i = 0, len = vDomIds.length; i < len; i += 1) {
 			if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].stateModified) {
 				vDoms[vDomIds[i]].execute();
 				vDoms[vDomIds[i]].stateModified = false;
@@ -168,11 +168,11 @@
 		}
 	};
 
-	let d;
-	let t;
-	let abs = Math.abs;
-	let counter = 0;
-	let tweensN = [];
+	var d;
+	var t;
+	var abs = Math.abs;
+	var counter = 0;
+	var tweensN = [];
 
 	function exeFrameCaller () {
 		try {
@@ -180,7 +180,7 @@
 			counter = 0;
 			t = performance.now();
 
-			for (let i = 0; i < tweens.length; i += 1) {
+			for (var i = 0; i < tweens.length; i += 1) {
 				d = tweens[i];
 				d.lastTime += t - d.currTime;
 				d.currTime = t;
@@ -234,7 +234,7 @@
 	}
 
 	function onFrameExeFun () {
-		for (let i = 0; i < onFrameExe.length; i += 1) {
+		for (var i = 0; i < onFrameExe.length; i += 1) {
 			onFrameExe[i](t);
 		}
 	}
@@ -261,8 +261,8 @@
 	};
 
 	VDom.prototype.eventsCheck = function eventsCheck (nodes, mouseCoor, rawEvent) {
-		const self = this;
-		let node, temp;
+		var self = this;
+		var node, temp;
 
 		for (var i = 0; i <= nodes.length - 1; i += 1) {
 			var d = nodes[i];
@@ -346,14 +346,16 @@
 	// }
 
 	function transformCoOr (d, coOr) {
-		let hozMove = 0;
-		let verMove = 0;
-		let scaleX = 1;
-		let scaleY = 1;
-		const coOrLocal = coOr;
+		var assign;
+
+		var hozMove = 0;
+		var verMove = 0;
+		var scaleX = 1;
+		var scaleY = 1;
+		var coOrLocal = coOr;
 
 		if (d.attr.transform && d.attr.transform.translate) {
-			[hozMove, verMove] = d.attr.transform.translate;
+			(assign = d.attr.transform.translate, hozMove = assign[0], verMove = assign[1]);
 			coOrLocal.x -= hozMove;
 			coOrLocal.y -= verMove;
 		}
@@ -366,9 +368,9 @@
 		}
 
 		if (d.attr.transform && d.attr.transform.rotate) {
-			const rotate = d.attr.transform.rotate[0]; // const { BBox } = d.dom
+			var rotate = d.attr.transform.rotate[0]; // const { BBox } = d.dom
 
-			const cen = {
+			var cen = {
 				x: d.attr.transform.rotate[1],
 				y: d.attr.transform.rotate[2] // {
 				//   x: (BBox.x + (BBox.width / 2) - hozMove) / scaleX,
@@ -378,10 +380,10 @@
 				// const angle = Math.atan2(coOr.y - cen.y, coOr.x - cen.x)
 
 			};
-			let x = coOrLocal.x;
-			let y = coOrLocal.y;
-			let cx = cen.x;
-			let cy = cen.y;
+			var x = coOrLocal.x;
+			var y = coOrLocal.y;
+			var cx = cen.x;
+			var cy = cen.y;
 			var radians = Math.PI / 180 * rotate;
 			var cos = Math.cos(radians);
 			var sin = Math.sin(radians);
@@ -401,10 +403,10 @@
 	//   return Math.sin(a)
 	// }
 	function pw (a, x) {
-		let val = 1;
-		if (x === 0) return val;
+		var val = 1;
+		if (x === 0) { return val; }
 
-		for (let i = 1; i <= x; i += 1) {
+		for (var i = 1; i <= x; i += 1) {
 			val *= a;
 		}
 
@@ -433,21 +435,21 @@
 	// }
 
 	function bezierLength (p0, p1, p2) {
-		const a = {};
-		const b = {};
+		var a = {};
+		var b = {};
 		a.x = p0.x + p2.x - (2 * p1.x);
 		a.y = p0.y + p2.y - (2 * p1.y);
 		b.x = (2 * p1.x) - (2 * p0.x);
 		b.y = (2 * p1.y) - (2 * p0.y);
-		const A = 4 * ((a.x * a.x) + (a.y * a.y));
-		const B = 4 * ((a.x * b.x) + (a.y * b.y));
-		const C = (b.x * b.x) + (b.y * b.y);
-		const Sabc = 2 * Math.sqrt(A + B + C);
-		const A_2 = Math.sqrt(A);
-		const A_32 = 2 * A * A_2;
-		const C_2 = 2 * Math.sqrt(C);
-		const BA = B / A_2;
-		let logVal = ((2 * A_2) + BA + Sabc) / (BA + C_2);
+		var A = 4 * ((a.x * a.x) + (a.y * a.y));
+		var B = 4 * ((a.x * b.x) + (a.y * b.y));
+		var C = (b.x * b.x) + (b.y * b.y);
+		var Sabc = 2 * Math.sqrt(A + B + C);
+		var A_2 = Math.sqrt(A);
+		var A_32 = 2 * A * A_2;
+		var C_2 = 2 * Math.sqrt(C);
+		var BA = B / A_2;
+		var logVal = ((2 * A_2) + BA + Sabc) / (BA + C_2);
 		logVal = isNaN(logVal) || Math.abs(logVal) === Infinity ? 1 : logVal;
 		return ((A_32 * Sabc) + (A_2 * B * (Sabc - C_2)) + (((4 * C * A) - (B * B)) * Math.log(logVal))) / (4 * A_32);
 	} // function bezierLengthOld (p0, p1, p2) {
@@ -465,13 +467,13 @@
 	// }
 
 	function cubicBezierLength (p0, co) {
-		const interval = 0.001;
-		let sum = 0;
-		const cubicBezierTransitionInstance = cubicBezierTransition.bind(null, p0, co);
-		let p1;
-		let p2;
+		var interval = 0.001;
+		var sum = 0;
+		var cubicBezierTransitionInstance = cubicBezierTransition.bind(null, p0, co);
+		var p1;
+		var p2;
 
-		for (let i = 0; i <= 1; i += interval) {
+		for (var i = 0; i <= 1; i += interval) {
 			p1 = cubicBezierTransitionInstance(i);
 			p2 = cubicBezierTransitionInstance(i + interval);
 			sum += sqrt(pw((p2.x - p1.x) / interval, 2) + pw((p2.y - p1.y) / interval, 2)) * interval;
@@ -481,9 +483,9 @@
 	}
 
 	function getDistance (p1, p2) {
-		let cPw = 0;
+		var cPw = 0;
 
-		for (const p in p1) {
+		for (var p in p1) {
 			cPw += pw(p2[p] - p1[p], 2);
 		}
 
@@ -501,9 +503,9 @@
 	// * p2.x + p2.y * p2.y + p2.z * p2.z))) }
 
 	function scaleAlongOrigin (co, factor) {
-		const co_ = {};
+		var co_ = {};
 
-		for (const prop in co) {
+		for (var prop in co) {
 			co_[prop] = co[prop] * factor;
 		}
 
@@ -511,9 +513,9 @@
 	}
 
 	function scaleAlongPoint (p, r, f) {
-		const s = (p.y - r.y) / (p.x - r.x);
-		const xX = p.x * f;
-		const yY = ((s * (xX - r.x)) + r.y) * f;
+		var s = (p.y - r.y) / (p.x - r.x);
+		var xX = p.x * f;
+		var yY = ((s * (xX - r.x)) + r.y) * f;
 		return {
 			x: xX,
 			y: yY
@@ -521,19 +523,19 @@
 	}
 
 	function cubicBezierCoefficients (p) {
-		const cx = 3 * (p.cntrl1.x - p.p0.x);
-		const bx = (3 * (p.cntrl2.x - p.cntrl1.x)) - cx;
-		const ax = p.p1.x - p.p0.x - cx - bx;
-		const cy = 3 * (p.cntrl1.y - p.p0.y);
-		const by = (3 * (p.cntrl2.y - p.cntrl1.y)) - cy;
-		const ay = p.p1.y - p.p0.y - cy - by;
+		var cx = 3 * (p.cntrl1.x - p.p0.x);
+		var bx = (3 * (p.cntrl2.x - p.cntrl1.x)) - cx;
+		var ax = p.p1.x - p.p0.x - cx - bx;
+		var cy = 3 * (p.cntrl1.y - p.p0.y);
+		var by = (3 * (p.cntrl2.y - p.cntrl1.y)) - cy;
+		var ay = p.p1.y - p.p0.y - cy - by;
 		return {
-			cx,
-			bx,
-			ax,
-			cy,
-			by,
-			ay
+			cx: cx,
+			bx: bx,
+			ax: ax,
+			cy: cy,
+			by: by,
+			ay: ay
 		};
 	}
 
@@ -542,14 +544,14 @@
 			return;
 		}
 
-		const _ = stack;
-		const mappedArr = [];
+		var _ = stack;
+		var mappedArr = [];
 
-		for (let i = 0; i < _.length; i += 1) {
+		for (var i = 0; i < _.length; i += 1) {
 			if (['M', 'C', 'S', 'Q'].indexOf(_[i].type) !== -1) {
 				mappedArr.push(_[i]);
 			} else if (['V', 'H', 'L', 'Z'].indexOf(_[i].type) !== -1) {
-				const ctrl1 = {
+				var ctrl1 = {
 					x: (_[i].p0.x + _[i].p1.x) / 2,
 					y: (_[i].p0.y + _[i].p1.y) / 2
 				};
@@ -570,8 +572,8 @@
 	}
 
 	function cubicBezierTransition (p0, co, f) {
-		const p3 = pw(f, 3);
-		const p2 = pw(f, 2);
+		var p3 = pw(f, 3);
+		var p2 = pw(f, 2);
 		return {
 			x: (co.ax * p3) + (co.bx * p2) + (co.cx * f) + p0.x,
 			y: (co.ay * p3) + (co.by * p2) + (co.cy * f) + p0.y
@@ -597,15 +599,15 @@
 	}
 
 	function getBBox (cmxArr) {
-		let minX = Infinity;
-		let minY = Infinity;
-		let maxX = -Infinity;
-		let maxY = -Infinity; // const exe = []
+		var minX = Infinity;
+		var minY = Infinity;
+		var maxX = -Infinity;
+		var maxY = -Infinity; // const exe = []
 
-		let d;
-		let point;
+		var d;
+		var point;
 
-		for (let i = 0; i < cmxArr.length; i += 1) {
+		for (var i = 0; i < cmxArr.length; i += 1) {
 			d = cmxArr[i];
 
 			if (['V', 'H', 'L', 'v', 'h', 'l'].indexOf(d.type) !== -1) {
@@ -627,29 +629,29 @@
 					}
 				});
 			} else if (['Q', 'C', 'q', 'c'].indexOf(d.type) !== -1) {
-				const co = cubicBezierCoefficients(d);
-				let exe = cubicBezierTransition.bind(null, d.p0, co);
-				let ii = 0;
-				let point;
+				var co = cubicBezierCoefficients(d);
+				var exe = cubicBezierTransition.bind(null, d.p0, co);
+				var ii = 0;
+				var point$1 = (void 0);
 
 				while (ii < 1) {
-					point = exe(ii);
+					point$1 = exe(ii);
 					ii += 0.05;
 
-					if (point.x < minX) {
-						minX = point.x;
+					if (point$1.x < minX) {
+						minX = point$1.x;
 					}
 
-					if (point.x > maxX) {
-						maxX = point.x;
+					if (point$1.x > maxX) {
+						maxX = point$1.x;
 					}
 
-					if (point.y < minY) {
-						minY = point.y;
+					if (point$1.y < minY) {
+						minY = point$1.y;
 					}
 
-					if (point.y > maxY) {
-						maxY = point.y;
+					if (point$1.y > maxY) {
+						maxY = point$1.y;
 					}
 				}
 			} else {
@@ -681,26 +683,26 @@
 		};
 	}
 
-	const _slicedToArray = (function () {
+	var _slicedToArray = (function () {
 		function sliceIterator (arr, i) {
-			const _arr = [];
-			let _n = true;
-			let _d = false;
+			var _arr = [];
+			var _n = true;
+			var _d = false;
 
-			let _e;
+			var _e;
 
 			try {
 				for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
 					_arr.push(_s.value);
 
-					if (i && _arr.length === i) break;
+					if (i && _arr.length === i) { break; }
 				}
 			} catch (err) {
 				_d = true;
 				_e = err;
 			} finally {
 				try {
-					if (!_n && _i.return) _i.return();
+					if (!_n && _i.return) { _i.return(); }
 				} finally {
 					if (_d) {
 						// throw _e
@@ -723,29 +725,27 @@
 		};
 	}());
 
-	const TAU = Math.PI * 2;
+	var TAU = Math.PI * 2;
 
-	const mapToEllipse = function mapToEllipse (_ref, rx, ry, cosphi, sinphi, centerx, centery) {
-		let {
-			x,
-			y
-		} = _ref;
+	var mapToEllipse = function mapToEllipse (_ref, rx, ry, cosphi, sinphi, centerx, centery) {
+		var x = _ref.x;
+		var y = _ref.y;
 		x *= rx;
 		y *= ry;
-		const xp = (cosphi * x) - (sinphi * y);
-		const yp = (sinphi * x) + (cosphi * y);
+		var xp = (cosphi * x) - (sinphi * y);
+		var yp = (sinphi * x) + (cosphi * y);
 		return {
 			x: xp + centerx,
 			y: yp + centery
 		};
 	};
 
-	const approxUnitArc = function approxUnitArc (ang1, ang2) {
-		const a = 4 / 3 * Math.tan(ang2 / 4);
-		const x1 = Math.cos(ang1);
-		const y1 = Math.sin(ang1);
-		const x2 = Math.cos(ang1 + ang2);
-		const y2 = Math.sin(ang1 + ang2);
+	var approxUnitArc = function approxUnitArc (ang1, ang2) {
+		var a = 4 / 3 * Math.tan(ang2 / 4);
+		var x1 = Math.cos(ang1);
+		var y1 = Math.sin(ang1);
+		var x2 = Math.cos(ang1 + ang2);
+		var y2 = Math.sin(ang1 + ang2);
 		return [{
 			x: x1 - (y1 * a),
 			y: y1 + (x1 * a)
@@ -758,12 +758,12 @@
 		}];
 	};
 
-	const vectorAngle = function vectorAngle (ux, uy, vx, vy) {
-		const sign = ((ux * vy) - (uy * vx)) < 0 ? -1 : 1;
-		const umag = Math.sqrt((ux * ux) + (uy * uy));
-		const vmag = Math.sqrt((ux * ux) + (uy * uy));
-		const dot = (ux * vx) + (uy * vy);
-		let div = dot / (umag * vmag);
+	var vectorAngle = function vectorAngle (ux, uy, vx, vy) {
+		var sign = ((ux * vy) - (uy * vx)) < 0 ? -1 : 1;
+		var umag = Math.sqrt((ux * ux) + (uy * uy));
+		var vmag = Math.sqrt((ux * ux) + (uy * uy));
+		var dot = (ux * vx) + (uy * vy);
+		var div = dot / (umag * vmag);
 
 		if (div > 1) {
 			div = 1;
@@ -776,12 +776,12 @@
 		return sign * Math.acos(div);
 	};
 
-	const getArcCenter = function getArcCenter (px, py, cx, cy, rx, ry, largeArcFlag, sweepFlag, sinphi, cosphi, pxp, pyp) {
-		const rxsq = pw(rx, 2);
-		const rysq = pw(ry, 2);
-		const pxpsq = pw(pxp, 2);
-		const pypsq = pw(pyp, 2);
-		let radicant = (rxsq * rysq) - (rxsq * pypsq) - (rysq * pxpsq);
+	var getArcCenter = function getArcCenter (px, py, cx, cy, rx, ry, largeArcFlag, sweepFlag, sinphi, cosphi, pxp, pyp) {
+		var rxsq = pw(rx, 2);
+		var rysq = pw(ry, 2);
+		var pxpsq = pw(pxp, 2);
+		var pypsq = pw(pyp, 2);
+		var radicant = (rxsq * rysq) - (rxsq * pypsq) - (rysq * pxpsq);
 
 		if (radicant < 0) {
 			radicant = 0;
@@ -789,16 +789,16 @@
 
 		radicant /= (rxsq * pypsq) + (rysq * pxpsq);
 		radicant = Math.sqrt(radicant) * (largeArcFlag === sweepFlag ? -1 : 1);
-		const centerxp = radicant * rx / ry * pyp;
-		const centeryp = radicant * -ry / rx * pxp;
-		const centerx = (cosphi * centerxp) - (sinphi * centeryp) + ((px + cx) / 2);
-		const centery = (sinphi * centerxp) + (cosphi * centeryp) + ((py + cy) / 2);
-		const vx1 = (pxp - centerxp) / rx;
-		const vy1 = (pyp - centeryp) / ry;
-		const vx2 = (-pxp - centerxp) / rx;
-		const vy2 = (-pyp - centeryp) / ry;
-		const ang1 = vectorAngle(1, 0, vx1, vy1);
-		let ang2 = vectorAngle(vx1, vy1, vx2, vy2);
+		var centerxp = radicant * rx / ry * pyp;
+		var centeryp = radicant * -ry / rx * pxp;
+		var centerx = (cosphi * centerxp) - (sinphi * centeryp) + ((px + cx) / 2);
+		var centery = (sinphi * centerxp) + (cosphi * centeryp) + ((py + cy) / 2);
+		var vx1 = (pxp - centerxp) / rx;
+		var vy1 = (pyp - centeryp) / ry;
+		var vx2 = (-pxp - centerxp) / rx;
+		var vy2 = (-pyp - centeryp) / ry;
+		var ang1 = vectorAngle(1, 0, vx1, vy1);
+		var ang2 = vectorAngle(vx1, vy1, vx2, vy2);
 
 		if (sweepFlag === 0 && ang2 > 0) {
 			ang2 -= TAU;
@@ -811,31 +811,29 @@
 		return [centerx, centery, ang1, ang2];
 	};
 
-	const arcToBezier = function arcToBezier (_ref2) {
-		let {
-			px,
-			py,
-			cx,
-			cy,
-			rx,
-			ry
-		} = _ref2;
-		const _ref2$xAxisRotation = _ref2.xAxisRotation;
-		const xAxisRotation = _ref2$xAxisRotation === undefined ? 0 : _ref2$xAxisRotation;
-		const _ref2$largeArcFlag = _ref2.largeArcFlag;
-		const largeArcFlag = _ref2$largeArcFlag === undefined ? 0 : _ref2$largeArcFlag;
-		const _ref2$sweepFlag = _ref2.sweepFlag;
-		const sweepFlag = _ref2$sweepFlag === undefined ? 0 : _ref2$sweepFlag;
-		const curves = [];
+	var arcToBezier = function arcToBezier (_ref2) {
+		var px = _ref2.px;
+		var py = _ref2.py;
+		var cx = _ref2.cx;
+		var cy = _ref2.cy;
+		var rx = _ref2.rx;
+		var ry = _ref2.ry;
+		var _ref2$xAxisRotation = _ref2.xAxisRotation;
+		var xAxisRotation = _ref2$xAxisRotation === undefined ? 0 : _ref2$xAxisRotation;
+		var _ref2$largeArcFlag = _ref2.largeArcFlag;
+		var largeArcFlag = _ref2$largeArcFlag === undefined ? 0 : _ref2$largeArcFlag;
+		var _ref2$sweepFlag = _ref2.sweepFlag;
+		var sweepFlag = _ref2$sweepFlag === undefined ? 0 : _ref2$sweepFlag;
+		var curves = [];
 
 		if (rx === 0 || ry === 0) {
 			return [];
 		}
 
-		const sinphi = Math.sin(xAxisRotation * TAU / 360);
-		const cosphi = Math.cos(xAxisRotation * TAU / 360);
-		const pxp = (cosphi * (px - cx) / 2) + (sinphi * (py - cy) / 2);
-		const pyp = (-sinphi * (px - cx) / 2) + (cosphi * (py - cy) / 2);
+		var sinphi = Math.sin(xAxisRotation * TAU / 360);
+		var cosphi = Math.cos(xAxisRotation * TAU / 360);
+		var pxp = (cosphi * (px - cx) / 2) + (sinphi * (py - cy) / 2);
+		var pyp = (-sinphi * (px - cx) / 2) + (cosphi * (py - cy) / 2);
 
 		if (pxp === 0 && pyp === 0) {
 			return [];
@@ -843,60 +841,60 @@
 
 		rx = Math.abs(rx);
 		ry = Math.abs(ry);
-		const lambda = (pw(pxp, 2) / pw(rx, 2)) + (pw(pyp, 2) / pw(ry, 2));
+		var lambda = (pw(pxp, 2) / pw(rx, 2)) + (pw(pyp, 2) / pw(ry, 2));
 
 		if (lambda > 1) {
 			rx *= Math.sqrt(lambda);
 			ry *= Math.sqrt(lambda);
 		}
 
-		const _getArcCenter = getArcCenter(px, py, cx, cy, rx, ry, largeArcFlag, sweepFlag, sinphi, cosphi, pxp, pyp);
+		var _getArcCenter = getArcCenter(px, py, cx, cy, rx, ry, largeArcFlag, sweepFlag, sinphi, cosphi, pxp, pyp);
 
-		const _getArcCenter2 = _slicedToArray(_getArcCenter, 4);
+		var _getArcCenter2 = _slicedToArray(_getArcCenter, 4);
 
-		const centerx = _getArcCenter2[0];
-		const centery = _getArcCenter2[1];
-		let ang1 = _getArcCenter2[2];
-		let ang2 = _getArcCenter2[3];
-		const segments = Math.max(Math.ceil(Math.abs(ang2) / (TAU / 4)), 1);
+		var centerx = _getArcCenter2[0];
+		var centery = _getArcCenter2[1];
+		var ang1 = _getArcCenter2[2];
+		var ang2 = _getArcCenter2[3];
+		var segments = Math.max(Math.ceil(Math.abs(ang2) / (TAU / 4)), 1);
 		ang2 /= segments;
 
-		for (let i = 0; i < segments; i++) {
+		for (var i = 0; i < segments; i++) {
 			curves.push(approxUnitArc(ang1, ang2));
 			ang1 += ang2;
 		}
 
-		return curves.map(curve => {
-			const _mapToEllipse = mapToEllipse(curve[0], rx, ry, cosphi, sinphi, centerx, centery);
+		return curves.map(function (curve) {
+			var _mapToEllipse = mapToEllipse(curve[0], rx, ry, cosphi, sinphi, centerx, centery);
 
-			const x1 = _mapToEllipse.x;
-			const y1 = _mapToEllipse.y;
+			var x1 = _mapToEllipse.x;
+			var y1 = _mapToEllipse.y;
 
-			const _mapToEllipse2 = mapToEllipse(curve[1], rx, ry, cosphi, sinphi, centerx, centery);
+			var _mapToEllipse2 = mapToEllipse(curve[1], rx, ry, cosphi, sinphi, centerx, centery);
 
-			const x2 = _mapToEllipse2.x;
-			const y2 = _mapToEllipse2.y;
+			var x2 = _mapToEllipse2.x;
+			var y2 = _mapToEllipse2.y;
 
-			const _mapToEllipse3 = mapToEllipse(curve[2], rx, ry, cosphi, sinphi, centerx, centery);
+			var _mapToEllipse3 = mapToEllipse(curve[2], rx, ry, cosphi, sinphi, centerx, centery);
 
-			const x = _mapToEllipse3.x;
-			const y = _mapToEllipse3.y;
+			var x = _mapToEllipse3.x;
+			var y = _mapToEllipse3.y;
 			return {
-				x1,
-				y1,
-				x2,
-				y2,
-				x,
-				y
+				x1: x1,
+				y1: y1,
+				x2: x2,
+				y2: y2,
+				x: x,
+				y: y
 			};
 		});
 	};
 
 	function rotatePoint (point, centre, newAngle, distance) {
-		let x = point.x;
-		let y = point.y;
-		let cx = centre.x;
-		let cy = centre.y; // let currAngle = this.getAngle(centre, point)
+		var x = point.x;
+		var y = point.y;
+		var cx = centre.x;
+		var cy = centre.y; // let currAngle = this.getAngle(centre, point)
 		// currAngle += (Math.PI / 2)
 
 		var radians = Math.PI / 180 * newAngle;
@@ -915,31 +913,29 @@
 	}
 
 	function rotateBBox (BBox, transform) {
-		let point1 = {
+		var point1 = {
 			x: BBox.x,
 			y: BBox.y
 		};
-		let point2 = {
+		var point2 = {
 			x: BBox.x + BBox.width,
 			y: BBox.y
 		};
-		let point3 = {
+		var point3 = {
 			x: BBox.x,
 			y: BBox.y + BBox.height
 		};
-		let point4 = {
+		var point4 = {
 			x: BBox.x + BBox.width,
 			y: BBox.y + BBox.height
 		};
-		const {
-			translate,
-			rotate
-		} = transform;
-		const cen = {
+		var translate = transform.translate;
+		var rotate = transform.rotate;
+		var cen = {
 			x: rotate[1] || 0,
 			y: rotate[2] || 0
 		};
-		const rotateAngle = rotate[0];
+		var rotateAngle = rotate[0];
 
 		if (translate && translate.length > 0) {
 			cen.x += translate[0];
@@ -950,8 +946,8 @@
 		point2 = rotatePoint(point2, cen, rotateAngle, getDistance(point2, cen));
 		point3 = rotatePoint(point3, cen, rotateAngle, getDistance(point3, cen));
 		point4 = rotatePoint(point4, cen, rotateAngle, getDistance(point4, cen));
-		const xVec = [point1.x, point2.x, point3.x, point4.x].sort((bb, aa) => bb - aa);
-		const yVec = [point1.y, point2.y, point3.y, point4.y].sort((bb, aa) => bb - aa);
+		var xVec = [point1.x, point2.x, point3.x, point4.x].sort(function (bb, aa) { return bb - aa; });
+		var yVec = [point1.y, point2.y, point3.y, point4.y].sort(function (bb, aa) { return bb - aa; });
 		return {
 			x: xVec[0],
 			y: yVec[0],
@@ -966,89 +962,89 @@
 	Geometry.prototype = {
 		pow: pw,
 		getAngle: get2DAngle,
-		getDistance,
-		scaleAlongOrigin,
-		scaleAlongPoint,
+		getDistance: getDistance,
+		scaleAlongOrigin: scaleAlongOrigin,
+		scaleAlongPoint: scaleAlongPoint,
 		linearTransitionBetweenPoints: linearTBetweenPoints,
-		bezierTransition,
-		bezierLength,
-		cubicBezierTransition,
-		cubicBezierLength,
-		cubicBezierCoefficients,
-		arcToBezier,
-		intermediateValue,
-		getBBox,
-		toCubicCurves,
-		rotatePoint,
-		rotateBBox
+		bezierTransition: bezierTransition,
+		bezierLength: bezierLength,
+		cubicBezierTransition: cubicBezierTransition,
+		cubicBezierLength: cubicBezierLength,
+		cubicBezierCoefficients: cubicBezierCoefficients,
+		arcToBezier: arcToBezier,
+		intermediateValue: intermediateValue,
+		getBBox: getBBox,
+		toCubicCurves: toCubicCurves,
+		rotatePoint: rotatePoint,
+		rotateBBox: rotateBBox
 	};
 	var geometry = new Geometry();
 
 	/* eslint-disable no-undef */
 
-	const t2DGeometry = geometry;
+	var t2DGeometry = geometry;
 
 	function linear (starttime, duration) {
 		return starttime / duration;
 	}
 
 	function elastic (starttime, duration) {
-		const decay = 8;
-		const force = 2 / 1000;
-		const t = starttime / duration;
+		var decay = 8;
+		var force = 2 / 1000;
+		var t = starttime / duration;
 		return 1 - ((1 - t) * Math.sin((t * duration * force * Math.PI * 2) + (Math.PI / 2)) / Math.exp(t * decay));
 	}
 
 	function bounce (starttime, duration) {
-		const decay = 10;
-		const t = starttime / duration;
-		const force = t / 100;
+		var decay = 10;
+		var t = starttime / duration;
+		var force = t / 100;
 		return 1 - ((1 - t) * Math.abs(Math.sin((t * duration * force * Math.PI * 2) + (Math.PI / 2))) / Math.exp(t * decay));
 	}
 
 	function easeInQuad (starttime, duration) {
-		const t = starttime / duration;
+		var t = starttime / duration;
 		return t * t;
 	}
 
 	function easeOutQuad (starttime, duration) {
-		const t = starttime / duration;
+		var t = starttime / duration;
 		return t * (2 - t);
 	}
 
 	function easeInOutQuad (starttime, duration) {
-		const t = starttime / duration;
+		var t = starttime / duration;
 		return t < 0.5 ? 2 * t * t : -1 + ((4 - (2 * t)) * t);
 	}
 
 	function easeInCubic (starttime, duration) {
-		const t = starttime / duration;
+		var t = starttime / duration;
 		return t2DGeometry.pow(t, 3);
 	}
 
 	function easeOutCubic (starttime, duration) {
-		let t = starttime / duration;
+		var t = starttime / duration;
 		t -= 1;
 		return (t * t * t) + 1;
 	}
 
 	function easeInOutCubic (starttime, duration) {
-		const t = starttime / duration;
+		var t = starttime / duration;
 		return t < 0.5 ? 4 * t2DGeometry.pow(t, 3) : ((t - 1) * ((2 * t) - 2) * ((2 * t) - 2)) + 1;
 	}
 
 	function sinIn (starttime, duration) {
-		const t = starttime / duration;
+		var t = starttime / duration;
 		return 1 - Math.cos(t * Math.PI / 2);
 	}
 
 	function easeOutSin (starttime, duration) {
-		const t = starttime / duration;
+		var t = starttime / duration;
 		return Math.cos(t * Math.PI / 2);
 	}
 
 	function easeInOutSin (starttime, duration) {
-		const t = starttime / duration;
+		var t = starttime / duration;
 		return (1 - Math.cos(Math.PI * t)) / 2;
 	} // function easeInQuart (starttime, duration) {
 	//   const t = starttime / duration
@@ -1066,7 +1062,7 @@
 	// }
 
 	function fetchTransitionType (_) {
-		let res;
+		var res;
 
 		if (typeof _ === 'function') {
 			return function custExe (starttime, duration) {
@@ -1132,8 +1128,8 @@
 
 	/* eslint-disable no-undef */
 
-	let Id = 0;
-	let chainId = 0;
+	var Id = 0;
+	var chainId = 0;
 
 	function generateRendererId () {
 		Id += 1;
@@ -1145,7 +1141,7 @@
 		return chainId;
 	}
 
-	const easying = fetchTransitionType;
+	var easying = fetchTransitionType;
 
 	function easeDef (type) {
 		this.easying = easying(type);
@@ -1232,27 +1228,27 @@
 	}
 
 	SequenceGroup.prototype = {
-		duration,
+		duration: duration,
 		loop: loopValue,
 		callbck: callbckExe,
-		bind,
-		child,
+		bind: bind,
+		child: child,
 		ease: easeDef,
-		end,
-		commit,
-		reset,
-		direction
+		end: end,
+		commit: commit,
+		reset: reset,
+		direction: direction
 	};
 
 	SequenceGroup.prototype.add = function SGadd (value) {
-		const self = this;
+		var self = this;
 
 		if (!Array.isArray(value) && typeof value !== 'function') {
 			value = [value];
 		}
 
 		if (Array.isArray(value)) {
-			value.map(d => {
+			value.map(function (d) {
 				self.lengthV += d.length ? d.length : 0;
 				return d;
 			});
@@ -1267,14 +1263,14 @@
 	};
 
 	SequenceGroup.prototype.start = function SGstart () {
-		const self = this;
+		var self = this;
 
 		if (self.directionV === 'alternate') {
 			self.factor = self.factor ? -1 * self.factor : 1;
 			self.currPos = self.factor < 0 ? this.sequenceQueue.length - 1 : 0;
 		} else if (self.directionV === 'reverse') {
-			for (let i = 0; i < this.sequenceQueue.length; i += 1) {
-				const currObj = this.sequenceQueue[i];
+			for (var i = 0; i < this.sequenceQueue.length; i += 1) {
+				var currObj = this.sequenceQueue[i];
 
 				if (!(currObj instanceof SequenceGroup) && !(currObj instanceof ParallelGroup)) {
 					currObj.run(1);
@@ -1293,8 +1289,8 @@
 	};
 
 	SequenceGroup.prototype.execute = function SGexecute () {
-		const self = this;
-		let currObj = this.sequenceQueue[self.currPos];
+		var self = this;
+		var currObj = this.sequenceQueue[self.currPos];
 		currObj = typeof currObj === 'function' ? currObj() : currObj;
 
 		if (!currObj) {
@@ -1312,7 +1308,7 @@
 			this.currObj = currObj; // currObj.durationP = tValue
 
 			this.queue.add(generateChainId(), {
-				run (f) {
+				run: function run (f) {
 					currObj.run(f);
 				},
 
@@ -1322,14 +1318,14 @@
 				direction: self.factor < 0 ? 'reverse' : 'default',
 				// self.factor < 0 ? 'reverse' : 'default',
 				end: self.triggerEnd.bind(self, currObj)
-			}, (c, v) => c / v);
+			}, function (c, v) { return c / v; });
 		}
 
 		return this;
 	};
 
 	SequenceGroup.prototype.triggerEnd = function SGtriggerEnd (currObj) {
-		const self = this;
+		var self = this;
 		self.currPos += self.factor;
 
 		if (currObj.end) {
@@ -1355,7 +1351,7 @@
 
 	SequenceGroup.prototype.triggerChild = function SGtriggerChild (currObj) {
 		if (currObj.end instanceof ParallelGroup || currObj.end instanceof SequenceGroup) {
-			setTimeout(() => {
+			setTimeout(function () {
 				currObj.end.commit();
 			}, 0);
 		} else {
@@ -1375,44 +1371,44 @@
 	}
 
 	ParallelGroup.prototype = {
-		duration,
+		duration: duration,
 		loop: loopValue,
 		callbck: callbckExe,
-		bind,
-		child,
+		bind: bind,
+		child: child,
 		ease: easeDef,
-		end,
-		commit,
-		direction
+		end: end,
+		commit: commit,
+		direction: direction
 	};
 
 	ParallelGroup.prototype.add = function PGadd (value) {
-		const self = this;
+		var self = this;
 
 		if (!Array.isArray(value)) {
 			value = [value];
 		}
 
 		this.group = this.group.concat(value);
-		this.group.forEach(d => {
+		this.group.forEach(function (d) {
 			d.durationP = d.durationP ? d.durationP : self.durationP;
 		});
 		return this;
 	};
 
 	ParallelGroup.prototype.execute = function PGexecute () {
-		const self = this;
+		var self = this;
 		self.currPos = 0;
 
-		for (let i = 0, len = self.group.length; i < len; i++) {
-			let currObj = self.group[i];
+		var loop = function ( i, len ) {
+			var currObj = self.group[i];
 
 			if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
 				currObj // .duration(currObj.durationP ? currObj.durationP : self.durationP)
 					.end(self.triggerEnd.bind(self, currObj)).commit();
 			} else {
 				self.queue.add(generateChainId(), {
-					run (f) {
+					run: function run (f) {
 						currObj.run(f);
 					},
 
@@ -1424,13 +1420,15 @@
 					end: self.triggerEnd.bind(self, currObj)
 				}, currObj.ease ? easying(currObj.ease) : self.easying);
 			}
-		}
+		};
+
+		for (var i = 0, len = self.group.length; i < len; i++) loop( i);
 
 		return self;
 	};
 
 	ParallelGroup.prototype.start = function PGstart () {
-		const self = this;
+		var self = this;
 
 		if (self.directionV === 'alternate') {
 			self.factor = self.factor ? -1 * self.factor : 1;
@@ -1444,7 +1442,7 @@
 	};
 
 	ParallelGroup.prototype.triggerEnd = function PGtriggerEnd (currObj) {
-		const self = this; // Call child transition wen Entire parallelChain transition completes
+		var self = this; // Call child transition wen Entire parallelChain transition completes
 
 		this.currPos += 1;
 
@@ -1485,16 +1483,16 @@
 	}
 
 	var chain = {
-		sequenceChain,
-		parallelChain
+		sequenceChain: sequenceChain,
+		parallelChain: parallelChain
 	};
 
 	/* eslint-disable no-undef */
 
-	let morphIdentifier = 0;
-	const t2DGeometry$1 = geometry;
-	const queueInstance = queue;
-	const easying$1 = fetchTransitionType;
+	var morphIdentifier = 0;
+	var t2DGeometry$1 = geometry;
+	var queueInstance = queue;
+	var easying$1 = fetchTransitionType;
 
 	function animeId () {
 		morphIdentifier += 1;
@@ -1502,27 +1500,27 @@
 	}
 
 	function pathParser (path) {
-		let pathStr = path.replace(/e-/g, '$');
+		var pathStr = path.replace(/e-/g, '$');
 		pathStr = pathStr.replace(/ /g, ',');
 		pathStr = pathStr.replace(/-/g, ',-');
-		pathStr = pathStr.split(/([a-zA-Z,])/g).filter(d => {
+		pathStr = pathStr.split(/([a-zA-Z,])/g).filter(function (d) {
 			if (d === '' || d === ',') {
 				return false;
 			}
 
 			return true;
-		}).map(d => {
-			const dd = d.replace(/\$/g, 'e-');
+		}).map(function (d) {
+			var dd = d.replace(/\$/g, 'e-');
 			return dd;
 		});
 
-		for (let i = 0; i < pathStr.length; i += 1) {
+		for (var i = 0; i < pathStr.length; i += 1) {
 			if (pathStr[i].split('.').length > 2) {
-				const splitArr = pathStr[i].split('.');
-				const arr = [`${splitArr[0]}.${splitArr[1]}`];
+				var splitArr = pathStr[i].split('.');
+				var arr = [((splitArr[0]) + "." + (splitArr[1]))];
 
-				for (let j = 2; j < splitArr.length; j += 1) {
-					arr.push(`.${splitArr[j]}`);
+				for (var j = 2; j < splitArr.length; j += 1) {
+					arr.push(("." + (splitArr[j])));
 				}
 
 				pathStr.splice(i, 1, arr[0], arr[1]);
@@ -1547,11 +1545,11 @@
 	}
 
 	function fetchXY () {
-		const x = parseFloat(this.pathArr[this.currPathArr += 1]);
-		const y = parseFloat(this.pathArr[this.currPathArr += 1]);
+		var x = parseFloat(this.pathArr[this.currPathArr += 1]);
+		var y = parseFloat(this.pathArr[this.currPathArr += 1]);
 		return {
-			x,
-			y
+			x: x,
+			y: y
 		};
 	}
 
@@ -1560,7 +1558,7 @@
 	}
 
 	function m (rel, p0) {
-		const temp = relative(rel, this.pp ? this.pp : {
+		var temp = relative(rel, this.pp ? this.pp : {
 			x: 0,
 			y: 0
 		}, {
@@ -1585,7 +1583,7 @@
 			p0: this.cp,
 			length: this.segmentLength,
 
-			pointAt (f) {
+			pointAt: function pointAt (f) {
 				return this.p0;
 			}
 
@@ -1595,7 +1593,7 @@
 	}
 
 	function v (rel, p1) {
-		const temp = relative(rel, this.pp, {
+		var temp = relative(rel, this.pp, {
 			x: this.pp.x,
 			y: 0
 		});
@@ -1608,7 +1606,7 @@
 			p1: this.cp,
 			length: this.segmentLength,
 
-			pointAt (f) {
+			pointAt: function pointAt (f) {
 				return t2DGeometry$1.linearTransitionBetweenPoints(this.p0, this.p1, f);
 			}
 
@@ -1619,7 +1617,7 @@
 	}
 
 	function l (rel, p1) {
-		const temp = relative(rel, this.pp, {
+		var temp = relative(rel, this.pp, {
 			x: 0,
 			y: 0
 		});
@@ -1635,7 +1633,7 @@
 			},
 			length: this.segmentLength,
 
-			pointAt (f) {
+			pointAt: function pointAt (f) {
 				return t2DGeometry$1.linearTransitionBetweenPoints(this.p0, this.p1, f);
 			}
 
@@ -1646,7 +1644,7 @@
 	}
 
 	function h (rel, p1) {
-		const temp = relative(rel, this.pp, {
+		var temp = relative(rel, this.pp, {
 			x: 0,
 			y: this.pp.y
 		});
@@ -1662,7 +1660,7 @@
 				p1: p1
 			},
 
-			pointAt (f) {
+			pointAt: function pointAt (f) {
 				return t2DGeometry$1.linearTransitionBetweenPoints(this.p0, this.p1, f);
 			}
 
@@ -1681,7 +1679,7 @@
 			type: 'Z',
 			length: this.segmentLength,
 
-			pointAt (f) {
+			pointAt: function pointAt (f) {
 				return t2DGeometry$1.linearTransitionBetweenPoints(this.p0, this.p1, f);
 			}
 
@@ -1693,19 +1691,19 @@
 	}
 
 	function q (rel, c1, ep) {
-		const temp = relative(rel, this.pp, {
+		var temp = relative(rel, this.pp, {
 			x: 0,
 			y: 0
 		});
-		const cntrl1 = addVectors(c1, temp);
-		const endPoint = addVectors(ep, temp);
+		var cntrl1 = addVectors(c1, temp);
+		var endPoint = addVectors(ep, temp);
 		this.cp = endPoint;
 		this.segmentLength = t2DGeometry$1.bezierLength(this.pp, cntrl1, this.cp);
 		this.cp = endPoint;
 		this.stack.push({
 			type: rel ? 'Q' : 'q',
 			p0: this.pp,
-			cntrl1,
+			cntrl1: cntrl1,
 			cntrl2: cntrl1,
 			p1: this.cp,
 			relative: {
@@ -1714,7 +1712,7 @@
 			},
 			length: this.segmentLength,
 
-			pointAt (f) {
+			pointAt: function pointAt (f) {
 				return t2DGeometry$1.bezierTransition(this.p0, this.cntrl1, this.p1, f);
 			}
 
@@ -1726,17 +1724,17 @@
 	}
 
 	function c (rel, c1, c2, ep) {
-		const temp = relative(rel, this.pp, {
+		var temp = relative(rel, this.pp, {
 			x: 0,
 			y: 0
 		});
-		const cntrl1 = addVectors(c1, temp);
-		const cntrl2 = addVectors(c2, temp);
-		const endPoint = addVectors(ep, temp);
-		const co = t2DGeometry$1.cubicBezierCoefficients({
+		var cntrl1 = addVectors(c1, temp);
+		var cntrl2 = addVectors(c2, temp);
+		var endPoint = addVectors(ep, temp);
+		var co = t2DGeometry$1.cubicBezierCoefficients({
 			p0: this.pp,
-			cntrl1,
-			cntrl2,
+			cntrl1: cntrl1,
+			cntrl2: cntrl2,
 			p1: endPoint
 		});
 		this.cntrl = cntrl2;
@@ -1745,8 +1743,8 @@
 		this.stack.push({
 			type: rel ? 'C' : 'c',
 			p0: this.pp,
-			cntrl1,
-			cntrl2,
+			cntrl1: cntrl1,
+			cntrl2: cntrl2,
 			p1: this.cp,
 			length: this.segmentLength,
 			co: co,
@@ -1756,7 +1754,7 @@
 				p1: ep
 			},
 
-			pointAt (f) {
+			pointAt: function pointAt (f) {
 				return t2DGeometry$1.cubicBezierTransition(this.p0, this.co, f);
 			}
 
@@ -1767,26 +1765,26 @@
 	}
 
 	function s (rel, c2, ep) {
-		const temp = relative(rel, this.pp, {
+		var temp = relative(rel, this.pp, {
 			x: 0,
 			y: 0
 		});
-		const cntrl1 = addVectors(this.pp, subVectors(this.pp, this.cntrl ? this.cntrl : this.pp));
-		const cntrl2 = addVectors(c2, temp);
-		const endPoint = addVectors(ep, temp);
+		var cntrl1 = addVectors(this.pp, subVectors(this.pp, this.cntrl ? this.cntrl : this.pp));
+		var cntrl2 = addVectors(c2, temp);
+		var endPoint = addVectors(ep, temp);
 		this.cp = endPoint;
-		const co = t2DGeometry$1.cubicBezierCoefficients({
+		var co = t2DGeometry$1.cubicBezierCoefficients({
 			p0: this.pp,
-			cntrl1,
-			cntrl2,
+			cntrl1: cntrl1,
+			cntrl2: cntrl2,
 			p1: endPoint
 		});
 		this.segmentLength = t2DGeometry$1.cubicBezierLength(this.pp, co);
 		this.stack.push({
 			type: rel ? 'S' : 's',
 			p0: this.pp,
-			cntrl1,
-			cntrl2,
+			cntrl1: cntrl1,
+			cntrl2: cntrl2,
 			p1: this.cp,
 			co: co,
 			length: this.segmentLength,
@@ -1795,7 +1793,7 @@
 				p1: ep
 			},
 
-			pointAt (f) {
+			pointAt: function pointAt (f) {
 				return t2DGeometry$1.cubicBezierTransition(this.p0, this.co, f);
 			}
 
@@ -1808,56 +1806,56 @@
 	}
 
 	function a (rel, rx, ry, xRotation, arcLargeFlag, sweepFlag, ep) {
-		const temp = relative(rel, this.pp, {
+		var temp = relative(rel, this.pp, {
 			x: 0,
 			y: 0
 		});
-		const self = this;
-		const endPoint = addVectors(ep, temp);
+		var self = this;
+		var endPoint = addVectors(ep, temp);
 		this.cp = endPoint;
-		const arcToQuad = t2DGeometry$1.arcToBezier({
+		var arcToQuad = t2DGeometry$1.arcToBezier({
 			px: this.pp.x,
 			py: this.pp.y,
 			cx: endPoint.x,
 			cy: endPoint.y,
-			rx,
-			ry,
+			rx: rx,
+			ry: ry,
 			xAxisRotation: xRotation,
 			largeArcFlag: arcLargeFlag,
-			sweepFlag
+			sweepFlag: sweepFlag
 		});
-		arcToQuad.forEach((d, i) => {
-			const pp = i === 0 ? self.pp : {
+		arcToQuad.forEach(function (d, i) {
+			var pp = i === 0 ? self.pp : {
 				x: arcToQuad[0].x,
 				y: arcToQuad[0].y
 			};
-			const cntrl1 = {
+			var cntrl1 = {
 				x: d.x1,
 				y: d.y1
 			};
-			const cntrl2 = {
+			var cntrl2 = {
 				x: d.x2,
 				y: d.y2
 			};
-			const cp = {
+			var cp = {
 				x: d.x,
 				y: d.y
 			};
-			const segmentLength = t2DGeometry$1.cubicBezierLength(pp, t2DGeometry$1.cubicBezierCoefficients({
+			var segmentLength = t2DGeometry$1.cubicBezierLength(pp, t2DGeometry$1.cubicBezierCoefficients({
 				p0: pp,
-				cntrl1,
-				cntrl2,
+				cntrl1: cntrl1,
+				cntrl2: cntrl2,
 				p1: cp
 			}));
 			self.stack.push({
 				type: 'C',
 				p0: pp,
-				cntrl1,
-				cntrl2,
+				cntrl1: cntrl1,
+				cntrl2: cntrl2,
 				p1: cp,
 				length: segmentLength,
 
-				pointAt (f) {
+				pointAt: function pointAt (f) {
 					return t2DGeometry$1.bezierTransition(this.p0, this.cntrl1, this.cntrl2, this.p1, f);
 				}
 
@@ -1880,16 +1878,16 @@
 	}
 
 	Path.prototype = {
-		z,
-		m,
-		v,
-		h,
-		l,
-		q,
-		s,
-		c,
-		a,
-		fetchXY
+		z: z,
+		m: m,
+		v: v,
+		h: h,
+		l: l,
+		q: q,
+		s: s,
+		c: c,
+		a: a,
+		fetchXY: fetchXY
 	};
 
 	Path.prototype.parse = function parse () {
@@ -1907,10 +1905,10 @@
 	};
 
 	Path.prototype.fetchPathString = function () {
-		let p = '';
-		let c;
+		var p = '';
+		var c;
 
-		for (let i = 0; i < this.stack.length; i++) {
+		for (var i = 0; i < this.stack.length; i++) {
 			c = this.stack[i];
 
 			if (c.type === 'M') {
@@ -1956,18 +1954,18 @@
 			return null;
 		}
 
-		const point1 = this.getPointAtLength(length);
-		const point2 = this.getPointAtLength(length + (dir === 'src' ? -1 * length * 0.01 : length * 0.01));
+		var point1 = this.getPointAtLength(length);
+		var point2 = this.getPointAtLength(length + (dir === 'src' ? -1 * length * 0.01 : length * 0.01));
 		return Math.atan2(point2.y - point1.y, point2.x - point1.x);
 	};
 
 	Path.prototype.getPointAtLength = function getPointAtLength (length) {
-		let coOr = {
+		var coOr = {
 			x: 0,
 			y: 0
 		};
-		let tLength = length;
-		this.stack.every((d, i) => {
+		var tLength = length;
+		this.stack.every(function (d, i) {
 			tLength -= d.length;
 
 			if (Math.floor(tLength) >= 0) {
@@ -1985,7 +1983,7 @@
 	};
 
 	Path.prototype.case = function pCase (currCmd) {
-		let currCmdI = currCmd;
+		var currCmdI = currCmd;
 
 		if (this.isValid(currCmdI)) {
 			this.PC = currCmdI;
@@ -2064,11 +2062,11 @@
 				break;
 
 			case 'a':
-				let rx = parseFloat(this.pathArr[this.currPathArr += 1]);
-				let ry = parseFloat(this.pathArr[this.currPathArr += 1]);
-				let xRotation = parseFloat(this.pathArr[this.currPathArr += 1]);
-				let arcLargeFlag = parseFloat(this.pathArr[this.currPathArr += 1]);
-				let sweepFlag = parseFloat(this.pathArr[this.currPathArr += 1]);
+				var rx = parseFloat(this.pathArr[this.currPathArr += 1]);
+				var ry = parseFloat(this.pathArr[this.currPathArr += 1]);
+				var xRotation = parseFloat(this.pathArr[this.currPathArr += 1]);
+				var arcLargeFlag = parseFloat(this.pathArr[this.currPathArr += 1]);
+				var sweepFlag = parseFloat(this.pathArr[this.currPathArr += 1]);
 				this.a(false, rx, ry, xRotation, arcLargeFlag, sweepFlag, this.fetchXY());
 				break;
 
@@ -2094,7 +2092,7 @@
 		return ['S', 'C', 'V', 'L', 'H', 'Q'].indexOf(type) > -1;
 	}
 
-	let CubicBezierTransition = function CubicBezierTransition (type, p0, c1, c2, co, length) {
+	var CubicBezierTransition = function CubicBezierTransition (type, p0, c1, c2, co, length) {
 		this.type = type;
 		this.p0 = p0;
 		this.c1_src = c1;
@@ -2104,15 +2102,15 @@
 	};
 
 	CubicBezierTransition.prototype.execute = function (f) {
-		const co = this.co;
-		const p0 = this.p0;
-		const c1 = this.c1_src;
-		const c2 = this.c2_src;
-		const c1Temp = {
+		var co = this.co;
+		var p0 = this.p0;
+		var c1 = this.c1_src;
+		var c2 = this.c2_src;
+		var c1Temp = {
 			x: p0.x + ((c1.x - p0.x) * f),
 			y: p0.y + ((c1.y - p0.y) * f)
 		};
-		const c2Temp = {
+		var c2Temp = {
 			x: c1.x + ((c2.x - c1.x) * f),
 			y: c1.y + ((c2.y - c1.y) * f)
 		};
@@ -2138,7 +2136,7 @@
 		return t2DGeometry$1.cubicBezierTransition(this.p0, this.co, f);
 	};
 
-	let BezierTransition = function BezierTransition (type, p0, p1, p2, length, f) {
+	var BezierTransition = function BezierTransition (type, p0, p1, p2, length, f) {
 		this.type = type;
 		this.p0 = p0;
 		this.p1_src = p1;
@@ -2148,9 +2146,9 @@
 	};
 
 	BezierTransition.prototype.execute = function (f) {
-		let p0 = this.p0;
-		let p1 = this.p1_src;
-		let p2 = this.p2_src;
+		var p0 = this.p0;
+		var p1 = this.p1_src;
+		var p2 = this.p2_src;
 		this.length = this.length_src * f;
 		this.cntrl1 = {
 			x: p0.x + ((p1.x - p0.x) * f),
@@ -2172,7 +2170,7 @@
 		return t2DGeometry$1.bezierTransition(this.p0, this.cntrl1, this.p1, f);
 	};
 
-	let LinearTransitionBetweenPoints = function LinearTransitionBetweenPoints (type, p0, p2, length, f) {
+	var LinearTransitionBetweenPoints = function LinearTransitionBetweenPoints (type, p0, p2, length, f) {
 		this.type = type;
 		this.p0 = p0;
 		this.p1 = p0;
@@ -2182,8 +2180,8 @@
 	};
 
 	LinearTransitionBetweenPoints.prototype.execute = function (f) {
-		let p0 = this.p0;
-		let p2 = this.p2_src;
+		var p0 = this.p0;
+		var p2 = this.p2_src;
 		this.p1 = {
 			x: p0.x + ((p2.x - p0.x) * f),
 			y: p0.y + ((p2.y - p0.y) * f)
@@ -2200,35 +2198,33 @@
 	};
 
 	function animatePathTo (targetConfig) {
-		const self = this;
-		const {
-			duration,
-			ease,
-			end,
-			loop,
-			direction,
-			d
-		} = targetConfig;
-		const src = d || self.attr.d;
-		let totalLength = 0;
+		var self = this;
+		var duration = targetConfig.duration;
+		var ease = targetConfig.ease;
+		var end = targetConfig.end;
+		var loop = targetConfig.loop;
+		var direction = targetConfig.direction;
+		var d = targetConfig.d;
+		var src = d || self.attr.d;
+		var totalLength = 0;
 		self.arrayStack = [];
 
 		if (!src) {
 			throw Error('Path Not defined');
 		}
 
-		const chainInstance = chain.sequenceChain();
-		const newPathInstance = isTypePath(src) ? src : new Path(src);
-		const arrExe = newPathInstance.stackGroup.reduce((p, c) => {
+		var chainInstance = chain.sequenceChain();
+		var newPathInstance = isTypePath(src) ? src : new Path(src);
+		var arrExe = newPathInstance.stackGroup.reduce(function (p, c) {
 			p = p.concat(c);
 			return p;
 		}, []);
-		const mappedArr = [];
+		var mappedArr = [];
 
-		for (let i = 0; i < arrExe.length; i += 1) {
+		var loop$1 = function ( i ) {
 			if (arrExe[i].type === 'Z') {
 				mappedArr.push({
-					run (f) {
+					run: function run (f) {
 						newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
 						newPathInstance.stack[this.id] = this.render.execute(f);
 						self.setAttr('d', newPathInstance);
@@ -2241,7 +2237,7 @@
 				totalLength += 0;
 			} else if (['V', 'v', 'H', 'h', 'L', 'l'].indexOf(arrExe[i].type) !== -1) {
 				mappedArr.push({
-					run (f) {
+					run: function run (f) {
 						newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
 						newPathInstance.stack[this.id] = this.render.execute(f);
 						self.setAttr('d', newPathInstance);
@@ -2254,7 +2250,7 @@
 				totalLength += arrExe[i].length;
 			} else if (arrExe[i].type === 'Q' || arrExe[i].type === 'q') {
 				mappedArr.push({
-					run (f) {
+					run: function run (f) {
 						newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
 						newPathInstance.stack[this.id] = this.render.execute(f);
 						self.setAttr('d', newPathInstance);
@@ -2266,30 +2262,30 @@
 				});
 				totalLength += arrExe[i].length;
 			} else if (arrExe[i].type === 'C' || arrExe[i].type === 'S' || arrExe[i].type === 'c' || arrExe[i].type === 's') {
-				const co = t2DGeometry$1.cubicBezierCoefficients(arrExe[i]);
+				var co = t2DGeometry$1.cubicBezierCoefficients(arrExe[i]);
 				mappedArr.push({
-					run (f) {
+					run: function run (f) {
 						newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
 						newPathInstance.stack[this.id] = this.render.execute(f);
 						self.setAttr('d', newPathInstance);
 					},
 
 					id: i,
-					co,
+					co: co,
 					render: new CubicBezierTransition(arrExe[i].type, arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].cntrl2, co, arrExe[i].length),
 					length: arrExe[i].length
 				});
 				totalLength += arrExe[i].length;
 			} else if (arrExe[i].type === 'M') {
 				mappedArr.push({
-					run () {
+					run: function run () {
 						newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
 						newPathInstance.stack[this.id] = {
 							type: 'M',
 							p0: arrExe[i].p0,
 							length: 0,
 
-							pointAt (f) {
+							pointAt: function pointAt (f) {
 								return this.p0;
 							}
 
@@ -2301,7 +2297,9 @@
 				});
 				totalLength += 0;
 			}
-		}
+		};
+
+		for (var i = 0; i < arrExe.length; i += 1) loop$1( i );
 
 		mappedArr.forEach(function (d) {
 			d.duration = d.length / totalLength * duration;
@@ -2317,33 +2315,29 @@
 	}
 
 	function morphTo (targetConfig) {
-		const self = this;
-		const {
-			duration
-		} = targetConfig;
-		const {
-			ease
-		} = targetConfig;
-		const loop = targetConfig.loop ? targetConfig.loop : 0;
-		const direction = targetConfig.direction ? targetConfig.direction : 'default';
-		const destD = targetConfig.attr.d ? targetConfig.attr.d : self.attr.d;
-		let srcPath = isTypePath(self.attr.d) ? self.attr.d.stackGroup : new Path(self.attr.d).stackGroup;
-		let destPath = isTypePath(destD) ? destD.stackGroup : new Path(destD).stackGroup;
-		const chainInstance = [];
+		var self = this;
+		var duration = targetConfig.duration;
+		var ease = targetConfig.ease;
+		var loop = targetConfig.loop ? targetConfig.loop : 0;
+		var direction = targetConfig.direction ? targetConfig.direction : 'default';
+		var destD = targetConfig.attr.d ? targetConfig.attr.d : self.attr.d;
+		var srcPath = isTypePath(self.attr.d) ? self.attr.d.stackGroup : new Path(self.attr.d).stackGroup;
+		var destPath = isTypePath(destD) ? destD.stackGroup : new Path(destD).stackGroup;
+		var chainInstance = [];
 		self.arrayStack = [];
 
 		if (srcPath.length > 1) {
-			srcPath = srcPath.sort((aa, bb) => bb.segmentLength - aa.segmentLength);
+			srcPath = srcPath.sort(function (aa, bb) { return bb.segmentLength - aa.segmentLength; });
 		}
 
 		if (destPath.length > 1) {
-			destPath = destPath.sort((aa, bb) => bb.segmentLength - aa.segmentLength);
+			destPath = destPath.sort(function (aa, bb) { return bb.segmentLength - aa.segmentLength; });
 		}
 
-		const maxGroupLength = srcPath.length > destPath.length ? srcPath.length : destPath.length;
+		var maxGroupLength = srcPath.length > destPath.length ? srcPath.length : destPath.length;
 		mapper(toCubicCurves(srcPath[0]), toCubicCurves(destPath[0]));
 
-		for (let j = 1; j < maxGroupLength; j += 1) {
+		for (var j = 1; j < maxGroupLength; j += 1) {
 			if (srcPath[j]) {
 				mapper(toCubicCurves(srcPath[j]), [{
 					type: 'M',
@@ -2364,14 +2358,14 @@
 				return;
 			}
 
-			const _ = stack;
-			const mappedArr = [];
+			var _ = stack;
+			var mappedArr = [];
 
-			for (let i = 0; i < _.length; i += 1) {
+			for (var i = 0; i < _.length; i += 1) {
 				if (['M', 'C', 'S', 'Q'].indexOf(_[i].type) !== -1) {
 					mappedArr.push(_[i]);
 				} else if (['V', 'H', 'L', 'Z'].indexOf(_[i].type) !== -1) {
-					const ctrl1 = {
+					var ctrl1 = {
 						x: (_[i].p0.x + _[i].p1.x) / 2,
 						y: (_[i].p0.y + _[i].p1.y) / 2
 					};
@@ -2391,8 +2385,8 @@
 
 		function buildMTransitionobj (src, dest) {
 			chainInstance.push({
-				run (path, f) {
-					const point = this.pointTansition(f);
+				run: function run (path, f) {
+					var point = this.pointTansition(f);
 					path.m(true, {
 						x: point.x,
 						y: point.y
@@ -2405,11 +2399,11 @@
 
 		function buildTransitionObj (src, dest) {
 			chainInstance.push({
-				run (path, f) {
-					const t = this;
-					const c1 = t.ctrl1Transition(f);
-					const c2 = t.ctrl2Transition(f);
-					const p1 = t.destTransition(f);
+				run: function run (path, f) {
+					var t = this;
+					var c1 = t.ctrl1Transition(f);
+					var c2 = t.ctrl2Transition(f);
+					var p1 = t.destTransition(f);
 					path.c(true, {
 						x: c1.x,
 						y: c1.y
@@ -2434,21 +2428,21 @@
 				return cmd;
 			}
 
-			const totalLength = cmd.reduce((pp, cc) => pp + cc.length, 0);
-			const arr = [];
+			var totalLength = cmd.reduce(function (pp, cc) { return pp + cc.length; }, 0);
+			var arr = [];
 
-			for (let i = 0; i < cmd.length; i += 1) {
-				const len = cmd[i].length;
-				let counter = Math.floor(n / totalLength * len);
+			for (var i = 0; i < cmd.length; i += 1) {
+				var len = cmd[i].length;
+				var counter = Math.floor(n / totalLength * len);
 
 				if (counter <= 1) {
 					arr.push(cmd[i]);
 				} else {
-					let t = cmd[i];
-					let split;
+					var t = cmd[i];
+					var split = (void 0);
 
 					while (counter > 1) {
-						const cmdX = t;
+						var cmdX = t;
 						split = splitBezier([cmdX.p0, cmdX.cntrl1, cmdX.cntrl2, cmdX.p1].slice(0), 1 / counter);
 						arr.push({
 							p0: cmdX.p0,
@@ -2475,11 +2469,11 @@
 		}
 
 		function splitBezier (arr, perc) {
-			const coll = [];
-			const arrayLocal = arr;
+			var coll = [];
+			var arrayLocal = arr;
 
 			while (arrayLocal.length > 0) {
-				for (let i = 0; i < arrayLocal.length - 1; i += 1) {
+				for (var i = 0; i < arrayLocal.length - 1; i += 1) {
 					coll.unshift(arrayLocal[i]);
 					arrayLocal[i] = interpolate(arrayLocal[i], arrayLocal[i + 1], perc);
 				}
@@ -2529,9 +2523,9 @@
 		// }
 
 		function getDirection (data) {
-			let dir = 0;
+			var dir = 0;
 
-			for (let i = 0; i < data.length; i += 1) {
+			for (var i = 0; i < data.length; i += 1) {
 				if (data[i].type !== 'M') {
 					dir += (data[i].p1.x - data[i].p0.x) * (data[i].p1.y + data[i].p0.y);
 				}
@@ -2541,16 +2535,16 @@
 		}
 
 		function reverse (data) {
-			const dataLocal = data.reverse();
-			const newArray = [{
+			var dataLocal = data.reverse();
+			var newArray = [{
 				type: 'M',
 				p0: dataLocal[0].p1
 			}];
-			dataLocal.forEach(d => {
+			dataLocal.forEach(function (d) {
 				if (d.type === 'C') {
-					const dLocal = d;
-					const tp0 = dLocal.p0;
-					const tc1 = dLocal.cntrl1;
+					var dLocal = d;
+					var tp0 = dLocal.p0;
+					var tc1 = dLocal.cntrl1;
 					dLocal.p0 = d.p1;
 					dLocal.p1 = tp0;
 					dLocal.cntrl1 = d.cntrl2;
@@ -2562,11 +2556,11 @@
 		}
 
 		function centroid (path) {
-			let sumX = 0;
-			let sumY = 0;
-			let counterX = 0;
-			let counterY = 0;
-			path.forEach(d => {
+			var sumX = 0;
+			var sumY = 0;
+			var counterX = 0;
+			var counterY = 0;
+			path.forEach(function (d) {
 				if (d.p0) {
 					sumX += d.p0.x;
 					sumY += d.p0.y;
@@ -2600,30 +2594,30 @@
 		}
 
 		function getSrcBeginPoint (src, dest) {
-			const centroidOfSrc = centroid(src);
-			const centroidOfDest = centroid(dest);
-			const srcArr = src;
-			const destArr = dest;
+			var centroidOfSrc = centroid(src);
+			var centroidOfDest = centroid(dest);
+			var srcArr = src;
+			var destArr = dest;
 
-			for (let i = 0; i < src.length; i += 1) {
+			for (var i = 0; i < src.length; i += 1) {
 				srcArr[i].quad = getQuadrant(centroidOfSrc, src[i].p0);
 			}
 
-			for (let i = 0; i < dest.length; i += 1) {
-				destArr[i].quad = getQuadrant(centroidOfDest, dest[i].p0);
+			for (var i$1 = 0; i$1 < dest.length; i$1 += 1) {
+				destArr[i$1].quad = getQuadrant(centroidOfDest, dest[i$1].p0);
 			}
 
-			let minDistance = 0;
-			src.forEach((d, i) => {
-				const dis = t2DGeometry$1.getDistance(d.p0, centroidOfSrc);
+			var minDistance = 0;
+			src.forEach(function (d, i) {
+				var dis = t2DGeometry$1.getDistance(d.p0, centroidOfSrc);
 
 				if (d.quad === 1 && dis >= minDistance) {
 					minDistance = dis;
 				}
 			});
 			minDistance = 0;
-			dest.forEach((d, i) => {
-				const dis = t2DGeometry$1.getDistance(d.p0, centroidOfDest);
+			dest.forEach(function (d, i) {
+				var dis = t2DGeometry$1.getDistance(d.p0, centroidOfDest);
 
 				if (d.quad === 1 && dis > minDistance) {
 					minDistance = dis;
@@ -2644,8 +2638,8 @@
 				return path;
 			}
 
-			let pathLocal = path;
-			const subSet = pathLocal.splice(0, closestPoint);
+			var pathLocal = path;
+			var subSet = pathLocal.splice(0, closestPoint);
 			subSet.shift();
 			pathLocal = pathLocal.concat(subSet);
 			pathLocal.unshift({
@@ -2660,9 +2654,9 @@
 		}
 
 		function mapper (sExe, dExe) {
-			let nsExe;
-			let ndExe;
-			let maxLength = sExe.length > dExe.length ? sExe.length : dExe.length;
+			var nsExe;
+			var ndExe;
+			var maxLength = sExe.length > dExe.length ? sExe.length : dExe.length;
 
 			if (dExe.length > 2 && sExe.length > 2) {
 				if (maxLength > 50) {
@@ -2686,7 +2680,7 @@
 				ndExe = reverse(ndExe);
 			}
 
-			const res = getSrcBeginPoint(nsExe, ndExe);
+			var res = getSrcBeginPoint(nsExe, ndExe);
 			nsExe = res.src.length > 1 ? res.src : [{
 				type: 'M',
 				p0: res.destCentroid
@@ -2695,20 +2689,20 @@
 				type: 'M',
 				p0: res.srcCentroid
 			}];
-			const length = ndExe.length < nsExe.length ? nsExe.length : ndExe.length;
+			var length = ndExe.length < nsExe.length ? nsExe.length : ndExe.length;
 
-			for (let i = 0; i < nsExe.length; i += 1) {
+			for (var i = 0; i < nsExe.length; i += 1) {
 				nsExe[i].index = i;
 			}
 
-			for (let i = 0; i < ndExe.length; i += 1) {
-				ndExe[i].index = i;
+			for (var i$1 = 0; i$1 < ndExe.length; i$1 += 1) {
+				ndExe[i$1].index = i$1;
 			}
 
-			for (let i = 0; i < length; i += 1) {
-				const sP0 = nsExe[nsExe.length - 1].p0 ? nsExe[nsExe.length - 1].p0 : nsExe[nsExe.length - 1].p1;
-				const dP0 = ndExe[ndExe.length - 1].p0 ? ndExe[ndExe.length - 1].p0 : ndExe[ndExe.length - 1].p1;
-				const sCmd = nsExe[i] ? nsExe[i] : {
+			for (var i$2 = 0; i$2 < length; i$2 += 1) {
+				var sP0 = nsExe[nsExe.length - 1].p0 ? nsExe[nsExe.length - 1].p0 : nsExe[nsExe.length - 1].p1;
+				var dP0 = ndExe[ndExe.length - 1].p0 ? ndExe[ndExe.length - 1].p0 : ndExe[ndExe.length - 1].p1;
+				var sCmd = nsExe[i$2] ? nsExe[i$2] : {
 					type: 'C',
 					p0: sP0,
 					p1: sP0,
@@ -2716,7 +2710,7 @@
 					cntrl2: sP0,
 					length: 0
 				};
-				const dCmd = ndExe[i] ? ndExe[i] : {
+				var dCmd = ndExe[i$2] ? ndExe[i$2] : {
 					type: 'C',
 					p0: dP0,
 					p1: dP0,
@@ -2755,10 +2749,10 @@
 		}
 
 		queueInstance.add(animeId(), {
-			run (f) {
-				let ppath = new Path();
+			run: function run (f) {
+				var ppath = new Path();
 
-				for (let i = 0, len = chainInstance.length; i < len; i++) {
+				for (var i = 0, len = chainInstance.length; i < len; i++) {
 					chainInstance[i].run(ppath, f);
 				}
 
@@ -2779,19 +2773,19 @@
 		instance: function (d) {
 			return new Path(d);
 		},
-		isTypePath,
-		animatePathTo,
-		morphTo
+		isTypePath: isTypePath,
+		animatePathTo: animatePathTo,
+		morphTo: morphTo
 	};
 
 	/* eslint-disable no-undef */
-	const preDefinedColors = ['AliceBlue', 'AntiqueWhite', 'Aqua', 'Aquamarine', 'Azure', 'Beige', 'Bisque', 'Black', 'BlanchedAlmond', 'Blue', 'BlueViolet', 'Brown', 'BurlyWood', 'CadetBlue', 'Chartreuse', 'Chocolate', 'Coral', 'CornflowerBlue', 'Cornsilk', 'Crimson', 'Cyan', 'DarkBlue', 'DarkCyan', 'DarkGoldenRod', 'DarkGray', 'DarkGrey', 'DarkGreen', 'DarkKhaki', 'DarkMagenta', 'DarkOliveGreen', 'DarkOrange', 'DarkOrchid', 'DarkRed', 'DarkSalmon', 'DarkSeaGreen', 'DarkSlateBlue', 'DarkSlateGray', 'DarkSlateGrey', 'DarkTurquoise', 'DarkViolet', 'DeepPink', 'DeepSkyBlue', 'DimGray', 'DimGrey', 'DodgerBlue', 'FireBrick', 'FloralWhite', 'ForestGreen', 'Fuchsia', 'Gainsboro', 'GhostWhite', 'Gold', 'GoldenRod', 'Gray', 'Grey', 'Green', 'GreenYellow', 'HoneyDew', 'HotPink', 'IndianRed', 'Indigo', 'Ivory', 'Khaki', 'Lavender', 'LavenderBlush', 'LawnGreen', 'LemonChiffon', 'LightBlue', 'LightCoral', 'LightCyan', 'LightGoldenRodYellow', 'LightGray', 'LightGrey', 'LightGreen', 'LightPink', 'LightSalmon', 'LightSeaGreen', 'LightSkyBlue', 'LightSlateGray', 'LightSlateGrey', 'LightSteelBlue', 'LightYellow', 'Lime', 'LimeGreen', 'Linen', 'Magenta', 'Maroon', 'MediumAquaMarine', 'MediumBlue', 'MediumOrchid', 'MediumPurple', 'MediumSeaGreen', 'MediumSlateBlue', 'MediumSpringGreen', 'MediumTurquoise', 'MediumVioletRed', 'MidnightBlue', 'MintCream', 'MistyRose', 'Moccasin', 'NavajoWhite', 'Navy', 'OldLace', 'Olive', 'OliveDrab', 'Orange', 'OrangeRed', 'Orchid', 'PaleGoldenRod', 'PaleGreen', 'PaleTurquoise', 'PaleVioletRed', 'PapayaWhip', 'PeachPuff', 'Peru', 'Pink', 'Plum', 'PowderBlue', 'Purple', 'RebeccaPurple', 'Red', 'RosyBrown', 'RoyalBlue', 'SaddleBrown', 'Salmon', 'SandyBrown', 'SeaGreen', 'SeaShell', 'Sienna', 'Silver', 'SkyBlue', 'SlateBlue', 'SlateGray', 'SlateGrey', 'Snow', 'SpringGreen', 'SteelBlue', 'Tan', 'Teal', 'Thistle', 'Tomato', 'Turquoise', 'Violet', 'Wheat', 'White', 'WhiteSmoke', 'Yellow', 'YellowGreen'];
-	const preDefinedColorHex = ['f0f8ff', 'faebd7', '00ffff', '7fffd4', 'f0ffff', 'f5f5dc', 'ffe4c4', '000000', 'ffebcd', '0000ff', '8a2be2', 'a52a2a', 'deb887', '5f9ea0', '7fff00', 'd2691e', 'ff7f50', '6495ed', 'fff8dc', 'dc143c', '00ffff', '00008b', '008b8b', 'b8860b', 'a9a9a9', 'a9a9a9', '006400', 'bdb76b', '8b008b', '556b2f', 'ff8c00', '9932cc', '8b0000', 'e9967a', '8fbc8f', '483d8b', '2f4f4f', '2f4f4f', '00ced1', '9400d3', 'ff1493', '00bfff', '696969', '696969', '1e90ff', 'b22222', 'fffaf0', '228b22', 'ff00ff', 'dcdcdc', 'f8f8ff', 'ffd700', 'daa520', '808080', '808080', '008000', 'adff2f', 'f0fff0', 'ff69b4', 'cd5c5c', '4b0082', 'fffff0', 'f0e68c', 'e6e6fa', 'fff0f5', '7cfc00', 'fffacd', 'add8e6', 'f08080', 'e0ffff', 'fafad2', 'd3d3d3', 'd3d3d3', '90ee90', 'ffb6c1', 'ffa07a', '20b2aa', '87cefa', '778899', '778899', 'b0c4de', 'ffffe0', '00ff00', '32cd32', 'faf0e6', 'ff00ff', '800000', '66cdaa', '0000cd', 'ba55d3', '9370db', '3cb371', '7b68ee', '00fa9a', '48d1cc', 'c71585', '191970', 'f5fffa', 'ffe4e1', 'ffe4b5', 'ffdead', '000080', 'fdf5e6', '808000', '6b8e23', 'ffa500', 'ff4500', 'da70d6', 'eee8aa', '98fb98', 'afeeee', 'db7093', 'ffefd5', 'ffdab9', 'cd853f', 'ffc0cb', 'dda0dd', 'b0e0e6', '800080', '663399', 'ff0000', 'bc8f8f', '4169e1', '8b4513', 'fa8072', 'f4a460', '2e8b57', 'fff5ee', 'a0522d', 'c0c0c0', '87ceeb', '6a5acd', '708090', '708090', 'fffafa', '00ff7f', '4682b4', 'd2b48c', '008080', 'd8bfd8', 'ff6347', '40e0d0', 'ee82ee', 'f5deb3', 'ffffff', 'f5f5f5', 'ffff00', '9acd32'];
-	const colorMap = {};
-	const round = Math.round;
+	var preDefinedColors = ['AliceBlue', 'AntiqueWhite', 'Aqua', 'Aquamarine', 'Azure', 'Beige', 'Bisque', 'Black', 'BlanchedAlmond', 'Blue', 'BlueViolet', 'Brown', 'BurlyWood', 'CadetBlue', 'Chartreuse', 'Chocolate', 'Coral', 'CornflowerBlue', 'Cornsilk', 'Crimson', 'Cyan', 'DarkBlue', 'DarkCyan', 'DarkGoldenRod', 'DarkGray', 'DarkGrey', 'DarkGreen', 'DarkKhaki', 'DarkMagenta', 'DarkOliveGreen', 'DarkOrange', 'DarkOrchid', 'DarkRed', 'DarkSalmon', 'DarkSeaGreen', 'DarkSlateBlue', 'DarkSlateGray', 'DarkSlateGrey', 'DarkTurquoise', 'DarkViolet', 'DeepPink', 'DeepSkyBlue', 'DimGray', 'DimGrey', 'DodgerBlue', 'FireBrick', 'FloralWhite', 'ForestGreen', 'Fuchsia', 'Gainsboro', 'GhostWhite', 'Gold', 'GoldenRod', 'Gray', 'Grey', 'Green', 'GreenYellow', 'HoneyDew', 'HotPink', 'IndianRed', 'Indigo', 'Ivory', 'Khaki', 'Lavender', 'LavenderBlush', 'LawnGreen', 'LemonChiffon', 'LightBlue', 'LightCoral', 'LightCyan', 'LightGoldenRodYellow', 'LightGray', 'LightGrey', 'LightGreen', 'LightPink', 'LightSalmon', 'LightSeaGreen', 'LightSkyBlue', 'LightSlateGray', 'LightSlateGrey', 'LightSteelBlue', 'LightYellow', 'Lime', 'LimeGreen', 'Linen', 'Magenta', 'Maroon', 'MediumAquaMarine', 'MediumBlue', 'MediumOrchid', 'MediumPurple', 'MediumSeaGreen', 'MediumSlateBlue', 'MediumSpringGreen', 'MediumTurquoise', 'MediumVioletRed', 'MidnightBlue', 'MintCream', 'MistyRose', 'Moccasin', 'NavajoWhite', 'Navy', 'OldLace', 'Olive', 'OliveDrab', 'Orange', 'OrangeRed', 'Orchid', 'PaleGoldenRod', 'PaleGreen', 'PaleTurquoise', 'PaleVioletRed', 'PapayaWhip', 'PeachPuff', 'Peru', 'Pink', 'Plum', 'PowderBlue', 'Purple', 'RebeccaPurple', 'Red', 'RosyBrown', 'RoyalBlue', 'SaddleBrown', 'Salmon', 'SandyBrown', 'SeaGreen', 'SeaShell', 'Sienna', 'Silver', 'SkyBlue', 'SlateBlue', 'SlateGray', 'SlateGrey', 'Snow', 'SpringGreen', 'SteelBlue', 'Tan', 'Teal', 'Thistle', 'Tomato', 'Turquoise', 'Violet', 'Wheat', 'White', 'WhiteSmoke', 'Yellow', 'YellowGreen'];
+	var preDefinedColorHex = ['f0f8ff', 'faebd7', '00ffff', '7fffd4', 'f0ffff', 'f5f5dc', 'ffe4c4', '000000', 'ffebcd', '0000ff', '8a2be2', 'a52a2a', 'deb887', '5f9ea0', '7fff00', 'd2691e', 'ff7f50', '6495ed', 'fff8dc', 'dc143c', '00ffff', '00008b', '008b8b', 'b8860b', 'a9a9a9', 'a9a9a9', '006400', 'bdb76b', '8b008b', '556b2f', 'ff8c00', '9932cc', '8b0000', 'e9967a', '8fbc8f', '483d8b', '2f4f4f', '2f4f4f', '00ced1', '9400d3', 'ff1493', '00bfff', '696969', '696969', '1e90ff', 'b22222', 'fffaf0', '228b22', 'ff00ff', 'dcdcdc', 'f8f8ff', 'ffd700', 'daa520', '808080', '808080', '008000', 'adff2f', 'f0fff0', 'ff69b4', 'cd5c5c', '4b0082', 'fffff0', 'f0e68c', 'e6e6fa', 'fff0f5', '7cfc00', 'fffacd', 'add8e6', 'f08080', 'e0ffff', 'fafad2', 'd3d3d3', 'd3d3d3', '90ee90', 'ffb6c1', 'ffa07a', '20b2aa', '87cefa', '778899', '778899', 'b0c4de', 'ffffe0', '00ff00', '32cd32', 'faf0e6', 'ff00ff', '800000', '66cdaa', '0000cd', 'ba55d3', '9370db', '3cb371', '7b68ee', '00fa9a', '48d1cc', 'c71585', '191970', 'f5fffa', 'ffe4e1', 'ffe4b5', 'ffdead', '000080', 'fdf5e6', '808000', '6b8e23', 'ffa500', 'ff4500', 'da70d6', 'eee8aa', '98fb98', 'afeeee', 'db7093', 'ffefd5', 'ffdab9', 'cd853f', 'ffc0cb', 'dda0dd', 'b0e0e6', '800080', '663399', 'ff0000', 'bc8f8f', '4169e1', '8b4513', 'fa8072', 'f4a460', '2e8b57', 'fff5ee', 'a0522d', 'c0c0c0', '87ceeb', '6a5acd', '708090', '708090', 'fffafa', '00ff7f', '4682b4', 'd2b48c', '008080', 'd8bfd8', 'ff6347', '40e0d0', 'ee82ee', 'f5deb3', 'ffffff', 'f5f5f5', 'ffff00', '9acd32'];
+	var colorMap = {};
+	var round = Math.round;
 	var defaultColor = 'rgba(0,0,0,0)';
 
-	for (let i = 0; i < preDefinedColors.length; i += 1) {
+	for (var i = 0; i < preDefinedColors.length; i += 1) {
 		colorMap[preDefinedColors[i]] = preDefinedColorHex[i];
 	}
 
@@ -2800,34 +2794,34 @@
 		this.g = g;
 		this.b = b;
 		this.a = a === undefined ? 255 : a;
-		this.rgba = `rgba(${r},${g},${b},${a})`;
+		this.rgba = "rgba(" + r + "," + g + "," + b + "," + a + ")";
 	}
 
 	function nameToHex (name) {
-		return colorMap[name] ? `#${colorMap[name]}` : '#000';
+		return colorMap[name] ? ("#" + (colorMap[name])) : '#000';
 	}
 
 	function hexToRgb (hex) {
-		const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-		hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
-		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+		var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+		hex = hex.replace(shorthandRegex, function (m, r, g, b) { return r + r + g + g + b + b; });
+		var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 		return new RGBA(parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16), 255);
 	}
 
 	function rgbToHex (rgb) {
-		const rgbComponents = rgb.substring(rgb.lastIndexOf('(') + 1, rgb.lastIndexOf(')')).split(',');
-		const r = parseInt(rgbComponents[0], 10);
-		const g = parseInt(rgbComponents[1], 10);
-		const b = parseInt(rgbComponents[2], 10);
-		return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+		var rgbComponents = rgb.substring(rgb.lastIndexOf('(') + 1, rgb.lastIndexOf(')')).split(',');
+		var r = parseInt(rgbComponents[0], 10);
+		var g = parseInt(rgbComponents[1], 10);
+		var b = parseInt(rgbComponents[2], 10);
+		return ("#" + (((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)));
 	}
 
 	function rgbParse (rgb) {
-		const res = rgb.replace(/[^0-9.,]+/g, '').split(',');
-		const obj = {};
-		const flags = ['r', 'g', 'b', 'a'];
+		var res = rgb.replace(/[^0-9.,]+/g, '').split(',');
+		var obj = {};
+		var flags = ['r', 'g', 'b', 'a'];
 
-		for (let i = 0; i < res.length; i += 1) {
+		for (var i = 0; i < res.length; i += 1) {
 			obj[flags[i]] = parseFloat(res[i]);
 		}
 
@@ -2842,7 +2836,7 @@
 		var h;
 		var s;
 		var l;
-		const res = hsl.replace(/[^0-9.,]+/g, '').split(',').map(function (d) {
+		var res = hsl.replace(/[^0-9.,]+/g, '').split(',').map(function (d) {
 			return parseFloat(d);
 		});
 		h = res[0] / 360;
@@ -2854,11 +2848,11 @@
 			r = g = b = l;
 		} else {
 			var hue2rgb = function hue2rgb (p, q, t) {
-				if (t < 0) t += 1;
-				if (t > 1) t -= 1;
-				if (t < 1 / 6) return p + ((q - p) * 6 * t);
-				if (t < 1 / 2) return q;
-				if (t < 2 / 3) return p + ((q - p) * ((2 / 3) - t) * 6);
+				if (t < 0) { t += 1; }
+				if (t > 1) { t -= 1; }
+				if (t < 1 / 6) { return p + ((q - p) * 6 * t); }
+				if (t < 1 / 2) { return q; }
+				if (t < 2 / 3) { return p + ((q - p) * ((2 / 3) - t) * 6); }
 				return p;
 			};
 
@@ -2921,25 +2915,25 @@
 
 	/* eslint-disable no-undef */
 
-	let animeIdentifier = 0;
-	const t2DGeometry$2 = geometry;
-	const easing = fetchTransitionType;
-	const queueInstance$1 = queue;
+	var animeIdentifier = 0;
+	var t2DGeometry$2 = geometry;
+	var easing = fetchTransitionType;
+	var queueInstance$1 = queue;
 
 	function animeId$1 () {
 		animeIdentifier += 1;
 		return animeIdentifier;
 	}
 
-	let transitionSetAttr = function transitionSetAttr (self, key, value) {
+	var transitionSetAttr = function transitionSetAttr (self, key, value) {
 		return function inner (f) {
 			self.setAttr(key, value.call(self, f));
 		};
 	};
 
-	let transformTransition = function transformTransition (self, subkey, value) {
-		const exe = [];
-		const trans = self.attr.transform;
+	var transformTransition = function transformTransition (self, subkey, value) {
+		var exe = [];
+		var trans = self.attr.transform;
 
 		if (typeof value === 'function') {
 			return function inner (f) {
@@ -2947,8 +2941,8 @@
 			};
 		}
 
-		value.forEach((tV, i) => {
-			let val;
+		value.forEach(function (tV, i) {
+			var val;
 
 			if (trans[subkey]) {
 				if (trans[subkey][i] !== undefined) {
@@ -2963,12 +2957,12 @@
 			exe.push(t2DGeometry$2.intermediateValue.bind(null, val, tV));
 		});
 		return function inner (f) {
-			self[subkey](exe.map(d => d(f)));
+			self[subkey](exe.map(function (d) { return d(f); }));
 		};
 	};
 
-	let attrTransition = function attrTransition (self, key, value) {
-		let srcVal = self.attr[key]; // if (typeof value === 'function') {
+	var attrTransition = function attrTransition (self, key, value) {
+		var srcVal = self.attr[key]; // if (typeof value === 'function') {
 		//   return function setAttr_ (f) {
 		//     self.setAttr(key, value.call(self, f))
 		//   }
@@ -2979,10 +2973,10 @@
 		};
 	};
 
-	let styleTransition = function styleTransition (self, key, value) {
-		let srcValue;
-		let destUnit;
-		let destValue;
+	var styleTransition = function styleTransition (self, key, value) {
+		var srcValue;
+		var destUnit;
+		var destValue;
 
 		if (typeof value === 'function') {
 			return function inner (f) {
@@ -2993,7 +2987,7 @@
 
 			if (isNaN(value)) {
 				if (colorMap$1.isTypeColor(value)) {
-					const colorExe = colorMap$1.transition(srcValue, value);
+					var colorExe = colorMap$1.transition(srcValue, value);
 					return function inner (f) {
 						self.setStyle(key, colorExe(f));
 					};
@@ -3017,20 +3011,20 @@
 		}
 	};
 
-	const animate = function animate (self, targetConfig) {
-		const tattr = targetConfig.attr ? targetConfig.attr : {};
-		const tstyles = targetConfig.style ? targetConfig.style : {};
-		const runStack = [];
-		let value;
+	var animate = function animate (self, targetConfig) {
+		var tattr = targetConfig.attr ? targetConfig.attr : {};
+		var tstyles = targetConfig.style ? targetConfig.style : {};
+		var runStack = [];
+		var value;
 
 		if (typeof tattr !== 'function') {
-			for (let key in tattr) {
+			var loop = function ( key ) {
 				if (key !== 'transform') {
-					let value = tattr[key];
+					var value$1 = tattr[key];
 
-					if (typeof value === 'function') {
+					if (typeof value$1 === 'function') {
 						runStack[runStack.length] = function setAttr_ (f) {
-							self.setAttr(key, value.call(self, f));
+							self.setAttr(key, value$1.call(self, f));
 						};
 					} else {
 						if (key === 'd') {
@@ -3045,26 +3039,28 @@
 					if (typeof value === 'function') {
 						runStack[runStack.length] = transitionSetAttr(self, key, value);
 					} else {
-						const trans = self.attr.transform;
+						var trans = self.attr.transform;
 
 						if (!trans) {
 							self.attr.transform = {};
 						}
 
-						const subTrnsKeys = Object.keys(tattr.transform);
+						var subTrnsKeys = Object.keys(tattr.transform);
 
-						for (let j = 0, jLen = subTrnsKeys.length; j < jLen; j += 1) {
+						for (var j = 0, jLen = subTrnsKeys.length; j < jLen; j += 1) {
 							runStack[runStack.length] = transformTransition(self, subTrnsKeys[j], tattr.transform[subTrnsKeys[j]]);
 						}
 					}
 				}
-			}
+			};
+
+			for (var key in tattr) loop( key );
 		} else {
 			runStack[runStack.length] = tattr.bind(self);
 		}
 
 		if (typeof tstyles !== 'function') {
-			for (let style in tstyles) {
+			for (var style in tstyles) {
 				runStack[runStack.length] = styleTransition(self, style, tstyles[style]);
 			}
 		} else {
@@ -3072,8 +3068,8 @@
 		}
 
 		return {
-			run (f) {
-				for (let j = 0, len = runStack.length; j < len; j += 1) {
+			run: function run (f) {
+				for (var j = 0, len = runStack.length; j < len; j += 1) {
 					runStack[j](f);
 				}
 			},
@@ -3088,15 +3084,15 @@
 	};
 
 	function performJoin (data, nodes, cond) {
-		const dataIds = data.map(cond);
-		const res = {
+		var dataIds = data.map(cond);
+		var res = {
 			new: [],
 			update: [],
 			old: []
 		};
 
-		for (let i = 0; i < nodes.length; i += 1) {
-			const index = dataIds.indexOf(cond(nodes[i].dataObj, i));
+		for (var i = 0; i < nodes.length; i += 1) {
+			var index = dataIds.indexOf(cond(nodes[i].dataObj, i));
 
 			if (index !== -1) {
 				nodes[i].dataObj = data[index];
@@ -3108,8 +3104,8 @@
 			}
 		}
 
-		res.new = data.filter((d, i) => {
-			const index = dataIds.indexOf(cond(d, i));
+		res.new = data.filter(function (d, i) {
+			var index = dataIds.indexOf(cond(d, i));
 
 			if (index !== -1) {
 				dataIds[index] = null;
@@ -3121,19 +3117,19 @@
 		return res;
 	}
 
-	let CompositeArray = {};
+	var CompositeArray = {};
 	CompositeArray.push = {
 		value: function (data) {
 			if (Object.prototype.toString.call(data) !== '[object Array]') {
 				data = [data];
 			}
 
-			for (let i = 0, len = data.length; i < len; i++) {
+			for (var i = 0, len = data.length; i < len; i++) {
 				this.data.push(data[i]);
 			}
 
 			if (this.config.action.enter) {
-				let nodes = {};
+				var nodes = {};
 				this.selector.split(',').forEach(function (d) {
 					nodes[d] = data;
 				});
@@ -3146,11 +3142,11 @@
 	};
 	CompositeArray.pop = {
 		value: function () {
-			let self = this;
-			let elData = this.data.pop();
+			var self = this;
+			var elData = this.data.pop();
 
 			if (this.config.action.exit) {
-				let nodes = {};
+				var nodes = {};
 				this.selector.split(',').forEach(function (d) {
 					nodes[d] = self.fetchEls(d, [elData]);
 				});
@@ -3167,16 +3163,16 @@
 				data = [data];
 			}
 
-			let self = this;
+			var self = this;
 
-			for (let i = 0, len = data.length; i < len; i++) {
+			for (var i = 0, len = data.length; i < len; i++) {
 				if (this.data.indexOf(data[i]) !== -1) {
 					this.data.splice(this.data.indexOf(data[i]), 1);
 				}
 			}
 
 			if (this.config.action.exit) {
-				let nodes = {};
+				var nodes = {};
 				this.selector.split(',').forEach(function (d) {
 					nodes[d] = self.fetchEls(d, data);
 				});
@@ -3189,10 +3185,10 @@
 	};
 	CompositeArray.update = {
 		value: function () {
-			let self = this;
+			var self = this;
 
 			if (this.config.action.update) {
-				let nodes = {};
+				var nodes = {};
 				this.selector.split(',').forEach(function (d) {
 					nodes[d] = self.fetchEls(d, self.data);
 				});
@@ -3233,25 +3229,25 @@
 	};
 
 	NodePrototype.prototype.fetchEls = function (nodeSelector, dataArray) {
-		const nodes = [];
-		const wrap = new CollectionPrototype();
+		var nodes = [];
+		var wrap = new CollectionPrototype();
 
 		if (this.children.length > 0) {
 			if (nodeSelector.charAt(0) === '.') {
-				const classToken = nodeSelector.substring(1, nodeSelector.length);
-				this.children.forEach(d => {
-					let check1 = dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.attr.class === classToken;
-					let check2 = !dataArray && d.attr.class === classToken;
+				var classToken = nodeSelector.substring(1, nodeSelector.length);
+				this.children.forEach(function (d) {
+					var check1 = dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.attr.class === classToken;
+					var check2 = !dataArray && d.attr.class === classToken;
 
 					if (check1 || check2) {
 						nodes.push(d);
 					}
 				});
 			} else if (nodeSelector.charAt(0) === '#') {
-				const idToken = nodeSelector.substring(1, nodeSelector.length);
-				this.children.every(d => {
-					let check1 = dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.attr.id === idToken;
-					let check2 = !dataArray && d.attr.id === idToken;
+				var idToken = nodeSelector.substring(1, nodeSelector.length);
+				this.children.every(function (d) {
+					var check1 = dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.attr.id === idToken;
+					var check2 = !dataArray && d.attr.id === idToken;
 
 					if (check1 || check2) {
 						nodes.push(d);
@@ -3261,9 +3257,9 @@
 					return true;
 				});
 			} else {
-				this.children.forEach(d => {
-					let check1 = dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.nodeName === nodeSelector;
-					let check2 = !dataArray && d.nodeName === nodeSelector;
+				this.children.forEach(function (d) {
+					var check1 = dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.nodeName === nodeSelector;
+					var check2 = !dataArray && d.nodeName === nodeSelector;
 
 					if (check1 || check2) {
 						nodes.push(d);
@@ -3276,14 +3272,14 @@
 	};
 
 	NodePrototype.prototype.fetchEl = function (nodeSelector, data) {
-		let nodes;
+		var nodes;
 
 		if (this.children.length > 0) {
 			if (nodeSelector.charAt(0) === '.') {
-				const classToken = nodeSelector.substring(1, nodeSelector.length);
-				this.children.every(d => {
-					let check1 = data && d.dataObj && data === d.dataObj && d.attr.class === classToken;
-					let check2 = !data && d.attr.class === classToken;
+				var classToken = nodeSelector.substring(1, nodeSelector.length);
+				this.children.every(function (d) {
+					var check1 = data && d.dataObj && data === d.dataObj && d.attr.class === classToken;
+					var check2 = !data && d.attr.class === classToken;
 
 					if (check1 || check2) {
 						nodes = d;
@@ -3293,10 +3289,10 @@
 					return true;
 				});
 			} else if (nodeSelector.charAt(0) === '#') {
-				const idToken = nodeSelector.substring(1, nodeSelector.length);
-				this.children.every(d => {
-					let check1 = data && d.dataObj && data === d.dataObj && d.attr.id === idToken;
-					let check2 = !data && d.attr.id === idToken;
+				var idToken = nodeSelector.substring(1, nodeSelector.length);
+				this.children.every(function (d) {
+					var check1 = data && d.dataObj && data === d.dataObj && d.attr.id === idToken;
+					var check2 = !data && d.attr.id === idToken;
 
 					if (check1 || check2) {
 						nodes = d;
@@ -3306,9 +3302,9 @@
 					return true;
 				});
 			} else {
-				this.children.forEach(d => {
-					let check1 = data && d.dataObj && data === d.dataObj && d.nodeName === nodeSelector;
-					let check2 = !data && d.nodeName === nodeSelector;
+				this.children.forEach(function (d) {
+					var check1 = data && d.dataObj && data === d.dataObj && d.nodeName === nodeSelector;
+					var check2 = !data && d.nodeName === nodeSelector;
 
 					if (check1 || check2) {
 						nodes = d;
@@ -3321,12 +3317,10 @@
 	};
 
 	function dataJoin (data, selector, config) {
-		const self = this;
-		const selectors = selector.split(',');
-		let {
-			joinOn
-		} = config;
-		let joinResult = {
+		var self = this;
+		var selectors = selector.split(',');
+		var joinOn = config.joinOn;
+		var joinResult = {
 			new: {},
 			update: {},
 			old: {}
@@ -3338,10 +3332,10 @@
 			};
 		}
 
-		for (let i = 0, len = selectors.length; i < len; i++) {
-			let d = selectors[i];
-			const nodes = self.fetchEls(d);
-			const join = performJoin(data, nodes.stack, joinOn);
+		for (var i = 0, len = selectors.length; i < len; i++) {
+			var d = selectors[i];
+			var nodes = self.fetchEls(d);
+			var join = performJoin(data, nodes.stack, joinOn);
 			joinResult.new[d] = join.new;
 			joinResult.update[d] = new CollectionPrototype().wrapper(join.update);
 			joinResult.old[d] = new CollectionPrototype().wrapper(join.old);
@@ -3394,48 +3388,48 @@
 	};
 
 	function fetchEls (nodeSelector, dataArray) {
-		let d;
-		const coll = [];
+		var d;
+		var coll = [];
 
-		for (let i = 0; i < this.stack.length; i += 1) {
+		for (var i = 0; i < this.stack.length; i += 1) {
 			d = this.stack[i];
 			coll.push(d.fetchEls(nodeSelector, dataArray));
 		}
 
-		const collection = new CollectionPrototype();
+		var collection = new CollectionPrototype();
 		collection.wrapper(coll);
 		return collection;
 	}
 
 	function join (data, el, arg) {
-		let d;
-		const coll = [];
+		var d;
+		var coll = [];
 
-		for (let i = 0; i < this.stack.length; i += 1) {
+		for (var i = 0; i < this.stack.length; i += 1) {
 			d = this.stack[i];
 			coll.push(d.join(data, el, arg));
 		}
 
-		const collection = new CollectionPrototype();
+		var collection = new CollectionPrototype();
 		collection.wrapper(coll);
 		return collection;
 	}
 
 	function createEl (config) {
-		let d;
-		const coll = [];
+		var d;
+		var coll = [];
 
-		for (let i = 0, len = this.stack.length; i < len; i += 1) {
-			let cRes = {};
+		for (var i = 0, len = this.stack.length; i < len; i += 1) {
+			var cRes = {};
 			d = this.stack[i];
 
 			if (typeof config === 'function') {
 				cRes = config.call(d, d.dataObj, i);
 			} else {
-				const keys = Object.keys(config);
+				var keys = Object.keys(config);
 
-				for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
-					const key = keys[j];
+				for (var j = 0, lenJ = keys.length; j < lenJ; j += 1) {
+					var key = keys[j];
 
 					if (typeof config[key] !== 'object') {
 						cRes[key] = config[key];
@@ -3448,18 +3442,18 @@
 			coll.push(d.createEl(cRes));
 		}
 
-		const collection = new CollectionPrototype();
+		var collection = new CollectionPrototype();
 		collection.wrapper(coll);
 		return collection;
 	}
 
 	function createEls (data, config) {
-		let d;
-		const coll = [];
-		let res = data;
+		var d;
+		var coll = [];
+		var res = data;
 
-		for (let i = 0, len = this.stack.length; i < len; i += 1) {
-			let cRes = {};
+		for (var i = 0, len = this.stack.length; i < len; i += 1) {
+			var cRes = {};
 			d = this.stack[i];
 
 			if (typeof data === 'function') {
@@ -3469,10 +3463,10 @@
 			if (typeof config === 'function') {
 				cRes = config.call(d, d.dataObj, i);
 			} else {
-				const keys = Object.keys(config);
+				var keys = Object.keys(config);
 
-				for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
-					const key = keys[j];
+				for (var j = 0, lenJ = keys.length; j < lenJ; j += 1) {
+					var key = keys[j];
 					cRes[key] = config[key];
 				}
 			}
@@ -3480,13 +3474,13 @@
 			coll.push(d.createEls(res, cRes));
 		}
 
-		const collection = new CollectionPrototype();
+		var collection = new CollectionPrototype();
 		collection.wrapper(coll);
 		return collection;
 	}
 
 	function forEach (callBck) {
-		for (let i = 0, len = this.stack.length; i < len; i += 1) {
+		for (var i = 0, len = this.stack.length; i < len; i += 1) {
 			callBck.call(this.stack[i], this.stack[i].dataObj, i);
 		}
 
@@ -3494,12 +3488,14 @@
 	}
 
 	function setAttribute (key, value) {
-		let d;
+		var arguments$1 = arguments;
 
-		for (let i = 0, len = this.stack.length; i < len; i += 1) {
+		var d;
+
+		for (var i = 0, len = this.stack.length; i < len; i += 1) {
 			d = this.stack[i];
 
-			if (arguments.length > 1) {
+			if (arguments$1.length > 1) {
 				if (typeof value === 'function') {
 					d.setAttr(key, value.call(d, d.dataObj, i));
 				} else {
@@ -3508,10 +3504,10 @@
 			} else if (typeof key === 'function') {
 				d.setAttr(key.call(d, d.dataObj, i));
 			} else {
-				const keys = Object.keys(key);
+				var keys = Object.keys(key);
 
-				for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
-					const keykey = keys[j];
+				for (var j = 0, lenJ = keys.length; j < lenJ; j += 1) {
+					var keykey = keys[j];
 
 					if (typeof key[keykey] === 'function') {
 						d.setAttr(keykey, key[keykey].call(d, d.dataObj, i));
@@ -3526,12 +3522,14 @@
 	}
 
 	function setStyle (key, value) {
-		let d;
+		var arguments$1 = arguments;
 
-		for (let i = 0, len = this.stack.length; i < len; i += 1) {
+		var d;
+
+		for (var i = 0, len = this.stack.length; i < len; i += 1) {
 			d = this.stack[i];
 
-			if (arguments.length > 1) {
+			if (arguments$1.length > 1) {
 				if (typeof value === 'function') {
 					d.setStyle(key, value.call(d, d.dataObj, i));
 				} else {
@@ -3541,10 +3539,10 @@
 				if (typeof key === 'function') {
 					d.setStyle(key.call(d, d.dataObj, i));
 				} else {
-					const keys = Object.keys(key);
+					var keys = Object.keys(key);
 
-					for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
-						const keykey = keys[j];
+					for (var j = 0, lenJ = keys.length; j < lenJ; j += 1) {
+						var keykey = keys[j];
 
 						if (typeof key[keykey] === 'function') {
 							d.setStyle(keykey, key[keykey].call(d, d.dataObj, i));
@@ -3566,9 +3564,9 @@
 	}
 
 	function translate (value) {
-		let d;
+		var d;
 
-		for (let i = 0, len = this.stack.length; i < len; i += 1) {
+		for (var i = 0, len = this.stack.length; i < len; i += 1) {
 			d = this.stack[i];
 
 			if (typeof value === 'function') {
@@ -3582,9 +3580,9 @@
 	}
 
 	function rotate (value) {
-		let d;
+		var d;
 
-		for (let i = 0, len = this.stack.length; i < len; i += 1) {
+		for (var i = 0, len = this.stack.length; i < len; i += 1) {
 			d = this.stack[i];
 
 			if (typeof value === 'function') {
@@ -3598,9 +3596,9 @@
 	}
 
 	function scale (value) {
-		let d;
+		var d;
 
-		for (let i = 0, len = this.stack.length; i < len; i += 1) {
+		for (var i = 0, len = this.stack.length; i < len; i += 1) {
 			d = this.stack[i];
 
 			if (typeof value === 'function') {
@@ -3614,13 +3612,13 @@
 	}
 
 	function exec (value) {
-		let d;
+		var d;
 
 		if (typeof value !== 'function') {
 			return;
 		}
 
-		for (let i = 0, len = this.stack.length; i < len; i += 1) {
+		for (var i = 0, len = this.stack.length; i < len; i += 1) {
 			d = this.stack[i];
 			value.call(d, d.dataObj, i);
 		}
@@ -3629,7 +3627,7 @@
 	}
 
 	function on (eventType, hndlr) {
-		for (let i = 0, len = this.stack.length; i < len; i += 1) {
+		for (var i = 0, len = this.stack.length; i < len; i += 1) {
 			this.stack[i].on(eventType, hndlr);
 		}
 
@@ -3642,7 +3640,7 @@
 	// }
 
 	function remove () {
-		for (let i = 0, len = this.stack.length; i < len; i += 1) {
+		for (var i = 0, len = this.stack.length; i < len; i += 1) {
 			this.stack[i].remove();
 		}
 
@@ -3650,8 +3648,8 @@
 	}
 
 	function resolveObject (config, node, i) {
-		let obj = {};
-		let key;
+		var obj = {};
+		var key;
 
 		for (key in config) {
 			if (key !== 'end') {
@@ -3666,11 +3664,11 @@
 		return obj;
 	}
 
-	const animateArrayTo = function animateArrayTo (config) {
-		let node;
-		let newConfig;
+	var animateArrayTo = function animateArrayTo (config) {
+		var node;
+		var newConfig;
 
-		for (let i = 0; i < this.stack.length; i += 1) {
+		for (var i = 0; i < this.stack.length; i += 1) {
 			newConfig = {};
 			node = this.stack[i];
 			newConfig = resolveObject(config, node, i);
@@ -3697,12 +3695,12 @@
 		return this;
 	};
 
-	const animateArrayExe = function animateArrayExe (config) {
-		let node;
-		let newConfig;
-		let exeArray = [];
+	var animateArrayExe = function animateArrayExe (config) {
+		var node;
+		var newConfig;
+		var exeArray = [];
 
-		for (let i = 0; i < this.stack.length; i += 1) {
+		for (var i = 0; i < this.stack.length; i += 1) {
 			newConfig = {};
 			node = this.stack[i];
 			newConfig = resolveObject(config, node, i);
@@ -3729,16 +3727,16 @@
 		return exeArray;
 	};
 
-	const animatePathArrayTo = function animatePathArrayTo (config) {
-		let node;
-		let keys = Object.keys(config);
+	var animatePathArrayTo = function animatePathArrayTo (config) {
+		var node;
+		var keys = Object.keys(config);
 
-		for (let i = 0, len = this.stack.length; i < len; i += 1) {
+		for (var i = 0, len = this.stack.length; i < len; i += 1) {
 			node = this.stack[i];
-			let conf = {};
+			var conf = {};
 
-			for (let j = 0; j < keys.length; j++) {
-				let value = config[keys[j]];
+			for (var j = 0; j < keys.length; j++) {
+				var value = config[keys[j]];
 
 				if (typeof value === 'function') {
 					value = value.call(node, node.dataObj, i);
@@ -3753,18 +3751,18 @@
 		return this;
 	};
 
-	const textArray = function textArray (value) {
-		let node;
+	var textArray = function textArray (value) {
+		var node;
 
 		if (typeof value !== 'function') {
-			for (let i = 0; i < this.stack.length; i += 1) {
+			for (var i = 0; i < this.stack.length; i += 1) {
 				node = this.stack[i];
 				node.text(value);
 			}
 		} else {
-			for (let i = 0; i < this.stack.length; i += 1) {
-				node = this.stack[i];
-				node.text(value.call(node, node.dataObj, i));
+			for (var i$1 = 0; i$1 < this.stack.length; i$1 += 1) {
+				node = this.stack[i$1];
+				node.text(value.call(node, node.dataObj, i$1));
 			}
 		}
 
@@ -3789,18 +3787,22 @@
 	// CreateElements as CollectionPrototype
 
 	function CollectionPrototype (contextInfo, data, config, vDomIndex) {
+		var this$1 = this;
+
 		if (!data) {
 			data = [];
 		}
 
-		let transform;
-		let key;
-		const attrKeys = config ? config.attr ? Object.keys(config.attr) : [] : [];
-		const styleKeys = config ? config.style ? Object.keys(config.style) : [] : [];
-		const bbox = config ? config['bbox'] !== undefined ? config['bbox'] : true : true;
-		this.stack = data.map((d, i) => {
-			let node;
-			node = this.createNode(contextInfo.ctx, {
+		var transform;
+		var key;
+		var attrKeys = config ? config.attr ? Object.keys(config.attr) : [] : [];
+		var styleKeys = config ? config.style ? Object.keys(config.style) : [] : [];
+		var bbox = config ? config['bbox'] !== undefined ? config['bbox'] : true : true;
+		this.stack = data.map(function (d, i) {
+			var assign;
+
+			var node;
+			node = this$1.createNode(contextInfo.ctx, {
 				el: config.el,
 				bbox: bbox
 			}, vDomIndex); // if (contextInfo.type === 'SVG') {
@@ -3821,12 +3823,12 @@
 			//   console.log('unknow type')
 			// }
 
-			for (let j = 0, len = attrKeys.length; j < len; j += 1) {
+			for (var j = 0, len = attrKeys.length; j < len; j += 1) {
 				key = attrKeys[j];
 
 				if (key !== 'transform') {
 					if (typeof config.attr[key] === 'function') {
-						const resValue = config.attr[key].call(node, d, i);
+						var resValue = config.attr[key].call(node, d, i);
 						node.setAttr(key, resValue);
 					} else {
 						node.setAttr(key, config.attr[key]);
@@ -3835,23 +3837,21 @@
 					if (typeof config.attr.transform === 'function') {
 						transform = config.attr[key].call(node, d, i);
 					} else {
-						({
-							transform
-						} = config.attr);
+						((assign = config.attr, transform = assign.transform));
 					}
 
-					for (const trns in transform) {
+					for (var trns in transform) {
 						node[trns](transform[trns]);
 					}
 				}
 			}
 
-			for (let j = 0, len = styleKeys.length; j < len; j += 1) {
-				key = styleKeys[j];
+			for (var j$1 = 0, len$1 = styleKeys.length; j$1 < len$1; j$1 += 1) {
+				key = styleKeys[j$1];
 
 				if (typeof config.style[key] === 'function') {
-					const resValue = config.style[key].call(node, d, i);
-					node.setStyle(key, resValue);
+					var resValue$1 = config.style[key].call(node, d, i);
+					node.setStyle(key, resValue$1);
 				} else {
 					node.setStyle(key, config.style[key]);
 				}
@@ -3864,34 +3864,34 @@
 	}
 
 	CollectionPrototype.prototype = {
-		createEls,
-		createEl,
-		forEach,
+		createEls: createEls,
+		createEl: createEl,
+		forEach: forEach,
 		setAttr: setAttribute,
-		fetchEls,
-		setStyle,
-		translate,
-		rotate,
-		scale,
-		exec,
+		fetchEls: fetchEls,
+		setStyle: setStyle,
+		translate: translate,
+		rotate: rotate,
+		scale: scale,
+		exec: exec,
 		animateTo: animateArrayTo,
 		animateExe: animateArrayExe,
 		animatePathTo: animatePathArrayTo,
-		remove,
+		remove: remove,
 		text: textArray,
-		join,
-		on
+		join: join,
+		on: on
 	};
 
 	CollectionPrototype.prototype.createNode = function () {
 	};
 
 	CollectionPrototype.prototype.wrapper = function wrapper (nodes) {
-		const self = this;
+		var self = this;
 
 		if (nodes) {
-			for (let i = 0, len = nodes.length; i < len; i++) {
-				let node = nodes[i];
+			for (var i = 0, len = nodes.length; i < len; i++) {
+				var node = nodes[i];
 				self.stack.push(node);
 			}
 		}
@@ -3899,23 +3899,23 @@
 		return this;
 	};
 
-	const queueInstance$2 = queue;
+	var queueInstance$2 = queue;
 
-	let Id$1 = 0;
+	var Id$1 = 0;
 
 	function domId () {
 		Id$1 += 1;
 		return Id$1;
 	}
 
-	let Event = function (x, y) {
+	var Event = function (x, y) {
 		this.x = x;
 		this.y = y;
 		this.dx = 0;
 		this.dy = 0;
 	};
 
-	let SVGCollection = function () {
+	var SVGCollection = function () {
 		CollectionPrototype.apply(this, arguments);
 	};
 	SVGCollection.prototype = new CollectionPrototype();
@@ -3944,11 +3944,11 @@
 	}
 
 	DomGradients.prototype.exe = function exe () {
-		return `url(#${this.config.id})`;
+		return ("url(#" + (this.config.id) + ")");
 	};
 
 	DomGradients.prototype.linearGradient = function linearGradient () {
-		const self = this;
+		var self = this;
 
 		if (!this.defs) {
 			this.defs = this.pDom.createEl({
@@ -3958,29 +3958,29 @@
 
 		this.linearEl = this.defs.join([1], 'linearGradient', {
 			action: {
-				enter (data) {
+				enter: function enter (data) {
 					this.createEls(data.linearGradient, {
 						el: 'linearGradient'
 					}).setAttr({
 						id: self.config.id,
-						x1: `${self.config.x1}%`,
-						y1: `${self.config.y1}%`,
-						x2: `${self.config.x2}%`,
-						y2: `${self.config.y2}%`
+						x1: ((self.config.x1) + "%"),
+						y1: ((self.config.y1) + "%"),
+						x2: ((self.config.x2) + "%"),
+						y2: ((self.config.y2) + "%")
 					});
 				},
 
-				exit (oldNodes) {
+				exit: function exit (oldNodes) {
 					oldNodes.linearGradient.remove();
 				},
 
-				update (nodes) {
+				update: function update (nodes) {
 					nodes.linearGradient.setAttr({
 						id: self.config.id,
-						x1: `${self.config.x1}%`,
-						y1: `${self.config.y1}%`,
-						x2: `${self.config.x2}%`,
-						y2: `${self.config.y2}%`
+						x1: ((self.config.x1) + "%"),
+						y1: ((self.config.y1) + "%"),
+						x2: ((self.config.x2) + "%"),
+						y2: ((self.config.y2) + "%")
 					});
 				}
 
@@ -3991,8 +3991,8 @@
 		this.linearEl.createEls(this.config.colorStops, {
 			el: 'stop',
 			attr: {
-				offset (d, i) {
-					return `${d.value}%`;
+				offset: function offset (d, i) {
+					return ((d.value) + "%");
 				},
 
 				'stop-color': function stopColor (d, i) {
@@ -4004,7 +4004,7 @@
 	};
 
 	DomGradients.prototype.radialGradient = function radialGradient () {
-		const self = this;
+		var self = this;
 
 		if (!this.defs) {
 			this.defs = this.pDom.createEl({
@@ -4014,31 +4014,31 @@
 
 		this.radialEl = this.defs.join([1], 'radialGradient', {
 			action: {
-				enter (data) {
+				enter: function enter (data) {
 					this.createEls(data.radialGradient, {
 						el: 'radialGradient'
 					}).setAttr({
 						id: self.config.id,
-						cx: `${self.config.innerCircle.x}%`,
-						cy: `${self.config.innerCircle.y}%`,
-						r: `${self.config.outerCircle.r}%`,
-						fx: `${self.config.outerCircle.x}%`,
-						fy: `${self.config.outerCircle.y}%`
+						cx: ((self.config.innerCircle.x) + "%"),
+						cy: ((self.config.innerCircle.y) + "%"),
+						r: ((self.config.outerCircle.r) + "%"),
+						fx: ((self.config.outerCircle.x) + "%"),
+						fy: ((self.config.outerCircle.y) + "%")
 					});
 				},
 
-				exit (oldNodes) {
+				exit: function exit (oldNodes) {
 					oldNodes.radialGradient.remove();
 				},
 
-				update (nodes) {
+				update: function update (nodes) {
 					nodes.radialGradient.setAttr({
 						id: self.config.id,
-						cx: `${self.config.innerCircle.x}%`,
-						cy: `${self.config.innerCircle.y}%`,
-						r: `${self.config.outerCircle.r}%`,
-						fx: `${self.config.outerCircle.x}%`,
-						fy: `${self.config.outerCircle.y}%`
+						cx: ((self.config.innerCircle.x) + "%"),
+						cy: ((self.config.innerCircle.y) + "%"),
+						r: ((self.config.outerCircle.r) + "%"),
+						fx: ((self.config.outerCircle.x) + "%"),
+						fy: ((self.config.outerCircle.y) + "%")
 					});
 				}
 
@@ -4049,8 +4049,8 @@
 		this.radialEl.createEls(this.config.colorStops, {
 			el: 'stop',
 			attr: {
-				offset (d, i) {
-					return `${d.value}%`;
+				offset: function offset (d, i) {
+					return ((d.value) + "%");
 				},
 
 				'stop-color': function stopColor (d, i) {
@@ -4077,18 +4077,18 @@
 		return false;
 	};
 
-	const nameSpace = {
+	var nameSpace = {
 		svg: 'http://www.w3.org/2000/svg',
 		xlink: 'http://www.w3.org/1999/xlink',
 		xhtml: 'http://www.w3.org/1999/xhtml'
 	};
 
-	const buildDom = function buildSVGElement (ele) {
+	var buildDom = function buildSVGElement (ele) {
 		return document.createElementNS(nameSpace.svg, ele);
 	};
 
 	function createDomElement (obj, vDomIndex) {
-		let dom = null;
+		var dom = null;
 
 		switch (obj.el) {
 			case 'group':
@@ -4100,7 +4100,7 @@
 				break;
 		}
 
-		const node = new DomExe(dom, obj, domId(), vDomIndex);
+		var node = new DomExe(dom, obj, domId(), vDomIndex);
 
 		if (obj.dataObj) {
 			dom.dataObj = obj.dataObj;
@@ -4109,7 +4109,7 @@
 		return node;
 	}
 
-	const DomExe = function DomExe (dom, config, id, vDomIndex) {
+	var DomExe = function DomExe (dom, config, id, vDomIndex) {
 		this.dom = dom;
 		this.nodeName = dom.nodeName;
 		this.attr = {};
@@ -4139,8 +4139,8 @@
 	};
 
 	function updateAttrsToDom (self, key) {
-		let ind = key.indexOf(':');
-		let value = self.changedAttribute[key];
+		var ind = key.indexOf(':');
+		var value = self.changedAttribute[key];
 
 		if (ind >= 0) {
 			self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), value);
@@ -4166,13 +4166,13 @@
 	}
 
 	function updateTransAttrsToDom (self) {
-		let cmd = '';
+		var cmd = '';
 
-		for (let trnX in self.attr.transform) {
+		for (var trnX in self.attr.transform) {
 			if (trnX === 'rotate') {
-				cmd += `${trnX}(${self.attr.transform.rotate[0] + ' ' + (self.attr.transform.rotate[1] || 0) + ' ' + (self.attr.transform.rotate[2] || 0)}) `;
+				cmd += trnX + "(" + (self.attr.transform.rotate[0] + ' ' + (self.attr.transform.rotate[1] || 0) + ' ' + (self.attr.transform.rotate[2] || 0)) + ") ";
 			} else {
-				cmd += `${trnX}(${self.attr.transform[trnX].join(' ')}) `;
+				cmd += trnX + "(" + (self.attr.transform[trnX].join(' ')) + ") ";
 			}
 		}
 
@@ -4180,9 +4180,9 @@
 	}
 
 	DomExe.prototype.transFormAttributes = function transFormAttributes () {
-		let self = this;
+		var self = this;
 
-		for (let key in self.changedAttribute) {
+		for (var key in self.changedAttribute) {
 			if (key !== 'transform') {
 				updateAttrsToDom(self, key);
 			} else {
@@ -4271,7 +4271,7 @@
 			this.style[attr] = value;
 			this.changedStyles[attr] = value;
 		} else if (arguments.length === 1 && typeof attr === 'object') {
-			let key;
+			var key;
 
 			for (key in attr) {
 				this.style[key] = attr[key];
@@ -4303,7 +4303,7 @@
 			this.attr[attr] = value;
 			this.changedAttribute[attr] = value;
 		} else if (arguments.length === 1 && typeof attr === 'object') {
-			for (let key in attr) {
+			for (var key in attr) {
 				if (key === 'points') {
 					attr[key] = pointsToString(attr[key]);
 				}
@@ -4325,7 +4325,7 @@
 
 	DomExe.prototype.execute = function DMexecute () {
 		if (!this.styleChanged && !this.attrChanged) {
-			for (let i = 0, len = this.children.length; i < len; i += 1) {
+			for (var i = 0, len = this.children.length; i < len; i += 1) {
 				this.children[i].execute();
 			}
 
@@ -4334,11 +4334,11 @@
 
 		this.transFormAttributes();
 
-		for (let i = 0, len = this.children.length; i < len; i += 1) {
-			this.children[i].execute();
+		for (var i$1 = 0, len$1 = this.children.length; i$1 < len$1; i$1 += 1) {
+			this.children[i$1].execute();
 		}
 
-		for (let style in this.changedStyles) {
+		for (var style in this.changedStyles) {
 			if (this.changedStyles[style] instanceof DomGradients) {
 				this.changedStyles[style] = this.changedStyles[style].exe();
 			}
@@ -4350,13 +4350,13 @@
 	};
 
 	DomExe.prototype.child = function DMchild (nodes) {
-		const parent = this.dom;
-		const self = this;
+		var parent = this.dom;
+		var self = this;
 
 		if (nodes instanceof SVGCollection) {
 			var fragment = document.createDocumentFragment();
 
-			for (let i = 0, len = nodes.stack.length; i < len; i++) {
+			for (var i = 0, len = nodes.stack.length; i < len; i++) {
 				fragment.appendChild(nodes.stack[i].dom);
 				nodes.stack[i].parentNode = self;
 				this.children[this.children.length] = nodes.stack[i];
@@ -4387,21 +4387,21 @@
 	// }
 
 	DomExe.prototype.createRadialGradient = function DMcreateRadialGradient (config) {
-		const gradientIns = new DomGradients(config, 'radial', this);
+		var gradientIns = new DomGradients(config, 'radial', this);
 		gradientIns.radialGradient();
 		return gradientIns;
 	};
 
 	DomExe.prototype.createLinearGradient = function DMcreateLinearGradient (config) {
-		const gradientIns = new DomGradients(config, 'linear', this);
+		var gradientIns = new DomGradients(config, 'linear', this);
 		gradientIns.linearGradient();
 		return gradientIns;
 	}; //   DomExe.prototype.join = dataJoin
 
-	let dragStack = [];
+	var dragStack = [];
 
 	DomExe.prototype.on = function DMon (eventType, hndlr) {
-		const self = this;
+		var self = this;
 
 		if (!hndlr) {
 			if (self.events && self.events[eventType]) {
@@ -4420,7 +4420,7 @@
 			self.drag = hndlr;
 			dragStack.push(self);
 		} else {
-			const hnd = hndlr.bind(self);
+			var hnd = hndlr.bind(self);
 
 			if (self.events) {
 				if (self.events[eventType]) {
@@ -4465,7 +4465,7 @@
 	};
 
 	DomExe.prototype.createEls = function DMcreateEls (data, config) {
-		const e = new SVGCollection({
+		var e = new SVGCollection({
 			type: 'SVG'
 		}, data, config, this.vDomIndex);
 		this.child(e);
@@ -4474,35 +4474,36 @@
 	};
 
 	DomExe.prototype.createEl = function DMcreateEl (config) {
-		const e = createDomElement(config, this.vDomIndex);
+		var e = createDomElement(config, this.vDomIndex);
 		this.child(e);
 		queueInstance$2.vDomChanged(this.vDomIndex);
 		return e;
 	};
 
 	DomExe.prototype.removeChild = function DMremoveChild (obj) {
-		const {
-			children
-		} = this;
-		const index = children.indexOf(obj);
+		var ref = this;
+		var children = ref.children;
+		var index = children.indexOf(obj);
 
 		if (index !== -1) {
 			this.dom.removeChild(children.splice(index, 1)[0].dom);
 		}
 	};
 
-	function SVGLayer (context, config = {}) {
-		const vDomInstance = new VDom();
-		const vDomIndex = queueInstance$2.addVdom(vDomInstance);
-		const res = document.querySelector(context);
-		let height = config.height ? config.height : res.clientHeight;
-		let width = config.width ? config.width : res.clientWidth;
-		const layer = document.createElementNS(nameSpace.svg, 'svg');
+	function SVGLayer (context, config) {
+		if ( config === void 0 ) config = {};
+
+		var vDomInstance = new VDom();
+		var vDomIndex = queueInstance$2.addVdom(vDomInstance);
+		var res = document.querySelector(context);
+		var height = config.height ? config.height : res.clientHeight;
+		var width = config.width ? config.width : res.clientWidth;
+		var layer = document.createElementNS(nameSpace.svg, 'svg');
 		layer.setAttribute('height', height);
 		layer.setAttribute('width', width);
 		layer.style.position = 'absolute';
 		res.appendChild(layer);
-		const root = new DomExe(layer, {}, domId(), vDomIndex);
+		var root = new DomExe(layer, {}, domId(), vDomIndex);
 		root.container = res;
 		root.type = 'SVG';
 		root.width = width;
@@ -4513,9 +4514,9 @@
 			if (arguments.length === 2) {
 				config[prop] = value;
 			} else if (arguments.length === 1 && typeof prop === 'object') {
-				const props = Object.keys(prop);
+				var props = Object.keys(prop);
 
-				for (let i = 0, len = props.length; i < len; i += 1) {
+				for (var i = 0, len = props.length; i < len; i += 1) {
 					config[props[i]] = prop[props[i]];
 				}
 			}
@@ -4539,10 +4540,10 @@
 		}
 
 		function renderVdom () {
-			let width = config.width ? config.width : this.container.clientWidth;
-			let height = config.height ? config.height : this.container.clientHeight;
-			let newWidthRatio = width / this.width;
-			let newHeightRatio = height / this.height;
+			var width = config.width ? config.width : this.container.clientWidth;
+			var height = config.height ? config.height : this.container.clientHeight;
+			var newWidthRatio = width / this.width;
+			var newHeightRatio = height / this.height;
 
 			if (config && config.rescale) {
 				this.scale([newWidthRatio, newHeightRatio]);
@@ -4560,7 +4561,7 @@
 			queueInstance$2.removeVdom(vDomIndex);
 		};
 
-		let dragTargetEl = null;
+		var dragTargetEl = null;
 		root.dom.addEventListener('mousedown', function (e) {
 			if (dragStack.length) {
 				dragStack.forEach(function (d) {
@@ -4570,7 +4571,7 @@
 				});
 
 				if (dragTargetEl) {
-					let event = new Event(e.offsetX, e.offsetY);
+					var event = new Event(e.offsetX, e.offsetY);
 					event.e = e;
 					dragTargetEl.drag.event = event;
 					dragTargetEl.drag.dragStartFlag = true;
@@ -4580,7 +4581,7 @@
 		});
 		root.dom.addEventListener('mousemove', function (e) {
 			if (dragTargetEl) {
-				let event = dragTargetEl.drag.event;
+				var event = dragTargetEl.drag.event;
 				event.dx = e.offsetX - event.x;
 				event.dy = e.offsetY - event.y;
 				event.x = e.offsetX;
@@ -4591,7 +4592,7 @@
 		});
 		root.dom.addEventListener('mouseup', function (e) {
 			if (dragTargetEl) {
-				let event = dragTargetEl.drag.event;
+				var event = dragTargetEl.drag.event;
 				event.dx = e.offsetX - event.x;
 				event.dy = e.offsetY - event.y;
 				event.x = e.offsetX;
@@ -4603,7 +4604,7 @@
 		});
 		root.dom.addEventListener('mouseleave', function (e) {
 			if (dragTargetEl) {
-				let event = dragTargetEl.drag.event;
+				var event = dragTargetEl.drag.event;
 				event.dx = e.offsetX - event.x;
 				event.dy = e.offsetY - event.y;
 				event.x = e.offsetX;
@@ -4619,16 +4620,16 @@
 
 	// import { node } from 'render'
 
-	let t2DGeometry$3 = geometry;
-	const queueInstance$3 = queue;
-	let Id$2 = 0;
+	var t2DGeometry$3 = geometry;
+	var queueInstance$3 = queue;
+	var Id$2 = 0;
 
 	function domId$1 () {
 		Id$2 += 1;
 		return Id$2;
 	}
 
-	let CanvasCollection = function () {
+	var CanvasCollection = function () {
 		CollectionPrototype.apply(this, arguments);
 	};
 	CanvasCollection.prototype = new CollectionPrototype();
@@ -4650,18 +4651,18 @@
 	//   return this
 	// }
 
-	let Event$1 = function (x, y) {
+	var Event$1 = function (x, y) {
 		this.x = x;
 		this.y = y;
 		this.dx = 0;
 		this.dy = 0;
 	};
 
-	let ratio;
+	var ratio;
 
 	function getPixlRatio (ctx) {
-		const dpr = window.devicePixelRatio || 1;
-		const bsr = ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1;
+		var dpr = window.devicePixelRatio || 1;
+		var bsr = ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1;
 		return dpr / bsr;
 	}
 
@@ -4686,18 +4687,16 @@
 	}
 
 	function cRender (attr) {
-		const self = this;
+		var self = this;
 
 		if (attr.transform) {
-			const {
-				transform
-			} = attr;
-			const hozScale = transform.scale && transform.scale.length > 0 ? transform.scale[0] : 1;
-			const verScale = transform.scale && transform.scale.length > 1 ? transform.scale[1] : hozScale || 1;
-			const hozSkew = transform.skewX ? transform.skewX[0] : 0;
-			const verSkew = transform.skewY ? transform.skewY[0] : 0;
-			const hozMove = transform.translate && transform.translate.length > 0 ? transform.translate[0] : 0;
-			const verMove = transform.translate && transform.translate.length > 1 ? transform.translate[1] : hozMove || 0;
+			var transform = attr.transform;
+			var hozScale = transform.scale && transform.scale.length > 0 ? transform.scale[0] : 1;
+			var verScale = transform.scale && transform.scale.length > 1 ? transform.scale[1] : hozScale || 1;
+			var hozSkew = transform.skewX ? transform.skewX[0] : 0;
+			var verSkew = transform.skewY ? transform.skewY[0] : 0;
+			var hozMove = transform.translate && transform.translate.length > 0 ? transform.translate[0] : 0;
+			var verMove = transform.translate && transform.translate.length > 1 ? transform.translate[1] : hozMove || 0;
 			self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove);
 
 			if (transform.rotate) {
@@ -4707,42 +4706,43 @@
 			}
 		}
 
-		for (let i = 0; i < self.stack.length; i += 1) {
+		for (var i = 0; i < self.stack.length; i += 1) {
 			self.stack[i].execute();
 		}
 	}
 
 	function RPolyupdateBBox () {
-		const self = this;
-		let translateX = 0;
-		let translateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
-		const {
-			transform
-		} = self.attr;
+		var assign, assign$1;
+
+		var self = this;
+		var translateX = 0;
+		var translateY = 0;
+		var scaleX = 1;
+		var scaleY = 1;
+		var ref = self.attr;
+		var transform = ref.transform;
 
 		if (self.attr.points && self.attr.points.length > 0) {
-			let points = self.attr.points;
+			var points = self.attr.points;
 
 			if (transform && transform.translate) {
-				[translateX, translateY] = transform.translate;
+				(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
 			}
 
 			if (transform && transform.scale) {
-				[scaleX, scaleY] = transform.scale;
+				(assign$1 = transform.scale, scaleX = assign$1[0], scaleY = assign$1[1]);
 			}
 
-			let minX = points[0].x;
-			let maxX = points[0].x;
-			let minY = points[0].y;
-			let maxY = points[0].y;
+			var minX = points[0].x;
+			var maxX = points[0].x;
+			var minY = points[0].y;
+			var maxY = points[0].y;
 
-			for (let i = 1; i < points.length; i += 1) {
-				if (minX > points[i].x) minX = points[i].x;
-				if (maxX < points[i].x) maxX = points[i].x;
-				if (minY > points[i].y) minY = points[i].y;
-				if (maxY < points[i].y) maxY = points[i].y;
+			for (var i = 1; i < points.length; i += 1) {
+				if (minX > points[i].x) { minX = points[i].x; }
+				if (maxX < points[i].x) { maxX = points[i].x; }
+				if (minY > points[i].y) { minY = points[i].y; }
+				if (maxY < points[i].y) { maxY = points[i].y; }
 			}
 
 			self.BBox = {
@@ -4790,32 +4790,32 @@
 	};
 
 	CanvasGradients.prototype.linearGradient = function GralinearGradient (ctx, BBox) {
-		const lGradient = ctx.createLinearGradient(BBox.x + (BBox.width * (this.config.x1 / 100)), BBox.y + (BBox.height * (this.config.y1 / 100)), BBox.x + (BBox.width * (this.config.x2 / 100)), BBox.y + (BBox.height * (this.config.y2 / 100)));
-		this.config.colorStops.forEach(d => {
+		var lGradient = ctx.createLinearGradient(BBox.x + (BBox.width * (this.config.x1 / 100)), BBox.y + (BBox.height * (this.config.y1 / 100)), BBox.x + (BBox.width * (this.config.x2 / 100)), BBox.y + (BBox.height * (this.config.y2 / 100)));
+		this.config.colorStops.forEach(function (d) {
 			lGradient.addColorStop(d.value / 100, d.color);
 		});
 		return lGradient;
 	};
 
 	CanvasGradients.prototype.absoluteLinearGradient = function absoluteGralinearGradient (ctx) {
-		const lGradient = ctx.createLinearGradient(this.config.x1, this.config.y1, this.config.x2, this.config.y2);
-		this.config.colorStops.forEach(d => {
+		var lGradient = ctx.createLinearGradient(this.config.x1, this.config.y1, this.config.x2, this.config.y2);
+		this.config.colorStops.forEach(function (d) {
 			lGradient.addColorStop(d.value, d.color);
 		});
 		return lGradient;
 	};
 
 	CanvasGradients.prototype.radialGradient = function GRAradialGradient (ctx, BBox) {
-		const cGradient = ctx.createRadialGradient(BBox.x + (BBox.width * (this.config.innerCircle.x / 100)), BBox.y + (BBox.height * (this.config.innerCircle.y / 100)), BBox.width > BBox.height ? BBox.width * this.config.innerCircle.r / 100 : BBox.height * this.config.innerCircle.r / 100, BBox.x + (BBox.width * (this.config.outerCircle.x / 100)), BBox.y + (BBox.height * (this.config.outerCircle.y / 100)), BBox.width > BBox.height ? BBox.width * this.config.outerCircle.r / 100 : BBox.height * this.config.outerCircle.r / 100);
-		this.config.colorStops.forEach(d => {
+		var cGradient = ctx.createRadialGradient(BBox.x + (BBox.width * (this.config.innerCircle.x / 100)), BBox.y + (BBox.height * (this.config.innerCircle.y / 100)), BBox.width > BBox.height ? BBox.width * this.config.innerCircle.r / 100 : BBox.height * this.config.innerCircle.r / 100, BBox.x + (BBox.width * (this.config.outerCircle.x / 100)), BBox.y + (BBox.height * (this.config.outerCircle.y / 100)), BBox.width > BBox.height ? BBox.width * this.config.outerCircle.r / 100 : BBox.height * this.config.outerCircle.r / 100);
+		this.config.colorStops.forEach(function (d) {
 			cGradient.addColorStop(d.value / 100, d.color);
 		});
 		return cGradient;
 	};
 
 	CanvasGradients.prototype.absoluteRadialGradient = function absoluteGraradialGradient (ctx, BBox) {
-		const cGradient = ctx.createRadialGradient(this.config.innerCircle.x, this.config.innerCircle.y, this.config.innerCircle.r, this.config.outerCircle.x, this.config.outerCircle.y, this.config.outerCircle.r);
-		this.config.colorStops.forEach(d => {
+		var cGradient = ctx.createRadialGradient(this.config.innerCircle.x, this.config.innerCircle.y, this.config.innerCircle.r, this.config.outerCircle.x, this.config.outerCircle.y, this.config.outerCircle.r);
+		this.config.colorStops.forEach(function (d) {
 			cGradient.addColorStop(d.value / 100, d.color);
 		});
 		return cGradient;
@@ -4839,18 +4839,18 @@
 	}
 
 	function pixels (pixHndlr) {
-		const tObj = this.rImageObj ? this.rImageObj : this.imageObj;
-		const tCxt = tObj.getContext('2d');
-		const pixelData = tCxt.getImageData(0, 0, this.attr.width, this.attr.height);
+		var tObj = this.rImageObj ? this.rImageObj : this.imageObj;
+		var tCxt = tObj.getContext('2d');
+		var pixelData = tCxt.getImageData(0, 0, this.attr.width, this.attr.height);
 		return pixHndlr(pixelData);
 	}
 
 	function getCanvasImgInstance (width, height) {
-		const canvas = document.createElement('canvas');
+		var canvas = document.createElement('canvas');
 		canvas.setAttribute('height', height);
 		canvas.setAttribute('width', width);
-		canvas.style.height = `${height}px`;
-		canvas.style.width = `${width}px`;
+		canvas.style.height = height + "px";
+		canvas.style.width = width + "px";
 		return canvas;
 	}
 
@@ -4903,12 +4903,12 @@
 		on: addListener,
 		setAttr: domSetAttribute,
 		setStyle: domSetStyle,
-		applyStyles
+		applyStyles: applyStyles
 	};
-	const imageDataMap = {};
+	var imageDataMap = {};
 
 	function RenderImage (ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
-		const self = this;
+		var self = this;
 		self.ctx = ctx;
 		self.attr = props;
 		self.style = stylesProps;
@@ -4924,54 +4924,50 @@
 			if (imageDataMap[self.attr.src]) {
 				self.imageObj = imageDataMap[self.attr.src];
 			} else {
-				const im = getCanvasImgInstance(this.width, this.height);
-				const ctxX = im.getContext('2d');
+				var im = getCanvasImgInstance(this.width, this.height);
+				var ctxX = im.getContext('2d');
 				ctxX.drawImage(this, 0, 0, this.width, this.height);
 				self.imageObj = im;
 				imageDataMap[self.attr.src] = im;
 			}
 
 			if (self.attr.clip) {
-				let ctxX;
-				const {
-					clip,
-					width,
-					height
-				} = self.attr;
-				let {
-					sx,
-					sy,
-					swidth,
-					sheight
-				} = clip;
+				var ctxX$1;
+				var ref = self.attr;
+				var clip = ref.clip;
+				var width = ref.width;
+				var height = ref.height;
+				var sx = clip.sx;
+				var sy = clip.sy;
+				var swidth = clip.swidth;
+				var sheight = clip.sheight;
 
 				if (!this.rImageObj) {
 					self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
 				}
 
-				ctxX = self.rImageObj.getContext('2d');
+				ctxX$1 = self.rImageObj.getContext('2d');
 				sx = sx !== undefined ? sx : 0;
 				sy = sy !== undefined ? sy : 0;
 				swidth = swidth !== undefined ? swidth : width;
 				sheight = sheight !== undefined ? sheight : height;
-				ctxX.drawImage(self.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
+				ctxX$1.drawImage(self.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
 			}
 
 			if (self.attr.pixels && self.imageObj) {
-				let ctxX;
-				const {
-					width,
-					height
-				} = self.attr;
+				var ctxX$2;
+				var ref$1 = self.attr;
+				var width$1 = ref$1.width;
+				var height$1 = ref$1.height;
 
 				if (!self.rImageObj) {
 					self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
-					ctxX = self.rImageObj.getContext('2d');
-					ctxX.drawImage(self.imageObj, 0, 0, width, height);
+					ctxX$2 = self.rImageObj.getContext('2d');
+					ctxX$2.drawImage(self.imageObj, 0, 0, width$1, height$1);
 				}
 
-				ctxX = self.rImageObj.getContext('2d');
-				ctxX.putImageData(pixels.call(self, self.attr.pixels), 0, 0);
+				ctxX$2 = self.rImageObj.getContext('2d');
+				ctxX$2.putImageData(pixels.call(self, self.attr.pixels), 0, 0);
 			}
 
 			if (nodeExe.attr.onload && typeof nodeExe.attr.onload === 'function') {
@@ -5000,7 +4996,7 @@
 	RenderImage.prototype.constructor = RenderImage;
 
 	RenderImage.prototype.setAttr = function RIsetAttr (attr, value) {
-		const self = this;
+		var self = this;
 		this.attr[attr] = value;
 
 		if (attr === 'src') {
@@ -5016,18 +5012,15 @@
 				this.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
 			}
 
-			const ctxX = this.rImageObj.getContext('2d');
-			const {
-				clip,
-				width,
-				height
-			} = this.attr;
-			let {
-				sx,
-				sy,
-				swidth,
-				sheight
-			} = clip;
+			var ctxX = this.rImageObj.getContext('2d');
+			var ref = this.attr;
+			var clip = ref.clip;
+			var width = ref.width;
+			var height = ref.height;
+			var sx = clip.sx;
+			var sy = clip.sy;
+			var swidth = clip.swidth;
+			var sheight = clip.sheight;
 			sx = sx !== undefined ? sx : 0;
 			sy = sy !== undefined ? sy : 0;
 			swidth = swidth !== undefined ? swidth : width;
@@ -5040,44 +5033,43 @@
 		}
 
 		if (self.attr.pixels && self.imageObj) {
-			let ctxX;
-			const {
-				width,
-				height
-			} = self.attr;
+			var ctxX$1;
+			var ref$1 = self.attr;
+			var width$1 = ref$1.width;
+			var height$1 = ref$1.height;
 
 			if (!self.rImageObj) {
 				self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
-				ctxX = self.rImageObj.getContext('2d');
-				ctxX.drawImage(self.imageObj, 0, 0, width, height);
+				ctxX$1 = self.rImageObj.getContext('2d');
+				ctxX$1.drawImage(self.imageObj, 0, 0, width$1, height$1);
 			}
 
-			ctxX = self.rImageObj.getContext('2d');
-			ctxX.putImageData(pixels.call(self, self.attr.pixels), 0, 0);
+			ctxX$1 = self.rImageObj.getContext('2d');
+			ctxX$1.putImageData(pixels.call(self, self.attr.pixels), 0, 0);
 		}
 
 		queueInstance$3.vDomChanged(this.nodeExe.vDomIndex);
 	};
 
 	RenderImage.prototype.updateBBox = function RIupdateBBox () {
-		const self = this;
-		let translateX = 0;
-		let translateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
-		const {
-			transform
-		} = self.attr;
-		let {
-			x,
-			y,
-			width,
-			height
-		} = self.attr;
+		var assign;
+
+		var self = this;
+		var translateX = 0;
+		var translateY = 0;
+		var scaleX = 1;
+		var scaleY = 1;
+		var ref = self.attr;
+		var transform = ref.transform;
+		var ref$1 = self.attr;
+		var x = ref$1.x;
+		var y = ref$1.y;
+		var width = ref$1.width;
+		var height = ref$1.height;
 
 		if (transform) {
 			if (transform.translate) {
-				[translateX, translateY] = transform.translate;
+				(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
 			}
 
 			if (transform.scale) {
@@ -5101,12 +5093,11 @@
 	};
 
 	RenderImage.prototype.execute = function RIexecute () {
-		const {
-			width,
-			height,
-			x,
-			y
-		} = this.attr;
+		var ref = this.attr;
+		var width = ref.width;
+		var height = ref.height;
+		var x = ref.x;
+		var y = ref.y;
 
 		if (this.imageObj) {
 			this.ctx.drawImage(this.rImageObj ? this.rImageObj : this.imageObj, x || 0, y || 0, width, height);
@@ -5121,7 +5112,7 @@
 	};
 
 	function RenderText (ctx, props, stylesProps) {
-		const self = this;
+		var self = this;
 		self.ctx = ctx;
 		self.attr = props;
 		self.style = stylesProps;
@@ -5137,22 +5128,23 @@
 	};
 
 	RenderText.prototype.updateBBox = function RTupdateBBox () {
-		const self = this;
-		let translateX = 0;
-		let translateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
-		let height = 1;
-		const {
-			transform
-		} = self.attr;
+		var assign, assign$1;
+
+		var self = this;
+		var translateX = 0;
+		var translateY = 0;
+		var scaleX = 1;
+		var scaleY = 1;
+		var height = 1;
+		var ref = self.attr;
+		var transform = ref.transform;
 
 		if (transform && transform.translate) {
-			[translateX, translateY] = transform.translate;
+			(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
 		}
 
 		if (transform && transform.scale) {
-			[scaleX, scaleY] = transform.scale;
+			(assign$1 = transform.scale, scaleX = assign$1[0], scaleY = assign$1[1]);
 		}
 
 		if (this.style.font) {
@@ -5194,8 +5186,8 @@
 	};
 	/** ***************** Render Circle */
 
-	const RenderCircle = function RenderCircle (ctx, props, stylesProps) {
-		const self = this;
+	var RenderCircle = function RenderCircle (ctx, props, stylesProps) {
+		var self = this;
 		self.ctx = ctx;
 		self.attr = props;
 		self.style = stylesProps;
@@ -5207,22 +5199,23 @@
 	RenderCircle.prototype.constructor = RenderCircle;
 
 	RenderCircle.prototype.updateBBox = function RCupdateBBox () {
-		const self = this;
-		let translateX = 0;
-		let translateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
-		const {
-			transform
-		} = self.attr;
+		var assign, assign$1;
+
+		var self = this;
+		var translateX = 0;
+		var translateY = 0;
+		var scaleX = 1;
+		var scaleY = 1;
+		var ref = self.attr;
+		var transform = ref.transform;
 
 		if (transform) {
 			if (transform.translate) {
-				[translateX, translateY] = transform.translate;
+				(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
 			}
 
 			if (transform.scale) {
-				[scaleX, scaleY] = transform.scale;
+				(assign$1 = transform.scale, scaleX = assign$1[0], scaleY = assign$1[1]);
 			}
 		}
 
@@ -5248,12 +5241,12 @@
 	};
 
 	RenderCircle.prototype.in = function RCinfun (co) {
-		const r = Math.sqrt(((co.x - this.attr.cx) * (co.x - this.attr.cx)) + ((co.y - this.attr.cy) * (co.y - this.attr.cy)));
+		var r = Math.sqrt(((co.x - this.attr.cx) * (co.x - this.attr.cx)) + ((co.y - this.attr.cy) * (co.y - this.attr.cy)));
 		return r <= this.attr.r;
 	};
 
-	const RenderLine = function RenderLine (ctx, props, stylesProps) {
-		const self = this;
+	var RenderLine = function RenderLine (ctx, props, stylesProps) {
+		var self = this;
 		self.ctx = ctx;
 		self.attr = props;
 		self.style = stylesProps;
@@ -5265,21 +5258,22 @@
 	RenderLine.prototype.constructor = RenderLine;
 
 	RenderLine.prototype.updateBBox = function RLupdateBBox () {
-		const self = this;
-		let translateX = 0;
-		let translateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
-		const {
-			transform
-		} = self.attr;
+		var assign, assign$1;
+
+		var self = this;
+		var translateX = 0;
+		var translateY = 0;
+		var scaleX = 1;
+		var scaleY = 1;
+		var ref = self.attr;
+		var transform = ref.transform;
 
 		if (transform && transform.translate) {
-			[translateX, translateY] = transform.translate;
+			(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
 		}
 
 		if (transform && transform.scale) {
-			[scaleX, scaleY] = transform.scale;
+			(assign$1 = transform.scale, scaleX = assign$1[0], scaleY = assign$1[1]);
 		}
 
 		self.BBox = {
@@ -5297,9 +5291,8 @@
 	};
 
 	RenderLine.prototype.execute = function RLexecute () {
-		const {
-			ctx
-		} = this;
+		var ref = this;
+		var ctx = ref.ctx;
 		ctx.beginPath();
 		ctx.moveTo(this.attr.x1, this.attr.y1);
 		ctx.lineTo(this.attr.x2, this.attr.y2);
@@ -5324,7 +5317,7 @@
 	};
 
 	function RenderPolyline (ctx, props, stylesProps) {
-		const self = this;
+		var self = this;
 		self.ctx = ctx;
 		self.attr = props;
 		self.style = stylesProps;
@@ -5336,8 +5329,8 @@
 	RenderPolyline.constructor = RenderPolyline;
 
 	RenderPolyline.prototype.execute = function polylineExe () {
-		let self = this;
-		if (!this.attr.points) return;
+		var self = this;
+		if (!this.attr.points) { return; }
 		this.ctx.beginPath();
 		this.attr.points.forEach(function (d, i) {
 			if (i === 0) {
@@ -5353,11 +5346,11 @@
 	RenderPolyline.prototype.updateBBox = RPolyupdateBBox;
 
 	RenderPolyline.prototype.in = function RPolyLinfun (co) {
-		let flag = false;
+		var flag = false;
 
-		for (let i = 0, len = this.attr.points.length; i <= len - 2; i++) {
-			let p1 = this.attr.points[i];
-			let p2 = this.attr.points[i + 1];
+		for (var i = 0, len = this.attr.points.length; i <= len - 2; i++) {
+			var p1 = this.attr.points[i];
+			var p2 = this.attr.points[i + 1];
 			flag = flag || parseFloat(t2DGeometry$3.getDistance({
 				x: p1.x,
 				y: p1.y
@@ -5377,8 +5370,8 @@
 	};
 	/** ***************** Render Path */
 
-	const RenderPath = function RenderPath (ctx, props, styleProps) {
-		const self = this;
+	var RenderPath = function RenderPath (ctx, props, styleProps) {
+		var self = this;
 		self.ctx = ctx;
 		self.angle = 0;
 		self.nodeName = 'path';
@@ -5404,21 +5397,22 @@
 	RenderPath.prototype.constructor = RenderPath;
 
 	RenderPath.prototype.updateBBox = function RPupdateBBox () {
-		const self = this;
-		let translateX = 0;
-		let translateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
-		const {
-			transform
-		} = self.attr;
+		var assign, assign$1;
+
+		var self = this;
+		var translateX = 0;
+		var translateY = 0;
+		var scaleX = 1;
+		var scaleY = 1;
+		var ref = self.attr;
+		var transform = ref.transform;
 
 		if (transform && transform.translate) {
-			[translateX, translateY] = transform.translate;
+			(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
 		}
 
 		if (transform && transform.scale) {
-			[scaleX, scaleY] = transform.scale;
+			(assign$1 = transform.scale, scaleX = assign$1[0], scaleY = assign$1[1]);
 		}
 
 		self.BBox = self.path ? t2DGeometry$3.getBBox(self.path.stack) : {
@@ -5485,7 +5479,7 @@
 	};
 
 	RenderPath.prototype.in = function RPinfun (co) {
-		let flag = false;
+		var flag = false;
 
 		if (!this.attr.d) {
 			return flag;
@@ -5503,9 +5497,9 @@
 	/** ***************** Render polygon */
 
 	function polygonExe (points) {
-		let polygon = new Path2D();
-		let localPoints = points;
-		let points_ = [];
+		var polygon = new Path2D();
+		var localPoints = points;
+		var points_ = [];
 		localPoints = localPoints.replace(/,/g, ' ').split(' ');
 		polygon.moveTo(localPoints[0], localPoints[1]);
 		points_.push({
@@ -5513,7 +5507,7 @@
 			y: parseFloat(localPoints[1])
 		});
 
-		for (let i = 2; i < localPoints.length; i += 2) {
+		for (var i = 2; i < localPoints.length; i += 2) {
 			polygon.lineTo(localPoints[i], localPoints[i + 1]);
 			points_.push({
 				x: parseFloat(localPoints[i]),
@@ -5528,8 +5522,8 @@
 		};
 	}
 
-	const RenderPolygon = function RenderPolygon (ctx, props, styleProps) {
-		const self = this;
+	var RenderPolygon = function RenderPolygon (ctx, props, styleProps) {
+		var self = this;
 		self.ctx = ctx;
 		self.nodeName = 'polygon';
 		self.attr = props;
@@ -5573,7 +5567,7 @@
 	};
 
 	RenderPolygon.prototype.in = function RPolyinfun (co) {
-		let flag = false;
+		var flag = false;
 
 		if (!this.attr.points) {
 			return flag;
@@ -5589,8 +5583,8 @@
 
 	/** ***************** Render ellipse */
 
-	const RenderEllipse = function RenderEllipse (ctx, props, styleProps) {
-		const self = this;
+	var RenderEllipse = function RenderEllipse (ctx, props, styleProps) {
+		var self = this;
 		self.ctx = ctx;
 		self.nodeName = 'ellipse';
 		self.attr = props;
@@ -5603,21 +5597,22 @@
 	RenderEllipse.prototype.constructor = RenderEllipse;
 
 	RenderEllipse.prototype.updateBBox = function REupdateBBox () {
-		const self = this;
-		let translateX = 0;
-		let translateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
-		const {
-			transform
-		} = self.attr;
+		var assign, assign$1;
+
+		var self = this;
+		var translateX = 0;
+		var translateY = 0;
+		var scaleX = 1;
+		var scaleY = 1;
+		var ref = self.attr;
+		var transform = ref.transform;
 
 		if (transform && transform.translate) {
-			[translateX, translateY] = transform.translate;
+			(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
 		}
 
 		if (transform && transform.scale) {
-			[scaleX, scaleY] = transform.scale;
+			(assign$1 = transform.scale, scaleX = assign$1[0], scaleY = assign$1[1]);
 		}
 
 		self.BBox = {
@@ -5635,9 +5630,8 @@
 	};
 
 	RenderEllipse.prototype.execute = function REexecute () {
-		const {
-			ctx
-		} = this;
+		var ref = this;
+		var ctx = ref.ctx;
 		ctx.beginPath();
 		ctx.ellipse(this.attr.cx, this.attr.cy, this.attr.rx, this.attr.ry, 0, 0, 2 * Math.PI);
 		this.applyStyles();
@@ -5648,20 +5642,19 @@
 	// }
 
 	RenderEllipse.prototype.in = function REinfun (co) {
-		const {
-			cx,
-			cy,
-			rx,
-			ry
-		} = this.attr;
+		var ref = this.attr;
+		var cx = ref.cx;
+		var cy = ref.cy;
+		var rx = ref.rx;
+		var ry = ref.ry;
 		return ((co.x - cx) * (co.x - cx) / (rx * rx)) + ((co.y - cy) * (co.y - cy) / (ry * ry)) <= 1;
 	};
 	/** ***************** Render ellipse */
 
 	/** ***************** Render Rect */
 
-	const RenderRect = function RenderRect (ctx, props, styleProps) {
-		const self = this;
+	var RenderRect = function RenderRect (ctx, props, styleProps) {
+		var self = this;
 		self.ctx = ctx;
 		self.nodeName = 'rect';
 		self.attr = props;
@@ -5674,21 +5667,22 @@
 	RenderRect.prototype.constructor = RenderRect;
 
 	RenderRect.prototype.updateBBox = function RRupdateBBox () {
-		const self = this;
-		let translateX = 0;
-		let translateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
-		const {
-			transform
-		} = self.attr;
+		var assign, assign$1;
+
+		var self = this;
+		var translateX = 0;
+		var translateY = 0;
+		var scaleX = 1;
+		var scaleY = 1;
+		var ref = self.attr;
+		var transform = ref.transform;
 
 		if (transform && transform.translate) {
-			[translateX, translateY] = transform.translate;
+			(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
 		}
 
 		if (transform && transform.scale) {
-			[scaleX, scaleY] = transform.scale;
+			(assign$1 = transform.scale, scaleX = assign$1[0], scaleY = assign$1[1]);
 		}
 
 		self.BBox = {
@@ -5710,9 +5704,8 @@
 	};
 
 	RenderRect.prototype.execute = function RRexecute () {
-		const {
-			ctx
-		} = this;
+		var ref = this;
+		var ctx = ref.ctx;
 
 		if (ctx.strokeStyle !== '#000000') {
 			ctx.strokeRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height);
@@ -5724,20 +5717,19 @@
 	};
 
 	RenderRect.prototype.in = function RRinfun (co) {
-		const {
-			x,
-			y,
-			width,
-			height
-		} = this.attr;
+		var ref = this.attr;
+		var x = ref.x;
+		var y = ref.y;
+		var width = ref.width;
+		var height = ref.height;
 		return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
 	};
 	/** ***************** Render Rect */
 
 	/** ***************** Render Group */
 
-	const RenderGroup = function RenderGroup (ctx, props, styleProps) {
-		const self = this;
+	var RenderGroup = function RenderGroup (ctx, props, styleProps) {
+		var self = this;
 		self.nodeName = 'group';
 		self.ctx = ctx;
 		self.attr = props;
@@ -5750,18 +5742,17 @@
 	RenderGroup.prototype.constructor = RenderGroup;
 
 	RenderGroup.prototype.updateBBox = function RGupdateBBox (children) {
-		const self = this;
-		let minX;
-		let maxX;
-		let minY;
-		let maxY;
-		let gTranslateX = 0;
-		let gTranslateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
-		const {
-			transform
-		} = self.attr;
+		var self = this;
+		var minX;
+		var maxX;
+		var minY;
+		var maxY;
+		var gTranslateX = 0;
+		var gTranslateY = 0;
+		var scaleX = 1;
+		var scaleY = 1;
+		var ref = self.attr;
+		var transform = ref.transform;
 		self.BBox = {};
 
 		if (transform && transform.translate) {
@@ -5775,11 +5766,11 @@
 		}
 
 		if (children && children.length > 0) {
-			let d;
-			let boxX;
-			let boxY;
+			var d;
+			var boxX;
+			var boxY;
 
-			for (let i = 0; i < children.length; i += 1) {
+			for (var i = 0; i < children.length; i += 1) {
 				d = children[i];
 				boxX = d.dom.BBoxHit.x;
 				boxY = d.dom.BBoxHit.y;
@@ -5807,14 +5798,14 @@
 	};
 
 	RenderGroup.prototype.child = function RGchild (obj) {
-		const self = this;
-		const objLocal = obj;
+		var self = this;
+		var objLocal = obj;
 
 		if (objLocal instanceof CanvasNodeExe) {
 			objLocal.dom.parent = self;
 			self.stack[self.stack.length] = objLocal;
 		} else if (objLocal instanceof CanvasCollection) {
-			objLocal.stack.forEach(d => {
+			objLocal.stack.forEach(function (d) {
 				d.dom.parent = self;
 				self.stack[self.stack.length] = d;
 			});
@@ -5824,24 +5815,24 @@
 	};
 
 	RenderGroup.prototype.in = function RGinfun (coOr) {
-		const self = this;
-		const co = {
+		var assign;
+
+		var self = this;
+		var co = {
 			x: coOr.x,
 			y: coOr.y
 		};
-		const {
-			BBox
-		} = this;
-		const {
-			transform
-		} = self.attr;
-		let gTranslateX = 0;
-		let gTranslateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
+		var ref = this;
+		var BBox = ref.BBox;
+		var ref$1 = self.attr;
+		var transform = ref$1.transform;
+		var gTranslateX = 0;
+		var gTranslateY = 0;
+		var scaleX = 1;
+		var scaleY = 1;
 
 		if (transform && transform.translate) {
-			[gTranslateX, gTranslateY] = transform.translate;
+			(assign = transform.translate, gTranslateX = assign[0], gTranslateY = assign[1]);
 		}
 
 		if (transform && transform.scale) {
@@ -5854,7 +5845,7 @@
 
 	/** ***************** End Render Group */
 
-	let CanvasNodeExe = function CanvasNodeExe (context, config, id, vDomIndex) {
+	var CanvasNodeExe = function CanvasNodeExe (context, config, id, vDomIndex) {
 		this.style = {};
 		this.attr = {};
 		this.id = id;
@@ -5931,8 +5922,8 @@
 	};
 
 	CanvasNodeExe.prototype.stylesExe = function CstylesExe () {
-		let value;
-		let key;
+		var value;
+		var key;
 
 		for (key in this.style) {
 			if (typeof this.style[key] !== 'function' && !(this.style[key] instanceof CanvasGradients || this.style[key] instanceof CanvasPattern)) {
@@ -5957,10 +5948,9 @@
 	};
 
 	CanvasNodeExe.prototype.remove = function Cremove () {
-		const {
-			children
-		} = this.dom.parent;
-		const index = children.indexOf(this);
+		var ref = this.dom.parent;
+		var children = ref.children;
+		var index = children.indexOf(this);
 
 		if (index !== -1) {
 			children.splice(index, 1);
@@ -5978,9 +5968,9 @@
 		if (arguments.length === 2) {
 			this.style[attr] = valueCheck(value);
 		} else if (arguments.length === 1 && typeof attr === 'object') {
-			const styleKeys = Object.keys(attr);
+			var styleKeys = Object.keys(attr);
 
-			for (let i = 0, len = styleKeys.length; i < len; i += 1) {
+			for (var i = 0, len = styleKeys.length; i < len; i += 1) {
 				this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
 			}
 		}
@@ -6002,9 +5992,9 @@
 			this.attr[attr] = value;
 			this.dom.setAttr(attr, value);
 		} else if (arguments.length === 1 && typeof attr === 'object') {
-			const keys = Object.keys(attr);
+			var keys = Object.keys(attr);
 
-			for (let i = 0; i < keys.length; i += 1) {
+			for (var i = 0; i < keys.length; i += 1) {
 				this.attr[keys[i]] = attr[keys[i]];
 				this.dom.setAttr(keys[i], attr[keys[i]]);
 			}
@@ -6098,7 +6088,7 @@
 		this.attributesExe();
 
 		if (this.dom instanceof RenderGroup) {
-			for (let i = 0, len = this.children.length; i < len; i += 1) {
+			for (var i = 0, len = this.children.length; i < len; i += 1) {
 				this.children[i].execute();
 			}
 		} // this.dom.applyStyles()
@@ -6108,11 +6098,11 @@
 	};
 
 	CanvasNodeExe.prototype.child = function child (childrens) {
-		const self = this;
-		const childrensLocal = childrens;
+		var self = this;
+		var childrensLocal = childrens;
 
 		if (self.dom instanceof RenderGroup) {
-			for (let i = 0; i < childrensLocal.length; i += 1) {
+			for (var i = 0; i < childrensLocal.length; i += 1) {
 				childrensLocal[i].dom.parent = self;
 				self.children[self.children.length] = childrensLocal[i];
 			}
@@ -6127,9 +6117,9 @@
 	// CanvasNodeExe.prototype.fetchEls = cfetchEls
 
 	CanvasNodeExe.prototype.updateBBox = function CupdateBBox () {
-		let status;
+		var status;
 
-		for (let i = 0, len = this.children.length; i < len; i += 1) {
+		for (var i = 0, len = this.children.length; i < len; i += 1) {
 			if (this.bbox) {
 				status = this.children[i].updateBBox() || status;
 			}
@@ -6172,7 +6162,7 @@
 	CanvasNodeExe.prototype.createPattern = createCanvasPattern;
 
 	CanvasNodeExe.prototype.createEls = function CcreateEls (data, config) {
-		const e = new CanvasCollection({
+		var e = new CanvasCollection({
 			type: 'CANVAS',
 			ctx: this.dom.ctx
 		}, data, config, this.vDomIndex);
@@ -6191,22 +6181,22 @@
 	};
 
 	CanvasNodeExe.prototype.createEl = function CcreateEl (config) {
-		const e = new CanvasNodeExe(this.dom.ctx, config, domId$1(), this.vDomIndex);
+		var e = new CanvasNodeExe(this.dom.ctx, config, domId$1(), this.vDomIndex);
 		this.child([e]);
 		queueInstance$3.vDomChanged(this.vDomIndex);
 		return e;
 	};
 
 	CanvasNodeExe.prototype.removeChild = function CremoveChild (obj) {
-		let index = -1;
-		this.children.forEach((d, i) => {
+		var index = -1;
+		this.children.forEach(function (d, i) {
 			if (d === obj) {
 				index = i;
 			}
 		});
 
 		if (index !== -1) {
-			const removedNode = this.children.splice(index, 1)[0];
+			var removedNode = this.children.splice(index, 1)[0];
 			this.dom.removeChild(removedNode.dom);
 		}
 
@@ -6214,38 +6204,40 @@
 		queueInstance$3.vDomChanged(this.vDomIndex);
 	};
 
-	function CanvasLayer (context, config = {}) {
-		let originalRatio;
-		let selectedNode; // const selectiveClearing = config.selectiveClear ? config.selectiveClear : false
+	function CanvasLayer (context, config) {
+		if ( config === void 0 ) config = {};
 
-		const res = document.querySelector(context);
-		const height = config.height ? config.height : res.clientHeight;
-		const width = config.width ? config.width : res.clientWidth;
-		const layer = document.createElement('canvas');
-		const ctx = layer.getContext('2d');
+		var originalRatio;
+		var selectedNode; // const selectiveClearing = config.selectiveClear ? config.selectiveClear : false
+
+		var res = document.querySelector(context);
+		var height = config.height ? config.height : res.clientHeight;
+		var width = config.width ? config.width : res.clientWidth;
+		var layer = document.createElement('canvas');
+		var ctx = layer.getContext('2d');
 		ratio = getPixlRatio(ctx);
 		originalRatio = ratio;
-		const onClear = config.onClear === 'clear' || !config.onClear ? function (ctx) {
+		var onClear = config.onClear === 'clear' || !config.onClear ? function (ctx) {
 			ctx.clearRect(0, 0, width * ratio, height * ratio);
 		} : config.onClear;
 		layer.setAttribute('height', height * ratio);
 		layer.setAttribute('width', width * ratio);
-		layer.style.height = `${height}px`;
-		layer.style.width = `${width}px`;
+		layer.style.height = height + "px";
+		layer.style.width = width + "px";
 		layer.style.position = 'absolute'; // ctx.strokeStyle = 'rgba(0, 0, 0, 0)'
 		// ctx.fillStyle = 'rgba(0, 0, 0, 0)'
 
 		res.appendChild(layer);
-		const vDomInstance = new VDom();
-		const vDomIndex = queueInstance$3.addVdom(vDomInstance);
-		const root = new CanvasNodeExe(ctx, {
+		var vDomInstance = new VDom();
+		var vDomIndex = queueInstance$3.addVdom(vDomInstance);
+		var root = new CanvasNodeExe(ctx, {
 			el: 'group',
 			attr: {
 				id: 'rootNode'
 			}
 		}, domId$1(), vDomIndex);
 		vDomInstance.root(root);
-		const execute = root.execute.bind(root);
+		var execute = root.execute.bind(root);
 		root.container = res;
 		root.domEl = layer;
 		root.height = height;
@@ -6263,9 +6255,9 @@
 			if (arguments.length === 2) {
 				config[prop] = value;
 			} else if (arguments.length === 1 && typeof prop === 'object') {
-				const props = Object.keys(prop);
+				var props = Object.keys(prop);
 
-				for (let i = 0, len = props.length; i < len; i += 1) {
+				for (var i = 0, len = props.length; i < len; i += 1) {
 					config[props[i]] = prop[props[i]];
 				}
 			}
@@ -6276,16 +6268,16 @@
 		root.resize = renderVdom;
 
 		function renderVdom () {
-			let width = config.width ? config.width : this.container.clientWidth;
-			let height = config.height ? config.height : this.container.clientHeight;
+			var width = config.width ? config.width : this.container.clientWidth;
+			var height = config.height ? config.height : this.container.clientHeight;
 			this.domEl.setAttribute('height', height * originalRatio);
 			this.domEl.setAttribute('width', width * originalRatio);
-			this.domEl.style.height = `${height}px`;
-			this.domEl.style.width = `${width}px`;
+			this.domEl.style.height = height + "px";
+			this.domEl.style.width = width + "px";
 
 			if (config.rescale) {
-				let newWidthRatio = width / this.width;
-				let newHeightRatio = height / this.height;
+				var newWidthRatio = width / this.width;
+				var newHeightRatio = height / this.height;
 				this.scale([newWidthRatio, newHeightRatio]);
 			} else {
 				this.execute();
@@ -6311,11 +6303,11 @@
 		};
 
 		if (config.events || config.events === undefined) {
-			res.addEventListener('mousemove', e => {
+			res.addEventListener('mousemove', function (e) {
 				e.preventDefault();
 
 				if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
-					let event = selectedNode.dom.drag.event;
+					var event = selectedNode.dom.drag.event;
 
 					if (selectedNode.dom.drag.event) {
 						event.dx = e.offsetX - event.x;
@@ -6328,7 +6320,7 @@
 					selectedNode.dom.drag.event = event;
 					selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event);
 				} else {
-					const newSelectedNode = vDomInstance.eventsCheck([root], {
+					var newSelectedNode = vDomInstance.eventsCheck([root], {
 						x: e.offsetX,
 						y: e.offsetY
 					}, e);
@@ -6355,18 +6347,18 @@
 
 					if (selectedNode && newSelectedNode === selectedNode) {
 						if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
-							let event = selectedNode.dom.drag.event;
+							var event$1 = selectedNode.dom.drag.event;
 
 							if (selectedNode.dom.drag.event) {
-								event.dx = e.offsetX - event.x;
-								event.dy = e.offsetY - event.y;
+								event$1.dx = e.offsetX - event$1.x;
+								event$1.dy = e.offsetY - event$1.y;
 							}
 
-							event.x = e.offsetX;
-							event.y = e.offsetY;
-							event.e = e;
-							selectedNode.dom.drag.event = event;
-							selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event);
+							event$1.x = e.offsetX;
+							event$1.y = e.offsetY;
+							event$1.e = e;
+							selectedNode.dom.drag.event = event$1;
+							selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event$1);
 						}
 					}
 
@@ -6393,19 +6385,19 @@
 					}
 				}
 			});
-			res.addEventListener('click', e => {
+			res.addEventListener('click', function (e) {
 				e.preventDefault();
 
 				if (selectedNode && selectedNode.dom.click) {
 					selectedNode.dom.click.call(selectedNode, selectedNode.dataObj, e);
 				}
 			});
-			res.addEventListener('dblclick', e => {
+			res.addEventListener('dblclick', function (e) {
 				if (selectedNode && selectedNode.dom.dblclick) {
 					selectedNode.dom.dblclick.call(selectedNode, selectedNode.dataObj, e);
 				}
 			});
-			res.addEventListener('mousedown', e => {
+			res.addEventListener('mousedown', function (e) {
 				e.preventDefault();
 
 				if (selectedNode && selectedNode.dom.mousedown) {
@@ -6416,12 +6408,12 @@
 				if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.onDragStart) {
 					selectedNode.dom.drag.dragStartFlag = true;
 					selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e);
-					let event = new Event$1(e.offsetX, e.offsetY);
+					var event = new Event$1(e.offsetX, e.offsetY);
 					event.e = e;
 					selectedNode.dom.drag.event = event;
 				}
 			});
-			res.addEventListener('mouseup', e => {
+			res.addEventListener('mouseup', function (e) {
 				e.preventDefault();
 
 				if (selectedNode && selectedNode.dom.mouseup && selectedNode.down) {
@@ -6436,7 +6428,7 @@
 					selectedNode.dom.drag.event = null; // selectedNode = null
 				}
 			});
-			res.addEventListener('mouseleave', e => {
+			res.addEventListener('mouseleave', function (e) {
 				e.preventDefault();
 
 				if (selectedNode && selectedNode.dom.mouseleave) {
@@ -6450,7 +6442,7 @@
 					selectedNode = null;
 				}
 			});
-			res.addEventListener('contextmenu', e => {
+			res.addEventListener('contextmenu', function (e) {
 				e.preventDefault();
 
 				if (selectedNode && selectedNode.dom.contextmenu) {
@@ -6465,126 +6457,34 @@
 
 	/* eslint-disable no-undef */
 	function shaders (el) {
-		let res;
+		var res;
 
 		switch (el) {
 			case 'point':
 				res = {
-					vertexShader: `
-          attribute vec2 a_position;
-          attribute vec4 a_color;
-          attribute float a_size;
-          
-          uniform vec2 u_resolution;
-          uniform vec2 u_translate;
-          uniform vec2 u_scale;
-          
-          varying vec4 v_color;
-          void main() {
-            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
-            vec2 clipSpace = ((zeroToOne) * 2.0) - 1.0;
-            gl_Position = vec4((clipSpace * vec2(1, -1)), 0, 1);
-            gl_PointSize = a_size;
-            v_color = a_color;
-          }
-          `,
-					fragmentShader: `
-                    precision mediump float;
-                    varying vec4 v_color;
-                    void main() {
-                        gl_FragColor = v_color;
-                    }
-                    `
+					vertexShader: "\n          attribute vec2 a_position;\n          attribute vec4 a_color;\n          attribute float a_size;\n          \n          uniform vec2 u_resolution;\n          uniform vec2 u_translate;\n          uniform vec2 u_scale;\n          \n          varying vec4 v_color;\n          void main() {\n            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;\n            vec2 clipSpace = ((zeroToOne) * 2.0) - 1.0;\n            gl_Position = vec4((clipSpace * vec2(1, -1)), 0, 1);\n            gl_PointSize = a_size;\n            v_color = a_color;\n          }\n          ",
+					fragmentShader: "\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                        gl_FragColor = v_color;\n                    }\n                    "
 				};
 				break;
 
 			case 'circle':
 				res = {
-					vertexShader: `
-          attribute vec2 a_position;
-          attribute vec4 a_color;
-          attribute float a_radius;
-          uniform vec2 u_resolution;
-          uniform vec2 u_translate;
-          uniform vec2 u_scale;
-          varying vec4 v_color;
-          void main() {
-            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
-            vec2 zeroToTwo = zeroToOne * 2.0;
-            vec2 clipSpace = zeroToTwo - 1.0;
-            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-            gl_PointSize = a_radius;
-            v_color = a_color;
-          }
-          `,
-					fragmentShader: `
-                    precision mediump float;
-                    varying vec4 v_color;
-                    void main() {
-                      float r = 0.0, delta = 0.0, alpha = 1.0;
-                      vec2 cxy = 2.0 * gl_PointCoord - 1.0;
-                      r = dot(cxy, cxy);
-                      if(r > 1.0) {
-                        discard;
-                      }
-                      delta = 0.09;
-                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);
-                      gl_FragColor = v_color * alpha;
-                    }
-                    `
+					vertexShader: "\n          attribute vec2 a_position;\n          attribute vec4 a_color;\n          attribute float a_radius;\n          uniform vec2 u_resolution;\n          uniform vec2 u_translate;\n          uniform vec2 u_scale;\n          varying vec4 v_color;\n          void main() {\n            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;\n            vec2 zeroToTwo = zeroToOne * 2.0;\n            vec2 clipSpace = zeroToTwo - 1.0;\n            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n            gl_PointSize = a_radius;\n            v_color = a_color;\n          }\n          ",
+					fragmentShader: "\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                      float r = 0.0, delta = 0.0, alpha = 1.0;\n                      vec2 cxy = 2.0 * gl_PointCoord - 1.0;\n                      r = dot(cxy, cxy);\n                      if(r > 1.0) {\n                        discard;\n                      }\n                      delta = 0.09;\n                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);\n                      gl_FragColor = v_color * alpha;\n                    }\n                    "
 				};
 				break;
 
 			case 'image':
 				res = {
-					vertexShader: `
-                    attribute vec2 a_position;
-                    attribute vec2 a_texCoord;
-                    uniform vec2 u_resolution;
-                    uniform vec2 u_translate;
-                    uniform vec2 u_scale;
-                    varying vec2 v_texCoord;
-                    void main() {
-                      vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
-                      vec2 clipSpace = zeroToOne * 2.0 - 1.0;
-                      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-                      v_texCoord = a_texCoord;
-                    }
-          `,
-					fragmentShader: `
-                    precision mediump float;
-                    uniform sampler2D u_image;
-                    varying vec2 v_texCoord;
-                    void main() {
-                      gl_FragColor = texture2D(u_image, v_texCoord);
-                    }
-                    `
+					vertexShader: "\n                    attribute vec2 a_position;\n                    attribute vec2 a_texCoord;\n                    uniform vec2 u_resolution;\n                    uniform vec2 u_translate;\n                    uniform vec2 u_scale;\n                    varying vec2 v_texCoord;\n                    void main() {\n                      vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;\n                      vec2 clipSpace = zeroToOne * 2.0 - 1.0;\n                      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                      v_texCoord = a_texCoord;\n                    }\n          ",
+					fragmentShader: "\n                    precision mediump float;\n                    uniform sampler2D u_image;\n                    varying vec2 v_texCoord;\n                    void main() {\n                      gl_FragColor = texture2D(u_image, v_texCoord);\n                    }\n                    "
 				};
 				break;
 
 			default:
 				res = {
-					vertexShader: `
-                    attribute vec2 a_position;
-                    attribute vec4 a_color;
-                    uniform vec2 u_resolution;
-                    uniform vec2 u_translate;
-                    uniform vec2 u_scale;
-                    varying vec4 v_color;
-                    void main() {
-                    vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
-                    vec2 clipSpace = zeroToOne * 2.0 - 1.0;
-                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-                    v_color = a_color;
-                    }
-                    `,
-					fragmentShader: `
-                    precision mediump float;
-                    varying vec4 v_color;
-                    void main() {
-                        gl_FragColor = v_color;
-                    }
-                    `
+					vertexShader: "\n                    attribute vec2 a_position;\n                    attribute vec4 a_color;\n                    uniform vec2 u_resolution;\n                    uniform vec2 u_translate;\n                    uniform vec2 u_scale;\n                    varying vec4 v_color;\n                    void main() {\n                    vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;\n                    vec2 clipSpace = zeroToOne * 2.0 - 1.0;\n                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                    v_color = a_color;\n                    }\n                    ",
+					fragmentShader: "\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                        gl_FragColor = v_color;\n                    }\n                    "
 				};
 		}
 
@@ -6603,11 +6503,11 @@
 	        outerNode = linkedList(data, 0, outerLen, dim, true),
 	        triangles = [];
 
-	    if (!outerNode) return triangles;
+	    if (!outerNode) { return triangles; }
 
 	    var minX, minY, maxX, maxY, x, y, invSize;
 
-	    if (hasHoles) outerNode = eliminateHoles(data, holeIndices, outerNode, dim);
+	    if (hasHoles) { outerNode = eliminateHoles(data, holeIndices, outerNode, dim); }
 
 	    // if the shape is not too simple, we'll use z-order curve hash later; calculate polygon bbox
 	    if (data.length > 80 * dim) {
@@ -6617,10 +6517,10 @@
 	        for (var i = dim; i < outerLen; i += dim) {
 	            x = data[i];
 	            y = data[i + 1];
-	            if (x < minX) minX = x;
-	            if (y < minY) minY = y;
-	            if (x > maxX) maxX = x;
-	            if (y > maxY) maxY = y;
+	            if (x < minX) { minX = x; }
+	            if (y < minY) { minY = y; }
+	            if (x > maxX) { maxX = x; }
+	            if (y > maxY) { maxY = y; }
 	        }
 
 	        // minX, minY and invSize are later used to transform coords into integers for z-order calculation
@@ -6638,9 +6538,9 @@
 	    var i, last;
 
 	    if (clockwise === (signedArea(data, start, end, dim) > 0)) {
-	        for (i = start; i < end; i += dim) last = insertNode(i, data[i], data[i + 1], last);
+	        for (i = start; i < end; i += dim) { last = insertNode(i, data[i], data[i + 1], last); }
 	    } else {
-	        for (i = end - dim; i >= start; i -= dim) last = insertNode(i, data[i], data[i + 1], last);
+	        for (i = end - dim; i >= start; i -= dim) { last = insertNode(i, data[i], data[i + 1], last); }
 	    }
 
 	    if (last && equals(last, last.next)) {
@@ -6653,8 +6553,8 @@
 
 	// eliminate colinear or duplicate points
 	function filterPoints(start, end) {
-	    if (!start) return start;
-	    if (!end) end = start;
+	    if (!start) { return start; }
+	    if (!end) { end = start; }
 
 	    var p = start,
 	        again;
@@ -6664,7 +6564,7 @@
 	        if (!p.steiner && (equals(p, p.next) || area(p.prev, p, p.next) === 0)) {
 	            removeNode(p);
 	            p = end = p.prev;
-	            if (p === p.next) break;
+	            if (p === p.next) { break; }
 	            again = true;
 
 	        } else {
@@ -6677,10 +6577,10 @@
 
 	// main ear slicing loop which triangulates a polygon (given as a linked list)
 	function earcutLinked(ear, triangles, dim, minX, minY, invSize, pass) {
-	    if (!ear) return;
+	    if (!ear) { return; }
 
 	    // interlink polygon nodes in z-order
-	    if (!pass && invSize) indexCurve(ear, minX, minY, invSize);
+	    if (!pass && invSize) { indexCurve(ear, minX, minY, invSize); }
 
 	    var stop = ear,
 	        prev, next;
@@ -6734,14 +6634,14 @@
 	        b = ear,
 	        c = ear.next;
 
-	    if (area(a, b, c) >= 0) return false; // reflex, can't be an ear
+	    if (area(a, b, c) >= 0) { return false; } // reflex, can't be an ear
 
 	    // now make sure we don't have other points inside the potential ear
 	    var p = ear.next.next;
 
 	    while (p !== ear.prev) {
 	        if (pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, p.x, p.y) &&
-	            area(p.prev, p, p.next) >= 0) return false;
+	            area(p.prev, p, p.next) >= 0) { return false; }
 	        p = p.next;
 	    }
 
@@ -6753,7 +6653,7 @@
 	        b = ear,
 	        c = ear.next;
 
-	    if (area(a, b, c) >= 0) return false; // reflex, can't be an ear
+	    if (area(a, b, c) >= 0) { return false; } // reflex, can't be an ear
 
 	    // triangle bbox; min & max are calculated like this for speed
 	    var minTX = a.x < b.x ? (a.x < c.x ? a.x : c.x) : (b.x < c.x ? b.x : c.x),
@@ -6772,12 +6672,12 @@
 	    while (p && p.z >= minZ && n && n.z <= maxZ) {
 	        if (p !== ear.prev && p !== ear.next &&
 	            pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, p.x, p.y) &&
-	            area(p.prev, p, p.next) >= 0) return false;
+	            area(p.prev, p, p.next) >= 0) { return false; }
 	        p = p.prevZ;
 
 	        if (n !== ear.prev && n !== ear.next &&
 	            pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, n.x, n.y) &&
-	            area(n.prev, n, n.next) >= 0) return false;
+	            area(n.prev, n, n.next) >= 0) { return false; }
 	        n = n.nextZ;
 	    }
 
@@ -6785,7 +6685,7 @@
 	    while (p && p.z >= minZ) {
 	        if (p !== ear.prev && p !== ear.next &&
 	            pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, p.x, p.y) &&
-	            area(p.prev, p, p.next) >= 0) return false;
+	            area(p.prev, p, p.next) >= 0) { return false; }
 	        p = p.prevZ;
 	    }
 
@@ -6793,7 +6693,7 @@
 	    while (n && n.z <= maxZ) {
 	        if (n !== ear.prev && n !== ear.next &&
 	            pointInTriangle(a.x, a.y, b.x, b.y, c.x, c.y, n.x, n.y) &&
-	            area(n.prev, n, n.next) >= 0) return false;
+	            area(n.prev, n, n.next) >= 0) { return false; }
 	        n = n.nextZ;
 	    }
 
@@ -6860,7 +6760,7 @@
 	        start = holeIndices[i] * dim;
 	        end = i < len - 1 ? holeIndices[i + 1] * dim : data.length;
 	        list = linkedList(data, start, end, dim, false);
-	        if (list === list.next) list.steiner = true;
+	        if (list === list.next) { list.steiner = true; }
 	        queue.push(getLeftmost(list));
 	    }
 
@@ -6904,8 +6804,8 @@
 	            if (x <= hx && x > qx) {
 	                qx = x;
 	                if (x === hx) {
-	                    if (hy === p.y) return p;
-	                    if (hy === p.next.y) return p.next;
+	                    if (hy === p.y) { return p; }
+	                    if (hy === p.next.y) { return p.next; }
 	                }
 	                m = p.x < p.next.x ? p : p.next;
 	            }
@@ -6913,9 +6813,9 @@
 	        p = p.next;
 	    } while (p !== outerNode);
 
-	    if (!m) return null;
+	    if (!m) { return null; }
 
-	    if (hx === qx) return m.prev; // hole touches outer segment; pick lower endpoint
+	    if (hx === qx) { return m.prev; } // hole touches outer segment; pick lower endpoint
 
 	    // look for points inside the triangle of hole point, segment intersection and endpoint;
 	    // if there are no points found, we have a valid connection;
@@ -6951,7 +6851,7 @@
 	function indexCurve(start, minX, minY, invSize) {
 	    var p = start;
 	    do {
-	        if (p.z === null) p.z = zOrder(p.x, p.y, minX, minY, invSize);
+	        if (p.z === null) { p.z = zOrder(p.x, p.y, minX, minY, invSize); }
 	        p.prevZ = p.prev;
 	        p.nextZ = p.next;
 	        p = p.next;
@@ -6982,7 +6882,7 @@
 	            for (i = 0; i < inSize; i++) {
 	                pSize++;
 	                q = q.nextZ;
-	                if (!q) break;
+	                if (!q) { break; }
 	            }
 	            qSize = inSize;
 
@@ -6998,8 +6898,8 @@
 	                    qSize--;
 	                }
 
-	                if (tail) tail.nextZ = e;
-	                else list = e;
+	                if (tail) { tail.nextZ = e; }
+	                else { list = e; }
 
 	                e.prevZ = tail;
 	                tail = e;
@@ -7040,7 +6940,7 @@
 	    var p = start,
 	        leftmost = start;
 	    do {
-	        if (p.x < leftmost.x) leftmost = p;
+	        if (p.x < leftmost.x) { leftmost = p; }
 	        p = p.next;
 	    } while (p !== start);
 
@@ -7073,7 +6973,7 @@
 	// check if two segments intersect
 	function intersects(p1, q1, p2, q2) {
 	    if ((equals(p1, q1) && equals(p2, q2)) ||
-	        (equals(p1, q2) && equals(p2, q1))) return true;
+	        (equals(p1, q2) && equals(p2, q1))) { return true; }
 	    return area(p1, q1, p2) > 0 !== area(p1, q1, q2) > 0 &&
 	           area(p2, q2, p1) > 0 !== area(p2, q2, q1) > 0;
 	}
@@ -7083,7 +6983,7 @@
 	    var p = a;
 	    do {
 	        if (p.i !== a.i && p.next.i !== a.i && p.i !== b.i && p.next.i !== b.i &&
-	                intersects(p, p.next, a, b)) return true;
+	                intersects(p, p.next, a, b)) { return true; }
 	        p = p.next;
 	    } while (p !== a);
 
@@ -7106,7 +7006,7 @@
 	    do {
 	        if (((p.y > py) !== (p.next.y > py)) && p.next.y !== p.y &&
 	                (px < (p.next.x - p.x) * (py - p.y) / (p.next.y - p.y) + p.x))
-	            inside = !inside;
+	            { inside = !inside; }
 	        p = p.next;
 	    } while (p !== a);
 
@@ -7157,8 +7057,8 @@
 	    p.next.prev = p.prev;
 	    p.prev.next = p.next;
 
-	    if (p.prevZ) p.prevZ.nextZ = p.nextZ;
-	    if (p.nextZ) p.nextZ.prevZ = p.prevZ;
+	    if (p.prevZ) { p.prevZ.nextZ = p.nextZ; }
+	    if (p.nextZ) { p.nextZ.prevZ = p.prevZ; }
 	}
 
 	function Node(i, x, y) {
@@ -7230,7 +7130,7 @@
 
 	    for (var i = 0; i < data.length; i++) {
 	        for (var j = 0; j < data[i].length; j++) {
-	            for (var d = 0; d < dim; d++) result.vertices.push(data[i][j][d]);
+	            for (var d = 0; d < dim; d++) { result.vertices.push(data[i][j][d]); }
 	        }
 	        if (i > 0) {
 	            holeIndex += data[i - 1].length;
@@ -7243,23 +7143,23 @@
 
 	// import { VDom, shaders, queue } from './'
 
-	let ratio$1;
-	const queueInstance$4 = queue;
+	var ratio$1;
+	var queueInstance$4 = queue;
 
 	function getPixlRatio$1 (ctx) {
-		const dpr = window.devicePixelRatio || 1;
-		const bsr = ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1;
+		var dpr = window.devicePixelRatio || 1;
+		var bsr = ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1;
 		return dpr / bsr;
 	}
 
-	let Id$3 = 0;
+	var Id$3 = 0;
 
 	function domId$2 () {
 		Id$3 += 1;
 		return Id$3;
 	}
 
-	let WebglCollection = function () {
+	var WebglCollection = function () {
 		CollectionPrototype.apply(this, arguments);
 	};
 	WebglCollection.prototype = new CollectionPrototype();
@@ -7447,14 +7347,14 @@
 		return this.style[key];
 	};
 
-	let webGLImageTextures = {};
+	var webGLImageTextures = {};
 
 	function isPowerOf2 (value) {
 		return (value & value - 1) === 0;
 	}
 
 	function ImageNode (ctx, attr, style) {
-		let self = this;
+		var self = this;
 		this.attr = attr;
 		this.style = style;
 		this.image = new Image(); // self.image.crossOrigin="anonymous"
@@ -7465,7 +7365,7 @@
 			queueInstance$4.vDomChanged(self.nodeExe.vDomIndex);
 
 			if (!webGLImageTextures[self.attr.src]) {
-				let texture = ctx.createTexture();
+				var texture = ctx.createTexture();
 				ctx.bindTexture(ctx.TEXTURE_2D, texture);
 				ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, ctx.RGBA, ctx.UNSIGNED_BYTE, self.image);
 
@@ -7511,9 +7411,9 @@
 	};
 
 	function writeDataToShaderAttributes (ctx, data) {
-		let d;
+		var d;
 
-		for (let i = 0, len = data.length; i < len; i++) {
+		for (var i = 0, len = data.length; i < len; i++) {
 			d = data[i];
 			ctx.bindBuffer(d.bufferType, d.buffer);
 			ctx.bufferData(d.bufferType, d.data, d.drawType);
@@ -7522,7 +7422,7 @@
 		}
 	}
 
-	let defaultColor$1 = {
+	var defaultColor$1 = {
 		r: 0,
 		g: 0,
 		b: 0,
@@ -7560,13 +7460,13 @@
 		this.preDraw = shader.preDraw;
 		this.postDraw = shader.postDraw;
 
-		for (let uniform in shader.uniforms) {
+		for (var uniform in shader.uniforms) {
 			this.uniforms[uniform] = webGlUniformMapper(ctx, this.program, uniform, shader.uniforms[uniform]);
 		}
 
 		this.inputs = [];
 
-		for (let attr in shader.attributes) {
+		for (var attr in shader.attributes) {
 			this.inputs.push(webGlAttrMapper(ctx, this.program, attr, shader.attributes[attr]));
 		}
 	}
@@ -7574,7 +7474,7 @@
 	RenderWebglShader.prototype.execute = function () {
 		this.ctx.useProgram(this.program);
 
-		for (let uniform in this.uniforms) {
+		for (var uniform in this.uniforms) {
 			this.ctx[this.uniforms[uniform].type](this.uniforms[uniform].attribute, this.uniforms[uniform].data);
 		}
 
@@ -7584,7 +7484,7 @@
 			this.preDraw(this.ctx);
 		}
 
-		for (let item in this.drawArrays) {
+		for (var item in this.drawArrays) {
 			this.ctx.drawArrays(this.ctx[this.drawArrays[item].type], this.drawArrays[item].start, this.drawArrays[item].end);
 		}
 
@@ -7669,13 +7569,13 @@
 	};
 
 	RenderWebglPoints.prototype.execute = function (stack) {
-		let positionArray = this.positionArray;
-		let colorArray = this.colorArray;
-		let pointsSize = this.pointsSize;
-		let node;
-		let fill;
-		let styleFlag = false;
-		let attrFlag = false;
+		var positionArray = this.positionArray;
+		var colorArray = this.colorArray;
+		var pointsSize = this.pointsSize;
+		var node;
+		var fill;
+		var styleFlag = false;
+		var attrFlag = false;
 
 		for (var i = 0, len = stack.length; i < len; i++) {
 			node = stack[i];
@@ -7772,12 +7672,12 @@
 	};
 
 	RenderWebglRects.prototype.execute = function (stack) {
-		let positionArray = this.positionArray;
-		let colorArray = this.colorArray;
-		let fill, r, g, b, a, x1, x2, y1, y2;
-		let node;
-		let ti;
-		let posi;
+		var positionArray = this.positionArray;
+		var colorArray = this.colorArray;
+		var fill, r, g, b, a, x1, x2, y1, y2;
+		var node;
+		var ti;
+		var posi;
 
 		for (var i = 0, len = stack.length; i < len; i++) {
 			node = stack[i];
@@ -7874,9 +7774,9 @@
 	};
 
 	RenderWebglLines.prototype.execute = function (stack) {
-		let positionArray = this.positionArray;
-		let colorArray = this.colorArray;
-		let node, r, g, b, a, stroke;
+		var positionArray = this.positionArray;
+		var colorArray = this.colorArray;
+		var node, r, g, b, a, stroke;
 
 		for (var i = 0, len = stack.length; i < len; i++) {
 			node = stack[i];
@@ -7969,9 +7869,9 @@
 	};
 
 	RenderWebglPolyLines.prototype.execute = function (stack) {
-		let node;
-		let fill;
-		let points;
+		var node;
+		var fill;
+		var points;
 
 		if (!this.attr.transform.scale) {
 			this.attr.transform.scale = [1.0, 1.0];
@@ -7986,16 +7886,16 @@
 		this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]]);
 		this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]]);
 
-		for (let i = 0, len = stack.length; i < len; i++) {
+		for (var i = 0, len = stack.length; i < len; i++) {
 			node = stack[i];
 			fill = node.style.stroke;
 			points = node.attr.points;
 			fill = fill || defaultColor$1;
 
 			if (node.propChanged) {
-				let positionArray = [];
+				var positionArray = [];
 
-				for (let j = 0, jlen = points.length; j < jlen; j++) {
+				for (var j = 0, jlen = points.length; j < jlen; j++) {
 					positionArray[j * 2] = points[j].x;
 					positionArray[(j * 2) + 1] = points[j].y;
 				}
@@ -8008,17 +7908,17 @@
 			}
 
 			if (node.styleChanged) {
-				let colorArray = [];
-				let r = fill.r || 0;
-				let g = fill.g || 0;
-				let b = fill.b || 0;
-				let a = fill.a === undefined ? 255 : fill.a;
+				var colorArray = [];
+				var r = fill.r || 0;
+				var g = fill.g || 0;
+				var b = fill.b || 0;
+				var a = fill.a === undefined ? 255 : fill.a;
 
-				for (let j = 0, jlen = points.length; j < jlen; j++) {
-					colorArray[j * 4] = r;
-					colorArray[(j * 4) + 1] = g;
-					colorArray[(j * 4) + 2] = b;
-					colorArray[(j * 4) + 3] = a;
+				for (var j$1 = 0, jlen$1 = points.length; j$1 < jlen$1; j$1++) {
+					colorArray[j$1 * 4] = r;
+					colorArray[(j$1 * 4) + 1] = g;
+					colorArray[(j$1 * 4) + 2] = b;
+					colorArray[(j$1 * 4) + 3] = a;
 				}
 
 				this.polyLineArray[i].colorArray = new Uint8Array(colorArray);
@@ -8090,13 +7990,13 @@
 		this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]]);
 
 		for (var i = 0, len = stack.length; i < len; i++) {
-			let node = stack[i];
-			let points = node.attr.triangulatedPoints;
+			var node = stack[i];
+			var points = node.attr.triangulatedPoints;
 
 			if (node.propChanged) {
-				let positionArray = [];
+				var positionArray = [];
 
-				for (let j = 0, jlen = points.length; j < jlen; j++) {
+				for (var j = 0, jlen = points.length; j < jlen; j++) {
 					positionArray[j * 2] = points[j].x;
 					positionArray[(j * 2) + 1] = points[j].y;
 				}
@@ -8109,19 +8009,19 @@
 			}
 
 			if (node.styleChanged) {
-				let colorArray = [];
-				let fill = node.style.fill;
+				var colorArray = [];
+				var fill = node.style.fill;
 				fill = fill || defaultColor$1;
-				let r = fill.r || 0;
-				let g = fill.g || 0;
-				let b = fill.b || 0;
-				let a = fill.a === undefined ? 255 : fill.a;
+				var r = fill.r || 0;
+				var g = fill.g || 0;
+				var b = fill.b || 0;
+				var a = fill.a === undefined ? 255 : fill.a;
 
-				for (let j = 0, jlen = points.length; j < jlen; j++) {
-					colorArray[j * 4] = r;
-					colorArray[(j * 4) + 1] = g;
-					colorArray[(j * 4) + 2] = b;
-					colorArray[(j * 4) + 3] = a;
+				for (var j$1 = 0, jlen$1 = points.length; j$1 < jlen$1; j$1++) {
+					colorArray[j$1 * 4] = r;
+					colorArray[(j$1 * 4) + 1] = g;
+					colorArray[(j$1 * 4) + 2] = b;
+					colorArray[(j$1 * 4) + 3] = a;
 				}
 
 				this.polygonArray[i].colorArray = new Uint8Array(colorArray);
@@ -8204,15 +8104,15 @@
 		this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1);
 		this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]]);
 		this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]]);
-		let positionArray = this.positionArray;
-		let colorArray = this.colorArray;
-		let radius = this.radius;
-		let attrFlag;
-		let styleFlag;
+		var positionArray = this.positionArray;
+		var colorArray = this.colorArray;
+		var radius = this.radius;
+		var attrFlag;
+		var styleFlag;
 
 		for (var i = 0, len = stack.length; i < len; i++) {
-			let node = stack[i];
-			let fill = node.style.fill;
+			var node = stack[i];
+			var fill = node.style.fill;
 			fill = fill || defaultColor$1;
 
 			if (node.propChanged) {
@@ -8309,8 +8209,8 @@
 			size: 2,
 			attribute: this.texCoordAttributeLocation
 		}]);
-		let x1, x2, y1, y2;
-		let activeTexture = null;
+		var x1, x2, y1, y2;
+		var activeTexture = null;
 
 		for (var i = 0, len = stack.length; i < len; i++) {
 			if (!this.imagesArray[i]) {
@@ -8319,8 +8219,8 @@
 				};
 			}
 
-			let positionArray = this.imagesArray[i].positionArray;
-			let node = stack[i];
+			var positionArray = this.imagesArray[i].positionArray;
+			var node = stack[i];
 
 			if (node.propChanged) {
 				x1 = node.attr.x;
@@ -8351,7 +8251,7 @@
 	};
 
 	function RenderWebglGroup (ctx, attr, style, shader, vDomIndex, shaderObject) {
-		let e;
+		var e;
 		this.ctx = ctx;
 
 		switch (shader) {
@@ -8457,7 +8357,7 @@
 			this.attr[attr] = value;
 			this.dom.setAttr(attr, value);
 		} else if (arguments.length === 1 && typeof attr === 'object') {
-			for (let key in attr) {
+			for (var key in attr) {
 				this.attr[key] = attr[key];
 				this.dom.setAttr(key, attr[key]);
 			}
@@ -8476,7 +8376,7 @@
 
 			this.style[attr] = value;
 		} else if (arguments.length === 1 && typeof attr === 'object') {
-			for (let key in attr) {
+			for (var key in attr) {
 				value = attr[key];
 
 				if (key === 'fill' || key === 'stroke') {
@@ -8501,7 +8401,7 @@
 		// this.stylesExe()
 		// this.attributesExe()
 		if (!this.dom.shader && this.dom instanceof RenderWebglGroup) {
-			for (let i = 0, len = this.children.length; i < len; i += 1) {
+			for (var i = 0, len = this.children.length; i < len; i += 1) {
 				this.children[i].execute();
 			}
 		} else if (this.dom.shader) {
@@ -8510,10 +8410,10 @@
 	};
 
 	WebglNodeExe.prototype.child = function child (childrens) {
-		const self = this;
+		var self = this;
 
 		if (self.dom instanceof RenderWebglGroup) {
-			for (let i = 0; i < childrens.length; i += 1) {
+			for (var i = 0; i < childrens.length; i += 1) {
 				childrens[i].dom.parent = self;
 				childrens[i].nindex = self.children.length;
 				self.children[self.children.length] = childrens[i];
@@ -8528,7 +8428,7 @@
 	};
 
 	WebglNodeExe.prototype.createEls = function CcreateEls (data, config) {
-		const e = new WebglCollection({
+		var e = new WebglCollection({
 			type: 'WEBGL',
 			ctx: this.dom.ctx
 		}, data, config, this.vDomIndex);
@@ -8538,24 +8438,23 @@
 	};
 
 	WebglNodeExe.prototype.createEl = function WcreateEl (config) {
-		const e = new WebglNodeExe(this.ctx, config, domId$2(), this.vDomIndex);
+		var e = new WebglNodeExe(this.ctx, config, domId$2(), this.vDomIndex);
 		this.child([e]);
 		queueInstance$4.vDomChanged(this.vDomIndex);
 		return e;
 	};
 
 	WebglNodeExe.prototype.createShaderEl = function createShader (shaderObject) {
-		const e = new RenderWebglShader(this.ctx, shaderObject, this.vDomIndex);
+		var e = new RenderWebglShader(this.ctx, shaderObject, this.vDomIndex);
 		this.child([e]);
 		queueInstance$4.vDomChanged(this.vDomIndex);
 		return e;
 	};
 
 	WebglNodeExe.prototype.remove = function Wremove () {
-		const {
-			children
-		} = this.dom.parent;
-		const index = children.indexOf(this);
+		var ref = this.dom.parent;
+		var children = ref.children;
+		var index = children.indexOf(this);
 
 		if (index !== -1) {
 			children.splice(index, 1);
@@ -8570,15 +8469,15 @@
 	};
 
 	WebglNodeExe.prototype.removeChild = function WremoveChild (obj) {
-		let index = -1;
-		this.children.forEach((d, i) => {
+		var index = -1;
+		this.children.forEach(function (d, i) {
 			if (d === obj) {
 				index = i;
 			}
 		});
 
 		if (index !== -1) {
-			const removedNode = this.children.splice(index, 1)[0];
+			var removedNode = this.children.splice(index, 1)[0];
 			this.dom.removeChild(removedNode.dom);
 		}
 
@@ -8586,17 +8485,17 @@
 	};
 
 	function WebGLLayer (context, config) {
-		const res = document.querySelector(context);
-		const height = config.height ? config.height : res.clientHeight;
-		const width = config.width ? config.width : res.clientWidth;
-		const clearColor = config.clearColor ? colorMap$1.colorToRGB(config.clearColor) : {
+		var res = document.querySelector(context);
+		var height = config.height ? config.height : res.clientHeight;
+		var width = config.width ? config.width : res.clientWidth;
+		var clearColor = config.clearColor ? colorMap$1.colorToRGB(config.clearColor) : {
 			r: 0,
 			g: 0,
 			b: 0,
 			a: 0
 		};
-		const layer = document.createElement('canvas');
-		const ctx = layer.getContext('webgl', {
+		var layer = document.createElement('canvas');
+		var ctx = layer.getContext('webgl', {
 			premultipliedAlpha: false,
 			depth: false,
 			antialias: false,
@@ -8607,19 +8506,19 @@
 		ctx.blendFunc(ctx.SRC_ALPHA, ctx.DST_ALPHA);
 		layer.setAttribute('height', height * ratio$1);
 		layer.setAttribute('width', width * ratio$1);
-		layer.style.height = `${height}px`;
-		layer.style.width = `${width}px`;
+		layer.style.height = height + "px";
+		layer.style.width = width + "px";
 		layer.style.position = 'absolute';
 		res.appendChild(layer);
-		const vDomInstance = new VDom();
-		const vDomIndex = queueInstance$4.addVdom(vDomInstance);
-		const root = new WebglNodeExe(ctx, {
+		var vDomInstance = new VDom();
+		var vDomIndex = queueInstance$4.addVdom(vDomInstance);
+		var root = new WebglNodeExe(ctx, {
 			el: 'group',
 			attr: {
 				id: 'rootNode'
 			}
 		}, domId$2(), vDomIndex);
-		const execute = root.execute.bind(root);
+		var execute = root.execute.bind(root);
 		root.container = res;
 		root.domEl = layer;
 		root.height = height;
@@ -8650,7 +8549,7 @@
 		return root;
 	}
 
-	let dragObject = {
+	var dragObject = {
 		dragStart: function (fun) {
 			if (typeof fun === 'function') {
 				this.onDragStart = fun;
@@ -8671,7 +8570,7 @@
 		}
 	};
 
-	let drag = function () {
+	var drag = function () {
 		return Object.create(dragObject);
 	};
 
@@ -8679,7 +8578,7 @@
 		drag: drag
 	};
 
-	let pathIns = path.instance;
+	var pathIns = path.instance;
 
 	exports.CanvasLayer = CanvasLayer;
 	exports.Path = pathIns;
