@@ -248,7 +248,7 @@
     this.stateModified = false;
   };
 
-  VDom.prototype.root = function root (_) {
+  VDom.prototype.rootNode = function root (_) {
     this.root = _;
     this.stateModified = true;
   };
@@ -4603,6 +4603,251 @@
     return root
   }
 
+  let Event$1 = function (x, y) {
+    this.x = x;
+    this.y = y;
+    this.dx = 0;
+    this.dy = 0;
+  };
+
+  function Events (vDom) {
+    this.vDom = vDom;
+    this.disable = false;
+  }
+  Events.prototype.getNode = function (e) {};
+  Events.prototype.mousemoveCheck = function (e) {
+    if (this.dragNode) {
+      let event = this.dragNode.dom.drag.event;
+
+      if (this.dragNode.dom.drag.event) {
+        event.dx = e.offsetX - event.x;
+        event.dy = e.offsetY - event.y;
+      }
+
+      event.x = e.offsetX;
+      event.y = e.offsetY;
+      event.e = e;
+      this.dragNode.dom.drag.event = event;
+      this.dragNode.dom.drag.onDrag.call(this.dragNode, this.dragNode.dataObj, event);
+    } else {
+      let node = propogateEvent([this.vDom], {
+        x: e.offsetX,
+        y: e.offsetY
+      }, e, 'mousemove');
+      if (node && (node.dom['mouseover'] || node.dom['mousein'])) {
+        if (this.selectedNode !== node) {
+          if (node.dom['mouseover']) {
+            node.dom['mouseover'].call(node, node.dataObj, e);
+          }
+          if (node.dom['mousein']) {
+            node.dom['mousein'].call(node, node.dataObj, e);
+          }
+        }
+      }
+
+      if (this.selectedNode && this.selectedNode !== node) {
+        if (this.selectedNode.dom['mouseout']) {
+          this.selectedNode.dom['mouseout'].call(this.selectedNode, this.selectedNode.dataObj, e);
+        }
+        if (this.selectedNode.dom['mouseleave']) {
+          this.selectedNode.dom['mouseleave'].call(this.selectedNode, this.selectedNode.dataObj, e);
+        }
+      }
+
+      if (node && node.dom.drag) ;
+
+      this.selectedNode = node;
+    }
+  };
+  Events.prototype.clickCheck = function (e) {
+    propogateEvent([this.vDom], {
+      x: e.offsetX,
+      y: e.offsetY
+    }, e, 'click');
+  };
+  Events.prototype.dblclickCheck = function (e) {
+    propogateEvent([this.vDom], {
+      x: e.offsetX,
+      y: e.offsetY
+    }, e, 'dblclick');
+  };
+  Events.prototype.mousedownCheck = function (e) {
+    let node = propogateEvent([this.vDom], {
+      x: e.offsetX,
+      y: e.offsetY
+    }, e, 'mousedown');
+
+    if (node && node.dom.drag && node.dom.drag.onDragStart) {
+      node.dom.drag.dragStartFlag = true;
+      node.dom.drag.onDragStart.call(node, node.dataObj, e);
+      let event = new Event$1(e.offsetX, e.offsetY);
+      event.e = e;
+      node.dom.drag.event = event;
+      this.dragNode = node;
+    }
+  };
+  Events.prototype.mouseupCheck = function (e) {
+    let node = propogateEvent([this.vDom], {
+      x: e.offsetX,
+      y: e.offsetY
+    }, e, 'mouseup');
+    if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDragEnd) {
+      node.dom.drag.dragStartFlag = false;
+      node.dom.drag.event = null;
+      node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+      node.dom.drag.event = null; // selectedNode = null
+      this.dragNode = null;
+    }
+  };
+  Events.prototype.mouseleaveCheck = function (e) {
+    let node = propogateEvent([this.vDom], {
+      x: e.offsetX,
+      y: e.offsetY
+    }, e, 'mouseleave');
+    if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDragEnd) {
+      node.dom.drag.dragStartFlag = false;
+      node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+      node.dom.drag.event = null;
+      node = null;
+      this.dragNode = null;
+    }
+  };
+  Events.prototype.contextmenuCheck = function (e) {
+    propogateEvent([this.vDom], {
+      x: e.offsetX,
+      y: e.offsetY
+    }, e, 'contextmenu');
+  };
+
+  Events.prototype.touchstartCheck = function (e) {
+    let touches = e.touches;
+    if (touches.length === 0) {
+      return
+    }
+
+    propogateEvent([this.vDom], {
+      x: touches[0].clientX,
+      y: touches[0].clientY
+    }, e, 'touchstart');
+  };
+
+  Events.prototype.touchendCheck = function (e) {
+    let touches = e.touches;
+    if (touches.length === 0) {
+      return
+    }
+
+    propogateEvent([this.vDom], {
+      x: touches[0].clientX,
+      y: touches[0].clientY
+    }, e, 'touchend');
+  };
+
+  Events.prototype.touchmoveCheck = function (e) {
+    let touches = e.touches;
+    if (touches.length === 0) {
+      return
+    }
+
+    propogateEvent([this.vDom], {
+      x: touches[0].clientX,
+      y: touches[0].clientY
+    }, e, 'touchmove');
+  };
+
+  Events.prototype.touchcancelCheck = function (e) {
+    let touches = e.touches;
+    if (touches.length === 0) {
+      return
+    }
+
+    propogateEvent([this.vDom], {
+      x: touches[0].clientX,
+      y: touches[0].clientY
+    }, e, 'touchcacel');
+  };
+
+  function propogateEvent (nodes, mouseCoor, rawEvent, eventType) {
+    let node, temp;
+
+    for (var i = nodes.length - 1; i >= 0; i -= 1) {
+      var d = nodes[i];
+      var coOr = {
+        x: mouseCoor.x,
+        y: mouseCoor.y
+      };
+      transformCoOr$1(d, coOr);
+
+      if (d.in({ x: coOr.x, y: coOr.y })) {
+        if (d.children && d.children.length > 0) {
+          temp = propogateEvent(d.children, {
+            x: coOr.x,
+            y: coOr.y
+          }, rawEvent, eventType);
+
+          if (temp) {
+            node = temp;
+          }
+        } else {
+          node = d;
+        }
+        if (d.dom[eventType]) {
+          d.dom[eventType].call(d, d.dataObj, rawEvent);
+        }
+        if (node) {
+          break
+        }
+      }
+    }
+
+    return node
+  }
+
+  function transformCoOr$1 (d, coOr) {
+    let hozMove = 0;
+    let verMove = 0;
+    let scaleX = 1;
+    let scaleY = 1;
+    const coOrLocal = coOr;
+
+    if (d.attr.transform && d.attr.transform.translate) {
+      [hozMove, verMove] = d.attr.transform.translate;
+      coOrLocal.x -= hozMove;
+      coOrLocal.y -= verMove;
+    }
+
+    if (d.attr.transform && d.attr.transform.scale) {
+      scaleX = d.attr.transform.scale[0] !== undefined ? d.attr.transform.scale[0] : 1;
+      scaleY = d.attr.transform.scale[1] !== undefined ? d.attr.transform.scale[1] : scaleX;
+      coOrLocal.x /= scaleX;
+      coOrLocal.y /= scaleY;
+    }
+
+    if (d.attr.transform && d.attr.transform.rotate) {
+      const rotate = d.attr.transform.rotate[0]; // const { BBox } = d.dom
+
+      const cen = {
+        x: d.attr.transform.rotate[1],
+        y: d.attr.transform.rotate[2] // {
+        //   x: (BBox.x + (BBox.width / 2) - hozMove) / scaleX,
+        //   y: (BBox.y + (BBox.height / 2) - verMove) / scaleY
+        // }
+        // const dis = t2DGeometry.getDistance(cen, coOr)
+        // const angle = Math.atan2(coOr.y - cen.y, coOr.x - cen.x)
+
+      };
+      let x = coOrLocal.x;
+      let y = coOrLocal.y;
+      let cx = cen.x;
+      let cy = cen.y;
+      var radians = Math.PI / 180 * rotate;
+      var cos = Math.cos(radians);
+      var sin = Math.sin(radians);
+      coOrLocal.x = (cos * (x - cx)) + (sin * (y - cy)) + cx;
+      coOrLocal.y = (cos * (y - cy)) - (sin * (x - cx)) + cy;
+    }
+  }
+
   // import { node } from 'render'
   let t2DGeometry$3 = geometry;
   const queueInstance$3 = queue;
@@ -4634,13 +4879,6 @@
   //   }
   //   return this
   // }
-
-  let Event$1 = function (x, y) {
-    this.x = x;
-    this.y = y;
-    this.dx = 0;
-    this.dy = 0;
-  };
 
   let ratio;
 
@@ -5230,7 +5468,16 @@
     this.ctx.closePath();
   };
 
-  RenderCircle.prototype.in = function RCinfun (co) {
+  RenderCircle.prototype.in = function RCinfun (co, eventType) {
+    // if (eventType === 'mousemove' && this['mouseover']) {
+    //   const {
+    //     x,
+    //     y,
+    //     width,
+    //     height
+    //   } = this.BBox
+    //   return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height
+    // }
     const r = Math.sqrt(((co.x - this.attr.cx) * (co.x - this.attr.cx)) + ((co.y - this.attr.cy) * (co.y - this.attr.cy)));
     return r <= this.attr.r
   };
@@ -6196,11 +6443,10 @@
 
   function CanvasLayer (context, config = {}) {
     let originalRatio;
-    let selectedNode; // const selectiveClearing = config.selectiveClear ? config.selectiveClear : false
 
     const res = document.querySelector(context);
-    const height = config.height ? config.height : res.clientHeight;
-    const width = config.width ? config.width : res.clientWidth;
+    let height = config.height ? config.height : res.clientHeight;
+    let width = config.width ? config.width : res.clientWidth;
     const layer = document.createElement('canvas');
     const ctx = layer.getContext('2d');
     ratio = getPixlRatio(ctx);
@@ -6224,7 +6470,7 @@
         id: 'rootNode'
       }
     }, domId$1(), vDomIndex);
-    vDomInstance.root(root);
+    vDomInstance.rootNode(root);
     const execute = root.execute.bind(root);
     root.container = res;
     root.domEl = layer;
@@ -6256,8 +6502,8 @@
     root.resize = renderVdom;
 
     function renderVdom () {
-      let width = config.width ? config.width : this.container.clientWidth;
-      let height = config.height ? config.height : this.container.clientHeight;
+      width = config.width ? config.width : this.container.clientWidth;
+      height = config.height ? config.height : this.container.clientHeight;
       this.domEl.setAttribute('height', height * originalRatio);
       this.domEl.setAttribute('width', width * originalRatio);
       this.domEl.style.height = `${height}px`;
@@ -6291,151 +6537,50 @@
     };
 
     if (config.events || config.events === undefined) {
+      let eventsInstance = new Events(root);
       res.addEventListener('mousemove', e => {
         e.preventDefault();
-
-        if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
-          let event = selectedNode.dom.drag.event;
-
-          if (selectedNode.dom.drag.event) {
-            event.dx = e.offsetX - event.x;
-            event.dy = e.offsetY - event.y;
-          }
-
-          event.x = e.offsetX;
-          event.y = e.offsetY;
-          event.e = e;
-          selectedNode.dom.drag.event = event;
-          selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event);
-        } else {
-          const newSelectedNode = vDomInstance.eventsCheck([root], {
-            x: e.offsetX,
-            y: e.offsetY
-          }, e);
-
-          if (selectedNode && newSelectedNode !== selectedNode) {
-            if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
-              if (selectedNode.dom.mouseout) {
-                selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e);
-              }
-
-              if (selectedNode.dom.mouseleave) {
-                selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e);
-              }
-            }
-
-            selectedNode.hovered = false;
-
-            if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag) {
-              selectedNode.dom.drag.dragStartFlag = false;
-              selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, selectedNode.dom.drag.event);
-              selectedNode.dom.drag.event = null;
-            }
-          }
-
-          if (selectedNode && newSelectedNode === selectedNode) {
-            if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
-              let event = selectedNode.dom.drag.event;
-
-              if (selectedNode.dom.drag.event) {
-                event.dx = e.offsetX - event.x;
-                event.dy = e.offsetY - event.y;
-              }
-
-              event.x = e.offsetX;
-              event.y = e.offsetY;
-              event.e = e;
-              selectedNode.dom.drag.event = event;
-              selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event);
-            }
-          }
-
-          if (newSelectedNode) {
-            selectedNode = newSelectedNode;
-
-            if ((selectedNode.dom.mouseover || selectedNode.dom.mouseenter) && !selectedNode.hovered) {
-              if (selectedNode.dom.mouseover) {
-                selectedNode.dom.mouseover.call(selectedNode, selectedNode.dataObj, e);
-              }
-
-              if (selectedNode.dom.mouseenter) {
-                selectedNode.dom.mouseenter.call(selectedNode, selectedNode.dataObj, e);
-              }
-
-              selectedNode.hovered = true;
-            }
-
-            if (selectedNode.dom.mousemove) {
-              selectedNode.dom.mousemove.call(selectedNode, selectedNode.dataObj, e);
-            }
-          } else {
-            selectedNode = undefined;
-          }
-        }
+        eventsInstance.mousemoveCheck(e);
       });
       res.addEventListener('click', e => {
         e.preventDefault();
-
-        if (selectedNode && selectedNode.dom.click) {
-          selectedNode.dom.click.call(selectedNode, selectedNode.dataObj, e);
-        }
+        eventsInstance.clickCheck(e);
       });
       res.addEventListener('dblclick', e => {
-        if (selectedNode && selectedNode.dom.dblclick) {
-          selectedNode.dom.dblclick.call(selectedNode, selectedNode.dataObj, e);
-        }
+        e.preventDefault();
+        eventsInstance.dblclickCheck(e);
       });
       res.addEventListener('mousedown', e => {
         e.preventDefault();
-
-        if (selectedNode && selectedNode.dom.mousedown) {
-          selectedNode.dom.mousedown.call(selectedNode, selectedNode.dataObj, e);
-          selectedNode.down = true;
-        }
-
-        if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.onDragStart) {
-          selectedNode.dom.drag.dragStartFlag = true;
-          selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e);
-          let event = new Event$1(e.offsetX, e.offsetY);
-          event.e = e;
-          selectedNode.dom.drag.event = event;
-        }
+        eventsInstance.mousedownCheck(e);
       });
       res.addEventListener('mouseup', e => {
         e.preventDefault();
-
-        if (selectedNode && selectedNode.dom.mouseup && selectedNode.down) {
-          selectedNode.dom.mouseup.call(selectedNode, selectedNode.dataObj);
-          selectedNode.down = false;
-        }
-
-        if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDragEnd) {
-          selectedNode.dom.drag.dragStartFlag = false;
-          selectedNode.dom.drag.event = null;
-          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, selectedNode.dom.drag.event);
-          selectedNode.dom.drag.event = null; // selectedNode = null
-        }
+        eventsInstance.mouseupCheck(e);
       });
       res.addEventListener('mouseleave', e => {
         e.preventDefault();
-
-        if (selectedNode && selectedNode.dom.mouseleave) {
-          selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e);
-        }
-
-        if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDragEnd) {
-          selectedNode.dom.drag.dragStartFlag = false;
-          selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, selectedNode.dom.drag.event);
-          selectedNode.dom.drag.event = null;
-          selectedNode = null;
-        }
+        eventsInstance.mouseleaveCheck(e);
       });
       res.addEventListener('contextmenu', e => {
         e.preventDefault();
-
-        if (selectedNode && selectedNode.dom.contextmenu) {
-          selectedNode.dom.contextmenu.call(selectedNode, selectedNode.dataObj);
-        }
+        eventsInstance.contextmenuCheck(e);
+      });
+      res.addEventListener('touchstart', e => {
+        e.preventDefault();
+        eventsInstance.touchstartCheck(e);
+      });
+      res.addEventListener('touchend', e => {
+        e.preventDefault();
+        eventsInstance.touchendCheck(e);
+      });
+      res.addEventListener('touchmove', e => {
+        e.preventDefault();
+        eventsInstance.touchmoveCheck(e);
+      });
+      res.addEventListener('touchcancel', e => {
+        e.preventDefault();
+        eventsInstance.touchcancelCheck(e);
       });
     }
 

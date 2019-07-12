@@ -6,7 +6,7 @@ VDom.prototype.execute = function execute () {
   this.stateModified = false
 }
 
-VDom.prototype.root = function root (_) {
+VDom.prototype.rootNode = function root (_) {
   this.root = _
   this.stateModified = true
 }
