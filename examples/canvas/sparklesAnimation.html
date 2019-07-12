@@ -4,111 +4,113 @@
 	<title></title>
 </head>
 <body style="height: 100%;background: black">
-    <label style="position: absolute; color: white"> Canvas Example </label>
-	<div id="myCanvas" style="height: 100%;width:100%">
-	</div>
-    <script type="text/javascript" src="../../dist/i2d.js"></script>
+<label style="position: absolute; color: white"> Canvas Example </label>
+<div id="myCanvas" style="height: 100%;width:100%">
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-	<script type="text/javascript">
+<script type="text/javascript">
 
-    render()
-    
-    function render () {
-        var height = 820, width = 1430;
-        var renderer = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
-        var g = renderer.createEl({
-                el: 'group'
-            })
-        
-        var linearGradiant = renderer.createLinearGradient({id:'linearG',x1:0,y1:0,x2:0,y2:100,
-                                                            colorStops:[{color:'white',value:10},
-                                                                        {color:'rgb(255, 0, 0)',value:50},
-                                                                        {color:'yellow',value:90}]
-                                                            });
-        
-        var blastGradiant = renderer.createRadialGradient({innerCircle:{x:50,y:50,r:0},
-                                                            outerCircle:{x:50,y:50,r:50},
-                                                            colorStops:[{color:'rgb(255, 0, 0)',value:0},
-                                                                        {color:'white',value:90}]
-                                                            });
-        var sparkles = []
+render();
 
-            for(var i=0;i<300;i++){
-                    var angle = (2*Math.PI/50)*(parseInt(i%50))
-                                        var r = random(50,450)
-                                        var tx = r*Math.cos(angle)
-                                        var ty = r*Math.sin(angle)
-                    var pathInstance = i2d.Path()
-                        .m(false,{x:700,y:350})
-                        .q(false,{x:(tx*0.6),y:((ty-350)*0.6)},{x:tx,y:ty})
-                                        // console.log("m"+x+','+y+' q'+(tx*0.6)+','+((ty-y)*0.6) +' '+tx+','+ty)
-                    
-                    sparkles.push({d:pathInstance})
-                }
+function render () {
+	var height = 820, width = 1430;
+	var renderer = i2d.CanvasLayer('#myCanvas', { events: false, selectiveClear: false });
+	var g = renderer.createEl({
+		el: 'group'
+	});
 
-        renderer.createEl({
-                    el:'circle',
-                    attr:{
-                        r:20,
-                        cx:700,
-                        cy:700
-                    },
-                    style:{
-                        fillStyle:'rgb(255,255,255)'
-                    }
-                }).animateTo({
-                    duration:2000,
-                    ease:'easeInCubic',
-                    attr:{
-                        cy:350,
-                        r:10
-                    },
-                    end:function(){
+	var linearGradiant = renderer.createLinearGradient({
+		id: 'linearG', x1: 0, y1: 0, x2: 0, y2: 100,
+		colorStops: [{ color: 'white', value: 10 },
+			{ color: 'rgb(255, 0, 0)', value: 50 },
+			{ color: 'yellow', value: 90 }]
+	});
 
-                        // var x = this.getAttr('cx')
-                        // var y = this.getAttr('cy')
+	var blastGradiant = renderer.createRadialGradient({
+		innerCircle: { x: 50, y: 50, r: 0 },
+		outerCircle: { x: 50, y: 50, r: 50 },
+		colorStops: [{ color: 'rgb(255, 0, 0)', value: 0 },
+			{ color: 'white', value: 90 }]
+	});
+	var sparkles = [];
 
-                            this.animateTo({
-                                duration:300,
-                                // ease:'easeInSin',
-                                attr:{
-                                    r:30
-                                },
-                                style:{
-                                    globalAlpha:0
-                                },
-                                end:function(){
-                                    this.remove()
-                                }
-                            })
-                        
-                        var sparkclesNodes = g.createEls(sparkles,{
-                                el:'path',
-                                style:{
-                                    globalAlpha:0.5,
-                                    strokeStyle: blastGradiant
-                                    // strokeStyle:'rgb(255,255,255)'
-                                }
-                            })
+	for (var i = 0; i < 300; i++) {
+		var angle = (2 * Math.PI / 50) * (parseInt(i % 50));
+		var r = random(50, 450);
+		var tx = r * Math.cos(angle);
+		var ty = r * Math.sin(angle);
+		var pathInstance = i2d.Path()
+			.m(false, { x: 700, y: 350 })
+			.q(false, { x: (tx * 0.6), y: ((ty - 350) * 0.6) }, { x: tx, y: ty });
+		// console.log("m"+x+','+y+' q'+(tx*0.6)+','+((ty-y)*0.6) +' '+tx+','+ty)
 
-                        sparkclesNodes.animatePathTo({
-                                duration:1000,
-                                ease:'easeInCubic',
-                                d:function(d){
-                                    return d.d
-                                }
-                            })
-                    }
-                })
-        
-        function random(min,max) {
-            var num = Math.floor(Math.random()*(max-min)) + min;
-            return num;
-        }
+		sparkles.push({ d: pathInstance });
+	}
 
-    }
+	renderer.createEl({
+		el: 'circle',
+		attr: {
+			r: 20,
+			cx: 700,
+			cy: 700
+		},
+		style: {
+			fillStyle: 'rgb(255,255,255)'
+		}
+	}).animateTo({
+		duration: 2000,
+		ease: 'easeInCubic',
+		attr: {
+			cy: 350,
+			r: 10
+		},
+		end: function () {
 
-	</script>
+			// var x = this.getAttr('cx')
+			// var y = this.getAttr('cy')
+
+			this.animateTo({
+				duration: 300,
+				// ease:'easeInSin',
+				attr: {
+					r: 30
+				},
+				style: {
+					globalAlpha: 0
+				},
+				end: function () {
+					this.remove();
+				}
+			});
+
+			var sparkclesNodes = g.createEls(sparkles, {
+				el: 'path',
+				style: {
+					globalAlpha: 0.5,
+					strokeStyle: blastGradiant
+					// strokeStyle:'rgb(255,255,255)'
+				}
+			});
+
+			sparkclesNodes.animatePathTo({
+				duration: 1000,
+				ease: 'easeInCubic',
+				d: function (d) {
+					return d.d;
+				}
+			});
+		}
+	});
+
+	function random (min, max) {
+		var num = Math.floor(Math.random() * (max - min)) + min;
+		return num;
+	}
+
+}
+
+</script>
 
 </body>
 </html>

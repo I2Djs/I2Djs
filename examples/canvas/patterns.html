@@ -4,55 +4,54 @@
 	<title></title>
 </head>
 <body style="height: 100%">
-	<div id="myCanvas" style="height: 100%;width:100%;position: absolute;" >
-	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
-    <!-- <script type="text/javascript" src="../../src/colorMap.js"></script>
-	<script type="text/javascript" src="../../src/geometry.js"></script>
-	<script type="text/javascript" src="../../src/easing.js"></script>
-    <script type="text/javascript" src="../../src/vDom.js"></script>
-	<script type="text/javascript" src="../../src/queue.js"></script>
-    <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/path.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script> -->
+<div id="myCanvas" style="height: 100%;width:100%;position: absolute;">
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
+<!-- <script type="text/javascript" src="../../src/colorMap.js"></script>
+<script type="text/javascript" src="../../src/geometry.js"></script>
+<script type="text/javascript" src="../../src/easing.js"></script>
+<script type="text/javascript" src="../../src/vDom.js"></script>
+<script type="text/javascript" src="../../src/queue.js"></script>
+<script type="text/javascript" src="../../src/chaining.js"></script>
+<script type="text/javascript" src="../../src/path.js"></script>
+<script type="text/javascript" src="../../src/renderer.js"></script> -->
 
-	<script type="text/javascript">
+<script type="text/javascript">
 
-        var renderer_ = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false,onClear:'clear'});
-        var pattern = renderer_.createPattern('../images/pattern.png', 'repeat')
+var renderer_ = i2d.CanvasLayer('#myCanvas', { events: false, selectiveClear: false, onClear: 'clear' });
+var pattern = renderer_.createPattern('../images/pattern.png', 'repeat');
 
-        var g = renderer_.createEl({
-                el:'group',
-                attr:{
-                    transform:{
-                        translate:[renderer_.width/2,renderer_.height/2]
-                    }
-                }
-            });
+var g = renderer_.createEl({
+	el: 'group',
+	attr: {
+		transform: {
+			translate: [renderer_.width / 2, renderer_.height / 2]
+		}
+	}
+});
 
-        var circle = g.createEl({
-                    el:'circle',
-                    attr:{
-                        cx: 0,
-                        cy: 0,
-                        r: 100
-                    },
-                    style:{
-                        fillStyle: pattern,
-                        strokeStyle: 'grey',
-                        shadowBlur: 10,
-						shadowOffsetX: 5,
-						shadowOffsetY: 5,
-						shadowColor: '#333333'
-                    }
-            });
+var circle = g.createEl({
+	el: 'circle',
+	attr: {
+		cx: 0,
+		cy: 0,
+		r: 100
+	},
+	style: {
+		fillStyle: pattern,
+		strokeStyle: 'grey',
+		shadowBlur: 10,
+		shadowOffsetX: 5,
+		shadowOffsetY: 5,
+		shadowColor: '#333333'
+	}
+});
 
+window.addEventListener('mousemove', function (e) {
+	circle.setAttr({ cx: e.offsetX - renderer_.width / 2, cy: e.offsetY - renderer_.height / 2 });
+});
 
-            window.addEventListener("mousemove",function(e){
-                circle.setAttr({cx:e.offsetX - renderer_.width/2, cy:e.offsetY - renderer_.height/2})
-            })
-
-	</script>
+</script>
 
 </body>
 </html>

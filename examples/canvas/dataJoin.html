@@ -4,74 +4,86 @@
 	<title></title>
 </head>
 <body style="height: 100%">
-    <label style="position: absolute; color: white"> Canvas Example </label>
-	<div id="myCanvas" style="position: absolute; height: 100%;width:100%">
-	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+<label style="position: absolute; color: white"> Canvas Example </label>
+<div id="myCanvas" style="position: absolute; height: 100%;width:100%">
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-	<script type="text/javascript">
+<script type="text/javascript">
 
-        var renderer_ = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
-        var data = [{id:1,value:1},{id:2,value:2},{id:3,value:3},{id:4,value:4}]
-        var v_;
+var renderer_ = i2d.CanvasLayer('#myCanvas', { events: false, selectiveClear: false });
+var data = [{ id: 1, value: 1 }, { id: 2, value: 2 }, { id: 3, value: 3 }, { id: 4, value: 4 }];
+var v_;
 
-        function dataJoin(data){
-            v_ = renderer_.join(data,'circle,text',{
-                                            joinOn:function(d){ return d.id; },
-                                            action:{
-                                                enter:function(nodes){
-                                                    this.createEls(nodes.circle,{
-                                                                        el:'circle',
-                                                                        attr:{
-                                                                            cx:function(d){return d.id*40},
-                                                                            cy:100,r:10
-                                                                        },
-                                                                        style:{ fillStyle:'#ff0000' }
-                                                                    }).animateTo({
-                                                                        duration:1000,
-                                                                        attr:{ r:20 }
-                                                                    });
+function dataJoin (data) {
+	v_ = renderer_.join(data, 'circle,text', {
+		joinOn: function (d) {
+			return d.id;
+		},
+		action: {
+			enter: function (nodes) {
+				this.createEls(nodes.circle, {
+					el: 'circle',
+					attr: {
+						cx: function (d) {
+							return d.id * 40;
+						},
+						cy: 100, r: 10
+					},
+					style: { fillStyle: '#ff0000' }
+				}).animateTo({
+					duration: 1000,
+					attr: { r: 20 }
+				});
 
-                                                    this.createEls(nodes.text,{
-                                                                        el:'text',
-                                                                        attr:{
-                                                                            x:function(d){return d.id*40},
-                                                                            y:130
-                                                                        },
-                                                                        style:{
-                                                                            fillStyle:'#ff0000',
-                                                                            textAlign:'center'
-                                                                        }
-                                                                    }).text(function(d){
-                                                                        return d.id
-                                                                    });
-                                                },
-                                                exit:function(nodes){
-                                                    nodes.circle.remove();
-                                                    nodes.text.remove();
-                                                },
-                                                update:function(nodes){
-                                                    nodes.circle.animateTo({
-                                                            duration:1000,
-                                                            style:{ fillStyle:'#00ff00' }
-                                                        })
-                                                }
-                                            }
-                                });
-        }
-        
-        dataJoin(data);
+				this.createEls(nodes.text, {
+					el: 'text',
+					attr: {
+						x: function (d) {
+							return d.id * 40;
+						},
+						y: 130
+					},
+					style: {
+						fillStyle: '#ff0000',
+						textAlign: 'center'
+					}
+				}).text(function (d) {
+					return d.id;
+				});
+			},
+			exit: function (nodes) {
+				nodes.circle.remove();
+				nodes.text.remove();
+			},
+			update: function (nodes) {
+				nodes.circle.animateTo({
+					duration: 1000,
+					style: { fillStyle: '#00ff00' }
+				});
+			}
+		}
+	});
+}
 
-        setTimeout(function(){
-            dataJoin([{id:1,value:11},{id:3,value:33},{id:4,value:44},{id:5,value:55},{id:6,value:66}])
-        },2000)
+dataJoin(data);
 
-        setTimeout(function(){
-            dataJoin([{id:1,value:111},{id:4,value:444},{id:5,value:555},{id:6,value:666},{id:7,value:777},{id:8,value:888}])
-        },4000)
+setTimeout(function () {
+	dataJoin([{ id: 1, value: 11 }, { id: 3, value: 33 }, { id: 4, value: 44 }, { id: 5, value: 55 }, {
+		id: 6,
+		value: 66
+	}]);
+}, 2000);
 
-        
-	</script>
+setTimeout(function () {
+	dataJoin([{ id: 1, value: 111 }, { id: 4, value: 444 }, { id: 5, value: 555 }, { id: 6, value: 666 }, {
+		id: 7,
+		value: 777
+	}, { id: 8, value: 888 }]);
+}, 4000);
+
+
+</script>
 
 </body>
 </html>

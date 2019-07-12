@@ -4,87 +4,86 @@
 	<title></title>
 </head>
 <body style="height: 100%">
-    <label style="position: absolute; color: white"> Canvas Example </label>
-	<div id="myCanvas" style="height: 100%;width:100%;position: absolute;background: black" >
-		<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
-	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+<label style="position: absolute; color: white"> Canvas Example </label>
+<div id="myCanvas" style="height: 100%;width:100%;position: absolute;background: black">
+	<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-	<script type="text/javascript">
+<script type="text/javascript">
 
-        var height = 820, width = 1430;
-            height = document.getElementById('myCanvas').offsetHeight;
-			width = document.getElementById('myCanvas').offsetWidth;
+var height = 820, width = 1430;
+height = document.getElementById('myCanvas').offsetHeight;
+width = document.getElementById('myCanvas').offsetWidth;
 
-        var renderer_ = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
-        var group = renderer_.createEl({
-            el: 'group',
-            bbox: false
-        })
-        group.setStyle('fillStyle', 'white')
-        var queue = i2d.queue
-        var circlesGrid = []
-        var rad = Math.pow( 500, 2 );
-        var dis, dx, dy, f;
-        var mx, my;
-        var atan2 = Math.atan2;
-        var cos = Math.cos;
-        var sin = Math.sin;
-        
-        for(var i=0; i< 150; i++){
-            for(var j=0; j < 200; j++){
-                circlesGrid.push({
-                    x:150+j*5,
-                    ox:150+j*5,
-                    y:0+i*5,
-                    oy:0+i*5,
-                    vx:0,
-                    vy:0
-                });
-            }
-        }
-        
-    var rects = group.createEls(circlesGrid,{
-            el:'rect',
-            attr:{
-                width:2,
-                height:2,
-                x:function(d){
-                    return d.x
-                },
-                y:function(d){
-                    return d.y
-                }
-            }
-        })
-        
-        window.addEventListener("mousemove",function(e){
-            mx = e.pageX;
-            my = e.pageY;
-        })
-        
-        
-       i2d.queue.onRequestFrame(function(t){
+var renderer_ = i2d.CanvasLayer('#myCanvas', { events: false, selectiveClear: false });
+var group = renderer_.createEl({
+	el: 'group',
+	bbox: false
+});
+group.setStyle('fillStyle', 'white');
+var queue = i2d.queue;
+var circlesGrid = [];
+var rad = Math.pow(500, 2);
+var dis, dx, dy, f;
+var mx, my;
+var atan2 = Math.atan2;
+var cos = Math.cos;
+var sin = Math.sin;
 
-            rects.forEach(function(d){
-                            dis = ( dx = mx - d.x ) * dx + ( dy = my - d.y ) * dy;
-                            f = -rad / dis
-                            
-                            if(dis < rad){
-                                t = atan2( dy, dx );
-                                d.vx = f * cos(t);
-                                d.vy = f * sin(t);
-                            }
+for (var i = 0; i < 150; i++) {
+	for (var j = 0; j < 200; j++) {
+		circlesGrid.push({
+			x: 150 + j * 5,
+			ox: 150 + j * 5,
+			y: 0 + i * 5,
+			oy: 0 + i * 5,
+			vx: 0,
+			vy: 0
+		});
+	}
+}
 
-                            d.x += ( d.vx *= 0.8) + (d.ox - d.x) * 0.1;
-                            d.y += ( d.vy *= 0.8 ) + (d.oy - d.y) * 0.1;
-                            
-                        this.setAttr('x',d.x)
-                            .setAttr('y',d.y)
-            })
-        });
+var rects = group.createEls(circlesGrid, {
+	el: 'rect',
+	attr: {
+		width: 2,
+		height: 2,
+		x: function (d) {
+			return d.x;
+		},
+		y: function (d) {
+			return d.y;
+		}
+	}
+});
 
-	</script>
+window.addEventListener('mousemove', function (e) {
+	mx = e.pageX;
+	my = e.pageY;
+});
+
+i2d.queue.onRequestFrame(function (t) {
+
+	rects.forEach(function (d) {
+		dis = (dx = mx - d.x) * dx + (dy = my - d.y) * dy;
+		f = -rad / dis;
+
+		if (dis < rad) {
+			t = atan2(dy, dx);
+			d.vx = f * cos(t);
+			d.vy = f * sin(t);
+		}
+
+		d.x += (d.vx *= 0.8) + (d.ox - d.x) * 0.1;
+		d.y += (d.vy *= 0.8) + (d.oy - d.y) * 0.1;
+
+		this.setAttr('x', d.x)
+			.setAttr('y', d.y);
+	});
+});
+
+</script>
 
 </body>
 </html>

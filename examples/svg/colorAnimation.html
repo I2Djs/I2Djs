@@ -5,35 +5,35 @@
 </head>
 <body style="height: 100%">
 
-	<div id="mySvg" style="height: 100%;width:100%">
-	</div>
-    
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+<div id="mySvg" style="height: 100%;width:100%">
+</div>
 
-	<script type="text/javascript">
-        var height = document.getElementById('mySvg').offsetHeight;
-		var width = document.getElementById('mySvg').offsetWidth;
-        var renderer = i2d.SVGLayer('#mySvg');
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-                renderer.createEl({
-                    el:'rect',
-                    attr:{
-                        x: (width/2) - 200,
-                        y: (height/2) - 200,
-                        width:400,
-                        height:400
-                    },
-                    style:{
-                            fill:'hsl(90, 100%, 50%)'
-                        }
-                })
-                .animateTo({
-                    duration:3000,
-                    style:{
-                        fill:'hsl(43, 89%, 38%)'
-                    }
-                })
-	</script>
+<script type="text/javascript">
+var height = document.getElementById('mySvg').offsetHeight;
+var width = document.getElementById('mySvg').offsetWidth;
+var renderer = i2d.SVGLayer('#mySvg');
+
+renderer.createEl({
+	el: 'rect',
+	attr: {
+		x: (width / 2) - 200,
+		y: (height / 2) - 200,
+		width: 400,
+		height: 400
+	},
+	style: {
+		fill: 'hsl(90, 100%, 50%)'
+	}
+})
+	.animateTo({
+		duration: 3000,
+		style: {
+			fill: 'hsl(43, 89%, 38%)'
+		}
+	});
+</script>
 
 </body>
 </html>

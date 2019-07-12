@@ -5,39 +5,39 @@
 </head>
 <body style="height: 100%">
 
-	<div id="mySvg" style="height: 100%;width:100%">
-	</div>
-    
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+<div id="mySvg" style="height: 100%;width:100%">
+</div>
 
-	<script type="text/javascript">
-        var renderer = i2d.SVGLayer('#mySvg');
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-                renderer.createEl({
-                    el:'circle',
-                    attr:{
-                        r:50,
-                        cx:500,
-                        cy:300
-                    },
-                    style:{
-                        fill:'#ff0000'
-                    }
-                }).animateTo({
-                    duration:500,
-                    loop:100,
-                    ease:'easeInOutSin',
-                    direction:'alternate',
-                    attr:{
-                        r:200
-                    },
-                    style:{
-                        fill:'#00ff00'
-                    }
-                })
+<script type="text/javascript">
+var renderer = i2d.SVGLayer('#mySvg');
+
+renderer.createEl({
+	el: 'circle',
+	attr: {
+		r: 50,
+		cx: 500,
+		cy: 300
+	},
+	style: {
+		fill: '#ff0000'
+	}
+}).animateTo({
+	duration: 500,
+	loop: 100,
+	ease: 'easeInOutSin',
+	direction: 'alternate',
+	attr: {
+		r: 200
+	},
+	style: {
+		fill: '#00ff00'
+	}
+});
 
 
-	</script>
+</script>
 
 </body>
 </html>

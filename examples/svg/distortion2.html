@@ -2,97 +2,97 @@
 <html style="height: 100%">
 <head>
 	<title></title>
-    <style>
-        rect {
-            fill: #fff
-        }
-    </style>
+	<style>
+		rect {
+			fill: #fff
+		}
+	</style>
 </head>
 <body style="height: 100%">
-	<div id="mySvg" style="height: 100%;width:100%;position: absolute;background: black" >
-		<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
-	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
-    <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
-	<script type="text/javascript" src="../../src/geometry.js"></script>
-	<script type="text/javascript" src="../../src/easing.js"></script>
-    <script type="text/javascript" src="../../src/vDom.js"></script>
-	<script type="text/javascript" src="../../src/queue.js"></script>
-    <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>-->
+<div id="mySvg" style="height: 100%;width:100%;position: absolute;background: black">
+	<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
+<!--<script type="text/javascript" src="../../src/colorMap.js"></script>
+<script type="text/javascript" src="../../src/geometry.js"></script>
+<script type="text/javascript" src="../../src/easing.js"></script>
+<script type="text/javascript" src="../../src/vDom.js"></script>
+<script type="text/javascript" src="../../src/queue.js"></script>
+<script type="text/javascript" src="../../src/chaining.js"></script>
+<script type="text/javascript" src="../../src/renderer.js"></script>-->
 
-	<script type="text/javascript">
+<script type="text/javascript">
 
-        var height = 820, width = 1430;
-        var renderer_ = i2d.SVGLayer('#mySvg');
-        var circlesGrid = []
-        var gridSize = parseInt(Math.sqrt(10000))
-        var rad = Math.pow( 100, 2 );
-        var dis, dx, dy, f;
-        var mx, my;
-        var atan2 = Math.atan2;
-        var cos = Math.cos;
-        var sin = Math.sin;
-        
-        for(var i=0; i< 50; i++){
-            for(var j=0; j < 100; j++){
-                circlesGrid.push({
-                    x:150+j*10,
-                    ox:150+j*10,
-                    y:150+i*10,
-                    oy:150+i*10,
-                    vx:0,
-                    vy:0
-                });
-            }
-        }
-        
-    var rects = renderer_.createEls(circlesGrid,{
-            el:'rect',
-            attr:{
-                width:3,
-                height:3,
-                x:function(d){
-                    return d.x
-                },
-                y:function(d){
-                    return d.y
-                }
-            }
-        })
-        
-        window.addEventListener("mousemove",function(e){
-            mx = e.pageX;
-            my = e.pageY;
-        })
-        
-       i2d.queue.onRequestFrame(function(t){
+var height = 820, width = 1430;
+var renderer_ = i2d.SVGLayer('#mySvg');
+var circlesGrid = [];
+var gridSize = parseInt(Math.sqrt(10000));
+var rad = Math.pow(100, 2);
+var dis, dx, dy, f;
+var mx, my;
+var atan2 = Math.atan2;
+var cos = Math.cos;
+var sin = Math.sin;
 
-            if(!mx|| !my)
-                return;
-            
-            for(let i=0, len = rects.stack.length; i < len; i++) {
-                let node = rects.stack[i]
-                let d = node.dataObj
-                    
-                    dis = ( dx = mx - d.x ) * dx + ( dy = my - d.y ) * dy;
-                            f = -rad / dis
-                            
-                            if(dis < rad){
-                                t = atan2( dy, dx );
-                                d.vx += f * cos(t);
-                                d.vy += f * sin(t);
-                            }
+for (var i = 0; i < 50; i++) {
+	for (var j = 0; j < 100; j++) {
+		circlesGrid.push({
+			x: 150 + j * 10,
+			ox: 150 + j * 10,
+			y: 150 + i * 10,
+			oy: 150 + i * 10,
+			vx: 0,
+			vy: 0
+		});
+	}
+}
 
-                            d.x += ( d.vx *= 0.8) + (d.ox - d.x) * 0.1;
-                            d.y += ( d.vy *= 0.8 ) + (d.oy - d.y) * 0.1;
+var rects = renderer_.createEls(circlesGrid, {
+	el: 'rect',
+	attr: {
+		width: 3,
+		height: 3,
+		x: function (d) {
+			return d.x;
+		},
+		y: function (d) {
+			return d.y;
+		}
+	}
+});
 
-                     node.setAttr('x',d.x)
-                            .setAttr('y',d.y)
-            }
-        });
+window.addEventListener('mousemove', function (e) {
+	mx = e.pageX;
+	my = e.pageY;
+});
 
-	</script>
+i2d.queue.onRequestFrame(function (t) {
+
+	if (!mx || !my)
+		return;
+
+	for (let i = 0, len = rects.stack.length; i < len; i++) {
+		let node = rects.stack[i];
+		let d = node.dataObj;
+
+		dis = (dx = mx - d.x) * dx + (dy = my - d.y) * dy;
+		f = -rad / dis;
+
+		if (dis < rad) {
+			t = atan2(dy, dx);
+			d.vx += f * cos(t);
+			d.vy += f * sin(t);
+		}
+
+		d.x += (d.vx *= 0.8) + (d.ox - d.x) * 0.1;
+		d.y += (d.vy *= 0.8) + (d.oy - d.y) * 0.1;
+
+		node.setAttr('x', d.x)
+			.setAttr('y', d.y);
+	}
+});
+
+</script>
 
 </body>
 </html>

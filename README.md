@@ -1,4 +1,4 @@
-<p align="center"> 
+<p align="center">
   <img src="https://github.com/I2Djs/I2Djs/blob/master/i2djsLogo.png?raw=true" width=500>
 </p>
 
@@ -22,7 +22,7 @@ npm install i2djs --save
 Download source code from below links
 
 * [i2D.min.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.min.js)
-* [i2D.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.js) 
+* [i2D.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.js)
 * [i2D.esm.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.esm.js)
 
 I2Djs is written in ES6 Modules. To import use below syntax
@@ -40,7 +40,7 @@ import {CanvasLayer} from 'i2djs'
 
 
 ## Resources
-* [API reference](https://github.com/I2Djs/I2Djs/wiki)  
+* [API reference](https://github.com/I2Djs/I2Djs/wiki)
 * [I2Djs Medium Article](https://medium.com/@narayanaswamy14/i2djs-integrated-2d-js-328549ef642)
 
 Examples (SVG + Canvas + WebGL)
@@ -60,7 +60,7 @@ Examples (SVG + Canvas + WebGL)
     </tr>
 </table>
 
-### Animation 
+### Animation
 <table>
     <tr>
       <td width="15%"><a href="https://codepen.io/nswamy14/pen/BVxjog"><img src="https://i2djs.github.io/I2Djs/examples/snaps/attributeAnimation.gif"></a></td>
@@ -97,3 +97,16 @@ Examples (SVG + Canvas + WebGL)
 ### Support & Compatibility
 I2D supports Universal Module Definition(UMD)(AMD,CommonJS and vanilla environments) , based on the environment it can be imported accordingly.
 It is compatible with all modern browsers with latest versions.
+
+### Development Setup
+
+``` bash
+# install deps
+npm install
+
+# Watch on src file changes and update dist files
+npm run dev
+
+# build dist files
+npm run build
+```
