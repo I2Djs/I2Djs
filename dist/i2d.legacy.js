@@ -247,15 +247,14 @@
 	// }
 
 	/* eslint-disable no-undef */
-	function VDom () {
-	}
+	function VDom () {}
 
 	VDom.prototype.execute = function execute () {
 		this.root.execute();
 		this.stateModified = false;
 	};
 
-	VDom.prototype.root = function root (_) {
+	VDom.prototype.rootNode = function root (_) {
 		this.root = _;
 		this.stateModified = true;
 	};
@@ -4618,8 +4617,267 @@
 		return root;
 	}
 
-	// import { node } from 'render'
+	var Event$1 = function (x, y) {
+		this.x = x;
+		this.y = y;
+		this.dx = 0;
+		this.dy = 0;
+	};
 
+	function Events (vDom) {
+		this.vDom = vDom;
+		this.disable = false;
+		this.dragNode = null;
+		this.touchNode = null;
+	}
+	Events.prototype.getNode = function (e) {};
+	Events.prototype.mousemoveCheck = function (e) {
+		if (this.dragNode) {
+			var event = this.dragNode.dom.drag.event;
+
+			if (this.dragNode.dom.drag.event) {
+				event.dx = e.offsetX - event.x;
+				event.dy = e.offsetY - event.y;
+			}
+
+			event.x = e.offsetX;
+			event.y = e.offsetY;
+			event.e = e;
+			this.dragNode.dom.drag.event = event;
+			this.dragNode.dom.drag.onDrag.call(this.dragNode, this.dragNode.dataObj, event);
+		} else {
+			var node = propogateEvent([this.vDom], {
+				x: e.offsetX,
+				y: e.offsetY
+			}, e, 'mousemove');
+			if (node && (node.dom['mouseover'] || node.dom['mousein'])) {
+				if (this.selectedNode !== node) {
+					if (node.dom['mouseover']) {
+						node.dom['mouseover'].call(node, node.dataObj, e);
+					}
+					if (node.dom['mousein']) {
+						node.dom['mousein'].call(node, node.dataObj, e);
+					}
+				}
+			}
+
+			if (this.selectedNode && this.selectedNode !== node) {
+				if (this.selectedNode.dom['mouseout']) {
+					this.selectedNode.dom['mouseout'].call(this.selectedNode, this.selectedNode.dataObj, e);
+				}
+				if (this.selectedNode.dom['mouseleave']) {
+					this.selectedNode.dom['mouseleave'].call(this.selectedNode, this.selectedNode.dataObj, e);
+				}
+			}
+
+			this.selectedNode = node;
+		}
+	};
+	Events.prototype.clickCheck = function (e) {
+		propogateEvent([this.vDom], {
+			x: e.offsetX,
+			y: e.offsetY
+		}, e, 'click');
+	};
+	Events.prototype.dblclickCheck = function (e) {
+		propogateEvent([this.vDom], {
+			x: e.offsetX,
+			y: e.offsetY
+		}, e, 'dblclick');
+	};
+	Events.prototype.mousedownCheck = function (e) {
+		var node = propogateEvent([this.vDom], {
+			x: e.offsetX,
+			y: e.offsetY
+		}, e, 'mousedown');
+
+		if (node && node.dom.drag && node.dom.drag.onDragStart) {
+			node.dom.drag.dragStartFlag = true;
+			node.dom.drag.onDragStart.call(node, node.dataObj, e);
+			var event = new Event$1(e.offsetX, e.offsetY);
+			event.e = e;
+			node.dom.drag.event = event;
+			this.dragNode = node;
+		}
+	};
+	Events.prototype.mouseupCheck = function (e) {
+		var node = propogateEvent([this.vDom], {
+			x: e.offsetX,
+			y: e.offsetY
+		}, e, 'mouseup');
+		if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDragEnd) {
+			node.dom.drag.dragStartFlag = false;
+			node.dom.drag.event = null;
+			node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+			node.dom.drag.event = null; // selectedNode = null
+			this.dragNode = null;
+		}
+	};
+	Events.prototype.mouseleaveCheck = function (e) {
+		var node = propogateEvent([this.vDom], {
+			x: e.offsetX,
+			y: e.offsetY
+		}, e, 'mouseleave');
+		if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDragEnd) {
+			node.dom.drag.dragStartFlag = false;
+			node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+			node.dom.drag.event = null;
+			node = null;
+			this.dragNode = null;
+		}
+	};
+	Events.prototype.contextmenuCheck = function (e) {
+		propogateEvent([this.vDom], {
+			x: e.offsetX,
+			y: e.offsetY
+		}, e, 'contextmenu');
+	};
+
+	Events.prototype.touchstartCheck = function (e) {
+		var touches = e.touches;
+		if (touches.length === 0) {
+			return;
+		}
+
+		var node = propogateEvent([this.vDom], {
+			x: touches[0].clientX,
+			y: touches[0].clientY
+		}, e, 'touchstart_');
+
+		if (node && node.dom.touch && node.dom.touch.onTouchStart) {
+			node.dom.touch.touchStartFlag = true;
+			node.dom.touch.onDragStart.call(node, node.dataObj, e);
+			var event = new Event$1(touches[0].clientX, touches[0].clientY);
+			event.e = e;
+			node.dom.touch.event = event;
+			this.touchNode = node;
+		}
+	};
+
+	Events.prototype.touchendCheck = function (e) {
+		if (this.touchNode && this.touchNode.dom.touch.touchStartFlag && this.touchNode.dom.touch.onTouchEnd) {
+			this.touchNode.dom.touch.onTouchEnd.call(this.touchNode, this.touchNode.dataObj, this.touchNode.dom.touch.event);
+			this.touchNode = null;
+		}
+	};
+
+	Events.prototype.touchmoveCheck = function (e) {
+		var touches = e.touches;
+		if (touches.length === 0) {
+			return;
+		}
+		if (this.touchNode) {
+			var event = this.touchNode.dom.touch.event;
+
+			if (this.touchNode.dom.touch.event) {
+				event.dx = touches[0].clientX - event.x;
+				event.dy = touches[0].clientY - event.y;
+			}
+
+			event.x = touches[0].clientX;
+			event.y = touches[0].clientY;
+			event.e = e;
+			this.touchNode.dom.touch.event = event;
+			this.touchNode.dom.touch.onDrag.call(this.touchNode, this.touchNode.dataObj, event);
+		}
+	};
+
+	Events.prototype.touchcancelCheck = function (e) {
+		var touches = e.touches;
+		if (touches.length === 0) {
+			return;
+		}
+
+		propogateEvent([this.vDom], {
+			x: touches[0].clientX,
+			y: touches[0].clientY
+		}, e, 'touchcacel');
+	};
+
+	function propogateEvent (nodes, mouseCoor, rawEvent, eventType) {
+		var node, temp;
+
+		for (var i = nodes.length - 1; i >= 0; i -= 1) {
+			var d = nodes[i];
+			var coOr = {
+				x: mouseCoor.x,
+				y: mouseCoor.y
+			};
+			transformCoOr$1(d, coOr);
+
+			if (d.in({ x: coOr.x, y: coOr.y })) {
+				if (d.children && d.children.length > 0) {
+					temp = propogateEvent(d.children, {
+						x: coOr.x,
+						y: coOr.y
+					}, rawEvent, eventType);
+
+					if (temp) {
+						node = temp;
+					}
+				} else {
+					node = d;
+				}
+				if (d.dom[eventType]) {
+					d.dom[eventType].call(d, d.dataObj, rawEvent);
+				}
+				if (node) {
+					break;
+				}
+			}
+		}
+
+		return node;
+	}
+
+	function transformCoOr$1 (d, coOr) {
+		var assign;
+
+		var hozMove = 0;
+		var verMove = 0;
+		var scaleX = 1;
+		var scaleY = 1;
+		var coOrLocal = coOr;
+
+		if (d.attr.transform && d.attr.transform.translate) {
+			(assign = d.attr.transform.translate, hozMove = assign[0], verMove = assign[1]);
+			coOrLocal.x -= hozMove;
+			coOrLocal.y -= verMove;
+		}
+
+		if (d.attr.transform && d.attr.transform.scale) {
+			scaleX = d.attr.transform.scale[0] !== undefined ? d.attr.transform.scale[0] : 1;
+			scaleY = d.attr.transform.scale[1] !== undefined ? d.attr.transform.scale[1] : scaleX;
+			coOrLocal.x /= scaleX;
+			coOrLocal.y /= scaleY;
+		}
+
+		if (d.attr.transform && d.attr.transform.rotate) {
+			var rotate = d.attr.transform.rotate[0]; // const { BBox } = d.dom
+
+			var cen = {
+				x: d.attr.transform.rotate[1],
+				y: d.attr.transform.rotate[2] // {
+				//   x: (BBox.x + (BBox.width / 2) - hozMove) / scaleX,
+				//   y: (BBox.y + (BBox.height / 2) - verMove) / scaleY
+				// }
+				// const dis = t2DGeometry.getDistance(cen, coOr)
+				// const angle = Math.atan2(coOr.y - cen.y, coOr.x - cen.x)
+
+			};
+			var x = coOrLocal.x;
+			var y = coOrLocal.y;
+			var cx = cen.x;
+			var cy = cen.y;
+			var radians = Math.PI / 180 * rotate;
+			var cos = Math.cos(radians);
+			var sin = Math.sin(radians);
+			coOrLocal.x = (cos * (x - cx)) + (sin * (y - cy)) + cx;
+			coOrLocal.y = (cos * (y - cy)) - (sin * (x - cx)) + cy;
+		}
+	}
+
+	// import { node } from 'render'
 	var t2DGeometry$3 = geometry;
 	var queueInstance$3 = queue;
 	var Id$2 = 0;
@@ -4650,13 +4908,6 @@
 	//   }
 	//   return this
 	// }
-
-	var Event$1 = function (x, y) {
-		this.x = x;
-		this.y = y;
-		this.dx = 0;
-		this.dy = 0;
-	};
 
 	var ratio;
 
@@ -5104,8 +5355,7 @@
 		}
 	};
 
-	RenderImage.prototype.applyStyles = function RIapplyStyles () {
-	};
+	RenderImage.prototype.applyStyles = function RIapplyStyles () {};
 
 	RenderImage.prototype.in = function RIinfun (co) {
 		return co.x >= this.attr.x && co.x <= this.attr.x + this.attr.width && co.y >= this.attr.y && co.y <= this.attr.y + this.attr.height;
@@ -5178,8 +5428,7 @@
 		}
 	};
 
-	RenderText.prototype.applyStyles = function RTapplyStyles () {
-	};
+	RenderText.prototype.applyStyles = function RTapplyStyles () {};
 
 	RenderText.prototype.in = function RTinfun (co) {
 		return co.x >= this.attr.x && co.x <= this.attr.x + this.attr.width && co.y >= this.attr.y && co.y <= this.attr.y + this.attr.height;
@@ -5240,7 +5489,16 @@
 		this.ctx.closePath();
 	};
 
-	RenderCircle.prototype.in = function RCinfun (co) {
+	RenderCircle.prototype.in = function RCinfun (co, eventType) {
+		// if (eventType === 'mousemove' && this['mouseover']) {
+		//   const {
+		//     x,
+		//     y,
+		//     width,
+		//     height
+		//   } = this.BBox
+		//   return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height
+		// }
 		var r = Math.sqrt(((co.x - this.attr.cx) * (co.x - this.attr.cx)) + ((co.y - this.attr.cy) * (co.y - this.attr.cy)));
 		return r <= this.attr.r;
 	};
@@ -5475,8 +5733,7 @@
 		}
 	};
 
-	RenderPath.prototype.applyStyles = function RPapplyStyles () {
-	};
+	RenderPath.prototype.applyStyles = function RPapplyStyles () {};
 
 	RenderPath.prototype.in = function RPinfun (co) {
 		var flag = false;
@@ -5491,7 +5748,6 @@
 		this.ctx.restore();
 		return flag;
 	};
-
 	/** *****************End Render Path */
 
 	/** ***************** Render polygon */
@@ -5563,8 +5819,7 @@
 		}
 	};
 
-	RenderPolygon.prototype.applyStyles = function RPolyapplyStyles () {
-	};
+	RenderPolygon.prototype.applyStyles = function RPolyapplyStyles () {};
 
 	RenderPolygon.prototype.in = function RPolyinfun (co) {
 		var flag = false;
@@ -6208,7 +6463,6 @@
 		if ( config === void 0 ) config = {};
 
 		var originalRatio;
-		var selectedNode; // const selectiveClearing = config.selectiveClear ? config.selectiveClear : false
 
 		var res = document.querySelector(context);
 		var height = config.height ? config.height : res.clientHeight;
@@ -6236,7 +6490,7 @@
 				id: 'rootNode'
 			}
 		}, domId$1(), vDomIndex);
-		vDomInstance.root(root);
+		vDomInstance.rootNode(root);
 		var execute = root.execute.bind(root);
 		root.container = res;
 		root.domEl = layer;
@@ -6268,8 +6522,8 @@
 		root.resize = renderVdom;
 
 		function renderVdom () {
-			var width = config.width ? config.width : this.container.clientWidth;
-			var height = config.height ? config.height : this.container.clientHeight;
+			width = config.width ? config.width : this.container.clientWidth;
+			height = config.height ? config.height : this.container.clientHeight;
 			this.domEl.setAttribute('height', height * originalRatio);
 			this.domEl.setAttribute('width', width * originalRatio);
 			this.domEl.style.height = height + "px";
@@ -6303,151 +6557,50 @@
 		};
 
 		if (config.events || config.events === undefined) {
+			var eventsInstance = new Events(root);
 			res.addEventListener('mousemove', function (e) {
 				e.preventDefault();
-
-				if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
-					var event = selectedNode.dom.drag.event;
-
-					if (selectedNode.dom.drag.event) {
-						event.dx = e.offsetX - event.x;
-						event.dy = e.offsetY - event.y;
-					}
-
-					event.x = e.offsetX;
-					event.y = e.offsetY;
-					event.e = e;
-					selectedNode.dom.drag.event = event;
-					selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event);
-				} else {
-					var newSelectedNode = vDomInstance.eventsCheck([root], {
-						x: e.offsetX,
-						y: e.offsetY
-					}, e);
-
-					if (selectedNode && newSelectedNode !== selectedNode) {
-						if ((selectedNode.dom.mouseout || selectedNode.dom.mouseleave) && selectedNode.hovered) {
-							if (selectedNode.dom.mouseout) {
-								selectedNode.dom.mouseout.call(selectedNode, selectedNode.dataObj, e);
-							}
-
-							if (selectedNode.dom.mouseleave) {
-								selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e);
-							}
-						}
-
-						selectedNode.hovered = false;
-
-						if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag) {
-							selectedNode.dom.drag.dragStartFlag = false;
-							selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, selectedNode.dom.drag.event);
-							selectedNode.dom.drag.event = null;
-						}
-					}
-
-					if (selectedNode && newSelectedNode === selectedNode) {
-						if (selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDrag) {
-							var event$1 = selectedNode.dom.drag.event;
-
-							if (selectedNode.dom.drag.event) {
-								event$1.dx = e.offsetX - event$1.x;
-								event$1.dy = e.offsetY - event$1.y;
-							}
-
-							event$1.x = e.offsetX;
-							event$1.y = e.offsetY;
-							event$1.e = e;
-							selectedNode.dom.drag.event = event$1;
-							selectedNode.dom.drag.onDrag.call(selectedNode, selectedNode.dataObj, event$1);
-						}
-					}
-
-					if (newSelectedNode) {
-						selectedNode = newSelectedNode;
-
-						if ((selectedNode.dom.mouseover || selectedNode.dom.mouseenter) && !selectedNode.hovered) {
-							if (selectedNode.dom.mouseover) {
-								selectedNode.dom.mouseover.call(selectedNode, selectedNode.dataObj, e);
-							}
-
-							if (selectedNode.dom.mouseenter) {
-								selectedNode.dom.mouseenter.call(selectedNode, selectedNode.dataObj, e);
-							}
-
-							selectedNode.hovered = true;
-						}
-
-						if (selectedNode.dom.mousemove) {
-							selectedNode.dom.mousemove.call(selectedNode, selectedNode.dataObj, e);
-						}
-					} else {
-						selectedNode = undefined;
-					}
-				}
+				eventsInstance.mousemoveCheck(e);
 			});
 			res.addEventListener('click', function (e) {
 				e.preventDefault();
-
-				if (selectedNode && selectedNode.dom.click) {
-					selectedNode.dom.click.call(selectedNode, selectedNode.dataObj, e);
-				}
+				eventsInstance.clickCheck(e);
 			});
 			res.addEventListener('dblclick', function (e) {
-				if (selectedNode && selectedNode.dom.dblclick) {
-					selectedNode.dom.dblclick.call(selectedNode, selectedNode.dataObj, e);
-				}
+				e.preventDefault();
+				eventsInstance.dblclickCheck(e);
 			});
 			res.addEventListener('mousedown', function (e) {
 				e.preventDefault();
-
-				if (selectedNode && selectedNode.dom.mousedown) {
-					selectedNode.dom.mousedown.call(selectedNode, selectedNode.dataObj, e);
-					selectedNode.down = true;
-				}
-
-				if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.onDragStart) {
-					selectedNode.dom.drag.dragStartFlag = true;
-					selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e);
-					var event = new Event$1(e.offsetX, e.offsetY);
-					event.e = e;
-					selectedNode.dom.drag.event = event;
-				}
+				eventsInstance.mousedownCheck(e);
 			});
 			res.addEventListener('mouseup', function (e) {
 				e.preventDefault();
-
-				if (selectedNode && selectedNode.dom.mouseup && selectedNode.down) {
-					selectedNode.dom.mouseup.call(selectedNode, selectedNode.dataObj);
-					selectedNode.down = false;
-				}
-
-				if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDragEnd) {
-					selectedNode.dom.drag.dragStartFlag = false;
-					selectedNode.dom.drag.event = null;
-					selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, selectedNode.dom.drag.event);
-					selectedNode.dom.drag.event = null; // selectedNode = null
-				}
+				eventsInstance.mouseupCheck(e);
 			});
 			res.addEventListener('mouseleave', function (e) {
 				e.preventDefault();
-
-				if (selectedNode && selectedNode.dom.mouseleave) {
-					selectedNode.dom.mouseleave.call(selectedNode, selectedNode.dataObj, e);
-				}
-
-				if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.dragStartFlag && selectedNode.dom.drag.onDragEnd) {
-					selectedNode.dom.drag.dragStartFlag = false;
-					selectedNode.dom.drag.onDragEnd.call(selectedNode, selectedNode.dataObj, selectedNode.dom.drag.event);
-					selectedNode.dom.drag.event = null;
-					selectedNode = null;
-				}
+				eventsInstance.mouseleaveCheck(e);
 			});
 			res.addEventListener('contextmenu', function (e) {
 				e.preventDefault();
-
-				if (selectedNode && selectedNode.dom.contextmenu) {
-					selectedNode.dom.contextmenu.call(selectedNode, selectedNode.dataObj);
-				}
+				eventsInstance.contextmenuCheck(e);
+			});
+			res.addEventListener('touchstart', function (e) {
+				e.preventDefault();
+				eventsInstance.touchstartCheck(e);
+			});
+			res.addEventListener('touchend', function (e) {
+				e.preventDefault();
+				eventsInstance.touchendCheck(e);
+			});
+			res.addEventListener('touchmove', function (e) {
+				e.preventDefault();
+				eventsInstance.touchmoveCheck(e);
+			});
+			res.addEventListener('touchcancel', function (e) {
+				e.preventDefault();
+				eventsInstance.touchcancelCheck(e);
 			});
 		}
 
@@ -6490,9 +6643,6 @@
 
 		return res;
 	}
-
-	var earcut_1 = earcut;
-	var default_1 = earcut;
 
 	function earcut(data, holeIndices, dim) {
 
@@ -7139,7 +7289,6 @@
 	    }
 	    return result;
 	};
-	earcut_1.default = default_1;
 
 	// import { VDom, shaders, queue } from './'
 
@@ -7298,7 +7447,7 @@
 	};
 
 	function polygonPointsMapper (value) {
-		return earcut_1(value.reduce(function (p, c) {
+		return earcut(value.reduce(function (p, c) {
 			p.push(c.x);
 			p.push(c.y);
 			return p;
