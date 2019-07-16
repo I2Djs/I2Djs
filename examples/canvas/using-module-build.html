@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Using Module of I2Djs</title>
+</head>
+<body>
+<div class="main-container">
+	<div class="header">
+		<h1 class="align-center"> Using I2Djs ES Module Build in the browser </h1>
+		<p>In this example we create a Canvas based Line loader using the ES Module browser build. Use this build in
+			your ES6 modules.</p>
+		<div class="actions">
+			<button class="ac-btn" id="startLoader">START</button>
+			<button class="ac-btn" id="stopLoader">STOP</button>
+		</div>
+	</div>
+	<div id="lineLoaderContainer" class="i2d-canvas"></div>
+</div>
+</body>
+</html>
+<script type="module">
+import { CanvasLayer } from '../../dist/i2d.esm.browser.js';
+
+let renderer = CanvasLayer('#lineLoaderContainer', { events: false, selectiveClear: false });
+
+let animate = false;
+let width = renderer.width;
+let height = renderer.height;
+let width_rect = 0;
+let x = 0;
+
+let lineLoader = renderer.createEl({
+	el: 'line',
+	bbox: false,
+	attr: {
+		x1: x,
+		y1: height / 2,
+		x2: x + width_rect,
+		y2: height / 2
+	},
+	style: {
+		strokeStyle: 'rgb(255, 141, 106)',
+		lineWidth: 10
+	}
+});
+
+let startBtn = document.getElementById('startLoader');
+let stopBtn = document.getElementById('stopLoader');
+
+startBtn.addEventListener('click', startAnimation);
+stopBtn.addEventListener('click', stopAnimation);
+
+function callExe () {
+	width_rect = width_rect === 0 ? width / 4 : 0;
+
+	this.setAttr('x1', 0);
+	this.setAttr('x2', 0);
+
+	this.animateTo({
+		duration: 2000,
+		ease: 'easeInQuad',
+		attr: {
+			x1: width
+		},
+		end: function () {
+			if (animate) {
+				this.exec(callExe);
+			}
+		}
+	});
+
+	this.animateTo({
+		duration: 1000,
+		loop: 2,
+		direction: 'alternate',
+		ease: 'easeInOutQuad',
+		attr: {
+			x2: function (f) {
+				return this.getAttr('x1') + width / 4 * f;
+			}
+		}
+	});
+}
+
+function startAnimation () {
+	if (animate) return;
+	animate = true;
+	lineLoader.exec(callExe);
+}
+
+function stopAnimation () {
+	animate = false;
+}
+</script>
+<style>
+	html, body {
+		width: 100%;
+		height: 100%;
+		font-size: 14px;
+		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	}
+
+	.main-container {
+		width: 100%;
+		height: 100%;
+		display: grid;
+		grid-template-rows: auto 1fr;
+		grid-template-columns: 100%;
+		grid-gap: 1rem;
+	}
+
+	.header {
+		justify-self: center;
+	}
+
+	.actions {
+		display: grid;
+		grid-gap: 2rem;
+		grid-auto-flow: column;
+	}
+
+	.ac-btn {
+		background-color: transparent;
+		border-radius: 2rem;
+		border: 1px solid rgba(99, 208, 223, 0.7);
+		transition: all 200ms ease-in-out;
+		padding: 0 1rem;
+		color: black;
+		cursor: pointer;
+		outline: none;
+		height: 3rem;
+		font-size: 1.1rem;
+		line-height: unset;
+	}
+
+	.ac-btn:hover {
+		background-color: rgba(99, 208, 223, 0.7);
+		color: white;
+	}
+
+	.align-center {
+		text-align: center;
+	}
+</style>

@@ -19,8 +19,9 @@ export default [{
 	input: 'src/main.js',
 	output: [{
 		banner,
-		file: 'dist/i2d.esm.js',
-		format: 'esm'
+		file: 'dist/i2d.esm.browser.js',
+		format: 'esm',
+		name: 'i2d'
 	}, {
 		banner,
 		file: 'dist/i2d.js',
@@ -31,7 +32,6 @@ export default [{
 		resolve(),
 		commonjs(),
 		eslint({
-			/* your options */
 			fix: true,
 			throwOnError: true
 		})]
@@ -47,11 +47,11 @@ export default [{
 		resolve(),
 		commonjs(),
 		eslint({
-			/* your options */
 			fix: true,
 			throwOnError: true
 		}),
-		buble()]
+		buble()
+	]
 }, {
 	input: 'src/main.js',
 	output: [{
@@ -60,14 +60,37 @@ export default [{
 		format: 'umd',
 		name: 'i2d',
 		compact: true
+	}, {
+		file: 'dist/i2d.esm.browser.min.js',
+		banner,
+		format: 'esm',
+		name: 'i2d',
+		compact: true
 	}],
 	plugins: [
 		resolve(),
 		commonjs(),
 		terser(),
 		eslint({
-			/* your options */
 			fix: true,
 			throwOnError: true
 		})]
+}, {
+	input: 'src/main.js',
+	output: [{
+		banner,
+		file: 'dist/i2d.legacy.min.js',
+		format: 'umd',
+		name: 'i2d'
+	}],
+	plugins: [
+		resolve(),
+		commonjs(),
+		eslint({
+			fix: true,
+			throwOnError: true
+		}),
+		buble(),
+		terser()
+	]
 }];
