@@ -1,5 +1,5 @@
 /*!
-      * i2djs v2.0.2
+      * i2djs v2.0.3
       * (c) 2019 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
@@ -4506,7 +4506,7 @@
 		root.type = 'SVG';
 		root.width = width;
 		root.height = height;
-		vDomInstance.root(root); // root.resize = renderVdom
+		vDomInstance.rootNode(root); // root.resize = renderVdom
 
 		root.setAttr = function (prop, value) {
 			if (arguments.length === 2) {
@@ -4795,7 +4795,7 @@
 
 	function propogateEvent (nodes, mouseCoor, rawEvent, eventType) {
 		let node, temp;
-
+		
 		for (var i = nodes.length - 1; i >= 0; i -= 1) {
 			var d = nodes[i];
 			var coOr = {
@@ -6742,9 +6742,6 @@
 		return res;
 	}
 
-	var earcut_1 = earcut;
-	var default_1 = earcut;
-
 	function earcut(data, holeIndices, dim) {
 
 	    dim = dim || 2;
@@ -6754,7 +6751,7 @@
 	        outerNode = linkedList(data, 0, outerLen, dim, true),
 	        triangles = [];
 
-	    if (!outerNode || outerNode.next === outerNode.prev) return triangles;
+	    if (!outerNode) return triangles;
 
 	    var minX, minY, maxX, maxY, x, y, invSize;
 
@@ -6849,7 +6846,7 @@
 
 	            removeNode(ear);
 
-	            // skipping the next vertex leads to less sliver triangles
+	            // skipping the next vertice leads to less sliver triangles
 	            ear = next.next;
 	            stop = next.next;
 
@@ -7191,7 +7188,7 @@
 	    var p = start,
 	        leftmost = start;
 	    do {
-	        if (p.x < leftmost.x || (p.x === leftmost.x && p.y < leftmost.y)) leftmost = p;
+	        if (p.x < leftmost.x) leftmost = p;
 	        p = p.next;
 	    } while (p !== start);
 
@@ -7313,14 +7310,14 @@
 	}
 
 	function Node(i, x, y) {
-	    // vertex index in coordinates array
+	    // vertice index in coordinates array
 	    this.i = i;
 
 	    // vertex coordinates
 	    this.x = x;
 	    this.y = y;
 
-	    // previous and next vertex nodes in a polygon ring
+	    // previous and next vertice nodes in a polygon ring
 	    this.prev = null;
 	    this.next = null;
 
@@ -7390,7 +7387,6 @@
 	    }
 	    return result;
 	};
-	earcut_1.default = default_1;
 
 	// import { VDom, shaders, queue } from './'
 
@@ -7549,7 +7545,7 @@
 	};
 
 	function polygonPointsMapper (value) {
-		return earcut_1(value.reduce(function (p, c) {
+		return earcut(value.reduce(function (p, c) {
 			p.push(c.x);
 			p.push(c.y);
 			return p;
@@ -8789,7 +8785,7 @@
 			queueInstance$4.removeVdom(vDomIndex);
 		};
 
-		vDomInstance.root(root);
+		vDomInstance.rootNode(root);
 
 		if (config.resize) {
 			window.addEventListener('resize', function () {
