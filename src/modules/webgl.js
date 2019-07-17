@@ -1404,7 +1404,7 @@ function WebGLLayer (context, config) {
 		queueInstance.removeVdom(vDomIndex);
 	};
 
-	vDomInstance.root(root);
+	vDomInstance.rootNode(root);
 
 	if (config.resize) {
 		window.addEventListener('resize', function () {

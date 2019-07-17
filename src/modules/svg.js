@@ -612,7 +612,7 @@ function SVGLayer (context, config = {}) {
 	root.type = 'SVG';
 	root.width = width;
 	root.height = height;
-	vDomInstance.root(root); // root.resize = renderVdom
+	vDomInstance.rootNode(root); // root.resize = renderVdom
 
 	root.setAttr = function (prop, value) {
 		if (arguments.length === 2) {

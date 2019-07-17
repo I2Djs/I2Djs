@@ -177,7 +177,7 @@ Events.prototype.touchcancelCheck = function (e) {
 
 function propogateEvent (nodes, mouseCoor, rawEvent, eventType) {
 	let node, temp;
-
+	
 	for (var i = nodes.length - 1; i >= 0; i -= 1) {
 		var d = nodes[i];
 		var coOr = {
