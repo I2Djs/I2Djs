@@ -4701,29 +4701,33 @@
 		}
 	};
 	Events.prototype.mouseupCheck = function (e) {
-		var node = propogateEvent([this.vDom], {
-			x: e.offsetX,
-			y: e.offsetY
-		}, e, 'mouseup');
+		var node = this.dragNode;
+
 		if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDragEnd) {
 			node.dom.drag.dragStartFlag = false;
 			node.dom.drag.event = null;
 			node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
 			node.dom.drag.event = null; // selectedNode = null
 			this.dragNode = null;
+		} else {
+			propogateEvent([this.vDom], {
+				x: e.offsetX,
+				y: e.offsetY
+			}, e, 'mouseup');
 		}
 	};
 	Events.prototype.mouseleaveCheck = function (e) {
-		var node = propogateEvent([this.vDom], {
-			x: e.offsetX,
-			y: e.offsetY
-		}, e, 'mouseleave');
+		var node = this.dragNode;
 		if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDragEnd) {
 			node.dom.drag.dragStartFlag = false;
-			node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
 			node.dom.drag.event = null;
-			node = null;
+			node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
 			this.dragNode = null;
+		} else {
+			propogateEvent([this.vDom], {
+				x: e.offsetX,
+				y: e.offsetY
+			}, e, 'mouseleave');
 		}
 	};
 	Events.prototype.contextmenuCheck = function (e) {
