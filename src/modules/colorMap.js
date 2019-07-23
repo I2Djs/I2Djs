@@ -95,14 +95,7 @@ function colorToRGB (val) {
 		b: 0,
 		a: 255
 	};
-} // function colorTransition (src, dest) {
-//   src = src || defaultColor
-//   dest = dest || defaultColor
-//   src = colorToRGB(src)
-//   dest = colorToRGB(dest)
-//   return function trans (f) {
-//     return `rgb(${Math.round(src.r + (dest.r - src.r) * f)},${Math.round(src.g + (dest.g - src.g) *
-// f)},${Math.round(src.b + (dest.b - src.b) * f)})` } }
+}
 
 function colorRGBtransition (src, dest) {
 	src = src || defaultColor;

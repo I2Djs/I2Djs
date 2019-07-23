@@ -1,13 +1,14 @@
 /* eslint-disable no-undef */
-// function cos (a) {
-//   return Math.cos(a)
-// }
-// function acos (a) {
-//   return Math.acos(a)
-// }
-// function sin (a) {
-//   return Math.sin(a)
-// }
+let sqrt = Math.sqrt;
+let sin = Math.sin;
+let cos = Math.cos;
+let abs = Math.abs;
+let atan2 = Math.atan2;
+let tan = Math.tan;
+let PI = Math.PI;
+let ceil = Math.ceil;
+let max = Math.max;
+
 function pw (a, x) {
 	let val = 1;
 	if (x === 0) return val;
@@ -17,17 +18,9 @@ function pw (a, x) {
 	}
 
 	return val;
-} // function tan (a) {
-//   return Math.tan(a)
-// }
-
-function atan2 (a, b) {
-	return Math.atan2(a, b);
 }
 
-function sqrt (a) {
-	return Math.sqrt(a);
-} // function angleToRadian (_) {
+// function angleToRadian (_) {
 //   if (isNaN(_)) { throw new Error('NaN') }
 //   return (Math.PI / 180) * _
 // }
@@ -50,13 +43,13 @@ function bezierLength (p0, p1, p2) {
 	const A = 4 * ((a.x * a.x) + (a.y * a.y));
 	const B = 4 * ((a.x * b.x) + (a.y * b.y));
 	const C = (b.x * b.x) + (b.y * b.y);
-	const Sabc = 2 * Math.sqrt(A + B + C);
-	const A_2 = Math.sqrt(A);
+	const Sabc = 2 * sqrt(A + B + C);
+	const A_2 = sqrt(A);
 	const A_32 = 2 * A * A_2;
-	const C_2 = 2 * Math.sqrt(C);
+	const C_2 = 2 * sqrt(C);
 	const BA = B / A_2;
 	let logVal = ((2 * A_2) + BA + Sabc) / (BA + C_2);
-	logVal = isNaN(logVal) || Math.abs(logVal) === Infinity ? 1 : logVal;
+	logVal = isNaN(logVal) || abs(logVal) === Infinity ? 1 : logVal;
 	return ((A_32 * Sabc) + (A_2 * B * (Sabc - C_2)) + (((4 * C * A) - (B * B)) * Math.log(logVal))) / (4 * A_32);
 } // function bezierLengthOld (p0, p1, p2) {
 //   const interval = 0.001
@@ -104,9 +97,7 @@ function getDistance (p1, p2) {
 
 function get2DAngle (p1, p2) {
 	return atan2(p2.x - p1.x, p2.y - p1.y);
-} // function get3DAngle (p1, p2) {
-//   return acos((p1.x * p2.x + p1.y * p2.y + p1.z * p2.z) / (sqrt(p1.x * p1.x + p1.y * p1.y + p1.z * p1.z) * sqrt(p2.x
-// * p2.x + p2.y * p2.y + p2.z * p2.z))) }
+}
 
 function scaleAlongOrigin (co, factor) {
 	const co_ = {};
@@ -311,7 +302,6 @@ const _slicedToArray = (function () {
 				if (!_n && _i.return) _i.return();
 			} finally {
 				if (_d) {
-					// throw _e
 					console.log('Error -' + _e);
 				}
 			}
@@ -331,7 +321,7 @@ const _slicedToArray = (function () {
 	};
 }());
 
-const TAU = Math.PI * 2;
+const TAU = PI * 2;
 
 const mapToEllipse = function mapToEllipse (_ref, rx, ry, cosphi, sinphi, centerx, centery) {
 	let {
@@ -349,11 +339,11 @@ const mapToEllipse = function mapToEllipse (_ref, rx, ry, cosphi, sinphi, center
 };
 
 const approxUnitArc = function approxUnitArc (ang1, ang2) {
-	const a = 4 / 3 * Math.tan(ang2 / 4);
-	const x1 = Math.cos(ang1);
-	const y1 = Math.sin(ang1);
-	const x2 = Math.cos(ang1 + ang2);
-	const y2 = Math.sin(ang1 + ang2);
+	const a = 4 / 3 * tan(ang2 / 4);
+	const x1 = cos(ang1);
+	const y1 = sin(ang1);
+	const x2 = cos(ang1 + ang2);
+	const y2 = sin(ang1 + ang2);
 	return [{
 		x: x1 - (y1 * a),
 		y: y1 + (x1 * a)
@@ -368,8 +358,8 @@ const approxUnitArc = function approxUnitArc (ang1, ang2) {
 
 const vectorAngle = function vectorAngle (ux, uy, vx, vy) {
 	const sign = ((ux * vy) - (uy * vx)) < 0 ? -1 : 1;
-	const umag = Math.sqrt((ux * ux) + (uy * uy));
-	const vmag = Math.sqrt((ux * ux) + (uy * uy));
+	const umag = sqrt((ux * ux) + (uy * uy));
+	const vmag = sqrt((ux * ux) + (uy * uy));
 	const dot = (ux * vx) + (uy * vy);
 	let div = dot / (umag * vmag);
 
@@ -396,7 +386,7 @@ const getArcCenter = function getArcCenter (px, py, cx, cy, rx, ry, largeArcFlag
 	}
 
 	radicant /= (rxsq * pypsq) + (rysq * pxpsq);
-	radicant = Math.sqrt(radicant) * (largeArcFlag === sweepFlag ? -1 : 1);
+	radicant = sqrt(radicant) * (largeArcFlag === sweepFlag ? -1 : 1);
 	const centerxp = radicant * rx / ry * pyp;
 	const centeryp = radicant * -ry / rx * pxp;
 	const centerx = (cosphi * centerxp) - (sinphi * centeryp) + ((px + cx) / 2);
@@ -440,8 +430,8 @@ const arcToBezier = function arcToBezier (_ref2) {
 		return [];
 	}
 
-	const sinphi = Math.sin(xAxisRotation * TAU / 360);
-	const cosphi = Math.cos(xAxisRotation * TAU / 360);
+	const sinphi = sin(xAxisRotation * TAU / 360);
+	const cosphi = cos(xAxisRotation * TAU / 360);
 	const pxp = (cosphi * (px - cx) / 2) + (sinphi * (py - cy) / 2);
 	const pyp = (-sinphi * (px - cx) / 2) + (cosphi * (py - cy) / 2);
 
@@ -449,13 +439,13 @@ const arcToBezier = function arcToBezier (_ref2) {
 		return [];
 	}
 
-	rx = Math.abs(rx);
-	ry = Math.abs(ry);
+	rx = abs(rx);
+	ry = abs(ry);
 	const lambda = (pw(pxp, 2) / pw(rx, 2)) + (pw(pyp, 2) / pw(ry, 2));
 
 	if (lambda > 1) {
-		rx *= Math.sqrt(lambda);
-		ry *= Math.sqrt(lambda);
+		rx *= sqrt(lambda);
+		ry *= sqrt(lambda);
 	}
 
 	const _getArcCenter = getArcCenter(px, py, cx, cy, rx, ry, largeArcFlag, sweepFlag, sinphi, cosphi, pxp, pyp);
@@ -466,7 +456,7 @@ const arcToBezier = function arcToBezier (_ref2) {
 	const centery = _getArcCenter2[1];
 	let ang1 = _getArcCenter2[2];
 	let ang2 = _getArcCenter2[3];
-	const segments = Math.max(Math.ceil(Math.abs(ang2) / (TAU / 4)), 1);
+	const segments = max(ceil(abs(ang2) / (TAU / 4)), 1);
 	ang2 /= segments;
 
 	for (let i = 0; i < segments; i++) {
@@ -505,23 +495,16 @@ function rotatePoint (point, centre, newAngle, distance) {
 	let x = point.x;
 	let y = point.y;
 	let cx = centre.x;
-	let cy = centre.y; // let currAngle = this.getAngle(centre, point)
-	// currAngle += (Math.PI / 2)
+	let cy = centre.y;
 
-	var radians = Math.PI / 180 * newAngle;
-	var cos = Math.cos(-radians);
-	var sin = Math.sin(-radians);
-	p.x = (cos * (x - cx)) + (sin * (y - cy)) + cx;
-	p.y = (cos * (y - cy)) - (sin * (x - cx)) + cy;
+	var radians = PI / 180 * newAngle;
+	var c_ = cos(-radians);
+	var s_ = sin(-radians);
+	p.x = (c_ * (x - cx)) + (s_ * (y - cy)) + cx;
+	p.y = (c_ * (y - cy)) - (s_ * (x - cx)) + cy;
 	return {
-		x: (cos * (x - cx)) + (sin * (y - cy)) + cx,
-		y: (cos * (y - cy)) - (sin * (x - cx)) + cy // console.log(point)
-		// console.log(currAngle)
-		// console.log(currAngle + newAngle * (Math.PI / 180))
-		// p.x = Math.cos(currAngle + newAngle * (Math.PI / 180) + Math.PI/2) * distance
-		// p.y = Math.sin(currAngle + newAngle * (Math.PI / 180) + Math.PI/2) * distance
-		// return p
-
+		x: (c_ * (x - cx)) + (s_ * (y - cy)) + cx,
+		y: (c_ * (y - cy)) - (s_ * (x - cx)) + cy
 	};
 }
 

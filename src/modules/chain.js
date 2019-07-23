@@ -173,25 +173,18 @@ SequenceGroup.prototype.execute = function SGexecute () {
 	}
 
 	if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
-		// currObj.duration(currObj.durationP ? currObj.durationP
-		//   : (currObj.length / self.lengthV) * self.durationP)
 		currObj.end(self.triggerEnd.bind(self, currObj)).commit();
 	} else {
-		// const tValue = currObj.duration
-		// const data_ = currObj.data ? currObj.data : self.data
-		// console.log(currObj)
 		this.currObj = currObj; // currObj.durationP = tValue
 
 		this.queue.add(generateChainId(), {
 			run (f) {
 				currObj.run(f);
 			},
-
 			delay: currObj.delay !== undefined ? currObj.delay : 0,
 			duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
 			loop: currObj.loop ? currObj.loop : 1,
 			direction: self.factor < 0 ? 'reverse' : 'default',
-			// self.factor < 0 ? 'reverse' : 'default',
 			end: self.triggerEnd.bind(self, currObj)
 		}, (c, v) => c / v);
 	}

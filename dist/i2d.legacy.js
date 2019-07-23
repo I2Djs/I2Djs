@@ -1,5 +1,5 @@
 /*!
-      * i2djs v2.0.3
+      * i2djs v2.0.4
       * (c) 2019 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
@@ -286,63 +286,14 @@
 					}
 				} else {
 					node = d;
-				} // callInEvents(d, rawEvent)
-			} // else {
-			//   // callOutEvents(d, rawEvent)
-			// }
+				}
+			}
 		}
 
 		return node;
 	};
 
-	VDom.prototype.transformCoOr = transformCoOr; // function callInEvents (node, e) {
-	//   if ((node.dom.mouseover || node.dom.mouseenter) && !node.hovered) {
-	//     if (node.dom.mouseover) {
-	//       node.dom.mouseover.call(node, node.dataObj, e)
-	//     }
-	//     if (node.dom.mouseenter) {
-	//       node.dom.mouseenter.call(node, node.dataObj, e)
-	//     }
-	//     node.hovered = true
-	//     if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.onDragStart) {
-	//       selectedNode.dom.drag.dragStartFlag = true
-	//       selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e)
-	//       let event = {}
-	//       event.x = e.offsetX
-	//       event.y = e.offsetY
-	//       event.dx = 0
-	//       event.dy = 0
-	//       selectedNode.dom.drag.event = event
-	//     }
-	//     if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDrag) {
-	//       let event = node.dom.drag.event
-	//       if (node.dom.drag.event) {
-	//         event.dx = e.offsetX - event.x
-	//         event.dy = e.offsetY - event.y
-	//       }
-	//       event.x = e.offsetX
-	//       event.y = e.offsetY
-	//       node.dom.drag.event = event
-	//       node.dom.drag.onDrag.call(node, node.dataObj, event)
-	//     }
-	//   }
-	// }
-	// function callOutEvents (node, e) {
-	//   if ((node.dom.mouseout || node.dom.mouseleave) && node.hovered) {
-	//     if (node.dom.mouseout) {
-	//       node.dom.mouseout.call(node, node.dataObj, e)
-	//     }
-	//     if (node.dom.mouseleave) {
-	//       node.dom.mouseleave.call(node, node.dataObj, e)
-	//     }
-	//     node.hovered = false
-	//   }
-	//   if (node.dom.drag && node.dom.drag.dragStartFlag) {
-	//     node.dom.drag.dragStartFlag = false
-	//     node.dom.drag.onDragEnd.call(node, node.dataObj, e)
-	//     node.dom.drag.event = null
-	//   }
-	// }
+	VDom.prototype.transformCoOr = transformCoOr;
 
 	function transformCoOr (d, coOr) {
 		var assign;
@@ -367,17 +318,11 @@
 		}
 
 		if (d.attr.transform && d.attr.transform.rotate) {
-			var rotate = d.attr.transform.rotate[0]; // const { BBox } = d.dom
+			var rotate = d.attr.transform.rotate[0];
 
 			var cen = {
 				x: d.attr.transform.rotate[1],
-				y: d.attr.transform.rotate[2] // {
-				//   x: (BBox.x + (BBox.width / 2) - hozMove) / scaleX,
-				//   y: (BBox.y + (BBox.height / 2) - verMove) / scaleY
-				// }
-				// const dis = t2DGeometry.getDistance(cen, coOr)
-				// const angle = Math.atan2(coOr.y - cen.y, coOr.x - cen.x)
-
+				y: d.attr.transform.rotate[2]
 			};
 			var x = coOrLocal.x;
 			var y = coOrLocal.y;
@@ -392,15 +337,16 @@
 	}
 
 	/* eslint-disable no-undef */
-	// function cos (a) {
-	//   return Math.cos(a)
-	// }
-	// function acos (a) {
-	//   return Math.acos(a)
-	// }
-	// function sin (a) {
-	//   return Math.sin(a)
-	// }
+	var sqrt = Math.sqrt;
+	var sin = Math.sin;
+	var cos = Math.cos;
+	var abs$1 = Math.abs;
+	var atan2 = Math.atan2;
+	var tan = Math.tan;
+	var PI = Math.PI;
+	var ceil = Math.ceil;
+	var max = Math.max;
+
 	function pw (a, x) {
 		var val = 1;
 		if (x === 0) { return val; }
@@ -410,17 +356,9 @@
 		}
 
 		return val;
-	} // function tan (a) {
-	//   return Math.tan(a)
-	// }
-
-	function atan2 (a, b) {
-		return Math.atan2(a, b);
 	}
 
-	function sqrt (a) {
-		return Math.sqrt(a);
-	} // function angleToRadian (_) {
+	// function angleToRadian (_) {
 	//   if (isNaN(_)) { throw new Error('NaN') }
 	//   return (Math.PI / 180) * _
 	// }
@@ -443,13 +381,13 @@
 		var A = 4 * ((a.x * a.x) + (a.y * a.y));
 		var B = 4 * ((a.x * b.x) + (a.y * b.y));
 		var C = (b.x * b.x) + (b.y * b.y);
-		var Sabc = 2 * Math.sqrt(A + B + C);
-		var A_2 = Math.sqrt(A);
+		var Sabc = 2 * sqrt(A + B + C);
+		var A_2 = sqrt(A);
 		var A_32 = 2 * A * A_2;
-		var C_2 = 2 * Math.sqrt(C);
+		var C_2 = 2 * sqrt(C);
 		var BA = B / A_2;
 		var logVal = ((2 * A_2) + BA + Sabc) / (BA + C_2);
-		logVal = isNaN(logVal) || Math.abs(logVal) === Infinity ? 1 : logVal;
+		logVal = isNaN(logVal) || abs$1(logVal) === Infinity ? 1 : logVal;
 		return ((A_32 * Sabc) + (A_2 * B * (Sabc - C_2)) + (((4 * C * A) - (B * B)) * Math.log(logVal))) / (4 * A_32);
 	} // function bezierLengthOld (p0, p1, p2) {
 	//   const interval = 0.001
@@ -497,9 +435,7 @@
 
 	function get2DAngle (p1, p2) {
 		return atan2(p2.x - p1.x, p2.y - p1.y);
-	} // function get3DAngle (p1, p2) {
-	//   return acos((p1.x * p2.x + p1.y * p2.y + p1.z * p2.z) / (sqrt(p1.x * p1.x + p1.y * p1.y + p1.z * p1.z) * sqrt(p2.x
-	// * p2.x + p2.y * p2.y + p2.z * p2.z))) }
+	}
 
 	function scaleAlongOrigin (co, factor) {
 		var co_ = {};
@@ -704,7 +640,6 @@
 					if (!_n && _i.return) { _i.return(); }
 				} finally {
 					if (_d) {
-						// throw _e
 						console.log('Error -' + _e);
 					}
 				}
@@ -724,7 +659,7 @@
 		};
 	}());
 
-	var TAU = Math.PI * 2;
+	var TAU = PI * 2;
 
 	var mapToEllipse = function mapToEllipse (_ref, rx, ry, cosphi, sinphi, centerx, centery) {
 		var x = _ref.x;
@@ -740,11 +675,11 @@
 	};
 
 	var approxUnitArc = function approxUnitArc (ang1, ang2) {
-		var a = 4 / 3 * Math.tan(ang2 / 4);
-		var x1 = Math.cos(ang1);
-		var y1 = Math.sin(ang1);
-		var x2 = Math.cos(ang1 + ang2);
-		var y2 = Math.sin(ang1 + ang2);
+		var a = 4 / 3 * tan(ang2 / 4);
+		var x1 = cos(ang1);
+		var y1 = sin(ang1);
+		var x2 = cos(ang1 + ang2);
+		var y2 = sin(ang1 + ang2);
 		return [{
 			x: x1 - (y1 * a),
 			y: y1 + (x1 * a)
@@ -759,8 +694,8 @@
 
 	var vectorAngle = function vectorAngle (ux, uy, vx, vy) {
 		var sign = ((ux * vy) - (uy * vx)) < 0 ? -1 : 1;
-		var umag = Math.sqrt((ux * ux) + (uy * uy));
-		var vmag = Math.sqrt((ux * ux) + (uy * uy));
+		var umag = sqrt((ux * ux) + (uy * uy));
+		var vmag = sqrt((ux * ux) + (uy * uy));
 		var dot = (ux * vx) + (uy * vy);
 		var div = dot / (umag * vmag);
 
@@ -787,7 +722,7 @@
 		}
 
 		radicant /= (rxsq * pypsq) + (rysq * pxpsq);
-		radicant = Math.sqrt(radicant) * (largeArcFlag === sweepFlag ? -1 : 1);
+		radicant = sqrt(radicant) * (largeArcFlag === sweepFlag ? -1 : 1);
 		var centerxp = radicant * rx / ry * pyp;
 		var centeryp = radicant * -ry / rx * pxp;
 		var centerx = (cosphi * centerxp) - (sinphi * centeryp) + ((px + cx) / 2);
@@ -829,8 +764,8 @@
 			return [];
 		}
 
-		var sinphi = Math.sin(xAxisRotation * TAU / 360);
-		var cosphi = Math.cos(xAxisRotation * TAU / 360);
+		var sinphi = sin(xAxisRotation * TAU / 360);
+		var cosphi = cos(xAxisRotation * TAU / 360);
 		var pxp = (cosphi * (px - cx) / 2) + (sinphi * (py - cy) / 2);
 		var pyp = (-sinphi * (px - cx) / 2) + (cosphi * (py - cy) / 2);
 
@@ -838,13 +773,13 @@
 			return [];
 		}
 
-		rx = Math.abs(rx);
-		ry = Math.abs(ry);
+		rx = abs$1(rx);
+		ry = abs$1(ry);
 		var lambda = (pw(pxp, 2) / pw(rx, 2)) + (pw(pyp, 2) / pw(ry, 2));
 
 		if (lambda > 1) {
-			rx *= Math.sqrt(lambda);
-			ry *= Math.sqrt(lambda);
+			rx *= sqrt(lambda);
+			ry *= sqrt(lambda);
 		}
 
 		var _getArcCenter = getArcCenter(px, py, cx, cy, rx, ry, largeArcFlag, sweepFlag, sinphi, cosphi, pxp, pyp);
@@ -855,7 +790,7 @@
 		var centery = _getArcCenter2[1];
 		var ang1 = _getArcCenter2[2];
 		var ang2 = _getArcCenter2[3];
-		var segments = Math.max(Math.ceil(Math.abs(ang2) / (TAU / 4)), 1);
+		var segments = max(ceil(abs$1(ang2) / (TAU / 4)), 1);
 		ang2 /= segments;
 
 		for (var i = 0; i < segments; i++) {
@@ -893,21 +828,14 @@
 		var x = point.x;
 		var y = point.y;
 		var cx = centre.x;
-		var cy = centre.y; // let currAngle = this.getAngle(centre, point)
-		// currAngle += (Math.PI / 2)
+		var cy = centre.y;
 
-		var radians = Math.PI / 180 * newAngle;
-		var cos = Math.cos(-radians);
-		var sin = Math.sin(-radians);
+		var radians = PI / 180 * newAngle;
+		var c_ = cos(-radians);
+		var s_ = sin(-radians);
 		return {
-			x: (cos * (x - cx)) + (sin * (y - cy)) + cx,
-			y: (cos * (y - cy)) - (sin * (x - cx)) + cy // console.log(point)
-			// console.log(currAngle)
-			// console.log(currAngle + newAngle * (Math.PI / 180))
-			// p.x = Math.cos(currAngle + newAngle * (Math.PI / 180) + Math.PI/2) * distance
-			// p.y = Math.sin(currAngle + newAngle * (Math.PI / 180) + Math.PI/2) * distance
-			// return p
-
+			x: (c_ * (x - cx)) + (s_ * (y - cy)) + cx,
+			y: (c_ * (y - cy)) - (s_ * (x - cx)) + cy
 		};
 	}
 
@@ -1297,25 +1225,18 @@
 		}
 
 		if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
-			// currObj.duration(currObj.durationP ? currObj.durationP
-			//   : (currObj.length / self.lengthV) * self.durationP)
 			currObj.end(self.triggerEnd.bind(self, currObj)).commit();
 		} else {
-			// const tValue = currObj.duration
-			// const data_ = currObj.data ? currObj.data : self.data
-			// console.log(currObj)
 			this.currObj = currObj; // currObj.durationP = tValue
 
 			this.queue.add(generateChainId(), {
 				run: function run (f) {
 					currObj.run(f);
 				},
-
 				delay: currObj.delay !== undefined ? currObj.delay : 0,
 				duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
 				loop: currObj.loop ? currObj.loop : 1,
 				direction: self.factor < 0 ? 'reverse' : 'default',
-				// self.factor < 0 ? 'reverse' : 'default',
 				end: self.triggerEnd.bind(self, currObj)
 			}, function (c, v) { return c / v; });
 		}
@@ -2871,14 +2792,7 @@
 			b: 0,
 			a: 255
 		};
-	} // function colorTransition (src, dest) {
-	//   src = src || defaultColor
-	//   dest = dest || defaultColor
-	//   src = colorToRGB(src)
-	//   dest = colorToRGB(dest)
-	//   return function trans (f) {
-	//     return `rgb(${Math.round(src.r + (dest.r - src.r) * f)},${Math.round(src.g + (dest.g - src.g) *
-	// f)},${Math.round(src.b + (dest.b - src.b) * f)})` } }
+	}
 
 	function colorRGBtransition (src, dest) {
 		src = src || defaultColor;
@@ -3804,23 +3718,7 @@
 			node = this$1.createNode(contextInfo.ctx, {
 				el: config.el,
 				bbox: bbox
-			}, vDomIndex); // if (contextInfo.type === 'SVG') {
-			//   // node = createDomElement({
-			//   //   el: config.el
-			//   // }, vDomIndex)
-			// } else if (contextInfo.type === 'CANVAS') {
-			//   // node = new CanvasNodeExe(contextInfo.ctx, {
-			//   //   el: config.el,
-			//   //   bbox: bbox
-			//   // }, domId(), vDomIndex)
-			// } else if (contextInfo.type === 'WEBGL') {
-			//   // node = new WebglNodeExe(contextInfo.ctx, {
-			//   //   el: config.el,
-			//   //   bbox: bbox
-			//   // }, domId(), vDomIndex)
-			// } else {
-			//   console.log('unknow type')
-			// }
+			}, vDomIndex);
 
 			for (var j = 0, len = attrKeys.length; j < len; j += 1) {
 				key = attrKeys[j];
@@ -4315,12 +4213,7 @@
 		this.attrChanged = true;
 		queueInstance$2.vDomChanged(this.vDomIndex);
 		return this;
-	}; // DomExe.prototype.getAttr = function DMgetAttribute (_) {
-	//   return this.attr[_]
-	// }
-	// DomExe.prototype.getStyle = function DMgetStyle (_) {
-	//   return this.style[_]
-	// }
+	};
 
 	DomExe.prototype.execute = function DMexecute () {
 		if (!this.styleChanged && !this.attrChanged) {
@@ -4371,19 +4264,10 @@
 		}
 
 		return this;
-	}; //   DomExe.prototype.fetchEl = cfetchEl
-	//   DomExe.prototype.fetchEls = cfetchEls
-	//   DomExe.prototype.animateTo = animateTo
-	//   DomExe.prototype.animateExe = animateExe
+	};
 
 	DomExe.prototype.animatePathTo = path.animatePathTo;
-	DomExe.prototype.morphTo = path.morphTo; // DomExe.prototype.exec = function Cexe (exe) {
-	//   if (typeof exe !== 'function') {
-	//     console.error('Wrong Exe type')
-	//   }
-	//   exe.call(this, this.dataObj)
-	//   return this
-	// }
+	DomExe.prototype.morphTo = path.morphTo;
 
 	DomExe.prototype.createRadialGradient = function DMcreateRadialGradient (config) {
 		var gradientIns = new DomGradients(config, 'radial', this);
@@ -4395,7 +4279,7 @@
 		var gradientIns = new DomGradients(config, 'linear', this);
 		gradientIns.linearGradient();
 		return gradientIns;
-	}; //   DomExe.prototype.join = dataJoin
+	};
 
 	var dragStack = [];
 
@@ -4750,7 +4634,7 @@
 
 		if (node && node.dom.touch && node.dom.touch.onTouchStart) {
 			node.dom.touch.touchStartFlag = true;
-			node.dom.touch.onDragStart.call(node, node.dataObj, e);
+			node.dom.touch.onTouchStart.call(node, node.dataObj, e);
 			var event = new Event$1(touches[0].clientX, touches[0].clientY);
 			event.e = e;
 			node.dom.touch.event = event;
@@ -4782,7 +4666,7 @@
 			event.y = touches[0].clientY;
 			event.e = e;
 			this.touchNode.dom.touch.event = event;
-			this.touchNode.dom.touch.onDrag.call(this.touchNode, this.touchNode.dataObj, event);
+			this.touchNode.dom.touch.onTouch.call(this.touchNode, this.touchNode.dataObj, event);
 		}
 	};
 
@@ -4857,17 +4741,11 @@
 		}
 
 		if (d.attr.transform && d.attr.transform.rotate) {
-			var rotate = d.attr.transform.rotate[0]; // const { BBox } = d.dom
+			var rotate = d.attr.transform.rotate[0];
 
 			var cen = {
 				x: d.attr.transform.rotate[1],
-				y: d.attr.transform.rotate[2] // {
-				//   x: (BBox.x + (BBox.width / 2) - hozMove) / scaleX,
-				//   y: (BBox.y + (BBox.height / 2) - verMove) / scaleY
-				// }
-				// const dis = t2DGeometry.getDistance(cen, coOr)
-				// const angle = Math.atan2(coOr.y - cen.y, coOr.x - cen.x)
-
+				y: d.attr.transform.rotate[2]
 			};
 			var x = coOrLocal.x;
 			var y = coOrLocal.y;
@@ -6183,15 +6061,18 @@
 	CanvasNodeExe.prototype.stylesExe = function CstylesExe () {
 		var value;
 		var key;
+		var style = this.style;
 
-		for (key in this.style) {
-			if (typeof this.style[key] !== 'function' && !(this.style[key] instanceof CanvasGradients || this.style[key] instanceof CanvasPattern)) {
-				value = this.style[key];
-			} else if (typeof this.style[key] === 'function') {
-				this.style[key] = this.style[key].call(this, this.dataObj);
-				value = this.style[key];
-			} else if (this.style[key] instanceof CanvasGradients || this.style[key] instanceof CanvasPattern) {
-				value = this.style[key].exe(this.ctx, this.dom.BBox);
+		for (key in style) {
+			if (typeof style[key] !== 'function') {
+				if (style[key] instanceof CanvasGradients || style[key] instanceof CanvasPattern) {
+					value = style[key].exe(this.ctx, this.dom.BBox);
+				} else {
+					value = style[key];
+				}
+			} else if (typeof style[key] === 'function') {
+				style[key] = style[key].call(this, this.dataObj);
+				value = style[key];
 			} else {
 				console.log('unkonwn Style');
 			}
@@ -8727,8 +8608,34 @@
 		return Object.create(dragObject);
 	};
 
+	var touchObject = {
+		touchStart: function (fun) {
+			if (typeof fun === 'function') {
+				this.onTouchStart = fun;
+			}
+			return this;
+		},
+		touch: function (fun) {
+			if (typeof fun === 'function') {
+				this.onTouch = fun;
+			}
+			return this;
+		},
+		touchEnd: function (fun) {
+			if (typeof fun === 'function') {
+				this.onTouchEnd = fun;
+			}
+			return this;
+		}
+	};
+
+	var touch = function () {
+		return Object.create(touchObject);
+	};
+
 	var behaviour = {
-		drag: drag
+		drag: drag,
+		touch: touch
 	};
 
 	var pathIns = path.instance;

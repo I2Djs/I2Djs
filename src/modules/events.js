@@ -131,7 +131,7 @@ Events.prototype.touchstartCheck = function (e) {
 
 	if (node && node.dom.touch && node.dom.touch.onTouchStart) {
 		node.dom.touch.touchStartFlag = true;
-		node.dom.touch.onDragStart.call(node, node.dataObj, e);
+		node.dom.touch.onTouchStart.call(node, node.dataObj, e);
 		let event = new Event(touches[0].clientX, touches[0].clientY);
 		event.e = e;
 		node.dom.touch.event = event;
@@ -163,7 +163,7 @@ Events.prototype.touchmoveCheck = function (e) {
 		event.y = touches[0].clientY;
 		event.e = e;
 		this.touchNode.dom.touch.event = event;
-		this.touchNode.dom.touch.onDrag.call(this.touchNode, this.touchNode.dataObj, event);
+		this.touchNode.dom.touch.onTouch.call(this.touchNode, this.touchNode.dataObj, event);
 	}
 };
 
@@ -236,17 +236,11 @@ function transformCoOr (d, coOr) {
 	}
 
 	if (d.attr.transform && d.attr.transform.rotate) {
-		const rotate = d.attr.transform.rotate[0]; // const { BBox } = d.dom
+		const rotate = d.attr.transform.rotate[0];
 
 		const cen = {
 			x: d.attr.transform.rotate[1],
-			y: d.attr.transform.rotate[2] // {
-			//   x: (BBox.x + (BBox.width / 2) - hozMove) / scaleX,
-			//   y: (BBox.y + (BBox.height / 2) - verMove) / scaleY
-			// }
-			// const dis = t2DGeometry.getDistance(cen, coOr)
-			// const angle = Math.atan2(coOr.y - cen.y, coOr.x - cen.x)
-
+			y: d.attr.transform.rotate[2]
 		};
 		let x = coOrLocal.x;
 		let y = coOrLocal.y;

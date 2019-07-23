@@ -887,23 +887,7 @@ function CollectionPrototype (contextInfo, data, config, vDomIndex) {
 		node = this.createNode(contextInfo.ctx, {
 			el: config.el,
 			bbox: bbox
-		}, vDomIndex); // if (contextInfo.type === 'SVG') {
-		//   // node = createDomElement({
-		//   //   el: config.el
-		//   // }, vDomIndex)
-		// } else if (contextInfo.type === 'CANVAS') {
-		//   // node = new CanvasNodeExe(contextInfo.ctx, {
-		//   //   el: config.el,
-		//   //   bbox: bbox
-		//   // }, domId(), vDomIndex)
-		// } else if (contextInfo.type === 'WEBGL') {
-		//   // node = new WebglNodeExe(contextInfo.ctx, {
-		//   //   el: config.el,
-		//   //   bbox: bbox
-		//   // }, domId(), vDomIndex)
-		// } else {
-		//   console.log('unknow type')
-		// }
+		}, vDomIndex);
 
 		for (let j = 0, len = attrKeys.length; j < len; j += 1) {
 			key = attrKeys[j];

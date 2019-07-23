@@ -38,63 +38,14 @@ VDom.prototype.eventsCheck = function eventsCheck (nodes, mouseCoor, rawEvent) {
 				}
 			} else {
 				node = d;
-			} // callInEvents(d, rawEvent)
-		} // else {
-		//   // callOutEvents(d, rawEvent)
-		// }
+			}
+		}
 	}
 
 	return node;
 };
 
-VDom.prototype.transformCoOr = transformCoOr; // function callInEvents (node, e) {
-//   if ((node.dom.mouseover || node.dom.mouseenter) && !node.hovered) {
-//     if (node.dom.mouseover) {
-//       node.dom.mouseover.call(node, node.dataObj, e)
-//     }
-//     if (node.dom.mouseenter) {
-//       node.dom.mouseenter.call(node, node.dataObj, e)
-//     }
-//     node.hovered = true
-//     if (selectedNode && selectedNode.dom.drag && selectedNode.dom.drag.onDragStart) {
-//       selectedNode.dom.drag.dragStartFlag = true
-//       selectedNode.dom.drag.onDragStart.call(selectedNode, selectedNode.dataObj, e)
-//       let event = {}
-//       event.x = e.offsetX
-//       event.y = e.offsetY
-//       event.dx = 0
-//       event.dy = 0
-//       selectedNode.dom.drag.event = event
-//     }
-//     if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDrag) {
-//       let event = node.dom.drag.event
-//       if (node.dom.drag.event) {
-//         event.dx = e.offsetX - event.x
-//         event.dy = e.offsetY - event.y
-//       }
-//       event.x = e.offsetX
-//       event.y = e.offsetY
-//       node.dom.drag.event = event
-//       node.dom.drag.onDrag.call(node, node.dataObj, event)
-//     }
-//   }
-// }
-// function callOutEvents (node, e) {
-//   if ((node.dom.mouseout || node.dom.mouseleave) && node.hovered) {
-//     if (node.dom.mouseout) {
-//       node.dom.mouseout.call(node, node.dataObj, e)
-//     }
-//     if (node.dom.mouseleave) {
-//       node.dom.mouseleave.call(node, node.dataObj, e)
-//     }
-//     node.hovered = false
-//   }
-//   if (node.dom.drag && node.dom.drag.dragStartFlag) {
-//     node.dom.drag.dragStartFlag = false
-//     node.dom.drag.onDragEnd.call(node, node.dataObj, e)
-//     node.dom.drag.event = null
-//   }
-// }
+VDom.prototype.transformCoOr = transformCoOr;
 
 function transformCoOr (d, coOr) {
 	let hozMove = 0;
@@ -117,17 +68,11 @@ function transformCoOr (d, coOr) {
 	}
 
 	if (d.attr.transform && d.attr.transform.rotate) {
-		const rotate = d.attr.transform.rotate[0]; // const { BBox } = d.dom
+		const rotate = d.attr.transform.rotate[0];
 
 		const cen = {
 			x: d.attr.transform.rotate[1],
-			y: d.attr.transform.rotate[2] // {
-			//   x: (BBox.x + (BBox.width / 2) - hozMove) / scaleX,
-			//   y: (BBox.y + (BBox.height / 2) - verMove) / scaleY
-			// }
-			// const dis = t2DGeometry.getDistance(cen, coOr)
-			// const angle = Math.atan2(coOr.y - cen.y, coOr.x - cen.x)
-
+			y: d.attr.transform.rotate[2]
 		};
 		let x = coOrLocal.x;
 		let y = coOrLocal.y;

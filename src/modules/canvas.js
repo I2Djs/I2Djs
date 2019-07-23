@@ -1340,15 +1340,18 @@ CanvasNodeExe.prototype.node = function Cnode () {
 CanvasNodeExe.prototype.stylesExe = function CstylesExe () {
 	let value;
 	let key;
+	let style = this.style;
 
-	for (key in this.style) {
-		if (typeof this.style[key] !== 'function' && !(this.style[key] instanceof CanvasGradients || this.style[key] instanceof CanvasPattern)) {
-			value = this.style[key];
-		} else if (typeof this.style[key] === 'function') {
-			this.style[key] = this.style[key].call(this, this.dataObj);
-			value = this.style[key];
-		} else if (this.style[key] instanceof CanvasGradients || this.style[key] instanceof CanvasPattern) {
-			value = this.style[key].exe(this.ctx, this.dom.BBox);
+	for (key in style) {
+		if (typeof style[key] !== 'function') {
+			if (style[key] instanceof CanvasGradients || style[key] instanceof CanvasPattern) {
+				value = style[key].exe(this.ctx, this.dom.BBox);
+			} else {
+				value = style[key];
+			}
+		} else if (typeof style[key] === 'function') {
+			style[key] = style[key].call(this, this.dataObj);
+			value = style[key];
 		} else {
 			console.log('unkonwn Style');
 		}

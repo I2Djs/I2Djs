@@ -421,12 +421,7 @@ DomExe.prototype.setAttr = function DMsetAttr (attr, value) {
 	this.attrChanged = true;
 	queueInstance.vDomChanged(this.vDomIndex);
 	return this;
-}; // DomExe.prototype.getAttr = function DMgetAttribute (_) {
-//   return this.attr[_]
-// }
-// DomExe.prototype.getStyle = function DMgetStyle (_) {
-//   return this.style[_]
-// }
+};
 
 DomExe.prototype.execute = function DMexecute () {
 	if (!this.styleChanged && !this.attrChanged) {
@@ -477,19 +472,10 @@ DomExe.prototype.child = function DMchild (nodes) {
 	}
 
 	return this;
-}; //   DomExe.prototype.fetchEl = cfetchEl
-//   DomExe.prototype.fetchEls = cfetchEls
-//   DomExe.prototype.animateTo = animateTo
-//   DomExe.prototype.animateExe = animateExe
+};
 
 DomExe.prototype.animatePathTo = path.animatePathTo;
-DomExe.prototype.morphTo = path.morphTo; // DomExe.prototype.exec = function Cexe (exe) {
-//   if (typeof exe !== 'function') {
-//     console.error('Wrong Exe type')
-//   }
-//   exe.call(this, this.dataObj)
-//   return this
-// }
+DomExe.prototype.morphTo = path.morphTo;
 
 DomExe.prototype.createRadialGradient = function DMcreateRadialGradient (config) {
 	const gradientIns = new DomGradients(config, 'radial', this);
@@ -501,7 +487,7 @@ DomExe.prototype.createLinearGradient = function DMcreateLinearGradient (config)
 	const gradientIns = new DomGradients(config, 'linear', this);
 	gradientIns.linearGradient();
 	return gradientIns;
-}; //   DomExe.prototype.join = dataJoin
+};
 
 let dragStack = [];
 
