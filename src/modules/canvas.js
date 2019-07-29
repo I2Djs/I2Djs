@@ -1641,8 +1641,7 @@ function CanvasLayer (context, config = {}) {
 	layer.setAttribute('width', width * ratio);
 	layer.style.height = `${height}px`;
 	layer.style.width = `${width}px`;
-	layer.style.position = 'absolute'; // ctx.strokeStyle = 'rgba(0, 0, 0, 0)'
-	// ctx.fillStyle = 'rgba(0, 0, 0, 0)'
+	layer.style.position = 'absolute';
 
 	res.appendChild(layer);
 	const vDomInstance = new VDom();
@@ -1771,4 +1770,49 @@ function CanvasLayer (context, config = {}) {
 	return root;
 }
 
-export default CanvasLayer;
+function CanvasNodeLayer (config) {
+	if (!Canvas) {
+		console.warn('Canvas missing from node');
+		return;
+	}
+	let { height = 0, width = 0 } = config;
+	let layer = new Canvas(width, height);
+	const ctx = layer.getContext('2d');
+	ratio = getPixlRatio(ctx);
+	const onClear = config.onClear === 'clear' || !config.onClear ? function (ctx) {
+		ctx.clearRect(0, 0, width * ratio, height * ratio);
+	} : config.onClear;
+	const vDomInstance = new VDom();
+	const vDomIndex = queueInstance.addVdom(vDomInstance);
+	const root = new CanvasNodeExe(ctx, {
+		el: 'group',
+		attr: {
+			id: 'rootNode'
+		}
+	}, domId(), vDomIndex);
+	vDomInstance.rootNode(root);
+	const execute = root.execute.bind(root);
+	root.domEl = layer;
+	root.height = height;
+	root.width = width;
+	root.type = 'CANVAS';
+	root.ENV = 'NODE';
+
+	root.execute = function executeExe () {
+		onClear(ctx);
+		ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+		root.updateBBox();
+		execute();
+	};
+
+	root.toDataURL = function toDataURL () {
+		return this.domEl.toDataURL();
+	};
+
+	return root;
+}
+
+export default {
+	CanvasLayer,
+	CanvasNodeLayer
+};

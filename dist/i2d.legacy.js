@@ -10,6 +10,26 @@
 }(this, function (exports) { 'use strict';
 
 	/* eslint-disable no-undef */
+	var animatorInstance = null;
+	var tweens = [];
+	var vDoms = {};
+	var vDomIds = [];
+	var animeFrameId;
+	var onFrameExe = [];
+
+	if (typeof window === 'undefined') {
+		global.window = {
+			setTimeout: setTimeout,
+			clearTimeout: clearTimeout
+		};
+		global.performance = {
+			now: function () {
+				return Date.now();
+			}
+		};
+		global.document = {
+		};
+	}
 	window.requestAnimationFrame = (function requestAnimationFrameG () {
 		return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function requestAnimationFrame (callback, element) {
 			return window.setTimeout(callback, 1000 / 60);
@@ -21,13 +41,6 @@
 			return window.clearTimeout(id);
 		};
 	}());
-
-	var animatorInstance = null;
-	var tweens = [];
-	var vDoms = {};
-	var vDomIds = [];
-	var animeFrameId;
-	var onFrameExe = [];
 
 	function Tween (Id, executable, easying) {
 		this.executable = executable;
@@ -158,7 +171,7 @@
 			if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].stateModified) {
 				vDoms[vDomIds[i]].execute();
 				vDoms[vDomIds[i]].stateModified = false;
-			} else if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].root) {
+			} else if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].root && vDoms[vDomIds[i]].root.ENV !== 'NODE') {
 				var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id);
 
 				if (!elementExists) {
@@ -6363,8 +6376,7 @@
 		layer.setAttribute('width', width * ratio);
 		layer.style.height = height + "px";
 		layer.style.width = width + "px";
-		layer.style.position = 'absolute'; // ctx.strokeStyle = 'rgba(0, 0, 0, 0)'
-		// ctx.fillStyle = 'rgba(0, 0, 0, 0)'
+		layer.style.position = 'absolute';
 
 		res.appendChild(layer);
 		var vDomInstance = new VDom();
@@ -6492,6 +6504,54 @@
 		queueInstance$3.execute();
 		return root;
 	}
+
+	function CanvasNodeLayer (config) {
+		if (!Canvas) {
+			console.warn('Canvas missing from node');
+			return;
+		}
+		var height = config.height; if ( height === void 0 ) height = 0;
+		var width = config.width; if ( width === void 0 ) width = 0;
+		var layer = new Canvas(width, height);
+		var ctx = layer.getContext('2d');
+		ratio = getPixlRatio(ctx);
+		var onClear = config.onClear === 'clear' || !config.onClear ? function (ctx) {
+			ctx.clearRect(0, 0, width * ratio, height * ratio);
+		} : config.onClear;
+		var vDomInstance = new VDom();
+		var vDomIndex = queueInstance$3.addVdom(vDomInstance);
+		var root = new CanvasNodeExe(ctx, {
+			el: 'group',
+			attr: {
+				id: 'rootNode'
+			}
+		}, domId$1(), vDomIndex);
+		vDomInstance.rootNode(root);
+		var execute = root.execute.bind(root);
+		root.domEl = layer;
+		root.height = height;
+		root.width = width;
+		root.type = 'CANVAS';
+		root.ENV = 'NODE';
+
+		root.execute = function executeExe () {
+			onClear(ctx);
+			ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+			root.updateBBox();
+			execute();
+		};
+
+		root.toDataURL = function toDataURL () {
+			return this.domEl.toDataURL();
+		};
+
+		return root;
+	}
+
+	var canvasAPI = {
+		CanvasLayer: CanvasLayer,
+		CanvasNodeLayer: CanvasNodeLayer
+	};
 
 	/* eslint-disable no-undef */
 	function shaders (el) {
@@ -8639,8 +8699,11 @@
 	};
 
 	var pathIns = path.instance;
+	var CanvasLayer$1 = canvasAPI.CanvasLayer;
+	var CanvasNodeLayer$1 = canvasAPI.CanvasNodeLayer;
 
-	exports.CanvasLayer = CanvasLayer;
+	exports.CanvasLayer = CanvasLayer$1;
+	exports.CanvasNodeLayer = CanvasNodeLayer$1;
 	exports.Path = pathIns;
 	exports.SVGLayer = SVGLayer;
 	exports.WebglLayer = WebGLLayer;

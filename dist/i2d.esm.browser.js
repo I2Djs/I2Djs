@@ -4,6 +4,26 @@
       * @license BSD-3-Clause
       */
 /* eslint-disable no-undef */
+let animatorInstance = null;
+let tweens = [];
+const vDoms = {};
+const vDomIds = [];
+let animeFrameId;
+let onFrameExe = [];
+
+if (typeof window === 'undefined') {
+	global.window = {
+		setTimeout: setTimeout,
+		clearTimeout: clearTimeout
+	};
+	global.performance = {
+		now: function () {
+			return Date.now();
+		}
+	};
+	global.document = {
+	};
+}
 window.requestAnimationFrame = (function requestAnimationFrameG () {
 	return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function requestAnimationFrame (callback, element) {
 		return window.setTimeout(callback, 1000 / 60);
@@ -15,13 +35,6 @@ window.cancelAnimFrame = (function cancelAnimFrameG () {
 		return window.clearTimeout(id);
 	};
 }());
-
-let animatorInstance = null;
-let tweens = [];
-const vDoms = {};
-const vDomIds = [];
-let animeFrameId;
-let onFrameExe = [];
 
 function Tween (Id, executable, easying) {
 	this.executable = executable;
@@ -152,7 +165,7 @@ ExeQueue.prototype.vDomUpdates = function () {
 		if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].stateModified) {
 			vDoms[vDomIds[i]].execute();
 			vDoms[vDomIds[i]].stateModified = false;
-		} else if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].root) {
+		} else if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].root && vDoms[vDomIds[i]].root.ENV !== 'NODE') {
 			var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id);
 
 			if (!elementExists) {
@@ -287,7 +300,7 @@ VDom.prototype.eventsCheck = function eventsCheck (nodes, mouseCoor, rawEvent) {
 	return node;
 };
 
-VDom.prototype.transformCoOr = transformCoOr; 
+VDom.prototype.transformCoOr = transformCoOr;
 
 function transformCoOr (d, coOr) {
 	let hozMove = 0;
@@ -6363,8 +6376,7 @@ function CanvasLayer (context, config = {}) {
 	layer.setAttribute('width', width * ratio);
 	layer.style.height = `${height}px`;
 	layer.style.width = `${width}px`;
-	layer.style.position = 'absolute'; // ctx.strokeStyle = 'rgba(0, 0, 0, 0)'
-	// ctx.fillStyle = 'rgba(0, 0, 0, 0)'
+	layer.style.position = 'absolute';
 
 	res.appendChild(layer);
 	const vDomInstance = new VDom();
@@ -6492,6 +6504,53 @@ function CanvasLayer (context, config = {}) {
 	queueInstance$3.execute();
 	return root;
 }
+
+function CanvasNodeLayer (config) {
+	if (!Canvas) {
+		console.warn('Canvas missing from node');
+		return;
+	}
+	let { height = 0, width = 0 } = config;
+	let layer = new Canvas(width, height);
+	const ctx = layer.getContext('2d');
+	ratio = getPixlRatio(ctx);
+	const onClear = config.onClear === 'clear' || !config.onClear ? function (ctx) {
+		ctx.clearRect(0, 0, width * ratio, height * ratio);
+	} : config.onClear;
+	const vDomInstance = new VDom();
+	const vDomIndex = queueInstance$3.addVdom(vDomInstance);
+	const root = new CanvasNodeExe(ctx, {
+		el: 'group',
+		attr: {
+			id: 'rootNode'
+		}
+	}, domId$1(), vDomIndex);
+	vDomInstance.rootNode(root);
+	const execute = root.execute.bind(root);
+	root.domEl = layer;
+	root.height = height;
+	root.width = width;
+	root.type = 'CANVAS';
+	root.ENV = 'NODE';
+
+	root.execute = function executeExe () {
+		onClear(ctx);
+		ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+		root.updateBBox();
+		execute();
+	};
+
+	root.toDataURL = function toDataURL () {
+		return this.domEl.toDataURL();
+	};
+
+	return root;
+}
+
+var canvasAPI = {
+	CanvasLayer,
+	CanvasNodeLayer
+};
 
 /* eslint-disable no-undef */
 function shaders (el) {
@@ -8732,5 +8791,7 @@ var behaviour = {
 };
 
 let pathIns = path.instance;
+let CanvasLayer$1 = canvasAPI.CanvasLayer;
+let CanvasNodeLayer$1 = canvasAPI.CanvasNodeLayer;
 
-export { CanvasLayer, pathIns as Path, SVGLayer, WebGLLayer as WebglLayer, behaviour, chain, colorMap$1 as color, fetchTransitionType as ease, geometry, queue };
+export { CanvasLayer$1 as CanvasLayer, CanvasNodeLayer$1 as CanvasNodeLayer, pathIns as Path, SVGLayer, WebGLLayer as WebglLayer, behaviour, chain, colorMap$1 as color, fetchTransitionType as ease, geometry, queue };

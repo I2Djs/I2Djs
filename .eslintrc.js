@@ -6,7 +6,8 @@ module.exports = {
 	},
 	globals: {
 		'Image': true,
-		'Path2D': true
+		'Path2D': true,
+		'Canvas': true
 	},
 	rules: {
 		// allow paren-less arrow functions
@@ -23,6 +24,7 @@ module.exports = {
 		'no-tabs': 'off',
 		'no-mixed-spaces-and-tabs': ['error', 'smart-tabs'],
 		'no-multiple-empty-lines': ['error', { 'max': 2, 'maxEOF': 1 }],
+		"no-global-assign": ["error", {"exceptions": ["window", "document"]}],
 		'no-mixed-operators': [
 			'error',
 			{

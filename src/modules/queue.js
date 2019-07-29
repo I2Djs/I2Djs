@@ -1,4 +1,24 @@
 /* eslint-disable no-undef */
+let animatorInstance = null;
+let tweens = [];
+const vDoms = {};
+const vDomIds = [];
+let animeFrameId;
+let onFrameExe = [];
+
+if (typeof window === 'undefined') {
+	global.window = {
+		setTimeout: setTimeout,
+		clearTimeout: clearTimeout
+	};
+	global.performance = {
+		now: function () {
+			return Date.now();
+		}
+	};
+	global.document = {
+	};
+}
 window.requestAnimationFrame = (function requestAnimationFrameG () {
 	return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function requestAnimationFrame (callback, element) {
 		return window.setTimeout(callback, 1000 / 60);
@@ -10,13 +30,6 @@ window.cancelAnimFrame = (function cancelAnimFrameG () {
 		return window.clearTimeout(id);
 	};
 }());
-
-let animatorInstance = null;
-let tweens = [];
-const vDoms = {};
-const vDomIds = [];
-let animeFrameId;
-let onFrameExe = [];
 
 function Tween (Id, executable, easying) {
 	this.executable = executable;
@@ -147,7 +160,7 @@ ExeQueue.prototype.vDomUpdates = function () {
 		if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].stateModified) {
 			vDoms[vDomIds[i]].execute();
 			vDoms[vDomIds[i]].stateModified = false;
-		} else if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].root) {
+		} else if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].root && vDoms[vDomIds[i]].root.ENV !== 'NODE') {
 			var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id);
 
 			if (!elementExists) {
