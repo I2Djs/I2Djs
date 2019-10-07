@@ -1772,7 +1772,9 @@ function CanvasLayer (context, config = {}) {
 
 function CanvasNodeLayer (config) {
 	if (!Canvas) {
-		console.warn('Canvas missing from node');
+		console.error('Canvas missing from node');
+		console.error('Install "Canvas" "canvas-5-polyfill" node modules');
+		console.error('Make "Canvas" "Image" "Path2D" objects global from the above modules');
 		return;
 	}
 	let { height = 0, width = 0 } = config;

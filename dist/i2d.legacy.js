@@ -6507,7 +6507,9 @@
 
 	function CanvasNodeLayer (config) {
 		if (!Canvas) {
-			console.warn('Canvas missing from node');
+			console.error('Canvas missing from node');
+			console.error('Install "Canvas" "canvas-5-polyfill" node modules');
+			console.error('Make "Canvas" "Image" "Path2D" objects global from the above modules');
 			return;
 		}
 		var height = config.height; if ( height === void 0 ) height = 0;
@@ -6589,6 +6591,9 @@
 		return res;
 	}
 
+	var earcut_1 = earcut;
+	var default_1 = earcut;
+
 	function earcut(data, holeIndices, dim) {
 
 	    dim = dim || 2;
@@ -6598,7 +6603,7 @@
 	        outerNode = linkedList(data, 0, outerLen, dim, true),
 	        triangles = [];
 
-	    if (!outerNode) { return triangles; }
+	    if (!outerNode || outerNode.next === outerNode.prev) { return triangles; }
 
 	    var minX, minY, maxX, maxY, x, y, invSize;
 
@@ -6693,7 +6698,7 @@
 
 	            removeNode(ear);
 
-	            // skipping the next vertice leads to less sliver triangles
+	            // skipping the next vertex leads to less sliver triangles
 	            ear = next.next;
 	            stop = next.next;
 
@@ -7035,7 +7040,7 @@
 	    var p = start,
 	        leftmost = start;
 	    do {
-	        if (p.x < leftmost.x) { leftmost = p; }
+	        if (p.x < leftmost.x || (p.x === leftmost.x && p.y < leftmost.y)) { leftmost = p; }
 	        p = p.next;
 	    } while (p !== start);
 
@@ -7157,14 +7162,14 @@
 	}
 
 	function Node(i, x, y) {
-	    // vertice index in coordinates array
+	    // vertex index in coordinates array
 	    this.i = i;
 
 	    // vertex coordinates
 	    this.x = x;
 	    this.y = y;
 
-	    // previous and next vertice nodes in a polygon ring
+	    // previous and next vertex nodes in a polygon ring
 	    this.prev = null;
 	    this.next = null;
 
@@ -7234,6 +7239,7 @@
 	    }
 	    return result;
 	};
+	earcut_1.default = default_1;
 
 	// import { VDom, shaders, queue } from './'
 
@@ -7392,7 +7398,7 @@
 	};
 
 	function polygonPointsMapper (value) {
-		return earcut(value.reduce(function (p, c) {
+		return earcut_1(value.reduce(function (p, c) {
 			p.push(c.x);
 			p.push(c.y);
 			return p;
