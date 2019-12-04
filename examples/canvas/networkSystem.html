@@ -20,7 +20,7 @@ var circles = [];
 var sourceDestTree = {};
 var nodeToEdgeTree = {};
 var width = 1200, height = 600;
-var renderer_ = i2d.CanvasLayer('#myCanvas', { events: true, selectiveClear: false });
+var renderer_ = i2d.CanvasLayer('#myCanvas', {}, true);
 var dragEvent = i2d.behaviour.drag();
 
 dragEvent.dragStart(function (d, e) {

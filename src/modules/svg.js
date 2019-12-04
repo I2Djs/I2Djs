@@ -586,8 +586,8 @@ function SVGLayer (context, config = {}) {
 	const vDomInstance = new VDom();
 	const vDomIndex = queueInstance.addVdom(vDomInstance);
 	const res = document.querySelector(context);
-	let height = config.height ? config.height : res.clientHeight;
-	let width = config.width ? config.width : res.clientWidth;
+	let height = res.clientHeight;
+	let width = res.clientWidth;
 	const layer = document.createElementNS(nameSpace.svg, 'svg');
 	layer.setAttribute('height', height);
 	layer.setAttribute('width', width);
@@ -598,55 +598,20 @@ function SVGLayer (context, config = {}) {
 	root.type = 'SVG';
 	root.width = width;
 	root.height = height;
-	vDomInstance.rootNode(root); // root.resize = renderVdom
+	vDomInstance.rootNode(root);
 
-	root.setAttr = function (prop, value) {
-		if (arguments.length === 2) {
-			config[prop] = value;
-		} else if (arguments.length === 1 && typeof prop === 'object') {
-			const props = Object.keys(prop);
-
-			for (let i = 0, len = props.length; i < len; i += 1) {
-				config[props[i]] = prop[props[i]];
-			}
-		}
-
-		renderVdom.call(this);
-	};
-
-	function svgResize () {
-		height = config.height ? config.height : res.clientHeight;
-		width = config.width ? config.width : res.clientWidth;
-		layer.setAttribute('height', height);
-		layer.setAttribute('width', width);
-		root.width = width;
-		root.height = height;
-
-		if (config.resize && typeof config.resize === 'function') {
-			config.resize();
-		}
-
-		renderVdom.call(root);
-	}
-
-	function renderVdom () {
-		let width = config.width ? config.width : this.container.clientWidth;
-		let height = config.height ? config.height : this.container.clientHeight;
-		let newWidthRatio = width / this.width;
-		let newHeightRatio = height / this.height;
-
-		if (config && config.rescale) {
-			this.scale([newWidthRatio, newHeightRatio]);
-		}
-
+	root.setSize = function (width, height) {
 		this.dom.setAttribute('height', height);
 		this.dom.setAttribute('width', width);
-	}
+		this.width = width;
+		this.height = height;
+	};
 
-	window.addEventListener('resize', svgResize);
+	root.setViewBox = function (x, y, height, width) {
+		this.dom.setAttribute('viewBox', x + ',' + y + ',' + width + ',' + height);
+	};
 
 	root.destroy = function () {
-		window.removeEventListener('resize', svgResize);
 		layer.remove();
 		queueInstance.removeVdom(vDomIndex);
 	};

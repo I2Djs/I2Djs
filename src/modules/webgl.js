@@ -1,8 +1,6 @@
-// import { VDom, shaders, queue } from './'
-// import { earcut } from 'earcut'
 import queue from './queue.js';
 import VDom from './VDom.js';
-import colorMap from './colorMap.js'; // import path from './path.js'
+import colorMap from './colorMap.js';
 import shaders from './shaders.js';
 import earcut from 'earcut';
 import { CollectionPrototype, NodePrototype } from './coreApi.js';
@@ -31,19 +29,6 @@ WebglCollection.prototype.constructor = WebglCollection;
 WebglCollection.prototype.createNode = function (ctx, config, vDomIndex) {
 	return new WebglNodeExe(ctx, config, domId(), vDomIndex);
 };
-// WebglCollection.prototype.wrapper = function (nodes) {
-//   const self = this
-
-//   if (nodes) {
-//     for (let i = 0, len = nodes.length; i < len; i++) {
-//       let node = nodes[i]
-//       if (node instanceof WebglNodeExe || node instanceof WebglCollection) {
-//         self.stack.push(node)
-//       }
-//     }
-//   }
-//   return this
-// }
 
 function loadShader (ctx, shaderSource, shaderType) {
 	var shader = ctx.createShader(shaderType);
@@ -91,15 +76,7 @@ function PointNode (attr, style) {
 
 PointNode.prototype.setAttr = function (prop, value) {
 	this.attr[prop] = value;
-}; // PointNode.prototype.getAttr = function (key) {
-//   return this.attr[key]
-// }
-// PointNode.prototype.setStyle = function (prop, value) {
-//   this.attr[prop] = value
-// }
-// PointNode.prototype.getStyle = function (key) {
-//   return this.style[key]
-// }
+};
 
 function RectNode (attr, style) {
 	this.attr = attr || {};
@@ -109,15 +86,7 @@ function RectNode (attr, style) {
 RectNode.prototype.setAttr = function (key, value) {
 	this.attr[key] = value; // this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe),
 	                        // this.nodeExe)
-}; // RectNode.prototype.getAttr = function (key) {
-//   return this.attr[key]
-// }
-// RectNode.prototype.setStyle = function (key, value) {
-//   this.style[key] = value
-// }
-// RectNode.prototype.getStyle = function (key) {
-//   return this.style[key]
-// }
+};
 
 function PolyLineNode (attr, style) {
 	this.attr = attr || {};
@@ -258,7 +227,7 @@ function ImageNode (ctx, attr, style) {
 	if (this.attr.src) {
 		this.image.src = this.attr.src;
 	}
-}
+};
 
 ImageNode.prototype.setAttr = function (key, value) {
 	this.attr[key] = value;
@@ -948,7 +917,7 @@ function RenderWebglCircles (ctx, attr, style, vDomIndex) {
 			scale: [1.0, 1.0]
 		};
 	}
-}
+};
 
 RenderWebglCircles.prototype.remove = function (position) {
 	this.positionArray.splice(position * 2, 2);
@@ -1256,16 +1225,9 @@ WebglNodeExe.prototype.setStyle = function WsetStyle (attr, value) {
 	this.styleChanged = true;
 	queueInstance.vDomChanged(this.vDomIndex);
 	return this;
-}; // WebglNodeExe.prototype.getAttr = function WgetAttribute (_) {
-//   return this.attr[_]
-// }
-// WebglNodeExe.prototype.getStyle = function WgetStyle (_) {
-//   return this.style[_]
-// }
+};
 
 WebglNodeExe.prototype.execute = function Cexecute () {
-	// this.stylesExe()
-	// this.attributesExe()
 	if (!this.dom.shader && this.dom instanceof RenderWebglGroup) {
 		for (let i = 0, len = this.children.length; i < len; i += 1) {
 			this.children[i].execute();
@@ -1351,40 +1313,56 @@ WebglNodeExe.prototype.removeChild = function WremoveChild (obj) {
 	queueInstance.vDomChanged(this.vDomIndex);
 };
 
-function WebGLLayer (context, config) {
-	const res = document.querySelector(context);
-	const height = config.height ? config.height : res.clientHeight;
-	const width = config.width ? config.width : res.clientWidth;
-	const clearColor = config.clearColor ? colorMap.colorToRGB(config.clearColor) : {
+function WebGLLayer (container, config = {}, eventsFlag = true, autoUpdateFlag = true) {
+	const res = container ? document.querySelector(container) : null;
+	const height = res ? res.clientHeight : 0;
+	const width = res ? res.clientWidth : 0;
+	// config.clearColor ? colorMap.colorToRGB(config.clearColor) : 
+	let clearColor = {
 		r: 0,
 		g: 0,
 		b: 0,
 		a: 0
 	};
-	const layer = document.createElement('canvas');
-	const ctx = layer.getContext('webgl', {
+	config = config || {
 		premultipliedAlpha: false,
 		depth: false,
 		antialias: false,
 		alpha: true
-	});
+	};
+	const layer = document.createElement('canvas');
+	const ctx = layer.getContext('webgl', config);
+
 	ratio = getPixlRatio(ctx);
 	ctx.enable(ctx.BLEND);
 	ctx.blendFunc(ctx.SRC_ALPHA, ctx.DST_ALPHA);
+	ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
 	layer.setAttribute('height', height * ratio);
 	layer.setAttribute('width', width * ratio);
 	layer.style.height = `${height}px`;
 	layer.style.width = `${width}px`;
 	layer.style.position = 'absolute';
-	res.appendChild(layer);
-	const vDomInstance = new VDom();
-	const vDomIndex = queueInstance.addVdom(vDomInstance);
+
+	let vDomInstance;
+	let vDomIndex = 999999;
+
+	if (res) {
+		res.appendChild(layer);
+		vDomInstance = new VDom();
+		if (autoUpdateFlag) {
+			vDomIndex = queueInstance.addVdom(vDomInstance);
+		}
+	}
+	
 	const root = new WebglNodeExe(ctx, {
 		el: 'group',
 		attr: {
 			id: 'rootNode'
 		}
 	}, domId(), vDomIndex);
+	if (vDomInstance) {
+		vDomInstance.rootNode(root);
+	}
 	const execute = root.execute.bind(root);
 	root.container = res;
 	root.domEl = layer;
@@ -1392,7 +1370,7 @@ function WebGLLayer (context, config) {
 	root.width = width;
 	root.type = 'WEBGL';
 	root.pixelRatio = ratio;
-	ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+
 
 	root.execute = function executeExe () {
 		this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
@@ -1404,13 +1382,33 @@ function WebGLLayer (context, config) {
 		queueInstance.removeVdom(vDomIndex);
 	};
 
-	vDomInstance.rootNode(root);
+	root.setSize = function (width_, height_) {
+		this.domEl.setAttribute('height', height_ * ratio);
+		this.domEl.setAttribute('width', width_ * ratio);
+		this.domEl.style.height = `${height_}px`;
+		this.domEl.style.width = `${width_}px`;
+		this.width = width_;
+		this.height = height_;
+		height = height_;
+		width = width_;
+		this.execute();
+	};
 
-	if (config.resize) {
-		window.addEventListener('resize', function () {
-			root.resize();
-		});
-	}
+	root.setViewBox = function (x, y, height, width) {
+	};
+
+	root.setStyle = function (prop, value) {
+		this.domEl.style[prop] = value;
+	};
+
+	root.setContext = function (prop, value) {
+		/** Expecting value to be array if multiple aruments */
+		if (this.ctx[prop] && typeof this.ctx[prop] === 'function') {
+			this.ctx[prop].apply(null, value);
+		} else if (this.ctx[prop]) {
+			this.ctx[prop] = value;
+		}
+	};
 
 	queueInstance.execute();
 	return root;

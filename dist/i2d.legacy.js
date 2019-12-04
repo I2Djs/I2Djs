@@ -156,7 +156,7 @@
 		}
 	};
 
-	ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom) {
+	ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom, flag) {
 		if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
 			vDoms[vDom].stateModified = true;
 		}
@@ -4387,13 +4387,12 @@
 	};
 
 	function SVGLayer (context, config) {
-		if ( config === void 0 ) config = {};
 
 		var vDomInstance = new VDom();
 		var vDomIndex = queueInstance$2.addVdom(vDomInstance);
 		var res = document.querySelector(context);
-		var height = config.height ? config.height : res.clientHeight;
-		var width = config.width ? config.width : res.clientWidth;
+		var height = res.clientHeight;
+		var width = res.clientWidth;
 		var layer = document.createElementNS(nameSpace.svg, 'svg');
 		layer.setAttribute('height', height);
 		layer.setAttribute('width', width);
@@ -4404,55 +4403,20 @@
 		root.type = 'SVG';
 		root.width = width;
 		root.height = height;
-		vDomInstance.rootNode(root); // root.resize = renderVdom
+		vDomInstance.rootNode(root);
 
-		root.setAttr = function (prop, value) {
-			if (arguments.length === 2) {
-				config[prop] = value;
-			} else if (arguments.length === 1 && typeof prop === 'object') {
-				var props = Object.keys(prop);
-
-				for (var i = 0, len = props.length; i < len; i += 1) {
-					config[props[i]] = prop[props[i]];
-				}
-			}
-
-			renderVdom.call(this);
-		};
-
-		function svgResize () {
-			height = config.height ? config.height : res.clientHeight;
-			width = config.width ? config.width : res.clientWidth;
-			layer.setAttribute('height', height);
-			layer.setAttribute('width', width);
-			root.width = width;
-			root.height = height;
-
-			if (config.resize && typeof config.resize === 'function') {
-				config.resize();
-			}
-
-			renderVdom.call(root);
-		}
-
-		function renderVdom () {
-			var width = config.width ? config.width : this.container.clientWidth;
-			var height = config.height ? config.height : this.container.clientHeight;
-			var newWidthRatio = width / this.width;
-			var newHeightRatio = height / this.height;
-
-			if (config && config.rescale) {
-				this.scale([newWidthRatio, newHeightRatio]);
-			}
-
+		root.setSize = function (width, height) {
 			this.dom.setAttribute('height', height);
 			this.dom.setAttribute('width', width);
-		}
+			this.width = width;
+			this.height = height;
+		};
 
-		window.addEventListener('resize', svgResize);
+		root.setViewBox = function (x, y, height, width) {
+			this.dom.setAttribute('viewBox', x + ',' + y + ',' + width + ',' + height);
+		};
 
 		root.destroy = function () {
-			window.removeEventListener('resize', svgResize);
 			layer.remove();
 			queueInstance$2.removeVdom(vDomIndex);
 		};
@@ -4727,7 +4691,6 @@
 				}
 			}
 		}
-
 		return node;
 	}
 
@@ -4772,7 +4735,6 @@
 		}
 	}
 
-	// import { node } from 'render'
 	var t2DGeometry$3 = geometry;
 	var queueInstance$3 = queue;
 	var Id$2 = 0;
@@ -4790,19 +4752,6 @@
 	CanvasCollection.prototype.createNode = function (ctx, config, vDomIndex) {
 		return new CanvasNodeExe(ctx, config, domId$1(), vDomIndex);
 	};
-	// CanvasCollection.prototype.wrapper = function (nodes) {
-	//   const self = this
-
-	//   if (nodes) {
-	//     for (let i = 0, len = nodes.length; i < len; i++) {
-	//       let node = nodes[i]
-	//       if (node instanceof CanvasNodeExe || node instanceof CanvasCollection) {
-	//         self.stack.push(node)
-	//       }
-	//     }
-	//   }
-	//   return this
-	// }
 
 	var ratio;
 
@@ -5051,18 +5000,12 @@
 		setStyle: domSetStyle,
 		applyStyles: applyStyles
 	};
+
 	var imageDataMap = {};
 
-	function RenderImage (ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
-		var self = this;
-		self.ctx = ctx;
-		self.attr = props;
-		self.style = stylesProps;
-		self.nodeName = 'Image';
-		self.image = new Image(); // self.image.crossOrigin="anonymous"
-		// self.image.setAttribute('crossOrigin', '*')
-
-		self.image.onload = function onload () {
+	function imageInstance (self) {
+		var imageIns = new Image();
+		imageIns.onload = function onload () {
 			this.crossOrigin = 'anonymous';
 			self.attr.height = self.attr.height ? self.attr.height : this.height;
 			self.attr.width = self.attr.width ? self.attr.width : this.width;
@@ -5077,61 +5020,41 @@
 				imageDataMap[self.attr.src] = im;
 			}
 
-			if (self.attr.clip) {
-				var ctxX$1;
-				var ref = self.attr;
-				var clip = ref.clip;
-				var width = ref.width;
-				var height = ref.height;
-				var sx = clip.sx;
-				var sy = clip.sy;
-				var swidth = clip.swidth;
-				var sheight = clip.sheight;
+			self.postProcess();
 
-				if (!this.rImageObj) {
-					self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
-				}
-
-				ctxX$1 = self.rImageObj.getContext('2d');
-				sx = sx !== undefined ? sx : 0;
-				sy = sy !== undefined ? sy : 0;
-				swidth = swidth !== undefined ? swidth : width;
-				sheight = sheight !== undefined ? sheight : height;
-				ctxX$1.drawImage(self.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
-			}
-
-			if (self.attr.pixels && self.imageObj) {
-				var ctxX$2;
-				var ref$1 = self.attr;
-				var width$1 = ref$1.width;
-				var height$1 = ref$1.height;
-
-				if (!self.rImageObj) {
-					self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
-					ctxX$2 = self.rImageObj.getContext('2d');
-					ctxX$2.drawImage(self.imageObj, 0, 0, width$1, height$1);
-				}
-
-				ctxX$2 = self.rImageObj.getContext('2d');
-				ctxX$2.putImageData(pixels.call(self, self.attr.pixels), 0, 0);
-			}
-
-			if (nodeExe.attr.onload && typeof nodeExe.attr.onload === 'function') {
-				nodeExe.attr.onload.call(nodeExe, self.image);
+			if (self.nodeExe.attr.onload && typeof self.nodeExe.attr.onload === 'function') {
+				self.nodeExe.attr.onload.call(self.nodeExe, self.image);
 			}
 
 			self.nodeExe.BBoxUpdate = true;
 			queueInstance$3.vDomChanged(self.nodeExe.vDomIndex);
 		};
 
-		self.image.onerror = function onerror (error) {
-			if (nodeExe.attr.onerror && typeof nodeExe.attr.onerror === 'function') {
-				nodeExe.attr.onerror.call(nodeExe, error);
+		imageIns.onerror = function onerror (error) {
+			if (self.nodeExe.attr.onerror && typeof self.nodeExe.attr.onerror === 'function') {
+				self.nodeExe.attr.onerror.call(self.nodeExe, error);
 			}
 		};
 
-		if (self.attr.src) {
+		return imageIns;
+	}
+
+	function RenderImage (ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
+		var self = this;
+		self.ctx = ctx;
+		self.attr = props;
+		self.style = stylesProps;
+		self.nodeName = 'Image';
+		self.nodeExe = nodeExe;
+
+		if (typeof self.attr.src === 'string') {
+			self.image = imageInstance(self);
 			self.image.src = self.attr.src;
+		} else if (self.attr.src instanceof HTMLImageElement || self.attr.src instanceof SVGImageElement || self.attr.src instanceof HTMLCanvasElement) {
+			self.imageObj = self.attr.src;
+			this.postProcess();
+		} else if (self.attr.src instanceof CanvasNodeExe) {
+			self.imageObj = self.attr.src.domEl;
 		}
 
 		queueInstance$3.vDomChanged(nodeExe.vDomIndex);
@@ -5143,23 +5066,43 @@
 
 	RenderImage.prototype.setAttr = function RIsetAttr (attr, value) {
 		var self = this;
-		this.attr[attr] = value;
 
 		if (attr === 'src') {
-			this.image[attr] = value;
-		} // if ((attr === 'onerror' || attr === 'onload') && typeof value === 'function') {
-		//   this.image[attr] = function (e) {
-		//     value.call(self, this, e)
-		//   }
-		// }
+			if (typeof value === 'string') {
+				self.image = imageInstance(self);
+				self.image.src = value;
+			} else if (value instanceof HTMLImageElement || value instanceof SVGImageElement || value instanceof HTMLCanvasElement) {
+				self.imageObj = value;
+				self.postProcess();
+				self.attr.height = self.attr.height ? self.attr.height : value.height;
+				self.attr.width = self.attr.width ? self.attr.width : value.width;
+			} else if (value instanceof CanvasNodeExe) {
+				self.imageObj = value.domEl;
+				self.postProcess();
+				self.attr.height = self.attr.height ? self.attr.height : value.height;
+				self.attr.width = self.attr.width ? self.attr.width : value.width;
+			}
+		} else {
+			this.attr[attr] = value;
+		}
+
 
 		if (attr === 'clip') {
-			if (!this.rImageObj) {
-				this.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
-			}
+			this.clipImage();
+		}
 
-			var ctxX = this.rImageObj.getContext('2d');
-			var ref = this.attr;
+		if (attr === 'pixels') {
+			this.pixelsUpdate();
+		}
+
+		queueInstance$3.vDomChanged(this.nodeExe.vDomIndex);
+	};
+
+	RenderImage.prototype.postProcess = function () {
+		var self = this;
+		if (self.attr.clip && self.imageObj) {
+			var ctxX;
+			var ref = self.attr;
 			var clip = ref.clip;
 			var width = ref.width;
 			var height = ref.height;
@@ -5167,15 +5110,17 @@
 			var sy = clip.sy;
 			var swidth = clip.swidth;
 			var sheight = clip.sheight;
+
+			if (!this.rImageObj) {
+				self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
+			}
+
+			ctxX = self.rImageObj.getContext('2d');
 			sx = sx !== undefined ? sx : 0;
 			sy = sy !== undefined ? sy : 0;
 			swidth = swidth !== undefined ? swidth : width;
 			sheight = sheight !== undefined ? sheight : height;
-			ctxX.clearRect(0, 0, width, height);
-
-			if (this.imageObj) {
-				ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
-			}
+			ctxX.drawImage(self.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
 		}
 
 		if (self.attr.pixels && self.imageObj) {
@@ -5193,8 +5138,54 @@
 			ctxX$1 = self.rImageObj.getContext('2d');
 			ctxX$1.putImageData(pixels.call(self, self.attr.pixels), 0, 0);
 		}
+	};
 
-		queueInstance$3.vDomChanged(this.nodeExe.vDomIndex);
+	RenderImage.prototype.clipImage = function () {
+		var self = this;
+		if (!this.imageObj) {
+			return;
+		}
+		if (!this.rImageObj) {
+			this.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
+		}
+
+		var ctxX = this.rImageObj.getContext('2d');
+		var ref = this.attr;
+		var clip = ref.clip;
+		var width = ref.width;
+		var height = ref.height;
+		var sx = clip.sx;
+		var sy = clip.sy;
+		var swidth = clip.swidth;
+		var sheight = clip.sheight;
+		sx = sx !== undefined ? sx : 0;
+		sy = sy !== undefined ? sy : 0;
+		swidth = swidth !== undefined ? swidth : width;
+		sheight = sheight !== undefined ? sheight : height;
+		ctxX.clearRect(0, 0, width, height);
+
+		ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
+	};
+
+	RenderImage.prototype.pixelsUpdate = function () {
+		var self = this;
+		var ctxX;
+
+		if (!this.imageObj) {
+			return;
+		}
+		var ref = self.attr;
+		var width = ref.width;
+		var height = ref.height;
+
+		if (!self.rImageObj) {
+			self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
+			ctxX = self.rImageObj.getContext('2d');
+			ctxX.drawImage(self.imageObj, 0, 0, width, height);
+		}
+
+		ctxX = self.rImageObj.getContext('2d');
+		ctxX.putImageData(pixels.call(self, self.attr.pixels), 0, 0);
 	};
 
 	RenderImage.prototype.updateBBox = function RIupdateBBox () {
@@ -5385,15 +5376,6 @@
 	};
 
 	RenderCircle.prototype.in = function RCinfun (co, eventType) {
-		// if (eventType === 'mousemove' && this['mouseover']) {
-		//   const {
-		//     x,
-		//     y,
-		//     width,
-		//     height
-		//   } = this.BBox
-		//   return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height
-		// }
 		var r = Math.sqrt(((co.x - this.attr.cx) * (co.x - this.attr.cx)) + ((co.y - this.attr.cy) * (co.y - this.attr.cy)));
 		return r <= this.attr.r;
 	};
@@ -5786,10 +5768,7 @@
 		ctx.ellipse(this.attr.cx, this.attr.cy, this.attr.rx, this.attr.ry, 0, 0, 2 * Math.PI);
 		this.applyStyles();
 		ctx.closePath();
-	}; // RenderEllipse.prototype.applyStyles = function REapplyStyles () {
-	//   if (this.styles.fillStyle) { this.ctx.fill() }
-	//   if (this.styles.strokeStyle) { this.ctx.stroke() }
-	// }
+	};
 
 	RenderEllipse.prototype.in = function REinfun (co) {
 		var ref = this.attr;
@@ -5849,8 +5828,7 @@
 		}
 	};
 
-	RenderRect.prototype.applyStyles = function rStyles () { // if (this.style.fillStyle) { this.ctx.fill() }
-		// if (this.style.strokeStyle) { this.ctx.stroke() }
+	RenderRect.prototype.applyStyles = function rStyles () {
 	};
 
 	RenderRect.prototype.execute = function RRexecute () {
@@ -6156,12 +6134,7 @@
 		this.BBoxUpdate = true;
 		queueInstance$3.vDomChanged(this.vDomIndex);
 		return this;
-	}; // CanvasNodeExe.prototype.getAttr = function CgetAttribute (_) {
-	//   return this.attr[_]
-	// }
-	// CanvasNodeExe.prototype.getStyle = function DMgetStyle (_) {
-	//   return this.style[_]
-	// }
+	};
 
 	CanvasNodeExe.prototype.rotate = function Crotate (angle, x, y) {
 		if (!this.attr.transform) {
@@ -6172,8 +6145,7 @@
 			this.attr.transform.rotate = [angle[0] || 0, angle[1] || 0, angle[2] || 0];
 		} else {
 			this.attr.transform.rotate = [angle, x || 0, y || 0];
-		} // this.attr.transform.cx = x
-		// this.attr.transform.cy = y
+		}
 
 		this.dom.setAttr('transform', this.attr.transform);
 		this.BBoxUpdate = true;
@@ -6234,8 +6206,6 @@
 	};
 
 	CanvasNodeExe.prototype.execute = function Cexecute () {
-		// let fillStyle = this.ctx.fillStyle
-		// let strokeStyle = this.ctx.strokeStyle
 		this.ctx.save();
 		this.stylesExe();
 		this.attributesExe();
@@ -6244,10 +6214,9 @@
 			for (var i = 0, len = this.children.length; i < len; i += 1) {
 				this.children[i].execute();
 			}
-		} // this.dom.applyStyles()
+		}
 
-		this.ctx.restore(); // this.ctx.fillStyle = fillStyle
-		// this.ctx.strokeStyle = strokeStyle
+		this.ctx.restore();
 	};
 
 	CanvasNodeExe.prototype.child = function child (childrens) {
@@ -6266,8 +6235,7 @@
 		this.BBoxUpdate = true;
 		queueInstance$3.vDomChanged(this.vDomIndex);
 		return self;
-	}; // CanvasNodeExe.prototype.fetchEl = cfetchEl
-	// CanvasNodeExe.prototype.fetchEls = cfetchEls
+	};
 
 	CanvasNodeExe.prototype.updateBBox = function CupdateBBox () {
 		var status;
@@ -6296,19 +6264,11 @@
 	CanvasNodeExe.prototype.on = function Con (eventType, hndlr) {
 		this.dom.on(eventType, hndlr);
 		return this;
-	}; // CanvasNodeExe.prototype.exec = function Cexe (exe) {
-	//   if (typeof exe !== 'function') {
-	//     console.error('Wrong Exe type')
-	//   }
-	//   exe.call(this, this.dataObj)
-	//   return this
-	// }
-	// CanvasNodeExe.prototype.animateTo = animateTo
-	// CanvasNodeExe.prototype.animateExe = animateExe
+	};
 
 	CanvasNodeExe.prototype.animatePathTo = path.animatePathTo;
 	CanvasNodeExe.prototype.morphTo = path.morphTo;
-	CanvasNodeExe.prototype.vDomIndex = null; // CanvasNodeExe.prototype.join = dataJoin
+	CanvasNodeExe.prototype.vDomIndex = null;
 
 	CanvasNodeExe.prototype.createRadialGradient = createRadialGradient;
 	CanvasNodeExe.prototype.createLinearGradient = createLinearGradient;
@@ -6357,37 +6317,61 @@
 		queueInstance$3.vDomChanged(this.vDomIndex);
 	};
 
-	function CanvasLayer (context, config) {
+	CanvasNodeExe.prototype.getBBox = function () {
+		return {
+			x: this.dom.BBox.x,
+			y: this.dom.BBox.y,
+			width: this.dom.BBox.width,
+			height: this.dom.BBox.height
+		};
+	};
+
+	CanvasNodeExe.prototype.getPixels = function () {
+		return this.ctx.getImageData(this.dom.BBox.x, this.dom.BBox.y, this.dom.BBox.width, this.dom.BBox.height);
+	};
+
+	CanvasNodeExe.prototype.putPixels = function (imageData) {
+		return this.ctx.putImageData(imageData, this.dom.BBox.x, this.dom.BBox.y);
+	};
+
+	function CanvasLayer (container, config, eventsFlag) {
 		if ( config === void 0 ) config = {};
+		if ( eventsFlag === void 0 ) eventsFlag = true;
 
-		var originalRatio;
-
-		var res = document.querySelector(context);
-		var height = config.height ? config.height : res.clientHeight;
-		var width = config.width ? config.width : res.clientWidth;
+		// let originalRatio;
+		var res = container ? document.querySelector(container) : null;
+		var height = res ? res.clientHeight : 0;
+		var width = res ? res.clientWidth : 0;
 		var layer = document.createElement('canvas');
-		var ctx = layer.getContext('2d');
+		var ctx = layer.getContext('2d', config);
 		ratio = getPixlRatio(ctx);
-		originalRatio = ratio;
-		var onClear = config.onClear === 'clear' || !config.onClear ? function (ctx) {
+		var onClear = function (ctx) {
 			ctx.clearRect(0, 0, width * ratio, height * ratio);
-		} : config.onClear;
+		};
 		layer.setAttribute('height', height * ratio);
 		layer.setAttribute('width', width * ratio);
 		layer.style.height = height + "px";
 		layer.style.width = width + "px";
 		layer.style.position = 'absolute';
 
-		res.appendChild(layer);
-		var vDomInstance = new VDom();
-		var vDomIndex = queueInstance$3.addVdom(vDomInstance);
+		var vDomInstance;
+		var vDomIndex = 0;
+
+		if (res) {
+			res.appendChild(layer);
+			vDomInstance = new VDom();
+			vDomIndex = queueInstance$3.addVdom(vDomInstance);
+		}
+
 		var root = new CanvasNodeExe(ctx, {
 			el: 'group',
 			attr: {
 				id: 'rootNode'
 			}
 		}, domId$1(), vDomIndex);
-		vDomInstance.rootNode(root);
+		if (vDomInstance) {
+			vDomInstance.rootNode(root);
+		}
 		var execute = root.execute.bind(root);
 		root.container = res;
 		root.domEl = layer;
@@ -6395,107 +6379,167 @@
 		root.width = width;
 		root.type = 'CANVAS';
 
-		root.execute = function executeExe () {
-			onClear(ctx);
-			ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-			root.updateBBox();
-			execute();
+		root.setClear = function (exe) {
+			 onClear = exe;
 		};
 
 		root.setAttr = function (prop, value) {
-			if (arguments.length === 2) {
-				config[prop] = value;
-			} else if (arguments.length === 1 && typeof prop === 'object') {
-				var props = Object.keys(prop);
-
-				for (var i = 0, len = props.length; i < len; i += 1) {
-					config[props[i]] = prop[props[i]];
-				}
+			if (prop === 'viewBox') {
+				this.setViewBox.apply(this, value.split(','));
 			}
-
-			renderVdom.call(this);
+			layer.setAttribute(prop, value);
 		};
 
-		root.resize = renderVdom;
+		root.enableEvents = function (flag) {
+			eventsFlag = flag;
+		};
 
-		function renderVdom () {
-			width = config.width ? config.width : this.container.clientWidth;
-			height = config.height ? config.height : this.container.clientHeight;
-			this.domEl.setAttribute('height', height * originalRatio);
-			this.domEl.setAttribute('width', width * originalRatio);
-			this.domEl.style.height = height + "px";
-			this.domEl.style.width = width + "px";
+		root.setStyle = function (prop, value) {
+			this.domEl.style[prop] = value;
+		};
 
-			if (config.rescale) {
-				var newWidthRatio = width / this.width;
-				var newHeightRatio = height / this.height;
-				this.scale([newWidthRatio, newHeightRatio]);
-			} else {
-				this.execute();
+		root.setPixelRatio = function (val) {
+			ratio = val;
+			this.setSize(this.width, this.height);
+		};
+
+		root.setSize = function (width_, height_) {
+			this.domEl.setAttribute('height', height_);
+			this.domEl.setAttribute('width', width_);
+			this.domEl.style.height = height_ + "px";
+			this.domEl.style.width = width_ + "px";
+			this.width = width_;
+			this.height = height_;
+			this.execute();
+			width = width_;
+			height = height_;
+		};
+
+		root.setViewBox = function (x, y, height, width) {
+
+		};
+
+		root.getPixels = function (x, y, width_, height_) {
+			return this.ctx.getImageData(x, y, width_, height_);
+		};
+
+		root.putPixels = function (imageData, x, y) {
+			return this.ctx.putImageData(imageData, x, y);
+		};
+
+		root.clear = function () {
+			onClear();
+		};
+
+		root.setContext = function (prop, value) {
+			/** Expecting value to be array if multiple aruments */
+			if (this.ctx[prop] && typeof this.ctx[prop] === 'function') {
+				this.ctx[prop].apply(null, value);
+			} else if (this.ctx[prop]) {
+				this.ctx[prop] = value;
 			}
+		};
 
-			this.height = height;
-			this.width = width;
-		}
+		root.execute = function executeExe () {
+			onClear(ctx);
+			ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+			this.updateBBox();
+			execute();
+		};
 
-		function canvasResize () {
-			if (config.resize && typeof config.resize === 'function') {
-				config.resize();
-			}
+		// root.setConfig = function (prop, value) {
+		// 	if (arguments.length === 2) {
+		// 		config[prop] = value;
+		// 	} else if (arguments.length === 1 && typeof prop === 'object') {
+		// 		const props = Object.keys(prop);
 
-			root.resize();
-		}
+		// 		for (let i = 0, len = props.length; i < len; i += 1) {
+		// 			config[props[i]] = prop[props[i]];
+		// 		}
+		// 	}
 
-		window.addEventListener('resize', canvasResize);
+		// 	renderVdom.call(this);
+		// };
+
+		// root.resize = renderVdom;
+
+		// function renderVdom () {
+		// 	width = config.width ? config.width : this.container.clientWidth;
+		// 	height = config.height ? config.height : this.container.clientHeight;
+		// 	this.domEl.setAttribute('height', height * originalRatio);
+		// 	this.domEl.setAttribute('width', width * originalRatio);
+		// 	this.domEl.style.height = `${height}px`;
+		// 	this.domEl.style.width = `${width}px`;
+
+		// 	if (config.rescale) {
+		// 		let newWidthRatio = width / this.width;
+		// 		let newHeightRatio = height / this.height;
+		// 		this.scale([newWidthRatio, newHeightRatio]);
+		// 	} else {
+		// 		this.execute();
+		// 	}
+
+		// 	this.height = height;
+		// 	this.width = width;
+		// }
+
+		// function canvasResize () {
+		// 	if (config.resize && typeof config.resize === 'function') {
+		// 		config.resize();
+		// 	}
+
+		// 	root.resize();
+		// }
+
+		// window.addEventListener('resize', canvasResize);
 
 		root.destroy = function () {
-			window.removeEventListener('resize', canvasResize); // layer.remove()
-			// queueInstance.removeVdom(vDomIndex)
+			// window.removeEventListener('resize', canvasResize); 
 		};
 
-		if (config.events || config.events === undefined) {
+		if (eventsFlag) {
 			var eventsInstance = new Events(root);
-			res.addEventListener('mousemove', function (e) {
+			layer.addEventListener('mousemove', function (e) {
 				e.preventDefault();
 				eventsInstance.mousemoveCheck(e);
 			});
-			res.addEventListener('click', function (e) {
+			layer.addEventListener('click', function (e) {
 				e.preventDefault();
 				eventsInstance.clickCheck(e);
 			});
-			res.addEventListener('dblclick', function (e) {
+			layer.addEventListener('dblclick', function (e) {
 				e.preventDefault();
 				eventsInstance.dblclickCheck(e);
 			});
-			res.addEventListener('mousedown', function (e) {
+			layer.addEventListener('mousedown', function (e) {
 				e.preventDefault();
 				eventsInstance.mousedownCheck(e);
 			});
-			res.addEventListener('mouseup', function (e) {
+			layer.addEventListener('mouseup', function (e) {
 				e.preventDefault();
 				eventsInstance.mouseupCheck(e);
 			});
-			res.addEventListener('mouseleave', function (e) {
+			layer.addEventListener('mouseleave', function (e) {
 				e.preventDefault();
 				eventsInstance.mouseleaveCheck(e);
 			});
-			res.addEventListener('contextmenu', function (e) {
+			layer.addEventListener('contextmenu', function (e) {
 				e.preventDefault();
 				eventsInstance.contextmenuCheck(e);
 			});
-			res.addEventListener('touchstart', function (e) {
+			layer.addEventListener('touchstart', function (e) {
 				e.preventDefault();
 				eventsInstance.touchstartCheck(e);
 			});
-			res.addEventListener('touchend', function (e) {
+			layer.addEventListener('touchend', function (e) {
 				e.preventDefault();
 				eventsInstance.touchendCheck(e);
 			});
-			res.addEventListener('touchmove', function (e) {
+			layer.addEventListener('touchmove', function (e) {
 				e.preventDefault();
 				eventsInstance.touchmoveCheck(e);
 			});
-			res.addEventListener('touchcancel', function (e) {
+			layer.addEventListener('touchcancel', function (e) {
 				e.preventDefault();
 				eventsInstance.touchcancelCheck(e);
 			});
@@ -7241,8 +7285,6 @@
 	};
 	earcut_1.default = default_1;
 
-	// import { VDom, shaders, queue } from './'
-
 	var ratio$1;
 	var queueInstance$4 = queue;
 
@@ -7267,19 +7309,6 @@
 	WebglCollection.prototype.createNode = function (ctx, config, vDomIndex) {
 		return new WebglNodeExe(ctx, config, domId$2(), vDomIndex);
 	};
-	// WebglCollection.prototype.wrapper = function (nodes) {
-	//   const self = this
-
-	//   if (nodes) {
-	//     for (let i = 0, len = nodes.length; i < len; i++) {
-	//       let node = nodes[i]
-	//       if (node instanceof WebglNodeExe || node instanceof WebglCollection) {
-	//         self.stack.push(node)
-	//       }
-	//     }
-	//   }
-	//   return this
-	// }
 
 	function loadShader (ctx, shaderSource, shaderType) {
 		var shader = ctx.createShader(shaderType);
@@ -7327,15 +7356,7 @@
 
 	PointNode.prototype.setAttr = function (prop, value) {
 		this.attr[prop] = value;
-	}; // PointNode.prototype.getAttr = function (key) {
-	//   return this.attr[key]
-	// }
-	// PointNode.prototype.setStyle = function (prop, value) {
-	//   this.attr[prop] = value
-	// }
-	// PointNode.prototype.getStyle = function (key) {
-	//   return this.style[key]
-	// }
+	};
 
 	function RectNode (attr, style) {
 		this.attr = attr || {};
@@ -7345,15 +7366,7 @@
 	RectNode.prototype.setAttr = function (key, value) {
 		this.attr[key] = value; // this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe),
 		                        // this.nodeExe)
-	}; // RectNode.prototype.getAttr = function (key) {
-	//   return this.attr[key]
-	// }
-	// RectNode.prototype.setStyle = function (key, value) {
-	//   this.style[key] = value
-	// }
-	// RectNode.prototype.getStyle = function (key) {
-	//   return this.style[key]
-	// }
+	};
 
 	function PolyLineNode (attr, style) {
 		this.attr = attr || {};
@@ -8490,16 +8503,9 @@
 		this.styleChanged = true;
 		queueInstance$4.vDomChanged(this.vDomIndex);
 		return this;
-	}; // WebglNodeExe.prototype.getAttr = function WgetAttribute (_) {
-	//   return this.attr[_]
-	// }
-	// WebglNodeExe.prototype.getStyle = function WgetStyle (_) {
-	//   return this.style[_]
-	// }
+	};
 
 	WebglNodeExe.prototype.execute = function Cexecute () {
-		// this.stylesExe()
-		// this.attributesExe()
 		if (!this.dom.shader && this.dom instanceof RenderWebglGroup) {
 			for (var i = 0, len = this.children.length; i < len; i += 1) {
 				this.children[i].execute();
@@ -8586,24 +8592,28 @@
 
 	function WebGLLayer (context, config) {
 		var res = document.querySelector(context);
-		var height = config.height ? config.height : res.clientHeight;
-		var width = config.width ? config.width : res.clientWidth;
-		var clearColor = config.clearColor ? colorMap$1.colorToRGB(config.clearColor) : {
+		var height = res.clientHeight;
+		var width = res.clientWidth;
+		// config.clearColor ? colorMap.colorToRGB(config.clearColor) : 
+		var clearColor = {
 			r: 0,
 			g: 0,
 			b: 0,
 			a: 0
 		};
-		var layer = document.createElement('canvas');
-		var ctx = layer.getContext('webgl', {
+		config = config || {
 			premultipliedAlpha: false,
 			depth: false,
 			antialias: false,
 			alpha: true
-		});
+		};
+		var layer = document.createElement('canvas');
+		var ctx = layer.getContext('webgl', config);
+
 		ratio$1 = getPixlRatio$1(ctx);
 		ctx.enable(ctx.BLEND);
 		ctx.blendFunc(ctx.SRC_ALPHA, ctx.DST_ALPHA);
+		ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
 		layer.setAttribute('height', height * ratio$1);
 		layer.setAttribute('width', width * ratio$1);
 		layer.style.height = height + "px";
@@ -8625,7 +8635,7 @@
 		root.width = width;
 		root.type = 'WEBGL';
 		root.pixelRatio = ratio$1;
-		ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+
 
 		root.execute = function executeExe () {
 			this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
@@ -8637,13 +8647,34 @@
 			queueInstance$4.removeVdom(vDomIndex);
 		};
 
-		vDomInstance.rootNode(root);
+		root.setSize = function (width, height) {
+			this.domEl.setAttribute('height', height * ratio$1);
+			this.domEl.setAttribute('width', width * ratio$1);
+			this.domEl.style.height = height + "px";
+			this.domEl.style.width = width + "px";
+			this.width = width;
+			this.height = height;
+			this.execute();
+		};
 
-		if (config.resize) {
-			window.addEventListener('resize', function () {
-				root.resize();
-			});
-		}
+		root.setViewBox = function (x, y, height, width) {
+
+		};
+
+		root.setStyle = function (prop, value) {
+			this.domEl.style[prop] = value;
+		};
+
+		root.setContext = function (prop, value) {
+			/** Expecting value to be array if multiple aruments */
+			if (this.ctx[prop] && typeof this.ctx[prop] === 'function') {
+				this.ctx[prop].apply(null, value);
+			} else if (this.ctx[prop]) {
+				this.ctx[prop] = value;
+			}
+		};
+
+		vDomInstance.rootNode(root);
 
 		queueInstance$4.execute();
 		return root;

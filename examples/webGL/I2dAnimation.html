@@ -9,14 +9,13 @@
 </div>
 <script type="text/javascript" src="../../dist/i2d.js"></script>
 <script type="text/javascript">
-var webglRenderer = i2d.WebglLayer('#canvas', { events: false, selectiveClear: false });
+var webglRenderer = i2d.WebglLayer('#canvas', null, false);
 
 var ichainInstance = i2d.chain.sequenceChain().loop(10);
 var mchainInstance = i2d.chain.sequenceChain().loop(10);
 var dchainInstance = i2d.chain.sequenceChain().loop(10);
 
 /************** Points *****************/
-
 var path = i2d.Path()
 	.m(false, { x: 350, y: 225 })
 	.l(true, { x: 450, y: 225 })
