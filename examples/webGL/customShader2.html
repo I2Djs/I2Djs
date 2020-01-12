@@ -117,31 +117,22 @@ var vertexShader = `
             }
         `;
 let k = Math.sin(Date.now() / 5000) * 5;
+var meshGeo = webglRenderer.MeshGeometry();
+    meshGeo.setDrawType('TRIANGLE_FAN');
+    meshGeo.setAttr('a_vertex', {
+        value: Float32Array.of(-1, -1, +1, -1, +1, +1, -1, +1),
+        size: 2
+    });
+    meshGeo.setDrawRange(0, 4);
 var shaderRef = webglRenderer.createShaderEl({
 	fragmentShader: fragmentShader,
 	vertexShader: vertexShader,
 	uniforms: {
 		u_k: {
-			type: 'uniform1f',
-			data: k
+			value: k
 		}
 	},
-	attributes: {
-		a_vertex: {
-			bufferType: 'ARRAY_BUFFER',
-			drawType: 'STATIC_DRAW',
-			valueType: 'FLOAT',
-			size: 2,
-			data: Float32Array.of(-1, -1, +1, -1, +1, +1, -1, +1)
-		}
-	},
-	drawArrays: {
-		a_vertex: {
-			type: 'TRIANGLE_FAN',
-			start: 0,
-			end: 4
-		}
-	}
+    geometry: meshGeo
 });
 i2d.queue.onRequestFrame(function (t) {
 	shaderRef.setUniformData('u_k', Math.sin(t / 5000) * 5);

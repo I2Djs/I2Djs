@@ -226,12 +226,12 @@ pixelObject.prototype.put = function (color, pos) {
 	return this;
 };
 
-function pixels (pixHndlr) {
-	const tObj = this.rImageObj ? this.rImageObj : this.imageObj;
-	const tCxt = tObj.getContext('2d');
-	const pixelData = tCxt.getImageData(0, 0, this.attr.width, this.attr.height);
-	return pixHndlr(pixelData);
-}
+// function pixels (pixHndlr) {
+// 	const tObj = this.rImageObj ? this.rImageObj : this.imageObj;
+// 	const tCxt = tObj.getContext('2d');
+// 	const pixelData = tCxt.getImageData(0, 0, this.attr.width, this.attr.height);
+// 	return pixHndlr(pixelData);
+// }
 
 function getCanvasImgInstance (width, height) {
 	const canvas = document.createElement('canvas');
@@ -340,14 +340,8 @@ function RenderImage (ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
 	self.nodeName = 'Image';
 	self.nodeExe = nodeExe;
 
-	if (typeof self.attr.src === 'string') {
-		self.image = imageInstance(self);
-		self.image.src = self.attr.src;
-	} else if (self.attr.src instanceof HTMLImageElement || self.attr.src instanceof SVGImageElement || self.attr.src instanceof HTMLCanvasElement) {
-		self.imageObj = self.attr.src;
-		this.postProcess();
-	} else if (self.attr.src instanceof CanvasNodeExe) {
-		self.imageObj = self.attr.src.domEl;
+	for (let key in props) {
+		this.setAttr(key, props[key]);
 	}
 
 	queueInstance.vDomChanged(nodeExe.vDomIndex);
@@ -362,8 +356,10 @@ RenderImage.prototype.setAttr = function RIsetAttr (attr, value) {
 
 	if (attr === 'src') {
 		if (typeof value === 'string') {
-			self.image = imageInstance(self);
-			self.image.src = value;
+			self.image = self.image ? self.image : imageInstance(self);
+			if (self.image.src !== value) {
+				self.image.src = value;
+			}
 		} else if (value instanceof HTMLImageElement || value instanceof SVGImageElement || value instanceof HTMLCanvasElement) {
 			self.imageObj = value;
 			self.postProcess();
@@ -432,6 +428,7 @@ RenderImage.prototype.clipImage = function () {
 RenderImage.prototype.pixelsUpdate = function () {
 	let self = this;
 	let ctxX;
+	let pixels;
 
 	if (!this.imageObj) {
 		return;
@@ -443,11 +440,18 @@ RenderImage.prototype.pixelsUpdate = function () {
 	} = self.attr;
 
 	if (!self.rImageObj) {
-		self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);	
+		self.rImageObj = getCanvasImgInstance(width, height);
+		ctxX = self.rImageObj.getContext('2d');
+		ctxX.drawImage(self.imageObj, 0, 0, width, height);
+	} else {
+		ctxX = self.rImageObj.getContext('2d');
+		// ctxX.drawImage(self.imageObj, 0, 0, width, height);
 	}
-	ctxX = self.rImageObj.getContext('2d');
-	ctxX.drawImage(self.imageObj, 0, 0, width, height);
-	ctxX.putImageData(self.attr.pixels(ctxX.getImageData(0, 0, width, height)), 0, 0);
+	pixels = ctxX.getImageData(0, 0, width, height);
+	
+	// ctxX.clearRect(0, 0, width, height);
+	// ctxX.clearRect(0, 0, width, height);
+	ctxX.putImageData(self.attr.pixels(pixels), 0, 0);
 };
 
 RenderImage.prototype.updateBBox = function RIupdateBBox () {
@@ -1237,8 +1241,8 @@ RenderGroup.prototype.in = function RGinfun (coOr) {
 /** ***************** End Render Group */
 
 let CanvasNodeExe = function CanvasNodeExe (context, config, id, vDomIndex) {
-	this.style = {};
-	this.attr = {};
+	this.style = config.style || {};
+	this.attr = config.attr || {};
 	this.id = id;
 	this.nodeName = config.el;
 	this.nodeType = 'CANVAS';
@@ -1295,14 +1299,13 @@ let CanvasNodeExe = function CanvasNodeExe (context, config, id, vDomIndex) {
 
 	this.dom.nodeExe = this;
 	this.BBoxUpdate = true;
+	// if (config.style) {
+	// 	this.setStyle(config.style);
+	// }
 
-	if (config.style) {
-		this.setStyle(config.style);
-	}
-
-	if (config.attr) {
-		this.setAttr(config.attr);
-	}
+	// if (config.attr) {
+	// 	this.setAttr(config.attr);
+	// }
 };
 
 CanvasNodeExe.prototype = new NodePrototype();
@@ -1823,7 +1826,7 @@ function CanvasNodeLayer (config, height = 0, width = 0) {
 	let layer = new Canvas(width, height);
 	const ctx = layer.getContext('2d', config);
 	ratio = getPixlRatio(ctx);
-	const onClear = function (ctx) {
+	let onClear = function (ctx) {
 		ctx.clearRect(0, 0, width * ratio, height * ratio);
 	};
 	const vDomInstance = new VDom();

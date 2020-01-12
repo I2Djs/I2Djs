@@ -27,7 +27,9 @@ var path = i2d.Path()
 var totalLen = path.length;
 var pointsRef = webglRenderer.createEl({
 	el: 'group',
-	shaderType: 'points'
+	attr: {
+		shaderType: 'point'
+	}
 }).createEls(pointsData, {
 	el: 'point',
 	attr: {

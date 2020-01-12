@@ -18,7 +18,7 @@ function shaders (el) {
           void main() {
             vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
             vec2 clipSpace = ((zeroToOne) * 2.0) - 1.0;
-            gl_Position = vec4((clipSpace * vec2(1, -1)), 0, 1);
+            gl_Position = vec4((clipSpace * vec2(1.0, -1.0)), 0, 1);
             gl_PointSize = a_size;
             v_color = a_color;
           }
@@ -97,6 +97,30 @@ function shaders (el) {
 			};
 			break;
 
+		case 'polyline':
+		case 'polygon':
+			res = {
+				vertexShader: `
+                    attribute vec2 a_position;
+                    uniform vec2 u_resolution;
+                    uniform vec2 u_translate;
+                    uniform vec2 u_scale;
+                    void main() {
+                    vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
+                    vec2 clipSpace = zeroToOne * 2.0 - 1.0;
+                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+                    }
+                    `,
+				fragmentShader: `
+                    precision mediump float;
+                    uniform vec4 u_color;
+                    void main() {
+                        gl_FragColor = u_color;
+                    }
+                    `
+			};
+			break;
+
 		default:
 			res = {
 				vertexShader: `
@@ -109,7 +133,7 @@ function shaders (el) {
                     void main() {
                     vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
                     vec2 clipSpace = zeroToOne * 2.0 - 1.0;
-                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+                    gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0, 1);
                     v_color = a_color;
                     }
                     `,

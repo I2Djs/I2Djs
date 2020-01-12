@@ -16,7 +16,9 @@ var height = 820, width = 1430;
 var renderer_ = i2d.WebglLayer('#myCanvas', null, false);
 var group = renderer_.createEl({
 	el: 'group',
-	shaderType: 'points'
+	attr: {
+		shaderType: 'point'
+	}
 });
 var queue = i2d.queue;
 var circlesGrid = [];
@@ -28,8 +30,8 @@ var atan2 = Math.atan2;
 var cos = Math.cos;
 var sin = Math.sin;
 
-for (var i = 0; i < 200; i++) {
-	for (var j = 0; j < 400; j++) {
+for (var i = 0; i < 250; i++) {
+	for (var j = 0; j < 450; j++) {
 		circlesGrid.push({
 			x: j * 3,
 			ox: j * 3,

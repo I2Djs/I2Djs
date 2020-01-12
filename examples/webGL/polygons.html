@@ -14,21 +14,21 @@ var webglRenderer = i2d.WebglLayer('#canvas', { events: false, selectiveClear: f
 /************** polygons *****************/
 
 var polygonsData = [];
-for (let i = 0; i < 10; i++) {
+for (let i = 0; i < 10000; i++) {
 	let x1 = Math.random() * 1400;
-	let y1 = Math.random() * 1400;
+	let y1 = Math.random() * 800;
 	polygonsData.push({
 		points: [{ x: x1, y: y1 },
-			{ x: x1 + Math.random() * 50, y: y1 + Math.random() * 50 },
-			{ x: x1 + Math.random() * 100, y: y1 + Math.random() * 100 },
-			{ x: x1 + Math.random() * 150, y: y1 + Math.random() * 200 },
-			{ x: x1 + Math.random() * 200, y: y1 }]
+			{ x: x1 + 5, y: y1 + Math.random() * 10 },
+			{ x: x1 - 5, y: y1 + Math.random() * 10 }]
 	});
 }
 
 var polygonsRef = webglRenderer.createEl({
 	el: 'group',
-	shaderType: 'polygons'
+	attr: {
+		shaderType: 'polygon'
+	}
 });
 polygonsRef.createEls(polygonsData, {
 	el: 'polygon',

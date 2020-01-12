@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+<label style="position: absolute;color: white"> Webgl Example </label>
+<div id="canvas" style="height: 100%;width:100%;background: black">
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
+<script type="text/javascript">
+var webglRenderer = i2d.WebglLayer('#canvas', {
+	depth: false,
+	antialias: false
+}, false);
+
+/************** Points *****************/
+
+var pointsData = [];
+for (let i = 0; i < 100000; i++) {
+	pointsData.push({
+		x: (Math.random() * 1400),
+		y: (Math.random() * 1000),
+		x1: (Math.random() * 1400),
+		y1: (Math.random() * 1000)
+	});
+}
+var path = i2d.Path()
+	.m(false, { x: 100, y: 100 })
+	.c(false, { x: 0, y: 500 }, { x: 1000, y: 0 }, { x: 1000, y: 500 });
+var totalLen = path.length;
+
+var pointsRef = webglRenderer.createEl({
+	el: 'group',
+	attr: {
+		shaderType: 'point'
+	}
+})
+
+pointsRef.createEls(pointsData, {
+	el: 'point',
+	attr: {
+		class: function (d, i) {
+			return 'class'+parseInt(i%10);
+		},
+		x: function (d) {
+			return d.x;
+		},
+		y: function (d) {
+			return d.y;
+		},
+		size: function () {
+			return Math.floor(Math.random() * 10.0);
+		}
+	},
+	style: {
+		fill: function () {
+			return i2d.color.rgba(Math.random() * 255, Math.random() * 255, Math.random() * 255, 255);
+		}
+	}
+});
+
+setTimeout(function () {
+	pointsRef.fetchEls('.class5').remove();
+}, 2000);
+
+pointsRef.fetchEls('.class8').animateTo({
+	duration: 5000,
+	loop: 10,
+	direction: 'alternate',
+	// delay: function (d, i) {
+	// 	return i * 2;
+	// },
+	attr: {
+		x: function (d, i) {
+			return d.x1;
+		},
+		y: function (d, i) {
+			return d.y1
+		}
+	},
+	end: function (d, i) {
+		// this.setStyle('fill', color.rgba(255, 132, 132, 255));
+		// this.animateTo({
+		// 	duration: 10000,
+		// 	loop: 100,
+		// 	direction: 'alternate',
+		// 	attr: {
+		// 		x: function (t) {
+		// 			return path.getPointAtLength(totalLen * t).x + d.randX;
+		// 		},
+		// 		y: function (t) {
+		// 			return path.getPointAtLength(totalLen * t).y + d.randY;
+		// 		}
+		// 	}
+		// });
+	}
+});
+
+/************** End Points *****************/
+
+</script>
+
+</body>
+</html>

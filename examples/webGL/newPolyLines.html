@@ -7,15 +7,15 @@
 <label style="position: absolute;color: white"> Webgl Example </label>
 <div id="canvas" style="height: 100%;width:100%;background: black">
 </div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
-
-<script type="text/javascript">
-var webglRenderer = i2d.WebglLayer('#canvas', { events: false, selectiveClear: false });
+<script type="module">
+import WebglLayer from '../../src/modules/webgl.js';
+import color from '../../src/modules/colorMap.js';
+var webglRenderer = WebglLayer('#canvas', null, false);
 
 /************** polyLines *****************/
 
 var polylinesData = [];
-for (let i = 0; i < 1; i++) {
+for (let i = 0; i < 100; i++) {
 	let x1 = Math.random() * 1400;
 	let y1 = Math.random() * 1400;
 	polylinesData.push({
@@ -40,7 +40,7 @@ polylinesRef.createEls(polylinesData, {
 			return d.points;
 		}
 	},
-	style: { stroke: i2d.color.rgba(255, 0, 0, 255) }
+	style: { stroke: color.rgba(255, 0, 0, 255) }
 });
 
 /************** End polyLines *****************/

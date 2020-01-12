@@ -36,34 +36,34 @@ var img = renderer_.createEl({
 	},
 	onload: function () {
 
-		this.animateTo({
-			duration: 5000,
-			ease: 'easeInOutSin',
-			attr: {
-				pixels: function (f) {
-					return function (pixelData) {
-						var data = pixelData.data;
-						var height = pixelData.height;
-						var width = pixelData.width;
-						// console.log(pixelData)
-						for (var i = 0; i < data.length; i += 4) {
+		// this.animateTo({
+		// 	duration: 5000,
+		// 	ease: 'easeInOutSin',
+		// 	attr: {
+		// 		pixels: function (f) {
+		// 			return function (pixelData) {
+		// 				var data = pixelData.data;
+		// 				var height = pixelData.height;
+		// 				var width = pixelData.width;
+		// 				// console.log(pixelData)
+		// 				for (var i = 0; i < data.length; i += 4) {
 
-							if (i < parseInt(f * height) * width * 4) {
-								data[i] = localPixelData[i];
-								data[i + 1] = localPixelData[i + 1];
-								data[i + 2] = localPixelData[i + 2];
-							} else {
-								data[i] = 255;
-								data[i + 1] = 255;
-								data[i + 2] = 255;
-							}
-						}
-						pixelData.data = data;
-						return pixelData;
-					};
-				}
-			}
-		});
+		// 					if (i < parseInt(f * height) * width * 4) {
+		// 						data[i] = localPixelData[i];
+		// 						data[i + 1] = localPixelData[i + 1];
+		// 						data[i + 2] = localPixelData[i + 2];
+		// 					} else {
+		// 						data[i] = 255;
+		// 						data[i + 1] = 255;
+		// 						data[i + 2] = 255;
+		// 					}
+		// 				}
+		// 				pixelData.data = data;
+		// 				return pixelData;
+		// 			};
+		// 		}
+		// 	}
+		// });
 
 	}
 });

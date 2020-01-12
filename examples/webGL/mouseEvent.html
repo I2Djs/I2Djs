@@ -11,16 +11,18 @@
 <script type="text/javascript" src="../../dist/i2d.js"></script>
 <script type="text/javascript">
 
-var renderer_ = i2d.WebglLayer('#myCanvas', { events: false, selectiveClear: false });
+var renderer_ = i2d.WebglLayer('#myCanvas', null, false);
 var rectsRef = renderer_.createEl({
 	el: 'group',
-	shaderType: 'rects'
+	attr: {
+		shaderType: 'rect'
+	}
 });
 
 var i = 0;
 var sqrt = Math.sqrt;
 window.addEventListener('mousemove', function (e) {
-	rectsRef.createEls([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], {
+	rectsRef.createEls([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20], {
 		el: 'rect',
 		attr: {
 			width: 7,
@@ -38,10 +40,10 @@ window.addEventListener('mousemove', function (e) {
 			ease: 'easeOutCubic',
 			attr: {
 				x: function (d) {
-					return e.offsetX + Math.cos((2 * Math.PI / 29) * d) * 300;
+					return e.offsetX + Math.cos((2 * Math.PI / 20) * d) * 500;
 				},
 				y: function (d) {
-					return e.offsetY + Math.sin((2 * Math.PI / 29) * d) * 300;
+					return e.offsetY + Math.sin((2 * Math.PI / 20) * d) * 500;
 				},
 				width: 100
 			},

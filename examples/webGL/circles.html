@@ -16,17 +16,19 @@ console.log(i2d);
 /************** circles *****************/
 
 var circlesData = [];
-for (let i = 0; i < 10000; i++) {
+for (let i = 0; i < 1000; i++) {
 	circlesData.push({
 		cx: Math.random() * 1200,
 		cy: Math.random() * 800,
-		r: 1
+		r: Math.random() * 10
 	});
 }
 
 var circlesRef = webglRenderer.createEl({
 	el: 'group',
-	shaderType: 'circles'
+	attr: {
+		shaderType: 'circle'
+	}
 }).createEls(circlesData, {
 	el: 'circle',
 	attr: {

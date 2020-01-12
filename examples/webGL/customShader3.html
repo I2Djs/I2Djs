@@ -175,75 +175,55 @@ var vertexShader = `
                                 gl_PointSize = 1.5;
                                 }
                                 `;
-let a = -2;
-let b = -2;
+let a = -2.0;
+let b = -2.0;
 let c = -1.2;
-let d = 2;
+let d = 2.0;
 let n = Math.pow(2, 18);
 let k = Math.sin(Date.now() / 5000) * 5;
+var meshGeo = webglRenderer.MeshGeometry();
+    meshGeo.setDrawType('TRIANGLE_FAN');
+    meshGeo.setAttr('a_vertex', {
+        value: Float32Array.of(-1, -1, +1, -1, +1, +1, -1, +1),
+        size: 2
+    });
+    meshGeo.setDrawRange(0, 4);
 var shaderRef2 = webglRenderer.createShaderEl({
 	fragmentShader: fragmentShader2,
 	vertexShader: vertexShader2,
 	uniforms: {
 		u_k: {
-			type: 'uniform1f',
-			data: k
+			value: k
 		}
 	},
-	attributes: {
-		a_vertex: {
-			bufferType: 'ARRAY_BUFFER',
-			drawType: 'STATIC_DRAW',
-			valueType: 'FLOAT',
-			size: 2,
-			data: Float32Array.of(-1, -1, +1, -1, +1, +1, -1, +1)
-		}
-	},
-	drawArrays: {
-		a_vertex: {
-			type: 'TRIANGLE_FAN',
-			start: 0,
-			end: 4
-		}
-	}
+    geometry: meshGeo
 });
+
+var geome = webglRenderer.PointsGeometry();
+geome.setAttr('a_position', {
+    value: new Float32Array(n * 2).map(() => Math.random() * 2 - 1),
+    size: 2
+});
+geome.setDrawRange(0, n);
+
 var shaderRef = webglRenderer.createShaderEl({
 	fragmentShader: fragmentShader,
 	vertexShader: vertexShader,
 	uniforms: {
 		u_a: {
-			type: 'uniform1f',
-			data: a
+			value: a.toFixed(2)
 		},
 		u_b: {
-			type: 'uniform1f',
-			data: b
+			value: b.toFixed(2)
 		},
 		u_c: {
-			type: 'uniform1f',
-			data: c
+			value: c.toFixed(2)
 		},
 		u_d: {
-			type: 'uniform1f',
-			data: d
+			value: d.toFixed(2)
 		}
 	},
-	attributes: {
-		a_position: {
-			bufferType: 'ARRAY_BUFFER',
-			drawType: 'STATIC_DRAW',
-			valueType: 'FLOAT',
-			size: 2,
-			data: new Float32Array(n * 2).map(() => Math.random() * 2 - 1)
-		}
-	},
-	drawArrays: {
-		a_position: {
-			type: 'POINTS',
-			start: 0,
-			end: n
-		}
-	}
+    geometry: geome
 });
 // .addUniform('u_a',{
 //     type: 'uniform1f',
