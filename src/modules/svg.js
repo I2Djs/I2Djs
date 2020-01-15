@@ -600,6 +600,10 @@ function SVGLayer (context, config = {}) {
 	root.height = height;
 	vDomInstance.rootNode(root);
 
+	root.setLayerId = function (id) {
+		layer.setAttribute('id', id);
+	};
+
 	root.setSize = function (width, height) {
 		this.dom.setAttribute('height', height);
 		this.dom.setAttribute('width', width);

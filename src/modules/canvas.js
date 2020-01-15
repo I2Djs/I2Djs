@@ -1713,54 +1713,9 @@ function CanvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag 
 		execute();
 	};
 
-	// root.setConfig = function (prop, value) {
-	// 	if (arguments.length === 2) {
-	// 		config[prop] = value;
-	// 	} else if (arguments.length === 1 && typeof prop === 'object') {
-	// 		const props = Object.keys(prop);
-
-	// 		for (let i = 0, len = props.length; i < len; i += 1) {
-	// 			config[props[i]] = prop[props[i]];
-	// 		}
-	// 	}
-
-	// 	renderVdom.call(this);
-	// };
-
-	// root.resize = renderVdom;
-
-	// function renderVdom () {
-	// 	width = config.width ? config.width : this.container.clientWidth;
-	// 	height = config.height ? config.height : this.container.clientHeight;
-	// 	this.domEl.setAttribute('height', height * originalRatio);
-	// 	this.domEl.setAttribute('width', width * originalRatio);
-	// 	this.domEl.style.height = `${height}px`;
-	// 	this.domEl.style.width = `${width}px`;
-
-	// 	if (config.rescale) {
-	// 		let newWidthRatio = width / this.width;
-	// 		let newHeightRatio = height / this.height;
-	// 		this.scale([newWidthRatio, newHeightRatio]);
-	// 	} else {
-	// 		this.execute();
-	// 	}
-
-	// 	this.height = height;
-	// 	this.width = width;
-	// }
-
-	// function canvasResize () {
-	// 	if (config.resize && typeof config.resize === 'function') {
-	// 		config.resize();
-	// 	}
-
-	// 	root.resize();
-	// }
-
-	// window.addEventListener('resize', canvasResize);
-
 	root.destroy = function () {
-		// window.removeEventListener('resize', canvasResize); 
+		res.removeChild(layer);
+		queueInstance.removeVdom(vDomIndex);
 	};
 
 	if (eventsFlag) {

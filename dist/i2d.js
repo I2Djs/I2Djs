@@ -4413,6 +4413,10 @@
 		root.height = height;
 		vDomInstance.rootNode(root);
 
+		root.setLayerId = function (id) {
+			layer.setAttribute('id', id);
+		};
+
 		root.setSize = function (width, height) {
 			this.dom.setAttribute('height', height);
 			this.dom.setAttribute('width', width);
@@ -6427,54 +6431,9 @@
 			execute();
 		};
 
-		// root.setConfig = function (prop, value) {
-		// 	if (arguments.length === 2) {
-		// 		config[prop] = value;
-		// 	} else if (arguments.length === 1 && typeof prop === 'object') {
-		// 		const props = Object.keys(prop);
-
-		// 		for (let i = 0, len = props.length; i < len; i += 1) {
-		// 			config[props[i]] = prop[props[i]];
-		// 		}
-		// 	}
-
-		// 	renderVdom.call(this);
-		// };
-
-		// root.resize = renderVdom;
-
-		// function renderVdom () {
-		// 	width = config.width ? config.width : this.container.clientWidth;
-		// 	height = config.height ? config.height : this.container.clientHeight;
-		// 	this.domEl.setAttribute('height', height * originalRatio);
-		// 	this.domEl.setAttribute('width', width * originalRatio);
-		// 	this.domEl.style.height = `${height}px`;
-		// 	this.domEl.style.width = `${width}px`;
-
-		// 	if (config.rescale) {
-		// 		let newWidthRatio = width / this.width;
-		// 		let newHeightRatio = height / this.height;
-		// 		this.scale([newWidthRatio, newHeightRatio]);
-		// 	} else {
-		// 		this.execute();
-		// 	}
-
-		// 	this.height = height;
-		// 	this.width = width;
-		// }
-
-		// function canvasResize () {
-		// 	if (config.resize && typeof config.resize === 'function') {
-		// 		config.resize();
-		// 	}
-
-		// 	root.resize();
-		// }
-
-		// window.addEventListener('resize', canvasResize);
-
 		root.destroy = function () {
-			// window.removeEventListener('resize', canvasResize); 
+			res.removeChild(layer);
+			queueInstance$3.removeVdom(vDomIndex);
 		};
 
 		if (eventsFlag) {
@@ -9191,6 +9150,7 @@
 		this.vDomIndex = vDomIndex;
 		this.el = config.el;
 		this.shaderType = config.shaderType;
+		this.exeCtx = config.ctx;
 
 		switch (config.el) {
 			case 'point':
@@ -9299,6 +9259,9 @@
 				this.reIndexChildren();
 				this.reindex = false;
 			}
+			if (this.exeCtx) {
+				this.exeCtx(this.ctx);
+			}
 			this.dom.shader.execute(this.children);
 		}
 	};
@@ -9389,12 +9352,13 @@
 		const res = container ? document.querySelector(container) : null;
 		let height = res ? res.clientHeight : 0;
 		let width = res ? res.clientWidth : 0;
-		let clearColor = {
-			r: 0,
-			g: 0,
-			b: 0,
-			a: 0
-		};
+		let clearColor = colorMap$1.rgba(0, 0, 0, 0);
+		// {
+		// 	r: 0,
+		// 	g: 0,
+		// 	b: 0,
+		// 	a: 0
+		// };
 		config = config || {
 			premultipliedAlpha: false,
 			depth: false,
@@ -9405,9 +9369,9 @@
 		const ctx = layer.getContext('webgl', config);
 
 		ratio$1 = getPixlRatio$1(ctx);
-		ctx.enable(ctx.BLEND);
-		ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
-		ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+		// ctx.enable(ctx.BLEND);
+		// ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
+		// ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
 		layer.setAttribute('height', height * ratio$1);
 		layer.setAttribute('width', width * ratio$1);
 		layer.style.height = `${height}px`;
@@ -9429,6 +9393,11 @@
 			el: 'group',
 			attr: {
 				id: 'rootNode'
+			},
+			ctx: function (ctx) {
+				ctx.enable(ctx.BLEND);
+				ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
+				ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
 			}
 		}, domId$2(), vDomIndex);
 
@@ -9443,14 +9412,31 @@
 		root.type = 'WEBGL';
 		root.pixelRatio = ratio$1;
 
+		let onClear = function (ctx) {
+			ctx.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
+			ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT);
+		};
+
 		root.execute = function executeExe () {
-			this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-			this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT);
+			onClear(this.ctx);
 			execute();
 		};
 
 		root.destroy = function () {
+			res.removeChild(layer);
 			queueInstance$4.removeVdom(vDomIndex);
+		};
+
+		root.clear = function () {
+			onClear(this.ctx);
+		};
+
+		root.setClearColor = function (color) {
+			 clearColor = color;
+		};
+
+		root.setClear = function (exe) {
+			 onClear = exe;
 		};
 
 		root.setSize = function (width_, height_) {
@@ -9470,6 +9456,13 @@
 
 		root.setStyle = function (prop, value) {
 			this.domEl.style[prop] = value;
+		};
+
+		root.setAttr = function (prop, value) {
+			if (prop === 'viewBox') {
+				this.setViewBox.apply(this, value.split(','));
+			}
+			layer.setAttribute(prop, value);
 		};
 
 		root.setContext = function (prop, value) {
@@ -9628,7 +9621,7 @@
 	function MeshGeometry (ctx) {
 		this.attributes = {};
 		this.drawType = 'TRIANGLES';
-		this.drawRange = [];
+		this.drawRange = [0, 0];
 	}MeshGeometry.prototype.setAttr = function (attr, value) {
 		this.attributes[attr] = value;
 	};
@@ -9643,7 +9636,7 @@
 	function PointsGeometry (ctx) {
 		this.attributes = {};
 		this.drawType = 'POINTS';
-		this.drawRange = [];
+		this.drawRange = [0, 0];
 	}
 	PointsGeometry.prototype.setAttr = function (attr, value) {
 		this.attributes[attr] = value;
@@ -9658,7 +9651,7 @@
 	function LineGeometry (ctx) {
 		this.attributes = {};
 		this.drawType = 'LINES';
-		this.drawRange = [];
+		this.drawRange = [0, 0];
 	}LineGeometry.prototype.setAttr = function (attr, value) {
 		this.attributes[attr] = value;
 	};

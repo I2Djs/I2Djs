@@ -18,12 +18,11 @@ var webglRenderer = i2d.WebglLayer('#canvas', {
     preserveDrawingBuffer: false
 }, false);
 
-let ctx = webglRenderer.ctx;
-    ctx.clearColor(0, 0, 0, 0);
-    ctx.enable(ctx.BLEND);
-    ctx.blendEquation(ctx.FUNC_ADD);
-    ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
-    ctx.depthMask(true);
+webglRenderer.setClearColor(i2d.color.rgba(0, 0, 0, 0));
+
+// let ctx = webglRenderer.ctx;
+//     ctx.clearColor(0, 0, 0, 0);
+    
 
 var ColorfragmentShader = `
     precision mediump float;
@@ -102,7 +101,13 @@ var imageGroup = webglRenderer.createEl({
     attr: {
         shaderType: 'image'
     },
-    renderTarget: renderTarget
+    renderTarget: renderTarget,
+    ctx: function (ctx) {
+        ctx.enable(ctx.BLEND);
+        ctx.blendEquation(ctx.FUNC_ADD);
+        ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
+        ctx.depthMask(true);
+    }
 });
 
 let colorGrad = [{

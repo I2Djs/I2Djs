@@ -25,18 +25,16 @@ var gameScene = CanvasRenderer.createEl({
 	}
 });
 
-gameScene.createEl({
-	el: 'rect',
-	attr: {
-		x: 0,
-		y: 0,
-		width: 1400,
-		height: 500
-	},
-	style: {
-		fillStyle: '#000000'
-	}
-});
+// gameScene.createEl({
+// 	el: 'image',
+// 	attr: {
+// 		src: '../images/sky.png',
+// 		x: 0,
+// 		y: 0,
+// 		width: 1400,
+// 		height: 500
+// 	}
+// });
 
 gameScene.createEl({
 	el: 'rect',
@@ -58,7 +56,7 @@ var pointsRef = webglRenderer.createEl({
 	}
 })
 
-let rainPoints = pointsRef.createEls(new Array(500).fill(0), {
+let rainPoints = pointsRef.createEls(new Array(10000).fill(0), {
 	el: 'point',
 	attr: {
 		class: function (d, i) {
@@ -230,11 +228,14 @@ let counter = 0;
 							el: 'image',
 							attr: {
 								src: '../images/spark.png',
-								width: 0.1, height: 0.1, x: x + 50,
-								y: 500
-								// transform: {
-								// 	rotate: [0, x + 50 , 800]
-								// }
+								width: 0,
+								height: 0,
+								x: 0,
+								y: 0,
+								transform: {
+									translate: [x + 50, 500],
+									rotate: [0, 0, 0]
+								}
 							}
 						})
 							.animateTo({
@@ -242,19 +243,14 @@ let counter = 0;
 								attr: {
 									width: function (d) {
 										return d * 40
-									} , height: function (d) {
+									}, height: function (d) {
 										return d * 40
-									},
-									x: function (d) {
-										return x - Math.random() * 150
-									},
-									y: function (d) {
-										return 500 - Math.random() * 150
+									}, transform: function (d) {
+										return {
+											translate: [x - Math.random() * 150 - d * 20, 500 - Math.random() * 150 - d * 20],
+											rotate: [90, 0, 0]
+										}
 									}
-									// ,
-									// transform: {
-									// 	rotate: [360, x, 800]
-									// }
 								},
 								end: function () {
 									this.remove();
