@@ -11,7 +11,7 @@
 <script type="text/javascript" src="../../dist/i2d.js"></script>
 
 <script type="text/javascript">
-var renderer = i2d.CanvasLayer('#myCanvas', { events: true, selectiveClear: false });
+var renderer = i2d.CanvasLayer('#myCanvas', {}, true);
 
 var rect = renderer.createEl({
 	el: 'rect',
@@ -148,27 +148,34 @@ var img = renderer.createEl({
 		shadowOffsetY: 15
 	},
 	onload: function () {
-
-		// this.animateTo({
-		//     duration:1000,
-		//     attr:{
-		//         pixels:function(f){
-		//             return function(pixelData){
-		//                     var data = pixelData.data;
-		//                     for (var i = 0; i < data.length; i += 4) {
-		//                         data[i]     =  data[i];     // red
-		//                         data[i + 1] = 255*f - data[i + 1]; // green
-		//                         data[i + 2] = 255*f - data[i + 2]; // blue
-		//                     }
-		//                     pixelData.data = data;
-		//                     console.log(f);
-		//                 return pixelData;
-		//             }
-		//         }
-		//     }
-		// })
+		
 	}
 });
+
+var rect2 = renderer.createEl({
+	el: 'rect',
+	attr: {
+		x: 500,
+		y: 350,
+		width: 150,
+		height: 150,
+		rx: 25,
+		ry: 25
+	},
+	style: {
+		fillStyle: 'red',
+		shadowColor: '#999',
+		shadowBlur: 20,
+		shadowOffsetX: 15,
+		shadowOffsetY: 15
+	}
+})
+	.on('mouseover', function () {
+		this.setStyle('fillStyle', 'green');
+	})
+	.on('mouseout', function () {
+		this.setStyle('fillStyle', 'red');
+	});
 
 renderer.createEl({
 	el: 'polyline',

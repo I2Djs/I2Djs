@@ -15,7 +15,7 @@ var webglRenderer = i2d.WebglLayer('#canvas', { events: false, selectiveClear: f
 /************** Rects *****************/
 
 var rectsData = [];
-for (let i = 0; i < 20000; i++) {
+for (let i = 0; i < 200; i++) {
 	rectsData.push({
 		x: parseInt(Math.random() * 1400),
 		y: parseInt(Math.random() * 1000)
@@ -24,7 +24,9 @@ for (let i = 0; i < 20000; i++) {
 
 var rectsRef = webglRenderer.createEl({
 	el: 'group',
-	shaderType: 'rects'
+	attr: {
+		shaderType: 'rect'
+	}
 }).createEls(rectsData, {
 	el: 'rect',
 	attr: {
@@ -34,25 +36,16 @@ var rectsRef = webglRenderer.createEl({
 		y: function (d) {
 			return d.y;
 		},
-		width: 2,
-		height: 2
+		width: function (d) {
+			return Math.random() * 200
+		},
+		height: function (d) {
+			return Math.random() * 200
+		}
 	},
-	style: { fill: i2d.color.rgba(0, 203, 255, 255) }
-});
-
-rectsRef.animateTo({
-	duration: function () {
-		return 2000 + Math.random() * 1000;
-	},
-	delay: function () {
-		return Math.random() * 2000;
-	},
-	loop: 10,
-	direction: 'alternate',
-	attr: {
-		x: 650,
-		y: 350
-	}
+	style: { fill: function () {
+		return i2d.color.rgba( Math.random() * 255,  Math.random() * 203,  Math.random() * 255, 255);
+	} }
 });
 
 /************** End Rects *****************/

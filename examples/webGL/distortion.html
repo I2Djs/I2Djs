@@ -13,10 +13,12 @@
 <script type="text/javascript">
 
 var height = 820, width = 1430;
-var renderer_ = i2d.WebglLayer('#myCanvas', { events: false, selectiveClear: false });
+var renderer_ = i2d.WebglLayer('#myCanvas', null, false);
 var group = renderer_.createEl({
 	el: 'group',
-	shaderType: 'points'
+	attr: {
+		shaderType: 'point'
+	}
 });
 var queue = i2d.queue;
 var circlesGrid = [];
@@ -28,8 +30,8 @@ var atan2 = Math.atan2;
 var cos = Math.cos;
 var sin = Math.sin;
 
-for (var i = 0; i < 200; i++) {
-	for (var j = 0; j < 400; j++) {
+for (var i = 0; i < 250; i++) {
+	for (var j = 0; j < 450; j++) {
 		circlesGrid.push({
 			x: j * 3,
 			ox: j * 3,
@@ -84,24 +86,6 @@ i2d.queue.onRequestFrame(function (t) {
 				.setAttr('y', d.y);
 		}
 	}
-	// points.forEach(function(d){
-
-	//                 dis = ( dx = mx - d.x ) * dx + ( dy = my - d.y ) * dy;
-	//                 f = -rad / dis
-
-	//                 if(dis < rad){
-	//                     t = atan2( dy, dx );
-	//                     d.vx = f * cos(t);
-	//                     d.vy = f * sin(t);
-	//                 }
-
-	//                 d.x += ( d.vx *= 0.8) + (d.ox - d.x) * 0.1;
-	//                 d.y += ( d.vy *= 0.8 ) + (d.oy - d.y) * 0.1;
-
-	//             this.setAttr({x:d.x,
-	//                         y: d.y})
-	//                 // .setAttr('y',d.y)
-	// })
 });
 
 </script>

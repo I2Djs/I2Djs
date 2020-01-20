@@ -1,6 +1,6 @@
 /*!
       * i2djs v2.0.4
-      * (c) 2019 Narayana Swamy (narayanaswamy14@gmail.com)
+      * (c) 2020 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
 (function (global, factory) {
@@ -156,7 +156,7 @@
 		}
 	};
 
-	ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom) {
+	ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom, flag) {
 		if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
 			vDoms[vDom].stateModified = true;
 		}
@@ -2736,6 +2736,17 @@
 		this.rgba = `rgba(${r},${g},${b},${a})`;
 	}
 
+	RGBA.prototype.normalize = function () {
+		if (!this.normalFlag) {
+			this.r /= 255;
+			this.g /= 255;
+			this.b /= 255;
+			this.a /= 255;
+			this.normalFlag = true;
+		}
+		return this;
+	};
+
 	function nameToHex (name) {
 		return colorMap[name] ? `#${colorMap[name]}` : '#000';
 	}
@@ -3003,7 +3014,6 @@
 					runStack[j](f);
 				}
 			},
-
 			duration: targetConfig.duration,
 			delay: targetConfig.delay ? targetConfig.delay : 0,
 			end: targetConfig.end ? targetConfig.end.bind(self, self.dataObj) : null,
@@ -3285,7 +3295,7 @@
 			if (config.action.update) {
 				config.action.update.call(self, joinResult.update);
 			}
-		} // this.joinOn = joinOn
+		}
 
 		CompositeArray.config = {
 			value: config,
@@ -3332,7 +3342,6 @@
 		collection.wrapper(coll);
 		return collection;
 	}
-
 	function join (data, el, arg) {
 		let d;
 		const coll = [];
@@ -3346,7 +3355,6 @@
 		collection.wrapper(coll);
 		return collection;
 	}
-
 	function createEl (config) {
 		let d;
 		const coll = [];
@@ -4391,8 +4399,8 @@
 		const vDomInstance = new VDom();
 		const vDomIndex = queueInstance$2.addVdom(vDomInstance);
 		const res = document.querySelector(context);
-		let height = config.height ? config.height : res.clientHeight;
-		let width = config.width ? config.width : res.clientWidth;
+		let height = res.clientHeight;
+		let width = res.clientWidth;
 		const layer = document.createElementNS(nameSpace.svg, 'svg');
 		layer.setAttribute('height', height);
 		layer.setAttribute('width', width);
@@ -4403,55 +4411,24 @@
 		root.type = 'SVG';
 		root.width = width;
 		root.height = height;
-		vDomInstance.rootNode(root); // root.resize = renderVdom
+		vDomInstance.rootNode(root);
 
-		root.setAttr = function (prop, value) {
-			if (arguments.length === 2) {
-				config[prop] = value;
-			} else if (arguments.length === 1 && typeof prop === 'object') {
-				const props = Object.keys(prop);
-
-				for (let i = 0, len = props.length; i < len; i += 1) {
-					config[props[i]] = prop[props[i]];
-				}
-			}
-
-			renderVdom.call(this);
+		root.setLayerId = function (id) {
+			layer.setAttribute('id', id);
 		};
 
-		function svgResize () {
-			height = config.height ? config.height : res.clientHeight;
-			width = config.width ? config.width : res.clientWidth;
-			layer.setAttribute('height', height);
-			layer.setAttribute('width', width);
-			root.width = width;
-			root.height = height;
-
-			if (config.resize && typeof config.resize === 'function') {
-				config.resize();
-			}
-
-			renderVdom.call(root);
-		}
-
-		function renderVdom () {
-			let width = config.width ? config.width : this.container.clientWidth;
-			let height = config.height ? config.height : this.container.clientHeight;
-			let newWidthRatio = width / this.width;
-			let newHeightRatio = height / this.height;
-
-			if (config && config.rescale) {
-				this.scale([newWidthRatio, newHeightRatio]);
-			}
-
+		root.setSize = function (width, height) {
 			this.dom.setAttribute('height', height);
 			this.dom.setAttribute('width', width);
-		}
+			this.width = width;
+			this.height = height;
+		};
 
-		window.addEventListener('resize', svgResize);
+		root.setViewBox = function (x, y, height, width) {
+			this.dom.setAttribute('viewBox', x + ',' + y + ',' + width + ',' + height);
+		};
 
 		root.destroy = function () {
-			window.removeEventListener('resize', svgResize);
 			layer.remove();
 			queueInstance$2.removeVdom(vDomIndex);
 		};
@@ -4726,7 +4703,6 @@
 				}
 			}
 		}
-
 		return node;
 	}
 
@@ -4769,7 +4745,6 @@
 		}
 	}
 
-	// import { node } from 'render'
 	let t2DGeometry$3 = geometry;
 	const queueInstance$3 = queue;
 	let Id$2 = 0;
@@ -4787,19 +4762,6 @@
 	CanvasCollection.prototype.createNode = function (ctx, config, vDomIndex) {
 		return new CanvasNodeExe(ctx, config, domId$1(), vDomIndex);
 	};
-	// CanvasCollection.prototype.wrapper = function (nodes) {
-	//   const self = this
-
-	//   if (nodes) {
-	//     for (let i = 0, len = nodes.length; i < len; i++) {
-	//       let node = nodes[i]
-	//       if (node instanceof CanvasNodeExe || node instanceof CanvasCollection) {
-	//         self.stack.push(node)
-	//       }
-	//     }
-	//   }
-	//   return this
-	// }
 
 	let ratio;
 
@@ -4982,12 +4944,12 @@
 		return new CanvasGradients(config, 'radial');
 	}
 
-	function pixels (pixHndlr) {
-		const tObj = this.rImageObj ? this.rImageObj : this.imageObj;
-		const tCxt = tObj.getContext('2d');
-		const pixelData = tCxt.getImageData(0, 0, this.attr.width, this.attr.height);
-		return pixHndlr(pixelData);
-	}
+	// function pixels (pixHndlr) {
+	// 	const tObj = this.rImageObj ? this.rImageObj : this.imageObj;
+	// 	const tCxt = tObj.getContext('2d');
+	// 	const pixelData = tCxt.getImageData(0, 0, this.attr.width, this.attr.height);
+	// 	return pixHndlr(pixelData);
+	// }
 
 	function getCanvasImgInstance (width, height) {
 		const canvas = document.createElement('canvas');
@@ -5049,18 +5011,12 @@
 		setStyle: domSetStyle,
 		applyStyles
 	};
+
 	const imageDataMap = {};
 
-	function RenderImage (ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
-		const self = this;
-		self.ctx = ctx;
-		self.attr = props;
-		self.style = stylesProps;
-		self.nodeName = 'Image';
-		self.image = new Image(); // self.image.crossOrigin="anonymous"
-		// self.image.setAttribute('crossOrigin', '*')
-
-		self.image.onload = function onload () {
+	function imageInstance (self) {
+		let imageIns = new Image();
+		imageIns.onload = function onload () {
 			this.crossOrigin = 'anonymous';
 			self.attr.height = self.attr.height ? self.attr.height : this.height;
 			self.attr.width = self.attr.width ? self.attr.width : this.width;
@@ -5075,65 +5031,35 @@
 				imageDataMap[self.attr.src] = im;
 			}
 
-			if (self.attr.clip) {
-				let ctxX;
-				const {
-					clip,
-					width,
-					height
-				} = self.attr;
-				let {
-					sx,
-					sy,
-					swidth,
-					sheight
-				} = clip;
+			self.postProcess();
 
-				if (!this.rImageObj) {
-					self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
-				}
-
-				ctxX = self.rImageObj.getContext('2d');
-				sx = sx !== undefined ? sx : 0;
-				sy = sy !== undefined ? sy : 0;
-				swidth = swidth !== undefined ? swidth : width;
-				sheight = sheight !== undefined ? sheight : height;
-				ctxX.drawImage(self.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
-			}
-
-			if (self.attr.pixels && self.imageObj) {
-				let ctxX;
-				const {
-					width,
-					height
-				} = self.attr;
-
-				if (!self.rImageObj) {
-					self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
-					ctxX = self.rImageObj.getContext('2d');
-					ctxX.drawImage(self.imageObj, 0, 0, width, height);
-				}
-
-				ctxX = self.rImageObj.getContext('2d');
-				ctxX.putImageData(pixels.call(self, self.attr.pixels), 0, 0);
-			}
-
-			if (nodeExe.attr.onload && typeof nodeExe.attr.onload === 'function') {
-				nodeExe.attr.onload.call(nodeExe, self.image);
+			if (self.nodeExe.attr.onload && typeof self.nodeExe.attr.onload === 'function') {
+				self.nodeExe.attr.onload.call(self.nodeExe, self.image);
 			}
 
 			self.nodeExe.BBoxUpdate = true;
 			queueInstance$3.vDomChanged(self.nodeExe.vDomIndex);
 		};
 
-		self.image.onerror = function onerror (error) {
-			if (nodeExe.attr.onerror && typeof nodeExe.attr.onerror === 'function') {
-				nodeExe.attr.onerror.call(nodeExe, error);
+		imageIns.onerror = function onerror (error) {
+			if (self.nodeExe.attr.onerror && typeof self.nodeExe.attr.onerror === 'function') {
+				self.nodeExe.attr.onerror.call(self.nodeExe, error);
 			}
 		};
 
-		if (self.attr.src) {
-			self.image.src = self.attr.src;
+		return imageIns;
+	}
+
+	function RenderImage (ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
+		const self = this;
+		self.ctx = ctx;
+		self.attr = props;
+		self.style = stylesProps;
+		self.nodeName = 'Image';
+		self.nodeExe = nodeExe;
+
+		for (let key in props) {
+			this.setAttr(key, props[key]);
 		}
 
 		queueInstance$3.vDomChanged(nodeExe.vDomIndex);
@@ -5145,62 +5071,105 @@
 
 	RenderImage.prototype.setAttr = function RIsetAttr (attr, value) {
 		const self = this;
-		this.attr[attr] = value;
 
 		if (attr === 'src') {
-			this.image[attr] = value;
-		} // if ((attr === 'onerror' || attr === 'onload') && typeof value === 'function') {
-		//   this.image[attr] = function (e) {
-		//     value.call(self, this, e)
-		//   }
-		// }
-
-		if (attr === 'clip') {
-			if (!this.rImageObj) {
-				this.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
-			}
-
-			const ctxX = this.rImageObj.getContext('2d');
-			const {
-				clip,
-				width,
-				height
-			} = this.attr;
-			let {
-				sx,
-				sy,
-				swidth,
-				sheight
-			} = clip;
-			sx = sx !== undefined ? sx : 0;
-			sy = sy !== undefined ? sy : 0;
-			swidth = swidth !== undefined ? swidth : width;
-			sheight = sheight !== undefined ? sheight : height;
-			ctxX.clearRect(0, 0, width, height);
-
-			if (this.imageObj) {
-				ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
+			if (typeof value === 'string') {
+				self.image = self.image ? self.image : imageInstance(self);
+				if (self.image.src !== value) {
+					self.image.src = value;
+				}
+			} else if (value instanceof HTMLImageElement || value instanceof SVGImageElement || value instanceof HTMLCanvasElement) {
+				self.imageObj = value;
+				self.postProcess();
+				self.attr.height = self.attr.height ? self.attr.height : value.height;
+				self.attr.width = self.attr.width ? self.attr.width : value.width;
+			} else if (value instanceof CanvasNodeExe) {
+				self.imageObj = value.domEl;
+				self.postProcess();
+				self.attr.height = self.attr.height ? self.attr.height : value.height;
+				self.attr.width = self.attr.width ? self.attr.width : value.width;
 			}
 		}
+		this.attr[attr] = value;
 
-		if (self.attr.pixels && self.imageObj) {
-			let ctxX;
-			const {
-				width,
-				height
-			} = self.attr;
+		if (attr === 'clip') {
+			this.clipImage();
+		}
 
-			if (!self.rImageObj) {
-				self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
-				ctxX = self.rImageObj.getContext('2d');
-				ctxX.drawImage(self.imageObj, 0, 0, width, height);
-			}
-
-			ctxX = self.rImageObj.getContext('2d');
-			ctxX.putImageData(pixels.call(self, self.attr.pixels), 0, 0);
+		if (attr === 'pixels') {
+			this.pixelsUpdate();
 		}
 
 		queueInstance$3.vDomChanged(this.nodeExe.vDomIndex);
+	};
+
+	RenderImage.prototype.postProcess = function () {
+		let self = this;
+		if (self.attr.clip) {
+			self.clipImage();
+		}
+
+		if (self.attr.pixels) {
+			self.pixelsUpdate();
+		}
+	};
+
+	RenderImage.prototype.clipImage = function () {
+		let self = this;
+		if (!self.imageObj) {
+			return;
+		}
+		if (!self.rImageObj) {
+			self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
+		}
+
+		const ctxX = self.rImageObj.getContext('2d');
+		const {
+			clip,
+			width,
+			height
+		} = self.attr;
+		let {
+			sx,
+			sy,
+			swidth,
+			sheight
+		} = clip;
+		sx = sx !== undefined ? sx : 0;
+		sy = sy !== undefined ? sy : 0;
+		swidth = swidth !== undefined ? swidth : width;
+		sheight = sheight !== undefined ? sheight : height;
+		ctxX.clearRect(0, 0, width, height);
+		ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
+	};
+
+	RenderImage.prototype.pixelsUpdate = function () {
+		let self = this;
+		let ctxX;
+		let pixels;
+
+		if (!this.imageObj) {
+			return;
+		}
+
+		const {
+			width,
+			height
+		} = self.attr;
+
+		if (!self.rImageObj) {
+			self.rImageObj = getCanvasImgInstance(width, height);
+			ctxX = self.rImageObj.getContext('2d');
+			ctxX.drawImage(self.imageObj, 0, 0, width, height);
+		} else {
+			ctxX = self.rImageObj.getContext('2d');
+			// ctxX.drawImage(self.imageObj, 0, 0, width, height);
+		}
+		pixels = ctxX.getImageData(0, 0, width, height);
+		
+		// ctxX.clearRect(0, 0, width, height);
+		// ctxX.clearRect(0, 0, width, height);
+		ctxX.putImageData(self.attr.pixels(pixels), 0, 0);
 	};
 
 	RenderImage.prototype.updateBBox = function RIupdateBBox () {
@@ -5390,15 +5359,6 @@
 	};
 
 	RenderCircle.prototype.in = function RCinfun (co, eventType) {
-		// if (eventType === 'mousemove' && this['mouseover']) {
-		//   const {
-		//     x,
-		//     y,
-		//     width,
-		//     height
-		//   } = this.BBox
-		//   return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height
-		// }
 		const r = Math.sqrt(((co.x - this.attr.cx) * (co.x - this.attr.cx)) + ((co.y - this.attr.cy) * (co.y - this.attr.cy)));
 		return r <= this.attr.r;
 	};
@@ -5790,10 +5750,7 @@
 		ctx.ellipse(this.attr.cx, this.attr.cy, this.attr.rx, this.attr.ry, 0, 0, 2 * Math.PI);
 		this.applyStyles();
 		ctx.closePath();
-	}; // RenderEllipse.prototype.applyStyles = function REapplyStyles () {
-	//   if (this.styles.fillStyle) { this.ctx.fill() }
-	//   if (this.styles.strokeStyle) { this.ctx.stroke() }
-	// }
+	};
 
 	RenderEllipse.prototype.in = function REinfun (co) {
 		const {
@@ -5853,21 +5810,57 @@
 		}
 	};
 
-	RenderRect.prototype.applyStyles = function rStyles () { // if (this.style.fillStyle) { this.ctx.fill() }
-		// if (this.style.strokeStyle) { this.ctx.stroke() }
+	RenderRect.prototype.applyStyles = function rStyles () {
 	};
+
+
+	function renderRoundRect (ctx, attr) {
+		const {
+			x,
+			y,
+			width = 0,
+			height = 0,
+			rx = 0,
+			ry = 0
+		} = attr;
+
+		ctx.beginPath();
+		ctx.moveTo(x + rx, y);
+		ctx.lineTo(x + width - rx, y);
+		ctx.quadraticCurveTo(x + width, y, x + width, y + ry);
+		ctx.lineTo(x + width, y + height - ry);
+		ctx.quadraticCurveTo(x + width, y + height, x + width - rx, y + height);
+		ctx.lineTo(x + rx, y + height);
+		ctx.quadraticCurveTo(x, y + height, x, y + height - ry);
+		ctx.lineTo(x, y + ry);
+		ctx.quadraticCurveTo(x, y, x + rx, y);
+		ctx.closePath();
+	}
+
 
 	RenderRect.prototype.execute = function RRexecute () {
 		const {
-			ctx
+			ctx,
+			attr
 		} = this;
 
 		if (ctx.strokeStyle !== '#000000') {
-			ctx.strokeRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height);
+			if (!attr['rx'] && !attr['ry']) {
+				ctx.strokeRect(attr.x, attr.y, attr.width, attr.height);
+			} else {
+				renderRoundRect(ctx, attr);
+				ctx.stroke();
+			}
 		}
+		
 
 		if (ctx.fillStyle !== '#000000') {
-			ctx.fillRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height);
+			if (!attr['rx'] && !attr['ry']) {
+				ctx.fillRect(attr.x, attr.y, attr.width, attr.height);
+			} else {
+				renderRoundRect(ctx, attr);
+				ctx.fill();
+			}
 		}
 	};
 
@@ -6003,8 +5996,8 @@
 	/** ***************** End Render Group */
 
 	let CanvasNodeExe = function CanvasNodeExe (context, config, id, vDomIndex) {
-		this.style = {};
-		this.attr = {};
+		this.style = config.style || {};
+		this.attr = config.attr || {};
 		this.id = id;
 		this.nodeName = config.el;
 		this.nodeType = 'CANVAS';
@@ -6061,14 +6054,13 @@
 
 		this.dom.nodeExe = this;
 		this.BBoxUpdate = true;
+		// if (config.style) {
+		// 	this.setStyle(config.style);
+		// }
 
-		if (config.style) {
-			this.setStyle(config.style);
-		}
-
-		if (config.attr) {
-			this.setAttr(config.attr);
-		}
+		// if (config.attr) {
+		// 	this.setAttr(config.attr);
+		// }
 	};
 
 	CanvasNodeExe.prototype = new NodePrototype();
@@ -6164,12 +6156,7 @@
 		this.BBoxUpdate = true;
 		queueInstance$3.vDomChanged(this.vDomIndex);
 		return this;
-	}; // CanvasNodeExe.prototype.getAttr = function CgetAttribute (_) {
-	//   return this.attr[_]
-	// }
-	// CanvasNodeExe.prototype.getStyle = function DMgetStyle (_) {
-	//   return this.style[_]
-	// }
+	};
 
 	CanvasNodeExe.prototype.rotate = function Crotate (angle, x, y) {
 		if (!this.attr.transform) {
@@ -6180,8 +6167,7 @@
 			this.attr.transform.rotate = [angle[0] || 0, angle[1] || 0, angle[2] || 0];
 		} else {
 			this.attr.transform.rotate = [angle, x || 0, y || 0];
-		} // this.attr.transform.cx = x
-		// this.attr.transform.cy = y
+		}
 
 		this.dom.setAttr('transform', this.attr.transform);
 		this.BBoxUpdate = true;
@@ -6242,8 +6228,6 @@
 	};
 
 	CanvasNodeExe.prototype.execute = function Cexecute () {
-		// let fillStyle = this.ctx.fillStyle
-		// let strokeStyle = this.ctx.strokeStyle
 		this.ctx.save();
 		this.stylesExe();
 		this.attributesExe();
@@ -6252,10 +6236,9 @@
 			for (let i = 0, len = this.children.length; i < len; i += 1) {
 				this.children[i].execute();
 			}
-		} // this.dom.applyStyles()
+		}
 
-		this.ctx.restore(); // this.ctx.fillStyle = fillStyle
-		// this.ctx.strokeStyle = strokeStyle
+		this.ctx.restore();
 	};
 
 	CanvasNodeExe.prototype.child = function child (childrens) {
@@ -6274,8 +6257,7 @@
 		this.BBoxUpdate = true;
 		queueInstance$3.vDomChanged(this.vDomIndex);
 		return self;
-	}; // CanvasNodeExe.prototype.fetchEl = cfetchEl
-	// CanvasNodeExe.prototype.fetchEls = cfetchEls
+	};
 
 	CanvasNodeExe.prototype.updateBBox = function CupdateBBox () {
 		let status;
@@ -6304,19 +6286,11 @@
 	CanvasNodeExe.prototype.on = function Con (eventType, hndlr) {
 		this.dom.on(eventType, hndlr);
 		return this;
-	}; // CanvasNodeExe.prototype.exec = function Cexe (exe) {
-	//   if (typeof exe !== 'function') {
-	//     console.error('Wrong Exe type')
-	//   }
-	//   exe.call(this, this.dataObj)
-	//   return this
-	// }
-	// CanvasNodeExe.prototype.animateTo = animateTo
-	// CanvasNodeExe.prototype.animateExe = animateExe
+	};
 
 	CanvasNodeExe.prototype.animatePathTo = path.animatePathTo;
 	CanvasNodeExe.prototype.morphTo = path.morphTo;
-	CanvasNodeExe.prototype.vDomIndex = null; // CanvasNodeExe.prototype.join = dataJoin
+	CanvasNodeExe.prototype.vDomIndex = null;
 
 	CanvasNodeExe.prototype.createRadialGradient = createRadialGradient;
 	CanvasNodeExe.prototype.createLinearGradient = createLinearGradient;
@@ -6365,35 +6339,60 @@
 		queueInstance$3.vDomChanged(this.vDomIndex);
 	};
 
-	function CanvasLayer (context, config = {}) {
-		let originalRatio;
+	CanvasNodeExe.prototype.getBBox = function () {
+		return {
+			x: this.dom.BBox.x,
+			y: this.dom.BBox.y,
+			width: this.dom.BBox.width,
+			height: this.dom.BBox.height
+		};
+	};
 
-		const res = document.querySelector(context);
-		let height = config.height ? config.height : res.clientHeight;
-		let width = config.width ? config.width : res.clientWidth;
+	CanvasNodeExe.prototype.getPixels = function () {
+		return this.ctx.getImageData(this.dom.BBox.x, this.dom.BBox.y, this.dom.BBox.width, this.dom.BBox.height);
+	};
+
+	CanvasNodeExe.prototype.putPixels = function (imageData) {
+		return this.ctx.putImageData(imageData, this.dom.BBox.x, this.dom.BBox.y);
+	};
+
+	function CanvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag = true) {
+		// let originalRatio;
+		const res = container ? document.querySelector(container) : null;
+		let height = res ? res.clientHeight : 0;
+		let width = res ? res.clientWidth : 0;
 		const layer = document.createElement('canvas');
-		const ctx = layer.getContext('2d');
+		const ctx = layer.getContext('2d', config);
 		ratio = getPixlRatio(ctx);
-		originalRatio = ratio;
-		const onClear = config.onClear === 'clear' || !config.onClear ? function (ctx) {
+		let onClear = function (ctx) {
 			ctx.clearRect(0, 0, width * ratio, height * ratio);
-		} : config.onClear;
+		};
 		layer.setAttribute('height', height * ratio);
 		layer.setAttribute('width', width * ratio);
 		layer.style.height = `${height}px`;
 		layer.style.width = `${width}px`;
 		layer.style.position = 'absolute';
 
-		res.appendChild(layer);
-		const vDomInstance = new VDom();
-		const vDomIndex = queueInstance$3.addVdom(vDomInstance);
+		let vDomInstance;
+		let vDomIndex = 999999;
+
+		if (res) {
+			res.appendChild(layer);
+			vDomInstance = new VDom();
+			if (autoUpdateFlag) {
+				vDomIndex = queueInstance$3.addVdom(vDomInstance);
+			}
+		}
+
 		const root = new CanvasNodeExe(ctx, {
 			el: 'group',
 			attr: {
 				id: 'rootNode'
 			}
 		}, domId$1(), vDomIndex);
-		vDomInstance.rootNode(root);
+		if (vDomInstance) {
+			vDomInstance.rootNode(root);
+		}
 		const execute = root.execute.bind(root);
 		root.container = res;
 		root.domEl = layer;
@@ -6401,107 +6400,122 @@
 		root.width = width;
 		root.type = 'CANVAS';
 
-		root.execute = function executeExe () {
-			onClear(ctx);
-			ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-			root.updateBBox();
-			execute();
+		root.setClear = function (exe) {
+			 onClear = exe;
 		};
 
 		root.setAttr = function (prop, value) {
-			if (arguments.length === 2) {
-				config[prop] = value;
-			} else if (arguments.length === 1 && typeof prop === 'object') {
-				const props = Object.keys(prop);
-
-				for (let i = 0, len = props.length; i < len; i += 1) {
-					config[props[i]] = prop[props[i]];
-				}
+			if (prop === 'viewBox') {
+				this.setViewBox.apply(this, value.split(','));
 			}
-
-			renderVdom.call(this);
+			layer.setAttribute(prop, value);
 		};
 
-		root.resize = renderVdom;
+		root.enableEvents = function (flag) {
+			eventsFlag = flag;
+		};
 
-		function renderVdom () {
-			width = config.width ? config.width : this.container.clientWidth;
-			height = config.height ? config.height : this.container.clientHeight;
-			this.domEl.setAttribute('height', height * originalRatio);
-			this.domEl.setAttribute('width', width * originalRatio);
-			this.domEl.style.height = `${height}px`;
-			this.domEl.style.width = `${width}px`;
+		root.setStyle = function (prop, value) {
+			this.domEl.style[prop] = value;
+		};
 
-			if (config.rescale) {
-				let newWidthRatio = width / this.width;
-				let newHeightRatio = height / this.height;
-				this.scale([newWidthRatio, newHeightRatio]);
-			} else {
-				this.execute();
+		root.setPixelRatio = function (val) {
+			ratio = val;
+			this.setSize(this.width, this.height);
+		};
+
+		root.setSize = function (width_, height_) {
+			this.domEl.setAttribute('height', height_ * ratio);
+			this.domEl.setAttribute('width', width_ * ratio);
+			this.domEl.style.height = `${height_}px`;
+			this.domEl.style.width = `${width_}px`;
+			this.width = width_;
+			this.height = height_;
+			width = width_;
+			height = height_;
+			this.execute();
+		};
+
+		root.setViewBox = function (x, y, height, width) {
+
+		};
+
+		root.getPixels = function (x, y, width_, height_) {
+			return this.ctx.getImageData(x, y, width_, height_);
+		};
+
+		root.putPixels = function (imageData, x, y) {
+			return this.ctx.putImageData(imageData, x, y);
+		};
+
+		root.clear = function () {
+			onClear();
+		};
+
+		root.setContext = function (prop, value) {
+			/** Expecting value to be array if multiple aruments */
+			if (this.ctx[prop] && typeof this.ctx[prop] === 'function') {
+				this.ctx[prop].apply(null, value);
+			} else if (this.ctx[prop]) {
+				this.ctx[prop] = value;
 			}
+		};
 
-			this.height = height;
-			this.width = width;
-		}
-
-		function canvasResize () {
-			if (config.resize && typeof config.resize === 'function') {
-				config.resize();
-			}
-
-			root.resize();
-		}
-
-		window.addEventListener('resize', canvasResize);
+		root.execute = function executeExe () {
+			onClear(ctx);
+			ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+			this.updateBBox();
+			execute();
+		};
 
 		root.destroy = function () {
-			window.removeEventListener('resize', canvasResize); // layer.remove()
-			// queueInstance.removeVdom(vDomIndex)
+			res.removeChild(layer);
+			queueInstance$3.removeVdom(vDomIndex);
 		};
 
-		if (config.events || config.events === undefined) {
+		if (eventsFlag) {
 			let eventsInstance = new Events(root);
-			res.addEventListener('mousemove', e => {
+			layer.addEventListener('mousemove', e => {
 				e.preventDefault();
 				eventsInstance.mousemoveCheck(e);
 			});
-			res.addEventListener('click', e => {
+			layer.addEventListener('click', e => {
 				e.preventDefault();
 				eventsInstance.clickCheck(e);
 			});
-			res.addEventListener('dblclick', e => {
+			layer.addEventListener('dblclick', e => {
 				e.preventDefault();
 				eventsInstance.dblclickCheck(e);
 			});
-			res.addEventListener('mousedown', e => {
+			layer.addEventListener('mousedown', e => {
 				e.preventDefault();
 				eventsInstance.mousedownCheck(e);
 			});
-			res.addEventListener('mouseup', e => {
+			layer.addEventListener('mouseup', e => {
 				e.preventDefault();
 				eventsInstance.mouseupCheck(e);
 			});
-			res.addEventListener('mouseleave', e => {
+			layer.addEventListener('mouseleave', e => {
 				e.preventDefault();
 				eventsInstance.mouseleaveCheck(e);
 			});
-			res.addEventListener('contextmenu', e => {
+			layer.addEventListener('contextmenu', e => {
 				e.preventDefault();
 				eventsInstance.contextmenuCheck(e);
 			});
-			res.addEventListener('touchstart', e => {
+			layer.addEventListener('touchstart', e => {
 				e.preventDefault();
 				eventsInstance.touchstartCheck(e);
 			});
-			res.addEventListener('touchend', e => {
+			layer.addEventListener('touchend', e => {
 				e.preventDefault();
 				eventsInstance.touchendCheck(e);
 			});
-			res.addEventListener('touchmove', e => {
+			layer.addEventListener('touchmove', e => {
 				e.preventDefault();
 				eventsInstance.touchmoveCheck(e);
 			});
-			res.addEventListener('touchcancel', e => {
+			layer.addEventListener('touchcancel', e => {
 				e.preventDefault();
 				eventsInstance.touchcancelCheck(e);
 			});
@@ -6511,20 +6525,20 @@
 		return root;
 	}
 
-	function CanvasNodeLayer (config) {
+	function CanvasNodeLayer (config, height = 0, width = 0) {
 		if (!Canvas) {
 			console.error('Canvas missing from node');
 			console.error('Install "Canvas" "canvas-5-polyfill" node modules');
 			console.error('Make "Canvas" "Image" "Path2D" objects global from the above modules');
 			return;
 		}
-		let { height = 0, width = 0 } = config;
+
 		let layer = new Canvas(width, height);
-		const ctx = layer.getContext('2d');
+		const ctx = layer.getContext('2d', config);
 		ratio = getPixlRatio(ctx);
-		const onClear = config.onClear === 'clear' || !config.onClear ? function (ctx) {
+		let onClear = function (ctx) {
 			ctx.clearRect(0, 0, width * ratio, height * ratio);
-		} : config.onClear;
+		};
 		const vDomInstance = new VDom();
 		const vDomIndex = queueInstance$3.addVdom(vDomInstance);
 		const root = new CanvasNodeExe(ctx, {
@@ -6541,14 +6555,39 @@
 		root.type = 'CANVAS';
 		root.ENV = 'NODE';
 
-		root.execute = function executeExe () {
+		root.setClear = function (exe) {
+			 onClear = exe;
+		};
+
+		root.getPixels = function (x, y, width_, height_) {
+			return this.ctx.getImageData(x, y, width_, height_);
+		};
+
+		root.putPixels = function (imageData, x, y) {
+			return this.ctx.putImageData(imageData, x, y);
+		};
+
+		root.clear = function () {
+			onClear();
+		};
+
+		root.setContext = function (prop, value) {
+			/** Expecting value to be array if multiple aruments */
+			if (this.ctx[prop] && typeof this.ctx[prop] === 'function') {
+				this.ctx[prop].apply(null, value);
+			} else if (this.ctx[prop]) {
+				this.ctx[prop] = value;
+			}
+		};
+
+		root.execute = function () {
 			onClear(ctx);
 			ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 			root.updateBBox();
 			execute();
 		};
 
-		root.toDataURL = function toDataURL () {
+		root.toDataURL = function () {
 			return this.domEl.toDataURL();
 		};
 
@@ -6568,6 +6607,7 @@
 			case 'point':
 				res = {
 					vertexShader: `
+          precision highp float;
           attribute vec2 a_position;
           attribute vec4 a_color;
           attribute float a_size;
@@ -6580,7 +6620,7 @@
           void main() {
             vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
             vec2 clipSpace = ((zeroToOne) * 2.0) - 1.0;
-            gl_Position = vec4((clipSpace * vec2(1, -1)), 0, 1);
+            gl_Position = vec4((clipSpace * vec2(1.0, -1.0)), 0, 1);
             gl_PointSize = a_size;
             v_color = a_color;
           }
@@ -6598,6 +6638,7 @@
 			case 'circle':
 				res = {
 					vertexShader: `
+        precision highp float;
           attribute vec2 a_position;
           attribute vec4 a_color;
           attribute float a_radius;
@@ -6632,9 +6673,55 @@
 				};
 				break;
 
+			case 'ellipse':
+				res = {
+					vertexShader: `
+        precision highp float;
+          attribute vec2 a_position;
+          attribute vec4 a_color;
+          attribute float a_r1;
+          attribute float a_r2;
+          uniform vec2 u_resolution;
+          uniform vec2 u_translate;
+          uniform vec2 u_scale;
+          varying vec4 v_color;
+          varying float v_r1;
+          varying float v_r2;
+          void main() {
+            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
+            vec2 zeroToTwo = zeroToOne * 2.0;
+            vec2 clipSpace = zeroToTwo - 1.0;
+            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+            gl_PointSize = max(a_r1, a_r2);
+            v_color = a_color;
+            v_r1 = a_r1;
+            v_r2 = a_r2;
+          }
+          `,
+					fragmentShader: `
+                    precision mediump float;
+                    varying vec4 v_color;
+                    varying float v_r1;
+                    varying float v_r2;
+                    void main() {
+                      float r = 0.0, delta = 0.0, alpha = 1.0;
+                      vec2 cxy = 2.0 * gl_PointCoord - 1.0;
+                      r = ((cxy.x * cxy.x) / (v_r1 * v_r1), (cxy.y * cxy.y) / (v_r2 * v_r2));
+                      if(r > 1.0) {
+                        discard;
+                      }
+                      delta = 0.09;
+                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);
+                      gl_FragColor = v_color * alpha;
+                    }
+                    `
+				};
+				break;
+
 			case 'image':
 				res = {
 					vertexShader: `
+                    precision highp float;
                     attribute vec2 a_position;
                     attribute vec2 a_texCoord;
                     uniform vec2 u_resolution;
@@ -6659,9 +6746,35 @@
 				};
 				break;
 
+			case 'polyline':
+			case 'polygon':
+				res = {
+					vertexShader: `
+                    precision highp float;
+                    attribute vec2 a_position;
+                    uniform vec2 u_resolution;
+                    uniform vec2 u_translate;
+                    uniform vec2 u_scale;
+                    void main() {
+                    vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
+                    vec2 clipSpace = zeroToOne * 2.0 - 1.0;
+                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+                    }
+                    `,
+					fragmentShader: `
+                    precision mediump float;
+                    uniform vec4 u_color;
+                    void main() {
+                        gl_FragColor = u_color;
+                    }
+                    `
+				};
+				break;
+
 			default:
 				res = {
 					vertexShader: `
+                    precision highp float;
                     attribute vec2 a_position;
                     attribute vec4 a_color;
                     uniform vec2 u_resolution;
@@ -6671,7 +6784,7 @@
                     void main() {
                     vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
                     vec2 clipSpace = zeroToOne * 2.0 - 1.0;
-                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+                    gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0, 1);
                     v_color = a_color;
                     }
                     `,
@@ -7338,8 +7451,6 @@
 	};
 	earcut_1.default = default_1;
 
-	// import { VDom, shaders, queue } from './'
-
 	let ratio$1;
 	const queueInstance$4 = queue;
 
@@ -7364,19 +7475,6 @@
 	WebglCollection.prototype.createNode = function (ctx, config, vDomIndex) {
 		return new WebglNodeExe(ctx, config, domId$2(), vDomIndex);
 	};
-	// WebglCollection.prototype.wrapper = function (nodes) {
-	//   const self = this
-
-	//   if (nodes) {
-	//     for (let i = 0, len = nodes.length; i < len; i++) {
-	//       let node = nodes[i]
-	//       if (node instanceof WebglNodeExe || node instanceof WebglCollection) {
-	//         self.stack.push(node)
-	//       }
-	//     }
-	//   }
-	//   return this
-	// }
 
 	function loadShader (ctx, shaderSource, shaderType) {
 		var shader = ctx.createShader(shaderType);
@@ -7421,44 +7519,96 @@
 		this.attr = attr || {};
 		this.style = style || {};
 	}
+	PointNode.prototype.setShader = function (shader) {
+		this.shader = shader;
+		if (this.shader) {
+			this.shader.addVertex(this.attr.x || 0, this.attr.y || 0, this.pindex);
+			this.shader.addColors(this.style.fill || defaultColor$1, this.pindex);
+			this.shader.addSize(this.attr.size || 0, this.pindex);
+		}
+	};
 
 	PointNode.prototype.setAttr = function (prop, value) {
-		this.attr[prop] = value;
-	}; // PointNode.prototype.getAttr = function (key) {
-	//   return this.attr[key]
-	// }
-	// PointNode.prototype.setStyle = function (prop, value) {
-	//   this.attr[prop] = value
-	// }
-	// PointNode.prototype.getStyle = function (key) {
-	//   return this.style[key]
-	// }
+		// this.attr[prop] = value;
+		if (this.shader && (prop === 'x' || prop === 'y')) {
+			this.shader.updateVertex(this.pindex, this.attr.x, this.attr.y);
+		}
+
+		if (this.shader && prop === 'size') {
+			this.shader.updateSize(this.pindex, this.attr.size || 0);
+		}
+	};
+	PointNode.prototype.setStyle = function (key, value) {
+		this.style[key] = value;
+		if (this.shader && key === 'fill') {
+			this.shader.updateColor(this.pindex, value);
+		}
+	};
+	PointNode.prototype.getAttr = function (key) {
+		return this.attr[key];
+	};
+	PointNode.prototype.getStyle = function (key) {
+		return this.style[key];
+	};
+
 
 	function RectNode (attr, style) {
 		this.attr = attr || {};
 		this.style = style || {};
 	}
+	RectNode.prototype.setShader = function (shader) {
+		this.shader = shader;
+		if (this.shader) {
+			this.shader.addVertex(this.attr.x || 0, this.attr.y || 0, this.attr.width || 0, this.attr.height || 0, this.pindex);
+			this.shader.addColors(this.style.fill || defaultColor$1, this.pindex);
+		}
+	};
 
 	RectNode.prototype.setAttr = function (key, value) {
-		this.attr[key] = value; // this.nodeExe.parent.shader.updatePosition(this.nodeExe.parent.children.indexOf(this.nodeExe),
-		                        // this.nodeExe)
-	}; // RectNode.prototype.getAttr = function (key) {
-	//   return this.attr[key]
-	// }
-	// RectNode.prototype.setStyle = function (key, value) {
-	//   this.style[key] = value
-	// }
-	// RectNode.prototype.getStyle = function (key) {
-	//   return this.style[key]
-	// }
+		this.attr[key] = value;
+		if (!this.shader) {
+			return;
+		}
+		if ((key === 'x' || key === 'width')) {
+			this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+		}
+		if ((key === 'y' || key === 'height')) {
+			this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
+		}
+	};
+	RectNode.prototype.getAttr = function (key) {
+		return this.attr[key];
+	};
+
+	RectNode.prototype.setStyle = function (key, value) {
+		this.style[key] = value;
+		if (this.shader && key === 'fill') {
+			this.shader.updateColor(this.pindex, value);
+		}
+	};
+
+	RectNode.prototype.getStyle = function (key) {
+		return this.style[key];
+	};
 
 	function PolyLineNode (attr, style) {
 		this.attr = attr || {};
 		this.style = style || {};
 	}
 
+	PolyLineNode.prototype.setShader = function (shader) {
+		this.shader = shader;
+		if (this.shader) {
+			this.shader.addVertex(this.attr.points || [], this.pindex);
+			this.shader.addColors(this.style.stroke || defaultColor$1, this.pindex);
+		}
+	};
+
 	PolyLineNode.prototype.setAttr = function (key, value) {
 		this.attr[key] = value;
+		if (this.shader && key === 'points') {
+			this.shader.updateVertex(this.pindex, this.attr.points);
+		}
 	};
 
 	PolyLineNode.prototype.getAttr = function (key) {
@@ -7467,6 +7617,9 @@
 
 	PolyLineNode.prototype.setStyle = function (key, value) {
 		this.style[key] = value;
+		if (this.shader && key === 'stroke') {
+			this.shader.updateColor(this.pindex, value);
+		}
 	};
 
 	PolyLineNode.prototype.getStyle = function (key) {
@@ -7478,8 +7631,19 @@
 		this.style = style || {};
 	}
 
+	LineNode.prototype.setShader = function (shader) {
+		this.shader = shader;
+		if (this.shader) {
+			this.shader.addVertex(this.attr.x1 || 0, this.attr.y1 || 0, this.attr.x2 || 0, this.attr.y2 || 0, this.pindex);
+			this.shader.addColors(this.style.stroke || defaultColor$1, this.pindex);
+		}
+	};
+
 	LineNode.prototype.setAttr = function (key, value) {
 		this.attr[key] = value;
+		if (this.shader && (key === 'x1' || key === 'y1' || key === 'x2' || key === 'y2')) {
+			this.shader.updateVertex(this.pindex, this.attr.x1, this.attr.y1, this.attr.x2, this.attr.y2);
+		}
 	};
 
 	LineNode.prototype.getAttr = function (key) {
@@ -7488,6 +7652,9 @@
 
 	LineNode.prototype.setStyle = function (key, value) {
 		this.style[key] = value;
+		if (this.shader && key === 'stroke') {
+			this.shader.updateColor(this.pindex, value);
+		}
 	};
 
 	LineNode.prototype.getStyle = function (key) {
@@ -7496,8 +7663,8 @@
 
 	function polygonPointsMapper (value) {
 		return earcut_1(value.reduce(function (p, c) {
-			p.push(c.x);
-			p.push(c.y);
+			p[p.length] = c.x;
+			p[p.length] = c.y;
 			return p;
 		}, [])).map(function (d) {
 			return value[d];
@@ -7507,15 +7674,35 @@
 	function PolygonNode (attr, style) {
 		this.attr = attr;
 		this.style = style;
+		this.positionArray = [];
 
 		if (this.attr['points']) {
-			this.attr.triangulatedPoints = polygonPointsMapper(this.attr['points']);
+			this.triangulatedPoints = polygonPointsMapper(this.attr['points']);
 		}
 	}
 
+	PolygonNode.prototype.setShader = function (shader) {
+		this.shader = shader;
+		if (this.shader) {
+			this.shader.addVertex(this.triangulatedPoints || [], this.pindex);
+			this.shader.addColors(this.style.fill || defaultColor$1, this.pindex);
+		}
+	};
+
+	PolygonNode.prototype.setStyle = function (key, value) {
+		this.style[key] = value;
+		if (this.shader && key === 'fill') {
+			this.shader.updateColors(value || defaultColor$1);
+		}
+	};
+
 	PolygonNode.prototype.setAttr = function (key, value) {
+		this.attr[key] = value;
 		if (key === 'points') {
-			this.attr.triangulatedPoints = polygonPointsMapper(value);
+			this.triangulatedPoints = polygonPointsMapper(value);
+			if (this.shader) {
+				this.shader.updateVertex(this.triangulatedPoints || [], this.pindex);
+			}
 		}
 	};
 
@@ -7532,8 +7719,30 @@
 		this.style = style;
 	}
 
-	CircleNode.prototype.setAttr = function (key, value) {
-		this.attr[key] = value;
+	CircleNode.prototype.setShader = function (shader) {
+		this.shader = shader;
+		if (this.shader) {
+			this.shader.addVertex(this.attr.cx || 0, this.attr.cy || 0, this.pindex);
+			this.shader.addColors(this.style.fill || defaultColor$1, this.pindex);
+			this.shader.addSize(this.attr.r || 0, this.pindex);
+		}
+	};
+
+	CircleNode.prototype.setAttr = function (prop, value) {
+		this.attr[prop] = value;
+		if (this.shader && (prop === 'cx' || prop === 'cy')) {
+			this.shader.updateVertex(this.pindex, this.attr.cx, this.attr.cy);
+		}
+
+		if (this.shader && prop === 'r') {
+			this.shader.updateSize(this.pindex, this.attr.r || 0);
+		}
+	};
+	CircleNode.prototype.setStyle = function (key, value) {
+		this.style[key] = value;
+		if (this.shader && key === 'fill') {
+			this.shader.updateColor(this.pindex, value);
+		}
 	};
 
 	CircleNode.prototype.getAttr = function (key) {
@@ -7550,52 +7759,44 @@
 		return (value & value - 1) === 0;
 	}
 
-	function ImageNode (ctx, attr, style) {
+	function ImageNode (ctx, attr, style, vDomIndex) {
 		let self = this;
+		this.ctx = ctx;
 		this.attr = attr;
 		this.style = style;
-		this.image = new Image(); // self.image.crossOrigin="anonymous"
-		// self.image.setAttribute('crossOrigin', '*')
-
-		this.image.onload = function onload () {
-			this.crossOrigin = 'anonymous';
-			queueInstance$4.vDomChanged(self.nodeExe.vDomIndex);
-
-			if (!webGLImageTextures[self.attr.src]) {
-				let texture = ctx.createTexture();
-				ctx.bindTexture(ctx.TEXTURE_2D, texture);
-				ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, ctx.RGBA, ctx.UNSIGNED_BYTE, self.image);
-
-				if (isPowerOf2(self.image.width) && isPowerOf2(self.image.height)) {
-					// Yes, it's a power of 2. Generate mips.
-					// console.log('mips')
-					ctx.generateMipmap(ctx.TEXTURE_2D);
-					ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST_MIPMAP_LINEAR);
-					ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST);
-				} else {
-					ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE);
-					ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE);
-					ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST);
-					ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST);
-				}
-
-				webGLImageTextures[self.attr.src] = texture;
-			} // self.loadStatus = true
-		};
-
-		this.image.onerror = function onerror (onerrorExe) {
-		};
-
-		if (this.attr.src) {
-			this.image.src = this.attr.src;
+		this.vDomIndex = vDomIndex;
+		
+		if (self.attr.src && (typeof self.attr.src === 'string') && !webGLImageTextures[self.attr.src]) {
+			webGLImageTextures[self.attr.src] = new TextureObject(ctx, {
+				src: this.attr.src
+			}, this.vDomIndex);
 		}
 	}
+	ImageNode.prototype.setShader = function (shader) {
+		this.shader = shader;
+		if (this.shader) {
+			this.shader.addVertex(this.attr.x || 0, this.attr.y || 0, this.attr.width || 0, this.attr.height || 0, this.pindex);
+		}
+	};
 
 	ImageNode.prototype.setAttr = function (key, value) {
 		this.attr[key] = value;
 
-		if (key === 'src') {
-			this.image.src = this.attr.src;
+		if (key === 'src' && (typeof value === 'string')) {
+			if (value && !webGLImageTextures[value]) {
+				webGLImageTextures[value] = new TextureObject(this.ctx, {
+					src: value
+				}, this.vDomIndex);
+			}
+		}
+		if (!this.shader) {
+			return;
+		}
+		if ((key === 'x' || key === 'width')) {
+			this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+		}
+		if ((key === 'y' || key === 'height')) {
+			this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
 		}
 	};
 
@@ -7607,42 +7808,145 @@
 		return this.style[key];
 	};
 
-	function writeDataToShaderAttributes (ctx, data) {
-		let d;
 
-		for (let i = 0, len = data.length; i < len; i++) {
-			d = data[i];
-			ctx.bindBuffer(d.bufferType, d.buffer);
-			ctx.bufferData(d.bufferType, d.data, d.drawType);
-			ctx.enableVertexAttribArray(d.attribute);
-			ctx.vertexAttribPointer(d.attribute, d.size, d.valueType, true, 0, 0);
+	function WebglGroupNode (ctx, attr, style, renderTarget, vDomIndex) {
+		// let self = this;
+		this.ctx = ctx;
+		this.attr = attr;
+		this.style = style;
+		this.renderTarget = renderTarget;
+		this.vDomIndex = vDomIndex;
+		if (attr.shaderType) {
+			this.shader = getTypeShader(ctx, attr, style, attr.shaderType, this.renderTarget, vDomIndex);
+		}
+		if (this.shader && this.attr.transform) {
+			if (this.attr.transform['translate']) {
+				this.shader.translate(this.attr.transform['translate']);
+			}
+			if (this.attr.transform['scale']) {
+				this.shader.scale(this.attr.transform['scale']);
+			}
+			if (this.attr.transform['rotate']) {
+				this.shader.rotate(this.attr.transform['rotate']);
+			}
 		}
 	}
 
-	let defaultColor$1 = {
-		r: 0,
-		g: 0,
-		b: 0,
-		a: 255.0
+	WebglGroupNode.prototype.setAttr = function (key, value) {
+		this.attr[key] = value;
+		if (key === 'shaderType') {
+			this.shader = getTypeShader(this.ctx, this.attr, this.style, value, this.renderTarget, this.vDomIndex);
+		}
+		if (key === 'transform' && this.shader) {
+			if (this.attr.transform['translate']) {
+				this.shader.translate(this.attr.transform['translate']);
+			}
+			if (this.attr.transform['scale']) {
+				this.shader.scale(this.attr.transform['scale']);
+			}
+			if (this.attr.transform['rotate']) {
+				this.shader.rotate(this.attr.transform['rotate']);
+			}
+		}
 	};
 
+	WebglGroupNode.prototype.setShader = function () {
+
+	};
+
+	WebglGroupNode.prototype.getAttr = function (key) {
+		return this.attr[key];
+	};
+
+	WebglGroupNode.prototype.getStyle = function (key) {
+		return this.style[key];
+	};
+
+	let defaultColor$1 = colorMap$1.rgba(0, 0, 0, 255);
+
 	function webGlAttrMapper (ctx, program, attr, attrObj) {
+		let valType = attrObj.type;
+		if (!valType) {
+			valType = 'FLOAT';
+			if (attrObj.value instanceof Float32Array) {
+				valType = 'FLOAT';
+			} else if (attrObj.value instanceof Int8Array) {
+				valType = 'BYTE';
+			} else if (attrObj.value instanceof Int16Array) {
+				valType = 'SHORT';
+			} else if (attrObj.value instanceof Uint8Array) {
+				valType = 'UNSIGNED_BYTE';
+			} else if (attrObj.value instanceof Uint16Array) {
+				valType = 'UNSIGNED_SHORT';
+			}
+		}
+		
 		return {
-			bufferType: ctx[attrObj.bufferType],
+			bufferType: ctx['ARRAY_BUFFER'],
 			buffer: ctx.createBuffer(),
-			drawType: ctx[attrObj.drawType],
-			valueType: ctx[attrObj.valueType],
+			drawType: ctx['STATIC_DRAW'],
+			valueType: ctx[valType],
 			size: attrObj.size,
-			attribute: ctx.getAttribLocation(program, attr),
-			data: attrObj.data
+			attributeLocation: ctx.getAttribLocation(program, attr),
+			value: attrObj.value,
+			attr: attr
+		};
+	}
+
+	function webGlIndexMapper (ctx, program, attrObj) {
+		let valType = 'FLOAT';
+		if (attrObj.value instanceof Float32Array) {
+			valType = 'FLOAT';
+		} else if (attrObj.value instanceof Int8Array) {
+			valType = 'BYTE';
+		} else if (attrObj.value instanceof Int16Array) {
+			valType = 'SHORT';
+		} else if (attrObj.value instanceof Uint8Array) {
+			valType = 'UNSIGNED_BYTE';
+		} else if (attrObj.value instanceof Uint16Array) {
+			valType = 'UNSIGNED_SHORT';
+		}
+		
+		return {
+			bufferType: ctx['ELEMENT_ARRAY_BUFFER'],
+			buffer: ctx.createBuffer(),
+			drawType: ctx['STATIC_DRAW'],
+			valueType: ctx[valType],
+			value: attrObj.value,
+			count: attrObj.count,
+			offset: attrObj.offset
 		};
 	}
 
 	function webGlUniformMapper (ctx, program, uniform, uniObj) {
+		let type;
+		let len = uniObj.size ? uniObj.size : uniObj.value.length;
+		if (!uniObj.matrix) {
+			if (uniObj.value instanceof TextureObject) {
+				type = 'uniform1i';
+			} else if (uniObj.value instanceof Float32Array) {
+				type = 'uniform' + len + 'fv';
+			} else if (uniObj.value instanceof Int8Array || uniObj.value instanceof Int16Array || uniObj.value instanceof Uint8Array) {
+				type = 'uniform' + len + 'iv';
+			} else if (!Number.isInteger(uniObj.value)) {
+				type = 'uniform1f';
+			} else if (Number.isInteger(uniObj.value)) {
+				type = 'uniform1i';
+			}
+		} else {
+			if (!Number.isInteger(Math.sqrt(uniObj.value.length))) {
+				type = 'uniformMatrix' + Math.sqrt(uniObj.value.length) + 'fv';
+			} else {
+				console.error('Not Square Matrix');
+			}
+		}
+		
 		return {
-			type: uniObj.type,
-			data: uniObj.data,
-			attribute: ctx.getUniformLocation(program, uniform)
+			matrix: uniObj.matrix,
+			transpose: uniObj.transpose,
+			type: type,
+			value: uniObj.value,
+			uniformLocation: ctx.getUniformLocation(program, uniform)
 		};
 	}
 
@@ -7653,58 +7957,152 @@
 		this.vDomIndex = vDomIndex;
 		this.program = getProgram(ctx, shader);
 		this.uniforms = {};
-		this.drawArrays = shader.drawArrays;
+		this.attrObjs = {};
+		this.indexesObj = null;
 		this.preDraw = shader.preDraw;
 		this.postDraw = shader.postDraw;
+		this.geometry = shader.geometry;
+		this.renderTarget = shader.renderTarget;
 
 		for (let uniform in shader.uniforms) {
 			this.uniforms[uniform] = webGlUniformMapper(ctx, this.program, uniform, shader.uniforms[uniform]);
 		}
 
-		this.inputs = [];
+		if (this.geometry) {
+			if (this.geometry instanceof MeshGeometry || this.geometry instanceof PointsGeometry || this.geometry instanceof LineGeometry) {
+				this.attributes = this.geometry.attributes;
+				this.indexes = this.geometry.indexes;
+			} else {
+				console.error('Wrong Geometry type');
+			}
+		}
 
-		for (let attr in shader.attributes) {
-			this.inputs.push(webGlAttrMapper(ctx, this.program, attr, shader.attributes[attr]));
+		for (let attr in this.attributes) {
+			this.attrObjs[attr] = webGlAttrMapper(ctx, this.program, attr, this.attributes[attr]);
+		}
+
+		if (this.indexes) {
+			this.indexesObj = webGlIndexMapper(ctx, this.program, this.indexes);
 		}
 	}
 
+	RenderWebglShader.prototype.useProgram = function () {
+		this.ctx.useProgram(this.program);
+	};
+
+	RenderWebglShader.prototype.applyUniforms = function () {
+		for (let uniform in this.uniforms) {
+			if (this.uniforms[uniform].matrix) {
+				this.ctx[this.uniforms[uniform].type](this.uniforms[uniform].uniformLocation, this.uniforms[uniform].transpose, this.uniforms[uniform].value);
+			} else {
+				if (this.uniforms[uniform].value instanceof TextureObject) {
+					this.ctx[this.uniforms[uniform].type](this.uniforms[uniform].uniformLocation, this.uniforms[uniform].value.texture);
+					this.uniforms[uniform].value.loadTexture();
+				} else {
+					this.ctx[this.uniforms[uniform].type](this.uniforms[uniform].uniformLocation, this.uniforms[uniform].value);
+				}
+			}
+		}
+	};
+
+	RenderWebglShader.prototype.applyAttributes = function () {
+		let d;
+		for (let attr in this.attrObjs) {
+			d = this.attrObjs[attr];
+			this.ctx.bindBuffer(d.bufferType, d.buffer);
+			this.ctx.bufferData(d.bufferType, this.attributes[d.attr].value, d.drawType);
+			this.ctx.enableVertexAttribArray(d.attributeLocation);
+			this.ctx.vertexAttribPointer(d.attributeLocation, d.size, d.valueType, true, 0, 0);
+		}
+	};
+
+	RenderWebglShader.prototype.applyIndexes = function () {
+		let d = this.indexesObj;
+		this.ctx.bindBuffer(d.bufferType, d.buffer);
+		this.ctx.bufferData(d.bufferType, d.value, d.drawType);
+	};
+
+	RenderWebglShader.prototype.draw = function () {
+		this.ctx.drawArrays(this.ctx[this.geometry.drawType], this.geometry.drawRange[0], this.geometry.drawRange[1]);
+	};
+
+	RenderWebglShader.prototype.drawElements = function () {
+		this.ctx.drawElements(this.ctx[this.geometry.drawType], this.indexesObj.count, this.indexesObj.type ? this.indexesObj.type : this.ctx.UNSIGNED_SHORT, this.indexesObj.offset);
+	};
+
 	RenderWebglShader.prototype.execute = function () {
 		this.ctx.useProgram(this.program);
-
-		for (let uniform in this.uniforms) {
-			this.ctx[this.uniforms[uniform].type](this.uniforms[uniform].attribute, this.uniforms[uniform].data);
+		this.applyUniforms();
+		this.applyAttributes();
+		// if (this.preDraw) {
+		// 	this.preDraw();
+		// }
+		if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+			this.renderTarget.update();
 		}
-
-		writeDataToShaderAttributes(this.ctx, this.inputs);
-
-		if (typeof this.preDraw === 'function') {
-			this.preDraw(this.ctx);
+		if (this.indexesObj) {
+			this.applyIndexes();
+			this.drawElements();
+		} else {
+			this.draw();
 		}
-
-		for (let item in this.drawArrays) {
-			this.ctx.drawArrays(this.ctx[this.drawArrays[item].type], this.drawArrays[item].start, this.drawArrays[item].end);
+		if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+			this.renderTarget.clear();
 		}
-
-		if (typeof this.preDraw === 'function') {
-			this.postDraw(this.ctx);
-		}
+		// if (this.postDraw) {
+		// 	this.postDraw();
+		// }
 	};
 
 	RenderWebglShader.prototype.addUniform = function (key, value) {
-		this.uniforms[key] = value;
+		this.uniforms[key] = webGlUniformMapper(this.ctx, this.program, key, value);
+		queueInstance$4.vDomChanged(this.vDomIndex);
 	};
 
 	RenderWebglShader.prototype.addAttribute = function (key, value) {
-		this.attribute[key] = value;
-	};
-
-	RenderWebglShader.prototype.setAttribute = function (key, value) {
-	};
-
-	RenderWebglShader.prototype.setUniformData = function (key, value) {
-		this.uniforms[key].data = value;
+		this.attributes[key] = value;
+		this.attrObjs[key] = webGlAttrMapper(this.ctx, this.program, key, value);
 		queueInstance$4.vDomChanged(this.vDomIndex);
 	};
+
+	RenderWebglShader.prototype.setAttributeData = function (key, value) {
+		this.attributes[key].value = value;
+		this.attrObjs[key].value = value;
+		queueInstance$4.vDomChanged(this.vDomIndex);
+	};
+	RenderWebglShader.prototype.applyAttributeData = function (key, value) {
+		this.attributes[key].value = value;
+		let d = this.attrObjs[key];
+		this.ctx.bindBuffer(d.bufferType, d.buffer);
+		this.ctx.bufferData(d.bufferType, this.attributes[d.attr].value, d.drawType);
+		this.ctx.enableVertexAttribArray(d.attributeLocation);
+		this.ctx.vertexAttribPointer(d.attributeLocation, d.size, d.valueType, true, 0, 0);
+	};
+	RenderWebglShader.prototype.setUniformData = function (key, value) {
+		this.uniforms[key].value = value;
+		queueInstance$4.vDomChanged(this.vDomIndex);
+	};
+	RenderWebglShader.prototype.applyUniformData = function (uniform, value) {
+		this.uniforms[uniform].value = value;
+		if (this.uniforms[uniform].matrix) {
+			this.ctx[this.uniforms[uniform].type](this.uniforms[uniform].uniformLocation, this.uniforms[uniform].transpose, this.uniforms[uniform].value);
+		} else {
+			this.ctx[this.uniforms[uniform].type](this.uniforms[uniform].uniformLocation, this.uniforms[uniform].value);
+		}
+		queueInstance$4.vDomChanged(this.vDomIndex);
+	};
+
+	function ShaderNodePrototype () { }
+	ShaderNodePrototype.prototype.translate = function (trans) {
+		this.attr.transform['translate'] = trans;
+	};
+	ShaderNodePrototype.prototype.scale = function (scale) {
+		this.attr.transform['scale'] = scale;
+	};
+	ShaderNodePrototype.prototype.rotate = function (angle) {
+		this.attr.transform['rotate'] = angle;
+	};
+
 
 	function RenderWebglPoints (ctx, attr, style, vDomIndex) {
 		this.ctx = ctx;
@@ -7712,148 +8110,205 @@
 		this.attr = attr || {};
 		this.style = style || {};
 		this.vDomIndex = vDomIndex;
-		this.program = getProgram(ctx, shaders('point'));
-		this.colorBuffer = ctx.createBuffer();
-		this.sizeBuffer = ctx.createBuffer();
-		this.positionBuffer = ctx.createBuffer();
-		this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position');
-		this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
-		this.sizeAttributeLocation = ctx.getAttribLocation(this.program, 'a_size');
-		this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
-		this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate');
-		this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale'); // this.ctx.uniform2f(this.resolutionUniformLocation,
-		                                                                             // this.ctx.canvas.width,
-		                                                                             // this.ctx.canvas.height)
+
+		if (!this.attr.transform) {
+			this.attr.transform = {
+				translate: [0.0, 0.0],
+				scale: [1.0, 1.0]
+			};
+		}
+		if (!this.attr.transform.scale) {
+			this.attr.transform.scale = [1.0, 1.0];
+		}
+		if (!this.attr.transform.translate) {
+			this.attr.transform.translate = [0.0, 0.0];
+		}
+
+		this.geometry = new PointsGeometry();
+		this.geometry.setAttr('a_color', {
+			value: new Float32Array([]),
+			size: 4
+		});
+		this.geometry.setAttr('a_size', {
+			value: new Float32Array([]),
+			size: 1
+		});
+		this.geometry.setAttr('a_position', {
+			value: new Float32Array([]),
+			size: 2
+		});
+
+		this.shaderInstance = new RenderWebglShader(ctx, {
+			fragmentShader: shaders('point').fragmentShader,
+			vertexShader: shaders('point').vertexShader,
+			uniforms: {
+				u_resolution: {
+					value: new Float32Array([1.0, 1.0])
+				},
+				u_translate: {
+					value: new Float32Array(this.attr.transform.translate)
+				},
+				u_scale: {
+					value: new Float32Array(this.attr.transform.scale)
+				}
+			},
+			geometry: this.geometry
+		}, vDomIndex);
 
 		this.positionArray = [];
 		this.colorArray = [];
 		this.pointsSize = [];
-		this.inputs = [{
-			bufferType: this.ctx.ARRAY_BUFFER,
-			buffer: this.colorBuffer,
-			drawType: this.ctx.STATIC_DRAW,
-			valueType: this.ctx.UNSIGNED_BYTE,
-			size: 4,
-			attribute: this.colorAttributeLocation
-		}, {
-			bufferType: this.ctx.ARRAY_BUFFER,
-			buffer: this.sizeBuffer,
-			drawType: this.ctx.STATIC_DRAW,
-			valueType: this.ctx.FLOAT,
-			size: 1,
-			attribute: this.sizeAttributeLocation
-		}, {
-			bufferType: this.ctx.ARRAY_BUFFER,
-			buffer: this.positionBuffer,
-			drawType: this.ctx.STATIC_DRAW,
-			valueType: this.ctx.FLOAT,
-			size: 2,
-			attribute: this.positionAttributeLocation
-		}];
 
-		if (!this.attr.transform) {
-			this.attr.transform = {
-				translate: [0.0, 0.0],
-				scale: [1.0, 1.0]
-			};
-		}
+		this.vertexUpdate = true;
+		this.colorUpdate = true;
+		this.sizeUpdate = true;
 	}
 
-	RenderWebglPoints.prototype.remove = function (position) {
-		this.positionArray.splice(position * 2, 2);
-		this.pointsSize.splice(position, 1);
-		this.colorArray.splice(position * 4, 4);
+	RenderWebglPoints.prototype = new ShaderNodePrototype();
+	RenderWebglPoints.prototype.constructor = RenderWebglPoints;
+
+	RenderWebglPoints.prototype.clear = function (index) {
+		let colorArray = this.colorUpdate ? this.colorArray : this.typedColorArray;
+		let ti = index * 4;
+
+		colorArray[ti] = undefined;
+		colorArray[ti + 1] = undefined;
+		colorArray[ti + 2] = undefined;
+		colorArray[ti + 3] = undefined;
+
+		let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
+		let len = index * 2;
+		positionArray[len] = undefined;
+		positionArray[len + 1] = undefined;
+
+		let sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
+		sizeArray[index] = undefined;
+
+		this.filterPositionFlag = true;
+		this.filterColorFlag = true;
+		this.filterSizeFlag = true;
+	};
+
+	RenderWebglPoints.prototype.updateVertex = function (index, x, y) {
+		let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
+		positionArray[index * 2] = x;
+		positionArray[(index * 2) + 1] = y;
+	};
+
+	RenderWebglPoints.prototype.updateSize = function (index, size) {
+		let sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
+		sizeArray[index] = size;
+	};
+
+	RenderWebglPoints.prototype.updateColor = function (index, fill) {
+		let colorArray = this.colorUpdate ? this.colorArray : this.typedColorArray;
+		colorArray[index * 4] = fill.r / 255;
+		colorArray[(index * 4) + 1] = fill.g / 255;
+		colorArray[(index * 4) + 2] = fill.b / 255;
+		colorArray[(index * 4) + 3] = fill.a === undefined ? 1 : fill.a / 255;
+	};
+
+	RenderWebglPoints.prototype.addVertex = function (x, y, index) {
+		this.positionArray = (this.typedPositionArray && this.typedPositionArray.length > 0) ? Array.from(this.typedPositionArray) : this.positionArray;
+		this.positionArray[index * 2] = x;
+		this.positionArray[(index * 2) + 1] = y;
+		this.vertexUpdate = true;
+	};
+
+	RenderWebglPoints.prototype.addSize = function (size, index) {
+		this.pointsSize = (this.typedSizeArray && this.typedSizeArray.length > 0) ? Array.from(this.typedSizeArray) : this.pointsSize;
+		this.pointsSize[index] = size;
+		this.sizeUpdate = true;
+	};
+
+	RenderWebglPoints.prototype.addColors = function (fill, index) {
+		this.colorArray = (this.typedColorArray && this.typedColorArray.length > 0) ? Array.from(this.typedColorArray) : this.colorArray;
+		this.colorArray[index * 4] = fill.r / 255;
+		this.colorArray[(index * 4) + 1] = fill.g / 255;
+		this.colorArray[(index * 4) + 2] = fill.b / 255;
+		this.colorArray[(index * 4) + 3] = fill.a === undefined ? 1 : fill.a / 255;
+		this.colorUpdate = true;
 	};
 
 	RenderWebglPoints.prototype.execute = function (stack) {
-		let positionArray = this.positionArray;
-		let colorArray = this.colorArray;
-		let pointsSize = this.pointsSize;
-		let node;
-		let fill;
-		let styleFlag = false;
-		let attrFlag = false;
+		if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+			this.renderTarget.update();
+		}
 
-		for (var i = 0, len = stack.length; i < len; i++) {
-			node = stack[i];
-
-			if (node.propChanged) {
-				positionArray[i * 2] = node.attr.x;
-				positionArray[(i * 2) + 1] = node.attr.y;
-				pointsSize[i] = (node.attr.size || 1.0) * ratio$1;
-				attrFlag = true;
-				node.propChanged = false;
+		if (this.vertexUpdate) {
+			if (this.filterPositionFlag) {
+				this.positionArray = this.positionArray.filter(function (d) {
+					return !isNaN(d);
+				});
+				this.filterPositionFlag = false;
 			}
-
-			if (node.styleChanged) {
-				fill = node.style.fill || defaultColor$1;
-				colorArray[i * 4] = fill.r;
-				colorArray[(i * 4) + 1] = fill.g;
-				colorArray[(i * 4) + 2] = fill.b;
-				colorArray[(i * 4) + 3] = fill.a === undefined ? 255 : fill.a;
-				styleFlag = true;
-				node.styleChanged = false;
+			this.typedPositionArray = new Float32Array(this.positionArray);
+			this.positionArray = [];
+			this.vertexUpdate = false;
+		}
+		if (this.colorUpdate) {
+			if (this.filterColorFlag) {
+				this.colorArray = this.colorArray.filter(function (d) {
+					return !isNaN(d);
+				});
+				this.filterColorFlag = false;
 			}
+			this.typedColorArray = new Float32Array(this.colorArray);
+			this.colorArray = [];
+			this.colorUpdate = false;
 		}
-
-		if (attrFlag) {
-			this.inputs[2].data = new Float32Array(positionArray);
-			this.inputs[1].data = new Float32Array(pointsSize);
+		if (this.sizeUpdate) {
+			if (this.filterSizeFlag) {
+				this.pointsSize = this.pointsSize.filter(function (d) {
+					return !isNaN(d);
+				});
+				this.filterSizeFlag = false;
+			}
+			this.typedSizeArray = new Float32Array(this.pointsSize);
+			this.pointsSize = [];
+			this.sizeUpdate = false;
 		}
-
-		if (styleFlag) {
-			this.inputs[0].data = new Uint8Array(colorArray);
+		if (this.filterPositionFlag) {
+			this.typedPositionArray = this.typedPositionArray.filter(function (d) {
+				return !isNaN(d);
+			});
+			this.filterPositionFlag = false;
 		}
-
-		if (!this.attr.transform.scale) {
-			this.attr.transform.scale = [1.0, 1.0];
+		if (this.filterColorFlag) {
+			this.typedColorArray = this.typedColorArray.filter(function (d) {
+				return !isNaN(d);
+			});
+			this.filterColorFlag = false;
 		}
-
-		if (!this.attr.transform.translate) {
-			this.attr.transform.translate = [0.0, 0.0];
+		if (this.filterSizeFlag) {
+			this.typedSizeArray = this.typedSizeArray.filter(function (d) {
+				return !isNaN(d);
+			});
+			this.filterSizeFlag = false;
 		}
+		this.shaderInstance.setUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1]));
+		this.shaderInstance.setUniformData('u_scale', new Float32Array([this.attr.transform.scale[0], this.attr.transform.scale[1]]));
+		this.shaderInstance.setUniformData('u_translate', new Float32Array([this.attr.transform.translate[0], this.attr.transform.translate[1]]));
+		this.shaderInstance.setAttributeData('a_color', this.typedColorArray);
+		this.shaderInstance.setAttributeData('a_size', this.typedSizeArray);
+		this.shaderInstance.setAttributeData('a_position', this.typedPositionArray);
+		this.geometry.setDrawRange(0, this.typedPositionArray.length / 2);
 
-		this.ctx.useProgram(this.program);
-		writeDataToShaderAttributes(this.ctx, this.inputs);
-		this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1);
-		this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]]);
-		this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]]);
-		this.ctx.drawArrays(this.ctx.POINTS, 0, positionArray.length / 2);
+		this.shaderInstance.execute();
+		if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+			this.renderTarget.update();
+		}
 	};
 
-	function RenderWebglRects (ctx, attr, style, vDomIndex) {
+	function RenderWebglRects (ctx, attr, style, renderTarget, vDomIndex) {
 		this.ctx = ctx;
 		this.dom = {};
+		this.positionArray = [];
+		this.colorArray = [];
 		this.attr = attr || {};
 		this.style = style || {};
 		this.vDomIndex = vDomIndex;
-		this.program = getProgram(ctx, shaders('rect'));
-		this.colorBuffer = ctx.createBuffer();
-		this.positionBuffer = ctx.createBuffer();
-		this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position');
-		this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
-		this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
-		this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate');
-		this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale');
-		this.positionArray = [];
-		this.colorArray = [];
-		this.inputs = [{
-			data: this.colorArray,
-			bufferType: this.ctx.ARRAY_BUFFER,
-			buffer: this.colorBuffer,
-			drawType: this.ctx.STATIC_DRAW,
-			valueType: this.ctx.UNSIGNED_BYTE,
-			size: 4,
-			attribute: this.colorAttributeLocation
-		}, {
-			data: new Float32Array(this.positionArray),
-			bufferType: this.ctx.ARRAY_BUFFER,
-			buffer: this.positionBuffer,
-			drawType: this.ctx.STATIC_DRAW,
-			valueType: this.ctx.FLOAT,
-			size: 2,
-			attribute: this.positionAttributeLocation
-		}];
+		this.renderTarget = renderTarget;
 
 		if (!this.attr.transform) {
 			this.attr.transform = {
@@ -7861,101 +8316,178 @@
 				scale: [1.0, 1.0]
 			};
 		}
-	}
 
-	RenderWebglRects.prototype.remove = function (position) {
-		this.positionArray.splice(position * 12, 12);
-		this.colorArray.splice(position * 24, 24);
+		this.geometry = new MeshGeometry();
+		this.geometry.setAttr('a_color', {
+			value: new Float32Array(this.colorArray),
+			size: 4
+		});
+		this.geometry.setAttr('a_position', {
+			value: new Float32Array(this.positionArray),
+			size: 2
+		});
+		this.geometry.setDrawRange(0, this.positionArray.length / 2);
+
+		this.shaderInstance = new RenderWebglShader(ctx, {
+			fragmentShader: shaders('rect').fragmentShader,
+			vertexShader: shaders('rect').vertexShader,
+			uniforms: {
+				u_resolution: {
+					value: new Float32Array([1.0, 1.0])
+				},
+				u_translate: {
+					value: new Float32Array(this.attr.transform.translate)
+				},
+				u_scale: {
+					value: new Float32Array(this.attr.transform.scale)
+				}
+			},
+			geometry: this.geometry
+		}, vDomIndex);
+
+		this.vertexUpdate = true;
+		this.colorUpdate = true;
+	}
+	RenderWebglRects.prototype = new ShaderNodePrototype();
+	RenderWebglRects.prototype.constructor = RenderWebglRects;
+
+	RenderWebglRects.prototype.clear = function (index) {
+		let colorArray = this.colorUpdate ? this.colorArray : this.typedColorArray;
+		let ti = index * 24;
+
+		colorArray[ti] = colorArray[ti + 4] = colorArray[ti + 8] = colorArray[ti + 12] = colorArray[ti + 16] = colorArray[ti + 20] = undefined;
+		colorArray[ti + 1] = colorArray[ti + 5] = colorArray[ti + 9] = colorArray[ti + 13] = colorArray[ti + 17] = colorArray[ti + 21] = undefined;
+		colorArray[ti + 2] = colorArray[ti + 6] = colorArray[ti + 10] = colorArray[ti + 14] = colorArray[ti + 18] = colorArray[ti + 22] = undefined;
+		colorArray[ti + 3] = colorArray[ti + 7] = colorArray[ti + 11] = colorArray[ti + 15] = colorArray[ti + 19] = colorArray[ti + 23] = undefined;
+
+		let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
+		let len = index * 12;
+		positionArray[len] = positionArray[len + 4] = positionArray[len + 6] = undefined;
+		positionArray[len + 2] = positionArray[len + 8] = positionArray[len + 10] = undefined;
+		positionArray[len + 1] = positionArray[len + 3] = positionArray[len + 9] = undefined;
+		positionArray[len + 5] = positionArray[len + 7] = positionArray[len + 11] = undefined;
+
+		this.filterPositionFlag = true;
+		this.filterColorFlag = true;
+	};
+
+	RenderWebglRects.prototype.updateVertexX = function (index, x, width) {
+		let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
+		let len = index * 12;
+		let x1 = x + width;
+		if (isNaN(positionArray[len])) {
+			console.log('overriding Nan');
+		}
+		positionArray[len] = positionArray[len + 4] = positionArray[len + 6] = x;
+		positionArray[len + 2] = positionArray[len + 8] = positionArray[len + 10] = x1;
+	};
+
+	RenderWebglRects.prototype.updateVertexY = function (index, y, height) {
+		let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
+		let len = index * 12;
+		let y1 = y + height;
+		positionArray[len + 1] = positionArray[len + 3] = positionArray[len + 9] = y;
+		positionArray[len + 5] = positionArray[len + 7] = positionArray[len + 11] = y1;
+	};
+
+	RenderWebglRects.prototype.updateColor = function (index, fill) {
+		let colorArray = this.colorUpdate ? this.colorArray : this.typedColorArray;
+		let ti = index * 24;
+		if (isNaN(colorArray[ti])) {
+			console.log('overriding Nan');
+		}
+		colorArray[ti] = colorArray[ti + 4] = colorArray[ti + 8] = colorArray[ti + 12] = colorArray[ti + 16] = colorArray[ti + 20] = fill.r / 255;
+		colorArray[ti + 1] = colorArray[ti + 5] = colorArray[ti + 9] = colorArray[ti + 13] = colorArray[ti + 17] = colorArray[ti + 21] = fill.g / 255;
+		colorArray[ti + 2] = colorArray[ti + 6] = colorArray[ti + 10] = colorArray[ti + 14] = colorArray[ti + 18] = colorArray[ti + 22] = fill.b / 255;
+		colorArray[ti + 3] = colorArray[ti + 7] = colorArray[ti + 11] = colorArray[ti + 15] = colorArray[ti + 19] = colorArray[ti + 23] = fill.a === undefined ? 1 : fill.a / 255;
+	};
+
+	RenderWebglRects.prototype.addVertex = function (x, y, width, height, index) {
+		this.positionArray = (this.typedPositionArray && this.typedPositionArray.length > 0) ? Array.from(this.typedPositionArray) : this.positionArray;
+		this.typedPositionArray = null;
+		let len = index * 12;
+		let x1 = x + width;
+		let y1 = y + height;
+
+		this.positionArray[len] = this.positionArray[len + 4] = this.positionArray[len + 6] = x;
+		this.positionArray[len + 1] = this.positionArray[len + 3] = this.positionArray[len + 9] = y;
+		this.positionArray[len + 2] = this.positionArray[len + 8] = this.positionArray[len + 10] = x1;
+		this.positionArray[len + 5] = this.positionArray[len + 7] = this.positionArray[len + 11] = y1;
+		this.vertexUpdate = true;
+	};
+
+	RenderWebglRects.prototype.addColors = function (fill, index) {
+		this.colorArray = (this.typedColorArray && this.typedColorArray.length > 0) ? Array.from(this.typedColorArray) : this.colorArray;
+		this.typedColorArray = null;
+		let ti = index * 24;
+		this.colorArray[ti] = this.colorArray[ti + 4] = this.colorArray[ti + 8] = this.colorArray[ti + 12] = this.colorArray[ti + 16] = this.colorArray[ti + 20] = fill.r / 255;
+		this.colorArray[ti + 1] = this.colorArray[ti + 5] = this.colorArray[ti + 9] = this.colorArray[ti + 13] = this.colorArray[ti + 17] = this.colorArray[ti + 21] = fill.g / 255;
+		this.colorArray[ti + 2] = this.colorArray[ti + 6] = this.colorArray[ti + 10] = this.colorArray[ti + 14] = this.colorArray[ti + 18] = this.colorArray[ti + 22] = fill.b / 255;
+		this.colorArray[ti + 3] = this.colorArray[ti + 7] = this.colorArray[ti + 11] = this.colorArray[ti + 15] = this.colorArray[ti + 19] = this.colorArray[ti + 23] = fill.a === undefined ? 1 : fill.a / 255;
+		this.colorUpdate = true;
 	};
 
 	RenderWebglRects.prototype.execute = function (stack) {
-		let positionArray = this.positionArray;
-		let colorArray = this.colorArray;
-		let fill, r, g, b, a, x1, x2, y1, y2;
-		let node;
-		let ti;
-		let posi;
-
-		for (var i = 0, len = stack.length; i < len; i++) {
-			node = stack[i];
-
-			if (node.propChanged) {
-				x1 = node.attr.x;
-				x2 = x1 + node.attr.width;
-				y1 = node.attr.y;
-				y2 = y1 + node.attr.height;
-				posi = i * 12;
-				positionArray[posi] = positionArray[posi + 4] = positionArray[posi + 6] = x1;
-				positionArray[posi + 1] = positionArray[posi + 3] = positionArray[posi + 9] = y1;
-				positionArray[posi + 2] = positionArray[posi + 8] = positionArray[posi + 10] = x2;
-				positionArray[posi + 5] = positionArray[posi + 7] = positionArray[posi + 11] = y2;
-				node.propChanged = false;
+		if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+			this.renderTarget.update();
+		}
+		if (this.vertexUpdate) {
+			if (this.filterPositionFlag) {
+				this.positionArray = this.positionArray.filter(function (d) {
+					return !isNaN(d);
+				});
+				this.filterPositionFlag = false;
 			}
-
-			if (node.styleChanged) {
-				fill = node.style.fill || defaultColor$1;
-				r = fill.r;
-				g = fill.g;
-				b = fill.b;
-				a = fill.a === undefined ? 255 : fill.a;
-				ti = i * 24;
-				colorArray[ti] = colorArray[ti + 4] = colorArray[ti + 8] = colorArray[ti + 12] = colorArray[ti + 16] = colorArray[ti + 20] = r;
-				colorArray[ti + 1] = colorArray[ti + 5] = colorArray[ti + 9] = colorArray[ti + 13] = colorArray[ti + 17] = colorArray[ti + 21] = g;
-				colorArray[ti + 2] = colorArray[ti + 6] = colorArray[ti + 10] = colorArray[ti + 14] = colorArray[ti + 18] = colorArray[ti + 22] = b;
-				colorArray[ti + 3] = colorArray[ti + 7] = colorArray[ti + 11] = colorArray[ti + 15] = colorArray[ti + 19] = colorArray[ti + 23] = a;
-				node.styleChanged = false;
+			this.typedPositionArray = new Float32Array(this.positionArray);
+			this.positionArray = [];
+			this.vertexUpdate = false;
+		}
+		if (this.colorUpdate) {
+			if (this.filterColorFlag) {
+				this.colorArray = this.colorArray.filter(function (d) {
+					return !isNaN(d);
+				});
+				this.filterColorFlag = false;
 			}
+			this.typedColorArray = new Float32Array(this.colorArray);
+			this.colorArray = [];
+			this.colorUpdate = false;
 		}
-
-		if (!this.attr.transform.scale) {
-			this.attr.transform.scale = [1.0, 1.0];
+		if (this.filterPositionFlag) {
+			this.typedPositionArray = this.typedPositionArray.filter(function (d) {
+				return !isNaN(d);
+			});
+			this.filterPositionFlag = false;
 		}
-
-		if (!this.attr.transform.translate) {
-			this.attr.transform.translate = [0.0, 0.0];
+		if (this.filterColorFlag) {
+			this.typedColorArray = this.typedColorArray.filter(function (d) {
+				return !isNaN(d);
+			});
+			this.filterColorFlag = false;
 		}
-
-		this.inputs[0].data = new Uint8Array(this.colorArray);
-		this.inputs[1].data = new Float32Array(this.positionArray);
-		writeDataToShaderAttributes(this.ctx, this.inputs);
-		this.ctx.useProgram(this.program);
-		this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1);
-		this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]]);
-		this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]]);
-		this.ctx.drawArrays(this.ctx.TRIANGLES, 0, positionArray.length / 2);
+		this.shaderInstance.setAttributeData('a_color', this.typedColorArray);
+		this.shaderInstance.setAttributeData('a_position', this.typedPositionArray);
+		this.geometry.setDrawRange(0, this.typedPositionArray.length / 2);
+		this.shaderInstance.setUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1]));
+		this.shaderInstance.setUniformData('u_scale', new Float32Array([this.attr.transform.scale[0], this.attr.transform.scale[1]]));
+		this.shaderInstance.setUniformData('u_translate', new Float32Array([this.attr.transform.translate[0], this.attr.transform.translate[1]]));
+		this.shaderInstance.execute();
+		if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+			this.renderTarget.clear();
+		}
 	};
 
-	function RenderWebglLines (ctx, attr, style, vDomIndex) {
+	function RenderWebglLines (ctx, attr, style, renderTarget, vDomIndex) {
 		this.ctx = ctx;
 		this.dom = {};
 		this.attr = attr || {};
 		this.style = style || {};
 		this.vDomIndex = vDomIndex;
-		this.program = getProgram(ctx, shaders('line'));
-		this.colorBuffer = ctx.createBuffer();
-		this.positionBuffer = ctx.createBuffer();
-		this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position');
-		this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
-		this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
-		this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate');
-		this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale');
 		this.positionArray = [];
 		this.colorArray = [];
-		this.inputs = [{
-			bufferType: this.ctx.ARRAY_BUFFER,
-			buffer: this.colorBuffer,
-			drawType: this.ctx.STATIC_DRAW,
-			valueType: this.ctx.UNSIGNED_BYTE,
-			size: 4,
-			attribute: this.colorAttributeLocation
-		}, {
-			bufferType: this.ctx.ARRAY_BUFFER,
-			buffer: this.positionBuffer,
-			drawType: this.ctx.DYNAMIC_DRAW,
-			valueType: this.ctx.FLOAT,
-			size: 2,
-			attribute: this.positionAttributeLocation
-		}];
+		this.vertexUpdate = true;
+		this.colorUpdate = true;
+		this.renderTarget = renderTarget;
 
 		if (!this.attr.transform) {
 			this.attr.transform = {
@@ -7963,95 +8495,166 @@
 				scale: [1.0, 1.0]
 			};
 		}
+
+		this.geometry = new LineGeometry();
+		this.geometry.setAttr('a_color', {
+			value: new Float32Array(this.colorArray),
+			size: 4
+		});
+		this.geometry.setAttr('a_position', {
+			value: new Float32Array(this.positionArray),
+			size: 2
+		});
+		this.geometry.setDrawRange(0, this.positionArray.length / 2);
+
+		this.shaderInstance = new RenderWebglShader(ctx, {
+			fragmentShader: shaders('line').fragmentShader,
+			vertexShader: shaders('line').vertexShader,
+			uniforms: {
+				u_resolution: {
+					value: new Float32Array([1.0, 1.0])
+				},
+				u_translate: {
+					value: new Float32Array(this.attr.transform.translate)
+				},
+				u_scale: {
+					value: new Float32Array(this.attr.transform.scale)
+				}
+			},
+			geometry: this.geometry
+		}, vDomIndex);
 	}
 
-	RenderWebglLines.prototype.remove = function (position) {
-		this.positionArray.splice(position * 4, 4);
-		this.colorArray.splice(position * 8, 8);
+	RenderWebglLines.prototype = new ShaderNodePrototype();
+	RenderWebglLines.prototype.constructor = RenderWebglLines;
+
+	RenderWebglLines.prototype.clear = function (index) {
+		let colorArray = this.colorUpdate ? this.colorArray : this.typedColorArray;
+		let ti = index * 8;
+
+		colorArray[ti] = undefined;
+		colorArray[ti + 1] = undefined;
+		colorArray[ti + 2] = undefined;
+		colorArray[ti + 3] = undefined;
+		colorArray[ti + 4] = undefined;
+		colorArray[ti + 5] = undefined;
+		colorArray[ti + 6] = undefined;
+		colorArray[ti + 7] = undefined;
+
+		let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
+		let len = index * 4;
+		positionArray[len] = undefined;
+		positionArray[len + 1] = undefined;
+		positionArray[len + 2] = undefined;
+		positionArray[len + 3] = undefined;
+
+		this.filterPositionFlag = true;
+		this.filterColorFlag = true;
+	};
+
+	RenderWebglLines.prototype.updateVertex = function (index, x1, y1, x2, y2) {
+		let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
+		let len = index * 4;
+		positionArray[len] = x1;
+		positionArray[len + 1] = y1;
+		positionArray[len + 2] = x2;
+		positionArray[len + 3] = y2;
+	};
+
+	RenderWebglLines.prototype.updateColor = function (i, stroke) {
+		let colorArray = this.vertexUpdate ? this.colorArray : this.typedColorArray;
+		colorArray[i * 8] = stroke.r / 255;
+		colorArray[(i * 8) + 1] = stroke.g / 255;
+		colorArray[(i * 8) + 2] = stroke.b / 255;
+		colorArray[(i * 8) + 3] = stroke.a === undefined ? 1 : stroke.a / 255;
+		colorArray[(i * 8) + 4] = stroke.r / 255;
+		colorArray[(i * 8) + 5] = stroke.g / 255;
+		colorArray[(i * 8) + 6] = stroke.b / 255;
+		colorArray[(i * 8) + 7] = stroke.a === undefined ? 1 : stroke.a / 255;
+	};
+
+	RenderWebglLines.prototype.addVertex = function (x1, y1, x2, y2, index) {
+		this.positionArray = (this.typedPositionArray && this.typedPositionArray.length > 0) ? Array.from(this.typedPositionArray) : this.positionArray;
+		this.positionArray[index * 4] = x1;
+		this.positionArray[(index * 4) + 1] = y1;
+		this.positionArray[(index * 4) + 2] = x2;
+		this.positionArray[(index * 4) + 3] = y2;
+		this.vertexUpdate = true;
+	};
+
+	RenderWebglLines.prototype.addColors = function (stroke, index) {
+		this.colorArray = (this.typedColorArray && this.typedColorArray.length > 0) ? Array.from(this.typedColorArray) : this.colorArray;
+		this.colorArray[index * 8] = stroke.r / 255;
+		this.colorArray[(index * 8) + 1] = stroke.g / 255;
+		this.colorArray[(index * 8) + 2] = stroke.b / 255;
+		this.colorArray[(index * 8) + 3] = stroke.a === undefined ? 1 : stroke.a / 255;
+		this.colorArray[(index * 8) + 4] = stroke.r / 255;
+		this.colorArray[(index * 8) + 5] = stroke.g / 255;
+		this.colorArray[(index * 8) + 6] = stroke.b / 255;
+		this.colorArray[(index * 8) + 7] = stroke.a === undefined ? 1 : stroke.a / 255;
+		this.colorUpdate = true;
 	};
 
 	RenderWebglLines.prototype.execute = function (stack) {
-		let positionArray = this.positionArray;
-		let colorArray = this.colorArray;
-		let node, r, g, b, a, stroke;
-
-		for (var i = 0, len = stack.length; i < len; i++) {
-			node = stack[i];
-
-			if (node.propChanged) {
-				positionArray[i * 4] = node.attr.x1;
-				positionArray[(i * 4) + 1] = node.attr.y1;
-				positionArray[(i * 4) + 2] = node.attr.x2;
-				positionArray[(i * 4) + 3] = node.attr.y2;
+		if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+			this.renderTarget.update();
+		}
+		if (this.vertexUpdate) {
+			if (this.filterPositionFlag) {
+				this.positionArray = this.positionArray.filter(function (d) {
+					return !isNaN(d);
+				});
+				this.filterPositionFlag = false;
 			}
-
-			if (node.styleChanged) {
-				stroke = node.style.stroke || defaultColor$1;
-				r = stroke.r;
-				g = stroke.g;
-				b = stroke.b;
-				a = stroke.a === undefined ? 255 : stroke.a;
-				colorArray[i * 8] = r;
-				colorArray[(i * 8) + 1] = g;
-				colorArray[(i * 8) + 2] = b;
-				colorArray[(i * 8) + 3] = a;
-				colorArray[(i * 8) + 4] = r;
-				colorArray[(i * 8) + 5] = g;
-				colorArray[(i * 8) + 6] = b;
-				colorArray[(i * 8) + 7] = a;
-				node.styleChanged = false;
+			this.typedPositionArray = new Float32Array(this.positionArray);
+			this.positionArray = [];
+			this.vertexUpdate = false;
+		}
+		if (this.colorUpdate) {
+			if (this.filterColorFlag) {
+				this.colorArray = this.colorArray.filter(function (d) {
+					return !isNaN(d);
+				});
+				this.filterColorFlag = false;
 			}
+			this.typedColorArray = new Float32Array(this.colorArray);
+			this.colorArray = [];
+			this.colorUpdate = false;
+		}
+		if (this.filterPositionFlag) {
+			this.typedPositionArray = this.typedPositionArray.filter(function (d) {
+				return !isNaN(d);
+			});
+			this.filterPositionFlag = false;
+		}
+		if (this.filterColorFlag) {
+			this.typedColorArray = this.typedColorArray.filter(function (d) {
+				return !isNaN(d);
+			});
+			this.filterColorFlag = false;
 		}
 
-		if (!this.attr.transform.scale) {
-			this.attr.transform.scale = [1.0, 1.0];
+		this.shaderInstance.setAttributeData('a_color', this.typedColorArray);
+		this.shaderInstance.setAttributeData('a_position', this.typedPositionArray);
+		this.geometry.setDrawRange(0, this.typedPositionArray.length / 2);
+		this.shaderInstance.setUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1]));
+		this.shaderInstance.setUniformData('u_scale', new Float32Array([this.attr.transform.scale[0], this.attr.transform.scale[1]]));
+		this.shaderInstance.setUniformData('u_translate', new Float32Array([this.attr.transform.translate[0], this.attr.transform.translate[1]]));
+		this.shaderInstance.execute();
+		if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+			this.renderTarget.clear();
 		}
-
-		if (!this.attr.transform.translate) {
-			this.attr.transform.translate = [0.0, 0.0];
-		}
-
-		this.inputs[0].data = new Uint8Array(this.colorArray);
-		this.inputs[1].data = new Float32Array(this.positionArray);
-		writeDataToShaderAttributes(this.ctx, this.inputs);
-		this.ctx.useProgram(this.program);
-		this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1);
-		this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]]);
-		this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]]);
-		this.ctx.drawArrays(this.ctx.LINES, 0, positionArray.length / 2);
 	};
 
-	function RenderWebglPolyLines (ctx, attr, style, vDomIndex) {
+	function RenderWebglPolyLines (ctx, attr, style, renderTarget, vDomIndex) {
 		this.ctx = ctx;
 		this.dom = {};
 		this.attr = attr || {};
 		this.style = style || {};
 		this.vDomIndex = vDomIndex;
-		this.program = getProgram(ctx, shaders('line'));
-		this.colorBuffer = ctx.createBuffer();
-		this.positionBuffer = ctx.createBuffer();
-		this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position');
-		this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
-		this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
-		this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate');
-		this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale');
-		this.polyLineArray = []; // this.colorArray = []
-
-		this.inputs = [{
-			bufferType: this.ctx.ARRAY_BUFFER,
-			buffer: this.colorBuffer,
-			drawType: this.ctx.STATIC_DRAW,
-			valueType: this.ctx.UNSIGNED_BYTE,
-			size: 4,
-			attribute: this.colorAttributeLocation
-		}, {
-			bufferType: this.ctx.ARRAY_BUFFER,
-			buffer: this.positionBuffer,
-			drawType: this.ctx.DYNAMIC_DRAW,
-			valueType: this.ctx.FLOAT,
-			size: 2,
-			attribute: this.positionAttributeLocation
-		}];
+		this.positionArray = [];
+		this.colorArray = [];
+		this.renderTarget = renderTarget;
 
 		if (!this.attr.transform) {
 			this.attr.transform = {
@@ -8059,16 +8662,81 @@
 				scale: [1.0, 1.0]
 			};
 		}
+
+		this.geometry = new LineGeometry();
+		this.geometry.drawType = 'LINE_STRIP';
+		this.geometry.setAttr('a_position', {
+			value: new Float32Array(this.positionArray),
+			size: 2
+		});
+		this.geometry.setDrawRange(0, this.positionArray.length / 2);
+
+		this.shaderInstance = new RenderWebglShader(ctx, {
+			fragmentShader: shaders('polyline').fragmentShader,
+			vertexShader: shaders('polyline').vertexShader,
+			uniforms: {
+				u_resolution: {
+					value: new Float32Array([1.0, 1.0])
+				},
+				u_translate: {
+					value: new Float32Array(this.attr.transform.translate)
+				},
+				u_scale: {
+					value: new Float32Array(this.attr.transform.scale)
+				},
+				u_color: {
+					value: new Float32Array(4)
+				}
+			},
+			geometry: this.geometry
+		}, vDomIndex);
 	}
 
-	RenderWebglPolyLines.prototype.remove = function (position) {
-		this.polyLineArray.splice(position, 1);
+	RenderWebglPolyLines.prototype = new ShaderNodePrototype();
+	RenderWebglPolyLines.prototype.constructor = RenderWebglPolyLines;
+
+	RenderWebglPolyLines.prototype.clear = function (index) {
+		this.positionArray[index] = undefined;
+		this.colorArray[index] = undefined;
+		this.filterColorFlag = true;
+		this.filterPositionFlag = true;
+	};
+
+	RenderWebglPolyLines.prototype.updateVertex = function (index, points) {
+		let subPoints = [];
+		for (let j = 0, jlen = points.length; j < jlen; j++) {
+			subPoints[j * 2] = points[j].x;
+			subPoints[(j * 2) + 1] = points[j].y;
+		}
+		this.positionArray[index] = new Float32Array(subPoints);
+	};
+
+	RenderWebglPolyLines.prototype.updateColor = function (index, fill) {
+		this.colorArray[index] = new Float32Array([fill.r / 255, fill.g / 255, fill.b / 255, fill.a === undefined ? 1 : fill.a / 255]);
+	};
+
+	RenderWebglPolyLines.prototype.addVertex = function (points, index) {
+		let positionArray = this.positionArray;
+		let subPoints = [];
+
+		for (let j = 0, jlen = points.length; j < jlen; j++) {
+			subPoints[j * 2] = points[j].x;
+			subPoints[(j * 2) + 1] = points[j].y;
+		}
+
+		positionArray[index] = new Float32Array(subPoints);
+		this.vertexUpdate = true;
+	};
+
+	RenderWebglPolyLines.prototype.addColors = function (fill, index) {
+		this.colorArray[index] = new Float32Array([fill.r / 255, fill.g / 255, fill.b / 255, fill.a === undefined ? 1 : fill.a / 255]);
+		this.colorUpdate = true;
 	};
 
 	RenderWebglPolyLines.prototype.execute = function (stack) {
-		let node;
-		let fill;
-		let points;
+		if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+			this.renderTarget.update();
+		}
 
 		if (!this.attr.transform.scale) {
 			this.attr.transform.scale = [1.0, 1.0];
@@ -8078,86 +8746,44 @@
 			this.attr.transform.translate = [0.0, 0.0];
 		}
 
-		this.ctx.useProgram(this.program);
-		this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1);
-		this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]]);
-		this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]]);
+		if (this.filterPositionFlag) {
+			this.positionArray = this.positionArray.filter(function (d) {
+				return d;
+			});
+			this.filterPositionFlag = false;
+		}
+		if (this.filterColorFlag) {
+			this.colorArray = this.colorArray.filter(function (d) {
+				return d;
+			});
+			this.filterColorFlag = false;
+		}
 
-		for (let i = 0, len = stack.length; i < len; i++) {
-			node = stack[i];
-			fill = node.style.stroke;
-			points = node.attr.points;
-			fill = fill || defaultColor$1;
+		this.shaderInstance.setUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1]));
+		this.shaderInstance.setUniformData('u_scale', new Float32Array([this.attr.transform.scale[0], this.attr.transform.scale[1]]));
+		this.shaderInstance.setUniformData('u_translate', new Float32Array([this.attr.transform.translate[0], this.attr.transform.translate[1]]));
 
-			if (node.propChanged) {
-				let positionArray = [];
-
-				for (let j = 0, jlen = points.length; j < jlen; j++) {
-					positionArray[j * 2] = points[j].x;
-					positionArray[(j * 2) + 1] = points[j].y;
-				}
-
-				if (!this.polyLineArray[i]) {
-					this.polyLineArray[i] = {};
-				}
-
-				this.polyLineArray[i].positionArray = new Float32Array(positionArray);
-			}
-
-			if (node.styleChanged) {
-				let colorArray = [];
-				let r = fill.r || 0;
-				let g = fill.g || 0;
-				let b = fill.b || 0;
-				let a = fill.a === undefined ? 255 : fill.a;
-
-				for (let j = 0, jlen = points.length; j < jlen; j++) {
-					colorArray[j * 4] = r;
-					colorArray[(j * 4) + 1] = g;
-					colorArray[(j * 4) + 2] = b;
-					colorArray[(j * 4) + 3] = a;
-				}
-
-				this.polyLineArray[i].colorArray = new Uint8Array(colorArray);
-			}
-
-			this.inputs[0].data = this.polyLineArray[i].colorArray;
-			this.inputs[1].data = this.polyLineArray[i].positionArray;
-			writeDataToShaderAttributes(this.ctx, this.inputs);
-			this.ctx.drawArrays(this.ctx.LINE_STRIP, 0, this.polyLineArray[i].positionArray.length / 2);
+		for (let i = 0, len = this.positionArray.length; i < len; i++) {
+			// this.shaderInstance.setAttributeData('a_color', this.colorArray[i]);
+			this.shaderInstance.setAttributeData('a_position', this.positionArray[i]);
+			this.shaderInstance.setUniformData('u_color', this.colorArray[i]);
+			this.geometry.setDrawRange(0, this.positionArray[i].length / 2);
+			this.shaderInstance.execute();
+		}
+		if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+			this.renderTarget.clear();
 		}
 	};
 
-	function RenderWebglPolygons (ctx, attr, style, vDomIndex) {
+	function RenderWebglPolygons (ctx, attr, style, renderTarget, vDomIndex) {
 		this.ctx = ctx;
 		this.dom = {};
 		this.attr = attr || {};
 		this.style = style || {};
 		this.vDomIndex = vDomIndex;
-		this.program = getProgram(ctx, shaders('line'));
-		this.colorBuffer = ctx.createBuffer();
-		this.positionBuffer = ctx.createBuffer();
-		this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position');
-		this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
-		this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
-		this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate');
-		this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale');
-		this.polygonArray = [];
-		this.inputs = [{
-			bufferType: this.ctx.ARRAY_BUFFER,
-			buffer: this.colorBuffer,
-			drawType: this.ctx.STATIC_DRAW,
-			valueType: this.ctx.UNSIGNED_BYTE,
-			size: 4,
-			attribute: this.colorAttributeLocation
-		}, {
-			bufferType: this.ctx.ARRAY_BUFFER,
-			buffer: this.positionBuffer,
-			drawType: this.ctx.DYNAMIC_DRAW,
-			valueType: this.ctx.FLOAT,
-			size: 2,
-			attribute: this.positionAttributeLocation
-		}];
+		this.colorArray = [];
+		this.positionArray = [];
+		this.renderTarget = renderTarget;
 
 		if (!this.attr.transform) {
 			this.attr.transform = {
@@ -8165,14 +8791,80 @@
 				scale: [1.0, 1.0]
 			};
 		}
+
+		this.geometry = new MeshGeometry();
+
+		this.geometry.setAttr('a_position', {
+			value: new Float32Array([]),
+			size: 2
+		});
+
+		this.shaderInstance = new RenderWebglShader(ctx, {
+			fragmentShader: shaders('polygon').fragmentShader,
+			vertexShader: shaders('polygon').vertexShader,
+			uniforms: {
+				u_resolution: {
+					value: new Float32Array([1.0, 1.0])
+				},
+				u_translate: {
+					value: new Float32Array(this.attr.transform.translate)
+				},
+				u_scale: {
+					value: new Float32Array(this.attr.transform.scale)
+				},
+				u_color: {
+					value: new Float32Array(4)
+				}
+			},
+			geometry: this.geometry
+		}, vDomIndex);
 	}
 
-	RenderWebglPolygons.prototype.remove = function (position) {
-		this.polygonArray.splice(position, 1);
+	RenderWebglPolygons.prototype = new ShaderNodePrototype();
+	RenderWebglPolygons.prototype.constructor = RenderWebglPolygons;
+
+	RenderWebglPolygons.prototype.clear = function (index) {
+		this.positionArray[index] = undefined;
+		this.colorArray[index] = undefined;
+		this.filterColorFlag = true;
+		this.filterPositionFlag = true;
+	};
+
+	RenderWebglPolygons.prototype.updateVertex = function (index, points) {
+		let subPoints = [];
+		for (let j = 0, jlen = points.length; j < jlen; j++) {
+			subPoints[j * 2] = points[j].x;
+			subPoints[(j * 2) + 1] = points[j].y;
+		}
+		this.positionArray[index] = new Float32Array(subPoints);
+	};
+
+	RenderWebglPolygons.prototype.updateColor = function (index, fill) {
+		this.colorArray[index] = new Float32Array([fill.r / 255, fill.g / 255, fill.b / 255, fill.a === undefined ? 1 : fill.a / 255]);
+	};
+
+	RenderWebglPolygons.prototype.addVertex = function (points, index) {
+		let positionArray = this.positionArray;
+		let subPoints = [];
+
+		for (let j = 0, jlen = points.length; j < jlen; j++) {
+			subPoints[j * 2] = points[j].x;
+			subPoints[(j * 2) + 1] = points[j].y;
+		}
+
+		positionArray[index] = new Float32Array(subPoints);
+		this.vertexUpdate = true;
+	};
+
+	RenderWebglPolygons.prototype.addColors = function (fill, index) {
+		this.colorArray[index] = new Float32Array([fill.r / 255, fill.g / 255, fill.b / 255, fill.a === undefined ? 1 : fill.a / 255]);
+		this.colorUpdate = true;
 	};
 
 	RenderWebglPolygons.prototype.execute = function (stack) {
-		this.ctx.useProgram(this.program);
+		if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+			this.renderTarget.update();
+		}
 
 		if (!this.attr.transform.scale) {
 			this.attr.transform.scale = [1.0, 1.0];
@@ -8182,96 +8874,45 @@
 			this.attr.transform.translate = [0.0, 0.0];
 		}
 
-		this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1);
-		this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]]);
-		this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]]);
+		if (this.filterPositionFlag) {
+			this.positionArray = this.positionArray.filter(function (d) {
+				return d;
+			});
+			this.filterPositionFlag = false;
+		}
+		if (this.filterColorFlag) {
+			this.colorArray = this.colorArray.filter(function (d) {
+				return d;
+			});
+			this.filterColorFlag = false;
+		}
 
-		for (var i = 0, len = stack.length; i < len; i++) {
-			let node = stack[i];
-			let points = node.attr.triangulatedPoints;
+		this.shaderInstance.useProgram();
+		this.shaderInstance.applyUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1]));
+		this.shaderInstance.applyUniformData('u_scale', new Float32Array([this.attr.transform.scale[0], this.attr.transform.scale[1]]));
+		this.shaderInstance.applyUniformData('u_translate', new Float32Array([this.attr.transform.translate[0], this.attr.transform.translate[1]]));
 
-			if (node.propChanged) {
-				let positionArray = [];
-
-				for (let j = 0, jlen = points.length; j < jlen; j++) {
-					positionArray[j * 2] = points[j].x;
-					positionArray[(j * 2) + 1] = points[j].y;
-				}
-
-				if (!this.polygonArray[i]) {
-					this.polygonArray[i] = {};
-				}
-
-				this.polygonArray[i].positionArray = new Float32Array(positionArray);
-			}
-
-			if (node.styleChanged) {
-				let colorArray = [];
-				let fill = node.style.fill;
-				fill = fill || defaultColor$1;
-				let r = fill.r || 0;
-				let g = fill.g || 0;
-				let b = fill.b || 0;
-				let a = fill.a === undefined ? 255 : fill.a;
-
-				for (let j = 0, jlen = points.length; j < jlen; j++) {
-					colorArray[j * 4] = r;
-					colorArray[(j * 4) + 1] = g;
-					colorArray[(j * 4) + 2] = b;
-					colorArray[(j * 4) + 3] = a;
-				}
-
-				this.polygonArray[i].colorArray = new Uint8Array(colorArray);
-			}
-
-			this.inputs[0].data = this.polygonArray[i].colorArray;
-			this.inputs[1].data = this.polygonArray[i].positionArray;
-			writeDataToShaderAttributes(this.ctx, this.inputs);
-			this.ctx.drawArrays(this.ctx.TRIANGLES, 0, this.polygonArray[i].positionArray.length / 2);
+		for (let i = 0, len = this.positionArray.length; i < len; i++) {
+			this.shaderInstance.setUniformData('u_color', this.colorArray[i]);
+			this.shaderInstance.setAttributeData('a_position', this.positionArray[i]);
+			this.geometry.setDrawRange(0, this.positionArray[i].length / 2);
+			this.shaderInstance.execute();
+		}
+		if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+			this.renderTarget.clear();
 		}
 	};
 
-	function RenderWebglCircles (ctx, attr, style, vDomIndex) {
+	function RenderWebglCircles (ctx, attr, style, renderTarget, vDomIndex) {
 		this.ctx = ctx;
 		this.dom = {};
 		this.attr = attr || {};
 		this.style = style || {};
 		this.vDomIndex = vDomIndex;
-		this.program = getProgram(ctx, shaders('circle'));
-		this.colorBuffer = ctx.createBuffer();
-		this.radiusBuffer = ctx.createBuffer();
-		this.positionBuffer = ctx.createBuffer();
-		this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position');
-		this.colorAttributeLocation = ctx.getAttribLocation(this.program, 'a_color');
-		this.radiusAttributeLocation = ctx.getAttribLocation(this.program, 'a_radius');
-		this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
-		this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate');
-		this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale');
 		this.positionArray = [];
 		this.colorArray = [];
-		this.radius = [];
-		this.inputs = [{
-			bufferType: this.ctx.ARRAY_BUFFER,
-			buffer: this.colorBuffer,
-			drawType: this.ctx.STATIC_DRAW,
-			valueType: this.ctx.UNSIGNED_BYTE,
-			size: 4,
-			attribute: this.colorAttributeLocation
-		}, {
-			bufferType: this.ctx.ARRAY_BUFFER,
-			buffer: this.radiusBuffer,
-			drawType: this.ctx.STATIC_DRAW,
-			valueType: this.ctx.FLOAT,
-			size: 1,
-			attribute: this.radiusAttributeLocation
-		}, {
-			bufferType: this.ctx.ARRAY_BUFFER,
-			buffer: this.positionBuffer,
-			drawType: this.ctx.DYNAMIC_DRAW,
-			valueType: this.ctx.FLOAT,
-			size: 2,
-			attribute: this.positionAttributeLocation
-		}];
+		this.pointsSize = [];
+		this.renderTarget = renderTarget;
 
 		if (!this.attr.transform) {
 			this.attr.transform = {
@@ -8279,16 +8920,113 @@
 				scale: [1.0, 1.0]
 			};
 		}
-	}
 
-	RenderWebglCircles.prototype.remove = function (position) {
-		this.positionArray.splice(position * 2, 2);
-		this.radius.splice(position, 1);
-		this.colorArray.splice(position * 4, 4);
+		this.geometry = new PointsGeometry();
+		this.geometry.setAttr('a_color', {
+			value: new Float32Array(this.colorArray),
+			size: 4
+		});
+		this.geometry.setAttr('a_radius', {
+			value: new Float32Array(this.pointsSize),
+			size: 1
+		});
+		this.geometry.setAttr('a_position', {
+			value: new Float32Array(this.positionArray),
+			size: 2
+		});
+		this.geometry.setDrawRange(0, 0);
+
+		this.shaderInstance = new RenderWebglShader(ctx, {
+			fragmentShader: shaders('circle').fragmentShader,
+			vertexShader: shaders('circle').vertexShader,
+			uniforms: {
+				u_resolution: {
+					value: new Float32Array([1.0, 1.0])
+				},
+				u_translate: {
+					value: new Float32Array(this.attr.transform.translate)
+				},
+				u_scale: {
+					value: new Float32Array(this.attr.transform.scale)
+				}
+			},
+			geometry: this.geometry
+		}, vDomIndex);
+
+		this.vertexUpdate = true;
+		this.colorUpdate = true;
+		this.sizeUpdate = true;
+	}
+	RenderWebglCircles.prototype = new ShaderNodePrototype();
+	RenderWebglCircles.prototype.constructor = RenderWebglCircles;
+
+	RenderWebglCircles.prototype.clear = function (index) {
+		let colorArray = this.colorUpdate ? this.colorArray : this.typedColorArray;
+		let ti = index * 4;
+
+		colorArray[ti] = undefined;
+		colorArray[ti + 1] = undefined;
+		colorArray[ti + 2] = undefined;
+		colorArray[ti + 3] = undefined;
+
+		let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
+		let len = index * 2;
+		positionArray[len] = undefined;
+		positionArray[len + 1] = undefined;
+
+		let sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
+		sizeArray[index] = undefined;
+
+		this.filterPositionFlag = true;
+		this.filterColorFlag = true;
+		this.filterSizeFlag = true;
+	};
+
+	RenderWebglCircles.prototype.updateVertex = function (index, x, y) {
+		let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
+		positionArray[index * 2] = x;
+		positionArray[(index * 2) + 1] = y;
+	};
+
+	RenderWebglCircles.prototype.updateColor = function (index, fill) {
+		let colorArray = this.colorUpdate ? this.colorArray : this.typedColorArray;
+		colorArray[index * 4] = fill.r / 255;
+		colorArray[(index * 4) + 1] = fill.g / 255;
+		colorArray[(index * 4) + 2] = fill.b / 255;
+		colorArray[(index * 4) + 3] = fill.a === undefined ? 1 : fill.a / 255;
+	};
+
+	RenderWebglCircles.prototype.updateSize = function (index, value) {
+		let sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
+		sizeArray[index] = value;
+	};
+
+	RenderWebglCircles.prototype.addVertex = function (x, y, index) {
+		this.positionArray = (this.typedPositionArray && this.typedPositionArray.length > 0) ? Array.from(this.typedPositionArray) : this.positionArray;
+		this.positionArray[index * 2] = x;
+		this.positionArray[(index * 2) + 1] = y;
+		this.vertexUpdate = true;
+	};
+
+	RenderWebglCircles.prototype.addSize = function (size, index) {
+		this.pointsSize = (this.typedSizeArray && this.typedSizeArray.length > 0) ? Array.from(this.typedSizeArray) : this.pointsSize;
+		this.pointsSize[index] = size;
+		this.sizeUpdate = true;
+	};
+
+	RenderWebglCircles.prototype.addColors = function (fill, index) {
+		this.colorArray = (this.typedColorArray && this.typedColorArray.length > 0) ? Array.from(this.typedColorArray) : this.colorArray;
+		this.colorArray[index * 4] = fill.r / 255;
+		this.colorArray[(index * 4) + 1] = fill.g / 255;
+		this.colorArray[(index * 4) + 2] = fill.b / 255;
+		this.colorArray[(index * 4) + 3] = fill.a === undefined ? 1 : fill.a / 255;
+		this.colorUpdate = true;
 	};
 
 	RenderWebglCircles.prototype.execute = function (stack) {
-		this.ctx.useProgram(this.program);
+		if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+			this.renderTarget.update();
+		}
 
 		if (!this.attr.transform.scale) {
 			this.attr.transform.scale = [1.0, 1.0];
@@ -8298,76 +9036,80 @@
 			this.attr.transform.translate = [0.0, 0.0];
 		}
 
-		this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1);
-		this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]]);
-		this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]]);
-		let positionArray = this.positionArray;
-		let colorArray = this.colorArray;
-		let radius = this.radius;
-		let attrFlag;
-		let styleFlag;
-
-		for (var i = 0, len = stack.length; i < len; i++) {
-			let node = stack[i];
-			let fill = node.style.fill;
-			fill = fill || defaultColor$1;
-
-			if (node.propChanged) {
-				positionArray[i * 2] = node.attr.cx;
-				positionArray[(i * 2) + 1] = node.attr.cy;
-				radius[i] = node.attr.r * ratio$1;
-				node.propChanged = false;
-				attrFlag = true;
+		if (this.vertexUpdate) {
+			if (this.filterPositionFlag) {
+				this.positionArray = this.positionArray.filter(function (d) {
+					return !isNaN(d);
+				});
+				this.filterPositionFlag = false;
 			}
-
-			if (node.styleChanged) {
-				colorArray[i * 4] = fill.r;
-				colorArray[(i * 4) + 1] = fill.g;
-				colorArray[(i * 4) + 2] = fill.b;
-				colorArray[(i * 4) + 3] = fill.a === undefined ? 255 : fill.a;
-				node.styleChanged = false;
-				styleFlag = true;
+			this.typedPositionArray = new Float32Array(this.positionArray);
+			this.positionArray = [];
+			this.vertexUpdate = false;
+		}
+		if (this.colorUpdate) {
+			if (this.filterColorFlag) {
+				this.colorArray = this.colorArray.filter(function (d) {
+					return !isNaN(d);
+				});
+				this.filterColorFlag = false;
 			}
+			this.typedColorArray = new Float32Array(this.colorArray);
+			this.colorArray = [];
+			this.colorUpdate = false;
+		}
+		if (this.sizeUpdate) {
+			if (this.filterSizeFlag) {
+				this.pointsSize = this.pointsSize.filter(function (d) {
+					return !isNaN(d);
+				});
+				this.filterSizeFlag = false;
+			}
+			this.typedSizeArray = new Float32Array(this.pointsSize);
+			this.pointsSize = [];
+			this.sizeUpdate = false;
+		}
+		if (this.filterPositionFlag) {
+			this.typedPositionArray = this.typedPositionArray.filter(function (d) {
+				return !isNaN(d);
+			});
+			this.filterPositionFlag = false;
+		}
+		if (this.filterColorFlag) {
+			this.typedColorArray = this.typedColorArray.filter(function (d) {
+				return !isNaN(d);
+			});
+			this.filterColorFlag = false;
+		}
+		if (this.filterSizeFlag) {
+			this.typedSizeArray = this.typedSizeArray.filter(function (d) {
+				return !isNaN(d);
+			});
+			this.filterSizeFlag = false;
 		}
 
-		if (attrFlag) {
-			this.inputs[2].data = new Float32Array(positionArray);
-			this.inputs[1].data = new Float32Array(radius);
-		}
+		this.shaderInstance.setUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1]));
+		this.shaderInstance.setUniformData('u_scale', new Float32Array([this.attr.transform.scale[0], this.attr.transform.scale[1]]));
+		this.shaderInstance.setUniformData('u_translate', new Float32Array([this.attr.transform.translate[0], this.attr.transform.translate[1]]));
+		this.shaderInstance.setAttributeData('a_radius', this.typedSizeArray);
+		this.shaderInstance.setAttributeData('a_color', this.typedColorArray);
+		this.shaderInstance.setAttributeData('a_position', this.typedPositionArray);
 
-		if (styleFlag) {
-			this.inputs[0].data = new Uint8Array(colorArray);
+		this.geometry.setDrawRange(0, this.typedPositionArray.length / 2);
+		this.shaderInstance.execute();
+		if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+			this.renderTarget.clear();
 		}
-
-		writeDataToShaderAttributes(this.ctx, this.inputs);
-		this.ctx.drawArrays(this.ctx.POINTS, 0, positionArray.length / 2);
 	};
 
-	function RenderWebglImages (ctx, attr, style, vDomIndex) {
+	function RenderWebglImages (ctx, attr, style, renderTarget, vDomIndex) {
 		this.ctx = ctx;
 		this.dom = {};
 		this.attr = attr || {};
 		this.style = style || {};
 		this.vDomIndex = vDomIndex;
-		this.program = getProgram(ctx, shaders('image'));
-		this.texture = ctx.createTexture();
-		this.texCoordBuffer = ctx.createBuffer();
-		this.positionBuffer = ctx.createBuffer();
-		this.positionAttributeLocation = ctx.getAttribLocation(this.program, 'a_position');
-		this.texCoordAttributeLocation = ctx.getAttribLocation(this.program, 'a_texCoord');
-		this.resolutionUniformLocation = ctx.getUniformLocation(this.program, 'u_resolution');
-		this.translationUniformLocation = ctx.getUniformLocation(this.program, 'u_translate');
-		this.scaleUniformLocation = ctx.getUniformLocation(this.program, 'u_scale');
-		this.imagesArray = [];
-		this.texArray = new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]);
-		this.inputs = [{
-			bufferType: this.ctx.ARRAY_BUFFER,
-			buffer: this.positionBuffer,
-			drawType: this.ctx.DYNAMIC_DRAW,
-			valueType: this.ctx.FLOAT,
-			size: 2,
-			attribute: this.positionAttributeLocation
-		}];
+		this.textCoor = new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]);
+		this.renderTarget = renderTarget;
 
 		if (!this.attr.transform) {
 			this.attr.transform = {
@@ -8375,16 +9117,84 @@
 				scale: [1.0, 1.0]
 			};
 		}
-	}
 
-	RenderWebglImages.prototype.remove = function (position) {
-		this.imagesArray.splice(position, 1);
+		this.geometry = new MeshGeometry();
+		this.geometry.setAttr('a_texCoord', {
+			value: this.textCoor,
+			size: 2
+		});
+		this.geometry.setAttr('a_position', {
+			value: new Float32Array([]),
+			size: 2
+		});
+		this.geometry.setDrawRange(0, 6);
+
+		this.shaderInstance = new RenderWebglShader(ctx, {
+			fragmentShader: shaders('image').fragmentShader,
+			vertexShader: shaders('image').vertexShader,
+			uniforms: {
+				u_resolution: {
+					value: new Float32Array([1.0, 1.0])
+				},
+				u_translate: {
+					value: new Float32Array(this.attr.transform.translate)
+				},
+				u_scale: {
+					value: new Float32Array(this.attr.transform.scale)
+				},
+				u_image: {
+					value: new TextureObject(this.ctx, {}, this.vDomIndex)
+				}
+			},
+			geometry: this.geometry
+		}, vDomIndex);
+
+		this.positionArray = [];
+		this.vertexUpdate = true;
+	}
+	RenderWebglImages.prototype = new ShaderNodePrototype();
+	RenderWebglImages.prototype.constructor = RenderWebglImages;
+
+	RenderWebglImages.prototype.clear = function (index) {
+		this.positionArray[index] = undefined;
+		this.filterPositionFlag = true;
+	};
+
+	RenderWebglImages.prototype.updateVertexX = function (index, x, width) {
+		let positionArray = this.positionArray[index];
+		let x1 = x + width;
+		positionArray[0] = positionArray[4] = positionArray[6] = x;
+		positionArray[2] = positionArray[8] = positionArray[10] = x1;
+	};
+
+	RenderWebglImages.prototype.updateVertexY = function (index, y, height) {
+		let positionArray = this.positionArray[index];
+		let y1 = y + height;
+		positionArray[1] = positionArray[3] = positionArray[9] = y;
+		positionArray[5] = positionArray[7] = positionArray[11] = y1;
+	};
+
+	RenderWebglImages.prototype.addVertex = function (x, y, width, height, index) {
+		let positionArray = new Float32Array(12);
+		let x1 = x + width;
+		let y1 = y + height;
+
+		positionArray[0] = positionArray[4] = positionArray[6] = x;
+		positionArray[1] = positionArray[3] = positionArray[9] = y;
+		positionArray[2] = positionArray[8] = positionArray[10] = x1;
+		positionArray[5] = positionArray[7] = positionArray[11] = y1;
+
+		this.positionArray[index] = positionArray;
+
+		this.vertexUpdate = true;
 	};
 
 	RenderWebglImages.prototype.execute = function (stack) {
-		this.ctx.enable(this.ctx.BLEND);
-		this.ctx.blendFunc(this.ctx.ONE, this.ctx.ONE_MINUS_SRC_ALPHA);
-		this.ctx.useProgram(this.program);
+		if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+			this.renderTarget.update();
+		}
+
+		this.shaderInstance.useProgram();
 
 		if (!this.attr.transform.scale) {
 			this.attr.transform.scale = [1.0, 1.0];
@@ -8394,90 +9204,69 @@
 			this.attr.transform.translate = [0.0, 0.0];
 		}
 
-		this.ctx.uniform2f(this.resolutionUniformLocation, this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1);
-		this.ctx.uniform2fv(this.translationUniformLocation, [this.attr.transform.translate[0], this.attr.transform.translate[1]]);
-		this.ctx.uniform2fv(this.scaleUniformLocation, [this.attr.transform.scale[0], this.attr.transform.scale[1]]);
-		writeDataToShaderAttributes(this.ctx, [{
-			bufferType: this.ctx.ARRAY_BUFFER,
-			data: this.texArray,
-			buffer: this.texCoordBuffer,
-			drawType: this.ctx.STATIC_DRAW,
-			valueType: this.ctx.FLOAT,
-			size: 2,
-			attribute: this.texCoordAttributeLocation
-		}]);
-		let x1, x2, y1, y2;
-		let activeTexture = null;
+		this.shaderInstance.applyUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1]));
+		this.shaderInstance.applyUniformData('u_scale', this.attr.transform.scale);
+		this.shaderInstance.applyUniformData('u_translate', this.attr.transform.translate);
+		this.shaderInstance.applyAttributeData('a_texCoord', this.textCoor);
+
+		if (this.filterPositionFlag) {
+			this.positionArray = this.positionArray.filter(function (d) {
+				return d;
+			});
+			this.filterPositionFlag = false;
+		}
 
 		for (var i = 0, len = stack.length; i < len; i++) {
-			if (!this.imagesArray[i]) {
-				this.imagesArray[i] = {
-					positionArray: new Float32Array(12)
-				};
-			}
-
-			let positionArray = this.imagesArray[i].positionArray;
 			let node = stack[i];
-
-			if (node.propChanged) {
-				x1 = node.attr.x;
-				x2 = x1 + node.attr.width;
-				y1 = node.attr.y;
-				y2 = y1 + node.attr.height;
-				positionArray[0] = positionArray[4] = positionArray[6] = x1;
-				positionArray[1] = positionArray[3] = positionArray[9] = y1;
-				positionArray[2] = positionArray[8] = positionArray[10] = x2;
-				positionArray[5] = positionArray[7] = positionArray[11] = y2;
-				node.propChanged = false;
+			if (typeof node.attr.src === 'string') {
+				if (!webGLImageTextures[node.attr.src].updated) {
+					continue;
+				}
+				webGLImageTextures[node.attr.src].loadTexture();
+				this.shaderInstance.applyUniformData('u_image', webGLImageTextures[node.attr.src]);
+			} else if (node.attr.src instanceof TextureObject) {
+				node.attr.src.loadTexture();
+				this.shaderInstance.applyUniformData('u_image', node.attr.src);
 			}
+			this.shaderInstance.applyAttributeData('a_position', this.positionArray[i]);
+			this.shaderInstance.draw();
+		}
 
-			if (!webGLImageTextures[node.attr.src]) {
-				continue;
-			}
-
-			this.inputs[0].data = this.imagesArray[i].positionArray;
-			writeDataToShaderAttributes(this.ctx, this.inputs);
-
-			if (activeTexture !== webGLImageTextures[node.attr.src]) {
-				this.ctx.bindTexture(this.ctx.TEXTURE_2D, webGLImageTextures[node.attr.src]);
-				activeTexture = webGLImageTextures[node.attr.src];
-			}
-
-			this.ctx.drawArrays(this.ctx.TRIANGLES, 0, this.imagesArray[i].positionArray.length / 2);
+		if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+			this.renderTarget.clear();
 		}
 	};
 
-	function RenderWebglGroup (ctx, attr, style, shader, vDomIndex, shaderObject) {
+	function getTypeShader (ctx, attr, style, type, renderTarget, vDomIndex) {
 		let e;
-		this.ctx = ctx;
 
-		switch (shader) {
-			case 'rects':
-				e = new RenderWebglRects(ctx, attr, style, vDomIndex);
+		switch (type) {
+			case 'rect':
+				e = new RenderWebglRects(ctx, attr, style, renderTarget, vDomIndex);
 				break;
 
-			case 'points':
-				e = new RenderWebglPoints(ctx, attr, style, vDomIndex);
+			case 'point':
+				e = new RenderWebglPoints(ctx, attr, style, renderTarget, vDomIndex);
 				break;
 
-			case 'lines':
-				e = new RenderWebglLines(ctx, attr, style, vDomIndex);
+			case 'line':
+				e = new RenderWebglLines(ctx, attr, style, renderTarget, vDomIndex);
 				break;
 
-			case 'polylines':
-				e = new RenderWebglPolyLines(ctx, attr, style, vDomIndex);
+			case 'polyline':
+				e = new RenderWebglPolyLines(ctx, attr, style, renderTarget, vDomIndex);
 				break;
 
-			case 'polygons':
-				e = new RenderWebglPolygons(ctx, attr, style, vDomIndex);
+			case 'polygon':
+				e = new RenderWebglPolygons(ctx, attr, style, renderTarget, vDomIndex);
 				break;
 
-			case 'circles':
-				e = new RenderWebglCircles(ctx, attr, style, vDomIndex);
+			case 'circle':
+				e = new RenderWebglCircles(ctx, attr, style, renderTarget, vDomIndex);
 				break;
 
-			case 'images':
-				e = new RenderWebglImages(ctx, attr, style, vDomIndex);
+			case 'image':
+				e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
 				break;
 
 			default:
@@ -8485,17 +9274,13 @@
 				break;
 		}
 
-		this.shader = e;
+		return e;
 	}
-
-	RenderWebglGroup.prototype.execute = function (stack) {
-		this.shader.execute(stack);
-	};
 
 	function WebglNodeExe (ctx, config, id, vDomIndex) {
 		this.ctx = ctx;
-		this.style = config.style ? config.style : {};
-		this.attr = config.attr ? config.attr : {};
+		this.style = config.style || {};
+		this.attr = config.attr || {};
 		this.id = id;
 		this.nodeName = config.el;
 		this.nodeType = 'WEBGL';
@@ -8504,6 +9289,7 @@
 		this.vDomIndex = vDomIndex;
 		this.el = config.el;
 		this.shaderType = config.shaderType;
+		this.exeCtx = config.ctx;
 
 		switch (config.el) {
 			case 'point':
@@ -8531,11 +9317,11 @@
 				break;
 
 			case 'image':
-				this.dom = new ImageNode(ctx, this.attr, this.style);
+				this.dom = new ImageNode(this.ctx, this.attr, this.style, vDomIndex);
 				break;
 
 			case 'group':
-				this.dom = new RenderWebglGroup(this.ctx, this.attr, this.style, this.shaderType, this.vDomIndex, config.shaderObject);
+				this.dom = new WebglGroupNode(this.ctx, this.attr, this.style, config.renderTarget, vDomIndex);
 				break;
 
 			default:
@@ -8544,15 +9330,30 @@
 		}
 
 		this.dom.nodeExe = this;
-		this.propChanged = true;
+		if (!(this.dom instanceof WebglGroupNode)) {
+			delete this.createEl;
+			delete this.createEls;
+		}
 	}
 
 	WebglNodeExe.prototype = new NodePrototype();
 
+	WebglNodeExe.prototype.reIndexChildren = function () {
+		this.children = this.children.filter(function (d) {
+			return d;
+		});
+		for (var i = 0, len = this.children.length; i < len; i++) {
+			this.children[i].dom.pindex = i;
+		}};
+
 	WebglNodeExe.prototype.setAttr = function WsetAttr (attr, value) {
 		if (arguments.length === 2) {
-			this.attr[attr] = value;
-			this.dom.setAttr(attr, value);
+			if (!value) {
+				delete this.attr[attr];
+			} else {
+				this.attr[attr] = value;
+				this.dom.setAttr(attr, value);
+			}
 		} else if (arguments.length === 1 && typeof attr === 'object') {
 			for (let key in attr) {
 				this.attr[key] = attr[key];
@@ -8560,7 +9361,6 @@
 			}
 		}
 
-		this.propChanged = true;
 		queueInstance$4.vDomChanged(this.vDomIndex);
 		return this;
 	};
@@ -8570,8 +9370,8 @@
 			if (attr === 'fill' || attr === 'stroke') {
 				value = colorMap$1.colorToRGB(value);
 			}
-
 			this.style[attr] = value;
+			this.dom.setStyle(attr, value);
 		} else if (arguments.length === 1 && typeof attr === 'object') {
 			for (let key in attr) {
 				value = attr[key];
@@ -8579,41 +9379,48 @@
 				if (key === 'fill' || key === 'stroke') {
 					value = colorMap$1.colorToRGB(attr[key]);
 				}
-
 				this.style[key] = value;
+				this.dom.setStyle(key, value);
 			}
 		}
 
-		this.styleChanged = true;
 		queueInstance$4.vDomChanged(this.vDomIndex);
 		return this;
-	}; // WebglNodeExe.prototype.getAttr = function WgetAttribute (_) {
-	//   return this.attr[_]
-	// }
-	// WebglNodeExe.prototype.getStyle = function WgetStyle (_) {
-	//   return this.style[_]
-	// }
+	};
+
+	WebglNodeExe.prototype.setReIndex = function () {
+		this.reindex = true;
+	};
 
 	WebglNodeExe.prototype.execute = function Cexecute () {
-		// this.stylesExe()
-		// this.attributesExe()
-		if (!this.dom.shader && this.dom instanceof RenderWebglGroup) {
+		if (!this.dom.shader && this.dom instanceof WebglGroupNode) {
 			for (let i = 0, len = this.children.length; i < len; i += 1) {
 				this.children[i].execute();
 			}
-		} else if (this.dom.shader) {
-			this.dom.execute(this.children);
+		} else if (this.dom.shader && this.dom instanceof WebglGroupNode) {
+			if (this.reindex) {
+				this.reIndexChildren();
+				this.reindex = false;
+			}
+			if (this.exeCtx) {
+				this.exeCtx(this.ctx);
+			}
+			this.dom.shader.execute(this.children);
 		}
 	};
 
 	WebglNodeExe.prototype.child = function child (childrens) {
 		const self = this;
-
-		if (self.dom instanceof RenderWebglGroup) {
+		let node;
+		if (self.dom instanceof WebglGroupNode) {
 			for (let i = 0; i < childrens.length; i += 1) {
-				childrens[i].dom.parent = self;
-				childrens[i].nindex = self.children.length;
-				self.children[self.children.length] = childrens[i];
+				node = childrens[i];
+				node.dom.parent = self;
+				self.children[self.children.length] = node;
+				node.dom.pindex = self.children.length - 1;
+				if (!(node instanceof RenderWebglShader)) {
+					node.dom.setShader(this.dom.shader);
+				}
 			}
 		} else {
 			console.log('Error');
@@ -8655,10 +9462,12 @@
 		const index = children.indexOf(this);
 
 		if (index !== -1) {
-			children.splice(index, 1);
-
 			if (this.dom.parent.dom.shader) {
-				this.dom.parent.dom.shader.remove(index);
+				this.dom.parent.dom.shader.clear(this.dom.pindex);
+				children[this.dom.pindex] = undefined;
+				this.dom.parent.setReIndex();
+			} else {
+				children.splice(index, 1);
 			}
 		}
 
@@ -8682,40 +9491,62 @@
 		queueInstance$4.vDomChanged(this.vDomIndex);
 	};
 
-	function WebGLLayer (context, config) {
-		const res = document.querySelector(context);
-		const height = config.height ? config.height : res.clientHeight;
-		const width = config.width ? config.width : res.clientWidth;
-		const clearColor = config.clearColor ? colorMap$1.colorToRGB(config.clearColor) : {
-			r: 0,
-			g: 0,
-			b: 0,
-			a: 0
-		};
-		const layer = document.createElement('canvas');
-		const ctx = layer.getContext('webgl', {
+	function WebGLLayer (container, config = {}, eventsFlag = true, autoRefreshFlag = true) {
+		const res = container ? document.querySelector(container) : null;
+		let height = res ? res.clientHeight : 0;
+		let width = res ? res.clientWidth : 0;
+		let clearColor = colorMap$1.rgba(0, 0, 0, 0);
+		// {
+		// 	r: 0,
+		// 	g: 0,
+		// 	b: 0,
+		// 	a: 0
+		// };
+		config = config || {
 			premultipliedAlpha: false,
 			depth: false,
 			antialias: false,
 			alpha: true
-		});
+		};
+		const layer = document.createElement('canvas');
+		const ctx = layer.getContext('webgl', config);
+
 		ratio$1 = getPixlRatio$1(ctx);
-		ctx.enable(ctx.BLEND);
-		ctx.blendFunc(ctx.SRC_ALPHA, ctx.DST_ALPHA);
+		// ctx.enable(ctx.BLEND);
+		// ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
+		// ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
 		layer.setAttribute('height', height * ratio$1);
 		layer.setAttribute('width', width * ratio$1);
 		layer.style.height = `${height}px`;
 		layer.style.width = `${width}px`;
 		layer.style.position = 'absolute';
-		res.appendChild(layer);
-		const vDomInstance = new VDom();
-		const vDomIndex = queueInstance$4.addVdom(vDomInstance);
+
+		let vDomInstance;
+		let vDomIndex = 999999;
+
+		if (res) {
+			res.appendChild(layer);
+			vDomInstance = new VDom();
+			if (autoRefreshFlag) {
+				vDomIndex = queueInstance$4.addVdom(vDomInstance);
+			}
+		}
+		
 		const root = new WebglNodeExe(ctx, {
 			el: 'group',
 			attr: {
 				id: 'rootNode'
+			},
+			ctx: function (ctx) {
+				ctx.enable(ctx.BLEND);
+				ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
+				ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
 			}
 		}, domId$2(), vDomIndex);
+
+		if (vDomInstance) {
+			vDomInstance.rootNode(root);
+		}
 		const execute = root.execute.bind(root);
 		root.container = res;
 		root.domEl = layer;
@@ -8723,29 +9554,263 @@
 		root.width = width;
 		root.type = 'WEBGL';
 		root.pixelRatio = ratio$1;
-		ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+
+		let onClear = function (ctx) {
+			ctx.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
+			ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT);
+		};
 
 		root.execute = function executeExe () {
-			this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-			this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT);
+			onClear(this.ctx);
 			execute();
 		};
 
 		root.destroy = function () {
+			res.removeChild(layer);
 			queueInstance$4.removeVdom(vDomIndex);
 		};
 
-		vDomInstance.rootNode(root);
+		root.getPixels = function (x, y, width_, height_) {
+			let pixels = new Uint8Array(width_ * height_ * 4);
+			this.ctx.readPixels(x, y, width_, height_, this.ctx.RGBA, this.ctx.UNSIGNED_BYTE, pixels);
+			return pixels;
+		};
 
-		if (config.resize) {
-			window.addEventListener('resize', function () {
-				root.resize();
-			});
-		}
+		root.putPixels = function (imageData, x, y) {
+			return this.ctx.putImageData(imageData, x, y);
+		};
+
+		root.clear = function () {
+			onClear(this.ctx);
+		};
+
+		root.setClearColor = function (color) {
+			 clearColor = color;
+		};
+
+		root.setClear = function (exe) {
+			 onClear = exe;
+		};
+
+		root.setSize = function (width_, height_) {
+			this.domEl.setAttribute('height', height_ * ratio$1);
+			this.domEl.setAttribute('width', width_ * ratio$1);
+			this.domEl.style.height = `${height_}px`;
+			this.domEl.style.width = `${width_}px`;
+			this.width = width_;
+			this.height = height_;
+			height = height_;
+			width = width_;
+			this.execute();
+		};
+
+		root.setViewBox = function (x, y, height, width) {
+		};
+
+		root.setStyle = function (prop, value) {
+			this.domEl.style[prop] = value;
+		};
+
+		root.setAttr = function (prop, value) {
+			if (prop === 'viewBox') {
+				this.setViewBox.apply(this, value.split(','));
+			}
+			layer.setAttribute(prop, value);
+		};
+
+		root.setContext = function (prop, value) {
+			/** Expecting value to be array if multiple aruments */
+			if (this.ctx[prop] && typeof this.ctx[prop] === 'function') {
+				this.ctx[prop].apply(null, value);
+			} else if (this.ctx[prop]) {
+				this.ctx[prop] = value;
+			}
+		};
+
+		root.MeshGeometry = function () {
+			return new MeshGeometry(this.ctx);
+		};
+
+		root.PointsGeometry = function () {
+			return new PointsGeometry(this.ctx);
+		};
+
+		root.LineGeometry = function () {
+			return new LineGeometry(this.ctx);
+		};
+
+		root.TextureObject = function (config) {
+			return new TextureObject(this.ctx, config, this.vDomIndex);
+		};
+
+		root.RenderTarget = function (config) {
+			return new RenderTarget(this.ctx, config, this.vDomIndex);
+		};
 
 		queueInstance$4.execute();
 		return root;
 	}
+
+	function imageInstance$1 (self) {
+		let imageIns = new Image();
+		imageIns.onload = function onload () {
+			this.crossOrigin = 'anonymous';
+			self.update();
+			self.updated = true;
+			queueInstance$4.vDomChanged(self.vDomIndex);
+		};
+
+		imageIns.onerror = function onerror (onerrorExe) {
+		};
+
+		return imageIns;
+	}
+
+	function TextureObject (ctx, config, vDomIndex) {
+		let self = this;
+		this.ctx = ctx;
+		this.texture = ctx.createTexture();
+		this.type = 'TEXTURE_2D';
+		this.width = config.width ? config.width : 0;
+		this.height = config.height ? config.height : 0;
+		this.border = config.border ? config.border : 0;
+		this.format = config.format ? config.format : 'RGBA';
+		this.type = config.type ? config.type : 'UNSIGNED_BYTE';
+		// this.pixels = config.pixels ? config.pixels : null;
+		this.warpS = config.warpS ? config.warpS : 'CLAMP_TO_EDGE';
+		this.warpT = config.warpT ? config.warpT : 'CLAMP_TO_EDGE';
+		this.magFilter = config.magFilter ? config.magFilter : 'LINEAR';
+		this.minFilter = config.minFilter ? config.minFilter : 'LINEAR';
+		this.mipMap = config.mipMap;
+		this.updated = false;
+		this.image = null;
+		// this.image = new Image();
+		this.vDomIndex = vDomIndex;
+
+		if (typeof config.src === 'string') {
+			self.image = imageInstance$1(self);
+			self.image.src = config.src;
+		} else if (config.src instanceof HTMLImageElement || config.src instanceof SVGImageElement || config.src instanceof HTMLCanvasElement || config.src instanceof Uint8Array) {
+			self.image = config.src;
+			self.update();
+			self.updated = true;
+		} else if (config.src instanceof NodePrototype) {
+			self.image = config.src.domEl;
+			self.update();
+			self.updated = true;
+		}
+		queueInstance$4.vDomChanged(self.vDomIndex);
+	}TextureObject.prototype.setAttr = function (attr, value) {
+		this[attr] = value;
+		if (attr === 'src') {
+			if (typeof value === 'string') {
+				if (!this.image || !(this.image instanceof Image)) {
+					this.image = imageInstance$1(this);
+				}
+				this.image.src = value;
+			} else if (value instanceof HTMLImageElement || value instanceof SVGImageElement || value instanceof HTMLCanvasElement || value instanceof Uint8Array) {
+				this.image = value;
+				this.update();
+				this.updated = true;
+			} else if (value instanceof NodePrototype) {
+				this.image = value.domEl;
+				this.update();
+				this.updated = true;
+			}
+		}
+	};
+
+	TextureObject.prototype.loadTexture = function () {
+		// this.ctx.activeTexture(this.ctx.TEXTURE0);
+		this.ctx.bindTexture(this.ctx.TEXTURE_2D, this.texture);
+	};
+
+	TextureObject.prototype.update = function () {
+		let ctx = this.ctx;
+
+		ctx.bindTexture(ctx.TEXTURE_2D, this.texture);
+		if (this.image && !(this.image instanceof Uint8Array)) {
+			ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], ctx[this.format], ctx[this.type], this.image);
+		} else {
+			ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], this.width, this.height, 0, ctx[this.format], ctx[this.type], this.image);
+		}
+
+		if (this.mipMap) {
+			if (!isPowerOf2(self.image.width) || !isPowerOf2(self.image.height)) {
+				console.warn('Image dimension not in power of 2');
+			}
+			ctx.generateMipmap(ctx.TEXTURE_2D);
+			ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx[this.minFilter]);
+			ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx[this.magFilter]);
+		} else {
+			ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx[this.warpS]);
+			ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx[this.warpT]);
+			ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx[this.minFilter]);
+			ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx[this.minFilter]);
+		}
+	};
+
+	function RenderTarget (ctx, config) {
+		this.ctx = ctx;
+		this.fbo = ctx.createFramebuffer();
+		this.texture = config.texture;
+	}
+	RenderTarget.prototype.setAttr = function (attr, value) {
+		this[attr] = value;
+	};
+
+	RenderTarget.prototype.update = function () {
+		if (!this.texture || !(this.texture instanceof TextureObject)) {
+			return;
+		}
+		this.texture.update();
+		this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, this.fbo);
+		this.ctx.framebufferTexture2D(this.ctx.FRAMEBUFFER, this.ctx.COLOR_ATTACHMENT0, this.ctx.TEXTURE_2D, this.texture.texture, 0);
+	};
+
+	RenderTarget.prototype.clear = function () {
+		this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, null);
+	};
+
+	function WebGLGeometry () {
+		this.attributes = {};
+		this.indexes = null;
+		this.drawRange = [0, 0];
+	}
+	WebGLGeometry.prototype.setAttr = function (attr, value) {
+		if (!value && this.attributes[attr]) {
+			delete this.attributes[attr];
+		} else {
+			this.attributes[attr] = value;
+		}
+	};
+	WebGLGeometry.prototype.setDrawRange = function (start, end) {
+		this.drawRange = [start, end];
+	};
+	WebGLGeometry.prototype.setDrawType = function (type) {
+		this.drawType = type;
+	};
+	WebGLGeometry.prototype.setIndex = function (obj) {
+		this.indexes = obj;
+	};
+
+	function MeshGeometry (ctx) {
+		this.drawType = 'TRIANGLES';
+	}MeshGeometry.prototype = new WebGLGeometry();
+	MeshGeometry.constructor = MeshGeometry;
+
+	function PointsGeometry (ctx) {
+		this.drawType = 'POINTS';
+	}
+
+	PointsGeometry.prototype = new WebGLGeometry();
+	PointsGeometry.constructor = PointsGeometry;
+
+	function LineGeometry (ctx) {
+		this.drawType = 'LINES';
+	}
+	LineGeometry.prototype = new WebGLGeometry();
+	LineGeometry.constructor = LineGeometry;
 
 	let dragObject = {
 		dragStart: function (fun) {

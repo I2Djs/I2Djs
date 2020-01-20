@@ -211,7 +211,6 @@ function propogateEvent (nodes, mouseCoor, rawEvent, eventType) {
 			}
 		}
 	}
-
 	return node;
 }
 

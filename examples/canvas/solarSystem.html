@@ -13,8 +13,8 @@
 <script type="text/javascript">
 
 var height = 820, width = 1430;
-var layer1 = i2d.CanvasLayer('#myCanvas', { events: false, selectiveClear: false, globalCompositeOperation: '' });
-var layer2 = i2d.CanvasLayer('#myCanvas', { events: false, selectiveClear: false });
+var layer1 = i2d.CanvasLayer('#myCanvas', {globalCompositeOperation: ''}, false);
+var layer2 = i2d.CanvasLayer('#myCanvas', {}, false);
 
 var l1Group = layer1.createEl({
 	el: 'group',

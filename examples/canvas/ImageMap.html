@@ -33,10 +33,7 @@ function onFileSelected (event) {
 	reader.readAsDataURL(selectedFile);
 }
 
-var renderer_ = i2d.CanvasLayer('#myCanvas', {
-	events: true,
-	selectiveClear: false
-});
+var renderer_ = i2d.CanvasLayer('#myCanvas', {}, true);
 var height = renderer_.height;
 var width = renderer_.width;
 var wh = Math.min(height, width);
@@ -106,7 +103,7 @@ function breakCircle (d, i) {
 			}
 		}
 	}).animateTo({
-		duration: r_ * 10,
+		duration: 0,
 		attr: {
 			cx: function (d) {
 				return d.x;

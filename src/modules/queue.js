@@ -145,7 +145,7 @@ ExeQueue.prototype.removeVdom = function removeVdom (_) {
 	}
 };
 
-ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom) {
+ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom, flag) {
 	if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
 		vDoms[vDom].stateModified = true;
 	}

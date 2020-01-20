@@ -8,42 +8,46 @@
 <div id="canvas" style="height: 100%;width:100%;background: black">
 </div>
 <script type="text/javascript" src="../../dist/i2d.js"></script>
-
 <script type="text/javascript">
 var webglRenderer = i2d.WebglLayer('#canvas', { events: false, selectiveClear: false });
 
-/************** polyLines *****************/
+/************** polygons *****************/
 
-var polylinesData = [];
-for (let i = 0; i < 20; i++) {
+var polygonsData = [];
+for (let i = 0; i < 10; i++) {
 	let x1 = Math.random() * 1400;
 	let y1 = Math.random() * 1400;
-	polylinesData.push({
+	polygonsData.push({
 		points: [{ x: x1, y: y1 },
-			{ x: x1 + 50, y: y1 + 50 },
-			{ x: x1 + 100, y: y1 + 100 },
-			{ x: x1 + 150, y: y1 + 200 },
-			{ x: x1 + 200, y: y1 }]
+			{ x: x1 + Math.random() * 50, y: y1 + Math.random() * 50 },
+			{ x: x1 + Math.random() * 100, y: y1 + Math.random() * 100 },
+			{ x: x1 + Math.random() * 150, y: y1 + Math.random() * 200 },
+			{ x: x1 + Math.random() * 200, y: y1 }]
 	});
 }
 
-var polylinesRef = webglRenderer.createEl({
+var polygonsRef = webglRenderer.createEl({
 	el: 'group',
 	attr: {
-		shaderType: 'polyline'
+		shaderType: 'polygon'
 	}
 });
-polylinesRef.createEls(polylinesData, {
-	el: 'polyline',
+polygonsRef.createEls(polygonsData, {
+	el: 'polygon',
 	attr: {
 		points: function (d) {
 			return d.points;
 		}
 	},
-	style: { stroke: i2d.color.rgba(255, 0, 0, 255) }
+	style: { 
+		fill: function () {
+			return i2d.color.rgba(Math.random() * 255, Math.random() * 203, Math.random() * 255, 255);
+		} 
+	}
 });
 
-/************** End polyLines *****************/
+/************** End polygons *****************/
+
 
 </script>
 

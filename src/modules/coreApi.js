@@ -161,7 +161,6 @@ const animate = function animate (self, targetConfig) {
 				runStack[j](f);
 			}
 		},
-
 		duration: targetConfig.duration,
 		delay: targetConfig.delay ? targetConfig.delay : 0,
 		end: targetConfig.end ? targetConfig.end.bind(self, self.dataObj) : null,
@@ -443,7 +442,7 @@ function dataJoin (data, selector, config) {
 		if (config.action.update) {
 			config.action.update.call(self, joinResult.update);
 		}
-	} // this.joinOn = joinOn
+	}
 
 	CompositeArray.config = {
 		value: config,
@@ -489,7 +488,7 @@ function fetchEls (nodeSelector, dataArray) {
 	const collection = new CollectionPrototype();
 	collection.wrapper(coll);
 	return collection;
-}
+};
 
 function join (data, el, arg) {
 	let d;
@@ -503,7 +502,7 @@ function join (data, el, arg) {
 	const collection = new CollectionPrototype();
 	collection.wrapper(coll);
 	return collection;
-}
+};
 
 function createEl (config) {
 	let d;

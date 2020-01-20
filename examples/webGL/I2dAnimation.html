@@ -9,15 +9,20 @@
 </div>
 <script type="text/javascript" src="../../dist/i2d.js"></script>
 <script type="text/javascript">
-var webglRenderer = i2d.WebglLayer('#canvas', { events: false, selectiveClear: false });
+// var webglRenderer = .WebglLayer('#canvas', null, false);
+var webglRenderer = i2d.WebglLayer('#canvas', {
+			premultipliedAlpha: false,
+			depth: false,
+			antialias: false,
+			alpha: true
+		}, false);
 
 var ichainInstance = i2d.chain.sequenceChain().loop(10);
 var mchainInstance = i2d.chain.sequenceChain().loop(10);
 var dchainInstance = i2d.chain.sequenceChain().loop(10);
 
 /************** Points *****************/
-
-var path = i2d.Path()
+var path_ = i2d.Path()
 	.m(false, { x: 350, y: 225 })
 	.l(true, { x: 450, y: 225 })
 	.l(true, { x: 450, y: 475 })
@@ -26,11 +31,11 @@ var path = i2d.Path()
 var path3 = i2d.Path('M461,359.245249 L461,230 L561.860025,230.999803 C561.860025,230.999803 672.401935,230 672.401935,353.481856 C672.401935,486.963711 561.860025,479.591179 561.860025,479.591179');
 var path2 = i2d.Path('M286,227 L556.149478,227 L556.149478,352.5 L418.443053,352.5 L418.443053,478 L675.470664,478');
 
-animate(ichainInstance, path, { x: -220, y: 0 });
+animate(ichainInstance, path_, { x: -220, y: 0 });
 animate(mchainInstance, path2, { x: 100, y: 0 });
 animate(dchainInstance, path3, { x: 360, y: 0 });
 
-function animate (chain, path, position) {
+function animate (chain_, path, position) {
 	var pointsData = [];
 	for (let i = 0; i < 5000; i++) {
 		let xrand = Math.random() * 40;
@@ -50,9 +55,10 @@ function animate (chain, path, position) {
 
 	var pointsRef = webglRenderer.createEl({
 		el: 'group',
-		shaderType: 'points',
 		attr: {
+			shaderType: 'point',
 			transform: {
+				scale: [1, 1],
 				translate: [position.x, position.y]
 			}
 		}
@@ -72,10 +78,10 @@ function animate (chain, path, position) {
 		}
 	});
 
-	chain.add(function () {
+	chain_.add(function () {
 		var parallelChain = i2d.chain.parallelChain();
 		parallelChain.add(pointsRef.animateExe({
-			duration: 3000,//1000+Math.random()*1000,
+			duration: 1000,//1000+Math.random()*1000,
 			// ease:'easeInCubic',
 			attr: {
 				x: function (d) {
@@ -89,7 +95,7 @@ function animate (chain, path, position) {
 		return parallelChain;
 	});
 
-	chain.add(function () {
+	chain_.add(function () {
 		var pathChain = i2d.chain.parallelChain();
 		pathChain.add(pointsRef.animateExe({
 			duration: 5000,
@@ -104,15 +110,15 @@ function animate (chain, path, position) {
 		return pathChain;
 	});
 
-	chain.add(disperseParticles);
+	chain_.add(disperseParticles);
 
-	chain.start();
+	chain_.start();
 
 	function disperseParticles () {
 		var parallelChain4 = i2d.chain.parallelChain();
 		parallelChain4.add(pointsRef.animateExe({
-			duration: 3000,//+Math.random()*1000,
-			// ease:'easeOutCubic',
+			duration: 2000,//+Math.random()*1000,
+			ease:'easeOutCubic',
 			attr: {
 				x: function (d) {
 					return d.x + Math.cos(d.angle) * (Math.random() * 300 + 200);

@@ -17,6 +17,17 @@ function RGBA (r, g, b, a) {
 	this.rgba = `rgba(${r},${g},${b},${a})`;
 }
 
+RGBA.prototype.normalize = function () {
+	if (!this.normalFlag) {
+		this.r /= 255;
+		this.g /= 255;
+		this.b /= 255;
+		this.a /= 255;
+		this.normalFlag = true;
+	}
+	return this;
+};
+
 function nameToHex (name) {
 	return colorMap[name] ? `#${colorMap[name]}` : '#000';
 }

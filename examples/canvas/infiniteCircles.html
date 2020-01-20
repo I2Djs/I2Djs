@@ -15,7 +15,7 @@
  I2Djs - https://github.com/I2Djs/I2Djs
  *****************/
 
-var renderer_ = i2d.SVGLayer('#myCanvas', { events: false, selectiveClear: false });
+var renderer_ = i2d.SVGLayer('#myCanvas', {}, false);
 var height = renderer_.height;
 var width = renderer_.width;
 var parallelChain = i2d.chain.parallelChain().loop(10);
