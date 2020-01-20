@@ -8,9 +8,13 @@
 <div id="canvas" style="height: 100%;width:100%;background: black">
 </div>
 <script type="text/javascript" src="../../dist/i2d.js"></script>
-
 <script type="text/javascript">
-var webglRenderer = i2d.WebglLayer('#canvas', { events: false, selectiveClear: false });
+var webglRenderer = i2d.WebglLayer('#canvas', {
+			premultipliedAlpha: false,
+			depth: false,
+			antialias: false,
+			alpha: true
+		}, false);
 
 var chainInstance = i2d.chain.sequenceChain();
 
@@ -18,30 +22,23 @@ chainInstance.loop(10);
 
 /************** Points *****************/
 
-var path = i2d.Path()
+var path_ = i2d.Path()
 	.m(false, { x: 350, y: 225 })
-	// .l(true,{x:550, y:200})
 	.l(true, { x: 450, y: 225 })
 	.l(true, { x: 450, y: 475 })
 	.l(true, { x: 550, y: 475 });
-// .l(true,{x:350, y:500})
-// .l(true,{x:450, y:500})
-// .l(true,{x:450, y:200})
-// .l(true,{x:350, y:200});
 
 var path3 = i2d.Path('M461,358.614315 L461,195 L561.860025,196.096062 C561.860025,196.096062 672.401935,195 672.401935,341.333251 C672.401935,487.666502 561.860025,479.584155 561.860025,479.584155');
-//i2d.Path('M374,195 L474.860025,196.096062 C474.860025,196.096062 585.401935,195 585.401935,341.333251 C585.401935,487.666502 474.860025,479.584155 474.860025,479.584155 L374,479.584155 L374,195')
 var path2 = i2d.Path('M276,227 L556.149478,227 L556.149478,352.5 L418.443053,352.5 L418.443053,478 L695.470664,478');
-// var totalLen = path.length
+
 var path2Points = [];
 var path3Points = [];
 var pointsData = [];
 for (let i = 0; i < 10000; i++) {
-
 	let xrand = Math.random() * 40;
 	let yrand = Math.random() * 40;
 	let pos = Math.random();
-	let xy = path.getPointAtLength(path.length * pos);
+	let xy = path_.getPointAtLength(path_.length * pos);
 	let angle = (((Math.PI * 2) / 5000) * i) - (3 * Math.PI / 4);
 	path3Points.push(path3.getPointAtLength(path3.length * pos));
 	path2Points.push(path2.getPointAtLength(path2.length * pos));
@@ -69,7 +66,7 @@ var pointsRef = webglRenderer.createEl({
 		y: function (d) {
 			return d.y + Math.sin(d.angle) * (Math.random() * 300 + 200);
 		},
-		size: 1.0
+		size: 2.0
 	},
 	style: {
 		fill: i2d.color.rgba(0, 203, 255, 255)
@@ -99,8 +96,7 @@ chainInstance.add(function () {
 		duration: 5000,
 		attr: function (d) {
 			return function (t) {
-				// let length = path.length;
-				let point = path.getPointAtLength(path.length * ((t + d.pos) % 1));
+				let point = path_.getPointAtLength(path_.length * ((t + d.pos) % 1));
 				this.setAttr('x', point.x + d.xrand)
 					.setAttr('y', point.y + d.yrand);
 			};
@@ -136,7 +132,6 @@ chainInstance.add(function () {
 		duration: 5000,
 		attr: function (d) {
 			return function (t) {
-				// let length = path2.length;
 				let point = path2.getPointAtLength(path2.length * ((t + d.pos) % 1));
 				this.setAttr('x', point.x + d.xrand)
 					.setAttr('y', point.y + d.yrand);
@@ -173,26 +168,11 @@ chainInstance.add(function () {
 		duration: 5000,
 		attr: function (d) {
 			return function (t) {
-				// let length = path3.length;
 				let point = path3.getPointAtLength(path3.length * ((t + d.pos) % 1));
 				this.setAttr('x', point.x + d.xrand)
 					.setAttr('y', point.y + d.yrand);
 			};
 		}
-		// {
-		//     x: function(d, i) {
-		//         let length = path3.length;
-		//         return function(t){
-		//             return path3.getPointAtLength(length*((t+d.pos)%1)).x + d.xrand
-		//         }
-		//     },
-		//     y: function(d, i) {
-		//         let length = path3.length;
-		//         return function(t){
-		//             return path3.getPointAtLength(length*((t+d.pos)%1)).y + d.yrand
-		//         }
-		//     }
-		// }
 	}));
 	return pathChain;
 });
@@ -200,19 +180,6 @@ chainInstance.add(function () {
 chainInstance.add(disperseParticles);
 
 chainInstance.start();
-
-// {
-// 					x: function(d, i) {
-// 						return function(t){
-// 						    return path.getPointAtLength(totalLen*((t+d.pos)%1)).x + d.rand
-// 					    }
-//                     },
-// 					y: function(d, i) {
-// 						return function(t){
-//                             return path.getPointAtLength(totalLen*((t+d.pos)%1)).y + d.rand
-//                         }
-//                     }
-// 				}
 
 function disperseParticles () {
 	var parallelChain4 = i2d.chain.parallelChain();
@@ -230,129 +197,6 @@ function disperseParticles () {
 	}));
 	return parallelChain4;
 }
-
-// function animate() {
-//     pointsRef.animateExe({
-//             duration:function(){
-//                 return 1000+Math.random()*2000
-//             },
-//             // delay: 1000,
-//             loop:2,
-//             ease:'easeInOutCubic',
-//             direction: 'alternate',
-//             attr:{
-//                 x: function(d){
-//                     return d.x
-//                 },
-//                 y: function(d){
-//                     return d.y
-//                 }
-//             },
-//             end: function(){
-//                 // animate2()
-//             }
-//         })
-// }
-// var flag = false
-// function animate2 () {
-//     // console.log('called')
-//     if(flag)
-//         return
-//     flag = true
-//     for(let i=0; i< 10000; i++) {
-//         let d = pointsData[i]
-//         let xy = path2Points[i]
-//         d.x = xy.x + Math.random()*40
-//         d.y = xy.y + Math.random()*40
-//     }
-
-//     pointsRef.animateTo({
-//             duration:3000,
-//             loop:2,
-//             ease:'easeInOutCubic',
-//             direction: 'alternate',
-//             attr:{
-//                 x: function(d){
-//                     return d.x
-//                 },
-//                 y: function(d){
-//                     return d.y
-//                 }
-//             },
-//             end: function(){
-//                 animate3()
-//             }
-//         })
-
-// }
-
-// var flag2 = false
-// function animate3 () {
-//     // console.log('called')
-//     if(flag2)
-//         return
-//     flag2 = true
-//     for(let i=0; i< 10000; i++) {
-//         let d = pointsData[i]
-//         let xy = path3Points[i]
-//         d.x = xy.x + Math.random()*40
-//         d.y = xy.y + Math.random()*40
-//     }
-
-//     pointsRef.animateTo({
-//             duration:3000,
-//             loop:2,
-//             ease:'easeInOutCubic',
-//             direction: 'alternate',
-//             attr:{
-//                 x: function(d){
-//                     return d.x
-//                 },
-//                 y: function(d){
-//                     return d.y
-//                 }
-//             },
-//             end: function(){
-
-//             }
-//         })
-
-// }
-
-// animate()
-
-// pointsRef.animateTo({
-// 		duration:10000,
-// 		// loop: 2,
-// 		// delay: function(d,i) {
-// 		// 	return i*5
-// 		// },
-// 		direction: 'alternate',
-// 		attr:{
-// 			x: function(d, i) {
-// 				return function(t){
-// 				    return path.getPointAtLength(totalLen*((t+d.pos)%1)).x + d.rand
-// 			    }
-//             },
-// 			y: function(d, i) {
-// 				return function(t){
-//                     return path.getPointAtLength(totalLen*((t+d.pos)%1)).y + d.rand
-//                 }
-//             }
-// 		},
-//         end: function (d){
-//             this.animateTo({
-//                 duration:3000,
-//                 attr:{
-//                     x: 250+Math.cos(d.angle)*500,
-//                     y: 250+Math.sin(d.angle)*500
-//                 },
-//                 end: function(){
-//                     this.remove();
-//                 }
-//             })
-//         }
-// 	})
 
 /************** End Points *****************/
 

@@ -1095,17 +1095,54 @@ RenderRect.prototype.updateBBox = function RRupdateBBox () {
 RenderRect.prototype.applyStyles = function rStyles () {
 };
 
+
+function renderRoundRect (ctx, attr) {
+	const {
+		x,
+		y,
+		width = 0,
+		height = 0,
+		rx = 0,
+		ry = 0
+	} = attr;
+
+	ctx.beginPath();
+	ctx.moveTo(x + rx, y);
+	ctx.lineTo(x + width - rx, y);
+	ctx.quadraticCurveTo(x + width, y, x + width, y + ry);
+	ctx.lineTo(x + width, y + height - ry);
+	ctx.quadraticCurveTo(x + width, y + height, x + width - rx, y + height);
+	ctx.lineTo(x + rx, y + height);
+	ctx.quadraticCurveTo(x, y + height, x, y + height - ry);
+	ctx.lineTo(x, y + ry);
+	ctx.quadraticCurveTo(x, y, x + rx, y);
+	ctx.closePath();
+}
+
+
 RenderRect.prototype.execute = function RRexecute () {
 	const {
-		ctx
+		ctx,
+		attr
 	} = this;
 
 	if (ctx.strokeStyle !== '#000000') {
-		ctx.strokeRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height);
+		if (!attr['rx'] && !attr['ry']) {
+			ctx.strokeRect(attr.x, attr.y, attr.width, attr.height);
+		} else {
+			renderRoundRect(ctx, attr);
+			ctx.stroke();
+		}
 	}
+	
 
 	if (ctx.fillStyle !== '#000000') {
-		ctx.fillRect(this.attr.x, this.attr.y, this.attr.width, this.attr.height);
+		if (!attr['rx'] && !attr['ry']) {
+			ctx.fillRect(attr.x, attr.y, attr.width, attr.height);
+		} else {
+			renderRoundRect(ctx, attr);
+			ctx.fill();
+		}
 	}
 };
 

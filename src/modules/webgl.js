@@ -321,7 +321,7 @@ function ImageNode (ctx, attr, style, vDomIndex) {
 	this.style = style;
 	this.vDomIndex = vDomIndex;
 	
-	if (self.attr.src && !webGLImageTextures[self.attr.src]) {
+	if (self.attr.src && (typeof self.attr.src === 'string') && !webGLImageTextures[self.attr.src]) {
 		webGLImageTextures[self.attr.src] = new TextureObject(ctx, {
 			src: this.attr.src
 		}, this.vDomIndex);
@@ -338,7 +338,7 @@ ImageNode.prototype.setShader = function (shader) {
 ImageNode.prototype.setAttr = function (key, value) {
 	this.attr[key] = value;
 
-	if (key === 'src') {
+	if (key === 'src' && (typeof value === 'string')) {
 		if (value && !webGLImageTextures[value]) {
 			webGLImageTextures[value] = new TextureObject(this.ctx, {
 				src: value
@@ -421,6 +421,35 @@ WebglGroupNode.prototype.getStyle = function (key) {
 let defaultColor = colorMap.rgba(0, 0, 0, 255);
 
 function webGlAttrMapper (ctx, program, attr, attrObj) {
+	let valType = attrObj.type;
+	if (!valType) {
+		valType = 'FLOAT';
+		if (attrObj.value instanceof Float32Array) {
+			valType = 'FLOAT';
+		} else if (attrObj.value instanceof Int8Array) {
+			valType = 'BYTE';
+		} else if (attrObj.value instanceof Int16Array) {
+			valType = 'SHORT';
+		} else if (attrObj.value instanceof Uint8Array) {
+			valType = 'UNSIGNED_BYTE';
+		} else if (attrObj.value instanceof Uint16Array) {
+			valType = 'UNSIGNED_SHORT';
+		}
+	}
+	
+	return {
+		bufferType: ctx['ARRAY_BUFFER'],
+		buffer: ctx.createBuffer(),
+		drawType: ctx['STATIC_DRAW'],
+		valueType: ctx[valType],
+		size: attrObj.size,
+		attributeLocation: ctx.getAttribLocation(program, attr),
+		value: attrObj.value,
+		attr: attr
+	};
+}
+
+function webGlIndexMapper (ctx, program, attrObj) {
 	let valType = 'FLOAT';
 	if (attrObj.value instanceof Float32Array) {
 		valType = 'FLOAT';
@@ -435,14 +464,13 @@ function webGlAttrMapper (ctx, program, attr, attrObj) {
 	}
 	
 	return {
-		bufferType: ctx['ARRAY_BUFFER'],
+		bufferType: ctx['ELEMENT_ARRAY_BUFFER'],
 		buffer: ctx.createBuffer(),
 		drawType: ctx['STATIC_DRAW'],
 		valueType: ctx[valType],
-		size: attrObj.size,
-		attributeLocation: ctx.getAttribLocation(program, attr),
 		value: attrObj.value,
-		attr: attr
+		count: attrObj.count,
+		offset: attrObj.offset
 	};
 }
 
@@ -486,6 +514,7 @@ function RenderWebglShader (ctx, shader, vDomIndex) {
 	this.program = getProgram(ctx, shader);
 	this.uniforms = {};
 	this.attrObjs = {};
+	this.indexesObj = null;
 	this.preDraw = shader.preDraw;
 	this.postDraw = shader.postDraw;
 	this.geometry = shader.geometry;
@@ -498,11 +527,18 @@ function RenderWebglShader (ctx, shader, vDomIndex) {
 	if (this.geometry) {
 		if (this.geometry instanceof MeshGeometry || this.geometry instanceof PointsGeometry || this.geometry instanceof LineGeometry) {
 			this.attributes = this.geometry.attributes;
+			this.indexes = this.geometry.indexes;
+		} else {
+			console.error('Wrong Geometry type');
 		}
 	}
 
 	for (let attr in this.attributes) {
 		this.attrObjs[attr] = webGlAttrMapper(ctx, this.program, attr, this.attributes[attr]);
+	}
+
+	if (this.indexes) {
+		this.indexesObj = webGlIndexMapper(ctx, this.program, this.indexes);
 	}
 }
 
@@ -536,8 +572,18 @@ RenderWebglShader.prototype.applyAttributes = function () {
 	}
 };
 
+RenderWebglShader.prototype.applyIndexes = function () {
+	let d = this.indexesObj;
+	this.ctx.bindBuffer(d.bufferType, d.buffer);
+	this.ctx.bufferData(d.bufferType, d.value, d.drawType);
+};
+
 RenderWebglShader.prototype.draw = function () {
 	this.ctx.drawArrays(this.ctx[this.geometry.drawType], this.geometry.drawRange[0], this.geometry.drawRange[1]);
+};
+
+RenderWebglShader.prototype.drawElements = function () {
+	this.ctx.drawElements(this.ctx[this.geometry.drawType], this.indexesObj.count, this.indexesObj.type ? this.indexesObj.type : this.ctx.UNSIGNED_SHORT, this.indexesObj.offset);
 };
 
 RenderWebglShader.prototype.execute = function () {
@@ -550,7 +596,12 @@ RenderWebglShader.prototype.execute = function () {
 	if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
 		this.renderTarget.update();
 	}
-	this.draw();
+	if (this.indexesObj) {
+		this.applyIndexes();
+		this.drawElements();
+	} else {
+		this.draw();
+	}
 	if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
 		this.renderTarget.clear();
 	}
@@ -597,9 +648,7 @@ RenderWebglShader.prototype.applyUniformData = function (uniform, value) {
 	queueInstance.vDomChanged(this.vDomIndex);
 };
 
-function ShaderNodePrototype () {
-
-}
+function ShaderNodePrototype () { }
 ShaderNodePrototype.prototype.translate = function (trans) {
 	this.attr.transform['translate'] = trans;
 };
@@ -1728,13 +1777,16 @@ RenderWebglImages.prototype.execute = function (stack) {
 
 	for (var i = 0, len = stack.length; i < len; i++) {
 		let node = stack[i];
-
-		if (!webGLImageTextures[node.attr.src].updated) {
-			continue;
+		if (typeof node.attr.src === 'string') {
+			if (!webGLImageTextures[node.attr.src].updated) {
+				continue;
+			}
+			webGLImageTextures[node.attr.src].loadTexture();
+			this.shaderInstance.applyUniformData('u_image', webGLImageTextures[node.attr.src]);
+		} else if (node.attr.src instanceof TextureObject) {
+			node.attr.src.loadTexture();
+			this.shaderInstance.applyUniformData('u_image', node.attr.src);
 		}
-
-		webGLImageTextures[node.attr.src].loadTexture();
-		this.shaderInstance.applyUniformData('u_image', webGLImageTextures[node.attr.src]);
 		this.shaderInstance.applyAttributeData('a_position', this.positionArray[i]);
 		this.shaderInstance.draw();
 	}
@@ -1856,8 +1908,12 @@ WebglNodeExe.prototype.reIndexChildren = function () {
 
 WebglNodeExe.prototype.setAttr = function WsetAttr (attr, value) {
 	if (arguments.length === 2) {
-		this.attr[attr] = value;
-		this.dom.setAttr(attr, value);
+		if (!value) {
+			delete this.attr[attr];
+		} else {
+			this.attr[attr] = value;
+			this.dom.setAttr(attr, value);
+		}
 	} else if (arguments.length === 1 && typeof attr === 'object') {
 		for (let key in attr) {
 			this.attr[key] = attr[key];
@@ -1995,7 +2051,7 @@ WebglNodeExe.prototype.removeChild = function WremoveChild (obj) {
 	queueInstance.vDomChanged(this.vDomIndex);
 };
 
-function WebGLLayer (container, config = {}, eventsFlag = true, autoUpdateFlag = true) {
+function WebGLLayer (container, config = {}, eventsFlag = true, autoRefreshFlag = true) {
 	const res = container ? document.querySelector(container) : null;
 	let height = res ? res.clientHeight : 0;
 	let width = res ? res.clientWidth : 0;
@@ -2031,7 +2087,7 @@ function WebGLLayer (container, config = {}, eventsFlag = true, autoUpdateFlag =
 	if (res) {
 		res.appendChild(layer);
 		vDomInstance = new VDom();
-		if (autoUpdateFlag) {
+		if (autoRefreshFlag) {
 			vDomIndex = queueInstance.addVdom(vDomInstance);
 		}
 	}
@@ -2072,6 +2128,16 @@ function WebGLLayer (container, config = {}, eventsFlag = true, autoUpdateFlag =
 	root.destroy = function () {
 		res.removeChild(layer);
 		queueInstance.removeVdom(vDomIndex);
+	};
+
+	root.getPixels = function (x, y, width_, height_) {
+		let pixels = new Uint8Array(width_ * height_ * 4);
+		this.ctx.readPixels(x, y, width_, height_, this.ctx.RGBA, this.ctx.UNSIGNED_BYTE, pixels);
+		return pixels;
+	};
+
+	root.putPixels = function (imageData, x, y) {
+		return this.ctx.putImageData(imageData, x, y);
 	};
 
 	root.clear = function () {
@@ -2180,20 +2246,21 @@ function TextureObject (ctx, config, vDomIndex) {
 	this.minFilter = config.minFilter ? config.minFilter : 'LINEAR';
 	this.mipMap = config.mipMap;
 	this.updated = false;
+	this.image = null;
 	// this.image = new Image();
 	this.vDomIndex = vDomIndex;
 
 	if (typeof config.src === 'string') {
 		self.image = imageInstance(self);
 		self.image.src = config.src;
-	} else if (config.src instanceof HTMLImageElement || config.src instanceof SVGImageElement || config.src instanceof HTMLCanvasElement) {
+	} else if (config.src instanceof HTMLImageElement || config.src instanceof SVGImageElement || config.src instanceof HTMLCanvasElement || config.src instanceof Uint8Array) {
 		self.image = config.src;
+		self.update();
 		self.updated = true;
 	} else if (config.src instanceof NodePrototype) {
 		self.image = config.src.domEl;
+		self.update();
 		self.updated = true;
-	} else {
-		self.image = null;
 	}
 	queueInstance.vDomChanged(self.vDomIndex);
 };
@@ -2205,11 +2272,13 @@ TextureObject.prototype.setAttr = function (attr, value) {
 				this.image = imageInstance(this);
 			}
 			this.image.src = value;
-		} else if (value instanceof HTMLImageElement || value instanceof SVGImageElement || value instanceof HTMLCanvasElement) {
+		} else if (value instanceof HTMLImageElement || value instanceof SVGImageElement || value instanceof HTMLCanvasElement || value instanceof Uint8Array) {
 			this.image = value;
+			this.update();
 			this.updated = true;
 		} else if (value instanceof NodePrototype) {
-			this.image = value;
+			this.image = value.domEl;
+			this.update();
 			this.updated = true;
 		}
 	}
@@ -2222,11 +2291,9 @@ TextureObject.prototype.loadTexture = function () {
 
 TextureObject.prototype.update = function () {
 	let ctx = this.ctx;
-	// if (!this.image) {
-	// 	return;
-	// }
+
 	ctx.bindTexture(ctx.TEXTURE_2D, this.texture);
-	if (this.image) {
+	if (this.image && !(this.image instanceof Uint8Array)) {
 		ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], ctx[this.format], ctx[this.type], this.image);
 	} else {
 		ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], this.width, this.height, 0, ctx[this.format], ctx[this.type], this.image);
@@ -2270,50 +2337,46 @@ RenderTarget.prototype.clear = function () {
 	this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, null);
 };
 
-function MeshGeometry (ctx) {
+function WebGLGeometry () {
 	this.attributes = {};
-	this.drawType = 'TRIANGLES';
-	this.drawRange = [0, 0];
-};
-MeshGeometry.prototype.setAttr = function (attr, value) {
-	this.attributes[attr] = value;
-};
-MeshGeometry.prototype.setDrawRange = function (start, end) {
-	this.drawRange = [start, end];
-};
-MeshGeometry.prototype.setDrawType = function (type) {
-	this.drawType = type;
-};
-
-
-function PointsGeometry (ctx) {
-	this.attributes = {};
-	this.drawType = 'POINTS';
+	this.indexes = null;
 	this.drawRange = [0, 0];
 }
-PointsGeometry.prototype.setAttr = function (attr, value) {
-	this.attributes[attr] = value;
+WebGLGeometry.prototype.setAttr = function (attr, value) {
+	if (!value && this.attributes[attr]) {
+		delete this.attributes[attr];
+	} else {
+		this.attributes[attr] = value;
+	}
 };
-PointsGeometry.prototype.setDrawRange = function (start, end) {
+WebGLGeometry.prototype.setDrawRange = function (start, end) {
 	this.drawRange = [start, end];
 };
-PointsGeometry.prototype.setDrawType = function (type) {
+WebGLGeometry.prototype.setDrawType = function (type) {
 	this.drawType = type;
+};
+WebGLGeometry.prototype.setIndex = function (obj) {
+	this.indexes = obj;
 };
 
+function MeshGeometry (ctx) {
+	this.drawType = 'TRIANGLES';
+};
+MeshGeometry.prototype = new WebGLGeometry();
+MeshGeometry.constructor = MeshGeometry;
+
+function PointsGeometry (ctx) {
+	this.drawType = 'POINTS';
+}
+
+PointsGeometry.prototype = new WebGLGeometry();
+PointsGeometry.constructor = PointsGeometry;
+
 function LineGeometry (ctx) {
-	this.attributes = {};
 	this.drawType = 'LINES';
-	this.drawRange = [0, 0];
 };
-LineGeometry.prototype.setAttr = function (attr, value) {
-	this.attributes[attr] = value;
-};
-LineGeometry.prototype.setDrawRange = function (start, end) {
-	this.drawRange = [start, end];
-};
-LineGeometry.prototype.setDrawType = function (type) {
-	this.drawType = type;
-};
+
+LineGeometry.prototype = new WebGLGeometry();
+LineGeometry.constructor = LineGeometry;
 
 export default WebGLLayer;

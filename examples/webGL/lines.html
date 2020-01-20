@@ -51,14 +51,20 @@ var linesRef = webglRenderer.createEl({
 });
 
 // linesRef.animateTo({
-// 		duration:5000,
-// 		loop: 100,
-// 		direction: 'alternate',
-// 		attr:{
-// 			x2: function(d) {return parseInt(Math.random()*1400)},
-// 			y2: function(d) {return parseInt(Math.random()*1000)}
+// 	duration: 500,
+// 	loop: 100,
+// 	direction: 'alternate',
+// 	attr: {
+// 		x2: function (d) {
+// 			let x2 = this.getAttr('x2');
+// 			return x2 + 20;
+// 		},
+// 		y2: function (d) {
+// 			let y2 = this.getAttr('x2');
+// 			return y2;
 // 		}
-// 	})
+// 	}
+// });
 
 /************** End Lines *****************/
 

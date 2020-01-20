@@ -11,49 +11,10 @@
 
 	<script type="text/javascript">
 
-        var renderer_ = i2d.CanvasLayer('#myCanvas',{}, false);
+        var renderer_ = i2d.CanvasLayer('#myCanvas',{}, true);
         var i = 0;
         var w = renderer_.width
         var h = renderer_.height
-
-        var g = renderer_.createEl({
-            el: 'group',
-            attr: {
-                transform: {
-                    translate: [w / 4 - 50, h / 2 - 50]
-                }
-            }
-        })
-
-        g.createEl({
-            el:'rect',
-            attr:{
-                width: 100,
-                height: 100,
-                x: 0,
-                y: 0
-            },
-            style:{
-                fillStyle:'hsl(100,100%,50%)',
-                globalAlpha:1
-            }
-        }).on('touchstart', function () {
-            console.log('touchstart');
-        }).on('touchend', function () {
-            console.log('touchend');
-        })
-        .on('click', function () {
-            console.log('click');
-        });
-        // .on('mousein', function () {
-        //     console.log('mousein');
-        // }).on('mouseout', function () {
-        //     console.log('mouseout');
-        // }).on('mousedown', function () {
-        //     console.log('mousedown');
-        // }).on('mouseup', function () {
-        //     console.log('mouseup');
-        // })
 
         var g = renderer_.createEl({
             el: 'group',
@@ -76,18 +37,21 @@
                 fillStyle:'hsl(100,100%,50%)',
                 globalAlpha:1
             }
+        }).on('touchstart', function () {
+            console.log('touchstart');
+        }).on('touchend', function () {
+            console.log('touchend');
         }).on('click', function () {
-            console.log('click');
-        })
-        // .on('mousein', function () {
-        //     console.log('mousein');
-        // }).on('mouseout', function () {
-        //     console.log('mouseout');
-        // }).on('mousedown', function () {
-        //     console.log('mousedown');
-        // }).on('mouseup', function () {
-        //     console.log('mouseup');
-        // })
+            this.setStyle('fillStyle', 'hsl(100,50%,50%)');
+        }).on('mousein', function () {
+            this.setStyle('fillStyle', 'hsl(50,50%,70%)');
+        }).on('mouseout', function () {
+            this.setStyle('fillStyle', 'hsl(100,100%,50%)');
+        }).on('mousedown', function () {
+            this.setStyle('fillStyle', 'hsl(100,80%,30%)');
+        }).on('mouseup', function () {
+            this.setStyle('fillStyle', 'hsl(100,100%,50%)');
+        });
         
                 
 	</script>

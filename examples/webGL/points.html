@@ -17,7 +17,7 @@ var webglRenderer = i2d.WebglLayer('#canvas', {
 /************** Points *****************/
 
 var pointsData = [];
-for (let i = 0; i < 100000; i++) {
+for (let i = 0; i < 1000; i++) {
 	pointsData.push({
 		x: (Math.random() * 1400),
 		y: (Math.random() * 1000),
@@ -50,7 +50,7 @@ pointsRef.createEls(pointsData, {
 			return d.y;
 		},
 		size: function () {
-			return Math.floor(Math.random() * 10.0);
+			return Math.floor(Math.random() * 100.0);
 		}
 	},
 	style: {
@@ -59,10 +59,6 @@ pointsRef.createEls(pointsData, {
 		}
 	}
 });
-
-setTimeout(function () {
-	pointsRef.fetchEls('.class5').remove();
-}, 2000);
 
 pointsRef.fetchEls('.class8').animateTo({
 	duration: 5000,
@@ -80,20 +76,6 @@ pointsRef.fetchEls('.class8').animateTo({
 		}
 	},
 	end: function (d, i) {
-		// this.setStyle('fill', color.rgba(255, 132, 132, 255));
-		// this.animateTo({
-		// 	duration: 10000,
-		// 	loop: 100,
-		// 	direction: 'alternate',
-		// 	attr: {
-		// 		x: function (t) {
-		// 			return path.getPointAtLength(totalLen * t).x + d.randX;
-		// 		},
-		// 		y: function (t) {
-		// 			return path.getPointAtLength(totalLen * t).y + d.randY;
-		// 		}
-		// 	}
-		// });
 	}
 });
 
