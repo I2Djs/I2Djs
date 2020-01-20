@@ -44,7 +44,7 @@
         }).on('click', function () {
             this.setStyle('fillStyle', 'hsl(100,50%,50%)');
         }).on('mousein', function () {
-            this.setStyle('fillStyle', 'hsl(50,50%,70%)');
+            this.setStyle('fillStyle', '#ad5858');
         }).on('mouseout', function () {
             this.setStyle('fillStyle', 'hsl(100,100%,50%)');
         }).on('mousedown', function () {
@@ -52,6 +52,69 @@
         }).on('mouseup', function () {
             this.setStyle('fillStyle', 'hsl(100,100%,50%)');
         });
+
+
+        var linearGradient = g.createLinearGradient({
+            id: 'linearG',
+            x1: 0,
+            y1: 0,
+            x2: 0,
+            y2: 100,
+            colorStops: [{ color: '#948e4e', value: 0 }, { color: '#faed68', value: 50 }, { color: '#948e4e', value: 100 }]
+        });
+
+        var highlightGrad = g.createLinearGradient({
+            id: 'linearGG',
+            x1: 0,
+            y1: 0,
+            x2: 0,
+            y2: 100,
+            colorStops: [{ color: '#ad5858', value: 0 }, { color: '#FF8383', value: 50 }, { color: '#ad5858', value: 100 }]
+        });
+
+        var rangeBand = 100;
+
+        var paths = g.createEls([1], {
+            el: 'path',
+            attr: {
+                d: function (d, i) {
+                    var xPos = i * 100;
+                    var yPos = 100;
+                    var rangeBandMid = rangeBand / 2;
+
+                    var path = i2d.Path()
+                        .m(false, { x: xPos, y: 0 })
+                        .c(false, { x: rangeBandMid * 0.5, y: 0 }, { x: rangeBandMid * 0.5, y: -yPos }, {
+                            x: rangeBandMid,
+                            y: -yPos
+                        })
+                        .c(false, { x: rangeBandMid * 0.5, y: 0 }, { x: rangeBandMid * 0.5, y: yPos }, {
+                            x: rangeBandMid,
+                            y: yPos
+                        })
+                        .c(false, { x: -rangeBandMid * 0.5, y: 0 }, { x: -rangeBandMid * 0.5, y: yPos }, {
+                            x: -rangeBandMid,
+                            y: yPos
+                        })
+                        .c(false, { x: -rangeBandMid * 0.5, y: 0 }, { x: -rangeBandMid * 0.5, y: -yPos }, {
+                            x: -rangeBandMid,
+                            y: -yPos
+                        })
+                        .z();
+
+                    return path.fetchPathString();
+                }
+            },
+            style: {
+                fillStyle: linearGradient
+            }
+        })
+            .on('mouseover', function (d, e) {
+                this.setStyle('fillStyle', highlightGrad);
+            })
+            .on('mouseout', function (d, e) {
+                this.setStyle('fillStyle', linearGradient);
+            });
         
                 
 	</script>
