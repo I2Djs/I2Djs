@@ -4,65 +4,67 @@
 	<title></title>
 </head>
 <body style="height: 100%;background: black">
-	<div id="mySvg" style="height: 100%;width:100%">
-	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
-    <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
-	<script type="text/javascript" src="../../src/geometry.js"></script>
-	<script type="text/javascript" src="../../src/easing.js"></script>
-    <script type="text/javascript" src="../../src/vDom.js"></script>
-	<script type="text/javascript" src="../../src/queue.js"></script>
-    <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>-->
+<div id="mySvg" style="height: 100%;width:100%">
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
+<!--<script type="text/javascript" src="../../src/colorMap.js"></script>
+<script type="text/javascript" src="../../src/geometry.js"></script>
+<script type="text/javascript" src="../../src/easing.js"></script>
+<script type="text/javascript" src="../../src/vDom.js"></script>
+<script type="text/javascript" src="../../src/queue.js"></script>
+<script type="text/javascript" src="../../src/chaining.js"></script>
+<script type="text/javascript" src="../../src/renderer.js"></script>-->
 
-	<script type="text/javascript">
+<script type="text/javascript">
 
-        var height = 820, width = 1430;
-        var renderer_ = i2d.SVGLayer('#mySvg');
-        var circlesGrid = []
-        var gridSize = parseInt(Math.sqrt(2000))
-        
-        for(var i=0; i< 2000; i++){
-            circlesGrid.push({id:i,x:(i%gridSize)*20,y:parseInt(i/gridSize)*20});
-        }
-        
-    var circles = renderer_.createEls(circlesGrid,{
-            el:'circle',
-            attr:{
-                r:3,
-                cx:function(d){
-                    return d.x
-                },
-                cy:function(d){
-                    return d.y
-                }
-            },
-            style:{
-                fill:'#fff'
-            }
-        })
+var height = 820, width = 1430;
+var renderer_ = i2d.SVGLayer('#mySvg');
+var circlesGrid = [];
+var gridSize = parseInt(Math.sqrt(2000));
 
-        window.addEventListener("mousemove",function(e){
-            var p1 = {x: e.pageX,
-                    y: e.pageY};
+for (var i = 0; i < 2000; i++) {
+	circlesGrid.push({ id: i, x: (i % gridSize) * 20, y: parseInt(i / gridSize) * 20 });
+}
 
-            circles.forEach(function(d){
+var circles = renderer_.createEls(circlesGrid, {
+	el: 'circle',
+	attr: {
+		r: 3,
+		cx: function (d) {
+			return d.x;
+		},
+		cy: function (d) {
+			return d.y;
+		}
+	},
+	style: {
+		fill: '#fff'
+	}
+});
 
-                var dis = i2d.geometry.getDistance(p1,d);
-                var angle = i2d.geometry.getAngle(p1,d)
-                    dis = Math.abs(dis)>150?0:150-dis
-                var cx = (dis)*Math.cos(angle),
-                    cy = (dis)*Math.sin(angle)
+window.addEventListener('mousemove', function (e) {
+	var p1 = {
+		x: e.pageX,
+		y: e.pageY
+	};
 
-                this.setAttr({
-                    cx:d.x+cx,
-                    cy:d.y+cy
-                })
+	circles.forEach(function (d) {
 
-            })
-        })
+		var dis = i2d.geometry.getDistance(p1, d);
+		var angle = i2d.geometry.getAngle(p1, d);
+		dis = Math.abs(dis) > 150 ? 0 : 150 - dis;
+		var cx = (dis) * Math.cos(angle),
+			cy = (dis) * Math.sin(angle);
 
-	</script>
+		this.setAttr({
+			cx: d.x + cx,
+			cy: d.y + cy
+		});
+
+	});
+});
+
+</script>
 
 </body>
 </html>

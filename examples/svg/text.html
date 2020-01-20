@@ -5,28 +5,28 @@
 </head>
 <body style="height: 100%">
 
-	<div id="mySvg" style="height: 100%;width:100%">
-	</div>
-    
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+<div id="mySvg" style="height: 100%;width:100%">
+</div>
 
-	<script type="text/javascript">
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-        var renderer = i2d.SVGLayer('#mySvg');
-        
-        var text = renderer.createEl({
-                    el:'text',
-                    attr:{
-                        x:300,
-                        y:250
-                    },
-                    style:{
-                        fill:'red',
-                        'font-size':'25px'
-                    }
-                })
-                .text('I2DJS...')
+<script type="text/javascript">
 
-	</script>
+var renderer = i2d.SVGLayer('#mySvg');
+
+var text = renderer.createEl({
+	el: 'text',
+	attr: {
+		x: 300,
+		y: 250
+	},
+	style: {
+		fill: 'red',
+		'font-size': '25px'
+	}
+})
+	.text('I2DJS...');
+
+</script>
 </body>
 </html>

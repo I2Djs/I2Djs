@@ -4,39 +4,39 @@
 	<title></title>
 </head>
 <body style="height: 100%">
-    <label style="position: absolute; color: black"> Canvas Example </label>
-	<div id="myCanvas" style="height: 100%;width:100%">
-	</div>
-    <script type="text/javascript" src="../../dist/i2d.js"></script>
+<label style="position: absolute; color: black"> Canvas Example </label>
+<div id="myCanvas" style="height: 100%;width:100%">
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-	<script type="text/javascript">
+<script type="text/javascript">
 
-        var renderer = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
-        // var exe = queue();
-        var nodes = [];
+var renderer = i2d.CanvasLayer('#myCanvas', {}, false);
+// var exe = queue();
+var nodes = [];
 
-        var path = renderer.createEl({
-                        el:'path',
-                        attr:{
-                             d:"M100,250 C100,100 400,100 400,250 z"
-                        },
-                        style:{
-                            lineWidth:'3',
-                            strokeStyle:'#f00000'
-                        },
-                        bbox: false
-                    })
-                    .animateTo({
-                        duration:1000,
-                        loop:100,
-                        direction:'alternate',
-                        // loop:100,
-                        attr:{
-                            d:"M100,250 C500,66 -1,48 400,250"
-                        }
-                    })
-                    
-	</script>
+var path = renderer.createEl({
+	el: 'path',
+	attr: {
+		d: 'M100,250 C100,100 400,100 400,250 z'
+	},
+	style: {
+		lineWidth: '3',
+		strokeStyle: '#f00000'
+	},
+	bbox: false
+})
+	.animateTo({
+		duration: 1000,
+		loop: 100,
+		direction: 'alternate',
+		// loop:100,
+		attr: {
+			d: 'M100,250 C500,66 -1,48 400,250'
+		}
+	});
+
+</script>
 
 </body>
 </html>

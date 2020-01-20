@@ -4,83 +4,114 @@
 	<title></title>
 </head>
 <body style="height: 100%">
-    <label style="position: absolute; color: white"> Canvas Example </label>
-	<div id="myCanvas" style="height: 100%;width:100%;position: absolute;" >
-		<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
-	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
-    <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
-	<script type="text/javascript" src="../../src/geometry.js"></script>
-	<script type="text/javascript" src="../../src/easing.js"></script>
-    <script type="text/javascript" src="../../src/vDom.js"></script>
-	<script type="text/javascript" src="../../src/queue.js"></script>
-    <script type="text/javascript" src="../../src/chaining.js"></script>
-    <script type="text/javascript" src="../../src/path.js"></script>
-    <script type="text/javascript" src="../../src/renderer.js"></script>-->
+<label style="position: absolute; color: white"> Canvas Example </label>
+<div id="myCanvas" style="height: 100%;width:100%;position: absolute;">
+	<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
+<!--<script type="text/javascript" src="../../src/colorMap.js"></script>
+<script type="text/javascript" src="../../src/geometry.js"></script>
+<script type="text/javascript" src="../../src/easing.js"></script>
+<script type="text/javascript" src="../../src/vDom.js"></script>
+<script type="text/javascript" src="../../src/queue.js"></script>
+<script type="text/javascript" src="../../src/chaining.js"></script>
+<script type="text/javascript" src="../../src/path.js"></script>
+<script type="text/javascript" src="../../src/renderer.js"></script>-->
 
-	<script type="text/javascript">
-        var height = 820, width = 1430;
+<script type="text/javascript">
+var radialGrad = i2d.CanvasLayer(null,{}, false);
+    radialGrad.setSize(200, 200);
+var renderer_ = i2d.CanvasLayer('#myCanvas', { }, false);
+	renderer_.setClear(function (ctx) {
+		ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+		ctx.fillRect(0, 0, renderer_.width, renderer_.height);
+	});
 
-        var renderer_ = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false,onClear:function(ctx){
-                                ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
-                                ctx.fillRect(0, 0, width*2, height*2);
-                        },rescale: true});
+var radialGradiant = radialGrad.createRadialGradient({
+	id: 'radialG',
+	innerCircle: { x: 50, y: 50, r: 0 },
+	outerCircle: { x: 50, y: 50, r: 50 },
+	colorStops: [{ color: 'red', value: 0 },
+		{ color: 'yellow', value: 25 },
+		{ color: 'green', value: 50 },
+		{ color: 'blue', value: 75 },
+		{ color: 'rgba(255,255,255,0)', value: 100 }]
+});
 
-        var radialGradiant = renderer_.createRadialGradient({
-                                                            id:'radialG',
-                                                            innerCircle:{x:50,y:50,r:0},
-                                                            outerCircle:{x:50,y:50,r:50},
-                                                            colorStops:[{color:'red',value:0},
-                                                                        {color:'yellow',value:25},
-                                                                        {color:'green',value:50},
-                                                                        {color:'blue',value:75},
-                                                                        {color:'rgba(255,255,255,0)',value:100}]
-                                                            });
-        
-        var circle, circles = [], i=0;
+radialGrad.createEl({
+                    el:'circle',
+                    attr:{
+                        r: 50,
+                        cx: 50,
+                        cy: 50
+                    },
+                    style:{
+                        fillStyle: radialGradiant
+                    }
+                });
 
-        function random(min,max) {
-            var num = Math.floor(Math.random()*(max-min)) + min;
-            return num;
-        }
+radialGrad.execute();
+var circle, circles = [], i = 0;
 
-        while(i < 200){
-            circle = {};
-            circle.x = random(0, width);
-            circle.y = random(0, height);
-            circle.velX = random(-7, 7);
-            circle.velY = random(-7, 7);
-            circle.size = random(10, 20);
-            circles.push(circle);
-            ++i;
-        }
+function random (min, max) {
+	var num = Math.floor(Math.random() * (max - min)) + min;
+	return num;
+}
 
-        var circleNodes = renderer_.createEls(circles,{
-                                        el:'circle',
-                                        attr:{
-                                            cx:function(d,i){ return d.x },
-                                            cy:function(d,i){return d.y},
-                                            r:function(d,i){return d.size}
-                                        },
-                                        style:{ fillStyle: radialGradiant }
-                                    });
+while (i < 2000) {
+	circle = {};
+	circle.x = random(0, renderer_.width);
+	circle.y = random(0, renderer_.height);
+	circle.velX = random(-3, 3);
+	circle.velY = random(-3, 3);
+	circle.size = random(5, 20);
+	circles.push(circle);
+	++i;
+}
 
-        i2d.queue.onRequestFrame(function (t) {
-            circleNodes.forEach(function(d){
-                updateCirclePosition(d);
-                this.setAttr({cx:d.x,cy:d.y})
-            })
-        });
+var circleNodes = renderer_.createEls(circles, {
+	el: 'image',
+	attr: {
+		x: function (d, i) {
+			return d.x;
+		},
+		y: function (d, i) {
+			return d.y;
+		},
+		width: function (d, i) {
+			return d.size;
+		},
+		height: function (d, i) {
+			return d.size;
+		},
+		src: radialGrad
+	}
+});
 
-        function updateCirclePosition(circle){
-            if ((circle.x + circle.size) >= width) { circle.velX = -(circle.velX); }
-            if ((circle.x - circle.size) <= 0) { circle.velX = -(circle.velX); }
-            if ((circle.y + circle.size) >= height) { circle.velY = -(circle.velY); }
-            if ((circle.y - circle.size) <= 0) { circle.velY = -(circle.velY); }
-            circle.x += circle.velX;
-            circle.y += circle.velY;
-        }
-	</script>
+i2d.queue.onRequestFrame(function (t) {
+	circleNodes.forEach(function (d) {
+		updateCirclePosition(d);
+		this.setAttr({ x: d.x, y: d.y });
+	});
+});
+
+function updateCirclePosition (circle) {
+	if ((circle.x + circle.size) >= renderer_.width) {
+		circle.velX = -(circle.velX);
+	}
+	if ((circle.x - circle.size) <= 0) {
+		circle.velX = -(circle.velX);
+	}
+	if ((circle.y + circle.size) >= renderer_.height) {
+		circle.velY = -(circle.velY);
+	}
+	if ((circle.y - circle.size) <= 0) {
+		circle.velY = -(circle.velY);
+	}
+	circle.x += circle.velX;
+	circle.y += circle.velY;
+}
+</script>
 
 </body>
 </html>

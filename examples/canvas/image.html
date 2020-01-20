@@ -4,116 +4,54 @@
 	<title></title>
 </head>
 <body style="height: 100%">
-    <label style="position: absolute; color: white"> Canvas Example </label>
-	<div style="height: 50%;width:100%;position: relative;" id='myCanvas2'></div>
-    <div style="height: 20%;width:100%;position: relative;" id='myCanvas1'></div>
-    
-    <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-	<script type="text/javascript">
+<div id="canvas" style="height: 100%;width:100%;">
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
+<script type="text/javascript">
+var canvasRenderer = i2d.CanvasLayer('#canvas', {}, false);
 
-    setTimeout(function () {
-        let el = document.getElementById('myCanvas2');
-        el.parentNode.removeChild(el);
-    }, 5000)
+var imagesRef = canvasRenderer
+	.createEl({
+		el: 'image',
+		attr: {
+			x: Math.random() * 1100,
+			y: Math.random() * 800,
+			width: 100,
+			height: 100,
+			src: '../images/leaves2.jpg',
+			onload: function () {
+				console.log();
+			},
+			onerror: function (error) {
+				this.setAttr('src', '../images/leaves.jpg');
+			}
+		}
+	});
 
-        var renderer_ = i2d.CanvasLayer('#myCanvas1',{events:false,selectiveClear:false});
-        var nodes = [];
-        var data= [];
-            for(var i=0;i<1;i++){
-                data.push(i);
-            }
-
-var index = 0;
-
-var img = renderer_.createEl({
-                el:'image',
-                attr:{
-                    src:'../images/boySprite.png',
-                    width:100, height:100, x:300,
-                    y:0,
-                    clip:{
-                        sx:0, sy:0, swidth:108, sheight:140
-                    }
-                }
-            })
-            .animateTo({
-                duration:1000,
-                loop:6,
-                attr:{
-                    x:function(f){
-                                return (index = index + 4, index);
-                    },
-                    clip:function(f){
-                            if(f==1)
-                                return{ sx:7*108, sy:0, swidth:108, sheight:140 };
-                            else
-                                return { sx:parseInt((f*10)*(8/10))*108, sy:0, swidth:108, sheight:140 }
-                    }
-                }
-            });
-                
-	</script>
-
-    <script type="text/javascript">
-
-        var renderer_ = i2d.CanvasLayer('#myCanvas2',{events:true,selectiveClear:false});
-        var nodes = [];
-        var data= [];
-            for(var i=0;i<2;i++){ data.push(i); };
-
-        var img = renderer_.createEls(data,{
-            el:'group',
-            attr:{
-                transform:function(d){
-                    return {
-                            translate:[100*d+100,100]
-                        }
-                }
-            }
-        }).createEl({
-                el:'image',
-                attr:{
-                    src:'../images/coinSprite.png', width:45, height:45, x:-45/2, y:-45/2,
-                    clip:{ sx:0, sy:0, swidth:44, sheight:40 }
-                }
-            })
-            .animateTo({
-                duration:500,
-                loop:10,
-                attr:{
-                    clip:function(d){
-                        return function(f){
-                                    if(f==1)
-                                        return{ sx:9*44, sy:0, swidth:44, sheight:40 };
-                                    else
-                                        return { sx:parseInt(f/0.1)*44, sy:0, swidth:44, sheight:40 }
-                            }
-                    }
-                }
-            })
-            .on('mouseover',function(){
-                            this.animateTo({
-                                    duration:100,
-                                    attr:{
-                                        transform:{
-                                            scale:[2]
-                                        }
-                                    }
-                                })
-                            })
-            .on('mouseout',function(){
-                                this.animateTo({
-                                    duration:100,
-                                    attr:{
-                                        transform:{
-                                            scale:[1]
-                                        }
-                                    }
-                                })
-                            });           
-	</script>
+// var rectsRef = webglRenderer.createEl({
+//         el:'group',
+//         shaderType:'points'
+//     })
+//     .createEls(rectsData,{
+//             el:'point',
+//             attr:{
+//                 x: function() { return Math.random()*1400 },
+//                 y: function() { return Math.random()*900 },
+//                 size: 4
+//             },
+//             style: {
+//                 fill: i2d.color.rgba(parseInt(Math.random()*255), parseInt(Math.random()*255), parseInt(Math.random()*255), 255)
+//             }
+//         }).animateTo({
+//             duration:5000,
+//             attr:{
+//                 x: function() { return Math.random()*1400 },
+//                 y: function() { return Math.random()*900 },
+//             }
+//         })
+</script>
 
 </body>
 </html>

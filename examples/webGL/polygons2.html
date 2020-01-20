@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+<label style="position: absolute;color: white"> Webgl Example </label>
+<div id="canvas" style="height: 100%;width:100%;background: black">
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
+<script type="text/javascript">
+var webglRenderer = i2d.WebglLayer('#canvas', { events: false, selectiveClear: false });
+
+/************** polygons *****************/
+
+var polygonsData = [];
+for (let i = 0; i < 10; i++) {
+	let x1 = Math.random() * 1400;
+	let y1 = Math.random() * 1400;
+	polygonsData.push({
+		points: [{ x: x1, y: y1 },
+			{ x: x1 + Math.random() * 50, y: y1 + Math.random() * 50 },
+			{ x: x1 + Math.random() * 100, y: y1 + Math.random() * 100 },
+			{ x: x1 + Math.random() * 150, y: y1 + Math.random() * 200 },
+			{ x: x1 + Math.random() * 200, y: y1 }]
+	});
+}
+
+var polygonsRef = webglRenderer.createEl({
+	el: 'group',
+	attr: {
+		shaderType: 'polygon'
+	}
+});
+polygonsRef.createEls(polygonsData, {
+	el: 'polygon',
+	attr: {
+		points: function (d) {
+			return d.points;
+		}
+	},
+	style: { 
+		fill: function () {
+			return i2d.color.rgba(Math.random() * 255, Math.random() * 203, Math.random() * 255, 255);
+		} 
+	}
+});
+
+/************** End polygons *****************/
+
+
+</script>
+
+</body>
+</html>

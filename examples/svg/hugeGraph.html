@@ -2,115 +2,124 @@
 <html>
 <head>
 	<title></title>
-    <style>
-    .edge{
-        stroke:#999;
-        stroke-width:'1px';
-    }
-    .node{
-        fill:#1f77b4
-    }
-    </style>
+	<style>
+		.edge {
+			stroke: #999;
+			stroke-width: '1px';
+		}
+
+		.node {
+			fill: #1f77b4
+		}
+	</style>
 </head>
 <body>
-    <div id="fps" style="position: absolute;top:10px;left: 90%;height: 50px;width: 100px; background: #888888;color: #fff;font-size: 40px;text-align: center">
-        70
-    </div>
-	<div id="mySvg" style="position: absolute; height: 100%;width:100%">
-	</div>
-    
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
-    <script src="https://d3js.org/d3-collection.v1.min.js"></script>
-    <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
-    <script src="https://d3js.org/d3-quadtree.v1.min.js"></script>
-    <script src="https://d3js.org/d3-timer.v1.min.js"></script>
-    <script src="https://d3js.org/d3-force.v1.min.js"></script>
+<div id="fps"
+	 style="position: absolute;top:10px;left: 90%;height: 50px;width: 100px; background: #888888;color: #fff;font-size: 40px;text-align: center">
+	70
+</div>
+<div id="mySvg" style="position: absolute; height: 100%;width:100%">
+</div>
 
-	<script type="text/javascript">
-        var renderer = i2d.SVGLayer('#mySvg');
-        var width = 1000,height=700;
-        var circles,links;
+<script type="text/javascript" src="../../dist/i2d.js"></script>
+<script src="https://d3js.org/d3-collection.v1.min.js"></script>
+<script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
+<script src="https://d3js.org/d3-quadtree.v1.min.js"></script>
+<script src="https://d3js.org/d3-timer.v1.min.js"></script>
+<script src="https://d3js.org/d3-force.v1.min.js"></script>
+
+<script type="text/javascript">
+var renderer = i2d.SVGLayer('#mySvg');
+var width = 1000, height = 700;
+var circles, links;
+
+var simulation = d3.forceSimulation()
+	.force('link', d3.forceLink().id(function (d) {
+		return d.id;
+	}).distance(20).strength(1))
+	.force('charge', d3.forceManyBody())
+	.force('center', d3.forceCenter(width / 2, height / 2));
+
+var data = fetch('../data/huge_graph.json')
+	.then(function (response) {
+		response.json().then(function (data) {
+			renderChart(data);
+		});
+	})
+	.catch(function (error) {
+	});
+
+var group = renderer.createEl({
+	el: 'group',
+	attr: {
+		transform: {
+			translate: [width / 2, height / 2],
+			scale: [0.2, 0.2]
+		}
+	}
+});
+
+function renderChart (graph) {
+
+	links = group.createEls(graph.links, {
+		el: 'line',
+		attr: {
+			class: 'edge'
+		}
+	});
+	circles = group.createEls(graph.nodes, {
+		el: 'circle',
+		attr: {
+			r: 5,
+			class: 'node'
+		}
+	});
+
+	simulation
+		.nodes(graph.nodes)
+		.on('tick', ticked)
+		.on('end', function () {
+			links = group.createEls(graph.links, {
+				el: 'line',
+				attr: {
+					class: 'edge',
+					x1: function (d) {
+						return d.source.x;
+					},
+					y1: function (d) {
+						return d.source.y;
+					},
+					x2: function (d) {
+						return d.target.x;
+					},
+					y2: function (d) {
+						return d.target.y;
+					}
+				}
+			});
+		});
+
+	simulation.force('link')
+		.links(graph.links);
+
+	function ticked () {
+		circles.forEach(function (d) {
+			this.setAttr('cx', d.x)
+				.setAttr('cy', d.y);
+		});
+
+		links.forEach(function (d) {
+			this.setAttr('x1', d.source.x)
+				.setAttr('y1', d.source.y)
+				.setAttr('x2', d.target.x)
+				.setAttr('y2', d.target.y);
+		});
+	}
+
+}
 
 
-        var simulation = d3.forceSimulation()
-                            .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(20).strength(1))
-                            .force("charge", d3.forceManyBody())
-                            .force("center", d3.forceCenter(width / 2, height / 2));
-
-       var data = fetch('../data/huge_graph.json')
-                .then(function(response) {
-                    response.json().then(function(data) {
-                        renderChart(data) 
-                    });  
-                })
-                .catch(function(error) {
-                }); 
-        
-        var group = renderer.createEl({
-                    el:'group',
-                    attr:{
-                        transform:{
-                            translate:[width/2,height/2],
-                            scale:[0.2,0.2]
-                        }
-                    }
-                });
-
-        
-        function renderChart(graph){
-            
-           links = group.createEls(graph.links,{
-                            el:'line',
-                            attr:{
-                                class:'edge'
-                            }
-                        });
-             circles = group.createEls(graph.nodes,{
-                            el:'circle',
-                            attr:{
-                                r:5,
-                                class:'node'
-                            }
-                        });
-
-                 simulation
-                    .nodes(graph.nodes)
-                    .on("tick", ticked)
-                    .on("end",function(){
-                        links = group.createEls(graph.links,{
-                            el:'line',
-                            attr:{
-                                class:'edge',
-                                x1:function(d){return d.source.x},
-                                y1:function(d){return d.source.y},
-                                x2:function(d){return d.target.x},
-                                y2:function(d){return d.target.y}
-                            }
-                        });
-                    });
-                
-                simulation.force("link")
-                    .links(graph.links);
-
-                function ticked(){
-                    circles.forEach(function(d){
-                        this.setAttr('cx',d.x)
-                            .setAttr('cy',d.y);
-                    });
-
-                    links.forEach(function(d){
-                        this.setAttr('x1',d.source.x)
-                            .setAttr('y1',d.source.y)
-                            .setAttr('x2',d.target.x)
-                            .setAttr('y2',d.target.y);
-                    })
-                }
-
-        }
-
-        
-
-	</script>
+</script>
 
 </body>
 </html>

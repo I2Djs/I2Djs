@@ -4,66 +4,66 @@
 	<title></title>
 </head>
 <body style="height: 100%">
-    <label style="position: absolute; color: white"> Canvas Example </label>
-	<div id="myCanvas" style="height: 100%;width:100%;position: absolute;background: black" >
-		<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
-	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+<label style="position: absolute; color: white"> Canvas Example </label>
+<div id="myCanvas" style="height: 100%;width:100%;position: absolute;background: black">
+	<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-	<script type="text/javascript">
+<script type="text/javascript">
+var renderer_ = i2d.CanvasLayer('#myCanvas', {}, false);
+var circlesGrid = [];
+var gridSize = parseInt(Math.sqrt(2000));
 
-        var height = 820, width = 1430;
-        var renderer_ = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
-        var circlesGrid = []
-        var gridSize = parseInt(Math.sqrt(2000))
-        
-        for(var i=0; i< 2000; i++){
-            circlesGrid.push({
-                id:i,
-                x:(i%gridSize)*20,
-                ox:(i%gridSize)*20,
-                y:parseInt(i/gridSize)*20,
-                oy:parseInt(i/gridSize)*20
-            });
-        }
-        
-    var circles = renderer_.createEls(circlesGrid,{
-            el:'circle',
-            attr:{
-                r:3,
-                cx:function(d){
-                    return d.x
-                },
-                cy:function(d){
-                    return d.y
-                }
-            },
-            style:{
-                fillStyle:'#fff'
-            }
-        })
+for (var i = 0; i < 2000; i++) {
+	circlesGrid.push({
+		id: i,
+		x: (i % gridSize) * 20,
+		ox: (i % gridSize) * 20,
+		y: parseInt(i / gridSize) * 20,
+		oy: parseInt(i / gridSize) * 20
+	});
+}
 
-        window.addEventListener("mousemove",function(e){
-            var p1 = {x: e.pageX,
-                    y: e.pageY};
+var circles = renderer_.createEls(circlesGrid, {
+	el: 'circle',
+	attr: {
+		r: 3,
+		cx: function (d) {
+			return d.x;
+		},
+		cy: function (d) {
+			return d.y;
+		}
+	},
+	style: {
+		fillStyle: '#fff'
+	}
+});
 
-            circles.forEach(function(d){
+window.addEventListener('mousemove', function (e) {
+	var p1 = {
+		x: e.pageX,
+		y: e.pageY
+	};
 
-                var dis = i2d.geometry.getDistance(p1,d);
-                var angle = i2d.geometry.getAngle(p1,d)
-                    dis = Math.abs(dis)>150?0:150-dis
-                var cx = (dis)*Math.cos(angle),
-                    cy = (dis)*Math.sin(angle)
+	circles.forEach(function (d) {
 
-                this.setAttr({
-                    cx:d.x+cx,
-                    cy:d.y+cy
-                })
+		var dis = i2d.geometry.getDistance(p1, d);
+		var angle = i2d.geometry.getAngle(p1, d);
+		dis = Math.abs(dis) > 150 ? 0 : 150 - dis;
+		var cx = (dis) * Math.cos(angle),
+			cy = (dis) * Math.sin(angle);
 
-            })
-        })
+		this.setAttr({
+			cx: d.x + cx,
+			cy: d.y + cy
+		});
 
-	</script>
+	});
+});
+
+</script>
 
 </body>
 </html>

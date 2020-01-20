@@ -4,163 +4,162 @@
 	<title></title>
 </head>
 <body style="height: 100%">
-    <label style="position: absolute; color: white"> Canvas Example </label>
-	<div id="myCanvas" style="height: 100%;width:100%;position: absolute;background: black" >
-		<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
-	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+<label style="position: absolute; color: white"> Canvas Example </label>
+<div id="myCanvas" style="height: 100%;width:100%;position: absolute;background: black">
+	<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-	<script type="text/javascript">
+<script type="text/javascript">
 
-        var height = 820, width = 1430;
-        var layer1 = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false,globalCompositeOperation:''});
-        var layer2 = i2d.CanvasLayer('#myCanvas',{events:false,selectiveClear:false});
+var height = 820, width = 1430;
+var layer1 = i2d.CanvasLayer('#myCanvas', {globalCompositeOperation: ''}, false);
+var layer2 = i2d.CanvasLayer('#myCanvas', {}, false);
 
-        var l1Group = layer1.createEl({
-                el:'group',
-                attr:{
-                    transform:{
-                        translate:[750, 350]
-                    }
-                }
-            })
+var l1Group = layer1.createEl({
+	el: 'group',
+	attr: {
+		transform: {
+			translate: [750, 350]
+		}
+	}
+});
 
-        l1Group.createEl({
-                el:'image',
-                attr:{
-                    src:'../images/galaxy.jpg',
-                    width:500, height:500, x:-250,y:-250
-                }
-            });
-    
-        l1Group.createEl({
-                el:'circle',
-                attr:{
-                    r:40, cx:0, cy:0
-                },
-                style:{
-                    fillStyle:'#fffdca',
-                    shadowColor:'#fffdca',
-                    shadowOffsetX:0,
-                    shadowOffsetY:0,
-                    shadowBlur:150
-                }
-            });
-    
-    var pGroup = layer2.createEl({
-                el:'group',
-                attr:{
-                    transform:{ translate:[750, 350] }
-                }
-            });
+l1Group.createEl({
+	el: 'image',
+	attr: {
+		src: '../images/galaxy.jpg',
+		width: 500, height: 500, x: -250, y: -250
+	}
+});
 
-    var earthOrbit = pGroup.createEl({
-            el:'circle',
-            attr:{
-                r:142, cx:0, cy:0
-            },
-            style:{
-                strokeStyle:'rgba(0, 153, 255, 0.2)'
-            }
-        })
-    var marsOrbit = pGroup.createEl({
-            el:'circle',
-            attr:{
-                r:210, cx:0, cy:0
-            },
-            style:{
-                strokeStyle:'rgba(0, 153, 255, 0.2)'
-            }
-        })
+l1Group.createEl({
+	el: 'circle',
+	attr: {
+		r: 40, cx: 0, cy: 0
+	},
+	style: {
+		fillStyle: '#fffdca',
+		shadowColor: '#fffdca',
+		shadowOffsetX: 0,
+		shadowOffsetY: 0,
+		shadowBlur: 150
+	}
+});
 
-        var group = pGroup.createEl({
-                el:'group',
-                attr:{
-                    transform:{
-                        translate:[-100, -100]
-                    }
-                }
-            })
-        var earth = group.createEl({
-                el:'image',
-                attr:{
-                    src:'../images/Canvas_earth.png',
-                    x:-12.5,y:-12.5,width:25,height:25
-                }
-            })
-        var moon = group.createEl({
-                el:'image',
-                attr:{
-                    src:'https://mdn.mozillademos.org/files/1443/Canvas_moon.png',
-                    x:-3.5,y:-3.5,
-                    transform:{
-                        translate:[-25, -25]
-                    }
-                }
-            });
-        
-        var marsGroup = pGroup.createEl({
-                el:'group',
-                attr:{
-                    transform:{
-                        translate:[-150, -150]
-                    }
-                }
-            })
-        var mars = marsGroup.createEl({
-                el:'image',
-                attr:{
-                    src:'../images/Canvas_earth.png',
-                    x:-12.5,y:-12.5,width:25,height:25,
-                    pixels:function(pixelData){
-                            var data = pixelData.data;
+var pGroup = layer2.createEl({
+	el: 'group',
+	attr: {
+		transform: { translate: [750, 350] }
+	}
+});
 
-                            for (var i = 0; i < data.length; i += 4) {
-                                data[i]     = 255-data[i];     // red
-                                data[i + 1] = 0; // green
-                                data[i + 2] = 0; // blue
-                            }
-                            pixelData.data = data;
-                        return pixelData
-                    }
-                },
-                style:{
-                    globalAlpha:0.5
-                }
-            })
-        var marsMoon1 = marsGroup.createEl({
-                el:'image',
-                attr:{
-                    src:'https://mdn.mozillademos.org/files/1443/Canvas_moon.png',
-                    x:-3.5,y:-3.5,
-                    transform:{
-                        translate:[-20, -20]
-                    }
-                }
-            });
-        var marsMoon2 = marsGroup.createEl({
-                el:'image',
-                attr:{
-                    src:'https://mdn.mozillademos.org/files/1443/Canvas_moon.png',
-                    x:-3.5,y:-3.5,
-                    transform:{
-                        translate:[-30, -30]
-                    }
-                }
-            });
+var earthOrbit = pGroup.createEl({
+	el: 'circle',
+	attr: {
+		r: 142, cx: 0, cy: 0
+	},
+	style: {
+		strokeStyle: 'rgba(0, 153, 255, 0.2)'
+	}
+});
+var marsOrbit = pGroup.createEl({
+	el: 'circle',
+	attr: {
+		r: 210, cx: 0, cy: 0
+	},
+	style: {
+		strokeStyle: 'rgba(0, 153, 255, 0.2)'
+	}
+});
 
-        i2d.queue.onRequestFrame(function(t){
-                    var time = new Date()
-                    group.rotate((((2 * Math.PI) / 60) * time.getSeconds() + ((2 * Math.PI) / 60000) * time.getMilliseconds())*(180/Math.PI), 100, 100)
-                    marsGroup.rotate((((2 * Math.PI) / 100) * time.getSeconds() + ((2 * Math.PI) / 100000) * time.getMilliseconds())*(180/Math.PI), 150, 150)
-                    moon.rotate((((2 * Math.PI) / 6) * time.getSeconds() + ((2 * Math.PI) / 6000) * time.getMilliseconds())*(180/Math.PI), 25,25)
-                    marsMoon2.rotate((((2 * Math.PI) / 10) * time.getSeconds() + ((2 * Math.PI) / 10000) * time.getMilliseconds())*(180/Math.PI), 30,30)
-                    marsMoon1.rotate((((2 * Math.PI) / 6) * time.getSeconds() + ((2 * Math.PI) / 6000) * time.getMilliseconds())*(180/Math.PI), 20,20)
-                });
+var group = pGroup.createEl({
+	el: 'group',
+	attr: {
+		transform: {
+			translate: [-100, -100]
+		}
+	}
+});
+var earth = group.createEl({
+	el: 'image',
+	attr: {
+		src: '../images/Canvas_earth.png',
+		x: -12.5, y: -12.5, width: 25, height: 25
+	}
+});
+var moon = group.createEl({
+	el: 'image',
+	attr: {
+		src: 'https://mdn.mozillademos.org/files/1443/Canvas_moon.png',
+		x: -3.5, y: -3.5,
+		transform: {
+			translate: [-25, -25]
+		}
+	}
+});
 
-        
+var marsGroup = pGroup.createEl({
+	el: 'group',
+	attr: {
+		transform: {
+			translate: [-150, -150]
+		}
+	}
+});
+var mars = marsGroup.createEl({
+	el: 'image',
+	attr: {
+		src: '../images/Canvas_earth.png',
+		x: -12.5, y: -12.5, width: 25, height: 25,
+		pixels: function (pixelData) {
+			var data = pixelData.data;
 
-	</script>
+			for (var i = 0; i < data.length; i += 4) {
+				data[i] = 255 - data[i];     // red
+				data[i + 1] = 0; // green
+				data[i + 2] = 0; // blue
+			}
+			pixelData.data = data;
+			return pixelData;
+		}
+	},
+	style: {
+		globalAlpha: 0.5
+	}
+});
+var marsMoon1 = marsGroup.createEl({
+	el: 'image',
+	attr: {
+		src: 'https://mdn.mozillademos.org/files/1443/Canvas_moon.png',
+		x: -3.5, y: -3.5,
+		transform: {
+			translate: [-20, -20]
+		}
+	}
+});
+var marsMoon2 = marsGroup.createEl({
+	el: 'image',
+	attr: {
+		src: 'https://mdn.mozillademos.org/files/1443/Canvas_moon.png',
+		x: -3.5, y: -3.5,
+		transform: {
+			translate: [-30, -30]
+		}
+	}
+});
+
+i2d.queue.onRequestFrame(function (t) {
+	var time = new Date();
+	group.rotate((((2 * Math.PI) / 60) * time.getSeconds() + ((2 * Math.PI) / 60000) * time.getMilliseconds()) * (180 / Math.PI), 100, 100);
+	marsGroup.rotate((((2 * Math.PI) / 100) * time.getSeconds() + ((2 * Math.PI) / 100000) * time.getMilliseconds()) * (180 / Math.PI), 150, 150);
+	moon.rotate((((2 * Math.PI) / 6) * time.getSeconds() + ((2 * Math.PI) / 6000) * time.getMilliseconds()) * (180 / Math.PI), 25, 25);
+	marsMoon2.rotate((((2 * Math.PI) / 10) * time.getSeconds() + ((2 * Math.PI) / 10000) * time.getMilliseconds()) * (180 / Math.PI), 30, 30);
+	marsMoon1.rotate((((2 * Math.PI) / 6) * time.getSeconds() + ((2 * Math.PI) / 6000) * time.getMilliseconds()) * (180 / Math.PI), 20, 20);
+});
+
+
+</script>
 
 </body>
 </html>

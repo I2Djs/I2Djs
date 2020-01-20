@@ -6,4 +6,27 @@ src/renderer/
 src1/
 dist1/
 .DS_Store
-npm-debug.log
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+#swap files created by text editors(vi)
+*.swp
+
+# local env files
+.env.local
+.env.*.local
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*
+
+# Removing Map files
+dist/*.js.map

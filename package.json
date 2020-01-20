@@ -1,13 +1,16 @@
 {
   "name": "i2djs",
-  "version": "2.0.2",
+  "version": "2.0.4",
   "description": "Integrated-2d, framework for 2D graphics rendering for SVG/Canvas/WebGl context",
-  "module": "./dist/i2d.esm.js",
+  "module": "./src/main.js",
   "main": "./dist/i2d.js",
+  "sideEffects": false,
   "directories": {
     "example": "examples"
   },
   "scripts": {
+    "dev": "rollup -wm -c rollup.config.js",
+    "build": "rm -rf ./dist/ && rollup -c rollup.config.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -40,27 +43,29 @@
     "Integrated 2D"
   ],
   "author": "Narayana Swamy",
-  "license": "\tBSD-3-Clause",
+  "license": "BSD-3-Clause",
   "bugs": {
     "url": "https://github.com/i2djs/I2D/issues"
   },
   "homepage": "https://github.com/i2djs/I2D#readme",
   "devDependencies": {
-    "eslint": "^5.16.0",
-    "rollup": "^1.16.2",
+    "eslint": "^6.5.1",
     "eslint-config-standard": "^12.0.0",
-    "eslint-loader": "^2.1.1",
-    "eslint-plugin-import": "^2.15.0",
+    "eslint-loader": "^2.2.1",
+    "eslint-plugin-import": "^2.18.0",
     "eslint-plugin-node": "^8.0.1",
-    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.0",
+    "rollup": "^1.17.0",
+    "rollup-plugin-buble": "^0.19.8",
+    "rollup-plugin-commonjs": "^10.0.1",
     "rollup-plugin-eslint": "^7.0.0",
-    "rollup-plugin-node-resolve": "^5.1.0",
-    "rollup-plugin-terser": "^5.0.0",
-    "rollup-plugin-uglify": "^6.0.2",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-terser": "^5.1.3",
+    "rollup-plugin-uglify": "^6.0.4",
     "source-map-loader": "^0.2.4"
   },
   "dependencies": {
-    "earcut": "^2.1.3"
+    "earcut": "^2.1.5"
   }
 }

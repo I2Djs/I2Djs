@@ -5,31 +5,31 @@
 </head>
 <body style="height: 100%">
 
-	<div id="mySvg" style="height: 100%;width:100%">
-	</div>
-    <script type="text/javascript" src="../../dist/i2d.js"></script>
+<div id="mySvg" style="height: 100%;width:100%">
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
 
-	<script type="text/javascript">
+<script type="text/javascript">
 
-        var renderer = i2d.SVGLayer('#mySvg');
-        
-        var img = renderer.createEl({
-                el:'image',
-                attr:{
-                    'xlink:href':'../images/Canvas_sun.png',
-                    width:150,
-                    height:150,
-                    x:0,
-                    y:0,
-                    transform:{
-                        translate:[100,100]
-                    },
-                    onerror: function r() {
-                        this.setAttr('xlink:href','../images/Canvas_sun.png');
-                    }
-                }
-            });
-	</script>
+var renderer = i2d.SVGLayer('#mySvg');
+
+var img = renderer.createEl({
+	el: 'image',
+	attr: {
+		'xlink:href': '../images/Canvas_sun.png',
+		width: 150,
+		height: 150,
+		x: 0,
+		y: 0,
+		transform: {
+			translate: [100, 100]
+		},
+		onerror: function r () {
+			this.setAttr('xlink:href', '../images/Canvas_sun.png');
+		}
+	}
+});
+</script>
 
 </body>
 </html>

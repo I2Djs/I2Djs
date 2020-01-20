@@ -4,150 +4,145 @@
 	<title></title>
 </head>
 <body style="height: 100%">
+<script id="vertexShader" type="x-shader/x-vertex">
+    
+    attribute vec2 a_vertex;
+    void main(void) {
+        gl_Position = vec4(a_vertex, 0.0, 1.0);
+    }
 
-	<div id="canvas" style="height: 100%;width:100%;">
-	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+</script>
+<script id="fragmentShader" type="x-shader/x-fragment">
+    
+    precision highp float;
+    uniform float u_k;
 
-	<script type="text/javascript">
-        var webglRenderer = i2d.WebglLayer('#canvas',{events:false,selectiveClear:false});
-        var fragmentShader = `
-                                precision highp float;
-                                uniform float u_k;
+    const float PI = 3.14159265359;
 
-                                const float PI = 3.14159265359;
+    // https://github.com/d3/d3-color
+    vec3 cubehelix(vec3 c) {
+        float a = c.y * c.z * (1.0 - c.z);
+        float cosh = cos(c.x + PI / 2.0);
+        float sinh = sin(c.x + PI / 2.0);
+        return vec3(
+                (c.z + a * (1.78277 * sinh - 0.14861 * cosh)),
+                (c.z - a * (0.29227 * cosh + 0.90649 * sinh)),
+                (c.z + a * (1.97294 * cosh))
+            );
+    }
 
-                                // https://github.com/d3/d3-color
-                                vec3 cubehelix(vec3 c) {
-                                float a = c.y * c.z * (1.0 - c.z);
-                                float cosh = cos(c.x + PI / 2.0);
-                                float sinh = sin(c.x + PI / 2.0);
-                                return vec3(
-                                    (c.z + a * (1.78277 * sinh - 0.14861 * cosh)),
-                                    (c.z - a * (0.29227 * cosh + 0.90649 * sinh)),
-                                    (c.z + a * (1.97294 * cosh))
-                                );
-                                }
+    // https://github.com/d3/d3-scale-chromatic
+    vec3 cubehelixDefault(float t) {
+        return cubehelix(vec3(mix(300.0 / 180.0 * PI, -240.0 / 180.0 * PI, t), 0.5, t));
+    }
 
-                                // https://github.com/d3/d3-scale-chromatic
-                                vec3 cubehelixDefault(float t) {
-                                return cubehelix(vec3(mix(300.0 / 180.0 * PI, -240.0 / 180.0 * PI, t), 0.5, t));
-                                }
+    // https://github.com/d3/d3-scale-chromatic
+    vec3 cubehelixRainbow(float t) {
+    if (t < 0.0 || t > 1.0) t -= floor(t);
+    float ts = abs(t - 0.5);
+        return cubehelix(vec3((360.0 * t - 100.0) / 180.0 * PI, 1.5 - 1.5 * ts, 0.8 - 0.9 * ts));
+    }
 
-                                // https://github.com/d3/d3-scale-chromatic
-                                vec3 cubehelixRainbow(float t) {
-                                if (t < 0.0 || t > 1.0) t -= floor(t);
-                                float ts = abs(t - 0.5);
-                                return cubehelix(vec3((360.0 * t - 100.0) / 180.0 * PI, 1.5 - 1.5 * ts, 0.8 - 0.9 * ts));
-                                } 
+    float sinh(float x) {
+        return (exp(x) - exp(-x)) / 2.0;
+    }
 
-                                float sinh(float x) {
-                                return (exp(x) - exp(-x)) / 2.0;
-                                }
+    float cosh(float x) {
+        return (exp(x) + exp(-x)) / 2.0;
+    }
 
-                                float cosh(float x) {
-                                return (exp(x) + exp(-x)) / 2.0;
-                                }
+    // https://golang.org/src/math/cmplx/phase.go
+    float complex_phase(vec2 x) {
+        return atan(x.y, x.x);
+    }
 
-                                // https://golang.org/src/math/cmplx/phase.go
-                                float complex_phase(vec2 x) {
-                                return atan(x.y, x.x);
-                                }
+    // https://golang.org/src/math/cmplx/sin.go
+    vec2 complex_sin(vec2 x) {
+        return vec2(sin(x.x) * cosh(x.y), cos(x.x) * sinh(x.y));
+    }
 
-                                // https://golang.org/src/math/cmplx/sin.go
-                                vec2 complex_sin(vec2 x) {
-                                return vec2(sin(x.x) * cosh(x.y), cos(x.x) * sinh(x.y));
-                                }
+    // https://golang.org/src/math/cmplx/isinf.go
+    vec2 complex_inf() {
+        return vec2(1.0 / 0.0, 1.0 / 0.0);
+    }
 
-                                // https://golang.org/src/math/cmplx/isinf.go
-                                vec2 complex_inf() {
-                                return vec2(1.0 / 0.0, 1.0 / 0.0);
-                                }
+    // https://golang.org/src/math/cmplx/abs.go
+    // https://golang.org/src/math/hypot.go
+    float complex_abs(vec2 x) {
+        float p = x.x;
+        float q = x.y;
+        if (p < 0.0) p = -p;
+        if (q < 0.0) q = -q;
+        if (p < q) { float t = p; p = q; q = t; }
+        if (p == 0.0) return 0.0;
+        q = q / p;
+        return p * sqrt(1.0 + q * q);
+    }
 
-                                // https://golang.org/src/math/cmplx/abs.go
-                                // https://golang.org/src/math/hypot.go
-                                float complex_abs(vec2 x) {
-                                float p = x.x;
-                                float q = x.y;
-                                if (p < 0.0) p = -p;
-                                if (q < 0.0) q = -q;
-                                if (p < q) { float t = p; p = q; q = t; }
-                                if (p == 0.0) return 0.0;
-                                q = q / p;
-                                return p * sqrt(1.0 + q * q);
-                                }
-
-                                // https://golang.org/src/math/cmplx/pow.go
-                                vec2 complex_pow(vec2 x, vec2 y) {
-                                float r;
-                                float i;
-                                if (x.x == 0.0 && x.y == 0.0) {
-                                    r = y.x;
-                                    i = y.y;
-                                    if (r == 0.0) return vec2(1.0, 0.0);
-                                    if (r < 0.0) {
-                                    if (i == 0.0) return vec2(1.0 / 0.0, 0.0);
-                                    return complex_inf();
-                                    }
-                                    if (r > 0.0) return vec2(0.0, 0.0);
-                                }
-                                float modulus = complex_abs(x);
-                                if (modulus == 0.0) return vec2(0.0, 0.0);
-                                r = pow(modulus, y.x);
-                                float arg = complex_phase(x);
-                                float theta = y.x * arg;
-                                if (y.y != 0.0) {
-                                    r *= exp(-y.y * arg);
-                                    theta += y.y * log(modulus);
-                                }
-                                return vec2(r * cos(theta), r * sin(theta));
-                                }
-
-                                void main(void) {
-                                vec2 z = (gl_FragCoord.xy - 932.0 / 2.0) / 256.0;
-                                z = complex_sin(complex_pow(z, vec2(5.0, 0.0)) - u_k);
-                                float t = complex_phase(z) / PI;
-                                gl_FragColor = vec4(cubehelixRainbow(t), 1.0);
-                                }
-                                `
-        var vertexShader = `
-            attribute vec2 a_vertex;
-            void main(void) {
-            gl_Position = vec4(a_vertex, 0.0, 1.0);
+    // https://golang.org/src/math/cmplx/pow.go
+    vec2 complex_pow(vec2 x, vec2 y) {
+        float r;
+        float i;
+        if (x.x == 0.0 && x.y == 0.0) {
+            r = y.x;
+            i = y.y;
+            if (r == 0.0) return vec2(1.0, 0.0);
+            if (r < 0.0) {
+            if (i == 0.0) return vec2(1.0 / 0.0, 0.0);
+            return complex_inf();
             }
-        `
-        let k = Math.sin(Date.now() / 5000) * 5
-		var shaderRef = webglRenderer.createShaderEl({
-                    fragmentShader: fragmentShader,
-                    vertexShader: vertexShader,
-                    uniforms:{
-                        u_k: {
-                            type: 'uniform1f',
-                            data: k
-                        }
-                    },
-                    attributes:{
-                        a_vertex: {
-                            bufferType: 'ARRAY_BUFFER',
-                            drawType: 'STATIC_DRAW',
-                            valueType: 'FLOAT',
-                            size: 2,
-                            data: Float32Array.of(-1, -1, +1, -1, +1, +1, -1, +1)
-                        }
-                    },
-                    drawArrays: {
-                        a_vertex: {
-                            type: 'TRIANGLE_FAN',
-                            start:0,
-                            end: 4
-                        }
-                    }
-                })
-            i2d.queue.onRequestFrame(function (t) {
-                shaderRef.setUniformData('u_k', Math.sin(t / 5000) * 5)
-            });
-        
-	</script>   
+            if (r > 0.0) return vec2(0.0, 0.0);
+        }
+        float modulus = complex_abs(x);
+        if (modulus == 0.0) return vec2(0.0, 0.0);
+        r = pow(modulus, y.x);
+        float arg = complex_phase(x);
+        float theta = y.x * arg;
+        if (y.y != 0.0) {
+            r *= exp(-y.y * arg);
+            theta += y.y * log(modulus);
+        }
+        return vec2(r * cos(theta), r * sin(theta));
+    }
+
+    void main(void) {
+        vec2 z = (gl_FragCoord.xy - 932.0 / 2.0) / 256.0;
+        z = complex_sin(complex_pow(z, vec2(5.0, 0.0)) - u_k);
+        float t = complex_phase(z) / PI;
+        gl_FragColor = vec4(cubehelixRainbow(t), 1.0);
+    }
+
+</script>
+<div id="canvas" style="height: 100%;width:100%;">
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
+
+<script type="text/javascript">
+var webglRenderer = i2d.WebglLayer('#canvas', { events: false, selectiveClear: false });
+
+var k = Math.sin(Date.now() / 5000) * 5;
+var meshGeo = webglRenderer.MeshGeometry();
+    meshGeo.setDrawType('TRIANGLE_FAN');
+    meshGeo.setAttr('a_vertex', {
+        value: Float32Array.of(-1, -1, +1, -1, +1, +1, -1, +1),
+        size: 2
+    });
+    meshGeo.setDrawRange(0, 4);
+var shaderRef = webglRenderer.createShaderEl({
+    	fragmentShader: document.getElementById('fragmentShader').textContent,
+        vertexShader: document.getElementById('vertexShader').textContent,
+    	uniforms: {
+    		u_k: {
+    			value: k
+    		}
+    	},
+        geometry: meshGeo
+    });
+i2d.queue.onRequestFrame(function (t) {
+	shaderRef.setUniformData('u_k', Math.sin(t / 5000) * 5);
+});
+
+</script>
 
 </body>
 </html>
