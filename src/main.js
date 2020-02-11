@@ -1,6 +1,6 @@
-import SVGLayer from './modules/svg.js';
+import svgLayer from './modules/svg.js';
 import canvasAPI from './modules/canvas.js';
-import WebglLayer from './modules/webgl.js';
+import webglLayer from './modules/webgl.js';
 import geometry from './modules/geometry.js';
 import color from './modules/colorMap.js';
 import path from './modules/path.js';
@@ -10,12 +10,12 @@ import chain from './modules/chain.js';
 import behaviour from './modules/behaviour.js';
 
 let pathIns = path.instance;
-let CanvasLayer = canvasAPI.CanvasLayer;
-let CanvasNodeLayer = canvasAPI.CanvasNodeLayer;
-export { SVGLayer };
-export { CanvasLayer };
-export { CanvasNodeLayer };
-export { WebglLayer };
+let canvasLayer = canvasAPI.canvasLayer;
+let canvasNodeLayer = canvasAPI.canvasNodeLayer;
+export { svgLayer };
+export { canvasLayer };
+export { canvasNodeLayer };
+export { webglLayer };
 export { geometry };
 export { color };
 export { pathIns as Path };

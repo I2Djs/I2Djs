@@ -4394,7 +4394,7 @@
 		}
 	};
 
-	function SVGLayer (context, config) {
+	function svgLayer (context, config) {
 
 		var vDomInstance = new VDom();
 		var vDomIndex = queueInstance$2.addVdom(vDomInstance);
@@ -6349,7 +6349,7 @@
 		return this.ctx.putImageData(imageData, this.dom.BBox.x, this.dom.BBox.y);
 	};
 
-	function CanvasLayer (container, config, eventsFlag, autoUpdateFlag) {
+	function canvasLayer (container, config, eventsFlag, autoUpdateFlag) {
 		if ( config === void 0 ) config = {};
 		if ( eventsFlag === void 0 ) eventsFlag = true;
 		if ( autoUpdateFlag === void 0 ) autoUpdateFlag = true;
@@ -6522,7 +6522,7 @@
 		return root;
 	}
 
-	function CanvasNodeLayer (config, height, width) {
+	function canvasNodeLayer (config, height, width) {
 		if ( height === void 0 ) height = 0;
 		if ( width === void 0 ) width = 0;
 
@@ -6595,8 +6595,8 @@
 	}
 
 	var canvasAPI = {
-		CanvasLayer: CanvasLayer,
-		CanvasNodeLayer: CanvasNodeLayer
+		canvasLayer: canvasLayer,
+		canvasNodeLayer: canvasNodeLayer
 	};
 
 	/* eslint-disable no-undef */
@@ -9339,7 +9339,7 @@
 		queueInstance$4.vDomChanged(this.vDomIndex);
 	};
 
-	function WebGLLayer (container, config, eventsFlag, autoRefreshFlag) {
+	function webglLayer (container, config, eventsFlag, autoRefreshFlag) {
 		if ( config === void 0 ) config = {};
 		if ( autoRefreshFlag === void 0 ) autoRefreshFlag = true;
 
@@ -9719,20 +9719,20 @@
 	};
 
 	var pathIns = path.instance;
-	var CanvasLayer$1 = canvasAPI.CanvasLayer;
-	var CanvasNodeLayer$1 = canvasAPI.CanvasNodeLayer;
+	var canvasLayer$1 = canvasAPI.canvasLayer;
+	var canvasNodeLayer$1 = canvasAPI.canvasNodeLayer;
 
-	exports.CanvasLayer = CanvasLayer$1;
-	exports.CanvasNodeLayer = CanvasNodeLayer$1;
 	exports.Path = pathIns;
-	exports.SVGLayer = SVGLayer;
-	exports.WebglLayer = WebGLLayer;
 	exports.behaviour = behaviour;
+	exports.canvasLayer = canvasLayer$1;
+	exports.canvasNodeLayer = canvasNodeLayer$1;
 	exports.chain = chain;
 	exports.color = colorMap$1;
 	exports.ease = fetchTransitionType;
 	exports.geometry = geometry;
 	exports.queue = queue;
+	exports.svgLayer = svgLayer;
+	exports.webglLayer = webglLayer;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

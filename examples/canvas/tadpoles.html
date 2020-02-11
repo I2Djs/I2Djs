@@ -12,7 +12,7 @@
 <script type="text/javascript">
 
 
-var renderer_ = i2d.CanvasLayer('#myCanvas', {}, false);
+var renderer_ = i2d.canvasLayer('#myCanvas', {}, false);
 const n = 500;
 const v = 2;
 const m = 12;
@@ -52,11 +52,13 @@ tailsGroup.forEach(function (d) {
 	this.createEl({
 		el: 'polyline',
 		attr: { points: [], class: 'mid' },
-		style: { lineWidth: 4 }
+		style: { lineWidth: 4 },
+		bbox: false
 	});
 	this.createEl({
 		el: 'polyline',
-		attr: { points: [], class: 'tail' }
+		attr: { points: [], class: 'tail' },
+		bbox: false
 	});
 });
 
@@ -95,11 +97,11 @@ i2d.queue.onRequestFrame(function (t) {
 	tailsGroup.forEach(function (t) {
 		let midArr = [];
 		for (let i = 0; i < 3; ++i)
-			midArr.push({ x: t.px[i], y: t.py[i] });
+			midArr[i] = { x: t.px[i], y: t.py[i] };
 
 		let tail = [];
 		for (let i = 0; i < m; ++i)
-			tail.push({ x: t.px[i], y: t.py[i] });
+			tail[i] = { x: t.px[i], y: t.py[i] };
 
 		this.fetchEl('.mid')
 			.setAttr('points', midArr);

@@ -33,7 +33,7 @@ function onFileSelected (event) {
 	reader.readAsDataURL(selectedFile);
 }
 
-var renderer_ = i2d.CanvasLayer('#myCanvas', {}, true);
+var renderer_ = i2d.canvasLayer('#myCanvas', {}, true);
 var height = renderer_.height;
 var width = renderer_.width;
 var wh = Math.min(height, width);

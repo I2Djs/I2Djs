@@ -4395,7 +4395,7 @@
 		}
 	};
 
-	function SVGLayer (context, config = {}) {
+	function svgLayer (context, config = {}) {
 		const vDomInstance = new VDom();
 		const vDomIndex = queueInstance$2.addVdom(vDomInstance);
 		const res = document.querySelector(context);
@@ -6356,7 +6356,7 @@
 		return this.ctx.putImageData(imageData, this.dom.BBox.x, this.dom.BBox.y);
 	};
 
-	function CanvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag = true) {
+	function canvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag = true) {
 		// let originalRatio;
 		const res = container ? document.querySelector(container) : null;
 		let height = res ? res.clientHeight : 0;
@@ -6525,7 +6525,7 @@
 		return root;
 	}
 
-	function CanvasNodeLayer (config, height = 0, width = 0) {
+	function canvasNodeLayer (config, height = 0, width = 0) {
 		if (!Canvas) {
 			console.error('Canvas missing from node');
 			console.error('Install "Canvas" "canvas-5-polyfill" node modules');
@@ -6595,8 +6595,8 @@
 	}
 
 	var canvasAPI = {
-		CanvasLayer,
-		CanvasNodeLayer
+		canvasLayer,
+		canvasNodeLayer
 	};
 
 	/* eslint-disable no-undef */
@@ -9491,7 +9491,7 @@
 		queueInstance$4.vDomChanged(this.vDomIndex);
 	};
 
-	function WebGLLayer (container, config = {}, eventsFlag = true, autoRefreshFlag = true) {
+	function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag = true) {
 		const res = container ? document.querySelector(container) : null;
 		let height = res ? res.clientHeight : 0;
 		let width = res ? res.clientWidth : 0;
@@ -9868,20 +9868,20 @@
 	};
 
 	let pathIns = path.instance;
-	let CanvasLayer$1 = canvasAPI.CanvasLayer;
-	let CanvasNodeLayer$1 = canvasAPI.CanvasNodeLayer;
+	let canvasLayer$1 = canvasAPI.canvasLayer;
+	let canvasNodeLayer$1 = canvasAPI.canvasNodeLayer;
 
-	exports.CanvasLayer = CanvasLayer$1;
-	exports.CanvasNodeLayer = CanvasNodeLayer$1;
 	exports.Path = pathIns;
-	exports.SVGLayer = SVGLayer;
-	exports.WebglLayer = WebGLLayer;
 	exports.behaviour = behaviour;
+	exports.canvasLayer = canvasLayer$1;
+	exports.canvasNodeLayer = canvasNodeLayer$1;
 	exports.chain = chain;
 	exports.color = colorMap$1;
 	exports.ease = fetchTransitionType;
 	exports.geometry = geometry;
 	exports.queue = queue;
+	exports.svgLayer = svgLayer;
+	exports.webglLayer = webglLayer;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

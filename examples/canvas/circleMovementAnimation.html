@@ -19,9 +19,9 @@
 <script type="text/javascript" src="../../src/renderer.js"></script>-->
 
 <script type="text/javascript">
-var radialGrad = i2d.CanvasLayer(null,{}, false);
+var radialGrad = i2d.canvasLayer(null,{}, false);
     radialGrad.setSize(200, 200);
-var renderer_ = i2d.CanvasLayer('#myCanvas', { }, false);
+var renderer_ = i2d.canvasLayer('#myCanvas', { }, false);
 	renderer_.setClear(function (ctx) {
 		ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
 		ctx.fillRect(0, 0, renderer_.width, renderer_.height);
