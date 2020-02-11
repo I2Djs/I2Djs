@@ -13,16 +13,16 @@
 
         import canvasAPI from "../../src/modules/canvas.js";
 
-        var radialGrad = canvasAPI.CanvasLayer(null,{}, false);
+        var radialGrad = canvasAPI.canvasLayer(null,{}, false);
         radialGrad.setPixelRatio(1);
         radialGrad.setSize(100, 100);
-        var LinearGrad = canvasAPI.CanvasLayer(null,{}, false);
+        var LinearGrad = canvasAPI.canvasLayer(null,{}, false);
         LinearGrad.setPixelRatio(1);
         LinearGrad.setSize(256, 1);
 
-        var renderer_2 = canvasAPI.CanvasLayer('#myCanvas',{}, false, false);
+        var renderer_2 = canvasAPI.canvasLayer('#myCanvas',{}, false, false);
         renderer_2.setPixelRatio(1);
-        var renderer_ = canvasAPI.CanvasLayer(null,{}, false);
+        var renderer_ = canvasAPI.canvasLayer(null,{}, false);
         renderer_.setPixelRatio(1);
         renderer_.setSize(renderer_2.width, renderer_2.height);
 

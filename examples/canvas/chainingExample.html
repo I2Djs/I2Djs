@@ -16,10 +16,8 @@
 <script type="text/javascript" src="../../dist/i2d.js"></script>
 
 <script type="text/javascript">
-var renderer_ = i2d.CanvasLayer('#Mycanvas', {
-	events: false,
-	selectiveClear: false
-});
+var renderer_ = i2d.canvasLayer('#Mycanvas', {
+}, false);
 
 var g = renderer_.createEl({
 	el: 'group',

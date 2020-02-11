@@ -1638,7 +1638,7 @@ CanvasNodeExe.prototype.putPixels = function (imageData) {
 	return this.ctx.putImageData(imageData, this.dom.BBox.x, this.dom.BBox.y);
 };
 
-function CanvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag = true) {
+function canvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag = true) {
 	// let originalRatio;
 	const res = container ? document.querySelector(container) : null;
 	let height = res ? res.clientHeight : 0;
@@ -1807,7 +1807,7 @@ function CanvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag 
 	return root;
 }
 
-function CanvasNodeLayer (config, height = 0, width = 0) {
+function canvasNodeLayer (config, height = 0, width = 0) {
 	if (!Canvas) {
 		console.error('Canvas missing from node');
 		console.error('Install "Canvas" "canvas-5-polyfill" node modules');
@@ -1877,6 +1877,6 @@ function CanvasNodeLayer (config, height = 0, width = 0) {
 }
 
 export default {
-	CanvasLayer,
-	CanvasNodeLayer
+	canvasLayer,
+	canvasNodeLayer
 };

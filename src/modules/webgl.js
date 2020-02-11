@@ -2051,7 +2051,7 @@ WebglNodeExe.prototype.removeChild = function WremoveChild (obj) {
 	queueInstance.vDomChanged(this.vDomIndex);
 };
 
-function WebGLLayer (container, config = {}, eventsFlag = true, autoRefreshFlag = true) {
+function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag = true) {
 	const res = container ? document.querySelector(container) : null;
 	let height = res ? res.clientHeight : 0;
 	let width = res ? res.clientWidth : 0;
@@ -2379,4 +2379,4 @@ function LineGeometry (ctx) {
 LineGeometry.prototype = new WebGLGeometry();
 LineGeometry.constructor = LineGeometry;
 
-export default WebGLLayer;
+export default webglLayer;

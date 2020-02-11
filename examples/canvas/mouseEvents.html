@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+<label style="position: absolute; color: white;z-index: 1;"> Canvas Example </label>
+<div id="myCanvas" style="height: 100%;width:100%">
+</div>
+
+<script type="text/javascript" src="../../dist/i2d.js"></script>
+
+<script type="text/javascript">
+var rend = i2d.CanvasLayer('#myCanvas', {}, true);
+
+var renderer = rend.createEl({
+	el: 'group',
+	attr: {
+		transform: {
+			translate: [200, 200],
+			scale: [1.5, 1.5]
+		}
+	}
+});
+
+
+
+</script>
+
+</body>
+</html>

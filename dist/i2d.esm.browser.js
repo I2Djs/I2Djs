@@ -4389,7 +4389,7 @@ DomExe.prototype.removeChild = function DMremoveChild (obj) {
 	}
 };
 
-function SVGLayer (context, config = {}) {
+function svgLayer (context, config = {}) {
 	const vDomInstance = new VDom();
 	const vDomIndex = queueInstance$2.addVdom(vDomInstance);
 	const res = document.querySelector(context);
@@ -6350,7 +6350,7 @@ CanvasNodeExe.prototype.putPixels = function (imageData) {
 	return this.ctx.putImageData(imageData, this.dom.BBox.x, this.dom.BBox.y);
 };
 
-function CanvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag = true) {
+function canvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag = true) {
 	// let originalRatio;
 	const res = container ? document.querySelector(container) : null;
 	let height = res ? res.clientHeight : 0;
@@ -6519,7 +6519,7 @@ function CanvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag 
 	return root;
 }
 
-function CanvasNodeLayer (config, height = 0, width = 0) {
+function canvasNodeLayer (config, height = 0, width = 0) {
 	if (!Canvas) {
 		console.error('Canvas missing from node');
 		console.error('Install "Canvas" "canvas-5-polyfill" node modules');
@@ -6589,8 +6589,8 @@ function CanvasNodeLayer (config, height = 0, width = 0) {
 }
 
 var canvasAPI = {
-	CanvasLayer,
-	CanvasNodeLayer
+	canvasLayer,
+	canvasNodeLayer
 };
 
 /* eslint-disable no-undef */
@@ -9485,7 +9485,7 @@ WebglNodeExe.prototype.removeChild = function WremoveChild (obj) {
 	queueInstance$4.vDomChanged(this.vDomIndex);
 };
 
-function WebGLLayer (container, config = {}, eventsFlag = true, autoRefreshFlag = true) {
+function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag = true) {
 	const res = container ? document.querySelector(container) : null;
 	let height = res ? res.clientHeight : 0;
 	let width = res ? res.clientWidth : 0;
@@ -9862,7 +9862,7 @@ var behaviour = {
 };
 
 let pathIns = path.instance;
-let CanvasLayer$1 = canvasAPI.CanvasLayer;
-let CanvasNodeLayer$1 = canvasAPI.CanvasNodeLayer;
+let canvasLayer$1 = canvasAPI.canvasLayer;
+let canvasNodeLayer$1 = canvasAPI.canvasNodeLayer;
 
-export { CanvasLayer$1 as CanvasLayer, CanvasNodeLayer$1 as CanvasNodeLayer, pathIns as Path, SVGLayer, WebGLLayer as WebglLayer, behaviour, chain, colorMap$1 as color, fetchTransitionType as ease, geometry, queue };
+export { pathIns as Path, behaviour, canvasLayer$1 as canvasLayer, canvasNodeLayer$1 as canvasNodeLayer, chain, colorMap$1 as color, fetchTransitionType as ease, geometry, queue, svgLayer, webglLayer };

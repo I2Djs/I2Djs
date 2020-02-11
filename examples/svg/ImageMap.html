@@ -30,7 +30,7 @@ function onFileSelected (event) {
 	reader.readAsDataURL(selectedFile);
 }
 
-var renderer_ = i2d.SVGLayer('#myCanvas', {
+var renderer_ = i2d.svgLayer('#myCanvas', {
 	events: true,
 	selectiveClear: false
 });

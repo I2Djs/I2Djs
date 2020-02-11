@@ -582,7 +582,7 @@ DomExe.prototype.removeChild = function DMremoveChild (obj) {
 	}
 };
 
-function SVGLayer (context, config = {}) {
+function svgLayer (context, config = {}) {
 	const vDomInstance = new VDom();
 	const vDomIndex = queueInstance.addVdom(vDomInstance);
 	const res = document.querySelector(context);
@@ -677,4 +677,4 @@ function SVGLayer (context, config = {}) {
 	return root;
 }
 
-export default SVGLayer;
+export default svgLayer;
