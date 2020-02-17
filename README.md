@@ -45,7 +45,7 @@ import {CanvasLayer} from 'i2djs'
 
 Examples (SVG + Canvas + WebGL)
 ---
-[Codepen Examples](https://codepen.io/tag/i2djs/2/)
+[Codepen Examples](https://codepen.io/nswamy14/pens/public)
 
 ### Basic Shapes
 <table>
