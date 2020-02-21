@@ -2056,9 +2056,9 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 	let height = res ? res.clientHeight : 0;
 	let width = res ? res.clientWidth : 0;
 	let clearColor = colorMap.rgba(0, 0, 0, 0);
-	let { eventsFlag: true, autoUpdateFlag: true } = layerSettings;
-	
-	config = config || {
+	let { autoUpdate = true } = layerSettings;
+
+	contextConfig = contextConfig || {
 		premultipliedAlpha: false,
 		depth: false,
 		antialias: false,
@@ -2086,7 +2086,7 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 	if (res) {
 		res.appendChild(layer);
 		vDomInstance = new VDom();
-		if (autoUpdateFlag) {
+		if (autoUpdate) {
 			vDomIndex = queueInstance.addVdom(vDomInstance);
 		}
 	}
@@ -2119,9 +2119,13 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 		ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT);
 	};
 
-	root.update = function executeExe () {
+	root.execute = function () {
 		onClear(this.ctx);
 		execute();
+	};
+
+	root.update = function () {
+		this.execute();
 	};
 
 	root.destroy = function () {
@@ -2169,7 +2173,7 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 			resizeCall();
 		}
 
-		root.update();
+		root.execute();
 	};
 
 	root.onResize = function (exec) {
@@ -2185,7 +2189,7 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 		this.height = height_;
 		height = height_;
 		width = width_;
-		this.update();
+		this.execute();
 	};
 
 	root.setViewBox = function (x, y, height, width) {

@@ -582,11 +582,11 @@ DomExe.prototype.removeChild = function DMremoveChild (obj) {
 	}
 };
 
-function svgLayer (container, layerSettings = {} ) {
+function svgLayer (container, layerSettings = {}) {
 	const res = document.querySelector(container);
 	let height = res.clientHeight;
 	let width = res.clientWidth;
-	let { eventsFlag: true, autoUpdateFlag: true } = layerSettings;
+	let { autoUpdate = true } = layerSettings;
 	const layer = document.createElementNS(nameSpace.svg, 'svg');
 	layer.setAttribute('height', height);
 	layer.setAttribute('width', width);
@@ -601,7 +601,7 @@ function svgLayer (container, layerSettings = {} ) {
 	if (res) {
 		res.appendChild(layer);
 		vDomInstance = new VDom();
-		if (autoUpdateFlag) {
+		if (autoUpdate) {
 			vDomIndex = queueInstance.addVdom(vDomInstance);
 		}
 	}
@@ -615,8 +615,6 @@ function svgLayer (container, layerSettings = {} ) {
 	if (vDomInstance) {
 		vDomInstance.rootNode(root);
 	}
-
-	const execute = root.execute.bind(root);
 
 	root.setLayerId = function (id) {
 		layer.setAttribute('id', id);

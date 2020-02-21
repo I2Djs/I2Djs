@@ -1638,13 +1638,13 @@ CanvasNodeExe.prototype.putPixels = function (imageData) {
 	return this.ctx.putImageData(imageData, this.dom.BBox.x, this.dom.BBox.y);
 };
 
-function canvasLayer (container, contextConfig = {}, layerSettings = {} ) {
+function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 	const res = container ? document.querySelector(container) : null;
 	let height = res ? res.clientHeight : 0;
 	let width = res ? res.clientWidth : 0;
 	const layer = document.createElement('canvas');
 	const ctx = layer.getContext('2d', contextConfig);
-	let { eventsFlag: true, autoUpdateFlag: true } = layerSettings;
+	let { enableEvents = true, autoUpdate = true } = layerSettings;
 	ratio = getPixlRatio(ctx);
 	let onClear = function (ctx) {
 		ctx.clearRect(0, 0, width * ratio, height * ratio);
@@ -1664,7 +1664,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {} ) {
 	if (res) {
 		res.appendChild(layer);
 		vDomInstance = new VDom();
-		if (autoUpdateFlag) {
+		if (autoUpdate) {
 			vDomIndex = queueInstance.addVdom(vDomInstance);
 		}
 	}
@@ -1699,7 +1699,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {} ) {
 	};
 
 	root.enableEvents = function (flag) {
-		eventsFlag = flag;
+		enableEvents = flag;
 	};
 
 	root.setStyle = function (prop, value) {
@@ -1728,8 +1728,8 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {} ) {
 		if (resizeCall) {
 			resizeCall();
 		}
-
-		root.update();
+		console.log('resize');
+		root.execute();
 	};
 
 	root.onResize = function (exec) {
@@ -1747,7 +1747,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {} ) {
 		this.domEl.style.width = `${cWidth}px`;
 		this.width = width;
 		this.height = height;
-		this.update();
+		this.execute();
 	};
 
 	root.setViewBox = function (x, y, height, width) {
@@ -1775,11 +1775,15 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {} ) {
 		}
 	};
 
-	root.update = function executeExe () {
+	root.execute = function executeExe () {
 		onClear(ctx);
 		ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 		this.updateBBox();
 		execute();
+	};
+
+	root.update = function executeUpdate () {
+		this.execute();
 	};
 
 	root.destroy = function () {
@@ -1787,7 +1791,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {} ) {
 		queueInstance.removeVdom(vDomIndex);
 	};
 
-	if (eventsFlag) {
+	if (enableEvents) {
 		let eventsInstance = new Events(root);
 		layer.addEventListener('mousemove', e => {
 			e.preventDefault();
