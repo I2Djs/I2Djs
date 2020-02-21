@@ -2051,17 +2051,13 @@ WebglNodeExe.prototype.removeChild = function WremoveChild (obj) {
 	queueInstance.vDomChanged(this.vDomIndex);
 };
 
-function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag = true) {
+function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 	const res = container ? document.querySelector(container) : null;
 	let height = res ? res.clientHeight : 0;
 	let width = res ? res.clientWidth : 0;
 	let clearColor = colorMap.rgba(0, 0, 0, 0);
-	// {
-	// 	r: 0,
-	// 	g: 0,
-	// 	b: 0,
-	// 	a: 0
-	// };
+	let { eventsFlag: true, autoUpdateFlag: true } = layerSettings;
+	
 	config = config || {
 		premultipliedAlpha: false,
 		depth: false,
@@ -2069,7 +2065,7 @@ function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag 
 		alpha: true
 	};
 	const layer = document.createElement('canvas');
-	const ctx = layer.getContext('webgl', config);
+	const ctx = layer.getContext('webgl', contextConfig);
 
 	ratio = getPixlRatio(ctx);
 	// ctx.enable(ctx.BLEND);
@@ -2083,11 +2079,14 @@ function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag 
 
 	let vDomInstance;
 	let vDomIndex = 999999;
+	let cHeight;
+	let cWidth;
+	let resizeCall;
 
 	if (res) {
 		res.appendChild(layer);
 		vDomInstance = new VDom();
-		if (autoRefreshFlag) {
+		if (autoUpdateFlag) {
 			vDomIndex = queueInstance.addVdom(vDomInstance);
 		}
 	}
@@ -2120,7 +2119,7 @@ function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag 
 		ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT);
 	};
 
-	root.execute = function executeExe () {
+	root.update = function executeExe () {
 		onClear(this.ctx);
 		execute();
 	};
@@ -2152,6 +2151,31 @@ function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag 
 		 onClear = exe;
 	};
 
+	let resize = function () {
+		if (!document.querySelector(container)) {
+			window.removeEventListener('resize', resize);
+			return;
+		}
+		height = cHeight || res.clientHeight;
+		width = cWidth || res.clientWidth;
+		layer.setAttribute('height', height * ratio);
+		layer.setAttribute('width', width * ratio);
+		layer.style.height = `${height}px`;
+		layer.style.width = `${width}px`;
+		root.width = width;
+		root.height = height;
+
+		if (resizeCall) {
+			resizeCall();
+		}
+
+		root.update();
+	};
+
+	root.onResize = function (exec) {
+		resizeCall = exec;
+	};
+
 	root.setSize = function (width_, height_) {
 		this.domEl.setAttribute('height', height_ * ratio);
 		this.domEl.setAttribute('width', width_ * ratio);
@@ -2161,7 +2185,7 @@ function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag 
 		this.height = height_;
 		height = height_;
 		width = width_;
-		this.execute();
+		this.update();
 	};
 
 	root.setViewBox = function (x, y, height, width) {
@@ -2208,6 +2232,9 @@ function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag 
 	};
 
 	queueInstance.execute();
+
+	window.addEventListener('resize', resize);
+
 	return root;
 }
 

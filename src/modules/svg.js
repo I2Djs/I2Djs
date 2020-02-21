@@ -582,26 +582,67 @@ DomExe.prototype.removeChild = function DMremoveChild (obj) {
 	}
 };
 
-function svgLayer (context, config = {}) {
-	const vDomInstance = new VDom();
-	const vDomIndex = queueInstance.addVdom(vDomInstance);
-	const res = document.querySelector(context);
+function svgLayer (container, layerSettings = {} ) {
+	const res = document.querySelector(container);
 	let height = res.clientHeight;
 	let width = res.clientWidth;
+	let { eventsFlag: true, autoUpdateFlag: true } = layerSettings;
 	const layer = document.createElementNS(nameSpace.svg, 'svg');
 	layer.setAttribute('height', height);
 	layer.setAttribute('width', width);
 	layer.style.position = 'absolute';
-	res.appendChild(layer);
+
+	let vDomInstance;
+	let vDomIndex = 999999;
+	let cHeight;
+	let cWidth;
+	let resizeCall;
+
+	if (res) {
+		res.appendChild(layer);
+		vDomInstance = new VDom();
+		if (autoUpdateFlag) {
+			vDomIndex = queueInstance.addVdom(vDomInstance);
+		}
+	}
+
 	const root = new DomExe(layer, {}, domId(), vDomIndex);
 	root.container = res;
 	root.type = 'SVG';
 	root.width = width;
 	root.height = height;
-	vDomInstance.rootNode(root);
+
+	if (vDomInstance) {
+		vDomInstance.rootNode(root);
+	}
+
+	const execute = root.execute.bind(root);
 
 	root.setLayerId = function (id) {
 		layer.setAttribute('id', id);
+	};
+
+	let resize = function () {
+		if (!document.querySelector(container)) {
+			window.removeEventListener('resize', resize);
+			return;
+		}
+		height = cHeight || res.clientHeight;
+		width = cWidth || res.clientWidth;
+		layer.setAttribute('height', height);
+		layer.setAttribute('width', width);
+		root.width = width;
+		root.height = height;
+
+		if (resizeCall) {
+			resizeCall();
+		}
+
+		root.update();
+	};
+
+	root.onResize = function (exec) {
+		resizeCall = exec;
 	};
 
 	root.setSize = function (width, height) {
@@ -609,6 +650,12 @@ function svgLayer (context, config = {}) {
 		this.dom.setAttribute('width', width);
 		this.width = width;
 		this.height = height;
+		cHeight = height;
+		cWidth = width;
+	};
+
+	root.update = function () {
+		this.execute();
 	};
 
 	root.setViewBox = function (x, y, height, width) {
@@ -673,7 +720,11 @@ function svgLayer (context, config = {}) {
 			dragTargetEl = null;
 		}
 	});
+
 	queueInstance.execute();
+
+	window.addEventListener('resize', resize);
+
 	return root;
 }
 

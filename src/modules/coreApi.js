@@ -288,6 +288,7 @@ CompositeArray.update = {
 };
 CompositeArray.join = {
 	value: function (data) {
+		this.data = data;
 		dataJoin.call(this, data, this.selector, this.config);
 	},
 	enumerable: false,

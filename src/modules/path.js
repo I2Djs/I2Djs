@@ -388,8 +388,7 @@ function Path (path) {
 	this.stackGroup = [];
 
 	if (path) {
-		this.path = path;
-		this.parse();
+		this.parse(path);
 	}
 }
 
@@ -406,7 +405,8 @@ Path.prototype = {
 	fetchXY
 };
 
-Path.prototype.parse = function parse () {
+Path.prototype.parse = function parse (path) {
+	this.path = path;
 	this.currPathArr = -1;
 	this.stack = [];
 	this.length = 0;
