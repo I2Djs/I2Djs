@@ -4395,7 +4395,7 @@
 			if (!this.dom.contains(dom)) {
 				return;
 			}
-			this.dom.removeChild(children.splice(index, 1)[0].dom);
+			this.dom.removeChild(dom);
 		}
 	};
 
