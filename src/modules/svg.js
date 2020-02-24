@@ -578,6 +578,10 @@ DomExe.prototype.removeChild = function DMremoveChild (obj) {
 	const index = children.indexOf(obj);
 
 	if (index !== -1) {
+		let dom = children.splice(index, 1)[0].dom;
+		if (!this.dom.contains(dom)) {
+			return;
+		}
 		this.dom.removeChild(children.splice(index, 1)[0].dom);
 	}
 };
@@ -662,7 +666,7 @@ function svgLayer (container, layerSettings = {}) {
 
 	root.destroy = function () {
 		let res = document.querySelector(container);
-		if (res) {
+		if (res && res.contains(layer)) {
 			res.removeChild(layer);
 		}
 		queueInstance.removeVdom(vDomIndex);

@@ -1788,7 +1788,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 
 	root.destroy = function () {
 		let res = document.querySelector(container);
-		if (res) {
+		if (res && res.contains(layer)) {
 			res.removeChild(layer);
 		}
 		queueInstance.removeVdom(vDomIndex);

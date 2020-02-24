@@ -4392,6 +4392,10 @@
 		const index = children.indexOf(obj);
 
 		if (index !== -1) {
+			let dom = children.splice(index, 1)[0].dom;
+			if (!this.dom.contains(dom)) {
+				return;
+			}
 			this.dom.removeChild(children.splice(index, 1)[0].dom);
 		}
 	};
@@ -4476,7 +4480,7 @@
 
 		root.destroy = function () {
 			let res = document.querySelector(container);
-			if (res) {
+			if (res && res.contains(layer)) {
 				res.removeChild(layer);
 			}
 			queueInstance$2.removeVdom(vDomIndex);
@@ -6559,7 +6563,7 @@
 
 		root.destroy = function () {
 			let res = document.querySelector(container);
-			if (res) {
+			if (res && res.contains(layer)) {
 				res.removeChild(layer);
 			}
 			queueInstance$3.removeVdom(vDomIndex);
@@ -9663,7 +9667,7 @@
 
 		root.destroy = function () {
 			let res = document.querySelector(container);
-			if (res) {
+			if (res && res.contains(layer)) {
 				res.removeChild(layer);
 			}
 			queueInstance$4.removeVdom(vDomIndex);
