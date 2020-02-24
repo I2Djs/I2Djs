@@ -1787,7 +1787,10 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 	};
 
 	root.destroy = function () {
-		res.removeChild(layer);
+		let res = document.querySelector(container);
+		if (res) {
+			res.removeChild(layer);
+		}
 		queueInstance.removeVdom(vDomIndex);
 	};
 

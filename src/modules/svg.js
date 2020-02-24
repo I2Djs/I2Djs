@@ -661,7 +661,10 @@ function svgLayer (container, layerSettings = {}) {
 	};
 
 	root.destroy = function () {
-		layer.remove();
+		let res = document.querySelector(container);
+		if (res) {
+			res.removeChild(layer);
+		}
 		queueInstance.removeVdom(vDomIndex);
 	};
 
