@@ -4475,7 +4475,10 @@
 		};
 
 		root.destroy = function () {
-			layer.remove();
+			let res = document.querySelector(container);
+			if (res) {
+				res.removeChild(layer);
+			}
 			queueInstance$2.removeVdom(vDomIndex);
 		};
 
@@ -6555,7 +6558,10 @@
 		};
 
 		root.destroy = function () {
-			res.removeChild(layer);
+			let res = document.querySelector(container);
+			if (res) {
+				res.removeChild(layer);
+			}
 			queueInstance$3.removeVdom(vDomIndex);
 		};
 
@@ -9656,7 +9662,10 @@
 		};
 
 		root.destroy = function () {
-			res.removeChild(layer);
+			let res = document.querySelector(container);
+			if (res) {
+				res.removeChild(layer);
+			}
 			queueInstance$4.removeVdom(vDomIndex);
 		};
 

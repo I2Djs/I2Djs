@@ -4469,7 +4469,10 @@ function svgLayer (container, layerSettings = {}) {
 	};
 
 	root.destroy = function () {
-		layer.remove();
+		let res = document.querySelector(container);
+		if (res) {
+			res.removeChild(layer);
+		}
 		queueInstance$2.removeVdom(vDomIndex);
 	};
 
@@ -6549,7 +6552,10 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 	};
 
 	root.destroy = function () {
-		res.removeChild(layer);
+		let res = document.querySelector(container);
+		if (res) {
+			res.removeChild(layer);
+		}
 		queueInstance$3.removeVdom(vDomIndex);
 	};
 
@@ -9650,7 +9656,10 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 	};
 
 	root.destroy = function () {
-		res.removeChild(layer);
+		let res = document.querySelector(container);
+		if (res) {
+			res.removeChild(layer);
+		}
 		queueInstance$4.removeVdom(vDomIndex);
 	};
 
