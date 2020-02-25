@@ -15,7 +15,7 @@
  I2Djs - https://github.com/I2Djs/I2Djs
  *****************/
 
-var renderer_ = i2d.SVGLayer('#myCanvas', {}, false);
+var renderer_ = i2d.canvasLayer('#myCanvas', {}, {});
 var height = renderer_.height;
 var width = renderer_.width;
 var parallelChain = i2d.chain.parallelChain().loop(10);
@@ -37,7 +37,7 @@ var circlesElel = g.createEls((new Array(100)).fill().map(function (d, i) {
 		r: 5, cx: 0, cy: 0
 	},
 	style: {
-		fill: function (d) {
+		fillStyle: function (d) {
 			return 'hsl(' + ((d % 50) / 50) * 360 + ',70%, 50%)';
 		}
 	}

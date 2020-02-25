@@ -578,30 +578,73 @@ DomExe.prototype.removeChild = function DMremoveChild (obj) {
 	const index = children.indexOf(obj);
 
 	if (index !== -1) {
-		this.dom.removeChild(children.splice(index, 1)[0].dom);
+		let dom = children.splice(index, 1)[0].dom;
+		if (!this.dom.contains(dom)) {
+			return;
+		}
+		this.dom.removeChild(dom);
 	}
 };
 
-function svgLayer (context, config = {}) {
-	const vDomInstance = new VDom();
-	const vDomIndex = queueInstance.addVdom(vDomInstance);
-	const res = document.querySelector(context);
+function svgLayer (container, layerSettings = {}) {
+	const res = document.querySelector(container);
 	let height = res.clientHeight;
 	let width = res.clientWidth;
+	let { autoUpdate = true } = layerSettings;
 	const layer = document.createElementNS(nameSpace.svg, 'svg');
 	layer.setAttribute('height', height);
 	layer.setAttribute('width', width);
 	layer.style.position = 'absolute';
-	res.appendChild(layer);
+
+	let vDomInstance;
+	let vDomIndex = 999999;
+	let cHeight;
+	let cWidth;
+	let resizeCall;
+
+	if (res) {
+		res.appendChild(layer);
+		vDomInstance = new VDom();
+		if (autoUpdate) {
+			vDomIndex = queueInstance.addVdom(vDomInstance);
+		}
+	}
+
 	const root = new DomExe(layer, {}, domId(), vDomIndex);
 	root.container = res;
 	root.type = 'SVG';
 	root.width = width;
 	root.height = height;
-	vDomInstance.rootNode(root);
+
+	if (vDomInstance) {
+		vDomInstance.rootNode(root);
+	}
 
 	root.setLayerId = function (id) {
 		layer.setAttribute('id', id);
+	};
+
+	let resize = function () {
+		if (!document.querySelector(container)) {
+			window.removeEventListener('resize', resize);
+			return;
+		}
+		height = cHeight || res.clientHeight;
+		width = cWidth || res.clientWidth;
+		layer.setAttribute('height', height);
+		layer.setAttribute('width', width);
+		root.width = width;
+		root.height = height;
+
+		if (resizeCall) {
+			resizeCall();
+		}
+
+		root.update();
+	};
+
+	root.onResize = function (exec) {
+		resizeCall = exec;
 	};
 
 	root.setSize = function (width, height) {
@@ -609,6 +652,12 @@ function svgLayer (context, config = {}) {
 		this.dom.setAttribute('width', width);
 		this.width = width;
 		this.height = height;
+		cHeight = height;
+		cWidth = width;
+	};
+
+	root.update = function () {
+		this.execute();
 	};
 
 	root.setViewBox = function (x, y, height, width) {
@@ -616,7 +665,10 @@ function svgLayer (context, config = {}) {
 	};
 
 	root.destroy = function () {
-		layer.remove();
+		let res = document.querySelector(container);
+		if (res && res.contains(layer)) {
+			res.removeChild(layer);
+		}
 		queueInstance.removeVdom(vDomIndex);
 	};
 
@@ -673,7 +725,11 @@ function svgLayer (context, config = {}) {
 			dragTargetEl = null;
 		}
 	});
+
 	queueInstance.execute();
+
+	window.addEventListener('resize', resize);
+
 	return root;
 }
 

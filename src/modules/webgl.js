@@ -2051,25 +2051,21 @@ WebglNodeExe.prototype.removeChild = function WremoveChild (obj) {
 	queueInstance.vDomChanged(this.vDomIndex);
 };
 
-function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag = true) {
+function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 	const res = container ? document.querySelector(container) : null;
 	let height = res ? res.clientHeight : 0;
 	let width = res ? res.clientWidth : 0;
 	let clearColor = colorMap.rgba(0, 0, 0, 0);
-	// {
-	// 	r: 0,
-	// 	g: 0,
-	// 	b: 0,
-	// 	a: 0
-	// };
-	config = config || {
+	let { autoUpdate = true } = layerSettings;
+
+	contextConfig = contextConfig || {
 		premultipliedAlpha: false,
 		depth: false,
 		antialias: false,
 		alpha: true
 	};
 	const layer = document.createElement('canvas');
-	const ctx = layer.getContext('webgl', config);
+	const ctx = layer.getContext('webgl', contextConfig);
 
 	ratio = getPixlRatio(ctx);
 	// ctx.enable(ctx.BLEND);
@@ -2083,11 +2079,14 @@ function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag 
 
 	let vDomInstance;
 	let vDomIndex = 999999;
+	let cHeight;
+	let cWidth;
+	let resizeCall;
 
 	if (res) {
 		res.appendChild(layer);
 		vDomInstance = new VDom();
-		if (autoRefreshFlag) {
+		if (autoUpdate) {
 			vDomIndex = queueInstance.addVdom(vDomInstance);
 		}
 	}
@@ -2120,13 +2119,20 @@ function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag 
 		ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT);
 	};
 
-	root.execute = function executeExe () {
+	root.execute = function () {
 		onClear(this.ctx);
 		execute();
 	};
 
+	root.update = function () {
+		this.execute();
+	};
+
 	root.destroy = function () {
-		res.removeChild(layer);
+		let res = document.querySelector(container);
+		if (res && res.contains(layer)) {
+			res.removeChild(layer);
+		}
 		queueInstance.removeVdom(vDomIndex);
 	};
 
@@ -2150,6 +2156,31 @@ function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag 
 
 	root.setClear = function (exe) {
 		 onClear = exe;
+	};
+
+	let resize = function () {
+		if (!document.querySelector(container)) {
+			window.removeEventListener('resize', resize);
+			return;
+		}
+		height = cHeight || res.clientHeight;
+		width = cWidth || res.clientWidth;
+		layer.setAttribute('height', height * ratio);
+		layer.setAttribute('width', width * ratio);
+		layer.style.height = `${height}px`;
+		layer.style.width = `${width}px`;
+		root.width = width;
+		root.height = height;
+
+		if (resizeCall) {
+			resizeCall();
+		}
+
+		root.execute();
+	};
+
+	root.onResize = function (exec) {
+		resizeCall = exec;
 	};
 
 	root.setSize = function (width_, height_) {
@@ -2208,6 +2239,9 @@ function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag 
 	};
 
 	queueInstance.execute();
+
+	window.addEventListener('resize', resize);
+
 	return root;
 }
 

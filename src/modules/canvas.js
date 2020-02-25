@@ -1638,13 +1638,13 @@ CanvasNodeExe.prototype.putPixels = function (imageData) {
 	return this.ctx.putImageData(imageData, this.dom.BBox.x, this.dom.BBox.y);
 };
 
-function canvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag = true) {
-	// let originalRatio;
+function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 	const res = container ? document.querySelector(container) : null;
 	let height = res ? res.clientHeight : 0;
 	let width = res ? res.clientWidth : 0;
 	const layer = document.createElement('canvas');
-	const ctx = layer.getContext('2d', config);
+	const ctx = layer.getContext('2d', contextConfig);
+	let { enableEvents = true, autoUpdate = true } = layerSettings;
 	ratio = getPixlRatio(ctx);
 	let onClear = function (ctx) {
 		ctx.clearRect(0, 0, width * ratio, height * ratio);
@@ -1657,11 +1657,14 @@ function canvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag 
 
 	let vDomInstance;
 	let vDomIndex = 999999;
+	let cHeight;
+	let cWidth;
+	let resizeCall;
 
 	if (res) {
 		res.appendChild(layer);
 		vDomInstance = new VDom();
-		if (autoUpdateFlag) {
+		if (autoUpdate) {
 			vDomIndex = queueInstance.addVdom(vDomInstance);
 		}
 	}
@@ -1672,9 +1675,11 @@ function canvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag 
 			id: 'rootNode'
 		}
 	}, domId(), vDomIndex);
+
 	if (vDomInstance) {
 		vDomInstance.rootNode(root);
 	}
+
 	const execute = root.execute.bind(root);
 	root.container = res;
 	root.domEl = layer;
@@ -1694,7 +1699,7 @@ function canvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag 
 	};
 
 	root.enableEvents = function (flag) {
-		eventsFlag = flag;
+		enableEvents = flag;
 	};
 
 	root.setStyle = function (prop, value) {
@@ -1706,15 +1711,42 @@ function canvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag 
 		this.setSize(this.width, this.height);
 	};
 
+	let resize = function () {
+		if (!document.querySelector(container)) {
+			window.removeEventListener('resize', resize);
+			return;
+		}
+		height = cHeight || res.clientHeight;
+		width = cWidth || res.clientWidth;
+		layer.setAttribute('height', height * ratio);
+		layer.setAttribute('width', width * ratio);
+		layer.style.height = `${height}px`;
+		layer.style.width = `${width}px`;
+		root.width = width;
+		root.height = height;
+
+		if (resizeCall) {
+			resizeCall();
+		}
+		console.log('resize');
+		root.execute();
+	};
+
+	root.onResize = function (exec) {
+		resizeCall = exec;
+	};
+
 	root.setSize = function (width_, height_) {
-		this.domEl.setAttribute('height', height_ * ratio);
-		this.domEl.setAttribute('width', width_ * ratio);
-		this.domEl.style.height = `${height_}px`;
-		this.domEl.style.width = `${width_}px`;
-		this.width = width_;
-		this.height = height_;
+		cHeight = height_;
+		cWidth = width_;
 		width = width_;
 		height = height_;
+		this.domEl.setAttribute('height', cHeight * ratio);
+		this.domEl.setAttribute('width', cWidth * ratio);
+		this.domEl.style.height = `${cHeight}px`;
+		this.domEl.style.width = `${cWidth}px`;
+		this.width = width;
+		this.height = height;
 		this.execute();
 	};
 
@@ -1750,12 +1782,19 @@ function canvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag 
 		execute();
 	};
 
+	root.update = function executeUpdate () {
+		this.execute();
+	};
+
 	root.destroy = function () {
-		res.removeChild(layer);
+		let res = document.querySelector(container);
+		if (res && res.contains(layer)) {
+			res.removeChild(layer);
+		}
 		queueInstance.removeVdom(vDomIndex);
 	};
 
-	if (eventsFlag) {
+	if (enableEvents) {
 		let eventsInstance = new Events(root);
 		layer.addEventListener('mousemove', e => {
 			e.preventDefault();
@@ -1804,6 +1843,9 @@ function canvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag 
 	}
 
 	queueInstance.execute();
+
+	window.addEventListener('resize', resize);
+
 	return root;
 }
 

@@ -1801,8 +1801,7 @@ function Path (path) {
 	this.stackGroup = [];
 
 	if (path) {
-		this.path = path;
-		this.parse();
+		this.parse(path);
 	}
 }
 
@@ -1819,7 +1818,8 @@ Path.prototype = {
 	fetchXY
 };
 
-Path.prototype.parse = function parse () {
+Path.prototype.parse = function parse (path) {
+	this.path = path;
 	this.currPathArr = -1;
 	this.stack = [];
 	this.length = 0;
@@ -3135,6 +3135,7 @@ CompositeArray.update = {
 };
 CompositeArray.join = {
 	value: function (data) {
+		this.data = data;
 		dataJoin.call(this, data, this.selector, this.config);
 	},
 	enumerable: false,
@@ -4385,30 +4386,73 @@ DomExe.prototype.removeChild = function DMremoveChild (obj) {
 	const index = children.indexOf(obj);
 
 	if (index !== -1) {
-		this.dom.removeChild(children.splice(index, 1)[0].dom);
+		let dom = children.splice(index, 1)[0].dom;
+		if (!this.dom.contains(dom)) {
+			return;
+		}
+		this.dom.removeChild(dom);
 	}
 };
 
-function svgLayer (context, config = {}) {
-	const vDomInstance = new VDom();
-	const vDomIndex = queueInstance$2.addVdom(vDomInstance);
-	const res = document.querySelector(context);
+function svgLayer (container, layerSettings = {}) {
+	const res = document.querySelector(container);
 	let height = res.clientHeight;
 	let width = res.clientWidth;
+	let { autoUpdate = true } = layerSettings;
 	const layer = document.createElementNS(nameSpace.svg, 'svg');
 	layer.setAttribute('height', height);
 	layer.setAttribute('width', width);
 	layer.style.position = 'absolute';
-	res.appendChild(layer);
+
+	let vDomInstance;
+	let vDomIndex = 999999;
+	let cHeight;
+	let cWidth;
+	let resizeCall;
+
+	if (res) {
+		res.appendChild(layer);
+		vDomInstance = new VDom();
+		if (autoUpdate) {
+			vDomIndex = queueInstance$2.addVdom(vDomInstance);
+		}
+	}
+
 	const root = new DomExe(layer, {}, domId(), vDomIndex);
 	root.container = res;
 	root.type = 'SVG';
 	root.width = width;
 	root.height = height;
-	vDomInstance.rootNode(root);
+
+	if (vDomInstance) {
+		vDomInstance.rootNode(root);
+	}
 
 	root.setLayerId = function (id) {
 		layer.setAttribute('id', id);
+	};
+
+	let resize = function () {
+		if (!document.querySelector(container)) {
+			window.removeEventListener('resize', resize);
+			return;
+		}
+		height = cHeight || res.clientHeight;
+		width = cWidth || res.clientWidth;
+		layer.setAttribute('height', height);
+		layer.setAttribute('width', width);
+		root.width = width;
+		root.height = height;
+
+		if (resizeCall) {
+			resizeCall();
+		}
+
+		root.update();
+	};
+
+	root.onResize = function (exec) {
+		resizeCall = exec;
 	};
 
 	root.setSize = function (width, height) {
@@ -4416,6 +4460,12 @@ function svgLayer (context, config = {}) {
 		this.dom.setAttribute('width', width);
 		this.width = width;
 		this.height = height;
+		cHeight = height;
+		cWidth = width;
+	};
+
+	root.update = function () {
+		this.execute();
 	};
 
 	root.setViewBox = function (x, y, height, width) {
@@ -4423,7 +4473,10 @@ function svgLayer (context, config = {}) {
 	};
 
 	root.destroy = function () {
-		layer.remove();
+		let res = document.querySelector(container);
+		if (res && res.contains(layer)) {
+			res.removeChild(layer);
+		}
 		queueInstance$2.removeVdom(vDomIndex);
 	};
 
@@ -4480,7 +4533,11 @@ function svgLayer (context, config = {}) {
 			dragTargetEl = null;
 		}
 	});
+
 	queueInstance$2.execute();
+
+	window.addEventListener('resize', resize);
+
 	return root;
 }
 
@@ -6350,13 +6407,13 @@ CanvasNodeExe.prototype.putPixels = function (imageData) {
 	return this.ctx.putImageData(imageData, this.dom.BBox.x, this.dom.BBox.y);
 };
 
-function canvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag = true) {
-	// let originalRatio;
+function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 	const res = container ? document.querySelector(container) : null;
 	let height = res ? res.clientHeight : 0;
 	let width = res ? res.clientWidth : 0;
 	const layer = document.createElement('canvas');
-	const ctx = layer.getContext('2d', config);
+	const ctx = layer.getContext('2d', contextConfig);
+	let { enableEvents = true, autoUpdate = true } = layerSettings;
 	ratio = getPixlRatio(ctx);
 	let onClear = function (ctx) {
 		ctx.clearRect(0, 0, width * ratio, height * ratio);
@@ -6369,11 +6426,14 @@ function canvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag 
 
 	let vDomInstance;
 	let vDomIndex = 999999;
+	let cHeight;
+	let cWidth;
+	let resizeCall;
 
 	if (res) {
 		res.appendChild(layer);
 		vDomInstance = new VDom();
-		if (autoUpdateFlag) {
+		if (autoUpdate) {
 			vDomIndex = queueInstance$3.addVdom(vDomInstance);
 		}
 	}
@@ -6384,9 +6444,11 @@ function canvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag 
 			id: 'rootNode'
 		}
 	}, domId$1(), vDomIndex);
+
 	if (vDomInstance) {
 		vDomInstance.rootNode(root);
 	}
+
 	const execute = root.execute.bind(root);
 	root.container = res;
 	root.domEl = layer;
@@ -6406,7 +6468,7 @@ function canvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag 
 	};
 
 	root.enableEvents = function (flag) {
-		eventsFlag = flag;
+		enableEvents = flag;
 	};
 
 	root.setStyle = function (prop, value) {
@@ -6418,15 +6480,42 @@ function canvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag 
 		this.setSize(this.width, this.height);
 	};
 
+	let resize = function () {
+		if (!document.querySelector(container)) {
+			window.removeEventListener('resize', resize);
+			return;
+		}
+		height = cHeight || res.clientHeight;
+		width = cWidth || res.clientWidth;
+		layer.setAttribute('height', height * ratio);
+		layer.setAttribute('width', width * ratio);
+		layer.style.height = `${height}px`;
+		layer.style.width = `${width}px`;
+		root.width = width;
+		root.height = height;
+
+		if (resizeCall) {
+			resizeCall();
+		}
+		console.log('resize');
+		root.execute();
+	};
+
+	root.onResize = function (exec) {
+		resizeCall = exec;
+	};
+
 	root.setSize = function (width_, height_) {
-		this.domEl.setAttribute('height', height_ * ratio);
-		this.domEl.setAttribute('width', width_ * ratio);
-		this.domEl.style.height = `${height_}px`;
-		this.domEl.style.width = `${width_}px`;
-		this.width = width_;
-		this.height = height_;
+		cHeight = height_;
+		cWidth = width_;
 		width = width_;
 		height = height_;
+		this.domEl.setAttribute('height', cHeight * ratio);
+		this.domEl.setAttribute('width', cWidth * ratio);
+		this.domEl.style.height = `${cHeight}px`;
+		this.domEl.style.width = `${cWidth}px`;
+		this.width = width;
+		this.height = height;
 		this.execute();
 	};
 
@@ -6462,12 +6551,19 @@ function canvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag 
 		execute();
 	};
 
+	root.update = function executeUpdate () {
+		this.execute();
+	};
+
 	root.destroy = function () {
-		res.removeChild(layer);
+		let res = document.querySelector(container);
+		if (res && res.contains(layer)) {
+			res.removeChild(layer);
+		}
 		queueInstance$3.removeVdom(vDomIndex);
 	};
 
-	if (eventsFlag) {
+	if (enableEvents) {
 		let eventsInstance = new Events(root);
 		layer.addEventListener('mousemove', e => {
 			e.preventDefault();
@@ -6516,6 +6612,9 @@ function canvasLayer (container, config = {}, eventsFlag = true, autoUpdateFlag 
 	}
 
 	queueInstance$3.execute();
+
+	window.addEventListener('resize', resize);
+
 	return root;
 }
 
@@ -9485,25 +9584,21 @@ WebglNodeExe.prototype.removeChild = function WremoveChild (obj) {
 	queueInstance$4.vDomChanged(this.vDomIndex);
 };
 
-function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag = true) {
+function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 	const res = container ? document.querySelector(container) : null;
 	let height = res ? res.clientHeight : 0;
 	let width = res ? res.clientWidth : 0;
 	let clearColor = colorMap$1.rgba(0, 0, 0, 0);
-	// {
-	// 	r: 0,
-	// 	g: 0,
-	// 	b: 0,
-	// 	a: 0
-	// };
-	config = config || {
+	let { autoUpdate = true } = layerSettings;
+
+	contextConfig = contextConfig || {
 		premultipliedAlpha: false,
 		depth: false,
 		antialias: false,
 		alpha: true
 	};
 	const layer = document.createElement('canvas');
-	const ctx = layer.getContext('webgl', config);
+	const ctx = layer.getContext('webgl', contextConfig);
 
 	ratio$1 = getPixlRatio$1(ctx);
 	// ctx.enable(ctx.BLEND);
@@ -9517,11 +9612,12 @@ function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag 
 
 	let vDomInstance;
 	let vDomIndex = 999999;
+	let resizeCall;
 
 	if (res) {
 		res.appendChild(layer);
 		vDomInstance = new VDom();
-		if (autoRefreshFlag) {
+		if (autoUpdate) {
 			vDomIndex = queueInstance$4.addVdom(vDomInstance);
 		}
 	}
@@ -9554,13 +9650,20 @@ function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag 
 		ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT);
 	};
 
-	root.execute = function executeExe () {
+	root.execute = function () {
 		onClear(this.ctx);
 		execute();
 	};
 
+	root.update = function () {
+		this.execute();
+	};
+
 	root.destroy = function () {
-		res.removeChild(layer);
+		let res = document.querySelector(container);
+		if (res && res.contains(layer)) {
+			res.removeChild(layer);
+		}
 		queueInstance$4.removeVdom(vDomIndex);
 	};
 
@@ -9584,6 +9687,31 @@ function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag 
 
 	root.setClear = function (exe) {
 		 onClear = exe;
+	};
+
+	let resize = function () {
+		if (!document.querySelector(container)) {
+			window.removeEventListener('resize', resize);
+			return;
+		}
+		height =  res.clientHeight;
+		width =  res.clientWidth;
+		layer.setAttribute('height', height * ratio$1);
+		layer.setAttribute('width', width * ratio$1);
+		layer.style.height = `${height}px`;
+		layer.style.width = `${width}px`;
+		root.width = width;
+		root.height = height;
+
+		if (resizeCall) {
+			resizeCall();
+		}
+
+		root.execute();
+	};
+
+	root.onResize = function (exec) {
+		resizeCall = exec;
 	};
 
 	root.setSize = function (width_, height_) {
@@ -9642,6 +9770,9 @@ function webglLayer (container, config = {}, eventsFlag = true, autoRefreshFlag 
 	};
 
 	queueInstance$4.execute();
+
+	window.addEventListener('resize', resize);
+
 	return root;
 }
 
