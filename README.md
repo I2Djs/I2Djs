@@ -56,7 +56,7 @@ Examples (SVG + Canvas + WebGL)
       <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/polygon.png"></a></td>
       <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/ellipse.png"></a></td>
       <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/image.png"></a></td>
-      <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/text.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/text.png"></a></td>
+      <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/text.html"><img width="50" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/text.png"></a></td>
     </tr>
 </table>
 
