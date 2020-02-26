@@ -50,12 +50,12 @@ Examples (SVG + Canvas + WebGL)
 ### Basic Shapes
 <table>
     <tr>
-        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="45" src="https://i2djs.github.io/I2Djs/examples/snaps/square.png"></a></td>
-        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/circle.png"></a></td>
-        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/line.png"></a></td>
-      <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/polygon.png"></a></td>
-      <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/ellipse.png"></a></td>
-      <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/image.png"></a></td>
+        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="45" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/square.png"></a></td>
+        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/circle.png"></a></td>
+        <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/line.png"></a></td>
+      <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/polygon.png"></a></td>
+      <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/ellipse.png"></a></td>
+      <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="50" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/image.png"></a></td>
       <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/text.html"><img width="50" src="https://i2djs.github.io/I2Djs/examples/snaps/text.png"></a></td>
     </tr>
 </table>
