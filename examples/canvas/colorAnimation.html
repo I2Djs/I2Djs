@@ -13,7 +13,7 @@
 <script type="text/javascript">
 var renderer = i2d.canvasLayer('#myCanvas', {}, false);
 
-renderer.createEl({
+let rect = renderer.createEl({
 	el: 'rect',
 	attr: {
 		x: (renderer.width / 2) - 200,
@@ -31,6 +31,7 @@ renderer.createEl({
 			fillStyle: 'hsl(43, 89%, 38%)'
 		}
 	});
+
 </script>
 
 </body>

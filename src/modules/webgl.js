@@ -2056,7 +2056,7 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 	let height = res ? res.clientHeight : 0;
 	let width = res ? res.clientWidth : 0;
 	let clearColor = colorMap.rgba(0, 0, 0, 0);
-	let { autoUpdate = true } = layerSettings;
+	let { autoUpdate = true, enableResize = true } = layerSettings;
 
 	contextConfig = contextConfig || {
 		premultipliedAlpha: false,
@@ -2240,7 +2240,9 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 
 	queueInstance.execute();
 
-	window.addEventListener('resize', resize);
+	if (enableResize) {
+		window.addEventListener('resize', resize);
+	}
 
 	return root;
 }

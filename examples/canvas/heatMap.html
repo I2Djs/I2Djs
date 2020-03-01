@@ -13,16 +13,16 @@
 
         import canvasAPI from "../../src/modules/canvas.js";
 
-        var radialGrad = canvasAPI.canvasLayer(null,{}, false);
+        var radialGrad = canvasAPI.canvasLayer(null,{}, { enableResize: false});
         radialGrad.setPixelRatio(1);
         radialGrad.setSize(100, 100);
-        var LinearGrad = canvasAPI.canvasLayer(null,{}, false);
+        var LinearGrad = canvasAPI.canvasLayer(null,{}, { enableResize: false });
         LinearGrad.setPixelRatio(1);
         LinearGrad.setSize(256, 1);
 
-        var renderer_2 = canvasAPI.canvasLayer('#myCanvas',{}, false, false);
+        var renderer_2 = canvasAPI.canvasLayer('#myCanvas',{}, { enableResize: false });
         renderer_2.setPixelRatio(1);
-        var renderer_ = canvasAPI.canvasLayer(null,{}, false);
+        var renderer_ = canvasAPI.canvasLayer(null,{}, { enableResize: false });
         renderer_.setPixelRatio(1);
         renderer_.setSize(renderer_2.width, renderer_2.height);
 
@@ -80,7 +80,8 @@
                         x: e.x - 50,
                         y: e.y - 50,
                         src: radialGrad
-                    }
+                    },
+                    bbox: false
                 }).execute();
 
                 let rawPixels = renderer_.getPixels(e.x - 50, e.y - 50, radialGrad.width, radialGrad.height);
@@ -91,8 +92,8 @@
                     pixeldata[i - 3] = gradPallet[pixeldata[i] * 4];
                 }
                 renderer_2.putPixels(rawPixels, e.x - 50, e.y - 50);
-                // dataPush = false;
-                // setTimeout(idleFlag, 10);
+                dataPush = false;
+                setTimeout(idleFlag, 10);
             }
 
         });

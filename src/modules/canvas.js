@@ -508,7 +508,7 @@ RenderImage.prototype.execute = function RIexecute () {
 	}
 };
 
-RenderImage.prototype.applyStyles = function RIapplyStyles () {};
+RenderImage.prototype.applyStyles = function RIapplyStyles () { };
 
 RenderImage.prototype.in = function RIinfun (co) {
 	return co.x >= this.attr.x && co.x <= this.attr.x + this.attr.width && co.y >= this.attr.y && co.y <= this.attr.y + this.attr.height;
@@ -521,7 +521,7 @@ function RenderText (ctx, props, stylesProps) {
 	self.style = stylesProps;
 	self.nodeName = 'text';
 	self.stack = [self];
-}
+};
 
 RenderText.prototype = new CanvasDom();
 RenderText.prototype.constructor = RenderText;
@@ -1126,22 +1126,21 @@ RenderRect.prototype.execute = function RRexecute () {
 		attr
 	} = this;
 
-	if (ctx.strokeStyle !== '#000000') {
-		if (!attr['rx'] && !attr['ry']) {
-			ctx.strokeRect(attr.x, attr.y, attr.width, attr.height);
-		} else {
-			renderRoundRect(ctx, attr);
-			ctx.stroke();
-		}
-	}
-	
-
 	if (ctx.fillStyle !== '#000000') {
 		if (!attr['rx'] && !attr['ry']) {
 			ctx.fillRect(attr.x, attr.y, attr.width, attr.height);
 		} else {
 			renderRoundRect(ctx, attr);
 			ctx.fill();
+		}
+	}
+
+	if (ctx.strokeStyle !== '#000000') {
+		if (!attr['rx'] && !attr['ry']) {
+			ctx.strokeRect(attr.x, attr.y, attr.width, attr.height);
+		} else {
+			renderRoundRect(ctx, attr);
+			ctx.stroke();
 		}
 	}
 };
@@ -1644,7 +1643,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 	let width = res ? res.clientWidth : 0;
 	const layer = document.createElement('canvas');
 	const ctx = layer.getContext('2d', contextConfig);
-	let { enableEvents = true, autoUpdate = true } = layerSettings;
+	let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
 	ratio = getPixlRatio(ctx);
 	let onClear = function (ctx) {
 		ctx.clearRect(0, 0, width * ratio, height * ratio);
@@ -1844,7 +1843,9 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 
 	queueInstance.execute();
 
-	window.addEventListener('resize', resize);
+	if (enableResize) {
+		window.addEventListener('resize', resize);
+	}
 
 	return root;
 }
