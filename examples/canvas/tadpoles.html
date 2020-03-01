@@ -12,7 +12,7 @@
 <script type="text/javascript">
 
 
-var renderer_ = i2d.canvasLayer('#myCanvas', {}, {});
+var renderer_ = i2d.canvasLayer('#myCanvas', {}, {enableEvents: false});
 const n = 500;
 const v = 2;
 const m = 12;
@@ -34,7 +34,8 @@ var ellipseGroup = renderer_.createEl({
 	}
 }).createEls(tadpoles, {
 	el: 'ellipse',
-	attr: { cx: 0, cy: 0, rx: 6.5, ry: 4 }
+	attr: { cx: 0, cy: 0, rx: 6.5, ry: 4 },
+	bbox: false
 });
 var tailsGroup = renderer_.createEl({
 	el: 'group',

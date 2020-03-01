@@ -13,11 +13,11 @@
 <script type="text/javascript">
 var renderer = i2d.svgLayer('#mySvg');
 
-renderer.createEl({
+var circle = renderer.createEl({
 	el: 'circle',
 	attr: {
 		r: 50,
-		cx: 500,
+		cx: 300,
 		cy: 300
 	},
 	style: {
@@ -29,12 +29,39 @@ renderer.createEl({
 	ease: 'easeInOutSin',
 	direction: 'alternate',
 	attr: {
-		r: 200
+		r: 100
 	},
 	style: {
 		fill: '#00ff00'
 	}
 });
+
+renderer.createEl({
+	el: 'circle',
+	attr: {
+		r: 50,
+		cx: 600,
+		cy: 300
+	},
+	style: {
+		fill: '#ff0000'
+	}
+}).animateTo({
+	duration: 500,
+	loop: 10,
+	ease: 'easeInOutSin',
+	direction: 'alternate',
+	attr: {
+		r: 100
+	},
+	style: {
+		fill: '#00ff00'
+	}
+});
+
+setTimeout(function (argument) {
+		circle.interrupt();
+	}, 1500);
 
 
 </script>

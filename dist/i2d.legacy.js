@@ -99,8 +99,19 @@
 	function add (uId, executable, easying) {
 		var exeObj = new Tween(uId, executable, easying);
 		exeObj.currTime = performance.now();
+		if (!executable.target.animList) {
+			executable.target.animList = [];
+		}
+		executable.target.animList[executable.target.animList.length] = exeObj;
 		tweens[tweens.length] = exeObj;
 		this.startAnimeFrames();
+	}
+
+	function remove (exeObj) {
+		var index = tweens.indexOf(exeObj);
+		if (index !== -1) {
+			tweens.splice(index, 1);
+		}
 	}
 
 	function startAnimeFrames () {
@@ -123,7 +134,7 @@
 		startAnimeFrames: startAnimeFrames,
 		stopAnimeFrame: stopAnimeFrame,
 		add: add,
-		// remove: remove,
+		remove: remove,
 		// end: endExe,
 		onRequestFrame: onRequestFrame,
 		removeRequestFrameCall: removeRequestFrameCall,
@@ -225,9 +236,19 @@
 	function loopCheck (d) {
 		if (d.loopTracker >= d.loop - 1) {
 			d.execute(1 - d.factor);
-
 			if (d.end) {
 				d.end();
+			}
+			var animList = d.executable.target.animList;
+			if (animList && animList.length > 0) {
+				if (animList.length === 1) {
+					d.executable.target.animList = [];
+				} else if (animList.length > 1) {
+					var index = animList.indexOf(d);
+					if (index !== -1) {
+						animList.splice(index, 1);
+					}
+				}
 			}
 		} else {
 			d.loopTracker += 1;
@@ -1246,6 +1267,7 @@
 				run: function run (f) {
 					currObj.run(f);
 				},
+				target: currObj.target,
 				delay: currObj.delay !== undefined ? currObj.delay : 0,
 				duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
 				loop: currObj.loop ? currObj.loop : 1,
@@ -1344,7 +1366,7 @@
 					run: function run (f) {
 						currObj.run(f);
 					},
-
+					target: currObj.target,
 					delay: currObj.delay !== undefined ? currObj.delay : 0,
 					duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
 					loop: currObj.loop ? currObj.loop : 1,
@@ -2162,7 +2184,7 @@
 						newPathInstance.stack[this.id] = this.render.execute(f);
 						self.setAttr('d', newPathInstance);
 					},
-
+					target: self,
 					id: i,
 					render: new LinearTransitionBetweenPoints(arrExe[i].type, arrExe[i].p0, arrExe[0].p0, arrExe[i].segmentLength),
 					length: arrExe[i].length
@@ -2175,7 +2197,7 @@
 						newPathInstance.stack[this.id] = this.render.execute(f);
 						self.setAttr('d', newPathInstance);
 					},
-
+					target: self,
 					id: i,
 					render: new LinearTransitionBetweenPoints(arrExe[i].type, arrExe[i].p0, arrExe[i].p1, arrExe[i].length),
 					length: arrExe[i].length
@@ -2188,7 +2210,7 @@
 						newPathInstance.stack[this.id] = this.render.execute(f);
 						self.setAttr('d', newPathInstance);
 					},
-
+					target: self,
 					id: i,
 					render: new BezierTransition(arrExe[i].type, arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].p1, arrExe[i].length),
 					length: arrExe[i].length
@@ -2202,7 +2224,7 @@
 						newPathInstance.stack[this.id] = this.render.execute(f);
 						self.setAttr('d', newPathInstance);
 					},
-
+					target: self,
 					id: i,
 					co: co,
 					render: new CubicBezierTransition(arrExe[i].type, arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].cntrl2, co, arrExe[i].length),
@@ -2224,7 +2246,7 @@
 
 						};
 					},
-
+					target: self,
 					id: i,
 					length: 0
 				});
@@ -2691,7 +2713,7 @@
 
 				self.setAttr('d', ppath);
 			},
-
+			target: self,
 			duration: duration,
 			loop: loop,
 			direction: direction
@@ -3010,6 +3032,7 @@
 					runStack[j](f);
 				}
 			},
+			target: self,
 			duration: targetConfig.duration,
 			delay: targetConfig.delay ? targetConfig.delay : 0,
 			end: targetConfig.end ? targetConfig.end.bind(self, self.dataObj) : null,
@@ -3315,6 +3338,15 @@
 
 	NodePrototype.prototype.join = dataJoin;
 
+	NodePrototype.prototype.interrupt = function () {
+		if (this.animList && this.animList.length > 0) {
+			for (var i = this.animList.length - 1; i >= 0; i--) {
+				queueInstance$1.remove(this.animList[i]);
+			}	}
+		this.animList = [];
+		return this;
+	};
+
 	NodePrototype.prototype.animateTo = function (targetConfig) {
 		queueInstance$1.add(animeId$1(), animate(this, targetConfig), easing(targetConfig.ease));
 		return this;
@@ -3574,9 +3606,17 @@
 	//   return this
 	// }
 
-	function remove () {
+	function remove$1 () {
 		for (var i = 0, len = this.stack.length; i < len; i += 1) {
 			this.stack[i].remove();
+		}
+
+		return this;
+	}
+
+	function interrupt () {
+		for (var i = 0, len = this.stack.length; i < len; i += 1) {
+			this.stack[i].interrupt();
 		}
 
 		return this;
@@ -3796,7 +3836,8 @@
 		animateTo: animateArrayTo,
 		animateExe: animateArrayExe,
 		animatePathTo: animatePathArrayTo,
-		remove: remove,
+		remove: remove$1,
+		interrupt: interrupt,
 		text: textArray,
 		join: join,
 		on: on
@@ -4406,6 +4447,7 @@
 		var height = res.clientHeight;
 		var width = res.clientWidth;
 		var autoUpdate = layerSettings.autoUpdate; if ( autoUpdate === void 0 ) autoUpdate = true;
+		var enableResize = layerSettings.enableResize; if ( enableResize === void 0 ) enableResize = true;
 		var layer = document.createElementNS(nameSpace.svg, 'svg');
 		layer.setAttribute('height', height);
 		layer.setAttribute('width', width);
@@ -4543,7 +4585,9 @@
 
 		queueInstance$2.execute();
 
-		window.addEventListener('resize', resize);
+		if (enableResize) {
+			window.addEventListener('resize', resize);
+		}
 
 		return root;
 	}
@@ -5280,7 +5324,7 @@
 		}
 	};
 
-	RenderImage.prototype.applyStyles = function RIapplyStyles () {};
+	RenderImage.prototype.applyStyles = function RIapplyStyles () { };
 
 	RenderImage.prototype.in = function RIinfun (co) {
 		return co.x >= this.attr.x && co.x <= this.attr.x + this.attr.width && co.y >= this.attr.y && co.y <= this.attr.y + this.attr.height;
@@ -5294,7 +5338,6 @@
 		self.nodeName = 'text';
 		self.stack = [self];
 	}
-
 	RenderText.prototype = new CanvasDom();
 	RenderText.prototype.constructor = RenderText;
 
@@ -5898,22 +5941,21 @@
 		var ctx = ref.ctx;
 		var attr = ref.attr;
 
-		if (ctx.strokeStyle !== '#000000') {
-			if (!attr['rx'] && !attr['ry']) {
-				ctx.strokeRect(attr.x, attr.y, attr.width, attr.height);
-			} else {
-				renderRoundRect(ctx, attr);
-				ctx.stroke();
-			}
-		}
-		
-
 		if (ctx.fillStyle !== '#000000') {
 			if (!attr['rx'] && !attr['ry']) {
 				ctx.fillRect(attr.x, attr.y, attr.width, attr.height);
 			} else {
 				renderRoundRect(ctx, attr);
 				ctx.fill();
+			}
+		}
+
+		if (ctx.strokeStyle !== '#000000') {
+			if (!attr['rx'] && !attr['ry']) {
+				ctx.strokeRect(attr.x, attr.y, attr.width, attr.height);
+			} else {
+				renderRoundRect(ctx, attr);
+				ctx.stroke();
 			}
 		}
 	};
@@ -6418,6 +6460,7 @@
 		var ctx = layer.getContext('2d', contextConfig);
 		var enableEvents = layerSettings.enableEvents; if ( enableEvents === void 0 ) enableEvents = true;
 		var autoUpdate = layerSettings.autoUpdate; if ( autoUpdate === void 0 ) autoUpdate = true;
+		var enableResize = layerSettings.enableResize; if ( enableResize === void 0 ) enableResize = true;
 		ratio = getPixlRatio(ctx);
 		var onClear = function (ctx) {
 			ctx.clearRect(0, 0, width * ratio, height * ratio);
@@ -6617,7 +6660,9 @@
 
 		queueInstance$3.execute();
 
-		window.addEventListener('resize', resize);
+		if (enableResize) {
+			window.addEventListener('resize', resize);
+		}
 
 		return root;
 	}
@@ -9448,6 +9493,7 @@
 		var width = res ? res.clientWidth : 0;
 		var clearColor = colorMap$1.rgba(0, 0, 0, 0);
 		var autoUpdate = layerSettings.autoUpdate; if ( autoUpdate === void 0 ) autoUpdate = true;
+		var enableResize = layerSettings.enableResize; if ( enableResize === void 0 ) enableResize = true;
 
 		contextConfig = contextConfig || {
 			premultipliedAlpha: false,
@@ -9629,7 +9675,9 @@
 
 		queueInstance$4.execute();
 
-		window.addEventListener('resize', resize);
+		if (enableResize) {
+			window.addEventListener('resize', resize);
+		}
 
 		return root;
 	}

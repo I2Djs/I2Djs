@@ -590,7 +590,7 @@ function svgLayer (container, layerSettings = {}) {
 	const res = document.querySelector(container);
 	let height = res.clientHeight;
 	let width = res.clientWidth;
-	let { autoUpdate = true } = layerSettings;
+	let { autoUpdate = true, enableResize = true } = layerSettings;
 	const layer = document.createElementNS(nameSpace.svg, 'svg');
 	layer.setAttribute('height', height);
 	layer.setAttribute('width', width);
@@ -728,7 +728,9 @@ function svgLayer (container, layerSettings = {}) {
 
 	queueInstance.execute();
 
-	window.addEventListener('resize', resize);
+	if (enableResize) {
+		window.addEventListener('resize', resize);
+	}
 
 	return root;
 }

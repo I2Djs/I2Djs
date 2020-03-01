@@ -181,6 +181,7 @@ SequenceGroup.prototype.execute = function SGexecute () {
 			run (f) {
 				currObj.run(f);
 			},
+			target: currObj.target,
 			delay: currObj.delay !== undefined ? currObj.delay : 0,
 			duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
 			loop: currObj.loop ? currObj.loop : 1,
@@ -279,7 +280,7 @@ ParallelGroup.prototype.execute = function PGexecute () {
 				run (f) {
 					currObj.run(f);
 				},
-
+				target: currObj.target,
 				delay: currObj.delay !== undefined ? currObj.delay : 0,
 				duration: currObj.duration !== undefined ? currObj.duration : self.durationP,
 				loop: currObj.loop ? currObj.loop : 1,

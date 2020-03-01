@@ -88,8 +88,19 @@ function removeRequestFrameCall (_) {
 function add (uId, executable, easying) {
 	let exeObj = new Tween(uId, executable, easying);
 	exeObj.currTime = performance.now();
+	if (!executable.target.animList) {
+		executable.target.animList = [];
+	}
+	executable.target.animList[executable.target.animList.length] = exeObj;
 	tweens[tweens.length] = exeObj;
 	this.startAnimeFrames();
+}
+
+function remove (exeObj) {
+	let index = tweens.indexOf(exeObj);
+	if (index !== -1) {
+		tweens.splice(index, 1);
+	}
 }
 
 function startAnimeFrames () {
@@ -112,7 +123,7 @@ ExeQueue.prototype = {
 	startAnimeFrames,
 	stopAnimeFrame,
 	add,
-	// remove: remove,
+	remove: remove,
 	// end: endExe,
 	onRequestFrame,
 	removeRequestFrameCall,
@@ -214,9 +225,19 @@ function exeFrameCaller () {
 function loopCheck (d) {
 	if (d.loopTracker >= d.loop - 1) {
 		d.execute(1 - d.factor);
-
 		if (d.end) {
 			d.end();
+		}
+		let animList = d.executable.target.animList;
+		if (animList && animList.length > 0) {
+			if (animList.length === 1) {
+				d.executable.target.animList = [];
+			} else if (animList.length > 1) {
+				let index = animList.indexOf(d);
+				if (index !== -1) {
+					animList.splice(index, 1);
+				}
+			}
 		}
 	} else {
 		d.loopTracker += 1;

@@ -11,34 +11,44 @@
 <script type="text/javascript" src="../../dist/i2d.js"></script>
 
 <script type="text/javascript">
-var renderer_ = i2d.canvasLayer('#myCanvas', {}, false);
+var renderer_ = i2d.canvasLayer('#myCanvas', {}, { enableEvents: false });
 var circlesGrid = [];
-var gridSize = parseInt(Math.sqrt(2000));
+var gridSize = parseInt(Math.sqrt(10000));
 
-for (var i = 0; i < 2000; i++) {
+for (var i = 0; i < 10000; i++) {
 	circlesGrid.push({
 		id: i,
-		x: (i % gridSize) * 20,
-		ox: (i % gridSize) * 20,
-		y: parseInt(i / gridSize) * 20,
-		oy: parseInt(i / gridSize) * 20
+		x: (i % gridSize) * 10,
+		ox: (i % gridSize) * 10,
+		y: parseInt(i / gridSize) * 7,
+		oy: parseInt(i / gridSize) * 7
 	});
 }
 
-var circles = renderer_.createEls(circlesGrid, {
-	el: 'circle',
+var group = renderer_.createEl({
+	el: 'group',
 	attr: {
-		r: 3,
-		cx: function (d) {
-			return d.x;
-		},
-		cy: function (d) {
-			return d.y;
-		}
+
 	},
 	style: {
 		fillStyle: '#fff'
-	}
+	},
+	bbox: false
+});
+
+var circles = group.createEls(circlesGrid, {
+	el: 'rect',
+	attr: {
+		height: 2,
+		width: 2,
+		x: function (d) {
+			return d.x;
+		},
+		y: function (d) {
+			return d.y;
+		}
+	},
+	bbox: false
 });
 
 window.addEventListener('mousemove', function (e) {
@@ -56,8 +66,8 @@ window.addEventListener('mousemove', function (e) {
 			cy = (dis) * Math.sin(angle);
 
 		this.setAttr({
-			cx: d.x + cx,
-			cy: d.y + cy
+			x: d.x + cx,
+			y: d.y + cy
 		});
 
 	});

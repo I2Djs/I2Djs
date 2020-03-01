@@ -747,7 +747,7 @@ function animatePathTo (targetConfig) {
 					newPathInstance.stack[this.id] = this.render.execute(f);
 					self.setAttr('d', newPathInstance);
 				},
-
+				target: self,
 				id: i,
 				render: new LinearTransitionBetweenPoints(arrExe[i].type, arrExe[i].p0, arrExe[0].p0, arrExe[i].segmentLength),
 				length: arrExe[i].length
@@ -760,7 +760,7 @@ function animatePathTo (targetConfig) {
 					newPathInstance.stack[this.id] = this.render.execute(f);
 					self.setAttr('d', newPathInstance);
 				},
-
+				target: self,
 				id: i,
 				render: new LinearTransitionBetweenPoints(arrExe[i].type, arrExe[i].p0, arrExe[i].p1, arrExe[i].length),
 				length: arrExe[i].length
@@ -773,7 +773,7 @@ function animatePathTo (targetConfig) {
 					newPathInstance.stack[this.id] = this.render.execute(f);
 					self.setAttr('d', newPathInstance);
 				},
-
+				target: self,
 				id: i,
 				render: new BezierTransition(arrExe[i].type, arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].p1, arrExe[i].length),
 				length: arrExe[i].length
@@ -787,7 +787,7 @@ function animatePathTo (targetConfig) {
 					newPathInstance.stack[this.id] = this.render.execute(f);
 					self.setAttr('d', newPathInstance);
 				},
-
+				target: self,
 				id: i,
 				co,
 				render: new CubicBezierTransition(arrExe[i].type, arrExe[i].p0, arrExe[i].cntrl1, arrExe[i].cntrl2, co, arrExe[i].length),
@@ -809,7 +809,7 @@ function animatePathTo (targetConfig) {
 
 					};
 				},
-
+				target: self,
 				id: i,
 				length: 0
 			});
@@ -1280,7 +1280,7 @@ function morphTo (targetConfig) {
 
 			self.setAttr('d', ppath);
 		},
-
+		target: self,
 		duration: duration,
 		loop: loop,
 		direction: direction

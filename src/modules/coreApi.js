@@ -161,6 +161,7 @@ const animate = function animate (self, targetConfig) {
 				runStack[j](f);
 			}
 		},
+		target: self,
 		duration: targetConfig.duration,
 		delay: targetConfig.delay ? targetConfig.delay : 0,
 		end: targetConfig.end ? targetConfig.end.bind(self, self.dataObj) : null,
@@ -468,6 +469,16 @@ function dataJoin (data, selector, config) {
 
 NodePrototype.prototype.join = dataJoin;
 
+NodePrototype.prototype.interrupt = function () {
+	if (this.animList && this.animList.length > 0) {
+		for (var i = this.animList.length - 1; i >= 0; i--) {
+			queueInstance.remove(this.animList[i]);
+		};
+	}
+	this.animList = [];
+	return this;
+};
+
 NodePrototype.prototype.animateTo = function (targetConfig) {
 	queueInstance.add(animeId(), animate(this, targetConfig), easing(targetConfig.ease));
 	return this;
@@ -733,6 +744,14 @@ function remove () {
 	return this;
 }
 
+function interrupt () {
+	for (let i = 0, len = this.stack.length; i < len; i += 1) {
+		this.stack[i].interrupt();
+	}
+
+	return this;
+}
+
 function resolveObject (config, node, i) {
 	let obj = {};
 	let key;
@@ -946,6 +965,7 @@ CollectionPrototype.prototype = {
 	animateExe: animateArrayExe,
 	animatePathTo: animatePathArrayTo,
 	remove,
+	interrupt,
 	text: textArray,
 	join,
 	on
