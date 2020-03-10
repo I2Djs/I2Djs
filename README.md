@@ -13,6 +13,9 @@ I2Djs provides single Application Programming Interface to create and animate el
 
 I2D also provides a unique data-driven approach with **join-actions** for DOM manipulation based on data binding.
 
+## Documentation
+[I2Djs GitBook](https://nswamy14.gitbook.io/i2djs/)
+
 ## Installing
 
 If npm
@@ -40,12 +43,12 @@ import {CanvasLayer} from 'i2djs'
 
 
 ## Resources
-* [API reference](https://github.com/I2Djs/I2Djs/wiki)
+* [API reference](https://nswamy14.gitbook.io/i2djs)
 * [I2Djs Medium Article](https://medium.com/@narayanaswamy14/i2djs-integrated-2d-js-328549ef642)
 
 Examples (SVG + Canvas + WebGL)
 ---
-[Codepen Examples](https://codepen.io/nswamy14/pens/public)
+[Codepen Examples](https://codepen.io/search/pens?q=i2djs)
 
 ### Basic Shapes
 <table>
