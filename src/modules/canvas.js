@@ -814,7 +814,7 @@ RenderPath.prototype.updateBBox = function RPupdateBBox () {
 		[scaleX, scaleY] = transform.scale;
 	}
 
-	self.BBox = self.path ? t2DGeometry.getBBox(self.path.stack) : {
+	self.BBox = self.path ? t2DGeometry.getBBox(self.path.stackGroup.length > 0 ? self.path.stackGroup : [self.path.stack]) : {
 		x: 0,
 		y: 0,
 		width: 0,
@@ -1727,7 +1727,6 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 		if (resizeCall) {
 			resizeCall();
 		}
-		console.log('resize');
 		root.execute();
 	};
 

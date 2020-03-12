@@ -11,7 +11,9 @@ function Events (vDom) {
 	this.dragNode = null;
 	this.touchNode = null;
 }
+
 Events.prototype.getNode = function (e) {};
+
 Events.prototype.mousemoveCheck = function (e) {
 	if (this.dragNode) {
 		let event = this.dragNode.dom.drag.event;
@@ -54,18 +56,21 @@ Events.prototype.mousemoveCheck = function (e) {
 		this.selectedNode = node;
 	}
 };
+
 Events.prototype.clickCheck = function (e) {
 	propogateEvent([this.vDom], {
 		x: e.offsetX,
 		y: e.offsetY
 	}, e, 'click');
 };
+
 Events.prototype.dblclickCheck = function (e) {
 	propogateEvent([this.vDom], {
 		x: e.offsetX,
 		y: e.offsetY
 	}, e, 'dblclick');
 };
+
 Events.prototype.mousedownCheck = function (e) {
 	let node = propogateEvent([this.vDom], {
 		x: e.offsetX,
@@ -81,6 +86,7 @@ Events.prototype.mousedownCheck = function (e) {
 		this.dragNode = node;
 	}
 };
+
 Events.prototype.mouseupCheck = function (e) {
 	let node = this.dragNode;
 
@@ -97,6 +103,7 @@ Events.prototype.mouseupCheck = function (e) {
 		}, e, 'mouseup');
 	}
 };
+
 Events.prototype.mouseleaveCheck = function (e) {
 	let node = this.dragNode;
 	if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDragEnd) {

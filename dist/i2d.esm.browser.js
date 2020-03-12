@@ -559,7 +559,7 @@ function intermediateValue (v1, v2, f) {
 	return v1 + ((v2 - v1) * f);
 }
 
-function getBBox (cmxArr) {
+function getBBox (gcmxArr) {
 	let minX = Infinity;
 	let minY = Infinity;
 	let maxX = -Infinity;
@@ -568,11 +568,58 @@ function getBBox (cmxArr) {
 	let d;
 	let point;
 
-	for (let i = 0; i < cmxArr.length; i += 1) {
-		d = cmxArr[i];
+	for (var j = 0; j < gcmxArr.length; j++) {
+		let cmxArr = gcmxArr[j];
+		for (let i = 0; i < cmxArr.length; i += 1) {
+			d = cmxArr[i];
 
-		if (['V', 'H', 'L', 'v', 'h', 'l'].indexOf(d.type) !== -1) {
-			[d.p0 ? d.p0 : cmxArr[i - 1].p1, d.p1].forEach(function (point) {
+			if (['V', 'H', 'L', 'v', 'h', 'l'].indexOf(d.type) !== -1) {
+				[d.p0 ? d.p0 : cmxArr[i - 1].p1, d.p1].forEach(function (point) {
+					if (point.x < minX) {
+						minX = point.x;
+					}
+
+					if (point.x > maxX) {
+						maxX = point.x;
+					}
+
+					if (point.y < minY) {
+						minY = point.y;
+					}
+
+					if (point.y > maxY) {
+						maxY = point.y;
+					}
+				});
+			} else if (['Q', 'C', 'q', 'c'].indexOf(d.type) !== -1) {
+				const co = cubicBezierCoefficients(d);
+				let exe = cubicBezierTransition.bind(null, d.p0, co);
+				let ii = 0;
+				let point;
+
+				while (ii < 1) {
+					point = exe(ii);
+					ii += 0.05;
+
+					if (point.x < minX) {
+						minX = point.x;
+					}
+
+					if (point.x > maxX) {
+						maxX = point.x;
+					}
+
+					if (point.y < minY) {
+						minY = point.y;
+					}
+
+					if (point.y > maxY) {
+						maxY = point.y;
+					}
+				}
+			} else {
+				point = d.p0;
+
 				if (point.x < minX) {
 					minX = point.x;
 				}
@@ -588,54 +635,9 @@ function getBBox (cmxArr) {
 				if (point.y > maxY) {
 					maxY = point.y;
 				}
-			});
-		} else if (['Q', 'C', 'q', 'c'].indexOf(d.type) !== -1) {
-			const co = cubicBezierCoefficients(d);
-			let exe = cubicBezierTransition.bind(null, d.p0, co);
-			let ii = 0;
-			let point;
-
-			while (ii < 1) {
-				point = exe(ii);
-				ii += 0.05;
-
-				if (point.x < minX) {
-					minX = point.x;
-				}
-
-				if (point.x > maxX) {
-					maxX = point.x;
-				}
-
-				if (point.y < minY) {
-					minY = point.y;
-				}
-
-				if (point.y > maxY) {
-					maxY = point.y;
-				}
-			}
-		} else {
-			point = d.p0;
-
-			if (point.x < minX) {
-				minX = point.x;
-			}
-
-			if (point.x > maxX) {
-				maxX = point.x;
-			}
-
-			if (point.y < minY) {
-				minY = point.y;
-			}
-
-			if (point.y > maxY) {
-				maxY = point.y;
 			}
 		}
 	}
-
 	return {
 		x: minX,
 		y: minY,
@@ -1560,7 +1562,6 @@ function v (rel, p1) {
 		pointAt (f) {
 			return t2DGeometry$1.linearTransitionBetweenPoints(this.p0, this.p1, f);
 		}
-
 	});
 	this.length += this.segmentLength;
 	this.pp = this.cp;
@@ -1587,7 +1588,6 @@ function l (rel, p1) {
 		pointAt (f) {
 			return t2DGeometry$1.linearTransitionBetweenPoints(this.p0, this.p1, f);
 		}
-
 	});
 	this.length += this.segmentLength;
 	this.pp = this.cp;
@@ -1610,11 +1610,9 @@ function h (rel, p1) {
 		relative: {
 			p1: p1
 		},
-
 		pointAt (f) {
 			return t2DGeometry$1.linearTransitionBetweenPoints(this.p0, this.p1, f);
 		}
-
 	});
 	this.length += this.segmentLength;
 	this.pp = this.cp;
@@ -1629,11 +1627,9 @@ function z () {
 		p1: this.cp,
 		type: 'Z',
 		length: this.segmentLength,
-
 		pointAt (f) {
 			return t2DGeometry$1.linearTransitionBetweenPoints(this.p0, this.p1, f);
 		}
-
 	});
 	this.length += this.segmentLength;
 	this.pp = this.cp; // this.stackGroup.push(this.stack)
@@ -1862,9 +1858,9 @@ Path.prototype.fetchPathString = function () {
 	for (let i = 0; i < this.stack.length; i++) {
 		c = this.stack[i];
 
-		if (c.type === 'M') {
+		if (c.type === 'M' || c.type === 'm') {
 			p += c.type + ' ' + c.p0.x + ',' + c.p0.y + ' ';
-		} else if (c.type === 'Z') {
+		} else if (c.type === 'Z' || c.type === 'z') {
 			p += 'z';
 		} else if (c.type === 'C') {
 			p += c.type + ' ' + c.cntrl1.x + ',' + c.cntrl1.y + ' ' + c.cntrl2.x + ',' + c.cntrl2.y + ' ' + c.p1.x + ',' + c.p1.y + ' ';
@@ -2031,6 +2027,7 @@ Path.prototype.case = function pCase (currCmd) {
 			break;
 
 		case 'z':
+		case 'Z':
 			this.z();
 			break;
 
@@ -2175,10 +2172,11 @@ function animatePathTo (targetConfig) {
 	const mappedArr = [];
 
 	for (let i = 0; i < arrExe.length; i += 1) {
-		if (arrExe[i].type === 'Z') {
+		if (arrExe[i].type === 'Z' || arrExe[i].type === 'z') {
 			mappedArr.push({
 				run (f) {
-					newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					// newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					newPathInstance.stack.length = this.id + 1;
 					newPathInstance.stack[this.id] = this.render.execute(f);
 					self.setAttr('d', newPathInstance);
 				},
@@ -2191,7 +2189,8 @@ function animatePathTo (targetConfig) {
 		} else if (['V', 'v', 'H', 'h', 'L', 'l'].indexOf(arrExe[i].type) !== -1) {
 			mappedArr.push({
 				run (f) {
-					newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					// newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					newPathInstance.stack.length = this.id + 1;
 					newPathInstance.stack[this.id] = this.render.execute(f);
 					self.setAttr('d', newPathInstance);
 				},
@@ -2204,7 +2203,8 @@ function animatePathTo (targetConfig) {
 		} else if (arrExe[i].type === 'Q' || arrExe[i].type === 'q') {
 			mappedArr.push({
 				run (f) {
-					newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					// newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					newPathInstance.stack.length = this.id + 1;
 					newPathInstance.stack[this.id] = this.render.execute(f);
 					self.setAttr('d', newPathInstance);
 				},
@@ -2218,7 +2218,8 @@ function animatePathTo (targetConfig) {
 			const co = t2DGeometry$1.cubicBezierCoefficients(arrExe[i]);
 			mappedArr.push({
 				run (f) {
-					newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					// newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					newPathInstance.stack.length = this.id + 1;
 					newPathInstance.stack[this.id] = this.render.execute(f);
 					self.setAttr('d', newPathInstance);
 				},
@@ -2229,10 +2230,11 @@ function animatePathTo (targetConfig) {
 				length: arrExe[i].length
 			});
 			totalLength += arrExe[i].length;
-		} else if (arrExe[i].type === 'M') {
+		} else if (arrExe[i].type === 'M' || arrExe[i].type === 'm') {
 			mappedArr.push({
 				run () {
-					newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					// newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					newPathInstance.stack.length = this.id + 1;
 					newPathInstance.stack[this.id] = {
 						type: 'M',
 						p0: arrExe[i].p0,
@@ -2253,9 +2255,10 @@ function animatePathTo (targetConfig) {
 	}
 
 	mappedArr.forEach(function (d) {
-		d.duration = d.length / totalLength * duration;
+		d.duration = (d.length / totalLength) * duration;
+		// console.log(d.length, d.duration);
 	});
-	chainInstance.duration(duration).add(mappedArr).ease(ease).loop(loop || 0).direction(direction || 'default');
+	chainInstance.add(mappedArr).ease(ease).loop(loop || 0).direction(direction || 'default');
 
 	if (typeof end === 'function') {
 		chainInstance.end(end.bind(self));
@@ -4597,7 +4600,9 @@ function Events (vDom) {
 	this.dragNode = null;
 	this.touchNode = null;
 }
+
 Events.prototype.getNode = function (e) {};
+
 Events.prototype.mousemoveCheck = function (e) {
 	if (this.dragNode) {
 		let event = this.dragNode.dom.drag.event;
@@ -4640,18 +4645,21 @@ Events.prototype.mousemoveCheck = function (e) {
 		this.selectedNode = node;
 	}
 };
+
 Events.prototype.clickCheck = function (e) {
 	propogateEvent([this.vDom], {
 		x: e.offsetX,
 		y: e.offsetY
 	}, e, 'click');
 };
+
 Events.prototype.dblclickCheck = function (e) {
 	propogateEvent([this.vDom], {
 		x: e.offsetX,
 		y: e.offsetY
 	}, e, 'dblclick');
 };
+
 Events.prototype.mousedownCheck = function (e) {
 	let node = propogateEvent([this.vDom], {
 		x: e.offsetX,
@@ -4667,6 +4675,7 @@ Events.prototype.mousedownCheck = function (e) {
 		this.dragNode = node;
 	}
 };
+
 Events.prototype.mouseupCheck = function (e) {
 	let node = this.dragNode;
 
@@ -4683,6 +4692,7 @@ Events.prototype.mouseupCheck = function (e) {
 		}, e, 'mouseup');
 	}
 };
+
 Events.prototype.mouseleaveCheck = function (e) {
 	let node = this.dragNode;
 	if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDragEnd) {
@@ -5625,7 +5635,7 @@ RenderPath.prototype.updateBBox = function RPupdateBBox () {
 		[scaleX, scaleY] = transform.scale;
 	}
 
-	self.BBox = self.path ? t2DGeometry$3.getBBox(self.path.stack) : {
+	self.BBox = self.path ? t2DGeometry$3.getBBox(self.path.stackGroup.length > 0 ? self.path.stackGroup : [self.path.stack]) : {
 		x: 0,
 		y: 0,
 		width: 0,
@@ -5935,7 +5945,7 @@ RenderRect.prototype.execute = function RRexecute () {
 	const {
 		ctx,
 		attr
-	} = this;	
+	} = this;
 
 	if (ctx.fillStyle !== '#000000') {
 		if (!attr['rx'] && !attr['ry']) {
@@ -6538,7 +6548,6 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 		if (resizeCall) {
 			resizeCall();
 		}
-		console.log('resize');
 		root.execute();
 	};
 

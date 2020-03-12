@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%;">
+<div id="myCanvas" style="height: 100%;width:100%;position: absolute;">
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
+<script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
+
+<script type="text/javascript">
+var width = 960;
+var height = 500;
+
+var projection = d3.geoMercator()
+				   .translate([width/2, height/2])
+				   .center([-80, 60]);
+        
+var path = d3.geoPath()
+		  	 .projection(projection); 
+
+var renderer = i2d.canvasLayer('#myCanvas', {}, {});
+
+var worldmap = d3.json("./../data/world.geo.json");
+
+Promise.all([worldmap]).then(function(values) {
+	let path_ = renderer.createEl({
+		el: 'path',
+		attr: {
+			d: path(values[0])
+		},
+		style: {
+			shadowOffsetX: 3,
+			shadowOffsetY: 3,
+			shadowColor: '#333333',
+			fillStyle: 'rgba(255, 130, 130, 1)'
+		}
+	})
+	.on('mouseover', function() {
+		this.setStyle('fillStyle', 'rgba(250, 60, 60, 1)');
+	}).on('mouseout', function() {
+		this.setStyle('fillStyle', 'rgba(255, 130, 130, 1)');
+	});
+});
+
+</script>
+
+</body>
+</html>
+
