@@ -125,7 +125,6 @@ function v (rel, p1) {
 		pointAt (f) {
 			return t2DGeometry.linearTransitionBetweenPoints(this.p0, this.p1, f);
 		}
-
 	});
 	this.length += this.segmentLength;
 	this.pp = this.cp;
@@ -152,7 +151,6 @@ function l (rel, p1) {
 		pointAt (f) {
 			return t2DGeometry.linearTransitionBetweenPoints(this.p0, this.p1, f);
 		}
-
 	});
 	this.length += this.segmentLength;
 	this.pp = this.cp;
@@ -175,11 +173,9 @@ function h (rel, p1) {
 		relative: {
 			p1: p1
 		},
-
 		pointAt (f) {
 			return t2DGeometry.linearTransitionBetweenPoints(this.p0, this.p1, f);
 		}
-
 	});
 	this.length += this.segmentLength;
 	this.pp = this.cp;
@@ -194,11 +190,9 @@ function z () {
 		p1: this.cp,
 		type: 'Z',
 		length: this.segmentLength,
-
 		pointAt (f) {
 			return t2DGeometry.linearTransitionBetweenPoints(this.p0, this.p1, f);
 		}
-
 	});
 	this.length += this.segmentLength;
 	this.pp = this.cp; // this.stackGroup.push(this.stack)
@@ -427,9 +421,9 @@ Path.prototype.fetchPathString = function () {
 	for (let i = 0; i < this.stack.length; i++) {
 		c = this.stack[i];
 
-		if (c.type === 'M') {
+		if (c.type === 'M' || c.type === 'm') {
 			p += c.type + ' ' + c.p0.x + ',' + c.p0.y + ' ';
-		} else if (c.type === 'Z') {
+		} else if (c.type === 'Z' || c.type === 'z') {
 			p += 'z';
 		} else if (c.type === 'C') {
 			p += c.type + ' ' + c.cntrl1.x + ',' + c.cntrl1.y + ' ' + c.cntrl2.x + ',' + c.cntrl2.y + ' ' + c.p1.x + ',' + c.p1.y + ' ';
@@ -596,6 +590,7 @@ Path.prototype.case = function pCase (currCmd) {
 			break;
 
 		case 'z':
+		case 'Z':
 			this.z();
 			break;
 
@@ -740,10 +735,11 @@ function animatePathTo (targetConfig) {
 	const mappedArr = [];
 
 	for (let i = 0; i < arrExe.length; i += 1) {
-		if (arrExe[i].type === 'Z') {
+		if (arrExe[i].type === 'Z' || arrExe[i].type === 'z') {
 			mappedArr.push({
 				run (f) {
-					newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					// newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					newPathInstance.stack.length = this.id + 1;
 					newPathInstance.stack[this.id] = this.render.execute(f);
 					self.setAttr('d', newPathInstance);
 				},
@@ -756,7 +752,8 @@ function animatePathTo (targetConfig) {
 		} else if (['V', 'v', 'H', 'h', 'L', 'l'].indexOf(arrExe[i].type) !== -1) {
 			mappedArr.push({
 				run (f) {
-					newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					// newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					newPathInstance.stack.length = this.id + 1;
 					newPathInstance.stack[this.id] = this.render.execute(f);
 					self.setAttr('d', newPathInstance);
 				},
@@ -769,7 +766,8 @@ function animatePathTo (targetConfig) {
 		} else if (arrExe[i].type === 'Q' || arrExe[i].type === 'q') {
 			mappedArr.push({
 				run (f) {
-					newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					// newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					newPathInstance.stack.length = this.id + 1;
 					newPathInstance.stack[this.id] = this.render.execute(f);
 					self.setAttr('d', newPathInstance);
 				},
@@ -783,7 +781,8 @@ function animatePathTo (targetConfig) {
 			const co = t2DGeometry.cubicBezierCoefficients(arrExe[i]);
 			mappedArr.push({
 				run (f) {
-					newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					// newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					newPathInstance.stack.length = this.id + 1;
 					newPathInstance.stack[this.id] = this.render.execute(f);
 					self.setAttr('d', newPathInstance);
 				},
@@ -794,10 +793,11 @@ function animatePathTo (targetConfig) {
 				length: arrExe[i].length
 			});
 			totalLength += arrExe[i].length;
-		} else if (arrExe[i].type === 'M') {
+		} else if (arrExe[i].type === 'M' || arrExe[i].type === 'm') {
 			mappedArr.push({
 				run () {
-					newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					// newPathInstance.stack.splice(this.id, newPathInstance.stack.length - 1);
+					newPathInstance.stack.length = this.id + 1;
 					newPathInstance.stack[this.id] = {
 						type: 'M',
 						p0: arrExe[i].p0,
@@ -819,9 +819,10 @@ function animatePathTo (targetConfig) {
 	}
 
 	mappedArr.forEach(function (d) {
-		d.duration = d.length / totalLength * duration;
+		d.duration = (d.length / totalLength) * duration;
+		// console.log(d.length, d.duration);
 	});
-	chainInstance.duration(duration).add(mappedArr).ease(ease).loop(loop || 0).direction(direction || 'default');
+	chainInstance.add(mappedArr).ease(ease).loop(loop || 0).direction(direction || 'default');
 
 	if (typeof end === 'function') {
 		chainInstance.end(end.bind(self));

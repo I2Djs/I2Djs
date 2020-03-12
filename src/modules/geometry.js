@@ -195,7 +195,7 @@ function intermediateValue (v1, v2, f) {
 	return v1 + ((v2 - v1) * f);
 }
 
-function getBBox (cmxArr) {
+function getBBox (gcmxArr) {
 	let minX = Infinity;
 	let minY = Infinity;
 	let maxX = -Infinity;
@@ -204,11 +204,58 @@ function getBBox (cmxArr) {
 	let d;
 	let point;
 
-	for (let i = 0; i < cmxArr.length; i += 1) {
-		d = cmxArr[i];
+	for (var j = 0; j < gcmxArr.length; j++) {
+		let cmxArr = gcmxArr[j];
+		for (let i = 0; i < cmxArr.length; i += 1) {
+			d = cmxArr[i];
 
-		if (['V', 'H', 'L', 'v', 'h', 'l'].indexOf(d.type) !== -1) {
-			[d.p0 ? d.p0 : cmxArr[i - 1].p1, d.p1].forEach(function (point) {
+			if (['V', 'H', 'L', 'v', 'h', 'l'].indexOf(d.type) !== -1) {
+				[d.p0 ? d.p0 : cmxArr[i - 1].p1, d.p1].forEach(function (point) {
+					if (point.x < minX) {
+						minX = point.x;
+					}
+
+					if (point.x > maxX) {
+						maxX = point.x;
+					}
+
+					if (point.y < minY) {
+						minY = point.y;
+					}
+
+					if (point.y > maxY) {
+						maxY = point.y;
+					}
+				});
+			} else if (['Q', 'C', 'q', 'c'].indexOf(d.type) !== -1) {
+				const co = cubicBezierCoefficients(d);
+				let exe = cubicBezierTransition.bind(null, d.p0, co);
+				let ii = 0;
+				let point;
+
+				while (ii < 1) {
+					point = exe(ii);
+					ii += 0.05;
+
+					if (point.x < minX) {
+						minX = point.x;
+					}
+
+					if (point.x > maxX) {
+						maxX = point.x;
+					}
+
+					if (point.y < minY) {
+						minY = point.y;
+					}
+
+					if (point.y > maxY) {
+						maxY = point.y;
+					}
+				}
+			} else {
+				point = d.p0;
+
 				if (point.x < minX) {
 					minX = point.x;
 				}
@@ -224,53 +271,9 @@ function getBBox (cmxArr) {
 				if (point.y > maxY) {
 					maxY = point.y;
 				}
-			});
-		} else if (['Q', 'C', 'q', 'c'].indexOf(d.type) !== -1) {
-			const co = cubicBezierCoefficients(d);
-			let exe = cubicBezierTransition.bind(null, d.p0, co);
-			let ii = 0;
-			let point;
-
-			while (ii < 1) {
-				point = exe(ii);
-				ii += 0.05;
-
-				if (point.x < minX) {
-					minX = point.x;
-				}
-
-				if (point.x > maxX) {
-					maxX = point.x;
-				}
-
-				if (point.y < minY) {
-					minY = point.y;
-				}
-
-				if (point.y > maxY) {
-					maxY = point.y;
-				}
-			}
-		} else {
-			point = d.p0;
-
-			if (point.x < minX) {
-				minX = point.x;
-			}
-
-			if (point.x > maxX) {
-				maxX = point.x;
-			}
-
-			if (point.y < minY) {
-				minY = point.y;
-			}
-
-			if (point.y > maxY) {
-				maxY = point.y;
 			}
 		}
-	}
+	};
 
 	return {
 		x: minX,
