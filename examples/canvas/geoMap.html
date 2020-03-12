@@ -13,13 +13,11 @@
 var width = 960;
 var height = 500;
 
-// D3 Projection
 var projection = d3.geoMercator()
-				   .translate([width/2, height/2])    // translate to center of screen
-				   .center([-80, 60]);          // scale things down so see entire US
+				   .translate([width/2, height/2])
+				   .center([-80, 60]);
         
-// Define path generator
-var path = d3.geoPath()               // path generator that will convert GeoJSON to SVG paths
+var path = d3.geoPath()
 		  	 .projection(projection); 
 
 var renderer = i2d.canvasLayer('#myCanvas', {}, {});
@@ -36,13 +34,13 @@ Promise.all([worldmap]).then(function(values) {
 			shadowOffsetX: 3,
 			shadowOffsetY: 3,
 			shadowColor: '#333333',
-			fillStyle: 'rgba(255, 30, 30, 1)'
+			fillStyle: 'rgba(255, 130, 130, 1)'
 		}
 	})
 	.on('mouseover', function() {
-		this.setStyle('fillStyle', 'rgba(250, 20, 20, 1)');
+		this.setStyle('fillStyle', 'rgba(250, 60, 60, 1)');
 	}).on('mouseout', function() {
-		this.setStyle('fillStyle', 'rgba(255, 30, 30, 1)');
+		this.setStyle('fillStyle', 'rgba(255, 130, 130, 1)');
 	});
 });
 
