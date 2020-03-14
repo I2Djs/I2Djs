@@ -70,9 +70,9 @@ Examples (SVG + Canvas + WebGL)
   <tr>
      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/solarSystem.html"><img  src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/solarAnimation.gif"></a></td>
     <td width="15%"><a href="https://codepen.io/nswamy14/pen/PEyvyK"><img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/circleMoveMent.gif"></a></td>
-    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="100" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/graph.gif"></a></td>
-        <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/webGL/hugegraph.html"><img width="100" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/hugeGraph.gif"></a></td>
-        <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/networkSystem.html"><img width="100" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/graphAnimation.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/graph.gif"></a></td>
+        <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/webGL/hugegraph.html"><img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/hugeGraph.gif"></a></td>
+        <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/networkSystem.html"><img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/graphAnimation.gif"></a></td>
   </tr>
 </table>
 
