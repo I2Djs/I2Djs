@@ -14,7 +14,7 @@ I2Djs provides single Application Programming Interface to create and animate el
 I2D also provides a unique data-driven approach with **join-actions** for DOM manipulation based on data binding.
 
 ## Documentation
-[I2Djs GitBook](https://nswamy14.gitbook.io/i2djs/)
+<a href="https://nswamy14.gitbook.io/i2djs/"><img width='150' src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/gitbookIcon.png"></a>
 
 ## Installing
 
