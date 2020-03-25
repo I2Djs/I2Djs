@@ -156,9 +156,20 @@ ExeQueue.prototype.removeVdom = function removeVdom (_) {
 	}
 };
 
-ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom, flag) {
+ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom) {
 	if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
 		vDoms[vDom].stateModified = true;
+		vDoms[vDom].root.stateModified = true;
+	} else if (vDom) {
+		let ids = vDom.split(':');
+		if (vDoms[ids[0]] && vDoms[ids[0]].stateModified !== undefined) {
+			vDoms[ids[0]].stateModified = true;
+			vDoms[ids[0]].root.stateModified = true;
+			let childRootNode = vDoms[ids[0]].root.fetchEl('#' + ids[1]);
+			if (childRootNode) {
+				childRootNode.stateModified = true;
+			}
+		}
 	}
 };
 
@@ -171,6 +182,7 @@ ExeQueue.prototype.vDomUpdates = function () {
 		if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].stateModified) {
 			vDoms[vDomIds[i]].execute();
 			vDoms[vDomIds[i]].stateModified = false;
+			// vDoms[vDomIds[i]].onchange();
 		} else if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].root && vDoms[vDomIds[i]].root.ENV !== 'NODE') {
 			var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id);
 

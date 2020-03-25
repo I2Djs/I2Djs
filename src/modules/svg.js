@@ -42,6 +42,28 @@ SVGCollection.prototype.createNode = function (ctx, config, vDomIndex) {
 //   return this
 // }
 
+
+function SVGPattern (self, config = {}) {
+	this.pDom = self;
+	let patternId = config.id ? config.id : 'pattern-' + Math.ceil(Math.random() * 1000);
+	this.id = config.id || patternId;
+	config.id = patternId;
+	if (!this.defs) {
+		this.defs = self.createEl({
+			el: 'defs'
+		});
+	}
+
+	this.pattern = this.defs.createEl({
+		el: 'pattern',
+		attr: config,
+		style: { }
+	});
+}
+SVGPattern.prototype.exe = function exe () {
+	return `url(#${this.id})`;
+};
+
 function DomGradients (config, type, pDom) {
 	this.config = config;
 	this.type = type || 'linear';
@@ -439,7 +461,7 @@ DomExe.prototype.execute = function DMexecute () {
 	}
 
 	for (let style in this.changedStyles) {
-		if (this.changedStyles[style] instanceof DomGradients) {
+		if (this.changedStyles[style] instanceof DomGradients || this.changedStyles[style] instanceof SVGPattern) {
 			this.changedStyles[style] = this.changedStyles[style].exe();
 		}
 
@@ -488,6 +510,8 @@ DomExe.prototype.createLinearGradient = function DMcreateLinearGradient (config)
 	gradientIns.linearGradient();
 	return gradientIns;
 };
+
+// DomExe.prototype
 
 let dragStack = [];
 
@@ -601,6 +625,7 @@ function svgLayer (container, layerSettings = {}) {
 	let cHeight;
 	let cWidth;
 	let resizeCall;
+	let onChangeExe;
 
 	if (res) {
 		res.appendChild(layer);
@@ -647,6 +672,16 @@ function svgLayer (container, layerSettings = {}) {
 		resizeCall = exec;
 	};
 
+	root.onChange = function (exec) {
+		onChangeExe = exec;
+	};
+
+	root.invokeOnChange = function () {
+		if (onChangeExe) {
+			onChangeExe();
+		}
+	};
+
 	root.setSize = function (width, height) {
 		this.dom.setAttribute('height', height);
 		this.dom.setAttribute('width', width);
@@ -672,6 +707,10 @@ function svgLayer (container, layerSettings = {}) {
 		queueInstance.removeVdom(vDomIndex);
 	};
 
+	root.createPattern = function (config) {
+		return new SVGPattern(this, config);
+	};
+
 	let dragTargetEl = null;
 	root.dom.addEventListener('mousedown', function (e) {
 		if (dragStack.length) {
@@ -686,7 +725,9 @@ function svgLayer (container, layerSettings = {}) {
 				event.e = e;
 				dragTargetEl.drag.event = event;
 				dragTargetEl.drag.dragStartFlag = true;
-				dragTargetEl.drag.onDragStart.call(dragTargetEl, dragTargetEl.dataObj, event);
+				if (dragTargetEl.drag.onDragStart) {
+					dragTargetEl.drag.onDragStart.call(dragTargetEl, dragTargetEl.dataObj, event);
+				}
 			}
 		}
 	});
@@ -698,7 +739,9 @@ function svgLayer (container, layerSettings = {}) {
 			event.x = e.offsetX;
 			event.y = e.offsetY;
 			event.e = e;
-			dragTargetEl.drag.onDrag.call(dragTargetEl, dragTargetEl.dataObj, event);
+			if (dragTargetEl.drag.onDrag) {
+				dragTargetEl.drag.onDrag.call(dragTargetEl, dragTargetEl.dataObj, event);
+			}
 		}
 	});
 	root.dom.addEventListener('mouseup', function (e) {
@@ -709,7 +752,9 @@ function svgLayer (container, layerSettings = {}) {
 			event.x = e.offsetX;
 			event.y = e.offsetY;
 			event.e = e;
-			dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
+			if (dragTargetEl.drag.onDragEnd) {
+				dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
+			}
 			dragTargetEl = null;
 		}
 	});
@@ -721,7 +766,9 @@ function svgLayer (container, layerSettings = {}) {
 			event.x = e.offsetX;
 			event.y = e.offsetY;
 			event.e = e;
-			dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
+			if (dragTargetEl.drag.onDragEnd) {
+				dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
+			}
 			dragTargetEl = null;
 		}
 	});

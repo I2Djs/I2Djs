@@ -47,6 +47,10 @@ VDom.prototype.eventsCheck = function eventsCheck (nodes, mouseCoor, rawEvent) {
 
 VDom.prototype.transformCoOr = transformCoOr;
 
+// VDom.prototype.onchange = function () {
+// 	// this.root.invokeOnChange();
+// };
+
 function transformCoOr (d, coOr) {
 	let hozMove = 0;
 	let verMove = 0;

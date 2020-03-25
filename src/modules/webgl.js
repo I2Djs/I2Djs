@@ -2082,6 +2082,7 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 	let cHeight;
 	let cWidth;
 	let resizeCall;
+	let onChangeExe;
 
 	if (res) {
 		res.appendChild(layer);
@@ -2181,6 +2182,16 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 
 	root.onResize = function (exec) {
 		resizeCall = exec;
+	};
+
+	root.onChange = function (exec) {
+		onChangeExe = exec;
+	};
+
+	root.invokeOnChange = function () {
+		if (onChangeExe) {
+			onChangeExe();
+		}
 	};
 
 	root.setSize = function (width_, height_) {

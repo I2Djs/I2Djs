@@ -1,5 +1,5 @@
 /*!
-      * i2djs v2.0.4
+      * i2djs v3.0.0
       * (c) 2020 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
@@ -161,9 +161,20 @@ ExeQueue.prototype.removeVdom = function removeVdom (_) {
 	}
 };
 
-ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom, flag) {
+ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom) {
 	if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
 		vDoms[vDom].stateModified = true;
+		vDoms[vDom].root.stateModified = true;
+	} else if (vDom) {
+		let ids = vDom.split(':');
+		if (vDoms[ids[0]] && vDoms[ids[0]].stateModified !== undefined) {
+			vDoms[ids[0]].stateModified = true;
+			vDoms[ids[0]].root.stateModified = true;
+			let childRootNode = vDoms[ids[0]].root.fetchEl('#' + ids[1]);
+			if (childRootNode) {
+				childRootNode.stateModified = true;
+			}
+		}
 	}
 };
 
@@ -176,6 +187,7 @@ ExeQueue.prototype.vDomUpdates = function () {
 		if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].stateModified) {
 			vDoms[vDomIds[i]].execute();
 			vDoms[vDomIds[i]].stateModified = false;
+			// vDoms[vDomIds[i]].onchange();
 		} else if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].root && vDoms[vDomIds[i]].root.ENV !== 'NODE') {
 			var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id);
 
@@ -322,6 +334,10 @@ VDom.prototype.eventsCheck = function eventsCheck (nodes, mouseCoor, rawEvent) {
 };
 
 VDom.prototype.transformCoOr = transformCoOr;
+
+// VDom.prototype.onchange = function () {
+// 	// this.root.invokeOnChange();
+// };
 
 function transformCoOr (d, coOr) {
 	let hozMove = 0;
@@ -3894,6 +3910,28 @@ SVGCollection.prototype.createNode = function (ctx, config, vDomIndex) {
 //   return this
 // }
 
+
+function SVGPattern (self, config = {}) {
+	this.pDom = self;
+	let patternId = config.id ? config.id : 'pattern-' + Math.ceil(Math.random() * 1000);
+	this.id = config.id || patternId;
+	config.id = patternId;
+	if (!this.defs) {
+		this.defs = self.createEl({
+			el: 'defs'
+		});
+	}
+
+	this.pattern = this.defs.createEl({
+		el: 'pattern',
+		attr: config,
+		style: { }
+	});
+}
+SVGPattern.prototype.exe = function exe () {
+	return `url(#${this.id})`;
+};
+
 function DomGradients (config, type, pDom) {
 	this.config = config;
 	this.type = type || 'linear';
@@ -4291,7 +4329,7 @@ DomExe.prototype.execute = function DMexecute () {
 	}
 
 	for (let style in this.changedStyles) {
-		if (this.changedStyles[style] instanceof DomGradients) {
+		if (this.changedStyles[style] instanceof DomGradients || this.changedStyles[style] instanceof SVGPattern) {
 			this.changedStyles[style] = this.changedStyles[style].exe();
 		}
 
@@ -4340,6 +4378,8 @@ DomExe.prototype.createLinearGradient = function DMcreateLinearGradient (config)
 	gradientIns.linearGradient();
 	return gradientIns;
 };
+
+// DomExe.prototype
 
 let dragStack = [];
 
@@ -4453,6 +4493,7 @@ function svgLayer (container, layerSettings = {}) {
 	let cHeight;
 	let cWidth;
 	let resizeCall;
+	let onChangeExe;
 
 	if (res) {
 		res.appendChild(layer);
@@ -4499,6 +4540,16 @@ function svgLayer (container, layerSettings = {}) {
 		resizeCall = exec;
 	};
 
+	root.onChange = function (exec) {
+		onChangeExe = exec;
+	};
+
+	root.invokeOnChange = function () {
+		if (onChangeExe) {
+			onChangeExe();
+		}
+	};
+
 	root.setSize = function (width, height) {
 		this.dom.setAttribute('height', height);
 		this.dom.setAttribute('width', width);
@@ -4524,6 +4575,10 @@ function svgLayer (container, layerSettings = {}) {
 		queueInstance$2.removeVdom(vDomIndex);
 	};
 
+	root.createPattern = function (config) {
+		return new SVGPattern(this, config);
+	};
+
 	let dragTargetEl = null;
 	root.dom.addEventListener('mousedown', function (e) {
 		if (dragStack.length) {
@@ -4538,7 +4593,9 @@ function svgLayer (container, layerSettings = {}) {
 				event.e = e;
 				dragTargetEl.drag.event = event;
 				dragTargetEl.drag.dragStartFlag = true;
-				dragTargetEl.drag.onDragStart.call(dragTargetEl, dragTargetEl.dataObj, event);
+				if (dragTargetEl.drag.onDragStart) {
+					dragTargetEl.drag.onDragStart.call(dragTargetEl, dragTargetEl.dataObj, event);
+				}
 			}
 		}
 	});
@@ -4550,7 +4607,9 @@ function svgLayer (container, layerSettings = {}) {
 			event.x = e.offsetX;
 			event.y = e.offsetY;
 			event.e = e;
-			dragTargetEl.drag.onDrag.call(dragTargetEl, dragTargetEl.dataObj, event);
+			if (dragTargetEl.drag.onDrag) {
+				dragTargetEl.drag.onDrag.call(dragTargetEl, dragTargetEl.dataObj, event);
+			}
 		}
 	});
 	root.dom.addEventListener('mouseup', function (e) {
@@ -4561,7 +4620,9 @@ function svgLayer (container, layerSettings = {}) {
 			event.x = e.offsetX;
 			event.y = e.offsetY;
 			event.e = e;
-			dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
+			if (dragTargetEl.drag.onDragEnd) {
+				dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
+			}
 			dragTargetEl = null;
 		}
 	});
@@ -4573,7 +4634,9 @@ function svgLayer (container, layerSettings = {}) {
 			event.x = e.offsetX;
 			event.y = e.offsetY;
 			event.e = e;
-			dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
+			if (dragTargetEl.drag.onDragEnd) {
+				dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
+			}
 			dragTargetEl = null;
 		}
 	});
@@ -4666,9 +4729,11 @@ Events.prototype.mousedownCheck = function (e) {
 		y: e.offsetY
 	}, e, 'mousedown');
 
-	if (node && node.dom.drag && node.dom.drag.onDragStart) {
+	if (node && node.dom.drag && (node.dom.drag.onDragStart || node.dom.drag.onDrag)) {
 		node.dom.drag.dragStartFlag = true;
-		node.dom.drag.onDragStart.call(node, node.dataObj, e);
+		if (node.dom.onDragStart) {
+			node.dom.drag.onDragStart.call(node, node.dataObj, e);
+		}
 		let event = new Event$1(e.offsetX, e.offsetY);
 		event.e = e;
 		node.dom.drag.event = event;
@@ -4679,10 +4744,12 @@ Events.prototype.mousedownCheck = function (e) {
 Events.prototype.mouseupCheck = function (e) {
 	let node = this.dragNode;
 
-	if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDragEnd) {
+	if (node && node.dom.drag && node.dom.drag.dragStartFlag) {
 		node.dom.drag.dragStartFlag = false;
 		node.dom.drag.event = null;
-		node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+		if (node.dom.drag.onDragEnd) {
+			node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+		}
 		node.dom.drag.event = null; // selectedNode = null
 		this.dragNode = null;
 	} else {
@@ -4695,10 +4762,12 @@ Events.prototype.mouseupCheck = function (e) {
 
 Events.prototype.mouseleaveCheck = function (e) {
 	let node = this.dragNode;
-	if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDragEnd) {
+	if (node && node.dom.drag && node.dom.drag.dragStartFlag) {
 		node.dom.drag.dragStartFlag = false;
 		node.dom.drag.event = null;
-		node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+		if (node.dom.drag.onDragEnd) {
+			node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+		}
 		this.dragNode = null;
 	} else {
 		propogateEvent([this.vDom], {
@@ -4784,6 +4853,11 @@ function propogateEvent (nodes, mouseCoor, rawEvent, eventType) {
 			x: mouseCoor.x,
 			y: mouseCoor.y
 		};
+
+		if (!d.bbox) {
+			return;
+		}
+
 		transformCoOr$1(d, coOr);
 
 		if (d.in({ x: coOr.x, y: coOr.y })) {
@@ -5064,23 +5138,32 @@ function getCanvasImgInstance (width, height) {
 	return canvas;
 }
 
-function CanvasPattern (self, pattern, repeatInd) {
-	var image = new Image();
-	var selfSelf = this;
-	image.src = pattern;
-
-	image.onload = function () {
-		selfSelf.pattern = self.ctx.createPattern(image, repeatInd);
-		queueInstance$3.vDomChanged(self.vDomIndex);
-	};
+function CanvasPattern (self, config = {}) {
+	let selfSelf = this;
+	let patternId = config.id ? config.id : 'pattern-' + Math.ceil(Math.random() * 1000);
+	this.repeatInd = config.repeat ? config.repeat : 'repeat';
+	selfSelf.pattern = canvasLayer(null, {}, {
+		enableEvents: false,
+		enableResize: false
+	});
+	selfSelf.pattern.setAttr('id', patternId);
+	self.prependChild([selfSelf.pattern]);
+	selfSelf.pattern.vDomIndex = self.vDomIndex + ':' + patternId;
+	selfSelf.pattern.onChange(function () {
+		selfSelf.patternObj = self.ctx.createPattern(selfSelf.pattern.domEl, selfSelf.repeatInd);
+	});
 }
 
-CanvasPattern.prototype.exe = function () {
-	return this.pattern;
+CanvasPattern.prototype.repeat = function (repeat) {
+	this.repeatInd = repeat;
 };
 
-function createCanvasPattern (patternObj, repeatInd) {
-	return new CanvasPattern(this, patternObj, repeatInd);
+CanvasPattern.prototype.exe = function () {
+	return this.patternObj;
+};
+
+function createCanvasPattern (patternConfig) {
+	return new CanvasPattern(this, patternConfig);
 }
 
 function applyStyles () {
@@ -6343,6 +6426,24 @@ CanvasNodeExe.prototype.execute = function Cexecute () {
 	this.ctx.restore();
 };
 
+CanvasNodeExe.prototype.prependChild = function child (childrens) {
+	const self = this;
+	const childrensLocal = childrens;
+
+	if (self.dom instanceof RenderGroup) {
+		for (let i = 0; i < childrensLocal.length; i += 1) {
+			childrensLocal[i].dom.parent = self;
+			self.children.unshift(childrensLocal[i]);
+		}
+	} else {
+		console.error('Trying to insert child to nonGroup Element');
+	}
+
+	this.BBoxUpdate = true;
+	queueInstance$3.vDomChanged(this.vDomIndex);
+	return self;
+};
+
 CanvasNodeExe.prototype.child = function child (childrens) {
 	const self = this;
 	const childrensLocal = childrens;
@@ -6396,7 +6497,7 @@ CanvasNodeExe.prototype.vDomIndex = null;
 
 CanvasNodeExe.prototype.createRadialGradient = createRadialGradient;
 CanvasNodeExe.prototype.createLinearGradient = createLinearGradient;
-CanvasNodeExe.prototype.createPattern = createCanvasPattern;
+// CanvasNodeExe.prototype
 
 CanvasNodeExe.prototype.createEls = function CcreateEls (data, config) {
 	const e = new CanvasCollection({
@@ -6480,6 +6581,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 	let cHeight;
 	let cWidth;
 	let resizeCall;
+	let onChangeExe;
 
 	if (res) {
 		res.appendChild(layer);
@@ -6487,13 +6589,16 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 		if (autoUpdate) {
 			vDomIndex = queueInstance$3.addVdom(vDomInstance);
 		}
+	} else {
+		enableEvents = false;
 	}
 
 	const root = new CanvasNodeExe(ctx, {
 		el: 'group',
 		attr: {
 			id: 'rootNode'
-		}
+		},
+		bbox: !!enableEvents
 	}, domId$1(), vDomIndex);
 
 	if (vDomInstance) {
@@ -6516,6 +6621,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 			this.setViewBox.apply(this, value.split(','));
 		}
 		layer.setAttribute(prop, value);
+		this.attr[prop] = value;
 	};
 
 	root.enableEvents = function (flag) {
@@ -6553,6 +6659,14 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 
 	root.onResize = function (exec) {
 		resizeCall = exec;
+	};
+
+	root.onChange = function (exec) {
+		onChangeExe = exec;
+	};
+
+	root.invokeOnChange = function () {
+		
 	};
 
 	root.setSize = function (width_, height_) {
@@ -6594,11 +6708,17 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 		}
 	};
 
+	root.createPattern = createCanvasPattern;
+
 	root.execute = function executeExe () {
 		onClear(ctx);
 		ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 		this.updateBBox();
 		execute();
+		if (onChangeExe && this.stateModified) {
+			onChangeExe();
+		}
+		this.stateModified = false;
 	};
 
 	root.update = function executeUpdate () {
@@ -9665,6 +9785,7 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 	let vDomInstance;
 	let vDomIndex = 999999;
 	let resizeCall;
+	let onChangeExe;
 
 	if (res) {
 		res.appendChild(layer);
@@ -9764,6 +9885,16 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 
 	root.onResize = function (exec) {
 		resizeCall = exec;
+	};
+
+	root.onChange = function (exec) {
+		onChangeExe = exec;
+	};
+
+	root.invokeOnChange = function () {
+		if (onChangeExe) {
+			onChangeExe();
+		}
 	};
 
 	root.setSize = function (width_, height_) {

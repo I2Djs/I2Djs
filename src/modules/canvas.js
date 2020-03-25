@@ -242,23 +242,32 @@ function getCanvasImgInstance (width, height) {
 	return canvas;
 }
 
-function CanvasPattern (self, pattern, repeatInd) {
-	var image = new Image();
-	var selfSelf = this;
-	image.src = pattern;
-
-	image.onload = function () {
-		selfSelf.pattern = self.ctx.createPattern(image, repeatInd);
-		queueInstance.vDomChanged(self.vDomIndex);
-	};
+function CanvasPattern (self, config = {}) {
+	let selfSelf = this;
+	let patternId = config.id ? config.id : 'pattern-' + Math.ceil(Math.random() * 1000);
+	this.repeatInd = config.repeat ? config.repeat : 'repeat';
+	selfSelf.pattern = canvasLayer(null, {}, {
+		enableEvents: false,
+		enableResize: false
+	});
+	selfSelf.pattern.setAttr('id', patternId);
+	self.prependChild([selfSelf.pattern]);
+	selfSelf.pattern.vDomIndex = self.vDomIndex + ':' + patternId;
+	selfSelf.pattern.onChange(function () {
+		selfSelf.patternObj = self.ctx.createPattern(selfSelf.pattern.domEl, selfSelf.repeatInd);
+	});
 }
 
-CanvasPattern.prototype.exe = function () {
-	return this.pattern;
+CanvasPattern.prototype.repeat = function (repeat) {
+	this.repeatInd = repeat;
 };
 
-function createCanvasPattern (patternObj, repeatInd) {
-	return new CanvasPattern(this, patternObj, repeatInd);
+CanvasPattern.prototype.exe = function () {
+	return this.patternObj;
+};
+
+function createCanvasPattern (patternConfig) {
+	return new CanvasPattern(this, patternConfig);
 }
 
 function applyStyles () {
@@ -1522,6 +1531,24 @@ CanvasNodeExe.prototype.execute = function Cexecute () {
 	this.ctx.restore();
 };
 
+CanvasNodeExe.prototype.prependChild = function child (childrens) {
+	const self = this;
+	const childrensLocal = childrens;
+
+	if (self.dom instanceof RenderGroup) {
+		for (let i = 0; i < childrensLocal.length; i += 1) {
+			childrensLocal[i].dom.parent = self;
+			self.children.unshift(childrensLocal[i]);
+		}
+	} else {
+		console.error('Trying to insert child to nonGroup Element');
+	}
+
+	this.BBoxUpdate = true;
+	queueInstance.vDomChanged(this.vDomIndex);
+	return self;
+};
+
 CanvasNodeExe.prototype.child = function child (childrens) {
 	const self = this;
 	const childrensLocal = childrens;
@@ -1575,7 +1602,7 @@ CanvasNodeExe.prototype.vDomIndex = null;
 
 CanvasNodeExe.prototype.createRadialGradient = createRadialGradient;
 CanvasNodeExe.prototype.createLinearGradient = createLinearGradient;
-CanvasNodeExe.prototype.createPattern = createCanvasPattern;
+// CanvasNodeExe.prototype
 
 CanvasNodeExe.prototype.createEls = function CcreateEls (data, config) {
 	const e = new CanvasCollection({
@@ -1659,6 +1686,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 	let cHeight;
 	let cWidth;
 	let resizeCall;
+	let onChangeExe;
 
 	if (res) {
 		res.appendChild(layer);
@@ -1666,13 +1694,16 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 		if (autoUpdate) {
 			vDomIndex = queueInstance.addVdom(vDomInstance);
 		}
+	} else {
+		enableEvents = false;
 	}
 
 	const root = new CanvasNodeExe(ctx, {
 		el: 'group',
 		attr: {
 			id: 'rootNode'
-		}
+		},
+		bbox: !!enableEvents
 	}, domId(), vDomIndex);
 
 	if (vDomInstance) {
@@ -1695,6 +1726,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 			this.setViewBox.apply(this, value.split(','));
 		}
 		layer.setAttribute(prop, value);
+		this.attr[prop] = value;
 	};
 
 	root.enableEvents = function (flag) {
@@ -1732,6 +1764,14 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 
 	root.onResize = function (exec) {
 		resizeCall = exec;
+	};
+
+	root.onChange = function (exec) {
+		onChangeExe = exec;
+	};
+
+	root.invokeOnChange = function () {
+		
 	};
 
 	root.setSize = function (width_, height_) {
@@ -1773,11 +1813,17 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 		}
 	};
 
+	root.createPattern = createCanvasPattern;
+
 	root.execute = function executeExe () {
 		onClear(ctx);
 		ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 		this.updateBBox();
 		execute();
+		if (onChangeExe && this.stateModified) {
+			onChangeExe();
+		}
+		this.stateModified = false;
 	};
 
 	root.update = function executeUpdate () {
