@@ -42,6 +42,50 @@ SVGCollection.prototype.createNode = function (ctx, config, vDomIndex) {
 //   return this
 // }
 
+function SVGMasking (self, config = {}) {
+	this.pDom = self;
+	let maskId = config.id ? config.id : 'mask-' + Math.ceil(Math.random() * 1000);
+	this.id = config.id || maskId;
+	config.id = maskId;
+	if (!this.defs) {
+		this.defs = self.createEl({
+			el: 'defs'
+		});
+	}
+
+	this.mask = this.defs.createEl({
+		el: 'mask',
+		attr: config,
+		style: { }
+	});
+}
+
+SVGMasking.prototype.exe = function exe () {
+	return `url(#${this.id})`;
+};
+
+function SVGClipping (self, config = {}) {
+	this.pDom = self;
+	let clipId = config.id ? config.id : 'clip-' + Math.ceil(Math.random() * 1000);
+	this.id = config.id || clipId;
+	config.id = clipId;
+	if (!this.defs) {
+		this.defs = self.createEl({
+			el: 'defs'
+		});
+	}
+
+	this.clip = this.defs.createEl({
+		el: 'clipPath',
+		attr: config,
+		style: { }
+	});
+}
+
+SVGClipping.prototype.exe = function exe () {
+	return `url(#${this.id})`;
+};
+
 
 function SVGPattern (self, config = {}) {
 	this.pDom = self;
@@ -64,10 +108,26 @@ SVGPattern.prototype.exe = function exe () {
 	return `url(#${this.id})`;
 };
 
+function gradTransformToString (trns) {
+	let cmd = '';
+
+	for (let trnX in trns) {
+		if (trnX === 'rotate') {
+			cmd += `${trnX}(${trns.rotate[0] + ' ' + (trns.rotate[1] || 0) + ' ' + (trns.rotate[2] || 0)}) `;
+		} else {
+			cmd += `${trnX}(${trns[trnX].join(' ')}) `;
+		}
+	}
+	return cmd;
+}
+
 function DomGradients (config, type, pDom) {
 	this.config = config;
 	this.type = type || 'linear';
 	this.pDom = pDom;
+	this.defs = this.pDom.createEl({
+		el: 'defs'
+	});
 }
 
 DomGradients.prototype.exe = function exe () {
@@ -77,24 +137,24 @@ DomGradients.prototype.exe = function exe () {
 DomGradients.prototype.linearGradient = function linearGradient () {
 	const self = this;
 
-	if (!this.defs) {
-		this.defs = this.pDom.createEl({
-			el: 'defs'
-		});
-	}
-
 	this.linearEl = this.defs.join([1], 'linearGradient', {
 		action: {
 			enter (data) {
-				this.createEls(data.linearGradient, {
+				let gredEl = this.createEls(data.linearGradient, {
 					el: 'linearGradient'
 				}).setAttr({
 					id: self.config.id,
 					x1: `${self.config.x1}%`,
 					y1: `${self.config.y1}%`,
 					x2: `${self.config.x2}%`,
-					y2: `${self.config.y2}%`
+					y2: `${self.config.y2}%`,
+					spreadMethod: self.config.spreadMethod || 'pad',
+					gradientUnits: self.config.gradientUnits || 'objectBoundingBox'
 				});
+
+				if (self.config.gradientTransform) {
+					gredEl.setAttr('gradientTransform', gradTransformToString(self.config.gradientTransform));
+				}
 			},
 
 			exit (oldNodes) {
@@ -107,8 +167,13 @@ DomGradients.prototype.linearGradient = function linearGradient () {
 					x1: `${self.config.x1}%`,
 					y1: `${self.config.y1}%`,
 					x2: `${self.config.x2}%`,
-					y2: `${self.config.y2}%`
+					y2: `${self.config.y2}%`,
+					spreadMethod: self.config.spreadMethod || 'pad',
+					gradientUnits: self.config.gradientUnits || 'objectBoundingBox'
 				});
+				if (self.config.gradientTransform) {
+					nodes.linearGradient.setAttr('gradientTransform', gradTransformToString(self.config.gradientTransform));
+				}
 			}
 
 		}
@@ -142,7 +207,7 @@ DomGradients.prototype.radialGradient = function radialGradient () {
 	this.radialEl = this.defs.join([1], 'radialGradient', {
 		action: {
 			enter (data) {
-				this.createEls(data.radialGradient, {
+				let gredEl = this.createEls(data.radialGradient, {
 					el: 'radialGradient'
 				}).setAttr({
 					id: self.config.id,
@@ -150,8 +215,14 @@ DomGradients.prototype.radialGradient = function radialGradient () {
 					cy: `${self.config.innerCircle.y}%`,
 					r: `${self.config.outerCircle.r}%`,
 					fx: `${self.config.outerCircle.x}%`,
-					fy: `${self.config.outerCircle.y}%`
+					fy: `${self.config.outerCircle.y}%`,
+					spreadMethod: self.config.spreadMethod || 'pad',
+					gradientUnits: self.config.gradientUnits || 'objectBoundingBox'
 				});
+
+				if (self.config.gradientTransform) {
+					gredEl.setAttr('gradientTransform', gradTransformToString(self.config.gradientTransform));
+				}
 			},
 
 			exit (oldNodes) {
@@ -165,8 +236,14 @@ DomGradients.prototype.radialGradient = function radialGradient () {
 					cy: `${self.config.innerCircle.y}%`,
 					r: `${self.config.outerCircle.r}%`,
 					fx: `${self.config.outerCircle.x}%`,
-					fy: `${self.config.outerCircle.y}%`
+					fy: `${self.config.outerCircle.y}%`,
+					spreadMethod: self.config.spreadMethod || 'pad',
+					gradientUnits: self.config.gradientUnits || 'objectBoundingBox'
 				});
+
+				if (self.config.gradientTransform) {
+					nodes.radialGradient.setAttr('gradientTransform', gradTransformToString(self.config.gradientTransform));
+				}
 			}
 
 		}
@@ -461,7 +538,7 @@ DomExe.prototype.execute = function DMexecute () {
 	}
 
 	for (let style in this.changedStyles) {
-		if (this.changedStyles[style] instanceof DomGradients || this.changedStyles[style] instanceof SVGPattern) {
+		if (this.changedStyles[style] instanceof DomGradients || this.changedStyles[style] instanceof SVGPattern || this.changedStyles[style] instanceof SVGClipping || this.changedStyles[style] instanceof SVGMasking) {
 			this.changedStyles[style] = this.changedStyles[style].exe();
 		}
 
@@ -709,6 +786,14 @@ function svgLayer (container, layerSettings = {}) {
 
 	root.createPattern = function (config) {
 		return new SVGPattern(this, config);
+	};
+
+	root.createClip = function (config) {
+		return new SVGClipping(this, config);
+	};
+
+	root.createMask = function (config) {
+		return new SVGMasking(this, config);
 	};
 
 	let dragTargetEl = null;

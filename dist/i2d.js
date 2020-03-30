@@ -171,7 +171,7 @@
 		if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
 			vDoms[vDom].stateModified = true;
 			vDoms[vDom].root.stateModified = true;
-		} else if (vDom) {
+		} else if (vDom && vDom !== 999999) {
 			let ids = vDom.split(':');
 			if (vDoms[ids[0]] && vDoms[ids[0]].stateModified !== undefined) {
 				vDoms[ids[0]].stateModified = true;
@@ -1482,7 +1482,6 @@
 			if (d === '' || d === ',') {
 				return false;
 			}
-
 			return true;
 		}).map(d => {
 			const dd = d.replace(/\$/g, 'e-');
@@ -1688,7 +1687,7 @@
 		});
 		this.length += this.segmentLength;
 		this.pp = this.cp;
-		this.cntrl = null;
+		this.cntrl = cntrl1;
 		return this;
 	}
 
@@ -1738,8 +1737,9 @@
 			x: 0,
 			y: 0
 		});
-		const cntrl1 = addVectors(this.pp, subVectors(this.pp, this.cntrl ? this.cntrl : this.pp));
 		const cntrl2 = addVectors(c2, temp);
+		const cntrl1 = this.cntrl ? addVectors(this.pp, subVectors(this.pp, this.cntrl ? this.cntrl : this.pp)) : cntrl2;
+		
 		const endPoint = addVectors(ep, temp);
 		this.cp = endPoint;
 		const co = t2DGeometry$1.cubicBezierCoefficients({
@@ -1832,6 +1832,7 @@
 			self.length += segmentLength;
 		});
 		this.pp = this.cp;
+		this.cntrl = null;
 		return this;
 	}
 
@@ -1871,6 +1872,26 @@
 		}
 
 		return this.stack;
+	};
+
+	Path.prototype.execute = function (ctx) {
+		let c;
+		ctx.beginPath();
+		for (let i = 0; i < this.stack.length; i++) {
+			c = this.stack[i];
+			if (c.type === 'M' || c.type === 'm') {
+				ctx.moveTo(c.p0.x, c.p0.y);
+			} else if (c.type === 'Z' || c.type === 'z') {
+				ctx.lineTo(c.p1.x, c.p1.y);
+			} else if (c.type === 'C' || c.type === 'c' || c.type === 'S' || c.type === 's') {
+				ctx.bezierCurveTo(c.cntrl1.x, c.cntrl1.y, c.cntrl2.x, c.cntrl2.y, c.p1.x, c.p1.y);
+			} else if (c.type === 'Q' || c.type === 'q') {
+				ctx.quadraticCurveTo(c.cntrl1.x, c.cntrl1.y, c.p1.x, c.p1.y);
+			} else if (c.type === 'V' || c.type === 'v' || c.type === 'H' || c.type === 'h' || c.type === 'l' || c.type === 'L') {
+				ctx.lineTo(c.p1.x, c.p1.y);
+			}
+		}
+		ctx.closePath();
 	};
 
 	Path.prototype.fetchPathString = function () {
@@ -3916,6 +3937,50 @@
 	//   return this
 	// }
 
+	function SVGMasking (self, config = {}) {
+		this.pDom = self;
+		let maskId = config.id ? config.id : 'mask-' + Math.ceil(Math.random() * 1000);
+		this.id = config.id || maskId;
+		config.id = maskId;
+		if (!this.defs) {
+			this.defs = self.createEl({
+				el: 'defs'
+			});
+		}
+
+		this.mask = this.defs.createEl({
+			el: 'mask',
+			attr: config,
+			style: { }
+		});
+	}
+
+	SVGMasking.prototype.exe = function exe () {
+		return `url(#${this.id})`;
+	};
+
+	function SVGClipping (self, config = {}) {
+		this.pDom = self;
+		let clipId = config.id ? config.id : 'clip-' + Math.ceil(Math.random() * 1000);
+		this.id = config.id || clipId;
+		config.id = clipId;
+		if (!this.defs) {
+			this.defs = self.createEl({
+				el: 'defs'
+			});
+		}
+
+		this.clip = this.defs.createEl({
+			el: 'clipPath',
+			attr: config,
+			style: { }
+		});
+	}
+
+	SVGClipping.prototype.exe = function exe () {
+		return `url(#${this.id})`;
+	};
+
 
 	function SVGPattern (self, config = {}) {
 		this.pDom = self;
@@ -3938,10 +4003,26 @@
 		return `url(#${this.id})`;
 	};
 
+	function gradTransformToString (trns) {
+		let cmd = '';
+
+		for (let trnX in trns) {
+			if (trnX === 'rotate') {
+				cmd += `${trnX}(${trns.rotate[0] + ' ' + (trns.rotate[1] || 0) + ' ' + (trns.rotate[2] || 0)}) `;
+			} else {
+				cmd += `${trnX}(${trns[trnX].join(' ')}) `;
+			}
+		}
+		return cmd;
+	}
+
 	function DomGradients (config, type, pDom) {
 		this.config = config;
 		this.type = type || 'linear';
 		this.pDom = pDom;
+		this.defs = this.pDom.createEl({
+			el: 'defs'
+		});
 	}
 
 	DomGradients.prototype.exe = function exe () {
@@ -3951,24 +4032,24 @@
 	DomGradients.prototype.linearGradient = function linearGradient () {
 		const self = this;
 
-		if (!this.defs) {
-			this.defs = this.pDom.createEl({
-				el: 'defs'
-			});
-		}
-
 		this.linearEl = this.defs.join([1], 'linearGradient', {
 			action: {
 				enter (data) {
-					this.createEls(data.linearGradient, {
+					let gredEl = this.createEls(data.linearGradient, {
 						el: 'linearGradient'
 					}).setAttr({
 						id: self.config.id,
 						x1: `${self.config.x1}%`,
 						y1: `${self.config.y1}%`,
 						x2: `${self.config.x2}%`,
-						y2: `${self.config.y2}%`
+						y2: `${self.config.y2}%`,
+						spreadMethod: self.config.spreadMethod || 'pad',
+						gradientUnits: self.config.gradientUnits || 'objectBoundingBox'
 					});
+
+					if (self.config.gradientTransform) {
+						gredEl.setAttr('gradientTransform', gradTransformToString(self.config.gradientTransform));
+					}
 				},
 
 				exit (oldNodes) {
@@ -3981,8 +4062,13 @@
 						x1: `${self.config.x1}%`,
 						y1: `${self.config.y1}%`,
 						x2: `${self.config.x2}%`,
-						y2: `${self.config.y2}%`
+						y2: `${self.config.y2}%`,
+						spreadMethod: self.config.spreadMethod || 'pad',
+						gradientUnits: self.config.gradientUnits || 'objectBoundingBox'
 					});
+					if (self.config.gradientTransform) {
+						nodes.linearGradient.setAttr('gradientTransform', gradTransformToString(self.config.gradientTransform));
+					}
 				}
 
 			}
@@ -4016,7 +4102,7 @@
 		this.radialEl = this.defs.join([1], 'radialGradient', {
 			action: {
 				enter (data) {
-					this.createEls(data.radialGradient, {
+					let gredEl = this.createEls(data.radialGradient, {
 						el: 'radialGradient'
 					}).setAttr({
 						id: self.config.id,
@@ -4024,8 +4110,14 @@
 						cy: `${self.config.innerCircle.y}%`,
 						r: `${self.config.outerCircle.r}%`,
 						fx: `${self.config.outerCircle.x}%`,
-						fy: `${self.config.outerCircle.y}%`
+						fy: `${self.config.outerCircle.y}%`,
+						spreadMethod: self.config.spreadMethod || 'pad',
+						gradientUnits: self.config.gradientUnits || 'objectBoundingBox'
 					});
+
+					if (self.config.gradientTransform) {
+						gredEl.setAttr('gradientTransform', gradTransformToString(self.config.gradientTransform));
+					}
 				},
 
 				exit (oldNodes) {
@@ -4039,8 +4131,14 @@
 						cy: `${self.config.innerCircle.y}%`,
 						r: `${self.config.outerCircle.r}%`,
 						fx: `${self.config.outerCircle.x}%`,
-						fy: `${self.config.outerCircle.y}%`
+						fy: `${self.config.outerCircle.y}%`,
+						spreadMethod: self.config.spreadMethod || 'pad',
+						gradientUnits: self.config.gradientUnits || 'objectBoundingBox'
 					});
+
+					if (self.config.gradientTransform) {
+						nodes.radialGradient.setAttr('gradientTransform', gradTransformToString(self.config.gradientTransform));
+					}
 				}
 
 			}
@@ -4335,7 +4433,7 @@
 		}
 
 		for (let style in this.changedStyles) {
-			if (this.changedStyles[style] instanceof DomGradients || this.changedStyles[style] instanceof SVGPattern) {
+			if (this.changedStyles[style] instanceof DomGradients || this.changedStyles[style] instanceof SVGPattern || this.changedStyles[style] instanceof SVGClipping || this.changedStyles[style] instanceof SVGMasking) {
 				this.changedStyles[style] = this.changedStyles[style].exe();
 			}
 
@@ -4583,6 +4681,14 @@
 
 		root.createPattern = function (config) {
 			return new SVGPattern(this, config);
+		};
+
+		root.createClip = function (config) {
+			return new SVGClipping(this, config);
+		};
+
+		root.createMask = function (config) {
+			return new SVGMasking(this, config);
 		};
 
 		let dragTargetEl = null;
@@ -5144,6 +5250,53 @@
 		return canvas;
 	}
 
+	function CanvasMask (self, config = {}) {
+		let maskId = config.id ? config.id : 'mask-' + Math.ceil(Math.random() * 1000);
+		this.config = config;
+		this.mask = new CanvasNodeExe(self.dom.ctx, {
+			el: 'group',
+			attr: {
+				id: maskId
+			}
+		}, domId$1(), self.vDomIndex);
+	}
+
+	CanvasMask.prototype.setAttr = function (attr, value) {
+		this.config[attr] = value;
+	};
+
+	CanvasMask.prototype.exe = function () {
+		this.mask.execute();
+		this.mask.dom.ctx.globalCompositeOperation = this.config.globalCompositeOperation || 'destination-atop';
+		return true;
+	};
+
+	function createCanvasMask (maskConfig) {
+		return new CanvasMask(this, maskConfig);
+	}
+
+
+	function CanvasClipping (self, config = {}) {
+		let clipId = config.id ? config.id : 'clip-' + Math.ceil(Math.random() * 1000);
+		this.clip = new CanvasNodeExe(self.dom.ctx, {
+			el: 'group',
+			attr: {
+				id: clipId
+			}
+		}, domId$1(), self.vDomIndex);
+	}
+
+	CanvasClipping.prototype.exe = function () {
+		this.clip.execute();
+		this.clip.dom.ctx.clip();
+		return true;
+	};
+
+	function createCanvasClip (patternConfig) {
+		return new CanvasClipping(this, patternConfig);
+	}
+
+
 	function CanvasPattern (self, config = {}) {
 		let selfSelf = this;
 		let patternId = config.id ? config.id : 'pattern-' + Math.ceil(Math.random() * 1000);
@@ -5640,16 +5793,14 @@
 
 	RenderPolyline.prototype.execute = function polylineExe () {
 		let self = this;
+		let d;
 		if (!this.attr.points) return;
 		this.ctx.beginPath();
-		this.attr.points.forEach(function (d, i) {
-			if (i === 0) {
-				self.ctx.moveTo(d.x, d.y);
-			} else {
-				self.ctx.lineTo(d.x, d.y);
-			}
-		});
-		this.applyStyles();
+		self.ctx.moveTo(this.attr.points[0].x, this.attr.points[0].y);
+		for (var i = 1; i < this.attr.points.length; i++) {
+			d = this.attr.points[i];
+			self.ctx.lineTo(d.x, d.y);
+		}	this.applyStyles();
 		this.ctx.closePath();
 	};
 
@@ -5774,12 +5925,16 @@
 
 	RenderPath.prototype.execute = function RPexecute () {
 		if (this.attr.d) {
-			if (this.ctx.fillStyle !== '#000000') {
-				this.ctx.fill(this.pathNode);
-			}
+			if (this.ctx.fillStyle !== '#000000' || this.ctx.strokeStyle !== '#000000') {
+				if (this.ctx.fillStyle !== '#000000') {
+					this.ctx.fill(this.pathNode);
+				}
 
-			if (this.ctx.strokeStyle !== '#000000') {
-				this.ctx.stroke(this.pathNode);
+				if (this.ctx.strokeStyle !== '#000000') {
+					this.ctx.stroke(this.pathNode);
+				}
+			} else {
+				this.path.execute(this.ctx);
 			}
 		}
 	};
@@ -5804,28 +5959,33 @@
 	/** ***************** Render polygon */
 
 	function polygonExe (points) {
-		let polygon = new Path2D();
-		let localPoints = points;
-		let points_ = [];
-		localPoints = localPoints.replace(/,/g, ' ').split(' ');
-		polygon.moveTo(localPoints[0], localPoints[1]);
-		points_.push({
-			x: parseFloat(localPoints[0]),
-			y: parseFloat(localPoints[1])
-		});
-
-		for (let i = 2; i < localPoints.length; i += 2) {
-			polygon.lineTo(localPoints[i], localPoints[i + 1]);
-			points_.push({
-				x: parseFloat(localPoints[i]),
-				y: parseFloat(localPoints[i + 1])
-			});
+		if (Object.prototype.toString.call(points) !== '[object Array]') {
+			console.error('Points expected as array [{x: , y:}]');
+			return;
 		}
 
+		let polygon = new Path2D();
+		polygon.moveTo(points[0].x, points[0].y);
+		for (let i = 1; i < points.length; i++) {
+			polygon.lineTo(points[i].x, points[i].y);
+		}
 		polygon.closePath();
+
 		return {
 			path: polygon,
-			points: points_
+			points: points,
+			execute: function (ctx) {
+				if (this.points.length === 0) {
+					return;
+				}
+				ctx.beginPath();
+				let points = this.points;
+				ctx.moveTo(points[0].x, points[0].y);
+				for (let i = 1; i < points.length; i++) {
+					ctx.lineTo(points[i].x, points[i].y);
+				}
+				ctx.closePath();
+			}
 		};
 	}
 
@@ -5860,12 +6020,16 @@
 
 	RenderPolygon.prototype.execute = function RPolyexecute () {
 		if (this.attr.points) {
-			if (this.ctx.fillStyle !== '#000000') {
-				this.ctx.fill(this.polygon.path);
-			}
+			if (this.ctx.fillStyle !== '#000000' || this.ctx.strokeStyle !== '#000000') {
+				if (this.ctx.fillStyle !== '#000000') {
+					this.ctx.fill(this.polygon.path);
+				}
 
-			if (this.ctx.strokeStyle !== '#000000') {
-				this.ctx.stroke(this.polygon.path);
+				if (this.ctx.strokeStyle !== '#000000') {
+					this.ctx.stroke(this.polygon.path);
+				}
+			} else {
+				this.polygon.execute(this.ctx);
 			}
 		}
 	};
@@ -6036,22 +6200,26 @@
 			attr
 		} = this;
 
-		if (ctx.fillStyle !== '#000000') {
-			if (!attr['rx'] && !attr['ry']) {
-				ctx.fillRect(attr.x, attr.y, attr.width, attr.height);
-			} else {
-				renderRoundRect(ctx, attr);
-				ctx.fill();
+		if (ctx.fillStyle !== '#000000' || ctx.strokeStyle !== '#000000') {
+			if (ctx.fillStyle !== '#000000') {
+				if (!attr['rx'] && !attr['ry']) {
+					ctx.fillRect(attr.x, attr.y, attr.width, attr.height);
+				} else {
+					renderRoundRect(ctx, attr);
+					ctx.fill();
+				}
 			}
-		}
 
-		if (ctx.strokeStyle !== '#000000') {
-			if (!attr['rx'] && !attr['ry']) {
-				ctx.strokeRect(attr.x, attr.y, attr.width, attr.height);
-			} else {
-				renderRoundRect(ctx, attr);
-				ctx.stroke();
+			if (ctx.strokeStyle !== '#000000') {
+				if (!attr['rx'] && !attr['ry']) {
+					ctx.strokeRect(attr.x, attr.y, attr.width, attr.height);
+				} else {
+					renderRoundRect(ctx, attr);
+					ctx.stroke();
+				}
 			}
+		} else {
+			ctx.rect(attr.x, attr.y, attr.width, attr.height);
 		}
 	};
 
@@ -6188,6 +6356,7 @@
 
 	let CanvasNodeExe = function CanvasNodeExe (context, config, id, vDomIndex) {
 		this.style = config.style || {};
+		this.setStyle(config.style);
 		this.attr = config.attr || {};
 		this.id = id;
 		this.nodeName = config.el;
@@ -6268,7 +6437,7 @@
 
 		for (key in style) {
 			if (typeof style[key] !== 'function') {
-				if (style[key] instanceof CanvasGradients || style[key] instanceof CanvasPattern) {
+				if (style[key] instanceof CanvasGradients || style[key] instanceof CanvasPattern || style[key] instanceof CanvasClipping || style[key] instanceof CanvasMask) {
 					value = style[key].exe(this.ctx, this.dom.BBox);
 				} else {
 					value = style[key];
@@ -6328,7 +6497,7 @@
 			value = value.rgba;
 		}
 
-		return value === '#000' || value === '#000000' || value === 'black' ? 'rgba(0, 0, 0, 0.9)' : value;
+		return value === '#000' || value === '#000000' || value === 'black' ? 'rgb(1, 1, 1)' : value;
 	}
 
 	CanvasNodeExe.prototype.setAttr = function CsetAttr (attr, value) {
@@ -6643,6 +6812,16 @@
 			this.setSize(this.width, this.height);
 		};
 
+		root.addDependentLayer = function (layer) {
+			if (!(layer instanceof CanvasNodeExe)) {
+				return;
+			}
+			let depId = layer.attr.id ? layer.attr.id : 'dep-' + Math.ceil(Math.random() * 1000);
+			layer.setAttr('id', depId);
+			layer.vDomIndex = this.vDomIndex + ':' + depId;
+			this.prependChild([layer]);
+		};
+
 		let resize = function () {
 			if (!document.querySelector(container)) {
 				window.removeEventListener('resize', resize);
@@ -6715,6 +6894,10 @@
 		};
 
 		root.createPattern = createCanvasPattern;
+
+		root.createClip = createCanvasClip;
+
+		root.createMask = createCanvasMask;
 
 		root.execute = function executeExe () {
 			onClear(ctx);

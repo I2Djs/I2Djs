@@ -160,7 +160,7 @@ ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom) {
 	if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
 		vDoms[vDom].stateModified = true;
 		vDoms[vDom].root.stateModified = true;
-	} else if (vDom) {
+	} else if (vDom && vDom !== 999999) {
 		let ids = vDom.split(':');
 		if (vDoms[ids[0]] && vDoms[ids[0]].stateModified !== undefined) {
 			vDoms[ids[0]].stateModified = true;

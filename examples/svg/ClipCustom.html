@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+<div id="myCanvas" style="height: 100%;width:100%;position: absolute;">
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
+
+<script type="text/javascript">
+
+var renderer_ = i2d.svgLayer('#myCanvas', {}, {});
+
+var clipInstance = renderer_.createClip();
+// clipInstance.clip.setSize(250, 100);
+clipInstance.clip.createEl({
+	el: 'polygon',
+	attr:{
+		points: [{x: 0, y: 0}, {x: 0, y: 100}, {x: 100, y: 100}, {x: 100, y: 0}, {x: 0, y: 0}]
+	}
+});
+
+var circle1 = renderer_.createEl({
+	el: 'circle',
+	attr: {
+		cx: 100,
+		cy: 100,
+		r: 100
+	},
+	style: {
+		'clip-Path': clipInstance,
+		stroke: 'grey',
+		fill: 'black'
+	}
+});
+
+</script>
+
+</body>
+</html>
