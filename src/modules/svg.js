@@ -538,10 +538,12 @@ DomExe.prototype.execute = function DMexecute () {
 	}
 
 	for (let style in this.changedStyles) {
-		if (this.changedStyles[style] instanceof DomGradients || this.changedStyles[style] instanceof SVGPattern || this.changedStyles[style] instanceof SVGClipping || this.changedStyles[style] instanceof SVGMasking) {
-			this.changedStyles[style] = this.changedStyles[style].exe();
+		if (typeof this.changedStyles[style] === 'object') {
+			if (this.changedStyles[style] instanceof DomGradients || this.changedStyles[style] instanceof SVGPattern || this.changedStyles[style] instanceof SVGClipping || this.changedStyles[style] instanceof SVGMasking) {
+				this.changedStyles[style] = this.changedStyles[style].exe();
+			}
 		}
-
+		
 		this.dom.style.setProperty(style, this.changedStyles[style], '');
 	}
 

@@ -39,7 +39,7 @@ var rect = renderer.createEl({
 var polygon = renderer.createEl({
 	el: 'polygon',
 	attr: {
-		points: '100,10 40,198 190,78 10,78 160,198',
+		points: [{x:100, y:10},{x:40, y:198}, {x:190, y:78}, {x: 10,y: 78}, {x: 160,y: 198}],
 		transform: {
 			translate: [200, 50]
 		}

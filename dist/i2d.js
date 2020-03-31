@@ -99,7 +99,7 @@
 	function add (uId, executable, easying) {
 		let exeObj = new Tween(uId, executable, easying);
 		exeObj.currTime = performance.now();
-		if (executable.target){
+		if (executable.target) {
 			if (!executable.target.animList) {
 				executable.target.animList = [];
 			}
@@ -4437,10 +4437,12 @@
 		}
 
 		for (let style in this.changedStyles) {
-			if (this.changedStyles[style] instanceof DomGradients || this.changedStyles[style] instanceof SVGPattern || this.changedStyles[style] instanceof SVGClipping || this.changedStyles[style] instanceof SVGMasking) {
-				this.changedStyles[style] = this.changedStyles[style].exe();
+			if (typeof this.changedStyles[style] === 'object') {
+				if (this.changedStyles[style] instanceof DomGradients || this.changedStyles[style] instanceof SVGPattern || this.changedStyles[style] instanceof SVGClipping || this.changedStyles[style] instanceof SVGMasking) {
+					this.changedStyles[style] = this.changedStyles[style].exe();
+				}
 			}
-
+			
 			this.dom.style.setProperty(style, this.changedStyles[style], '');
 		}
 
@@ -6440,7 +6442,9 @@
 		let style = this.style;
 
 		for (key in style) {
-			if (typeof style[key] !== 'function') {
+			if (typeof style[key] === 'string' || typeof style[key] === 'number') {
+				value = style[key];
+			} else if (typeof style[key] === 'object') {
 				if (style[key] instanceof CanvasGradients || style[key] instanceof CanvasPattern || style[key] instanceof CanvasClipping || style[key] instanceof CanvasMask) {
 					value = style[key].exe(this.ctx, this.dom.BBox);
 				} else {

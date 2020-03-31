@@ -1430,7 +1430,9 @@ CanvasNodeExe.prototype.stylesExe = function CstylesExe () {
 	let style = this.style;
 
 	for (key in style) {
-		if (typeof style[key] !== 'function') {
+		if (typeof style[key] === 'string' || typeof style[key] === 'number') {
+			value = style[key];
+		} else if (typeof style[key] === 'object') {
 			if (style[key] instanceof CanvasGradients || style[key] instanceof CanvasPattern || style[key] instanceof CanvasClipping || style[key] instanceof CanvasMask) {
 				value = style[key].exe(this.ctx, this.dom.BBox);
 			} else {
