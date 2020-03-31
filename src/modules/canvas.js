@@ -1766,8 +1766,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 		el: 'group',
 		attr: {
 			id: 'rootNode'
-		},
-		bbox: !!enableEvents
+		}
 	}, domId(), vDomIndex);
 
 	if (vDomInstance) {

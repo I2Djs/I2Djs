@@ -79,7 +79,7 @@ Events.prototype.mousedownCheck = function (e) {
 
 	if (node && node.dom.drag && (node.dom.drag.onDragStart || node.dom.drag.onDrag)) {
 		node.dom.drag.dragStartFlag = true;
-		if (node.dom.onDragStart) {
+		if (node.dom.drag.onDragStart) {
 			node.dom.drag.onDragStart.call(node, node.dataObj, e);
 		}
 		let event = new Event(e.offsetX, e.offsetY);

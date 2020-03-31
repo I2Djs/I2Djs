@@ -165,7 +165,7 @@ ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom) {
 	if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
 		vDoms[vDom].stateModified = true;
 		vDoms[vDom].root.stateModified = true;
-	} else if (vDom && vDom !== 999999) {
+	} else if (typeof vDom === 'string') {
 		let ids = vDom.split(':');
 		if (vDoms[ids[0]] && vDoms[ids[0]].stateModified !== undefined) {
 			vDoms[ids[0]].stateModified = true;
@@ -4837,7 +4837,7 @@ Events.prototype.mousedownCheck = function (e) {
 
 	if (node && node.dom.drag && (node.dom.drag.onDragStart || node.dom.drag.onDrag)) {
 		node.dom.drag.dragStartFlag = true;
-		if (node.dom.onDragStart) {
+		if (node.dom.drag.onDragStart) {
 			node.dom.drag.onDragStart.call(node, node.dataObj, e);
 		}
 		let event = new Event$1(e.offsetX, e.offsetY);
@@ -6766,8 +6766,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 		el: 'group',
 		attr: {
 			id: 'rootNode'
-		},
-		bbox: !!enableEvents
+		}
 	}, domId$1(), vDomIndex);
 
 	if (vDomInstance) {
