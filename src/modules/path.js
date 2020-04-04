@@ -23,7 +23,6 @@ function pathParser (path) {
 		if (d === '' || d === ',') {
 			return false;
 		}
-
 		return true;
 	}).map(d => {
 		const dd = d.replace(/\$/g, 'e-');
@@ -229,7 +228,7 @@ function q (rel, c1, ep) {
 	});
 	this.length += this.segmentLength;
 	this.pp = this.cp;
-	this.cntrl = null;
+	this.cntrl = cntrl1;
 	return this;
 }
 
@@ -279,8 +278,9 @@ function s (rel, c2, ep) {
 		x: 0,
 		y: 0
 	});
-	const cntrl1 = addVectors(this.pp, subVectors(this.pp, this.cntrl ? this.cntrl : this.pp));
 	const cntrl2 = addVectors(c2, temp);
+	const cntrl1 = this.cntrl ? addVectors(this.pp, subVectors(this.pp, this.cntrl ? this.cntrl : this.pp)) : cntrl2;
+	
 	const endPoint = addVectors(ep, temp);
 	this.cp = endPoint;
 	const co = t2DGeometry.cubicBezierCoefficients({
@@ -373,6 +373,7 @@ function a (rel, rx, ry, xRotation, arcLargeFlag, sweepFlag, ep) {
 		self.length += segmentLength;
 	});
 	this.pp = this.cp;
+	this.cntrl = null;
 	return this;
 }
 
@@ -412,6 +413,26 @@ Path.prototype.parse = function parse (path) {
 	}
 
 	return this.stack;
+};
+
+Path.prototype.execute = function (ctx) {
+	let c;
+	ctx.beginPath();
+	for (let i = 0; i < this.stack.length; i++) {
+		c = this.stack[i];
+		if (c.type === 'M' || c.type === 'm') {
+			ctx.moveTo(c.p0.x, c.p0.y);
+		} else if (c.type === 'Z' || c.type === 'z') {
+			ctx.lineTo(c.p1.x, c.p1.y);
+		} else if (c.type === 'C' || c.type === 'c' || c.type === 'S' || c.type === 's') {
+			ctx.bezierCurveTo(c.cntrl1.x, c.cntrl1.y, c.cntrl2.x, c.cntrl2.y, c.p1.x, c.p1.y);
+		} else if (c.type === 'Q' || c.type === 'q') {
+			ctx.quadraticCurveTo(c.cntrl1.x, c.cntrl1.y, c.p1.x, c.p1.y);
+		} else if (c.type === 'V' || c.type === 'v' || c.type === 'H' || c.type === 'h' || c.type === 'l' || c.type === 'L') {
+			ctx.lineTo(c.p1.x, c.p1.y);
+		}
+	}
+	ctx.closePath();
 };
 
 Path.prototype.fetchPathString = function () {

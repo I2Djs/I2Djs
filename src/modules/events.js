@@ -77,9 +77,11 @@ Events.prototype.mousedownCheck = function (e) {
 		y: e.offsetY
 	}, e, 'mousedown');
 
-	if (node && node.dom.drag && node.dom.drag.onDragStart) {
+	if (node && node.dom.drag && (node.dom.drag.onDragStart || node.dom.drag.onDrag)) {
 		node.dom.drag.dragStartFlag = true;
-		node.dom.drag.onDragStart.call(node, node.dataObj, e);
+		if (node.dom.drag.onDragStart) {
+			node.dom.drag.onDragStart.call(node, node.dataObj, e);
+		}
 		let event = new Event(e.offsetX, e.offsetY);
 		event.e = e;
 		node.dom.drag.event = event;
@@ -90,10 +92,12 @@ Events.prototype.mousedownCheck = function (e) {
 Events.prototype.mouseupCheck = function (e) {
 	let node = this.dragNode;
 
-	if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDragEnd) {
+	if (node && node.dom.drag && node.dom.drag.dragStartFlag) {
 		node.dom.drag.dragStartFlag = false;
 		node.dom.drag.event = null;
-		node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+		if (node.dom.drag.onDragEnd) {
+			node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+		}
 		node.dom.drag.event = null; // selectedNode = null
 		this.dragNode = null;
 	} else {
@@ -106,10 +110,12 @@ Events.prototype.mouseupCheck = function (e) {
 
 Events.prototype.mouseleaveCheck = function (e) {
 	let node = this.dragNode;
-	if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDragEnd) {
+	if (node && node.dom.drag && node.dom.drag.dragStartFlag) {
 		node.dom.drag.dragStartFlag = false;
 		node.dom.drag.event = null;
-		node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+		if (node.dom.drag.onDragEnd) {
+			node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+		}
 		this.dragNode = null;
 	} else {
 		propogateEvent([this.vDom], {
@@ -195,6 +201,11 @@ function propogateEvent (nodes, mouseCoor, rawEvent, eventType) {
 			x: mouseCoor.x,
 			y: mouseCoor.y
 		};
+
+		if (!d.bbox) {
+			return;
+		}
+
 		transformCoOr(d, coOr);
 
 		if (d.in({ x: coOr.x, y: coOr.y })) {

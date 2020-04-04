@@ -1,5 +1,5 @@
 /*!
-      * i2djs v2.0.4
+      * i2djs v3.0.0
       * (c) 2020 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
@@ -99,10 +99,12 @@
 	function add (uId, executable, easying) {
 		var exeObj = new Tween(uId, executable, easying);
 		exeObj.currTime = performance.now();
-		if (!executable.target.animList) {
-			executable.target.animList = [];
+		if (executable.target) {
+			if (!executable.target.animList) {
+				executable.target.animList = [];
+			}
+			executable.target.animList[executable.target.animList.length] = exeObj;
 		}
-		executable.target.animList[executable.target.animList.length] = exeObj;
 		tweens[tweens.length] = exeObj;
 		this.startAnimeFrames();
 	}
@@ -167,9 +169,20 @@
 		}
 	};
 
-	ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom, flag) {
+	ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom) {
 		if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
 			vDoms[vDom].stateModified = true;
+			vDoms[vDom].root.stateModified = true;
+		} else if (typeof vDom === 'string') {
+			var ids = vDom.split(':');
+			if (vDoms[ids[0]] && vDoms[ids[0]].stateModified !== undefined) {
+				vDoms[ids[0]].stateModified = true;
+				vDoms[ids[0]].root.stateModified = true;
+				var childRootNode = vDoms[ids[0]].root.fetchEl('#' + ids[1]);
+				if (childRootNode) {
+					childRootNode.stateModified = true;
+				}
+			}
 		}
 	};
 
@@ -182,6 +195,7 @@
 			if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].stateModified) {
 				vDoms[vDomIds[i]].execute();
 				vDoms[vDomIds[i]].stateModified = false;
+				// vDoms[vDomIds[i]].onchange();
 			} else if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].root && vDoms[vDomIds[i]].root.ENV !== 'NODE') {
 				var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id);
 
@@ -239,14 +253,16 @@
 			if (d.end) {
 				d.end();
 			}
-			var animList = d.executable.target.animList;
-			if (animList && animList.length > 0) {
-				if (animList.length === 1) {
-					d.executable.target.animList = [];
-				} else if (animList.length > 1) {
-					var index = animList.indexOf(d);
-					if (index !== -1) {
-						animList.splice(index, 1);
+			if (d.executable.target) {
+				var animList = d.executable.target.animList;
+				if (animList && animList.length > 0) {
+					if (animList.length === 1) {
+						d.executable.target.animList = [];
+					} else if (animList.length > 1) {
+						var index = animList.indexOf(d);
+						if (index !== -1) {
+							animList.splice(index, 1);
+						}
 					}
 				}
 			}
@@ -328,6 +344,10 @@
 	};
 
 	VDom.prototype.transformCoOr = transformCoOr;
+
+	// VDom.prototype.onchange = function () {
+	// 	// this.root.invokeOnChange();
+	// };
 
 	function transformCoOr (d, coOr) {
 		var assign;
@@ -1464,7 +1484,6 @@
 			if (d === '' || d === ',') {
 				return false;
 			}
-
 			return true;
 		}).map(function (d) {
 			var dd = d.replace(/\$/g, 'e-');
@@ -1670,7 +1689,7 @@
 		});
 		this.length += this.segmentLength;
 		this.pp = this.cp;
-		this.cntrl = null;
+		this.cntrl = cntrl1;
 		return this;
 	}
 
@@ -1720,8 +1739,9 @@
 			x: 0,
 			y: 0
 		});
-		var cntrl1 = addVectors(this.pp, subVectors(this.pp, this.cntrl ? this.cntrl : this.pp));
 		var cntrl2 = addVectors(c2, temp);
+		var cntrl1 = this.cntrl ? addVectors(this.pp, subVectors(this.pp, this.cntrl ? this.cntrl : this.pp)) : cntrl2;
+		
 		var endPoint = addVectors(ep, temp);
 		this.cp = endPoint;
 		var co = t2DGeometry$1.cubicBezierCoefficients({
@@ -1814,6 +1834,7 @@
 			self.length += segmentLength;
 		});
 		this.pp = this.cp;
+		this.cntrl = null;
 		return this;
 	}
 
@@ -1853,6 +1874,26 @@
 		}
 
 		return this.stack;
+	};
+
+	Path.prototype.execute = function (ctx) {
+		var c;
+		ctx.beginPath();
+		for (var i = 0; i < this.stack.length; i++) {
+			c = this.stack[i];
+			if (c.type === 'M' || c.type === 'm') {
+				ctx.moveTo(c.p0.x, c.p0.y);
+			} else if (c.type === 'Z' || c.type === 'z') {
+				ctx.lineTo(c.p1.x, c.p1.y);
+			} else if (c.type === 'C' || c.type === 'c' || c.type === 'S' || c.type === 's') {
+				ctx.bezierCurveTo(c.cntrl1.x, c.cntrl1.y, c.cntrl2.x, c.cntrl2.y, c.p1.x, c.p1.y);
+			} else if (c.type === 'Q' || c.type === 'q') {
+				ctx.quadraticCurveTo(c.cntrl1.x, c.cntrl1.y, c.p1.x, c.p1.y);
+			} else if (c.type === 'V' || c.type === 'v' || c.type === 'H' || c.type === 'h' || c.type === 'l' || c.type === 'L') {
+				ctx.lineTo(c.p1.x, c.p1.y);
+			}
+		}
+		ctx.closePath();
 	};
 
 	Path.prototype.fetchPathString = function () {
@@ -3900,10 +3941,98 @@
 	//   return this
 	// }
 
+	function SVGMasking (self, config) {
+		if ( config === void 0 ) config = {};
+
+		this.pDom = self;
+		var maskId = config.id ? config.id : 'mask-' + Math.ceil(Math.random() * 1000);
+		this.id = config.id || maskId;
+		config.id = maskId;
+		if (!this.defs) {
+			this.defs = self.createEl({
+				el: 'defs'
+			});
+		}
+
+		this.mask = this.defs.createEl({
+			el: 'mask',
+			attr: config,
+			style: { }
+		});
+	}
+
+	SVGMasking.prototype.exe = function exe () {
+		return ("url(#" + (this.id) + ")");
+	};
+
+	function SVGClipping (self, config) {
+		if ( config === void 0 ) config = {};
+
+		this.pDom = self;
+		var clipId = config.id ? config.id : 'clip-' + Math.ceil(Math.random() * 1000);
+		this.id = config.id || clipId;
+		config.id = clipId;
+		if (!this.defs) {
+			this.defs = self.createEl({
+				el: 'defs'
+			});
+		}
+
+		this.clip = this.defs.createEl({
+			el: 'clipPath',
+			attr: config,
+			style: { }
+		});
+	}
+
+	SVGClipping.prototype.exe = function exe () {
+		return ("url(#" + (this.id) + ")");
+	};
+
+
+	function SVGPattern (self, config) {
+		if ( config === void 0 ) config = {};
+
+		this.pDom = self;
+		var patternId = config.id ? config.id : 'pattern-' + Math.ceil(Math.random() * 1000);
+		this.id = config.id || patternId;
+		config.id = patternId;
+		if (!this.defs) {
+			this.defs = self.createEl({
+				el: 'defs'
+			});
+		}
+
+		this.pattern = this.defs.createEl({
+			el: 'pattern',
+			attr: config,
+			style: { }
+		});
+	}
+	SVGPattern.prototype.exe = function exe () {
+		return ("url(#" + (this.id) + ")");
+	};
+
+	function gradTransformToString (trns) {
+		var cmd = '';
+
+		for (var trnX in trns) {
+			if (trnX === 'rotate') {
+				cmd += trnX + "(" + (trns.rotate[0] + ' ' + (trns.rotate[1] || 0) + ' ' + (trns.rotate[2] || 0)) + ") ";
+			} else {
+				cmd += trnX + "(" + (trns[trnX].join(' ')) + ") ";
+			}
+		}
+		return cmd;
+	}
+
 	function DomGradients (config, type, pDom) {
 		this.config = config;
 		this.type = type || 'linear';
 		this.pDom = pDom;
+		this.defs = this.pDom.createEl({
+			el: 'defs'
+		});
 	}
 
 	DomGradients.prototype.exe = function exe () {
@@ -3913,24 +4042,24 @@
 	DomGradients.prototype.linearGradient = function linearGradient () {
 		var self = this;
 
-		if (!this.defs) {
-			this.defs = this.pDom.createEl({
-				el: 'defs'
-			});
-		}
-
 		this.linearEl = this.defs.join([1], 'linearGradient', {
 			action: {
 				enter: function enter (data) {
-					this.createEls(data.linearGradient, {
+					var gredEl = this.createEls(data.linearGradient, {
 						el: 'linearGradient'
 					}).setAttr({
 						id: self.config.id,
 						x1: ((self.config.x1) + "%"),
 						y1: ((self.config.y1) + "%"),
 						x2: ((self.config.x2) + "%"),
-						y2: ((self.config.y2) + "%")
+						y2: ((self.config.y2) + "%"),
+						spreadMethod: self.config.spreadMethod || 'pad',
+						gradientUnits: self.config.gradientUnits || 'objectBoundingBox'
 					});
+
+					if (self.config.gradientTransform) {
+						gredEl.setAttr('gradientTransform', gradTransformToString(self.config.gradientTransform));
+					}
 				},
 
 				exit: function exit (oldNodes) {
@@ -3943,8 +4072,13 @@
 						x1: ((self.config.x1) + "%"),
 						y1: ((self.config.y1) + "%"),
 						x2: ((self.config.x2) + "%"),
-						y2: ((self.config.y2) + "%")
+						y2: ((self.config.y2) + "%"),
+						spreadMethod: self.config.spreadMethod || 'pad',
+						gradientUnits: self.config.gradientUnits || 'objectBoundingBox'
 					});
+					if (self.config.gradientTransform) {
+						nodes.linearGradient.setAttr('gradientTransform', gradTransformToString(self.config.gradientTransform));
+					}
 				}
 
 			}
@@ -3978,7 +4112,7 @@
 		this.radialEl = this.defs.join([1], 'radialGradient', {
 			action: {
 				enter: function enter (data) {
-					this.createEls(data.radialGradient, {
+					var gredEl = this.createEls(data.radialGradient, {
 						el: 'radialGradient'
 					}).setAttr({
 						id: self.config.id,
@@ -3986,8 +4120,14 @@
 						cy: ((self.config.innerCircle.y) + "%"),
 						r: ((self.config.outerCircle.r) + "%"),
 						fx: ((self.config.outerCircle.x) + "%"),
-						fy: ((self.config.outerCircle.y) + "%")
+						fy: ((self.config.outerCircle.y) + "%"),
+						spreadMethod: self.config.spreadMethod || 'pad',
+						gradientUnits: self.config.gradientUnits || 'objectBoundingBox'
 					});
+
+					if (self.config.gradientTransform) {
+						gredEl.setAttr('gradientTransform', gradTransformToString(self.config.gradientTransform));
+					}
 				},
 
 				exit: function exit (oldNodes) {
@@ -4001,8 +4141,14 @@
 						cy: ((self.config.innerCircle.y) + "%"),
 						r: ((self.config.outerCircle.r) + "%"),
 						fx: ((self.config.outerCircle.x) + "%"),
-						fy: ((self.config.outerCircle.y) + "%")
+						fy: ((self.config.outerCircle.y) + "%"),
+						spreadMethod: self.config.spreadMethod || 'pad',
+						gradientUnits: self.config.gradientUnits || 'objectBoundingBox'
 					});
+
+					if (self.config.gradientTransform) {
+						nodes.radialGradient.setAttr('gradientTransform', gradTransformToString(self.config.gradientTransform));
+					}
 				}
 
 			}
@@ -4297,10 +4443,12 @@
 		}
 
 		for (var style in this.changedStyles) {
-			if (this.changedStyles[style] instanceof DomGradients) {
-				this.changedStyles[style] = this.changedStyles[style].exe();
+			if (typeof this.changedStyles[style] === 'object') {
+				if (this.changedStyles[style] instanceof DomGradients || this.changedStyles[style] instanceof SVGPattern || this.changedStyles[style] instanceof SVGClipping || this.changedStyles[style] instanceof SVGMasking) {
+					this.changedStyles[style] = this.changedStyles[style].exe();
+				}
 			}
-
+			
 			this.dom.style.setProperty(style, this.changedStyles[style], '');
 		}
 
@@ -4346,6 +4494,8 @@
 		gradientIns.linearGradient();
 		return gradientIns;
 	};
+
+	// DomExe.prototype
 
 	var dragStack = [];
 
@@ -4461,6 +4611,7 @@
 		var cHeight;
 		var cWidth;
 		var resizeCall;
+		var onChangeExe;
 
 		if (res) {
 			res.appendChild(layer);
@@ -4507,6 +4658,16 @@
 			resizeCall = exec;
 		};
 
+		root.onChange = function (exec) {
+			onChangeExe = exec;
+		};
+
+		root.invokeOnChange = function () {
+			if (onChangeExe) {
+				onChangeExe();
+			}
+		};
+
 		root.setSize = function (width, height) {
 			this.dom.setAttribute('height', height);
 			this.dom.setAttribute('width', width);
@@ -4532,6 +4693,18 @@
 			queueInstance$2.removeVdom(vDomIndex);
 		};
 
+		root.createPattern = function (config) {
+			return new SVGPattern(this, config);
+		};
+
+		root.createClip = function (config) {
+			return new SVGClipping(this, config);
+		};
+
+		root.createMask = function (config) {
+			return new SVGMasking(this, config);
+		};
+
 		var dragTargetEl = null;
 		root.dom.addEventListener('mousedown', function (e) {
 			if (dragStack.length) {
@@ -4546,7 +4719,9 @@
 					event.e = e;
 					dragTargetEl.drag.event = event;
 					dragTargetEl.drag.dragStartFlag = true;
-					dragTargetEl.drag.onDragStart.call(dragTargetEl, dragTargetEl.dataObj, event);
+					if (dragTargetEl.drag.onDragStart) {
+						dragTargetEl.drag.onDragStart.call(dragTargetEl, dragTargetEl.dataObj, event);
+					}
 				}
 			}
 		});
@@ -4558,7 +4733,9 @@
 				event.x = e.offsetX;
 				event.y = e.offsetY;
 				event.e = e;
-				dragTargetEl.drag.onDrag.call(dragTargetEl, dragTargetEl.dataObj, event);
+				if (dragTargetEl.drag.onDrag) {
+					dragTargetEl.drag.onDrag.call(dragTargetEl, dragTargetEl.dataObj, event);
+				}
 			}
 		});
 		root.dom.addEventListener('mouseup', function (e) {
@@ -4569,7 +4746,9 @@
 				event.x = e.offsetX;
 				event.y = e.offsetY;
 				event.e = e;
-				dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
+				if (dragTargetEl.drag.onDragEnd) {
+					dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
+				}
 				dragTargetEl = null;
 			}
 		});
@@ -4581,7 +4760,9 @@
 				event.x = e.offsetX;
 				event.y = e.offsetY;
 				event.e = e;
-				dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
+				if (dragTargetEl.drag.onDragEnd) {
+					dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
+				}
 				dragTargetEl = null;
 			}
 		});
@@ -4674,9 +4855,11 @@
 			y: e.offsetY
 		}, e, 'mousedown');
 
-		if (node && node.dom.drag && node.dom.drag.onDragStart) {
+		if (node && node.dom.drag && (node.dom.drag.onDragStart || node.dom.drag.onDrag)) {
 			node.dom.drag.dragStartFlag = true;
-			node.dom.drag.onDragStart.call(node, node.dataObj, e);
+			if (node.dom.drag.onDragStart) {
+				node.dom.drag.onDragStart.call(node, node.dataObj, e);
+			}
 			var event = new Event$1(e.offsetX, e.offsetY);
 			event.e = e;
 			node.dom.drag.event = event;
@@ -4687,10 +4870,12 @@
 	Events.prototype.mouseupCheck = function (e) {
 		var node = this.dragNode;
 
-		if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDragEnd) {
+		if (node && node.dom.drag && node.dom.drag.dragStartFlag) {
 			node.dom.drag.dragStartFlag = false;
 			node.dom.drag.event = null;
-			node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+			if (node.dom.drag.onDragEnd) {
+				node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+			}
 			node.dom.drag.event = null; // selectedNode = null
 			this.dragNode = null;
 		} else {
@@ -4703,10 +4888,12 @@
 
 	Events.prototype.mouseleaveCheck = function (e) {
 		var node = this.dragNode;
-		if (node && node.dom.drag && node.dom.drag.dragStartFlag && node.dom.drag.onDragEnd) {
+		if (node && node.dom.drag && node.dom.drag.dragStartFlag) {
 			node.dom.drag.dragStartFlag = false;
 			node.dom.drag.event = null;
-			node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+			if (node.dom.drag.onDragEnd) {
+				node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+			}
 			this.dragNode = null;
 		} else {
 			propogateEvent([this.vDom], {
@@ -4792,6 +4979,11 @@
 				x: mouseCoor.x,
 				y: mouseCoor.y
 			};
+
+			if (!d.bbox) {
+				return;
+			}
+
 			transformCoOr$1(d, coOr);
 
 			if (d.in({ x: coOr.x, y: coOr.y })) {
@@ -5073,23 +5265,85 @@
 		return canvas;
 	}
 
-	function CanvasPattern (self, pattern, repeatInd) {
-		var image = new Image();
-		var selfSelf = this;
-		image.src = pattern;
+	function CanvasMask (self, config) {
+		if ( config === void 0 ) config = {};
 
-		image.onload = function () {
-			selfSelf.pattern = self.ctx.createPattern(image, repeatInd);
-			queueInstance$3.vDomChanged(self.vDomIndex);
-		};
+		var maskId = config.id ? config.id : 'mask-' + Math.ceil(Math.random() * 1000);
+		this.config = config;
+		this.mask = new CanvasNodeExe(self.dom.ctx, {
+			el: 'group',
+			attr: {
+				id: maskId
+			}
+		}, domId$1(), self.vDomIndex);
 	}
 
-	CanvasPattern.prototype.exe = function () {
-		return this.pattern;
+	CanvasMask.prototype.setAttr = function (attr, value) {
+		this.config[attr] = value;
 	};
 
-	function createCanvasPattern (patternObj, repeatInd) {
-		return new CanvasPattern(this, patternObj, repeatInd);
+	CanvasMask.prototype.exe = function () {
+		this.mask.execute();
+		this.mask.dom.ctx.globalCompositeOperation = this.config.globalCompositeOperation || 'destination-atop';
+		return true;
+	};
+
+	function createCanvasMask (maskConfig) {
+		return new CanvasMask(this, maskConfig);
+	}
+
+
+	function CanvasClipping (self, config) {
+		if ( config === void 0 ) config = {};
+
+		var clipId = config.id ? config.id : 'clip-' + Math.ceil(Math.random() * 1000);
+		this.clip = new CanvasNodeExe(self.dom.ctx, {
+			el: 'group',
+			attr: {
+				id: clipId
+			}
+		}, domId$1(), self.vDomIndex);
+	}
+
+	CanvasClipping.prototype.exe = function () {
+		this.clip.execute();
+		this.clip.dom.ctx.clip();
+		return true;
+	};
+
+	function createCanvasClip (patternConfig) {
+		return new CanvasClipping(this, patternConfig);
+	}
+
+
+	function CanvasPattern (self, config) {
+		if ( config === void 0 ) config = {};
+
+		var selfSelf = this;
+		var patternId = config.id ? config.id : 'pattern-' + Math.ceil(Math.random() * 1000);
+		this.repeatInd = config.repeat ? config.repeat : 'repeat';
+		selfSelf.pattern = canvasLayer(null, {}, {
+			enableEvents: false,
+			enableResize: false
+		});
+		selfSelf.pattern.setAttr('id', patternId);
+		self.prependChild([selfSelf.pattern]);
+		selfSelf.pattern.vDomIndex = self.vDomIndex + ':' + patternId;
+		selfSelf.pattern.onChange(function () {
+			selfSelf.patternObj = self.ctx.createPattern(selfSelf.pattern.domEl, selfSelf.repeatInd);
+		});
+	}
+
+	CanvasPattern.prototype.repeat = function (repeat) {
+		this.repeatInd = repeat;
+	};
+
+	CanvasPattern.prototype.exe = function () {
+		return this.patternObj;
+	};
+
+	function createCanvasPattern (patternConfig) {
+		return new CanvasPattern(this, patternConfig);
 	}
 
 	function applyStyles () {
@@ -5557,16 +5811,14 @@
 
 	RenderPolyline.prototype.execute = function polylineExe () {
 		var self = this;
+		var d;
 		if (!this.attr.points) { return; }
 		this.ctx.beginPath();
-		this.attr.points.forEach(function (d, i) {
-			if (i === 0) {
-				self.ctx.moveTo(d.x, d.y);
-			} else {
-				self.ctx.lineTo(d.x, d.y);
-			}
-		});
-		this.applyStyles();
+		self.ctx.moveTo(this.attr.points[0].x, this.attr.points[0].y);
+		for (var i = 1; i < this.attr.points.length; i++) {
+			d = this.attr.points[i];
+			self.ctx.lineTo(d.x, d.y);
+		}	this.applyStyles();
 		this.ctx.closePath();
 	};
 
@@ -5692,12 +5944,16 @@
 
 	RenderPath.prototype.execute = function RPexecute () {
 		if (this.attr.d) {
-			if (this.ctx.fillStyle !== '#000000') {
-				this.ctx.fill(this.pathNode);
-			}
+			if (this.ctx.fillStyle !== '#000000' || this.ctx.strokeStyle !== '#000000') {
+				if (this.ctx.fillStyle !== '#000000') {
+					this.ctx.fill(this.pathNode);
+				}
 
-			if (this.ctx.strokeStyle !== '#000000') {
-				this.ctx.stroke(this.pathNode);
+				if (this.ctx.strokeStyle !== '#000000') {
+					this.ctx.stroke(this.pathNode);
+				}
+			} else {
+				this.path.execute(this.ctx);
 			}
 		}
 	};
@@ -5722,28 +5978,33 @@
 	/** ***************** Render polygon */
 
 	function polygonExe (points) {
-		var polygon = new Path2D();
-		var localPoints = points;
-		var points_ = [];
-		localPoints = localPoints.replace(/,/g, ' ').split(' ');
-		polygon.moveTo(localPoints[0], localPoints[1]);
-		points_.push({
-			x: parseFloat(localPoints[0]),
-			y: parseFloat(localPoints[1])
-		});
-
-		for (var i = 2; i < localPoints.length; i += 2) {
-			polygon.lineTo(localPoints[i], localPoints[i + 1]);
-			points_.push({
-				x: parseFloat(localPoints[i]),
-				y: parseFloat(localPoints[i + 1])
-			});
+		if (Object.prototype.toString.call(points) !== '[object Array]') {
+			console.error('Points expected as array [{x: , y:}]');
+			return;
 		}
 
+		var polygon = new Path2D();
+		polygon.moveTo(points[0].x, points[0].y);
+		for (var i = 1; i < points.length; i++) {
+			polygon.lineTo(points[i].x, points[i].y);
+		}
 		polygon.closePath();
+
 		return {
 			path: polygon,
-			points: points_
+			points: points,
+			execute: function (ctx) {
+				if (this.points.length === 0) {
+					return;
+				}
+				ctx.beginPath();
+				var points = this.points;
+				ctx.moveTo(points[0].x, points[0].y);
+				for (var i = 1; i < points.length; i++) {
+					ctx.lineTo(points[i].x, points[i].y);
+				}
+				ctx.closePath();
+			}
 		};
 	}
 
@@ -5778,12 +6039,16 @@
 
 	RenderPolygon.prototype.execute = function RPolyexecute () {
 		if (this.attr.points) {
-			if (this.ctx.fillStyle !== '#000000') {
-				this.ctx.fill(this.polygon.path);
-			}
+			if (this.ctx.fillStyle !== '#000000' || this.ctx.strokeStyle !== '#000000') {
+				if (this.ctx.fillStyle !== '#000000') {
+					this.ctx.fill(this.polygon.path);
+				}
 
-			if (this.ctx.strokeStyle !== '#000000') {
-				this.ctx.stroke(this.polygon.path);
+				if (this.ctx.strokeStyle !== '#000000') {
+					this.ctx.stroke(this.polygon.path);
+				}
+			} else {
+				this.polygon.execute(this.ctx);
 			}
 		}
 	};
@@ -5951,22 +6216,26 @@
 		var ctx = ref.ctx;
 		var attr = ref.attr;
 
-		if (ctx.fillStyle !== '#000000') {
-			if (!attr['rx'] && !attr['ry']) {
-				ctx.fillRect(attr.x, attr.y, attr.width, attr.height);
-			} else {
-				renderRoundRect(ctx, attr);
-				ctx.fill();
+		if (ctx.fillStyle !== '#000000' || ctx.strokeStyle !== '#000000') {
+			if (ctx.fillStyle !== '#000000') {
+				if (!attr['rx'] && !attr['ry']) {
+					ctx.fillRect(attr.x, attr.y, attr.width, attr.height);
+				} else {
+					renderRoundRect(ctx, attr);
+					ctx.fill();
+				}
 			}
-		}
 
-		if (ctx.strokeStyle !== '#000000') {
-			if (!attr['rx'] && !attr['ry']) {
-				ctx.strokeRect(attr.x, attr.y, attr.width, attr.height);
-			} else {
-				renderRoundRect(ctx, attr);
-				ctx.stroke();
+			if (ctx.strokeStyle !== '#000000') {
+				if (!attr['rx'] && !attr['ry']) {
+					ctx.strokeRect(attr.x, attr.y, attr.width, attr.height);
+				} else {
+					renderRoundRect(ctx, attr);
+					ctx.stroke();
+				}
 			}
+		} else {
+			ctx.rect(attr.x, attr.y, attr.width, attr.height);
 		}
 	};
 
@@ -6101,6 +6370,7 @@
 
 	var CanvasNodeExe = function CanvasNodeExe (context, config, id, vDomIndex) {
 		this.style = config.style || {};
+		this.setStyle(config.style);
 		this.attr = config.attr || {};
 		this.id = id;
 		this.nodeName = config.el;
@@ -6180,8 +6450,10 @@
 		var style = this.style;
 
 		for (key in style) {
-			if (typeof style[key] !== 'function') {
-				if (style[key] instanceof CanvasGradients || style[key] instanceof CanvasPattern) {
+			if (typeof style[key] === 'string' || typeof style[key] === 'number') {
+				value = style[key];
+			} else if (typeof style[key] === 'object') {
+				if (style[key] instanceof CanvasGradients || style[key] instanceof CanvasPattern || style[key] instanceof CanvasClipping || style[key] instanceof CanvasMask) {
 					value = style[key].exe(this.ctx, this.dom.BBox);
 				} else {
 					value = style[key];
@@ -6240,7 +6512,7 @@
 			value = value.rgba;
 		}
 
-		return value === '#000' || value === '#000000' || value === 'black' ? 'rgba(0, 0, 0, 0.9)' : value;
+		return value === '#000' || value === '#000000' || value === 'black' ? 'rgb(1, 1, 1)' : value;
 	}
 
 	CanvasNodeExe.prototype.setAttr = function CsetAttr (attr, value) {
@@ -6344,6 +6616,24 @@
 		this.ctx.restore();
 	};
 
+	CanvasNodeExe.prototype.prependChild = function child (childrens) {
+		var self = this;
+		var childrensLocal = childrens;
+
+		if (self.dom instanceof RenderGroup) {
+			for (var i = 0; i < childrensLocal.length; i += 1) {
+				childrensLocal[i].dom.parent = self;
+				self.children.unshift(childrensLocal[i]);
+			}
+		} else {
+			console.error('Trying to insert child to nonGroup Element');
+		}
+
+		this.BBoxUpdate = true;
+		queueInstance$3.vDomChanged(this.vDomIndex);
+		return self;
+	};
+
 	CanvasNodeExe.prototype.child = function child (childrens) {
 		var self = this;
 		var childrensLocal = childrens;
@@ -6397,7 +6687,7 @@
 
 	CanvasNodeExe.prototype.createRadialGradient = createRadialGradient;
 	CanvasNodeExe.prototype.createLinearGradient = createLinearGradient;
-	CanvasNodeExe.prototype.createPattern = createCanvasPattern;
+	// CanvasNodeExe.prototype
 
 	CanvasNodeExe.prototype.createEls = function CcreateEls (data, config) {
 		var e = new CanvasCollection({
@@ -6486,6 +6776,7 @@
 		var cHeight;
 		var cWidth;
 		var resizeCall;
+		var onChangeExe;
 
 		if (res) {
 			res.appendChild(layer);
@@ -6493,6 +6784,8 @@
 			if (autoUpdate) {
 				vDomIndex = queueInstance$3.addVdom(vDomInstance);
 			}
+		} else {
+			enableEvents = false;
 		}
 
 		var root = new CanvasNodeExe(ctx, {
@@ -6522,6 +6815,7 @@
 				this.setViewBox.apply(this, value.split(','));
 			}
 			layer.setAttribute(prop, value);
+			this.attr[prop] = value;
 		};
 
 		root.enableEvents = function (flag) {
@@ -6535,6 +6829,16 @@
 		root.setPixelRatio = function (val) {
 			ratio = val;
 			this.setSize(this.width, this.height);
+		};
+
+		root.addDependentLayer = function (layer) {
+			if (!(layer instanceof CanvasNodeExe)) {
+				return;
+			}
+			var depId = layer.attr.id ? layer.attr.id : 'dep-' + Math.ceil(Math.random() * 1000);
+			layer.setAttr('id', depId);
+			layer.vDomIndex = this.vDomIndex + ':' + depId;
+			this.prependChild([layer]);
 		};
 
 		var resize = function () {
@@ -6559,6 +6863,14 @@
 
 		root.onResize = function (exec) {
 			resizeCall = exec;
+		};
+
+		root.onChange = function (exec) {
+			onChangeExe = exec;
+		};
+
+		root.invokeOnChange = function () {
+			
 		};
 
 		root.setSize = function (width_, height_) {
@@ -6600,11 +6912,21 @@
 			}
 		};
 
+		root.createPattern = createCanvasPattern;
+
+		root.createClip = createCanvasClip;
+
+		root.createMask = createCanvasMask;
+
 		root.execute = function executeExe () {
 			onClear(ctx);
 			ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 			this.updateBBox();
 			execute();
+			if (onChangeExe && this.stateModified) {
+				onChangeExe();
+			}
+			this.stateModified = false;
 		};
 
 		root.update = function executeUpdate () {
@@ -9526,6 +9848,7 @@
 		var vDomInstance;
 		var vDomIndex = 999999;
 		var resizeCall;
+		var onChangeExe;
 
 		if (res) {
 			res.appendChild(layer);
@@ -9625,6 +9948,16 @@
 
 		root.onResize = function (exec) {
 			resizeCall = exec;
+		};
+
+		root.onChange = function (exec) {
+			onChangeExe = exec;
+		};
+
+		root.invokeOnChange = function () {
+			if (onChangeExe) {
+				onChangeExe();
+			}
 		};
 
 		root.setSize = function (width_, height_) {

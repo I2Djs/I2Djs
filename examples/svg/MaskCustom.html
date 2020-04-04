@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+<div id="myCanvas" style="height: 100%;width:100%;position: absolute;">
+</div>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
+
+<script type="text/javascript">
+var renderer = i2d.svgLayer('#myCanvas', {}, {});
+
+var pattern2 = renderer.createPattern({
+	viewBox: "0,0,5,10",
+	width: "5%",
+	height: "5%"
+});
+
+pattern2.pattern.createEl({
+	el: 'circle',
+	attr:{
+		r: 5,
+		cx: 5,
+		cy: 5
+	},
+	style: {
+		fill: '#ddd'
+	}
+});
+
+var maskInstance = renderer.createMask();
+maskInstance.mask.createEl({
+	el: 'rect',
+	attr:{
+		x: 0,
+		y: 0,
+		width: 566,
+		height: 200
+	},
+	style: {
+		fill: pattern2
+	}
+});
+
+renderer.createEl({
+	el: 'image',
+	attr: {
+		'xlink:href': './../../i2djsLogo.png',
+		x: 0,
+		y: 0,
+		width: 566,
+		height: 300
+	},
+	style: {
+		mask: maskInstance
+	}
+});
+
+
+</script>
+
+</body>
+</html>

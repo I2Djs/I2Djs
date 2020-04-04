@@ -242,23 +242,79 @@ function getCanvasImgInstance (width, height) {
 	return canvas;
 }
 
-function CanvasPattern (self, pattern, repeatInd) {
-	var image = new Image();
-	var selfSelf = this;
-	image.src = pattern;
-
-	image.onload = function () {
-		selfSelf.pattern = self.ctx.createPattern(image, repeatInd);
-		queueInstance.vDomChanged(self.vDomIndex);
-	};
+function CanvasMask (self, config = {}) {
+	let maskId = config.id ? config.id : 'mask-' + Math.ceil(Math.random() * 1000);
+	this.config = config;
+	this.mask = new CanvasNodeExe(self.dom.ctx, {
+		el: 'group',
+		attr: {
+			id: maskId
+		}
+	}, domId(), self.vDomIndex);
 }
 
-CanvasPattern.prototype.exe = function () {
-	return this.pattern;
+CanvasMask.prototype.setAttr = function (attr, value) {
+	this.config[attr] = value;
 };
 
-function createCanvasPattern (patternObj, repeatInd) {
-	return new CanvasPattern(this, patternObj, repeatInd);
+CanvasMask.prototype.exe = function () {
+	this.mask.execute();
+	this.mask.dom.ctx.globalCompositeOperation = this.config.globalCompositeOperation || 'destination-atop';
+	return true;
+};
+
+function createCanvasMask (maskConfig) {
+	return new CanvasMask(this, maskConfig);
+}
+
+
+function CanvasClipping (self, config = {}) {
+	let clipId = config.id ? config.id : 'clip-' + Math.ceil(Math.random() * 1000);
+	this.clip = new CanvasNodeExe(self.dom.ctx, {
+		el: 'group',
+		attr: {
+			id: clipId
+		}
+	}, domId(), self.vDomIndex);
+}
+
+CanvasClipping.prototype.exe = function () {
+	this.clip.execute();
+	this.clip.dom.ctx.clip();
+	return true;
+};
+
+function createCanvasClip (patternConfig) {
+	return new CanvasClipping(this, patternConfig);
+}
+
+
+function CanvasPattern (self, config = {}) {
+	let selfSelf = this;
+	let patternId = config.id ? config.id : 'pattern-' + Math.ceil(Math.random() * 1000);
+	this.repeatInd = config.repeat ? config.repeat : 'repeat';
+	selfSelf.pattern = canvasLayer(null, {}, {
+		enableEvents: false,
+		enableResize: false
+	});
+	selfSelf.pattern.setAttr('id', patternId);
+	self.prependChild([selfSelf.pattern]);
+	selfSelf.pattern.vDomIndex = self.vDomIndex + ':' + patternId;
+	selfSelf.pattern.onChange(function () {
+		selfSelf.patternObj = self.ctx.createPattern(selfSelf.pattern.domEl, selfSelf.repeatInd);
+	});
+}
+
+CanvasPattern.prototype.repeat = function (repeat) {
+	this.repeatInd = repeat;
+};
+
+CanvasPattern.prototype.exe = function () {
+	return this.patternObj;
+};
+
+function createCanvasPattern (patternConfig) {
+	return new CanvasPattern(this, patternConfig);
 }
 
 function applyStyles () {
@@ -730,15 +786,14 @@ RenderPolyline.constructor = RenderPolyline;
 
 RenderPolyline.prototype.execute = function polylineExe () {
 	let self = this;
+	let d;
 	if (!this.attr.points) return;
 	this.ctx.beginPath();
-	this.attr.points.forEach(function (d, i) {
-		if (i === 0) {
-			self.ctx.moveTo(d.x, d.y);
-		} else {
-			self.ctx.lineTo(d.x, d.y);
-		}
-	});
+	self.ctx.moveTo(this.attr.points[0].x, this.attr.points[0].y);
+	for (var i = 1; i < this.attr.points.length; i++) {
+		d = this.attr.points[i];
+		self.ctx.lineTo(d.x, d.y);
+	};
 	this.applyStyles();
 	this.ctx.closePath();
 };
@@ -864,12 +919,16 @@ RenderPath.prototype.getTotalLength = function RPgetTotalLength () {
 
 RenderPath.prototype.execute = function RPexecute () {
 	if (this.attr.d) {
-		if (this.ctx.fillStyle !== '#000000') {
-			this.ctx.fill(this.pathNode);
-		}
+		if (this.ctx.fillStyle !== '#000000' || this.ctx.strokeStyle !== '#000000') {
+			if (this.ctx.fillStyle !== '#000000') {
+				this.ctx.fill(this.pathNode);
+			}
 
-		if (this.ctx.strokeStyle !== '#000000') {
-			this.ctx.stroke(this.pathNode);
+			if (this.ctx.strokeStyle !== '#000000') {
+				this.ctx.stroke(this.pathNode);
+			}
+		} else {
+			this.path.execute(this.ctx);
 		}
 	}
 };
@@ -894,28 +953,33 @@ RenderPath.prototype.in = function RPinfun (co) {
 /** ***************** Render polygon */
 
 function polygonExe (points) {
-	let polygon = new Path2D();
-	let localPoints = points;
-	let points_ = [];
-	localPoints = localPoints.replace(/,/g, ' ').split(' ');
-	polygon.moveTo(localPoints[0], localPoints[1]);
-	points_.push({
-		x: parseFloat(localPoints[0]),
-		y: parseFloat(localPoints[1])
-	});
-
-	for (let i = 2; i < localPoints.length; i += 2) {
-		polygon.lineTo(localPoints[i], localPoints[i + 1]);
-		points_.push({
-			x: parseFloat(localPoints[i]),
-			y: parseFloat(localPoints[i + 1])
-		});
+	if (Object.prototype.toString.call(points) !== '[object Array]') {
+		console.error('Points expected as array [{x: , y:}]');
+		return;
 	}
 
+	let polygon = new Path2D();
+	polygon.moveTo(points[0].x, points[0].y);
+	for (let i = 1; i < points.length; i++) {
+		polygon.lineTo(points[i].x, points[i].y);
+	}
 	polygon.closePath();
+
 	return {
 		path: polygon,
-		points: points_
+		points: points,
+		execute: function (ctx) {
+			if (this.points.length === 0) {
+				return;
+			}
+			ctx.beginPath();
+			let points = this.points;
+			ctx.moveTo(points[0].x, points[0].y);
+			for (let i = 1; i < points.length; i++) {
+				ctx.lineTo(points[i].x, points[i].y);
+			}
+			ctx.closePath();
+		}
 	};
 }
 
@@ -950,12 +1014,16 @@ RenderPolygon.prototype.updateBBox = RPolyupdateBBox;
 
 RenderPolygon.prototype.execute = function RPolyexecute () {
 	if (this.attr.points) {
-		if (this.ctx.fillStyle !== '#000000') {
-			this.ctx.fill(this.polygon.path);
-		}
+		if (this.ctx.fillStyle !== '#000000' || this.ctx.strokeStyle !== '#000000') {
+			if (this.ctx.fillStyle !== '#000000') {
+				this.ctx.fill(this.polygon.path);
+			}
 
-		if (this.ctx.strokeStyle !== '#000000') {
-			this.ctx.stroke(this.polygon.path);
+			if (this.ctx.strokeStyle !== '#000000') {
+				this.ctx.stroke(this.polygon.path);
+			}
+		} else {
+			this.polygon.execute(this.ctx);
 		}
 	}
 };
@@ -1126,22 +1194,26 @@ RenderRect.prototype.execute = function RRexecute () {
 		attr
 	} = this;
 
-	if (ctx.fillStyle !== '#000000') {
-		if (!attr['rx'] && !attr['ry']) {
-			ctx.fillRect(attr.x, attr.y, attr.width, attr.height);
-		} else {
-			renderRoundRect(ctx, attr);
-			ctx.fill();
+	if (ctx.fillStyle !== '#000000' || ctx.strokeStyle !== '#000000') {
+		if (ctx.fillStyle !== '#000000') {
+			if (!attr['rx'] && !attr['ry']) {
+				ctx.fillRect(attr.x, attr.y, attr.width, attr.height);
+			} else {
+				renderRoundRect(ctx, attr);
+				ctx.fill();
+			}
 		}
-	}
 
-	if (ctx.strokeStyle !== '#000000') {
-		if (!attr['rx'] && !attr['ry']) {
-			ctx.strokeRect(attr.x, attr.y, attr.width, attr.height);
-		} else {
-			renderRoundRect(ctx, attr);
-			ctx.stroke();
+		if (ctx.strokeStyle !== '#000000') {
+			if (!attr['rx'] && !attr['ry']) {
+				ctx.strokeRect(attr.x, attr.y, attr.width, attr.height);
+			} else {
+				renderRoundRect(ctx, attr);
+				ctx.stroke();
+			}
 		}
+	} else {
+		ctx.rect(attr.x, attr.y, attr.width, attr.height);
 	}
 };
 
@@ -1278,6 +1350,7 @@ RenderGroup.prototype.in = function RGinfun (coOr) {
 
 let CanvasNodeExe = function CanvasNodeExe (context, config, id, vDomIndex) {
 	this.style = config.style || {};
+	this.setStyle(config.style);
 	this.attr = config.attr || {};
 	this.id = id;
 	this.nodeName = config.el;
@@ -1357,8 +1430,10 @@ CanvasNodeExe.prototype.stylesExe = function CstylesExe () {
 	let style = this.style;
 
 	for (key in style) {
-		if (typeof style[key] !== 'function') {
-			if (style[key] instanceof CanvasGradients || style[key] instanceof CanvasPattern) {
+		if (typeof style[key] === 'string' || typeof style[key] === 'number') {
+			value = style[key];
+		} else if (typeof style[key] === 'object') {
+			if (style[key] instanceof CanvasGradients || style[key] instanceof CanvasPattern || style[key] instanceof CanvasClipping || style[key] instanceof CanvasMask) {
 				value = style[key].exe(this.ctx, this.dom.BBox);
 			} else {
 				value = style[key];
@@ -1418,7 +1493,7 @@ function valueCheck (value) {
 		value = value.rgba;
 	}
 
-	return value === '#000' || value === '#000000' || value === 'black' ? 'rgba(0, 0, 0, 0.9)' : value;
+	return value === '#000' || value === '#000000' || value === 'black' ? 'rgb(1, 1, 1)' : value;
 }
 
 CanvasNodeExe.prototype.setAttr = function CsetAttr (attr, value) {
@@ -1522,6 +1597,24 @@ CanvasNodeExe.prototype.execute = function Cexecute () {
 	this.ctx.restore();
 };
 
+CanvasNodeExe.prototype.prependChild = function child (childrens) {
+	const self = this;
+	const childrensLocal = childrens;
+
+	if (self.dom instanceof RenderGroup) {
+		for (let i = 0; i < childrensLocal.length; i += 1) {
+			childrensLocal[i].dom.parent = self;
+			self.children.unshift(childrensLocal[i]);
+		}
+	} else {
+		console.error('Trying to insert child to nonGroup Element');
+	}
+
+	this.BBoxUpdate = true;
+	queueInstance.vDomChanged(this.vDomIndex);
+	return self;
+};
+
 CanvasNodeExe.prototype.child = function child (childrens) {
 	const self = this;
 	const childrensLocal = childrens;
@@ -1575,7 +1668,7 @@ CanvasNodeExe.prototype.vDomIndex = null;
 
 CanvasNodeExe.prototype.createRadialGradient = createRadialGradient;
 CanvasNodeExe.prototype.createLinearGradient = createLinearGradient;
-CanvasNodeExe.prototype.createPattern = createCanvasPattern;
+// CanvasNodeExe.prototype
 
 CanvasNodeExe.prototype.createEls = function CcreateEls (data, config) {
 	const e = new CanvasCollection({
@@ -1659,6 +1752,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 	let cHeight;
 	let cWidth;
 	let resizeCall;
+	let onChangeExe;
 
 	if (res) {
 		res.appendChild(layer);
@@ -1666,6 +1760,8 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 		if (autoUpdate) {
 			vDomIndex = queueInstance.addVdom(vDomInstance);
 		}
+	} else {
+		enableEvents = false;
 	}
 
 	const root = new CanvasNodeExe(ctx, {
@@ -1695,6 +1791,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 			this.setViewBox.apply(this, value.split(','));
 		}
 		layer.setAttribute(prop, value);
+		this.attr[prop] = value;
 	};
 
 	root.enableEvents = function (flag) {
@@ -1708,6 +1805,16 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 	root.setPixelRatio = function (val) {
 		ratio = val;
 		this.setSize(this.width, this.height);
+	};
+
+	root.addDependentLayer = function (layer) {
+		if (!(layer instanceof CanvasNodeExe)) {
+			return;
+		}
+		let depId = layer.attr.id ? layer.attr.id : 'dep-' + Math.ceil(Math.random() * 1000);
+		layer.setAttr('id', depId);
+		layer.vDomIndex = this.vDomIndex + ':' + depId;
+		this.prependChild([layer]);
 	};
 
 	let resize = function () {
@@ -1732,6 +1839,14 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 
 	root.onResize = function (exec) {
 		resizeCall = exec;
+	};
+
+	root.onChange = function (exec) {
+		onChangeExe = exec;
+	};
+
+	root.invokeOnChange = function () {
+		
 	};
 
 	root.setSize = function (width_, height_) {
@@ -1773,11 +1888,21 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 		}
 	};
 
+	root.createPattern = createCanvasPattern;
+
+	root.createClip = createCanvasClip;
+
+	root.createMask = createCanvasMask;
+
 	root.execute = function executeExe () {
 		onClear(ctx);
 		ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 		this.updateBBox();
 		execute();
+		if (onChangeExe && this.stateModified) {
+			onChangeExe();
+		}
+		this.stateModified = false;
 	};
 
 	root.update = function executeUpdate () {

@@ -3,7 +3,7 @@
 <head>
 	<title>Geo Map</title>
 </head>
-<body style="height: 100%;">
+<body style="height: 100%;background: black">
 <div id="myCanvas" style="height: 100%;width:100%;position: absolute;">
 </div>
 <script type="text/javascript" src="../../dist/i2d.js"></script>
@@ -31,16 +31,18 @@ Promise.all([worldmap]).then(function(values) {
 			d: path(values[0])
 		},
 		style: {
-			shadowOffsetX: 3,
-			shadowOffsetY: 3,
-			shadowColor: '#333333',
-			fillStyle: 'rgba(255, 130, 130, 1)'
+			// shadowOffsetX: 3,
+			// shadowOffsetY: 3,
+			shadowBlur: 20,
+			shadowColor: '#42baff',
+			// fillStyle: 'rgba(255, 130, 130, 1)'
+			fillStyle: 'rgba(0, 0, 1, 1)'
 		}
 	})
 	.on('mouseover', function() {
-		this.setStyle('fillStyle', 'rgba(250, 60, 60, 1)');
+		this.setStyle('fillStyle', 'rgba(22, 24, 26, 1)');
 	}).on('mouseout', function() {
-		this.setStyle('fillStyle', 'rgba(255, 130, 130, 1)');
+		this.setStyle('fillStyle', 'rgba(0, 0, 1, 1)');
 	});
 });
 

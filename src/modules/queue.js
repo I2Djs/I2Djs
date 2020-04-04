@@ -88,10 +88,12 @@ function removeRequestFrameCall (_) {
 function add (uId, executable, easying) {
 	let exeObj = new Tween(uId, executable, easying);
 	exeObj.currTime = performance.now();
-	if (!executable.target.animList) {
-		executable.target.animList = [];
+	if (executable.target) {
+		if (!executable.target.animList) {
+			executable.target.animList = [];
+		}
+		executable.target.animList[executable.target.animList.length] = exeObj;
 	}
-	executable.target.animList[executable.target.animList.length] = exeObj;
 	tweens[tweens.length] = exeObj;
 	this.startAnimeFrames();
 }
@@ -156,9 +158,20 @@ ExeQueue.prototype.removeVdom = function removeVdom (_) {
 	}
 };
 
-ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom, flag) {
+ExeQueue.prototype.vDomChanged = function AvDomChanged (vDom) {
 	if (vDoms[vDom] && vDoms[vDom].stateModified !== undefined) {
 		vDoms[vDom].stateModified = true;
+		vDoms[vDom].root.stateModified = true;
+	} else if (typeof vDom === 'string') {
+		let ids = vDom.split(':');
+		if (vDoms[ids[0]] && vDoms[ids[0]].stateModified !== undefined) {
+			vDoms[ids[0]].stateModified = true;
+			vDoms[ids[0]].root.stateModified = true;
+			let childRootNode = vDoms[ids[0]].root.fetchEl('#' + ids[1]);
+			if (childRootNode) {
+				childRootNode.stateModified = true;
+			}
+		}
 	}
 };
 
@@ -171,6 +184,7 @@ ExeQueue.prototype.vDomUpdates = function () {
 		if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].stateModified) {
 			vDoms[vDomIds[i]].execute();
 			vDoms[vDomIds[i]].stateModified = false;
+			// vDoms[vDomIds[i]].onchange();
 		} else if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].root && vDoms[vDomIds[i]].root.ENV !== 'NODE') {
 			var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id);
 
@@ -228,14 +242,16 @@ function loopCheck (d) {
 		if (d.end) {
 			d.end();
 		}
-		let animList = d.executable.target.animList;
-		if (animList && animList.length > 0) {
-			if (animList.length === 1) {
-				d.executable.target.animList = [];
-			} else if (animList.length > 1) {
-				let index = animList.indexOf(d);
-				if (index !== -1) {
-					animList.splice(index, 1);
+		if (d.executable.target) {
+			let animList = d.executable.target.animList;
+			if (animList && animList.length > 0) {
+				if (animList.length === 1) {
+					d.executable.target.animList = [];
+				} else if (animList.length > 1) {
+					let index = animList.indexOf(d);
+					if (index !== -1) {
+						animList.splice(index, 1);
+					}
 				}
 			}
 		}

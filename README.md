@@ -14,7 +14,7 @@ I2Djs provides single Application Programming Interface to create and animate el
 I2D also provides a unique data-driven approach with **join-actions** for DOM manipulation based on data binding.
 
 ## Documentation
-[I2Djs GitBook](https://nswamy14.gitbook.io/i2djs/)
+<a href="https://nswamy14.gitbook.io/i2djs/"><img width='150' src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/gitbookIcon.png"></a>
 
 ## Installing
 
@@ -37,7 +37,7 @@ import * as i2d from 'i2djs'
 
 Importing individual modules:
 ```
-import {CanvasLayer} from 'i2djs'
+import {canvasLayer} from 'i2djs'
 ```
 
 
@@ -70,9 +70,9 @@ Examples (SVG + Canvas + WebGL)
   <tr>
      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/solarSystem.html"><img  src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/solarAnimation.gif"></a></td>
     <td width="15%"><a href="https://codepen.io/nswamy14/pen/PEyvyK"><img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/circleMoveMent.gif"></a></td>
-    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img width="100" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/graph.gif"></a></td>
-        <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/webGL/hugegraph.html"><img width="100" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/hugeGraph.gif"></a></td>
-        <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/networkSystem.html"><img width="100" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/graphAnimation.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/graph.html"><img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/graph.gif"></a></td>
+        <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/webGL/hugegraph.html"><img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/hugeGraph.gif"></a></td>
+        <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/networkSystem.html"><img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/graphAnimation.gif"></a></td>
   </tr>
 </table>
 
@@ -92,7 +92,7 @@ Examples (SVG + Canvas + WebGL)
 ### Scale
 | SVG  | Canvas |  WebGl |
 | ------------- | ------------- | ------------- |
-|  [5000 Particles ](https://i2djs.github.io/I2Djs/examples/svg/distortion2.html) | [30000 Particles ](https://i2djs.github.io/I2Djs/examples/canvas/distortion2.html)  | [100000 Particles ](https://i2djs.github.io/I2Djs/examples/webGL/distortion2.html) |
+|  [5000 Particles ](https://i2djs.github.io/I2Djs/examples/svg/distortion2.html) | [30000 Particles ](https://i2djs.github.io/I2Djs/examples/canvas/distortion2.html)  | [100000 Particles ](https://i2djs.github.io/I2Djs/examples/webGL/distortion.html) |
 
 ### Support & Compatibility
 I2D supports Universal Module Definition(UMD)(AMD,CommonJS and vanilla environments) , based on the environment it can be imported accordingly.
