@@ -56,7 +56,7 @@ Examples (SVG + Canvas + WebGL)
       <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent2.html"><img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/mouse2Animation.gif"></a></td>
       <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/geoMap.html"><img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/geoMap.png"></a></td>
       <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/mouseEvent.html"><img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/mouseAnimation.gif"></a></td>
-      <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/webGL/pointsRain.html"><img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/imageAnimation.gif"></a></td>
+      <td width="15%"><a href="https://codepen.io/nswamy14/pen/WNvdqJg"><img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/imageAnimation.gif"></a></td>
       <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathAnimator.html"><img  src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/PathAnimation.gif"></a></td>
     </tr>
   <tr>
