@@ -70,7 +70,7 @@
         radialGrad.execute();
 
         let dataPush = true;
-        let gradPallet = LinearGrad.getPixels(0, 0, 256, 1).data;
+        let gradPallet = LinearGrad.getPixels(0, 0, 256, 1).imageData.data;
 
         document.addEventListener("mousemove", function(e) {
             if (dataPush) {
@@ -85,7 +85,7 @@
                 }).execute();
 
                 let rawPixels = renderer_.getPixels(e.x - 50, e.y - 50, radialGrad.width, radialGrad.height);
-                let pixeldata = rawPixels.data;
+                let pixeldata = rawPixels.imageData.data;
                 for (let i = 3, len = pixeldata.length; i < len; i += 4) {
                     pixeldata[i - 1] = gradPallet[pixeldata[i] * 4 + 2];
                     pixeldata[i - 2] = gradPallet[pixeldata[i] * 4 + 1];
