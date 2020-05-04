@@ -5215,6 +5215,7 @@
 			return this;
 		},
 		dragEnd: function (fun) {
+			let self = this;
 			if (typeof fun === 'function') {
 				this.onDragEnd = function (trgt, event) {
 					self.dragStartFlag = false;
@@ -5636,9 +5637,6 @@
 		drag: function () {
 			return new DragClass();
 		},
-		// touch: function () {
-		// 	return new TouchClass();
-		// },
 		zoom: function () {
 			return new ZoomClass();
 		}
@@ -5718,27 +5716,43 @@
 		}
 	}
 
+	function parseTransform (transform) {
+		let output = {
+			translateX: 0,
+			translateY: 0,
+			scaleX: 1,
+			scaleY: 1
+		};
+
+		if (transform) {
+			if (transform.translate && transform.translate.length > 0) {
+				output.translateX = transform.translate[0];
+				output.translateY = transform.translate[1];
+			}
+
+			if (transform.scale && transform.scale.length > 0) {
+				output.scaleX = transform.scale[0];
+				output.scaleY = transform.scale[1] || output.scaleX;
+			}
+		}
+
+		return output;
+	}
+
 	function RPolyupdateBBox () {
 		const self = this;
-		let translateX = 0;
-		let translateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
 		const {
 			transform
 		} = self.attr;
+		let {
+			translateX,
+			translateY,
+			scaleX,
+			scaleY
+		} = parseTransform(transform);
 
 		if (self.attr.points && self.attr.points.length > 0) {
 			let points = self.attr.points;
-
-			if (transform && transform.translate) {
-				[translateX, translateY] = transform.translate;
-			}
-
-			if (transform.scale) {
-				[scaleX, scaleY = scaleX] = transform.scale;
-			}
-
 			let minX = points[0].x;
 			let maxX = points[0].x;
 			let minY = points[0].y;
@@ -6153,29 +6167,22 @@
 
 	RenderImage.prototype.updateBBox = function RIupdateBBox () {
 		const self = this;
-		let translateX = 0;
-		let translateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
 		const {
 			transform
 		} = self.attr;
+		let {
+			translateX,
+			translateY,
+			scaleX,
+			scaleY
+		} = parseTransform(transform);
+
 		let {
 			x,
 			y,
 			width,
 			height
 		} = self.attr;
-
-		if (transform) {
-			if (transform.translate) {
-				[translateX, translateY] = transform.translate;
-			}
-
-			if (transform.scale) {
-				[scaleX = 1, scaleY = scaleX] = transform.scale;
-			}
-		}
 
 		self.BBox = {
 			x: (translateX + x) * scaleX,
@@ -6227,22 +6234,28 @@
 
 	RenderText.prototype.updateBBox = function RTupdateBBox () {
 		const self = this;
-		let translateX = 0;
-		let translateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
+		// let translateX = 0;
+		// let translateY = 0;
+		// let scaleX = 1;
+		// let scaleY = 1;
 		let height = 1;
 		const {
 			transform
 		} = self.attr;
+		let {
+			translateX,
+			translateY,
+			scaleX,
+			scaleY
+		} = parseTransform(transform);
 
-		if (transform && transform.translate) {
-			[translateX, translateY] = transform.translate;
-		}
+		// if (transform && transform.translate) {
+		// 	[translateX, translateY] = transform.translate;
+		// }
 
-		if (transform && transform.scale) {
-			[scaleX = 1, scaleY = scaleX] = transform.scale;
-		}
+		// if (transform && transform.scale) {
+		// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
+		// }
 
 		if (this.style.font) {
 			this.ctx.font = this.style.font;
@@ -6296,23 +6309,29 @@
 
 	RenderCircle.prototype.updateBBox = function RCupdateBBox () {
 		const self = this;
-		let translateX = 0;
-		let translateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
+		// let translateX = 0;
+		// let translateY = 0;
+		// let scaleX = 1;
+		// let scaleY = 1;
 		const {
 			transform
 		} = self.attr;
+		let {
+			translateX,
+			translateY,
+			scaleX,
+			scaleY
+		} = parseTransform(transform);
 
-		if (transform) {
-			if (transform.translate) {
-				[translateX, translateY] = transform.translate;
-			}
+		// if (transform) {
+		// 	if (transform.translate) {
+		// 		[translateX, translateY] = transform.translate;
+		// 	}
 
-			if (transform.scale) {
-				[scaleX = 1, scaleY = scaleX] = transform.scale;
-			}
-		}
+		// 	if (transform.scale) {
+		// 		[scaleX = 1, scaleY = scaleX] = transform.scale;
+		// 	}
+		// }
 
 		self.BBox = {
 			x: translateX + ((self.attr.cx - self.attr.r) * scaleX),
@@ -6354,21 +6373,27 @@
 
 	RenderLine.prototype.updateBBox = function RLupdateBBox () {
 		const self = this;
-		let translateX = 0;
-		let translateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
+		// let translateX = 0;
+		// let translateY = 0;
+		// let scaleX = 1;
+		// let scaleY = 1;
 		const {
 			transform
 		} = self.attr;
+		let {
+			translateX,
+			translateY,
+			scaleX,
+			scaleY
+		} = parseTransform(transform);
 
-		if (transform && transform.translate) {
-			[translateX, translateY] = transform.translate;
-		}
+		// if (transform && transform.translate) {
+		// 	[translateX, translateY] = transform.translate;
+		// }
 
-		if (transform.scale) {
-			[scaleX = 1, scaleY = scaleX] = transform.scale;
-		}
+		// if (transform.scale) {
+		// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
+		// }
 
 		self.BBox = {
 			x: translateX + ((self.attr.x1 < self.attr.x2 ? self.attr.x1 : self.attr.x2) * scaleX),
@@ -6491,21 +6516,27 @@
 
 	RenderPath.prototype.updateBBox = function RPupdateBBox () {
 		const self = this;
-		let translateX = 0;
-		let translateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
+		// let translateX = 0;
+		// let translateY = 0;
+		// let scaleX = 1;
+		// let scaleY = 1;
 		const {
 			transform
 		} = self.attr;
+		let {
+			translateX,
+			translateY,
+			scaleX,
+			scaleY
+		} = parseTransform(transform);
 
-		if (transform && transform.translate) {
-			[translateX, translateY] = transform.translate;
-		}
+		// if (transform && transform.translate) {
+		// 	[translateX, translateY] = transform.translate;
+		// }
 
-		if (transform && transform.scale) {
-			[scaleX = 1, scaleY = scaleX] = transform.scale;
-		}
+		// if (transform && transform.scale) {
+		// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
+		// }
 
 		self.BBox = self.path ? t2DGeometry$3.getBBox(self.path.stackGroup.length > 0 ? self.path.stackGroup : [self.path.stack]) : {
 			x: 0,
@@ -6700,21 +6731,27 @@
 
 	RenderEllipse.prototype.updateBBox = function REupdateBBox () {
 		const self = this;
-		let translateX = 0;
-		let translateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
+		// let translateX = 0;
+		// let translateY = 0;
+		// let scaleX = 1;
+		// let scaleY = 1;
 		const {
 			transform
 		} = self.attr;
+		let {
+			translateX,
+			translateY,
+			scaleX,
+			scaleY
+		} = parseTransform(transform);
 
-		if (transform && transform.translate) {
-			[translateX, translateY] = transform.translate;
-		}
+		// if (transform && transform.translate) {
+		// 	[translateX, translateY] = transform.translate;
+		// }
 
-		if (transform && transform.scale) {
-			[scaleX = 1, scaleY = scaleX] = transform.scale;
-		}
+		// if (transform && transform.scale) {
+		// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
+		// }
 
 		self.BBox = {
 			x: translateX + ((self.attr.cx - self.attr.rx) * scaleX),
@@ -6768,21 +6805,27 @@
 
 	RenderRect.prototype.updateBBox = function RRupdateBBox () {
 		const self = this;
-		let translateX = 0;
-		let translateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
+		// let translateX = 0;
+		// let translateY = 0;
+		// let scaleX = 1;
+		// let scaleY = 1;
 		const {
 			transform
 		} = self.attr;
+		let {
+			translateX,
+			translateY,
+			scaleX,
+			scaleY
+		} = parseTransform(transform);
 
-		if (transform && transform.translate) {
-			[translateX, translateY] = transform.translate;
-		}
+		// if (transform && transform.translate) {
+		// 	[translateX, translateY] = transform.translate;
+		// }
 
-		if (transform && transform.scale) {
-			[scaleX = 1, scaleY = scaleX] = transform.scale;
-		}
+		// if (transform && transform.scale) {
+		// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
+		// }
 
 		self.BBox = {
 			x: translateX + (self.attr.x * scaleX),
@@ -6887,23 +6930,29 @@
 		let maxX;
 		let minY;
 		let maxY;
-		let gTranslateX = 0;
-		let gTranslateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
+		// let gTranslateX = 0;
+		// let gTranslateY = 0;
+		// let scaleX = 1;
+		// let scaleY = 1;
 		const {
 			transform
 		} = self.attr;
+		let {
+			translateX,
+			translateY,
+			scaleX,
+			scaleY
+		} = parseTransform(transform);
 		self.BBox = {};
 
-		if (transform && transform.translate) {
-			gTranslateX = transform.translate[0] !== undefined ? transform.translate[0] : 0;
-			gTranslateY = transform.translate[1] !== undefined ? transform.translate[1] : gTranslateX;
-		}
+		// if (transform && transform.translate) {
+		// 	gTranslateX = transform.translate[0] !== undefined ? transform.translate[0] : 0;
+		// 	gTranslateY = transform.translate[1] !== undefined ? transform.translate[1] : gTranslateX;
+		// }
 
-		if (transform && self.attr.transform.scale && self.attr.id !== 'rootNode') {
-			[scaleX = 1, scaleY = scaleX] = transform.scale;
-		}
+		// if (transform && self.attr.transform.scale && self.attr.id !== 'rootNode') {
+		// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
+		// }
 
 		if (children && children.length > 0) {
 			let d;
@@ -6925,8 +6974,8 @@
 		minY = minY === undefined ? 0 : minY;
 		maxX = maxX === undefined ? 0 : maxX;
 		maxY = maxY === undefined ? 0 : maxY;
-		self.BBox.x = gTranslateX + (minX * scaleX);
-		self.BBox.y = gTranslateY + (minY * scaleY);
+		self.BBox.x = translateX + (minX * scaleX);
+		self.BBox.y = translateY + (minY * scaleY);
 		self.BBox.width = Math.abs(maxX - minX) * scaleX;
 		self.BBox.height = Math.abs(maxY - minY) * scaleY;
 
@@ -6966,21 +7015,27 @@
 		const {
 			transform
 		} = self.attr;
-		let gTranslateX = 0;
-		let gTranslateY = 0;
-		let scaleX = 1;
-		let scaleY = 1;
+		let {
+			translateX,
+			translateY,
+			scaleX,
+			scaleY
+		} = parseTransform(transform);
+		// let gTranslateX = 0;
+		// let gTranslateY = 0;
+		// let scaleX = 1;
+		// let scaleY = 1;
 
-		if (transform && transform.translate) {
-			[gTranslateX, gTranslateY] = transform.translate;
-		}
+		// if (transform && transform.translate) {
+		// 	[gTranslateX, gTranslateY] = transform.translate;
+		// }
 
 
-		if (transform && transform.scale) {
-			[scaleX = 1, scaleY = scaleX] = transform.scale;
-		}
+		// if (transform && transform.scale) {
+		// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
+		// }
 
-		return co.x >= (BBox.x - gTranslateX) / scaleX && co.x <= (BBox.x - gTranslateX + BBox.width) / scaleX && co.y >= (BBox.y - gTranslateY) / scaleY && co.y <= (BBox.y - gTranslateY + BBox.height) / scaleY;
+		return co.x >= (BBox.x - translateX) / scaleX && co.x <= (BBox.x - translateX + BBox.width) / scaleX && co.y >= (BBox.y - translateY) / scaleY && co.y <= (BBox.y - translateY + BBox.height) / scaleY;
 	};
 
 	/** ***************** End Render Group */

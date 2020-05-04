@@ -5233,6 +5233,7 @@
 			return this;
 		},
 		dragEnd: function (fun) {
+			var self = this;
 			if (typeof fun === 'function') {
 				this.onDragEnd = function (trgt, event) {
 					self.dragStartFlag = false;
@@ -5655,9 +5656,6 @@
 		drag: function () {
 			return new DragClass();
 		},
-		// touch: function () {
-		// 	return new TouchClass();
-		// },
 		zoom: function () {
 			return new ZoomClass();
 		}
@@ -5735,28 +5733,41 @@
 		}
 	}
 
-	function RPolyupdateBBox () {
-		var assign, assign$1;
+	function parseTransform (transform) {
+		var output = {
+			translateX: 0,
+			translateY: 0,
+			scaleX: 1,
+			scaleY: 1
+		};
 
+		if (transform) {
+			if (transform.translate && transform.translate.length > 0) {
+				output.translateX = transform.translate[0];
+				output.translateY = transform.translate[1];
+			}
+
+			if (transform.scale && transform.scale.length > 0) {
+				output.scaleX = transform.scale[0];
+				output.scaleY = transform.scale[1] || output.scaleX;
+			}
+		}
+
+		return output;
+	}
+
+	function RPolyupdateBBox () {
 		var self = this;
-		var translateX = 0;
-		var translateY = 0;
-		var scaleX = 1;
-		var scaleY = 1;
 		var ref = self.attr;
 		var transform = ref.transform;
+		var ref$1 = parseTransform(transform);
+		var translateX = ref$1.translateX;
+		var translateY = ref$1.translateY;
+		var scaleX = ref$1.scaleX;
+		var scaleY = ref$1.scaleY;
 
 		if (self.attr.points && self.attr.points.length > 0) {
 			var points = self.attr.points;
-
-			if (transform && transform.translate) {
-				(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
-			}
-
-			if (transform.scale) {
-				(assign$1 = transform.scale, scaleX = assign$1[0], scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
-			}
-
 			var minX = points[0].x;
 			var maxX = points[0].x;
 			var minY = points[0].y;
@@ -6172,30 +6183,20 @@
 	};
 
 	RenderImage.prototype.updateBBox = function RIupdateBBox () {
-		var assign, assign$1;
-
 		var self = this;
-		var translateX = 0;
-		var translateY = 0;
-		var scaleX = 1;
-		var scaleY = 1;
 		var ref = self.attr;
 		var transform = ref.transform;
-		var ref$1 = self.attr;
-		var x = ref$1.x;
-		var y = ref$1.y;
-		var width = ref$1.width;
-		var height = ref$1.height;
+		var ref$1 = parseTransform(transform);
+		var translateX = ref$1.translateX;
+		var translateY = ref$1.translateY;
+		var scaleX = ref$1.scaleX;
+		var scaleY = ref$1.scaleY;
 
-		if (transform) {
-			if (transform.translate) {
-				(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
-			}
-
-			if (transform.scale) {
-				(assign$1 = transform.scale, scaleX = assign$1[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
-			}
-		}
+		var ref$2 = self.attr;
+		var x = ref$2.x;
+		var y = ref$2.y;
+		var width = ref$2.width;
+		var height = ref$2.height;
 
 		self.BBox = {
 			x: (translateX + x) * scaleX,
@@ -6245,24 +6246,27 @@
 	};
 
 	RenderText.prototype.updateBBox = function RTupdateBBox () {
-		var assign, assign$1;
-
 		var self = this;
-		var translateX = 0;
-		var translateY = 0;
-		var scaleX = 1;
-		var scaleY = 1;
+		// let translateX = 0;
+		// let translateY = 0;
+		// let scaleX = 1;
+		// let scaleY = 1;
 		var height = 1;
 		var ref = self.attr;
 		var transform = ref.transform;
+		var ref$1 = parseTransform(transform);
+		var translateX = ref$1.translateX;
+		var translateY = ref$1.translateY;
+		var scaleX = ref$1.scaleX;
+		var scaleY = ref$1.scaleY;
 
-		if (transform && transform.translate) {
-			(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
-		}
+		// if (transform && transform.translate) {
+		// 	[translateX, translateY] = transform.translate;
+		// }
 
-		if (transform && transform.scale) {
-			(assign$1 = transform.scale, scaleX = assign$1[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
-		}
+		// if (transform && transform.scale) {
+		// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
+		// }
 
 		if (this.style.font) {
 			this.ctx.font = this.style.font;
@@ -6315,25 +6319,28 @@
 	RenderCircle.prototype.constructor = RenderCircle;
 
 	RenderCircle.prototype.updateBBox = function RCupdateBBox () {
-		var assign, assign$1;
-
 		var self = this;
-		var translateX = 0;
-		var translateY = 0;
-		var scaleX = 1;
-		var scaleY = 1;
+		// let translateX = 0;
+		// let translateY = 0;
+		// let scaleX = 1;
+		// let scaleY = 1;
 		var ref = self.attr;
 		var transform = ref.transform;
+		var ref$1 = parseTransform(transform);
+		var translateX = ref$1.translateX;
+		var translateY = ref$1.translateY;
+		var scaleX = ref$1.scaleX;
+		var scaleY = ref$1.scaleY;
 
-		if (transform) {
-			if (transform.translate) {
-				(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
-			}
+		// if (transform) {
+		// 	if (transform.translate) {
+		// 		[translateX, translateY] = transform.translate;
+		// 	}
 
-			if (transform.scale) {
-				(assign$1 = transform.scale, scaleX = assign$1[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
-			}
-		}
+		// 	if (transform.scale) {
+		// 		[scaleX = 1, scaleY = scaleX] = transform.scale;
+		// 	}
+		// }
 
 		self.BBox = {
 			x: translateX + ((self.attr.cx - self.attr.r) * scaleX),
@@ -6374,23 +6381,26 @@
 	RenderLine.prototype.constructor = RenderLine;
 
 	RenderLine.prototype.updateBBox = function RLupdateBBox () {
-		var assign, assign$1;
-
 		var self = this;
-		var translateX = 0;
-		var translateY = 0;
-		var scaleX = 1;
-		var scaleY = 1;
+		// let translateX = 0;
+		// let translateY = 0;
+		// let scaleX = 1;
+		// let scaleY = 1;
 		var ref = self.attr;
 		var transform = ref.transform;
+		var ref$1 = parseTransform(transform);
+		var translateX = ref$1.translateX;
+		var translateY = ref$1.translateY;
+		var scaleX = ref$1.scaleX;
+		var scaleY = ref$1.scaleY;
 
-		if (transform && transform.translate) {
-			(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
-		}
+		// if (transform && transform.translate) {
+		// 	[translateX, translateY] = transform.translate;
+		// }
 
-		if (transform.scale) {
-			(assign$1 = transform.scale, scaleX = assign$1[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
-		}
+		// if (transform.scale) {
+		// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
+		// }
 
 		self.BBox = {
 			x: translateX + ((self.attr.x1 < self.attr.x2 ? self.attr.x1 : self.attr.x2) * scaleX),
@@ -6511,23 +6521,26 @@
 	RenderPath.prototype.constructor = RenderPath;
 
 	RenderPath.prototype.updateBBox = function RPupdateBBox () {
-		var assign, assign$1;
-
 		var self = this;
-		var translateX = 0;
-		var translateY = 0;
-		var scaleX = 1;
-		var scaleY = 1;
+		// let translateX = 0;
+		// let translateY = 0;
+		// let scaleX = 1;
+		// let scaleY = 1;
 		var ref = self.attr;
 		var transform = ref.transform;
+		var ref$1 = parseTransform(transform);
+		var translateX = ref$1.translateX;
+		var translateY = ref$1.translateY;
+		var scaleX = ref$1.scaleX;
+		var scaleY = ref$1.scaleY;
 
-		if (transform && transform.translate) {
-			(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
-		}
+		// if (transform && transform.translate) {
+		// 	[translateX, translateY] = transform.translate;
+		// }
 
-		if (transform && transform.scale) {
-			(assign$1 = transform.scale, scaleX = assign$1[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
-		}
+		// if (transform && transform.scale) {
+		// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
+		// }
 
 		self.BBox = self.path ? t2DGeometry$3.getBBox(self.path.stackGroup.length > 0 ? self.path.stackGroup : [self.path.stack]) : {
 			x: 0,
@@ -6721,23 +6734,26 @@
 	RenderEllipse.prototype.constructor = RenderEllipse;
 
 	RenderEllipse.prototype.updateBBox = function REupdateBBox () {
-		var assign, assign$1;
-
 		var self = this;
-		var translateX = 0;
-		var translateY = 0;
-		var scaleX = 1;
-		var scaleY = 1;
+		// let translateX = 0;
+		// let translateY = 0;
+		// let scaleX = 1;
+		// let scaleY = 1;
 		var ref = self.attr;
 		var transform = ref.transform;
+		var ref$1 = parseTransform(transform);
+		var translateX = ref$1.translateX;
+		var translateY = ref$1.translateY;
+		var scaleX = ref$1.scaleX;
+		var scaleY = ref$1.scaleY;
 
-		if (transform && transform.translate) {
-			(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
-		}
+		// if (transform && transform.translate) {
+		// 	[translateX, translateY] = transform.translate;
+		// }
 
-		if (transform && transform.scale) {
-			(assign$1 = transform.scale, scaleX = assign$1[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
-		}
+		// if (transform && transform.scale) {
+		// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
+		// }
 
 		self.BBox = {
 			x: translateX + ((self.attr.cx - self.attr.rx) * scaleX),
@@ -6788,23 +6804,26 @@
 	RenderRect.prototype.constructor = RenderRect;
 
 	RenderRect.prototype.updateBBox = function RRupdateBBox () {
-		var assign, assign$1;
-
 		var self = this;
-		var translateX = 0;
-		var translateY = 0;
-		var scaleX = 1;
-		var scaleY = 1;
+		// let translateX = 0;
+		// let translateY = 0;
+		// let scaleX = 1;
+		// let scaleY = 1;
 		var ref = self.attr;
 		var transform = ref.transform;
+		var ref$1 = parseTransform(transform);
+		var translateX = ref$1.translateX;
+		var translateY = ref$1.translateY;
+		var scaleX = ref$1.scaleX;
+		var scaleY = ref$1.scaleY;
 
-		if (transform && transform.translate) {
-			(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
-		}
+		// if (transform && transform.translate) {
+		// 	[translateX, translateY] = transform.translate;
+		// }
 
-		if (transform && transform.scale) {
-			(assign$1 = transform.scale, scaleX = assign$1[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
-		}
+		// if (transform && transform.scale) {
+		// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
+		// }
 
 		self.BBox = {
 			x: translateX + (self.attr.x * scaleX),
@@ -6900,29 +6919,32 @@
 	RenderGroup.prototype.constructor = RenderGroup;
 
 	RenderGroup.prototype.updateBBox = function RGupdateBBox (children) {
-		var assign;
-
 		var self = this;
 		var minX;
 		var maxX;
 		var minY;
 		var maxY;
-		var gTranslateX = 0;
-		var gTranslateY = 0;
-		var scaleX = 1;
-		var scaleY = 1;
+		// let gTranslateX = 0;
+		// let gTranslateY = 0;
+		// let scaleX = 1;
+		// let scaleY = 1;
 		var ref = self.attr;
 		var transform = ref.transform;
+		var ref$1 = parseTransform(transform);
+		var translateX = ref$1.translateX;
+		var translateY = ref$1.translateY;
+		var scaleX = ref$1.scaleX;
+		var scaleY = ref$1.scaleY;
 		self.BBox = {};
 
-		if (transform && transform.translate) {
-			gTranslateX = transform.translate[0] !== undefined ? transform.translate[0] : 0;
-			gTranslateY = transform.translate[1] !== undefined ? transform.translate[1] : gTranslateX;
-		}
+		// if (transform && transform.translate) {
+		// 	gTranslateX = transform.translate[0] !== undefined ? transform.translate[0] : 0;
+		// 	gTranslateY = transform.translate[1] !== undefined ? transform.translate[1] : gTranslateX;
+		// }
 
-		if (transform && self.attr.transform.scale && self.attr.id !== 'rootNode') {
-			(assign = transform.scale, scaleX = assign[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
-		}
+		// if (transform && self.attr.transform.scale && self.attr.id !== 'rootNode') {
+		// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
+		// }
 
 		if (children && children.length > 0) {
 			var d;
@@ -6944,8 +6966,8 @@
 		minY = minY === undefined ? 0 : minY;
 		maxX = maxX === undefined ? 0 : maxX;
 		maxY = maxY === undefined ? 0 : maxY;
-		self.BBox.x = gTranslateX + (minX * scaleX);
-		self.BBox.y = gTranslateY + (minY * scaleY);
+		self.BBox.x = translateX + (minX * scaleX);
+		self.BBox.y = translateY + (minY * scaleY);
 		self.BBox.width = Math.abs(maxX - minX) * scaleX;
 		self.BBox.height = Math.abs(maxY - minY) * scaleY;
 
@@ -6974,8 +6996,6 @@
 	};
 
 	RenderGroup.prototype.in = function RGinfun (coOr) {
-		var assign, assign$1;
-
 		var self = this;
 		var co = {
 			x: coOr.x,
@@ -6985,21 +7005,26 @@
 		var BBox = ref.BBox;
 		var ref$1 = self.attr;
 		var transform = ref$1.transform;
-		var gTranslateX = 0;
-		var gTranslateY = 0;
-		var scaleX = 1;
-		var scaleY = 1;
+		var ref$2 = parseTransform(transform);
+		var translateX = ref$2.translateX;
+		var translateY = ref$2.translateY;
+		var scaleX = ref$2.scaleX;
+		var scaleY = ref$2.scaleY;
+		// let gTranslateX = 0;
+		// let gTranslateY = 0;
+		// let scaleX = 1;
+		// let scaleY = 1;
 
-		if (transform && transform.translate) {
-			(assign = transform.translate, gTranslateX = assign[0], gTranslateY = assign[1]);
-		}
+		// if (transform && transform.translate) {
+		// 	[gTranslateX, gTranslateY] = transform.translate;
+		// }
 
 
-		if (transform && transform.scale) {
-			(assign$1 = transform.scale, scaleX = assign$1[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
-		}
+		// if (transform && transform.scale) {
+		// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
+		// }
 
-		return co.x >= (BBox.x - gTranslateX) / scaleX && co.x <= (BBox.x - gTranslateX + BBox.width) / scaleX && co.y >= (BBox.y - gTranslateY) / scaleY && co.y <= (BBox.y - gTranslateY + BBox.height) / scaleY;
+		return co.x >= (BBox.x - translateX) / scaleX && co.x <= (BBox.x - translateX + BBox.width) / scaleX && co.y >= (BBox.y - translateY) / scaleY && co.y <= (BBox.y - translateY + BBox.height) / scaleY;
 	};
 
 	/** ***************** End Render Group */
