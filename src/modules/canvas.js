@@ -4,10 +4,15 @@ import path from './path.js';
 import geometry from './geometry.js';
 import colorMap from './colorMap.js';
 import Events from './events.js';
+import behaviour from './behaviour.js';
 import { NodePrototype, CollectionPrototype } from './coreApi.js';
 let t2DGeometry = geometry;
 const queueInstance = queue;
 let Id = 0;
+
+let zoomInstance = behaviour.zoom();
+let dragInstance = behaviour.drag();
+// let touchInstance = behaviour.touch();
 
 function domId () {
 	Id += 1;
@@ -47,10 +52,6 @@ function domSetStyle (attr, value) {
 	}
 }
 
-function addListener (eventType, hndlr) {
-	this[eventType] = hndlr;
-}
-
 function cRender (attr) {
 	const self = this;
 
@@ -64,6 +65,7 @@ function cRender (attr) {
 		const verSkew = transform.skewY ? transform.skewY[0] : 0;
 		const hozMove = transform.translate && transform.translate.length > 0 ? transform.translate[0] : 0;
 		const verMove = transform.translate && transform.translate.length > 1 ? transform.translate[1] : hozMove || 0;
+
 		self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove);
 
 		if (transform.rotate) {
@@ -95,8 +97,8 @@ function RPolyupdateBBox () {
 			[translateX, translateY] = transform.translate;
 		}
 
-		if (transform && transform.scale) {
-			[scaleX, scaleY] = transform.scale;
+		if (transform.scale) {
+			[scaleX, scaleY = scaleX] = transform.scale;
 		}
 
 		let minX = points[0].x;
@@ -204,25 +206,26 @@ function createRadialGradient (config) {
 	return new CanvasGradients(config, 'radial');
 }
 
-function pixelObject (data, width, height, x, y) {
-	this.pixels = data;
+function PixelObject (data, width, height) {
+	this.imageData.pixels = data;
 	this.width = width;
 	this.height = height;
-	this.x = x;
-	this.y = y;
+	// this.x = x;
+	// this.y = y;
 }
 
-pixelObject.prototype.get = function (pos) {
+PixelObject.prototype.get = function (pos) {
+	let pixels = this.imageData ? this.imageData.pixels : [];
 	let rIndex = ((pos.y - 1) * (this.width * 4)) + ((pos.x - 1) * 4);
-	return 'rgba(' + this.pixels[rIndex] + ', ' + this.pixels[rIndex + 1] + ', ' + this.pixels[rIndex + 2] + ', ' + this.pixels[rIndex + 3] + ')';
+	return 'rgba(' + pixels[rIndex] + ', ' + pixels[rIndex + 1] + ', ' + pixels[rIndex + 2] + ', ' + pixels[rIndex + 3] + ')';
 };
 
-pixelObject.prototype.put = function (color, pos) {
+PixelObject.prototype.put = function (pos, color) {
 	let rIndex = ((pos.y - 1) * (this.width * 4)) + ((pos.x - 1) * 4);
-	this.pixels[rIndex] = color[0];
-	this.pixels[rIndex + 1] = color[1];
-	this.pixels[rIndex + 2] = color[2];
-	this.pixels[rIndex + 3] = color[3];
+	this.imageData.pixels[rIndex] = color[0];
+	this.imageData.pixels[rIndex + 1] = color[1];
+	this.imageData.pixels[rIndex + 2] = color[2];
+	this.imageData.pixels[rIndex + 3] = color[3];
 	return this;
 };
 
@@ -246,7 +249,7 @@ function CanvasMask (self, config = {}) {
 	let maskId = config.id ? config.id : 'mask-' + Math.ceil(Math.random() * 1000);
 	this.config = config;
 	this.mask = new CanvasNodeExe(self.dom.ctx, {
-		el: 'group',
+		el: 'g',
 		attr: {
 			id: maskId
 		}
@@ -271,7 +274,7 @@ function createCanvasMask (maskConfig) {
 function CanvasClipping (self, config = {}) {
 	let clipId = config.id ? config.id : 'clip-' + Math.ceil(Math.random() * 1000);
 	this.clip = new CanvasNodeExe(self.dom.ctx, {
-		el: 'group',
+		el: 'g',
 		attr: {
 			id: clipId
 		}
@@ -344,7 +347,7 @@ function CanvasDom () {
 
 CanvasDom.prototype = {
 	render: cRender,
-	on: addListener,
+	// on: addListener,
 	setAttr: domSetAttribute,
 	setStyle: domSetStyle,
 	applyStyles
@@ -532,8 +535,7 @@ RenderImage.prototype.updateBBox = function RIupdateBBox () {
 		}
 
 		if (transform.scale) {
-			scaleX = transform.scale[0] !== undefined ? transform.scale[0] : 1;
-			scaleY = transform.scale[1] !== undefined ? transform.scale[1] : scaleX;
+			[scaleX = 1, scaleY = scaleX] = transform.scale;
 		}
 	}
 
@@ -602,7 +604,7 @@ RenderText.prototype.updateBBox = function RTupdateBBox () {
 	}
 
 	if (transform && transform.scale) {
-		[scaleX, scaleY] = transform.scale;
+		[scaleX = 1, scaleY = scaleX] = transform.scale;
 	}
 
 	if (this.style.font) {
@@ -671,13 +673,13 @@ RenderCircle.prototype.updateBBox = function RCupdateBBox () {
 		}
 
 		if (transform.scale) {
-			[scaleX, scaleY] = transform.scale;
+			[scaleX = 1, scaleY = scaleX] = transform.scale;
 		}
 	}
 
 	self.BBox = {
-		x: (translateX + (self.attr.cx - self.attr.r)) * scaleX,
-		y: (translateY + (self.attr.cy - self.attr.r)) * scaleY,
+		x: translateX + ((self.attr.cx - self.attr.r) * scaleX),
+		y: translateY + ((self.attr.cy - self.attr.r) * scaleY),
 		width: 2 * self.attr.r * scaleX,
 		height: 2 * self.attr.r * scaleY
 	};
@@ -727,8 +729,8 @@ RenderLine.prototype.updateBBox = function RLupdateBBox () {
 		[translateX, translateY] = transform.translate;
 	}
 
-	if (transform && transform.scale) {
-		[scaleX, scaleY] = transform.scale;
+	if (transform.scale) {
+		[scaleX = 1, scaleY = scaleX] = transform.scale;
 	}
 
 	self.BBox = {
@@ -866,7 +868,7 @@ RenderPath.prototype.updateBBox = function RPupdateBBox () {
 	}
 
 	if (transform && transform.scale) {
-		[scaleX, scaleY] = transform.scale;
+		[scaleX = 1, scaleY = scaleX] = transform.scale;
 	}
 
 	self.BBox = self.path ? t2DGeometry.getBBox(self.path.stackGroup.length > 0 ? self.path.stackGroup : [self.path.stack]) : {
@@ -1075,7 +1077,7 @@ RenderEllipse.prototype.updateBBox = function REupdateBBox () {
 	}
 
 	if (transform && transform.scale) {
-		[scaleX, scaleY] = transform.scale;
+		[scaleX = 1, scaleY = scaleX] = transform.scale;
 	}
 
 	self.BBox = {
@@ -1143,7 +1145,7 @@ RenderRect.prototype.updateBBox = function RRupdateBBox () {
 	}
 
 	if (transform && transform.scale) {
-		[scaleX, scaleY] = transform.scale;
+		[scaleX = 1, scaleY = scaleX] = transform.scale;
 	}
 
 	self.BBox = {
@@ -1232,7 +1234,7 @@ RenderRect.prototype.in = function RRinfun (co) {
 
 const RenderGroup = function RenderGroup (ctx, props, styleProps) {
 	const self = this;
-	self.nodeName = 'group';
+	self.nodeName = 'g';
 	self.ctx = ctx;
 	self.attr = props;
 	self.style = styleProps;
@@ -1264,8 +1266,7 @@ RenderGroup.prototype.updateBBox = function RGupdateBBox (children) {
 	}
 
 	if (transform && self.attr.transform.scale && self.attr.id !== 'rootNode') {
-		scaleX = transform.scale[0] !== undefined ? transform.scale[0] : 1;
-		scaleY = transform.scale[1] !== undefined ? transform.scale[1] : scaleX;
+		[scaleX = 1, scaleY = scaleX] = transform.scale;
 	}
 
 	if (children && children.length > 0) {
@@ -1338,9 +1339,9 @@ RenderGroup.prototype.in = function RGinfun (coOr) {
 		[gTranslateX, gTranslateY] = transform.translate;
 	}
 
+
 	if (transform && transform.scale) {
-		scaleX = transform.scale[0] !== undefined ? transform.scale[0] : 1;
-		scaleY = transform.scale[1] !== undefined ? transform.scale[1] : scaleX;
+		[scaleX = 1, scaleY = scaleX] = transform.scale;
 	}
 
 	return co.x >= (BBox.x - gTranslateX) / scaleX && co.x <= (BBox.x - gTranslateX + BBox.width) / scaleX && co.y >= (BBox.y - gTranslateY) / scaleY && co.y <= (BBox.y - gTranslateY + BBox.height) / scaleY;
@@ -1356,6 +1357,7 @@ let CanvasNodeExe = function CanvasNodeExe (context, config, id, vDomIndex) {
 	this.nodeName = config.el;
 	this.nodeType = 'CANVAS';
 	this.children = [];
+	this.events = {};
 	this.ctx = context;
 	this.vDomIndex = vDomIndex;
 	this.bbox = config['bbox'] !== undefined ? config['bbox'] : true;
@@ -1382,6 +1384,7 @@ let CanvasNodeExe = function CanvasNodeExe (context, config, id, vDomIndex) {
 			break;
 
 		case 'group':
+		case 'g':
 			this.dom = new RenderGroup(this.ctx, this.attr, this.style);
 			break;
 
@@ -1658,7 +1661,31 @@ CanvasNodeExe.prototype.in = function Cinfun (co) {
 };
 
 CanvasNodeExe.prototype.on = function Con (eventType, hndlr) {
-	this.dom.on(eventType, hndlr);
+	let self = this;
+	// this.dom.on(eventType, hndlr);
+	if (!this.events) {
+		this.events = {};
+	}
+
+	if (!hndlr && this.events[eventType]) {
+		delete this.events[eventType];
+	} else if (hndlr) {
+		if (typeof hndlr === 'function') {
+			const hnd = hndlr.bind(self);
+			this.events[eventType] = function (event) {
+				hnd(event);
+			};
+		} else if (typeof hndlr === 'object') {
+			this.events[eventType] = hndlr;
+			if (hndlr.constructor === zoomInstance.constructor) {
+				hndlr.bindMethods(this);
+			}
+			if (hndlr.constructor === dragInstance.constructor) {
+				
+			}
+		}
+	}
+	
 	return this;
 };
 
@@ -1723,11 +1750,18 @@ CanvasNodeExe.prototype.getBBox = function () {
 };
 
 CanvasNodeExe.prototype.getPixels = function () {
-	return this.ctx.getImageData(this.dom.BBox.x, this.dom.BBox.y, this.dom.BBox.width, this.dom.BBox.height);
+	let imageData = this.ctx.getImageData(this.dom.BBox.x, this.dom.BBox.y, this.dom.BBox.width, this.dom.BBox.height);
+	let pixelInstance = new PixelObject(imageData, this.dom.BBox.width, this.dom.BBox.height);
+
+	return pixelInstance;
+	// this.ctx.getImageData(this.dom.BBox.x, this.dom.BBox.y, this.dom.BBox.width, this.dom.BBox.height);
 };
 
-CanvasNodeExe.prototype.putPixels = function (imageData) {
-	return this.ctx.putImageData(imageData, this.dom.BBox.x, this.dom.BBox.y);
+CanvasNodeExe.prototype.putPixels = function (pixels) {
+	if (!(pixels instanceof PixelObject)) {
+		return;
+	}
+	return this.ctx.putImageData(pixels.imageData, this.dom.BBox.x, this.dom.BBox.y);
 };
 
 function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
@@ -1765,7 +1799,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 	}
 
 	const root = new CanvasNodeExe(ctx, {
-		el: 'group',
+		el: 'g',
 		attr: {
 			id: 'rootNode'
 		}
@@ -1868,11 +1902,17 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 	};
 
 	root.getPixels = function (x, y, width_, height_) {
-		return this.ctx.getImageData(x, y, width_, height_);
+		let imageData = this.ctx.getImageData(x, y, width_, height_);
+		let pixelInstance = new PixelObject(imageData, width_, height_);
+
+		return pixelInstance;
 	};
 
-	root.putPixels = function (imageData, x, y) {
-		return this.ctx.putImageData(imageData, x, y);
+	root.putPixels = function (Pixels, x, y) {
+		if (!(Pixels instanceof PixelObject)) {
+			return;
+		}
+		return this.ctx.putImageData(Pixels.imageData, x, y);
 	};
 
 	root.clear = function () {
@@ -1916,6 +1956,54 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 		}
 		queueInstance.removeVdom(vDomIndex);
 	};
+
+	// root.on = function (eventType, hndlr) {
+	// 	const self = this;
+
+	// 	if (self.events[eventType] && eventType !== 'drag' && eventType !== 'zoom') {
+	// 		self.dom.removeEventListener(eventType, self.events[eventType]);
+	// 		delete self.events[eventType];
+	// 	}
+
+	// 	if (eventType === 'drag') {
+	// 		delete layer.drag_;
+	// 	}
+
+	// 	if (eventType === 'zoom') {
+	// 		layer.removeEventListener('wheel', self.events[eventType]);
+	// 		delete layer.drag_;
+	// 	}
+
+	// 	if (!hndlr) {
+	// 		return;
+	// 	}
+
+	// 	if (eventType === 'drag') {
+	// 		layer.drag_ = function (event, eventType) {
+	// 			hndlr.execute(self, event, eventType);
+	// 		};
+	// 	} else if (eventType === 'zoom') {
+	// 		self.events[eventType] = function (event) {
+	// 			hndlr.zoomExecute(self, event);
+	// 		};
+
+	// 		layer.addEventListener('wheel', self.events[eventType]);
+	// 		layer.drag_ = function (event, eventType) {
+	// 			if (hndlr.panFlag) {
+	// 				hndlr.panExecute(self, event, eventType);
+	// 			}
+	// 		};
+	// 	} else {
+	// 		const hnd = hndlr.bind(self);
+	// 		self.events[eventType] = function (event) {
+	// 			hnd(self.dataObj, event);
+	// 		};
+
+	// 		layer.addEventListener(eventType, self.events[eventType]);
+	// 	}
+
+	// 	return this;
+	// }
 
 	if (enableEvents) {
 		let eventsInstance = new Events(root);
@@ -1963,6 +2051,10 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 			e.preventDefault();
 			eventsInstance.touchcancelCheck(e);
 		});
+		layer.addEventListener('wheel', e => {
+			e.preventDefault();
+			eventsInstance.wheelEventCheck(e);
+		});
 	}
 
 	queueInstance.execute();
@@ -1991,7 +2083,7 @@ function canvasNodeLayer (config, height = 0, width = 0) {
 	const vDomInstance = new VDom();
 	const vDomIndex = queueInstance.addVdom(vDomInstance);
 	const root = new CanvasNodeExe(ctx, {
-		el: 'group',
+		el: 'g',
 		attr: {
 			id: 'rootNode'
 		}

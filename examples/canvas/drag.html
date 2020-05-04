@@ -11,23 +11,9 @@
 <script type="text/javascript">
 
 var renderer_ = i2d.canvasLayer('#myCanvas', {}, {});
+var drag = i2d.behaviour.drag();
 
-var drag1 = i2d.behaviour.drag();
-var drag2 = i2d.behaviour.drag();
-
-
-drag1
-.dragStart(function () {
-
-})
-.drag(function (e) {
-	let x = this.getAttr('cx');
-	let y = this.getAttr('cy');
-	this.setAttr('cx', x + e.dx);
-	this.setAttr('cy', y + e.dy);
-});
-
-drag2
+drag
 .dragStart(function () {
 
 })
@@ -38,33 +24,6 @@ drag2
 	this.setAttr('y', y + e.dy);
 });
 
-
-
-var pattern1 = renderer_.createPattern();
-pattern1.pattern.setSize(250, 250);
-pattern1.pattern.createEl({
-	el: 'image',
-	attr:{
-		src: '../images/pattern.png',
-		width: 250,
-		height: 250
-	}
-});
-
-var pattern2 = renderer_.createPattern();
-pattern2.pattern.setSize(10, 10);
-pattern2.pattern.createEl({
-	el: 'circle',
-	attr:{
-		r: 5,
-		cx: 5,
-		cy: 5
-	},
-	style: {
-		fillStyle: 'red'
-	}
-});
-
 var g = renderer_.createEl({
 	el: 'group',
 	attr: {
@@ -73,19 +32,6 @@ var g = renderer_.createEl({
 		}
 	}
 });
-
-var circle1 = g.createEl({
-	el: 'circle',
-	attr: {
-		cx: 200,
-		cy: 100,
-		r: 100
-	},
-	style: {
-		fillStyle: pattern1,
-		strokeStyle: 'grey'
-	}
-}).on('drag', drag1);
 
 var circle2 = g.createEl({
 	el: 'rect',
@@ -98,14 +44,18 @@ var circle2 = g.createEl({
 		ry: 20
 	},
 	style: {
-		fillStyle: pattern2,
+		fillStyle: 'red',
 		strokeStyle: 'grey',
 		shadowBlur: 10,
 		shadowOffsetX: 5,
 		shadowOffsetY: 5,
 		shadowColor: '#333333'
 	}
-}).on('drag', drag2);
+})
+// .on('drag', drag)
+.on('click', function (argument) {
+	console.log('asdadad');
+});
 
 </script>
 

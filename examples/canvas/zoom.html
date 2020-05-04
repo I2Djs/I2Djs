@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+	<title></title>
+</head>
+<body style="height: 100%">
+
+<div id="mySvg" style="height: 50%;width:50%;position:absolute;left:25%;top:25%;background:#000">
+</div>
+
+<script type="text/javascript" src="../../dist/i2d.js"></script>
+
+<script type="text/javascript">
+var renderer = i2d.canvasLayer('#mySvg', {});
+var zoomInstance = i2d.behaviour.zoom();
+var circle;
+zoomInstance.scaleExtent([1, 3]);
+zoomInstance.zoom(function (event) {
+	circle.setAttr('transform', event.transform);
+});
+zoomInstance.panExtent([[-500, -500], [500, 500]]);
+
+renderer.on('zoom', zoomInstance)
+
+let g = renderer.createEl({
+	el: 'group'
+});
+
+// renderer
+
+circle = g.createEl({
+	el: 'circle',
+	attr: {
+		r: 50,
+		cx: renderer.width * 0.5,
+		cy: renderer.height * 0.5
+	},
+	style: {
+		fillStyle: '#ff0000'
+	}
+})
+.on('mousein', function () {
+	this.setStyle('fillStyle', '#00ff00');
+})
+.on('mouseout', function () {
+	this.setStyle('fillStyle', '#ff0000');
+})
+.on('zoom', zoomInstance);
+
+// circle.scaleTo(2, [renderer.width * 0.5, renderer.height * 0.5]);
+// .on('dbclick', zoomInstance);
+// circle.events.click();
+// circle.events.zoom.scaleTo(5, [0, 0]);
+// circle.events.drag.dragTo()
+// zoomInstance.
+
+</script>
+
+</body>
+</html>

@@ -34,6 +34,8 @@ function dataJoin (data) {
 				}).animateTo({
 					duration: 1000,
 					attr: { r: 20 }
+				}).on('click', function (argument) {
+					console.log(this.data());
 				});
 
 				this.createEls(nodes.text, {

@@ -1,5 +1,5 @@
 /*!
-      * i2djs v3.0.0
+      * i2djs v3.1.0
       * (c) 2020 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
@@ -3261,6 +3261,7 @@
 					return true;
 				});
 			} else {
+				nodeSelector = nodeSelector === 'group' ? 'g' : nodeSelector;
 				this.children.forEach(function (d) {
 					var check1 = dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.nodeName === nodeSelector;
 					var check2 = !dataArray && d.nodeName === nodeSelector;
@@ -3306,6 +3307,7 @@
 					return true;
 				});
 			} else {
+				nodeSelector = nodeSelector === 'group' ? 'g' : nodeSelector;
 				this.children.forEach(function (d) {
 					var check1 = data && d.dataObj && data === d.dataObj && d.nodeName === nodeSelector;
 					var check2 = !data && d.nodeName === nodeSelector;
@@ -3381,6 +3383,15 @@
 	}
 
 	NodePrototype.prototype.join = dataJoin;
+
+	NodePrototype.prototype.data = function (data) {
+		if (!data) {
+			return this.dataObj;
+		} else {
+			this.dataObj = data;
+		}
+		return this;
+	};
 
 	NodePrototype.prototype.interrupt = function () {
 		if (this.animList && this.animList.length > 0) {
@@ -3912,13 +3923,6 @@
 		return Id$1;
 	}
 
-	var Event = function (x, y) {
-		this.x = x;
-		this.y = y;
-		this.dx = 0;
-		this.dy = 0;
-	};
-
 	var SVGCollection = function () {
 		CollectionPrototype.apply(this, arguments);
 	};
@@ -4230,6 +4234,7 @@
 		this.dom.nodeId = id;
 		this.children = [];
 		this.vDomIndex = vDomIndex;
+		this.events = {};
 
 		if (config.style) {
 			this.setStyle(config.style);
@@ -4276,7 +4281,7 @@
 
 	function updateTransAttrsToDom (self) {
 		var cmd = '';
-
+		// let trns = ['scale', 'translate', 'rotate'];
 		for (var trnX in self.attr.transform) {
 			if (trnX === 'rotate') {
 				cmd += trnX + "(" + (self.attr.transform.rotate[0] + ' ' + (self.attr.transform.rotate[1] || 0) + ' ' + (self.attr.transform.rotate[2] || 0)) + ") ";
@@ -4497,41 +4502,48 @@
 
 	// DomExe.prototype
 
-	var dragStack = [];
+	// let dragStack = [];
 
 	DomExe.prototype.on = function DMon (eventType, hndlr) {
 		var self = this;
 
+		if (self.events[eventType] && eventType !== 'drag' && eventType !== 'zoom') {
+			self.dom.removeEventListener(eventType, self.events[eventType]);
+			delete self.events[eventType];
+		}
+
+		if (eventType === 'drag') {
+			delete self.dom.drag_;
+		}
+
+		if (eventType === 'zoom') {
+			self.dom.removeEventListener('wheel', self.events[eventType]);
+			delete self.dom.drag_;
+		}
+
 		if (!hndlr) {
-			if (self.events && self.events[eventType]) {
-				self.dom.removeEventListener(eventType, self.events[eventType]);
-				delete self.events[eventType];
-			}
-
-			if (eventType === 'drag') {
-				dragStack.splice(dragStack.indexOf(self), 1);
-			}
-
 			return;
 		}
 
 		if (eventType === 'drag') {
-			self.drag = hndlr;
-			dragStack.push(self);
+			self.dom.drag_ = function (event, eventType) {
+				hndlr.execute(self, event, eventType);
+			};
+		} else if (eventType === 'zoom') {
+			self.events[eventType] = function (event) {
+				hndlr.zoomExecute(self, event);
+			};
+
+			self.dom.addEventListener('wheel', self.events[eventType]);
+			self.dom.drag_ = function (event, eventType) {
+				if (hndlr.panFlag) {
+					hndlr.panExecute(self, event, eventType);
+				}
+			};
 		} else {
 			var hnd = hndlr.bind(self);
-
-			if (self.events) {
-				if (self.events[eventType]) {
-					self.dom.removeEventListener(eventType, self.events[eventType]);
-					delete self.events[eventType];
-				}
-			} else {
-				self.events = {};
-			}
-
 			self.events[eventType] = function (event) {
-				hnd(self.dataObj, event);
+				hnd(event);
 			};
 
 			self.dom.addEventListener(eventType, self.events[eventType]);
@@ -4705,68 +4717,41 @@
 			return new SVGMasking(this, config);
 		};
 
-		var dragTargetEl = null;
+		var dragNode = null;
 		root.dom.addEventListener('mousedown', function (e) {
-			if (dragStack.length) {
-				dragStack.forEach(function (d) {
-					if (e.target === d.dom) {
-						dragTargetEl = d;
-					}
-				});
-
-				if (dragTargetEl) {
-					var event = new Event(e.offsetX, e.offsetY);
-					event.e = e;
-					dragTargetEl.drag.event = event;
-					dragTargetEl.drag.dragStartFlag = true;
-					if (dragTargetEl.drag.onDragStart) {
-						dragTargetEl.drag.onDragStart.call(dragTargetEl, dragTargetEl.dataObj, event);
-					}
-				}
+			if (e.target.drag_) {
+				e.target.drag_(e, 'mousedown');
+				dragNode = e.target;
+			}
+		});
+		root.dom.addEventListener('touchstart', function (e) {
+			if (e.target.drag_) {
+				e.target.drag_(e, 'mousedown');
+				dragNode = e.target;
 			}
 		});
 		root.dom.addEventListener('mousemove', function (e) {
-			if (dragTargetEl) {
-				var event = dragTargetEl.drag.event;
-				event.dx = e.offsetX - event.x;
-				event.dy = e.offsetY - event.y;
-				event.x = e.offsetX;
-				event.y = e.offsetY;
-				event.e = e;
-				if (dragTargetEl.drag.onDrag) {
-					dragTargetEl.drag.onDrag.call(dragTargetEl, dragTargetEl.dataObj, event);
-				}
+			if (dragNode) {
+				dragNode.drag_(e, 'mousemove');
+			}
+		});
+		root.dom.addEventListener('touchmove', function (e) {
+			if (dragNode) {
+				dragNode.drag_(e, 'mousemove');
 			}
 		});
 		root.dom.addEventListener('mouseup', function (e) {
-			if (dragTargetEl) {
-				var event = dragTargetEl.drag.event;
-				event.dx = e.offsetX - event.x;
-				event.dy = e.offsetY - event.y;
-				event.x = e.offsetX;
-				event.y = e.offsetY;
-				event.e = e;
-				if (dragTargetEl.drag.onDragEnd) {
-					dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
-				}
-				dragTargetEl = null;
+			if (dragNode) {
+				dragNode.drag_(e, 'mouseup');
+				dragNode = null;
 			}
 		});
 		root.dom.addEventListener('mouseleave', function (e) {
-			if (dragTargetEl) {
-				var event = dragTargetEl.drag.event;
-				event.dx = e.offsetX - event.x;
-				event.dy = e.offsetY - event.y;
-				event.x = e.offsetX;
-				event.y = e.offsetY;
-				event.e = e;
-				if (dragTargetEl.drag.onDragEnd) {
-					dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
-				}
-				dragTargetEl = null;
+			if (dragNode) {
+				dragNode.drag_(e, 'mouseleave');
+				dragNode = null;
 			}
 		});
-
 		queueInstance$2.execute();
 
 		if (enableResize) {
@@ -4776,63 +4761,63 @@
 		return root;
 	}
 
-	var Event$1 = function (x, y) {
-		this.x = x;
-		this.y = y;
-		this.dx = 0;
-		this.dy = 0;
-	};
+	// let Event = function (x, y) {
+	// 	this.x = x;
+	// 	this.y = y;
+	// 	this.dx = 0;
+	// 	this.dy = 0;
+	// };
 
 	function Events (vDom) {
 		this.vDom = vDom;
 		this.disable = false;
 		this.dragNode = null;
 		this.touchNode = null;
+		this.wheelNode = null;
+		// this.clickDown = false;
+		// this.touchDown = false;
 	}
 
 	Events.prototype.getNode = function (e) {};
 
 	Events.prototype.mousemoveCheck = function (e) {
+		var node;
 		if (this.dragNode) {
-			var event = this.dragNode.dom.drag.event;
-
-			if (this.dragNode.dom.drag.event) {
-				event.dx = e.offsetX - event.x;
-				event.dy = e.offsetY - event.y;
+			node = this.dragNode;
+			if (this.dragNode.events.drag) {
+				this.dragNode.events.drag.execute(this.dragNode, e, 'mousemove');
 			}
-
-			event.x = e.offsetX;
-			event.y = e.offsetY;
-			event.e = e;
-			this.dragNode.dom.drag.event = event;
-			this.dragNode.dom.drag.onDrag.call(this.dragNode, this.dragNode.dataObj, event);
+			if (this.dragNode.events.zoom) {
+				this.dragNode.events.zoom.panExecute(this.dragNode, e, 'mousemove');
+			}
 		} else {
-			var node = propogateEvent([this.vDom], {
+			node = propogateEvent([this.vDom], {
 				x: e.offsetX,
 				y: e.offsetY
 			}, e, 'mousemove');
-			if (node && (node.dom['mouseover'] || node.dom['mousein'])) {
-				if (this.selectedNode !== node) {
-					if (node.dom['mouseover']) {
-						node.dom['mouseover'].call(node, node.dataObj, e);
-					}
-					if (node.dom['mousein']) {
-						node.dom['mousein'].call(node, node.dataObj, e);
-					}
-				}
-			}
-
-			if (this.selectedNode && this.selectedNode !== node) {
-				if (this.selectedNode.dom['mouseout']) {
-					this.selectedNode.dom['mouseout'].call(this.selectedNode, this.selectedNode.dataObj, e);
-				}
-				if (this.selectedNode.dom['mouseleave']) {
-					this.selectedNode.dom['mouseleave'].call(this.selectedNode, this.selectedNode.dataObj, e);
-				}
-			}
-
-			this.selectedNode = node;
 		}
+
+		if (node && (node.events['mouseover'] || node.events['mousein'])) {
+			if (this.selectedNode !== node) {
+				if (node.events['mouseover']) {
+					node.events['mouseover'].call(node, e);
+				}
+				if (node.events['mousein']) {
+					node.events['mousein'].call(node, e);
+				}
+			}
+		}
+
+		if (this.selectedNode && this.selectedNode !== node) {
+			if (this.selectedNode.events['mouseout']) {
+				this.selectedNode.events['mouseout'].call(this.selectedNode, e);
+			}
+			if (this.selectedNode.events['mouseleave']) {
+				this.selectedNode.events['mouseleave'].call(this.selectedNode, e);
+			}
+		}
+
+		this.selectedNode = node;
 	};
 
 	Events.prototype.clickCheck = function (e) {
@@ -4855,14 +4840,13 @@
 			y: e.offsetY
 		}, e, 'mousedown');
 
-		if (node && node.dom.drag && (node.dom.drag.onDragStart || node.dom.drag.onDrag)) {
-			node.dom.drag.dragStartFlag = true;
-			if (node.dom.drag.onDragStart) {
-				node.dom.drag.onDragStart.call(node, node.dataObj, e);
-			}
-			var event = new Event$1(e.offsetX, e.offsetY);
-			event.e = e;
-			node.dom.drag.event = event;
+		if (node && node.events.drag) {
+			node.events.drag.execute(node, e, 'mousedown');
+			this.dragNode = node;
+		}
+
+		if (node && node.events.zoom && node.events.zoom.panFlag) {
+			node.events.zoom.panExecute(node, e, 'mousedown');
 			this.dragNode = node;
 		}
 	};
@@ -4870,13 +4854,13 @@
 	Events.prototype.mouseupCheck = function (e) {
 		var node = this.dragNode;
 
-		if (node && node.dom.drag && node.dom.drag.dragStartFlag) {
-			node.dom.drag.dragStartFlag = false;
-			node.dom.drag.event = null;
-			if (node.dom.drag.onDragEnd) {
-				node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+		if (node) {
+			if (node.events.drag) {
+				node.events.drag.execute(node, e, 'mouseup');
 			}
-			node.dom.drag.event = null; // selectedNode = null
+			if (node.events.zoom && node.events.zoom.panFlag) {
+				node.events.zoom.panExecute(node, e, 'mouseup');
+			}
 			this.dragNode = null;
 		} else {
 			propogateEvent([this.vDom], {
@@ -4888,11 +4872,12 @@
 
 	Events.prototype.mouseleaveCheck = function (e) {
 		var node = this.dragNode;
-		if (node && node.dom.drag && node.dom.drag.dragStartFlag) {
-			node.dom.drag.dragStartFlag = false;
-			node.dom.drag.event = null;
-			if (node.dom.drag.onDragEnd) {
-				node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+		if (node) {
+			if (node.events.drag) {
+				node.events.drag.execute(node, e, 'mouseleave');
+			}
+			if (node.events.zoom && node.events.zoom.panFlag) {
+				node.events.zoom.panExecute(node, e, 'mouseleave');
 			}
 			this.dragNode = null;
 		} else {
@@ -4918,22 +4903,37 @@
 		var node = propogateEvent([this.vDom], {
 			x: touches[0].clientX,
 			y: touches[0].clientY
-		}, e, 'touchstart_');
+		}, e, 'click');
 
-		if (node && node.dom.touch && node.dom.touch.onTouchStart) {
-			node.dom.touch.touchStartFlag = true;
-			node.dom.touch.onTouchStart.call(node, node.dataObj, e);
-			var event = new Event$1(touches[0].clientX, touches[0].clientY);
-			event.e = e;
-			node.dom.touch.event = event;
-			this.touchNode = node;
+		if (node.events.drag) {
+			node.events.drag.execute(node, e, 'mousedown');
+			this.dragNode = node;
 		}
+		if (node && node.events.zoom && node.events.zoom.panFlag) {
+			node.events.zoom.panExecute(node, e, 'mousedown');
+			this.dragNode = node;
+		}
+
+		// if (node && node.events.touch && node.events.touch.onTouchStart) {
+		// 	node.events.touch.touchStartFlag = true;
+		// 	node.events.touch.onTouchStart.call(node, e);
+		// 	let event = new Event(touches[0].clientX, touches[0].clientY);
+		// 	event.e = e;
+		// 	node.events.touch.event = event;
+		// 	this.touchNode = node;
+		// }
 	};
 
 	Events.prototype.touchendCheck = function (e) {
-		if (this.touchNode && this.touchNode.dom.touch.touchStartFlag && this.touchNode.dom.touch.onTouchEnd) {
-			this.touchNode.dom.touch.onTouchEnd.call(this.touchNode, this.touchNode.dataObj, this.touchNode.dom.touch.event);
-			this.touchNode = null;
+		var node = this.dragNode;
+		if (node) {
+			if (node.events.drag) {
+				node.events.drag.execute(node, e, 'mouseleave');
+			}
+			if (node.events.zoom && node.events.zoom.panFlag) {
+				node.events.zoom.panExecute(node, e, 'mouseleave');
+			}
+			this.dragNode = null;
 		}
 	};
 
@@ -4942,32 +4942,101 @@
 		if (touches.length === 0) {
 			return;
 		}
-		if (this.touchNode) {
-			var event = this.touchNode.dom.touch.event;
 
-			if (this.touchNode.dom.touch.event) {
-				event.dx = touches[0].clientX - event.x;
-				event.dy = touches[0].clientY - event.y;
+		var node = this.dragNode;
+		if (node) {
+			if (this.dragNode.events.drag) {
+				this.dragNode.events.drag.execute(this.dragNode, e, 'mousemove');
 			}
-
-			event.x = touches[0].clientX;
-			event.y = touches[0].clientY;
-			event.e = e;
-			this.touchNode.dom.touch.event = event;
-			this.touchNode.dom.touch.onTouch.call(this.touchNode, this.touchNode.dataObj, event);
+			if (this.dragNode.events.zoom) {
+				this.dragNode.events.zoom.panExecute(this.dragNode, e, 'mousemove');
+			}
+		} else {
+			node = propogateEvent([this.vDom], {
+				x: touches[0].clientX,
+				y: touches[0].clientY
+			}, e, 'mousemove');
 		}
+
+		if (node && (node.events['mouseover'] || node.events['mousein'])) {
+			if (this.selectedNode !== node) {
+				if (node.events['mouseover']) {
+					node.events['mouseover'].call(node, e);
+				}
+				if (node.events['mousein']) {
+					node.events['mousein'].call(node, e);
+				}
+			}
+		}
+
+		if (this.selectedNode && this.selectedNode !== node) {
+			if (this.selectedNode.events['mouseout']) {
+				this.selectedNode.events['mouseout'].call(this.selectedNode, e);
+			}
+			if (this.selectedNode.events['mouseleave']) {
+				this.selectedNode.events['mouseleave'].call(this.selectedNode, e);
+			}
+		}
+		this.selectedNode = node;
 	};
 
 	Events.prototype.touchcancelCheck = function (e) {
 		var touches = e.touches;
-		if (touches.length === 0) {
-			return;
+		// if (touches.length === 0) {
+		// 	return;
+		// }
+		var node = this.dragNode;
+		if (node) {
+			if (node.events.drag) {
+				node.events.drag.execute(node, e, 'mouseleave');
+			}
+			if (node.events.zoom && node.events.zoom.panFlag) {
+				node.events.zoom.panExecute(node, e, 'mouseleave');
+			}
+			this.dragNode = null;
+		} else {
+			propogateEvent([this.vDom], {
+				x: touches[0].clientX,
+				y: touches[0].clientY
+			}, e, 'touchcacel');
 		}
+	};
 
-		propogateEvent([this.vDom], {
-			x: touches[0].clientX,
-			y: touches[0].clientY
-		}, e, 'touchcacel');
+	var wheelCounter = 0;
+	var deltaWheel = 0;
+	Events.prototype.wheelEventCheck = function (e) {
+		var self = this;
+		if (!this.wheelNode) {
+			wheelCounter = 0;
+			var node = propogateEvent([this.vDom], {
+				x: e.offsetX,
+				y: e.offsetY
+			}, e, 'wheel');
+			node = node || this.vDom;
+			if (node && node.events.zoom) {
+				if (!node.events.zoom.disableWheel) {
+					node.events.zoom.zoomExecute(node, e);
+					this.wheelNode = node;
+				}
+			}
+		} else {
+			this.wheelNode.events.zoom.zoomExecute(this.wheelNode, e);
+			wheelCounter += 1;
+			if (this.wheelHndl) {
+				clearTimeout(this.wheelHndl);
+				this.wheelHndl = null;
+				deltaWheel = wheelCounter;
+			}
+			this.wheelHndl = setTimeout(function () {
+				if (deltaWheel !== wheelCounter) {
+					deltaWheel = wheelCounter;
+				} else {
+					self.wheelHndl = null;
+					self.wheelNode.events.zoom.onZoomEnd(self.wheelNode, e);
+					self.wheelNode = null;
+				}
+			}, 100);
+		}
 	};
 
 	function propogateEvent (nodes, mouseCoor, rawEvent, eventType) {
@@ -4999,12 +5068,19 @@
 				} else {
 					node = d;
 				}
-				if (d.dom[eventType]) {
-					d.dom[eventType].call(d, d.dataObj, rawEvent);
+				if (d.events[eventType] && typeof d.events[eventType] === 'function') {
+					d.events[eventType](rawEvent);
 				}
 				if (node) {
 					break;
 				}
+			}
+		}
+
+		if (!node && d.attr.id === 'rootNode') {
+			node = d;
+			if (d.events[eventType] && typeof d.events[eventType] === 'function') {
+				d.events[eventType](rawEvent);
 			}
 		}
 		return node;
@@ -5051,9 +5127,549 @@
 		}
 	}
 
-	var t2DGeometry$3 = geometry;
 	var queueInstance$3 = queue;
+	var easing$1 = fetchTransitionType;
+
+	var animeIdentifier$1 = 0;
+
+	function animeId$2 () {
+		animeIdentifier$1 += 1;
+		return animeIdentifier$1;
+	}
+
+	function checkForTranslateBounds (trnsExt, ref, newTrns) {
+		var scaleX = ref[0];
+		var scaleY = ref[1];
+
+		return newTrns[0] >= (trnsExt[0][0] * scaleX) && newTrns[0] <= (trnsExt[1][0] * scaleX) && newTrns[1] >= (trnsExt[0][1] * scaleY) && newTrns[1] <= (trnsExt[1][1] * scaleY);
+	}
+
+	function applyTranslate (event, ref, extent) {
+		var dx = ref.dx; if ( dx === void 0 ) dx = 0;
+		var dy = ref.dy; if ( dy === void 0 ) dy = 0;
+
+		var translate = event.transform.translate;
+		var ref$1 = event.transform.scale;
+		var scaleX = ref$1[0];
+		var scaleY = ref$1[1]; if ( scaleY === void 0 ) scaleY = scaleX;
+		if (checkForTranslateBounds(extent, [scaleX, scaleY], [translate[0] + dx, translate[1] + dy])) {
+			dx /= scaleX;
+			dy /= scaleY;
+			event.dx = dx;
+			event.dy = dy;
+			translate[0] /= scaleX;
+			translate[1] /= scaleY;
+			translate[0] += dx;
+			translate[1] += dy;
+			translate[0] *= scaleX;
+			translate[1] *= scaleY;
+		}
+		return event;
+	}
+
+	var DragClass = function () {
+		var self = this;
+		this.dragStartFlag = false;
+		this.dragExtent = [[-Infinity, -Infinity], [Infinity, Infinity]];
+		this.event = {
+			x: 0,
+			y: 0,
+			dx: 0,
+			dy: 0,
+			transform: {
+				translate: [0, 0],
+				scale: [1, 1]
+			}
+		};
+		this.onDragStart = function (trgt, event) {
+			self.event.x = event.offsetX;
+			self.event.y = event.offsetY;
+			self.event.dx = 0;
+			self.event.dy = 0;
+			self.dragStartFlag = true;
+		};
+		this.onDrag = function () {
+
+		};
+		this.onDragEnd = function () {
+			self.event.x = event.offsetX;
+			self.event.y = event.offsetY;
+			self.event.dx = 0;
+			self.event.dy = 0;
+			self.dragStartFlag = false;
+		};
+	};
+	DragClass.prototype = {
+		dragExtent: function (ext) {
+			this.dragExtent = ext;
+			return this;
+		},
+		dragStart: function (fun) {
+			var self = this;
+			if (typeof fun === 'function') {
+				this.onDragStart = function (trgt, event) {
+					self.event.x = event.offsetX;
+					self.event.y = event.offsetY;
+					self.event.dx = 0;
+					self.event.dy = 0;
+					fun.call(trgt, self.event);
+					self.dragStartFlag = true;
+				};
+			}
+			return this;
+		},
+		drag: function (fun) {
+			var self = this;
+			if (typeof fun === 'function') {
+				this.onDrag = function (trgt, event) {
+					var dx = event.offsetX - self.event.x;
+					var dy = event.offsetY - self.event.y;
+					self.event.x = event.offsetX;
+					self.event.y = event.offsetY;
+					self.event = applyTranslate(this.event, { dx: dx, dy: dy }, self.dragExtent);
+					fun.call(trgt, self.event);
+				};
+			}
+			return this;
+		},
+		dragEnd: function (fun) {
+			if (typeof fun === 'function') {
+				this.onDragEnd = function (trgt, event) {
+					self.dragStartFlag = false;
+					self.event.x = event.offsetX;
+					self.event.y = event.offsetY;
+					self.event.dx = 0;
+					self.event.dy = 0;
+					fun.call(trgt, self.event);
+				};
+			}
+			return this;
+		},
+		execute: function (trgt, event, eventType) {
+			var self = this;
+			this.event.e = event;
+			if ((event.type === 'touchstart' || event.type === 'touchmove') && event.touches && event.touches.length > 0) {
+				event.offsetX = event.touches[0].clientX;
+				event.offsetY = event.touches[0].clientY;
+			} else if (event.type === 'touchend' || event.type === 'touchcancel') {
+				event.offsetX = this.event.x;
+				event.offsetY = this.event.y;
+			}
+			if (!this.dragStartFlag && eventType === 'mousedown') {
+				self.onDragStart(trgt, event);
+			} else if (this.onDragEnd && (eventType === 'mouseup' || eventType === 'mouseleave')) {
+				self.onDragEnd(trgt, event);
+			} else if (this.onDrag) {
+				self.onDrag(trgt, event);
+			}
+		}
+	};
+
+	// let TouchClass = function () {
+	// 	let self = this;
+	// 	this.touchStartFlag = false;
+	// 	this.touchExtent = [[-Infinity, -Infinity], [Infinity, Infinity]];
+	// 	this.event = {
+	// 		x: 0,
+	// 		y: 0,
+	// 		dx: 0,
+	// 		dy: 0,
+	// 		transform: {
+	// 			translate: [0, 0],
+	// 			scale: [1, 1]
+	// 		}
+	// 	};
+	// 	this.onTouchStart = function (trgt, event) {
+	// 		self.event.x = event.offsetX;
+	// 		self.event.y = event.offsetY;
+	// 		self.event.dx = 0;
+	// 		self.event.dy = 0;
+	// 		self.touchStartFlag = true;
+	// 	};
+	// 	this.onTouch = function () {
+
+	// 	};
+	// 	this.onTouchEnd = function () {
+	// 		self.event.x = event.offsetX;
+	// 		self.event.y = event.offsetY;
+	// 		self.event.dx = 0;
+	// 		self.event.dy = 0;
+	// 		self.touchStartFlag = false;
+	// 	};
+	// };
+	// TouchClass.prototype = {
+	// 	touchStart: function (fun) {
+	// 		if (typeof fun === 'function') {
+	// 			this.onTouchStart = fun;
+	// 		}
+	// 		return this;
+	// 	},
+	// 	touch: function (fun) {
+	// 		if (typeof fun === 'function') {
+	// 			this.onTouch = fun;
+	// 		}
+	// 		return this;
+	// 	},
+	// 	touchEnd: function (fun) {
+	// 		if (typeof fun === 'function') {
+	// 			this.onTouchEnd = fun;
+	// 		}
+	// 		return this;
+	// 	},
+	// 	execute: function (trgt, event, eventType) {
+	// 		let self = this;
+	// 		this.event.e = event;
+	// 		if (!this.dragStartFlag && eventType === 'mousedown') {
+	// 			self.onDragStart(trgt, event);
+	// 		} else if (this.onDragEnd && (eventType === 'mouseup' || eventType === 'mouseleave')) {
+	// 			self.onDragEnd(trgt, event);
+	// 		} else if (this.onDrag) {
+	// 			self.onDrag(trgt, event);
+	// 		}
+	// 	}
+	// };
+
+
+	function scaleRangeCheck (range, scale) {
+		if (scale <= range[0]) {
+			return range[0];
+		} else if (scale >= range[1]) {
+			return range[1];
+		}
+		return scale;
+	}
+
+	function computeTransform (transformObj, oScale, nScale, point) {
+		transformObj.translate[0] /= oScale;
+		transformObj.translate[1] /= oScale;
+		transformObj.translate[0] -= ((point[0] / oScale) - (point[0] / nScale));
+		transformObj.translate[1] -= ((point[1] / oScale) - (point[1] / nScale));
+		transformObj.scale = [nScale, nScale];
+		transformObj.translate[0] *= nScale;
+		transformObj.translate[1] *= nScale;
+
+		return transformObj;
+	}
+
+
+	var ZoomClass = function () {
+		var self = this;
+		this.event = {
+			x: 0,
+			y: 0,
+			dx: 0,
+			dy: 0
+		};
+		this.event.transform = {
+			translate: [0, 0],
+			scale: [1, 1]
+		};
+		this.zoomBy_ = 0.001;
+		this.zoomExtent_ = [0, Infinity];
+		this.zoomStartFlag = false;
+		this.zoomDuration = 250;
+		this.onZoomStart = function (trgt, event) {
+			self.event.x = event.offsetX;
+			self.event.y = event.offsetY;
+			self.event.dx = 0;
+			self.event.dy = 0;
+			self.zoomStartFlag = true;
+		};
+		this.onZoom = function (trgt, event) {
+			self.event.x = event.offsetX;
+			self.event.y = event.offsetY;
+		};
+		this.onZoomEnd = function (trgt, event) {
+			self.event.x = event.offsetX;
+			self.event.y = event.offsetY;
+			self.event.dx = 0;
+			self.event.dy = 0;
+			self.zoomStartFlag = false;
+		};
+		this.onPanStart = function (trgt, event) {
+		};
+		this.onPan = function (trgt, event) {
+		};
+		this.onPanEnd = function () {
+		};
+		this.disableWheel = false;
+		this.disableDbclick = false;
+	};
+
+	ZoomClass.prototype.zoomStart = function (fun) {
+		var self = this;
+		if (typeof fun === 'function') {
+			this.zoomStartExe = fun;
+			this.onZoomStart = function (trgt, event) {
+				self.event.x = event.offsetX;
+				self.event.y = event.offsetY;
+				self.event.dx = 0;
+				self.event.dy = 0;
+				if (!self.zoomStartFlag) {
+					fun.call(trgt, self.event);
+				}
+				self.zoomStartFlag = true;
+			};
+		}
+		return this;
+	};
+
+	ZoomClass.prototype.zoom = function (fun) {
+		var self = this;
+		if (typeof fun === 'function') {
+			this.zoomExe = fun;
+			this.onZoom = function (trgt, event) {
+				var transform = self.event.transform;
+				var origScale = transform.scale[0];
+				var newScale = origScale;
+				var deltaY = event.deltaY;
+				var x = event.offsetX;
+				var y = event.offsetY;
+
+				newScale = scaleRangeCheck(self.zoomExtent_, newScale + (deltaY * -1 * self.zoomBy_));
+			
+				self.event.transform = computeTransform(transform, origScale, newScale, [x, y]);
+				self.event.x = x;
+				self.event.y = y;
+				fun.call(trgt, self.event);
+			};
+		}
+		return this;
+	};
+
+	ZoomClass.prototype.zoomEnd = function (fun) {
+		var self = this;
+		if (typeof fun === 'function') {
+			this.zoomEndExe = fun;
+			this.onZoomEnd = function (trgt, event) {
+				self.event.x = event.offsetX;
+				self.event.y = event.offsetY;
+				self.event.dx = 0;
+				self.event.dy = 0;
+				self.zoomStartFlag = false;
+				fun.call(trgt, self.event);
+				event.preventDefault();
+			};
+		}
+		return this;
+	};
+
+	ZoomClass.prototype.scaleBy = function scaleBy (trgt, k, point) {
+		var self = this;
+		var transform = self.event.transform;
+		var newScale = k * transform.scale[0];
+		var origScale = transform.scale[0];
+		var zoomTrgt = this.zoomTarget_ || point;
+		var xdiff = (zoomTrgt[0] - point[0]) * origScale;
+		var ydiff = (zoomTrgt[1] - point[1]) * origScale;
+		var pf = 0;
+
+		var targetConfig = {
+			run: function run (f) {
+				var oScale = transform.scale[0];
+				var nscale = scaleRangeCheck(self.zoomExtent_, origScale + ((newScale - origScale) * f));
+
+				self.event.transform = computeTransform(transform, oScale, nscale, point);
+				self.event.transform.translate[0] += (xdiff * (f - pf)) / nscale;
+				self.event.transform.translate[1] += (ydiff * (f - pf)) / nscale;
+
+				pf = f;
+
+				if (self.zoomExe) {
+					self.zoomExe.call(trgt, self.event);
+				}
+			},
+			target: trgt,
+			duration: 250,
+			delay: 0,
+			end: function () {
+				if (self.onZoomEnd) {
+					self.onZoomEnd(trgt, {});
+				}
+			},
+			loop: 1,
+			direction: 'default',
+			ease: 'default'
+		};
+		queueInstance$3.add(animeId$2(), targetConfig, easing$1(targetConfig.ease));
+	};
+
+	ZoomClass.prototype.zoomTarget = function zoomTarget (point) {
+		this.zoomTarget_ = point;
+	};
+
+	ZoomClass.prototype.scaleTo = function scaleTo (trgt, newScale, point) {
+		var self = this;
+		var transform = self.event.transform;
+		var origScale = transform.scale[0];
+		var zoomTrgt = this.zoomTarget_ || point;
+		var xdiff = (zoomTrgt[0] - point[0]) * origScale;
+		var ydiff = (zoomTrgt[1] - point[1]) * origScale;
+		var pf = 0;
+		var targetConfig = {
+			run: function run (f) {
+				var oScale = transform.scale[0];
+				var nscale = scaleRangeCheck(self.zoomExtent_, origScale + ((newScale - origScale) * f));
+
+				self.event.transform = computeTransform(transform, oScale, nscale, point);
+				self.event.transform.translate[0] += (xdiff * (f - pf)) / nscale;
+				self.event.transform.translate[1] += (ydiff * (f - pf)) / nscale;
+
+				pf = f;
+
+				if (!self.zoomStartFlag) {
+					self.onZoomStart(trgt, {
+						offsetX: point[0],
+						offsetY: point[1]
+					});
+				}
+
+				if (self.zoomExe) {
+					self.zoomExe.call(trgt, self.event);
+				}
+			},
+			target: trgt,
+			duration: 250,
+			delay: 0,
+			end: function () {
+				if (self.onZoomEnd) {
+					self.onZoomEnd(trgt, self.event);
+				}
+			},
+			loop: 1,
+			direction: 'default',
+			ease: 'default'
+		};
+		queueInstance$3.add(animeId$2(), targetConfig, easing$1(targetConfig.ease));
+	};
+
+	ZoomClass.prototype.panTo = function panTo (trgt, point) {
+		var self = this;
+		var transform = self.event.transform;
+		var xdiff = point[0] - self.event.x;
+		var ydiff = point[1] - self.event.y;
+		var pf = 0;
+		var targetConfig = {
+			run: function run (f) {
+				var ref = transform.scale;
+				var scale = ref[0];
+
+				transform.translate[0] += (xdiff * (f - pf)) / scale;
+				transform.translate[1] += (ydiff * (f - pf)) / scale;
+
+				pf = f;
+
+				if (self.zoomExe) {
+					self.zoomExe.call(trgt, self.event);
+				}
+			},
+			target: trgt,
+			duration: 250,
+			delay: 0,
+			end: function () {
+				if (self.onZoomEnd) {
+					self.onZoomEnd(trgt, self.event);
+				}
+			},
+			loop: 1,
+			direction: 'default',
+			ease: 'default'
+		};
+		queueInstance$3.add(animeId$2(), targetConfig, easing$1(targetConfig.ease));
+	};
+
+	ZoomClass.prototype.bindMethods = function (trgt) {
+		var self = this;
+		trgt.scaleTo = function (k, point) {
+			self.scaleTo(trgt, k, point);
+		};
+		trgt.scaleBy = function (k, point) {
+			self.scaleBy(trgt, k, point);
+			return trgt;
+		};
+		trgt.panTo = function (srcPoint, point) {
+			self.panTo(trgt, srcPoint, point);
+			return trgt;
+		};
+	};
+
+	ZoomClass.prototype.zoomFactor = function (factor) {
+		this.zoomBy_ = factor;
+		return this;
+	};
+
+	ZoomClass.prototype.scaleExtent = function (range) {
+		this.zoomExtent_ = range;
+		return this;
+	};
+	ZoomClass.prototype.duration = function (time) {
+		this.zoomDuration = time || 250;
+		return this;
+	};
+
+	ZoomClass.prototype.panExtent = function (range) {
+		// range to be [[x1, y1], [x2, y2]];
+		this.panExtent_ = range;
+		this.panFlag = true;
+		return this;
+	};
+
+	ZoomClass.prototype.zoomTransition = function () {
+
+	};
+
+	ZoomClass.prototype.zoomExecute = function (trgt, event) {
+		this.eventType = 'zoom';
+		if (!this.zoomStartFlag) {
+			this.onZoomStart(trgt, event);
+		} else if (this.onZoom) {
+			this.onZoom(trgt, event);
+		}
+		event.preventDefault();
+	};
+
+	ZoomClass.prototype.panExecute = function (trgt, event, eventType) {
+		this.event.e = event;
+		this.eventType = 'pan';
+		if (event.type === 'touchstart' || event.type === 'touchmove' || event.type === 'touchend' || event.type === 'touchcancel') {
+			event.offsetX = event.touches[0].clientX;
+			event.offsetY = event.touches[0].clientY;
+		}
+		if (!this.zoomStartFlag && eventType === 'mousedown') {
+			this.onZoomStart(trgt, event);
+		} else if (this.onZoomEnd && (eventType === 'mouseup' || eventType === 'mouseleave')) {
+			this.onZoomEnd(trgt, event);
+		} else if (this.zoomExe) {
+			var dx = event.offsetX - this.event.x;
+			var dy = event.offsetY - this.event.y;
+
+			this.event.x = event.offsetX;
+			this.event.y = event.offsetY;
+
+			this.event = applyTranslate(this.event, { dx: dx, dy: dy }, this.panExtent_);
+			this.zoomExe.call(trgt, this.event);
+		}
+	};
+		
+	var behaviour = {
+		drag: function () {
+			return new DragClass();
+		},
+		// touch: function () {
+		// 	return new TouchClass();
+		// },
+		zoom: function () {
+			return new ZoomClass();
+		}
+	};
+
+	var t2DGeometry$3 = geometry;
+	var queueInstance$4 = queue;
 	var Id$2 = 0;
+
+	var zoomInstance = behaviour.zoom();
+	var dragInstance = behaviour.drag();
+	// let touchInstance = behaviour.touch();
 
 	function domId$1 () {
 		Id$2 += 1;
@@ -5093,10 +5709,6 @@
 		}
 	}
 
-	function addListener (eventType, hndlr) {
-		this[eventType] = hndlr;
-	}
-
 	function cRender (attr) {
 		var self = this;
 
@@ -5108,6 +5720,7 @@
 			var verSkew = transform.skewY ? transform.skewY[0] : 0;
 			var hozMove = transform.translate && transform.translate.length > 0 ? transform.translate[0] : 0;
 			var verMove = transform.translate && transform.translate.length > 1 ? transform.translate[1] : hozMove || 0;
+
 			self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove);
 
 			if (transform.rotate) {
@@ -5140,8 +5753,8 @@
 				(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
 			}
 
-			if (transform && transform.scale) {
-				(assign$1 = transform.scale, scaleX = assign$1[0], scaleY = assign$1[1]);
+			if (transform.scale) {
+				(assign$1 = transform.scale, scaleX = assign$1[0], scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
 			}
 
 			var minX = points[0].x;
@@ -5249,6 +5862,29 @@
 		return new CanvasGradients(config, 'radial');
 	}
 
+	function PixelObject (data, width, height) {
+		this.imageData.pixels = data;
+		this.width = width;
+		this.height = height;
+		// this.x = x;
+		// this.y = y;
+	}
+
+	PixelObject.prototype.get = function (pos) {
+		var pixels = this.imageData ? this.imageData.pixels : [];
+		var rIndex = ((pos.y - 1) * (this.width * 4)) + ((pos.x - 1) * 4);
+		return 'rgba(' + pixels[rIndex] + ', ' + pixels[rIndex + 1] + ', ' + pixels[rIndex + 2] + ', ' + pixels[rIndex + 3] + ')';
+	};
+
+	PixelObject.prototype.put = function (pos, color) {
+		var rIndex = ((pos.y - 1) * (this.width * 4)) + ((pos.x - 1) * 4);
+		this.imageData.pixels[rIndex] = color[0];
+		this.imageData.pixels[rIndex + 1] = color[1];
+		this.imageData.pixels[rIndex + 2] = color[2];
+		this.imageData.pixels[rIndex + 3] = color[3];
+		return this;
+	};
+
 	// function pixels (pixHndlr) {
 	// 	const tObj = this.rImageObj ? this.rImageObj : this.imageObj;
 	// 	const tCxt = tObj.getContext('2d');
@@ -5271,7 +5907,7 @@
 		var maskId = config.id ? config.id : 'mask-' + Math.ceil(Math.random() * 1000);
 		this.config = config;
 		this.mask = new CanvasNodeExe(self.dom.ctx, {
-			el: 'group',
+			el: 'g',
 			attr: {
 				id: maskId
 			}
@@ -5298,7 +5934,7 @@
 
 		var clipId = config.id ? config.id : 'clip-' + Math.ceil(Math.random() * 1000);
 		this.clip = new CanvasNodeExe(self.dom.ctx, {
-			el: 'group',
+			el: 'g',
 			attr: {
 				id: clipId
 			}
@@ -5373,7 +6009,7 @@
 
 	CanvasDom.prototype = {
 		render: cRender,
-		on: addListener,
+		// on: addListener,
 		setAttr: domSetAttribute,
 		setStyle: domSetStyle,
 		applyStyles: applyStyles
@@ -5405,7 +6041,7 @@
 			}
 
 			self.nodeExe.BBoxUpdate = true;
-			queueInstance$3.vDomChanged(self.nodeExe.vDomIndex);
+			queueInstance$4.vDomChanged(self.nodeExe.vDomIndex);
 		};
 
 		imageIns.onerror = function onerror (error) {
@@ -5429,7 +6065,7 @@
 			this.setAttr(key, props[key]);
 		}
 
-		queueInstance$3.vDomChanged(nodeExe.vDomIndex);
+		queueInstance$4.vDomChanged(nodeExe.vDomIndex);
 		self.stack = [self];
 	}
 
@@ -5467,7 +6103,7 @@
 			this.pixelsUpdate();
 		}
 
-		queueInstance$3.vDomChanged(this.nodeExe.vDomIndex);
+		queueInstance$4.vDomChanged(this.nodeExe.vDomIndex);
 	};
 
 	RenderImage.prototype.postProcess = function () {
@@ -5536,7 +6172,7 @@
 	};
 
 	RenderImage.prototype.updateBBox = function RIupdateBBox () {
-		var assign;
+		var assign, assign$1;
 
 		var self = this;
 		var translateX = 0;
@@ -5557,8 +6193,7 @@
 			}
 
 			if (transform.scale) {
-				scaleX = transform.scale[0] !== undefined ? transform.scale[0] : 1;
-				scaleY = transform.scale[1] !== undefined ? transform.scale[1] : scaleX;
+				(assign$1 = transform.scale, scaleX = assign$1[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
 			}
 		}
 
@@ -5626,7 +6261,7 @@
 		}
 
 		if (transform && transform.scale) {
-			(assign$1 = transform.scale, scaleX = assign$1[0], scaleY = assign$1[1]);
+			(assign$1 = transform.scale, scaleX = assign$1[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
 		}
 
 		if (this.style.font) {
@@ -5696,13 +6331,13 @@
 			}
 
 			if (transform.scale) {
-				(assign$1 = transform.scale, scaleX = assign$1[0], scaleY = assign$1[1]);
+				(assign$1 = transform.scale, scaleX = assign$1[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
 			}
 		}
 
 		self.BBox = {
-			x: (translateX + (self.attr.cx - self.attr.r)) * scaleX,
-			y: (translateY + (self.attr.cy - self.attr.r)) * scaleY,
+			x: translateX + ((self.attr.cx - self.attr.r) * scaleX),
+			y: translateY + ((self.attr.cy - self.attr.r) * scaleY),
 			width: 2 * self.attr.r * scaleX,
 			height: 2 * self.attr.r * scaleY
 		};
@@ -5753,8 +6388,8 @@
 			(assign = transform.translate, translateX = assign[0], translateY = assign[1]);
 		}
 
-		if (transform && transform.scale) {
-			(assign$1 = transform.scale, scaleX = assign$1[0], scaleY = assign$1[1]);
+		if (transform.scale) {
+			(assign$1 = transform.scale, scaleX = assign$1[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
 		}
 
 		self.BBox = {
@@ -5891,7 +6526,7 @@
 		}
 
 		if (transform && transform.scale) {
-			(assign$1 = transform.scale, scaleX = assign$1[0], scaleY = assign$1[1]);
+			(assign$1 = transform.scale, scaleX = assign$1[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
 		}
 
 		self.BBox = self.path ? t2DGeometry$3.getBBox(self.path.stackGroup.length > 0 ? self.path.stackGroup : [self.path.stack]) : {
@@ -6101,7 +6736,7 @@
 		}
 
 		if (transform && transform.scale) {
-			(assign$1 = transform.scale, scaleX = assign$1[0], scaleY = assign$1[1]);
+			(assign$1 = transform.scale, scaleX = assign$1[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
 		}
 
 		self.BBox = {
@@ -6168,7 +6803,7 @@
 		}
 
 		if (transform && transform.scale) {
-			(assign$1 = transform.scale, scaleX = assign$1[0], scaleY = assign$1[1]);
+			(assign$1 = transform.scale, scaleX = assign$1[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
 		}
 
 		self.BBox = {
@@ -6253,7 +6888,7 @@
 
 	var RenderGroup = function RenderGroup (ctx, props, styleProps) {
 		var self = this;
-		self.nodeName = 'group';
+		self.nodeName = 'g';
 		self.ctx = ctx;
 		self.attr = props;
 		self.style = styleProps;
@@ -6265,6 +6900,8 @@
 	RenderGroup.prototype.constructor = RenderGroup;
 
 	RenderGroup.prototype.updateBBox = function RGupdateBBox (children) {
+		var assign;
+
 		var self = this;
 		var minX;
 		var maxX;
@@ -6284,8 +6921,7 @@
 		}
 
 		if (transform && self.attr.transform.scale && self.attr.id !== 'rootNode') {
-			scaleX = transform.scale[0] !== undefined ? transform.scale[0] : 1;
-			scaleY = transform.scale[1] !== undefined ? transform.scale[1] : scaleX;
+			(assign = transform.scale, scaleX = assign[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
 		}
 
 		if (children && children.length > 0) {
@@ -6338,7 +6974,7 @@
 	};
 
 	RenderGroup.prototype.in = function RGinfun (coOr) {
-		var assign;
+		var assign, assign$1;
 
 		var self = this;
 		var co = {
@@ -6358,9 +6994,9 @@
 			(assign = transform.translate, gTranslateX = assign[0], gTranslateY = assign[1]);
 		}
 
+
 		if (transform && transform.scale) {
-			scaleX = transform.scale[0] !== undefined ? transform.scale[0] : 1;
-			scaleY = transform.scale[1] !== undefined ? transform.scale[1] : scaleX;
+			(assign$1 = transform.scale, scaleX = assign$1[0], scaleX = scaleX === void 0 ? 1 : scaleX, scaleY = assign$1[1], scaleY = scaleY === void 0 ? scaleX : scaleY);
 		}
 
 		return co.x >= (BBox.x - gTranslateX) / scaleX && co.x <= (BBox.x - gTranslateX + BBox.width) / scaleX && co.y >= (BBox.y - gTranslateY) / scaleY && co.y <= (BBox.y - gTranslateY + BBox.height) / scaleY;
@@ -6376,6 +7012,7 @@
 		this.nodeName = config.el;
 		this.nodeType = 'CANVAS';
 		this.children = [];
+		this.events = {};
 		this.ctx = context;
 		this.vDomIndex = vDomIndex;
 		this.bbox = config['bbox'] !== undefined ? config['bbox'] : true;
@@ -6402,6 +7039,7 @@
 				break;
 
 			case 'group':
+			case 'g':
 				this.dom = new RenderGroup(this.ctx, this.attr, this.style);
 				break;
 
@@ -6485,7 +7123,7 @@
 		}
 
 		this.dom.parent.BBoxUpdate = true;
-		queueInstance$3.vDomChanged(this.vDomIndex);
+		queueInstance$4.vDomChanged(this.vDomIndex);
 	};
 
 	CanvasNodeExe.prototype.attributesExe = function CattributesExe () {
@@ -6503,7 +7141,7 @@
 			}
 		}
 
-		queueInstance$3.vDomChanged(this.vDomIndex);
+		queueInstance$4.vDomChanged(this.vDomIndex);
 		return this;
 	};
 
@@ -6529,7 +7167,7 @@
 		}
 
 		this.BBoxUpdate = true;
-		queueInstance$3.vDomChanged(this.vDomIndex);
+		queueInstance$4.vDomChanged(this.vDomIndex);
 		return this;
 	};
 
@@ -6546,7 +7184,7 @@
 
 		this.dom.setAttr('transform', this.attr.transform);
 		this.BBoxUpdate = true;
-		queueInstance$3.vDomChanged(this.vDomIndex);
+		queueInstance$4.vDomChanged(this.vDomIndex);
 		return this;
 	};
 
@@ -6562,7 +7200,7 @@
 		this.attr.transform.scale = [XY[0], XY[1] ? XY[1] : XY[0]];
 		this.dom.setAttr('transform', this.attr.transform);
 		this.BBoxUpdate = true;
-		queueInstance$3.vDomChanged(this.vDomIndex);
+		queueInstance$4.vDomChanged(this.vDomIndex);
 		return this;
 	};
 
@@ -6574,7 +7212,7 @@
 		this.attr.transform.translate = XY;
 		this.dom.setAttr('transform', this.attr.transform);
 		this.BBoxUpdate = true;
-		queueInstance$3.vDomChanged(this.vDomIndex);
+		queueInstance$4.vDomChanged(this.vDomIndex);
 		return this;
 	};
 
@@ -6586,7 +7224,7 @@
 		this.attr.transform.skewX = [x];
 		this.dom.setAttr('transform', this.attr.transform);
 		this.BBoxUpdate = true;
-		queueInstance$3.vDomChanged(this.vDomIndex);
+		queueInstance$4.vDomChanged(this.vDomIndex);
 		return this;
 	};
 
@@ -6598,7 +7236,7 @@
 		this.attr.transform.skewY = [y];
 		this.dom.setAttr('transform', this.attr.transform);
 		this.BBoxUpdate = true;
-		queueInstance$3.vDomChanged(this.vDomIndex);
+		queueInstance$4.vDomChanged(this.vDomIndex);
 		return this;
 	};
 
@@ -6630,7 +7268,7 @@
 		}
 
 		this.BBoxUpdate = true;
-		queueInstance$3.vDomChanged(this.vDomIndex);
+		queueInstance$4.vDomChanged(this.vDomIndex);
 		return self;
 	};
 
@@ -6648,7 +7286,7 @@
 		}
 
 		this.BBoxUpdate = true;
-		queueInstance$3.vDomChanged(this.vDomIndex);
+		queueInstance$4.vDomChanged(this.vDomIndex);
 		return self;
 	};
 
@@ -6677,7 +7315,29 @@
 	};
 
 	CanvasNodeExe.prototype.on = function Con (eventType, hndlr) {
-		this.dom.on(eventType, hndlr);
+		var self = this;
+		// this.dom.on(eventType, hndlr);
+		if (!this.events) {
+			this.events = {};
+		}
+
+		if (!hndlr && this.events[eventType]) {
+			delete this.events[eventType];
+		} else if (hndlr) {
+			if (typeof hndlr === 'function') {
+				var hnd = hndlr.bind(self);
+				this.events[eventType] = function (event) {
+					hnd(event);
+				};
+			} else if (typeof hndlr === 'object') {
+				this.events[eventType] = hndlr;
+				if (hndlr.constructor === zoomInstance.constructor) {
+					hndlr.bindMethods(this);
+				}
+				if (hndlr.constructor === dragInstance.constructor) ;
+			}
+		}
+		
 		return this;
 	};
 
@@ -6695,7 +7355,7 @@
 			ctx: this.dom.ctx
 		}, data, config, this.vDomIndex);
 		this.child(e.stack);
-		queueInstance$3.vDomChanged(this.vDomIndex);
+		queueInstance$4.vDomChanged(this.vDomIndex);
 		return e;
 	};
 
@@ -6704,14 +7364,14 @@
 			this.dom.text(value);
 		}
 
-		queueInstance$3.vDomChanged(this.vDomIndex);
+		queueInstance$4.vDomChanged(this.vDomIndex);
 		return this;
 	};
 
 	CanvasNodeExe.prototype.createEl = function CcreateEl (config) {
 		var e = new CanvasNodeExe(this.dom.ctx, config, domId$1(), this.vDomIndex);
 		this.child([e]);
-		queueInstance$3.vDomChanged(this.vDomIndex);
+		queueInstance$4.vDomChanged(this.vDomIndex);
 		return e;
 	};
 
@@ -6729,7 +7389,7 @@
 		}
 
 		this.BBoxUpdate = true;
-		queueInstance$3.vDomChanged(this.vDomIndex);
+		queueInstance$4.vDomChanged(this.vDomIndex);
 	};
 
 	CanvasNodeExe.prototype.getBBox = function () {
@@ -6742,11 +7402,18 @@
 	};
 
 	CanvasNodeExe.prototype.getPixels = function () {
-		return this.ctx.getImageData(this.dom.BBox.x, this.dom.BBox.y, this.dom.BBox.width, this.dom.BBox.height);
+		var imageData = this.ctx.getImageData(this.dom.BBox.x, this.dom.BBox.y, this.dom.BBox.width, this.dom.BBox.height);
+		var pixelInstance = new PixelObject(imageData, this.dom.BBox.width, this.dom.BBox.height);
+
+		return pixelInstance;
+		// this.ctx.getImageData(this.dom.BBox.x, this.dom.BBox.y, this.dom.BBox.width, this.dom.BBox.height);
 	};
 
-	CanvasNodeExe.prototype.putPixels = function (imageData) {
-		return this.ctx.putImageData(imageData, this.dom.BBox.x, this.dom.BBox.y);
+	CanvasNodeExe.prototype.putPixels = function (pixels) {
+		if (!(pixels instanceof PixelObject)) {
+			return;
+		}
+		return this.ctx.putImageData(pixels.imageData, this.dom.BBox.x, this.dom.BBox.y);
 	};
 
 	function canvasLayer (container, contextConfig, layerSettings) {
@@ -6782,14 +7449,14 @@
 			res.appendChild(layer);
 			vDomInstance = new VDom();
 			if (autoUpdate) {
-				vDomIndex = queueInstance$3.addVdom(vDomInstance);
+				vDomIndex = queueInstance$4.addVdom(vDomInstance);
 			}
 		} else {
 			enableEvents = false;
 		}
 
 		var root = new CanvasNodeExe(ctx, {
-			el: 'group',
+			el: 'g',
 			attr: {
 				id: 'rootNode'
 			}
@@ -6892,11 +7559,17 @@
 		};
 
 		root.getPixels = function (x, y, width_, height_) {
-			return this.ctx.getImageData(x, y, width_, height_);
+			var imageData = this.ctx.getImageData(x, y, width_, height_);
+			var pixelInstance = new PixelObject(imageData, width_, height_);
+
+			return pixelInstance;
 		};
 
-		root.putPixels = function (imageData, x, y) {
-			return this.ctx.putImageData(imageData, x, y);
+		root.putPixels = function (Pixels, x, y) {
+			if (!(Pixels instanceof PixelObject)) {
+				return;
+			}
+			return this.ctx.putImageData(Pixels.imageData, x, y);
 		};
 
 		root.clear = function () {
@@ -6938,8 +7611,56 @@
 			if (res && res.contains(layer)) {
 				res.removeChild(layer);
 			}
-			queueInstance$3.removeVdom(vDomIndex);
+			queueInstance$4.removeVdom(vDomIndex);
 		};
+
+		// root.on = function (eventType, hndlr) {
+		// 	const self = this;
+
+		// 	if (self.events[eventType] && eventType !== 'drag' && eventType !== 'zoom') {
+		// 		self.dom.removeEventListener(eventType, self.events[eventType]);
+		// 		delete self.events[eventType];
+		// 	}
+
+		// 	if (eventType === 'drag') {
+		// 		delete layer.drag_;
+		// 	}
+
+		// 	if (eventType === 'zoom') {
+		// 		layer.removeEventListener('wheel', self.events[eventType]);
+		// 		delete layer.drag_;
+		// 	}
+
+		// 	if (!hndlr) {
+		// 		return;
+		// 	}
+
+		// 	if (eventType === 'drag') {
+		// 		layer.drag_ = function (event, eventType) {
+		// 			hndlr.execute(self, event, eventType);
+		// 		};
+		// 	} else if (eventType === 'zoom') {
+		// 		self.events[eventType] = function (event) {
+		// 			hndlr.zoomExecute(self, event);
+		// 		};
+
+		// 		layer.addEventListener('wheel', self.events[eventType]);
+		// 		layer.drag_ = function (event, eventType) {
+		// 			if (hndlr.panFlag) {
+		// 				hndlr.panExecute(self, event, eventType);
+		// 			}
+		// 		};
+		// 	} else {
+		// 		const hnd = hndlr.bind(self);
+		// 		self.events[eventType] = function (event) {
+		// 			hnd(self.dataObj, event);
+		// 		};
+
+		// 		layer.addEventListener(eventType, self.events[eventType]);
+		// 	}
+
+		// 	return this;
+		// }
 
 		if (enableEvents) {
 			var eventsInstance = new Events(root);
@@ -6987,9 +7708,13 @@
 				e.preventDefault();
 				eventsInstance.touchcancelCheck(e);
 			});
+			layer.addEventListener('wheel', function (e) {
+				e.preventDefault();
+				eventsInstance.wheelEventCheck(e);
+			});
 		}
 
-		queueInstance$3.execute();
+		queueInstance$4.execute();
 
 		if (enableResize) {
 			window.addEventListener('resize', resize);
@@ -7016,9 +7741,9 @@
 			ctx.clearRect(0, 0, width * ratio, height * ratio);
 		};
 		var vDomInstance = new VDom();
-		var vDomIndex = queueInstance$3.addVdom(vDomInstance);
+		var vDomIndex = queueInstance$4.addVdom(vDomInstance);
 		var root = new CanvasNodeExe(ctx, {
-			el: 'group',
+			el: 'g',
 			attr: {
 				id: 'rootNode'
 			}
@@ -7777,7 +8502,7 @@
 	earcut_1.default = default_1;
 
 	var ratio$1;
-	var queueInstance$4 = queue;
+	var queueInstance$5 = queue;
 
 	function getPixlRatio$1 (ctx) {
 		var dpr = window.devicePixelRatio || 1;
@@ -8381,19 +9106,19 @@
 
 	RenderWebglShader.prototype.addUniform = function (key, value) {
 		this.uniforms[key] = webGlUniformMapper(this.ctx, this.program, key, value);
-		queueInstance$4.vDomChanged(this.vDomIndex);
+		queueInstance$5.vDomChanged(this.vDomIndex);
 	};
 
 	RenderWebglShader.prototype.addAttribute = function (key, value) {
 		this.attributes[key] = value;
 		this.attrObjs[key] = webGlAttrMapper(this.ctx, this.program, key, value);
-		queueInstance$4.vDomChanged(this.vDomIndex);
+		queueInstance$5.vDomChanged(this.vDomIndex);
 	};
 
 	RenderWebglShader.prototype.setAttributeData = function (key, value) {
 		this.attributes[key].value = value;
 		this.attrObjs[key].value = value;
-		queueInstance$4.vDomChanged(this.vDomIndex);
+		queueInstance$5.vDomChanged(this.vDomIndex);
 	};
 	RenderWebglShader.prototype.applyAttributeData = function (key, value) {
 		this.attributes[key].value = value;
@@ -8405,7 +9130,7 @@
 	};
 	RenderWebglShader.prototype.setUniformData = function (key, value) {
 		this.uniforms[key].value = value;
-		queueInstance$4.vDomChanged(this.vDomIndex);
+		queueInstance$5.vDomChanged(this.vDomIndex);
 	};
 	RenderWebglShader.prototype.applyUniformData = function (uniform, value) {
 		this.uniforms[uniform].value = value;
@@ -8414,7 +9139,7 @@
 		} else {
 			this.ctx[this.uniforms[uniform].type](this.uniforms[uniform].uniformLocation, this.uniforms[uniform].value);
 		}
-		queueInstance$4.vDomChanged(this.vDomIndex);
+		queueInstance$5.vDomChanged(this.vDomIndex);
 	};
 
 	function ShaderNodePrototype () { }
@@ -9686,7 +10411,7 @@
 			}
 		}
 
-		queueInstance$4.vDomChanged(this.vDomIndex);
+		queueInstance$5.vDomChanged(this.vDomIndex);
 		return this;
 	};
 
@@ -9709,7 +10434,7 @@
 			}
 		}
 
-		queueInstance$4.vDomChanged(this.vDomIndex);
+		queueInstance$5.vDomChanged(this.vDomIndex);
 		return this;
 	};
 
@@ -9752,7 +10477,7 @@
 		}
 
 		this.BBoxUpdate = true;
-		queueInstance$4.vDomChanged(this.vDomIndex);
+		queueInstance$5.vDomChanged(this.vDomIndex);
 		return self;
 	};
 
@@ -9762,21 +10487,21 @@
 			ctx: this.dom.ctx
 		}, data, config, this.vDomIndex);
 		this.child(e.stack);
-		queueInstance$4.vDomChanged(this.vDomIndex);
+		queueInstance$5.vDomChanged(this.vDomIndex);
 		return e;
 	};
 
 	WebglNodeExe.prototype.createEl = function WcreateEl (config) {
 		var e = new WebglNodeExe(this.ctx, config, domId$2(), this.vDomIndex);
 		this.child([e]);
-		queueInstance$4.vDomChanged(this.vDomIndex);
+		queueInstance$5.vDomChanged(this.vDomIndex);
 		return e;
 	};
 
 	WebglNodeExe.prototype.createShaderEl = function createShader (shaderObject) {
 		var e = new RenderWebglShader(this.ctx, shaderObject, this.vDomIndex);
 		this.child([e]);
-		queueInstance$4.vDomChanged(this.vDomIndex);
+		queueInstance$5.vDomChanged(this.vDomIndex);
 		return e;
 	};
 
@@ -9796,7 +10521,7 @@
 		}
 
 		this.BBoxUpdate = true;
-		queueInstance$4.vDomChanged(this.vDomIndex);
+		queueInstance$5.vDomChanged(this.vDomIndex);
 	};
 
 	WebglNodeExe.prototype.removeChild = function WremoveChild (obj) {
@@ -9812,7 +10537,7 @@
 			this.dom.removeChild(removedNode.dom);
 		}
 
-		queueInstance$4.vDomChanged(this.vDomIndex);
+		queueInstance$5.vDomChanged(this.vDomIndex);
 	};
 
 	function webglLayer (container, contextConfig, layerSettings) {
@@ -9854,7 +10579,7 @@
 			res.appendChild(layer);
 			vDomInstance = new VDom();
 			if (autoUpdate) {
-				vDomIndex = queueInstance$4.addVdom(vDomInstance);
+				vDomIndex = queueInstance$5.addVdom(vDomInstance);
 			}
 		}
 		
@@ -9900,7 +10625,7 @@
 			if (res && res.contains(layer)) {
 				res.removeChild(layer);
 			}
-			queueInstance$4.removeVdom(vDomIndex);
+			queueInstance$5.removeVdom(vDomIndex);
 		};
 
 		root.getPixels = function (x, y, width_, height_) {
@@ -10015,7 +10740,7 @@
 			return new RenderTarget(this.ctx, config, this.vDomIndex);
 		};
 
-		queueInstance$4.execute();
+		queueInstance$5.execute();
 
 		if (enableResize) {
 			window.addEventListener('resize', resize);
@@ -10030,7 +10755,7 @@
 			this.crossOrigin = 'anonymous';
 			self.update();
 			self.updated = true;
-			queueInstance$4.vDomChanged(self.vDomIndex);
+			queueInstance$5.vDomChanged(self.vDomIndex);
 		};
 
 		imageIns.onerror = function onerror (onerrorExe) {
@@ -10072,7 +10797,7 @@
 			self.update();
 			self.updated = true;
 		}
-		queueInstance$4.vDomChanged(self.vDomIndex);
+		queueInstance$5.vDomChanged(self.vDomIndex);
 	}TextureObject.prototype.setAttr = function (attr, value) {
 		this[attr] = value;
 		if (attr === 'src') {
@@ -10184,61 +10909,6 @@
 	}
 	LineGeometry.prototype = new WebGLGeometry();
 	LineGeometry.constructor = LineGeometry;
-
-	var dragObject = {
-		dragStart: function (fun) {
-			if (typeof fun === 'function') {
-				this.onDragStart = fun;
-			}
-			return this;
-		},
-		drag: function (fun) {
-			if (typeof fun === 'function') {
-				this.onDrag = fun;
-			}
-			return this;
-		},
-		dragEnd: function (fun) {
-			if (typeof fun === 'function') {
-				this.onDragEnd = fun;
-			}
-			return this;
-		}
-	};
-
-	var drag = function () {
-		return Object.create(dragObject);
-	};
-
-	var touchObject = {
-		touchStart: function (fun) {
-			if (typeof fun === 'function') {
-				this.onTouchStart = fun;
-			}
-			return this;
-		},
-		touch: function (fun) {
-			if (typeof fun === 'function') {
-				this.onTouch = fun;
-			}
-			return this;
-		},
-		touchEnd: function (fun) {
-			if (typeof fun === 'function') {
-				this.onTouchEnd = fun;
-			}
-			return this;
-		}
-	};
-
-	var touch = function () {
-		return Object.create(touchObject);
-	};
-
-	var behaviour = {
-		drag: drag,
-		touch: touch
-	};
 
 	var pathIns = path.instance;
 	var canvasLayer$1 = canvasAPI.canvasLayer;

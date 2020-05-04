@@ -346,6 +346,7 @@ NodePrototype.prototype.fetchEls = function (nodeSelector, dataArray) {
 				return true;
 			});
 		} else {
+			nodeSelector = nodeSelector === 'group' ? 'g' : nodeSelector;
 			this.children.forEach(d => {
 				let check1 = dataArray && d.dataObj && dataArray.indexOf(d.dataObj) !== -1 && d.nodeName === nodeSelector;
 				let check2 = !dataArray && d.nodeName === nodeSelector;
@@ -391,6 +392,7 @@ NodePrototype.prototype.fetchEl = function (nodeSelector, data) {
 				return true;
 			});
 		} else {
+			nodeSelector = nodeSelector === 'group' ? 'g' : nodeSelector;
 			this.children.forEach(d => {
 				let check1 = data && d.dataObj && data === d.dataObj && d.nodeName === nodeSelector;
 				let check2 = !data && d.nodeName === nodeSelector;
@@ -468,6 +470,15 @@ function dataJoin (data, selector, config) {
 }
 
 NodePrototype.prototype.join = dataJoin;
+
+NodePrototype.prototype.data = function (data) {
+	if (!data) {
+		return this.dataObj;
+	} else {
+		this.dataObj = data;
+	}
+	return this;
+};
 
 NodePrototype.prototype.interrupt = function () {
 	if (this.animList && this.animList.length > 0) {
