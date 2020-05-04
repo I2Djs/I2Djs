@@ -13,13 +13,6 @@ function domId () {
 	return Id;
 }
 
-let Event = function (x, y) {
-	this.x = x;
-	this.y = y;
-	this.dx = 0;
-	this.dy = 0;
-};
-
 let SVGCollection = function () {
 	CollectionPrototype.apply(this, arguments);
 };
@@ -325,6 +318,7 @@ const DomExe = function DomExe (dom, config, id, vDomIndex) {
 	this.dom.nodeId = id;
 	this.children = [];
 	this.vDomIndex = vDomIndex;
+	this.events = {};
 
 	if (config.style) {
 		this.setStyle(config.style);
@@ -371,7 +365,7 @@ function updateAttrsToDom (self, key) {
 
 function updateTransAttrsToDom (self) {
 	let cmd = '';
-
+	// let trns = ['scale', 'translate', 'rotate'];
 	for (let trnX in self.attr.transform) {
 		if (trnX === 'rotate') {
 			cmd += `${trnX}(${self.attr.transform.rotate[0] + ' ' + (self.attr.transform.rotate[1] || 0) + ' ' + (self.attr.transform.rotate[2] || 0)}) `;
@@ -592,41 +586,48 @@ DomExe.prototype.createLinearGradient = function DMcreateLinearGradient (config)
 
 // DomExe.prototype
 
-let dragStack = [];
+// let dragStack = [];
 
 DomExe.prototype.on = function DMon (eventType, hndlr) {
 	const self = this;
 
+	if (self.events[eventType] && eventType !== 'drag' && eventType !== 'zoom') {
+		self.dom.removeEventListener(eventType, self.events[eventType]);
+		delete self.events[eventType];
+	}
+
+	if (eventType === 'drag') {
+		delete self.dom.drag_;
+	}
+
+	if (eventType === 'zoom') {
+		self.dom.removeEventListener('wheel', self.events[eventType]);
+		delete self.dom.drag_;
+	}
+
 	if (!hndlr) {
-		if (self.events && self.events[eventType]) {
-			self.dom.removeEventListener(eventType, self.events[eventType]);
-			delete self.events[eventType];
-		}
-
-		if (eventType === 'drag') {
-			dragStack.splice(dragStack.indexOf(self), 1);
-		}
-
 		return;
 	}
 
 	if (eventType === 'drag') {
-		self.drag = hndlr;
-		dragStack.push(self);
+		self.dom.drag_ = function (event, eventType) {
+			hndlr.execute(self, event, eventType);
+		};
+	} else if (eventType === 'zoom') {
+		self.events[eventType] = function (event) {
+			hndlr.zoomExecute(self, event);
+		};
+
+		self.dom.addEventListener('wheel', self.events[eventType]);
+		self.dom.drag_ = function (event, eventType) {
+			if (hndlr.panFlag) {
+				hndlr.panExecute(self, event, eventType);
+			}
+		};
 	} else {
 		const hnd = hndlr.bind(self);
-
-		if (self.events) {
-			if (self.events[eventType]) {
-				self.dom.removeEventListener(eventType, self.events[eventType]);
-				delete self.events[eventType];
-			}
-		} else {
-			self.events = {};
-		}
-
 		self.events[eventType] = function (event) {
-			hnd(self.dataObj, event);
+			hnd(event);
 		};
 
 		self.dom.addEventListener(eventType, self.events[eventType]);
@@ -798,68 +799,41 @@ function svgLayer (container, layerSettings = {}) {
 		return new SVGMasking(this, config);
 	};
 
-	let dragTargetEl = null;
+	let dragNode = null;
 	root.dom.addEventListener('mousedown', function (e) {
-		if (dragStack.length) {
-			dragStack.forEach(function (d) {
-				if (e.target === d.dom) {
-					dragTargetEl = d;
-				}
-			});
-
-			if (dragTargetEl) {
-				let event = new Event(e.offsetX, e.offsetY);
-				event.e = e;
-				dragTargetEl.drag.event = event;
-				dragTargetEl.drag.dragStartFlag = true;
-				if (dragTargetEl.drag.onDragStart) {
-					dragTargetEl.drag.onDragStart.call(dragTargetEl, dragTargetEl.dataObj, event);
-				}
-			}
+		if (e.target.drag_) {
+			e.target.drag_(e, 'mousedown');
+			dragNode = e.target;
+		}
+	});
+	root.dom.addEventListener('touchstart', function (e) {
+		if (e.target.drag_) {
+			e.target.drag_(e, 'mousedown');
+			dragNode = e.target;
 		}
 	});
 	root.dom.addEventListener('mousemove', function (e) {
-		if (dragTargetEl) {
-			let event = dragTargetEl.drag.event;
-			event.dx = e.offsetX - event.x;
-			event.dy = e.offsetY - event.y;
-			event.x = e.offsetX;
-			event.y = e.offsetY;
-			event.e = e;
-			if (dragTargetEl.drag.onDrag) {
-				dragTargetEl.drag.onDrag.call(dragTargetEl, dragTargetEl.dataObj, event);
-			}
+		if (dragNode) {
+			dragNode.drag_(e, 'mousemove');
+		}
+	});
+	root.dom.addEventListener('touchmove', function (e) {
+		if (dragNode) {
+			dragNode.drag_(e, 'mousemove');
 		}
 	});
 	root.dom.addEventListener('mouseup', function (e) {
-		if (dragTargetEl) {
-			let event = dragTargetEl.drag.event;
-			event.dx = e.offsetX - event.x;
-			event.dy = e.offsetY - event.y;
-			event.x = e.offsetX;
-			event.y = e.offsetY;
-			event.e = e;
-			if (dragTargetEl.drag.onDragEnd) {
-				dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
-			}
-			dragTargetEl = null;
+		if (dragNode) {
+			dragNode.drag_(e, 'mouseup');
+			dragNode = null;
 		}
 	});
 	root.dom.addEventListener('mouseleave', function (e) {
-		if (dragTargetEl) {
-			let event = dragTargetEl.drag.event;
-			event.dx = e.offsetX - event.x;
-			event.dy = e.offsetY - event.y;
-			event.x = e.offsetX;
-			event.y = e.offsetY;
-			event.e = e;
-			if (dragTargetEl.drag.onDragEnd) {
-				dragTargetEl.drag.onDragEnd.call(dragTargetEl, dragTargetEl.dataObj, event);
-			}
-			dragTargetEl = null;
+		if (dragNode) {
+			dragNode.drag_(e, 'mouseleave');
+			dragNode = null;
 		}
 	});
-
 	queueInstance.execute();
 
 	if (enableResize) {

@@ -1,60 +1,60 @@
-let Event = function (x, y) {
-	this.x = x;
-	this.y = y;
-	this.dx = 0;
-	this.dy = 0;
-};
+// let Event = function (x, y) {
+// 	this.x = x;
+// 	this.y = y;
+// 	this.dx = 0;
+// 	this.dy = 0;
+// };
 
 function Events (vDom) {
 	this.vDom = vDom;
 	this.disable = false;
 	this.dragNode = null;
 	this.touchNode = null;
+	this.wheelNode = null;
+	// this.clickDown = false;
+	// this.touchDown = false;
 }
 
 Events.prototype.getNode = function (e) {};
 
 Events.prototype.mousemoveCheck = function (e) {
+	let node;
 	if (this.dragNode) {
-		let event = this.dragNode.dom.drag.event;
-
-		if (this.dragNode.dom.drag.event) {
-			event.dx = e.offsetX - event.x;
-			event.dy = e.offsetY - event.y;
+		node = this.dragNode;
+		if (this.dragNode.events.drag) {
+			this.dragNode.events.drag.execute(this.dragNode, e, 'mousemove');
 		}
-
-		event.x = e.offsetX;
-		event.y = e.offsetY;
-		event.e = e;
-		this.dragNode.dom.drag.event = event;
-		this.dragNode.dom.drag.onDrag.call(this.dragNode, this.dragNode.dataObj, event);
+		if (this.dragNode.events.zoom) {
+			this.dragNode.events.zoom.panExecute(this.dragNode, e, 'mousemove');
+		}
 	} else {
-		let node = propogateEvent([this.vDom], {
+		node = propogateEvent([this.vDom], {
 			x: e.offsetX,
 			y: e.offsetY
 		}, e, 'mousemove');
-		if (node && (node.dom['mouseover'] || node.dom['mousein'])) {
-			if (this.selectedNode !== node) {
-				if (node.dom['mouseover']) {
-					node.dom['mouseover'].call(node, node.dataObj, e);
-				}
-				if (node.dom['mousein']) {
-					node.dom['mousein'].call(node, node.dataObj, e);
-				}
-			}
-		}
-
-		if (this.selectedNode && this.selectedNode !== node) {
-			if (this.selectedNode.dom['mouseout']) {
-				this.selectedNode.dom['mouseout'].call(this.selectedNode, this.selectedNode.dataObj, e);
-			}
-			if (this.selectedNode.dom['mouseleave']) {
-				this.selectedNode.dom['mouseleave'].call(this.selectedNode, this.selectedNode.dataObj, e);
-			}
-		}
-
-		this.selectedNode = node;
 	}
+
+	if (node && (node.events['mouseover'] || node.events['mousein'])) {
+		if (this.selectedNode !== node) {
+			if (node.events['mouseover']) {
+				node.events['mouseover'].call(node, e);
+			}
+			if (node.events['mousein']) {
+				node.events['mousein'].call(node, e);
+			}
+		}
+	}
+
+	if (this.selectedNode && this.selectedNode !== node) {
+		if (this.selectedNode.events['mouseout']) {
+			this.selectedNode.events['mouseout'].call(this.selectedNode, e);
+		}
+		if (this.selectedNode.events['mouseleave']) {
+			this.selectedNode.events['mouseleave'].call(this.selectedNode, e);
+		}
+	}
+
+	this.selectedNode = node;
 };
 
 Events.prototype.clickCheck = function (e) {
@@ -77,14 +77,13 @@ Events.prototype.mousedownCheck = function (e) {
 		y: e.offsetY
 	}, e, 'mousedown');
 
-	if (node && node.dom.drag && (node.dom.drag.onDragStart || node.dom.drag.onDrag)) {
-		node.dom.drag.dragStartFlag = true;
-		if (node.dom.drag.onDragStart) {
-			node.dom.drag.onDragStart.call(node, node.dataObj, e);
-		}
-		let event = new Event(e.offsetX, e.offsetY);
-		event.e = e;
-		node.dom.drag.event = event;
+	if (node && node.events.drag) {
+		node.events.drag.execute(node, e, 'mousedown');
+		this.dragNode = node;
+	}
+
+	if (node && node.events.zoom && node.events.zoom.panFlag) {
+		node.events.zoom.panExecute(node, e, 'mousedown');
 		this.dragNode = node;
 	}
 };
@@ -92,13 +91,13 @@ Events.prototype.mousedownCheck = function (e) {
 Events.prototype.mouseupCheck = function (e) {
 	let node = this.dragNode;
 
-	if (node && node.dom.drag && node.dom.drag.dragStartFlag) {
-		node.dom.drag.dragStartFlag = false;
-		node.dom.drag.event = null;
-		if (node.dom.drag.onDragEnd) {
-			node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+	if (node) {
+		if (node.events.drag) {
+			node.events.drag.execute(node, e, 'mouseup');
 		}
-		node.dom.drag.event = null; // selectedNode = null
+		if (node.events.zoom && node.events.zoom.panFlag) {
+			node.events.zoom.panExecute(node, e, 'mouseup');
+		}
 		this.dragNode = null;
 	} else {
 		propogateEvent([this.vDom], {
@@ -110,11 +109,12 @@ Events.prototype.mouseupCheck = function (e) {
 
 Events.prototype.mouseleaveCheck = function (e) {
 	let node = this.dragNode;
-	if (node && node.dom.drag && node.dom.drag.dragStartFlag) {
-		node.dom.drag.dragStartFlag = false;
-		node.dom.drag.event = null;
-		if (node.dom.drag.onDragEnd) {
-			node.dom.drag.onDragEnd.call(node, node.dataObj, node.dom.drag.event);
+	if (node) {
+		if (node.events.drag) {
+			node.events.drag.execute(node, e, 'mouseleave');
+		}
+		if (node.events.zoom && node.events.zoom.panFlag) {
+			node.events.zoom.panExecute(node, e, 'mouseleave');
 		}
 		this.dragNode = null;
 	} else {
@@ -140,22 +140,37 @@ Events.prototype.touchstartCheck = function (e) {
 	let node = propogateEvent([this.vDom], {
 		x: touches[0].clientX,
 		y: touches[0].clientY
-	}, e, 'touchstart_');
+	}, e, 'click');
 
-	if (node && node.dom.touch && node.dom.touch.onTouchStart) {
-		node.dom.touch.touchStartFlag = true;
-		node.dom.touch.onTouchStart.call(node, node.dataObj, e);
-		let event = new Event(touches[0].clientX, touches[0].clientY);
-		event.e = e;
-		node.dom.touch.event = event;
-		this.touchNode = node;
+	if (node.events.drag) {
+		node.events.drag.execute(node, e, 'mousedown');
+		this.dragNode = node;
 	}
+	if (node && node.events.zoom && node.events.zoom.panFlag) {
+		node.events.zoom.panExecute(node, e, 'mousedown');
+		this.dragNode = node;
+	}
+
+	// if (node && node.events.touch && node.events.touch.onTouchStart) {
+	// 	node.events.touch.touchStartFlag = true;
+	// 	node.events.touch.onTouchStart.call(node, e);
+	// 	let event = new Event(touches[0].clientX, touches[0].clientY);
+	// 	event.e = e;
+	// 	node.events.touch.event = event;
+	// 	this.touchNode = node;
+	// }
 };
 
 Events.prototype.touchendCheck = function (e) {
-	if (this.touchNode && this.touchNode.dom.touch.touchStartFlag && this.touchNode.dom.touch.onTouchEnd) {
-		this.touchNode.dom.touch.onTouchEnd.call(this.touchNode, this.touchNode.dataObj, this.touchNode.dom.touch.event);
-		this.touchNode = null;
+	let node = this.dragNode;
+	if (node) {
+		if (node.events.drag) {
+			node.events.drag.execute(node, e, 'mouseleave');
+		}
+		if (node.events.zoom && node.events.zoom.panFlag) {
+			node.events.zoom.panExecute(node, e, 'mouseleave');
+		}
+		this.dragNode = null;
 	}
 };
 
@@ -164,32 +179,101 @@ Events.prototype.touchmoveCheck = function (e) {
 	if (touches.length === 0) {
 		return;
 	}
-	if (this.touchNode) {
-		let event = this.touchNode.dom.touch.event;
 
-		if (this.touchNode.dom.touch.event) {
-			event.dx = touches[0].clientX - event.x;
-			event.dy = touches[0].clientY - event.y;
+	let node = this.dragNode;
+	if (node) {
+		if (this.dragNode.events.drag) {
+			this.dragNode.events.drag.execute(this.dragNode, e, 'mousemove');
 		}
-
-		event.x = touches[0].clientX;
-		event.y = touches[0].clientY;
-		event.e = e;
-		this.touchNode.dom.touch.event = event;
-		this.touchNode.dom.touch.onTouch.call(this.touchNode, this.touchNode.dataObj, event);
+		if (this.dragNode.events.zoom) {
+			this.dragNode.events.zoom.panExecute(this.dragNode, e, 'mousemove');
+		}
+	} else {
+		node = propogateEvent([this.vDom], {
+			x: touches[0].clientX,
+			y: touches[0].clientY
+		}, e, 'mousemove');
 	}
+
+	if (node && (node.events['mouseover'] || node.events['mousein'])) {
+		if (this.selectedNode !== node) {
+			if (node.events['mouseover']) {
+				node.events['mouseover'].call(node, e);
+			}
+			if (node.events['mousein']) {
+				node.events['mousein'].call(node, e);
+			}
+		}
+	}
+
+	if (this.selectedNode && this.selectedNode !== node) {
+		if (this.selectedNode.events['mouseout']) {
+			this.selectedNode.events['mouseout'].call(this.selectedNode, e);
+		}
+		if (this.selectedNode.events['mouseleave']) {
+			this.selectedNode.events['mouseleave'].call(this.selectedNode, e);
+		}
+	}
+	this.selectedNode = node;
 };
 
 Events.prototype.touchcancelCheck = function (e) {
 	let touches = e.touches;
-	if (touches.length === 0) {
-		return;
+	// if (touches.length === 0) {
+	// 	return;
+	// }
+	let node = this.dragNode;
+	if (node) {
+		if (node.events.drag) {
+			node.events.drag.execute(node, e, 'mouseleave');
+		}
+		if (node.events.zoom && node.events.zoom.panFlag) {
+			node.events.zoom.panExecute(node, e, 'mouseleave');
+		}
+		this.dragNode = null;
+	} else {
+		propogateEvent([this.vDom], {
+			x: touches[0].clientX,
+			y: touches[0].clientY
+		}, e, 'touchcacel');
 	}
+};
 
-	propogateEvent([this.vDom], {
-		x: touches[0].clientX,
-		y: touches[0].clientY
-	}, e, 'touchcacel');
+let wheelCounter = 0;
+let deltaWheel = 0;
+Events.prototype.wheelEventCheck = function (e) {
+	let self = this;
+	if (!this.wheelNode) {
+		wheelCounter = 0;
+		let node = propogateEvent([this.vDom], {
+			x: e.offsetX,
+			y: e.offsetY
+		}, e, 'wheel');
+		node = node || this.vDom;
+		if (node && node.events.zoom) {
+			if (!node.events.zoom.disableWheel) {
+				node.events.zoom.zoomExecute(node, e);
+				this.wheelNode = node;
+			}
+		}
+	} else {
+		this.wheelNode.events.zoom.zoomExecute(this.wheelNode, e);
+		wheelCounter += 1;
+		if (this.wheelHndl) {
+			clearTimeout(this.wheelHndl);
+			this.wheelHndl = null;
+			deltaWheel = wheelCounter;
+		}
+		this.wheelHndl = setTimeout(function () {
+			if (deltaWheel !== wheelCounter) {
+				deltaWheel = wheelCounter;
+			} else {
+				self.wheelHndl = null;
+				self.wheelNode.events.zoom.onZoomEnd(self.wheelNode, e);
+				self.wheelNode = null;
+			}
+		}, 100);
+	}
 };
 
 function propogateEvent (nodes, mouseCoor, rawEvent, eventType) {
@@ -221,12 +305,19 @@ function propogateEvent (nodes, mouseCoor, rawEvent, eventType) {
 			} else {
 				node = d;
 			}
-			if (d.dom[eventType]) {
-				d.dom[eventType].call(d, d.dataObj, rawEvent);
+			if (d.events[eventType] && typeof d.events[eventType] === 'function') {
+				d.events[eventType](rawEvent);
 			}
 			if (node) {
 				break;
 			}
+		}
+	}
+
+	if (!node && d.attr.id === 'rootNode') {
+		node = d;
+		if (d.events[eventType] && typeof d.events[eventType] === 'function') {
+			d.events[eventType](rawEvent);
 		}
 	}
 	return node;
