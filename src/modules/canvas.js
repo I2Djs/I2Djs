@@ -207,7 +207,7 @@ function createRadialGradient (config) {
 }
 
 function PixelObject (data, width, height) {
-	this.imageData.pixels = data;
+	this.imageData = data;
 	this.width = width;
 	this.height = height;
 	// this.x = x;
