@@ -20,7 +20,7 @@ drag1
 .dragStart(function () {
 
 })
-.drag(function (d, e) {
+.drag(function (e) {
 	let x = this.getAttr('cx');
 	let y = this.getAttr('cy');
 	this.setAttr('cx', x + e.dx);
@@ -31,7 +31,7 @@ drag2
 .dragStart(function () {
 
 })
-.drag(function (d, e) {
+.drag(function (e) {
 	let x = this.getAttr('x');
 	let y = this.getAttr('y');
 	this.setAttr('x', x + e.dx);

@@ -244,7 +244,6 @@ let deltaWheel = 0;
 Events.prototype.wheelEventCheck = function (e) {
 	let self = this;
 	if (!this.wheelNode) {
-		wheelCounter = 0;
 		let node = propogateEvent([this.vDom], {
 			x: e.offsetX,
 			y: e.offsetY
@@ -271,6 +270,7 @@ Events.prototype.wheelEventCheck = function (e) {
 				self.wheelHndl = null;
 				self.wheelNode.events.zoom.onZoomEnd(self.wheelNode, e);
 				self.wheelNode = null;
+				wheelCounter = 0;
 			}
 		}, 100);
 	}

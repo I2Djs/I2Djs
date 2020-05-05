@@ -12,9 +12,9 @@
 var webglRenderer = i2d.webglLayer('#canvas', {
 	depth: false,
 	antialias: false
-}, false);
+}, {});
 
-var CanvasRenderer = i2d.CanvasLayer('#canvas', {}, false);
+var CanvasRenderer = i2d.canvasLayer('#canvas', {}, {});
 
 var gameScene = CanvasRenderer.createEl({
 	el: 'group',

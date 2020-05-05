@@ -106,7 +106,8 @@ function parseTransform (transform) {
 function RPolyupdateBBox () {
 	const self = this;
 	const {
-		transform
+		transform,
+		points = []
 	} = self.attr;
 	let {
 		translateX,
@@ -115,8 +116,7 @@ function RPolyupdateBBox () {
 		scaleY
 	} = parseTransform(transform);
 
-	if (self.attr.points && self.attr.points.length > 0) {
-		let points = self.attr.points;
+	if (points && points.length > 0) {
 		let minX = points[0].x;
 		let maxX = points[0].x;
 		let minY = points[0].y;
@@ -483,19 +483,16 @@ RenderImage.prototype.clipImage = function () {
 	const ctxX = self.rImageObj.getContext('2d');
 	const {
 		clip,
-		width,
-		height
+		width = 0,
+		height = 0
 	} = self.attr;
 	let {
-		sx,
-		sy,
-		swidth,
-		sheight
+		sx = 0,
+		sy = 0,
+		swidth = width,
+		sheight = height
 	} = clip;
-	sx = sx !== undefined ? sx : 0;
-	sy = sy !== undefined ? sy : 0;
-	swidth = swidth !== undefined ? swidth : width;
-	sheight = sheight !== undefined ? sheight : height;
+
 	ctxX.clearRect(0, 0, width, height);
 	ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
 };
@@ -510,8 +507,8 @@ RenderImage.prototype.pixelsUpdate = function () {
 	}
 
 	const {
-		width,
-		height
+		width = 0,
+		height = 0
 	} = self.attr;
 
 	if (!self.rImageObj) {
@@ -532,7 +529,11 @@ RenderImage.prototype.pixelsUpdate = function () {
 RenderImage.prototype.updateBBox = function RIupdateBBox () {
 	const self = this;
 	const {
-		transform
+		transform,
+		x = 0,
+		y = 0,
+		width = 0,
+		height = 0
 	} = self.attr;
 	let {
 		translateX,
@@ -541,18 +542,11 @@ RenderImage.prototype.updateBBox = function RIupdateBBox () {
 		scaleY
 	} = parseTransform(transform);
 
-	let {
-		x,
-		y,
-		width,
-		height
-	} = self.attr;
-
 	self.BBox = {
 		x: (translateX + x) * scaleX,
 		y: (translateY + y) * scaleY,
-		width: (width || 0) * scaleX,
-		height: (height || 0) * scaleY
+		width: width * scaleX,
+		height: height * scaleY
 	};
 
 	if (transform && transform.rotate) {
@@ -564,21 +558,27 @@ RenderImage.prototype.updateBBox = function RIupdateBBox () {
 
 RenderImage.prototype.execute = function RIexecute () {
 	const {
-		width,
-		height,
-		x,
-		y
+		width = 0,
+		height = 0,
+		x = 0,
+		y = 0
 	} = this.attr;
 
 	if (this.imageObj) {
-		this.ctx.drawImage(this.rImageObj ? this.rImageObj : this.imageObj, x || 0, y || 0, width, height);
+		this.ctx.drawImage(this.rImageObj ? this.rImageObj : this.imageObj, x, y, width, height);
 	}
 };
 
 RenderImage.prototype.applyStyles = function RIapplyStyles () { };
 
 RenderImage.prototype.in = function RIinfun (co) {
-	return co.x >= this.attr.x && co.x <= this.attr.x + this.attr.width && co.y >= this.attr.y && co.y <= this.attr.y + this.attr.height;
+	const {
+		width = 0,
+		height = 0,
+		x = 0,
+		y = 0
+	} = this.attr;
+	return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
 };
 
 function RenderText (ctx, props, stylesProps) {
@@ -605,6 +605,8 @@ RenderText.prototype.updateBBox = function RTupdateBBox () {
 	// let scaleY = 1;
 	let height = 1;
 	const {
+		x = 0,
+		y = 0,
 		transform
 	} = self.attr;
 	let {
@@ -614,22 +616,14 @@ RenderText.prototype.updateBBox = function RTupdateBBox () {
 		scaleY
 	} = parseTransform(transform);
 
-	// if (transform && transform.translate) {
-	// 	[translateX, translateY] = transform.translate;
-	// }
-
-	// if (transform && transform.scale) {
-	// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
-	// }
-
 	if (this.style.font) {
 		this.ctx.font = this.style.font;
 		height = parseInt(this.style.font, 10);
 	}
 
 	self.BBox = {
-		x: translateX + (self.attr.x * scaleX),
-		y: translateY + ((self.attr.y - height + 5) * scaleY),
+		x: translateX + (x * scaleX),
+		y: translateY + ((y - height + 5) * scaleY),
 		width: this.ctx.measureText(this.attr.text).width * scaleX,
 		height: height * scaleY
 	};
@@ -674,12 +668,11 @@ RenderCircle.prototype.constructor = RenderCircle;
 
 RenderCircle.prototype.updateBBox = function RCupdateBBox () {
 	const self = this;
-	// let translateX = 0;
-	// let translateY = 0;
-	// let scaleX = 1;
-	// let scaleY = 1;
 	const {
-		transform
+		transform,
+		r = 0,
+		cx = 0,
+		cy = 0
 	} = self.attr;
 	let {
 		translateX,
@@ -688,21 +681,11 @@ RenderCircle.prototype.updateBBox = function RCupdateBBox () {
 		scaleY
 	} = parseTransform(transform);
 
-	// if (transform) {
-	// 	if (transform.translate) {
-	// 		[translateX, translateY] = transform.translate;
-	// 	}
-
-	// 	if (transform.scale) {
-	// 		[scaleX = 1, scaleY = scaleX] = transform.scale;
-	// 	}
-	// }
-
 	self.BBox = {
-		x: translateX + ((self.attr.cx - self.attr.r) * scaleX),
-		y: translateY + ((self.attr.cy - self.attr.r) * scaleY),
-		width: 2 * self.attr.r * scaleX,
-		height: 2 * self.attr.r * scaleY
+		x: translateX + ((cx - r) * scaleX),
+		y: translateY + ((cy - r) * scaleY),
+		width: 2 * r * scaleX,
+		height: 2 * r * scaleY
 	};
 
 	if (transform && transform.rotate) {
@@ -713,15 +696,25 @@ RenderCircle.prototype.updateBBox = function RCupdateBBox () {
 };
 
 RenderCircle.prototype.execute = function RCexecute () {
+	const {
+		r = 0,
+		cx = 0,
+		cy = 0
+	} = this.attr;
 	this.ctx.beginPath();
-	this.ctx.arc(this.attr.cx, this.attr.cy, this.attr.r, 0, 2 * Math.PI, false);
+	this.ctx.arc(cx, cy, r, 0, 2 * Math.PI, false);
 	this.applyStyles();
 	this.ctx.closePath();
 };
 
 RenderCircle.prototype.in = function RCinfun (co, eventType) {
-	const r = Math.sqrt(((co.x - this.attr.cx) * (co.x - this.attr.cx)) + ((co.y - this.attr.cy) * (co.y - this.attr.cy)));
-	return r <= this.attr.r;
+	const {
+		r = 0,
+		cx = 0,
+		cy = 0
+	} = this.attr;
+	let tr = Math.sqrt(((co.x - cx) * (co.x - cx)) + ((co.y - cy) * (co.y - cy)));
+	return tr <= r;
 };
 
 const RenderLine = function RenderLine (ctx, props, stylesProps) {
@@ -738,12 +731,12 @@ RenderLine.prototype.constructor = RenderLine;
 
 RenderLine.prototype.updateBBox = function RLupdateBBox () {
 	const self = this;
-	// let translateX = 0;
-	// let translateY = 0;
-	// let scaleX = 1;
-	// let scaleY = 1;
 	const {
-		transform
+		transform,
+		x1 = 0,
+		y1 = 0,
+		x2 = 0,
+		y2 = 0
 	} = self.attr;
 	let {
 		translateX,
@@ -752,19 +745,11 @@ RenderLine.prototype.updateBBox = function RLupdateBBox () {
 		scaleY
 	} = parseTransform(transform);
 
-	// if (transform && transform.translate) {
-	// 	[translateX, translateY] = transform.translate;
-	// }
-
-	// if (transform.scale) {
-	// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
-	// }
-
 	self.BBox = {
-		x: translateX + ((self.attr.x1 < self.attr.x2 ? self.attr.x1 : self.attr.x2) * scaleX),
-		y: translateY + ((self.attr.y1 < self.attr.y2 ? self.attr.y1 : self.attr.y2) * scaleY),
-		width: Math.abs(self.attr.x2 - self.attr.x1) * scaleX,
-		height: Math.abs(self.attr.y2 - self.attr.y1) * scaleY
+		x: translateX + ((x1 < x2 ? x1 : x2) * scaleX),
+		y: translateY + ((y1 < y2 ? y1 : y2) * scaleY),
+		width: Math.abs(x2 - x1) * scaleX,
+		height: Math.abs(y2 - y1) * scaleY
 	};
 
 	if (transform && transform.rotate) {
@@ -778,26 +763,38 @@ RenderLine.prototype.execute = function RLexecute () {
 	const {
 		ctx
 	} = this;
+	let {
+		x1 = 0,
+		y1 = 0,
+		x2 = 0,
+		y2 = 0
+	} = this.attr;
 	ctx.beginPath();
-	ctx.moveTo(this.attr.x1, this.attr.y1);
-	ctx.lineTo(this.attr.x2, this.attr.y2);
+	ctx.moveTo(x1, y1);
+	ctx.lineTo(x2, y2);
 	this.applyStyles();
 	ctx.closePath();
 };
 
 RenderLine.prototype.in = function RLinfun (co) {
+	let {
+		x1 = 0,
+		y1 = 0,
+		x2 = 0,
+		y2 = 0
+	} = this.attr;
 	return parseFloat(t2DGeometry.getDistance({
-		x: this.attr.x1,
-		y: this.attr.y1
+		x: x1,
+		y: y1
 	}, co) + t2DGeometry.getDistance(co, {
-		x: this.attr.x2,
-		y: this.attr.y2
+		x: x2,
+		y: y2
 	})).toFixed(1) === parseFloat(t2DGeometry.getDistance({
-		x: this.attr.x1,
-		y: this.attr.y1
+		x: x1,
+		y: y1
 	}, {
-		x: this.attr.x2,
-		y: this.attr.y2
+		x: x2,
+		y: y2
 	})).toFixed(1);
 };
 
@@ -882,10 +879,6 @@ RenderPath.prototype.constructor = RenderPath;
 
 RenderPath.prototype.updateBBox = function RPupdateBBox () {
 	const self = this;
-	// let translateX = 0;
-	// let translateY = 0;
-	// let scaleX = 1;
-	// let scaleY = 1;
 	const {
 		transform
 	} = self.attr;
@@ -1102,7 +1095,11 @@ RenderEllipse.prototype.updateBBox = function REupdateBBox () {
 	// let scaleX = 1;
 	// let scaleY = 1;
 	const {
-		transform
+		transform,
+		cx = 0,
+		cy = 0,
+		rx = 0,
+		ry = 0
 	} = self.attr;
 	let {
 		translateX,
@@ -1120,10 +1117,10 @@ RenderEllipse.prototype.updateBBox = function REupdateBBox () {
 	// }
 
 	self.BBox = {
-		x: translateX + ((self.attr.cx - self.attr.rx) * scaleX),
-		y: translateY + ((self.attr.cy - self.attr.ry) * scaleY),
-		width: self.attr.rx * 2 * scaleX,
-		height: self.attr.ry * 2 * scaleY
+		x: translateX + ((cx - rx) * scaleX),
+		y: translateY + ((cy - ry) * scaleY),
+		width: rx * 2 * scaleX,
+		height: ry * 2 * scaleY
 	};
 
 	if (transform && transform.rotate) {
@@ -1134,21 +1131,25 @@ RenderEllipse.prototype.updateBBox = function REupdateBBox () {
 };
 
 RenderEllipse.prototype.execute = function REexecute () {
+	let ctx = this.ctx;
 	const {
-		ctx
-	} = this;
+		cx = 0,
+		cy = 0,
+		rx = 0,
+		ry = 0
+	} = this.attr;
 	ctx.beginPath();
-	ctx.ellipse(this.attr.cx, this.attr.cy, this.attr.rx, this.attr.ry, 0, 0, 2 * Math.PI);
+	ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
 	this.applyStyles();
 	ctx.closePath();
 };
 
 RenderEllipse.prototype.in = function REinfun (co) {
 	const {
-		cx,
-		cy,
-		rx,
-		ry
+		cx = 0,
+		cy = 0,
+		rx = 0,
+		ry = 0
 	} = this.attr;
 	return ((co.x - cx) * (co.x - cx) / (rx * rx)) + ((co.y - cy) * (co.y - cy) / (ry * ry)) <= 1;
 };
@@ -1171,12 +1172,12 @@ RenderRect.prototype.constructor = RenderRect;
 
 RenderRect.prototype.updateBBox = function RRupdateBBox () {
 	const self = this;
-	// let translateX = 0;
-	// let translateY = 0;
-	// let scaleX = 1;
-	// let scaleY = 1;
 	const {
-		transform
+		transform,
+		x = 0,
+		y = 0,
+		width = 0,
+		height = 0
 	} = self.attr;
 	let {
 		translateX,
@@ -1185,19 +1186,11 @@ RenderRect.prototype.updateBBox = function RRupdateBBox () {
 		scaleY
 	} = parseTransform(transform);
 
-	// if (transform && transform.translate) {
-	// 	[translateX, translateY] = transform.translate;
-	// }
-
-	// if (transform && transform.scale) {
-	// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
-	// }
-
 	self.BBox = {
-		x: translateX + (self.attr.x * scaleX),
-		y: translateY + (self.attr.y * scaleY),
-		width: self.attr.width * scaleX,
-		height: self.attr.height * scaleY
+		x: translateX + (x * scaleX),
+		y: translateY + (y * scaleY),
+		width: width * scaleX,
+		height: height * scaleY
 	};
 
 	if (transform && transform.rotate) {
@@ -1213,8 +1206,8 @@ RenderRect.prototype.applyStyles = function rStyles () {
 
 function renderRoundRect (ctx, attr) {
 	const {
-		x,
-		y,
+		x = 0,
+		y = 0,
 		width = 0,
 		height = 0,
 		rx = 0,
@@ -1236,40 +1229,59 @@ function renderRoundRect (ctx, attr) {
 
 
 RenderRect.prototype.execute = function RRexecute () {
+	let ctx = this.ctx;
 	const {
-		ctx,
-		attr
-	} = this;
+		x = 0,
+		y = 0,
+		width = 0,
+		height = 0,
+		rx = 0,
+		ry = 0
+	} = this.attr;
 
 	if (ctx.fillStyle !== '#000000' || ctx.strokeStyle !== '#000000') {
 		if (ctx.fillStyle !== '#000000') {
-			if (!attr['rx'] && !attr['ry']) {
-				ctx.fillRect(attr.x, attr.y, attr.width, attr.height);
+			if (!rx && !ry) {
+				ctx.fillRect(x, y, width, height);
 			} else {
-				renderRoundRect(ctx, attr);
+				renderRoundRect(ctx, {
+					x,
+					y,
+					width,
+					height,
+					rx,
+					ry
+				});
 				ctx.fill();
 			}
 		}
 
 		if (ctx.strokeStyle !== '#000000') {
-			if (!attr['rx'] && !attr['ry']) {
-				ctx.strokeRect(attr.x, attr.y, attr.width, attr.height);
+			if (!rx && !ry) {
+				ctx.strokeRect(x, y, width, height);
 			} else {
-				renderRoundRect(ctx, attr);
+				renderRoundRect(ctx, {
+					x,
+					y,
+					width,
+					height,
+					rx,
+					ry
+				});
 				ctx.stroke();
 			}
 		}
 	} else {
-		ctx.rect(attr.x, attr.y, attr.width, attr.height);
+		ctx.rect(x, y, width, height);
 	}
 };
 
 RenderRect.prototype.in = function RRinfun (co) {
 	const {
-		x,
-		y,
-		width,
-		height
+		x = 0,
+		y = 0,
+		width = 0,
+		height = 0
 	} = this.attr;
 	return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
 };
