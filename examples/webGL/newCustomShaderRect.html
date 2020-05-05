@@ -7,12 +7,11 @@
 
 <div id="canvas" style="height: 100%;width:100%;background: black">
 </div>
-
-<script type="module">
-import WebglLayer from '../../src/modules/webgl.js';
-import queue from '../../src/modules/queue.js';
-console.log(WebglLayer);
-var webglRenderer = WebglLayer('#canvas', null, false);
+<script type="text/javascript" src="../../dist/i2d.js"></script>
+<script type="text/javascript">
+// import webglLayer from './../../src/modules/webgl.js';
+// import queue from './../../src/modules/queue.js';
+var webglRenderer = i2d.webglLayer('#canvas', {}, {});
 var fragmentShader = `
         precision mediump float;
         varying vec4 v_color;

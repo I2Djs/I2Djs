@@ -614,10 +614,32 @@ DomExe.prototype.on = function DMon (eventType, hndlr) {
 			hndlr.execute(self, event, eventType);
 		};
 	} else if (eventType === 'zoom') {
-		self.events[eventType] = function (event) {
-			hndlr.zoomExecute(self, event);
-		};
+		let wheelCounter = 0;
+		let deltaWheel = 0;
+		let wheelHndl;
 
+		self.events[eventType] = function (event) {
+			if (hndlr.disableWheel) {
+				return;
+			}
+			hndlr.zoomExecute(self, event);
+			wheelCounter += 1;
+			if (wheelHndl) {
+				clearTimeout(wheelHndl);
+				wheelHndl = null;
+				deltaWheel = wheelCounter;
+			}
+			wheelHndl = setTimeout(function () {
+				if (deltaWheel !== wheelCounter) {
+					deltaWheel = wheelCounter;
+				} else {
+					wheelHndl = null;
+					hndlr.onZoomEnd(self, event);
+					wheelCounter = 0;
+				}
+			}, 100);
+		};
+		
 		self.dom.addEventListener('wheel', self.events[eventType]);
 		self.dom.drag_ = function (event, eventType) {
 			if (hndlr.panFlag) {
@@ -801,34 +823,54 @@ function svgLayer (container, layerSettings = {}) {
 
 	let dragNode = null;
 	root.dom.addEventListener('mousedown', function (e) {
+		e.preventDefault();
 		if (e.target.drag_) {
 			e.target.drag_(e, 'mousedown');
 			dragNode = e.target;
 		}
 	});
 	root.dom.addEventListener('touchstart', function (e) {
+		e.preventDefault();
 		if (e.target.drag_) {
 			e.target.drag_(e, 'mousedown');
 			dragNode = e.target;
 		}
 	});
 	root.dom.addEventListener('mousemove', function (e) {
+		e.preventDefault();
 		if (dragNode) {
 			dragNode.drag_(e, 'mousemove');
 		}
 	});
 	root.dom.addEventListener('touchmove', function (e) {
+		e.preventDefault();
 		if (dragNode) {
 			dragNode.drag_(e, 'mousemove');
 		}
 	});
 	root.dom.addEventListener('mouseup', function (e) {
+		e.preventDefault();
 		if (dragNode) {
 			dragNode.drag_(e, 'mouseup');
 			dragNode = null;
 		}
 	});
 	root.dom.addEventListener('mouseleave', function (e) {
+		e.preventDefault();
+		if (dragNode) {
+			dragNode.drag_(e, 'mouseleave');
+			dragNode = null;
+		}
+	});
+	layer.addEventListener('touchcancel', e => {
+		e.preventDefault();
+		if (dragNode) {
+			dragNode.drag_(e, 'mouseleave');
+			dragNode = null;
+		}
+	});
+	layer.addEventListener('touchend', e => {
+		e.preventDefault();
 		if (dragNode) {
 			dragNode.drag_(e, 'mouseleave');
 			dragNode = null;

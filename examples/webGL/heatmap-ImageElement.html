@@ -64,7 +64,7 @@
         <script type="text/javascript" src="../../dist/i2d.js"></script>
 
         <script type="text/javascript">
-            var radialGrad = i2d.canvasLayer(null,{}, false);
+            var radialGrad = i2d.canvasLayer(null,{}, {});
                 radialGrad.setPixelRatio(1);
                 radialGrad.setSize(100, 100);
 
@@ -93,7 +93,7 @@
                 antialias: true,
                 alpha: true,
                 preserveDrawingBuffer: false
-            }, false);
+            }, {});
 
         webglRenderer.setClearColor(i2d.color.rgba(0, 0, 0, 0));
 

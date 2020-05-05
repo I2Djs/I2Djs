@@ -99,6 +99,7 @@ DragClass.prototype = {
 		return this;
 	},
 	dragEnd: function (fun) {
+		let self = this;
 		if (typeof fun === 'function') {
 			this.onDragEnd = function (trgt, event) {
 				self.dragStartFlag = false;
@@ -520,9 +521,6 @@ export default {
 	drag: function () {
 		return new DragClass();
 	},
-	// touch: function () {
-	// 	return new TouchClass();
-	// },
 	zoom: function () {
 		return new ZoomClass();
 	}
