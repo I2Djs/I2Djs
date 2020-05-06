@@ -6484,7 +6484,7 @@ RenderPolyline.constructor = RenderPolyline;
 RenderPolyline.prototype.execute = function polylineExe () {
 	let self = this;
 	let d;
-	if (!this.attr.points) return;
+	if (!this.attr.points || this.attr.points.length === 0) return;
 	this.ctx.beginPath();
 	self.ctx.moveTo(this.attr.points[0].x, this.attr.points[0].y);
 	for (var i = 1; i < this.attr.points.length; i++) {
@@ -6655,6 +6655,9 @@ function polygonExe (points) {
 		console.error('Points expected as array [{x: , y:}]');
 		return;
 	}
+	if (points && points.length === 0) {
+		return;
+	}
 
 	let polygon = new Path2D();
 	polygon.moveTo(points[0].x, points[0].y);
@@ -6667,9 +6670,6 @@ function polygonExe (points) {
 		path: polygon,
 		points: points,
 		execute: function (ctx) {
-			if (this.points.length === 0) {
-				return;
-			}
 			ctx.beginPath();
 			let points = this.points;
 			ctx.moveTo(points[0].x, points[0].y);
@@ -6689,7 +6689,7 @@ const RenderPolygon = function RenderPolygon (ctx, props, styleProps) {
 	self.style = styleProps;
 	self.stack = [self];
 
-	if (props.points) {
+	if (self.attr.points) {
 		self.polygon = polygonExe(self.attr.points);
 	}
 
@@ -6703,26 +6703,29 @@ RenderPolygon.prototype.setAttr = function RPolysetAttr (attr, value) {
 	this.attr[attr] = value;
 
 	if (attr === 'points') {
-		this.polygon = polygonExe(this.attr[attr]);
-		this.attr.points = this.polygon.points;
+		this.polygon = polygonExe(this.attr.points);
+		if (this.polygon) {
+			this.attr.points = this.polygon.points;
+		}
 	}
 };
 
 RenderPolygon.prototype.updateBBox = RPolyupdateBBox;
 
 RenderPolygon.prototype.execute = function RPolyexecute () {
-	if (this.attr.points) {
-		if (this.ctx.fillStyle !== '#000000' || this.ctx.strokeStyle !== '#000000') {
-			if (this.ctx.fillStyle !== '#000000') {
-				this.ctx.fill(this.polygon.path);
-			}
-
-			if (this.ctx.strokeStyle !== '#000000') {
-				this.ctx.stroke(this.polygon.path);
-			}
-		} else {
-			this.polygon.execute(this.ctx);
+	if (!this.polygon) {
+		return;
+	}
+	if (this.ctx.fillStyle !== '#000000' || this.ctx.strokeStyle !== '#000000') {
+		if (this.ctx.fillStyle !== '#000000') {
+			this.ctx.fill(this.polygon.path);
 		}
+
+		if (this.ctx.strokeStyle !== '#000000') {
+			this.ctx.stroke(this.polygon.path);
+		}
+	} else {
+		this.polygon.execute(this.ctx);
 	}
 };
 
@@ -6731,8 +6734,8 @@ RenderPolygon.prototype.applyStyles = function RPolyapplyStyles () {};
 RenderPolygon.prototype.in = function RPolyinfun (co) {
 	let flag = false;
 
-	if (!this.attr.points) {
-		return flag;
+	if (!this.polygon) {
+		return false;
 	}
 
 	this.ctx.save();
