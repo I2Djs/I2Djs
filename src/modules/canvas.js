@@ -2029,54 +2029,6 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 		queueInstance.removeVdom(vDomIndex);
 	};
 
-	// root.on = function (eventType, hndlr) {
-	// 	const self = this;
-
-	// 	if (self.events[eventType] && eventType !== 'drag' && eventType !== 'zoom') {
-	// 		self.dom.removeEventListener(eventType, self.events[eventType]);
-	// 		delete self.events[eventType];
-	// 	}
-
-	// 	if (eventType === 'drag') {
-	// 		delete layer.drag_;
-	// 	}
-
-	// 	if (eventType === 'zoom') {
-	// 		layer.removeEventListener('wheel', self.events[eventType]);
-	// 		delete layer.drag_;
-	// 	}
-
-	// 	if (!hndlr) {
-	// 		return;
-	// 	}
-
-	// 	if (eventType === 'drag') {
-	// 		layer.drag_ = function (event, eventType) {
-	// 			hndlr.execute(self, event, eventType);
-	// 		};
-	// 	} else if (eventType === 'zoom') {
-	// 		self.events[eventType] = function (event) {
-	// 			hndlr.zoomExecute(self, event);
-	// 		};
-
-	// 		layer.addEventListener('wheel', self.events[eventType]);
-	// 		layer.drag_ = function (event, eventType) {
-	// 			if (hndlr.panFlag) {
-	// 				hndlr.panExecute(self, event, eventType);
-	// 			}
-	// 		};
-	// 	} else {
-	// 		const hnd = hndlr.bind(self);
-	// 		self.events[eventType] = function (event) {
-	// 			hnd(self.dataObj, event);
-	// 		};
-
-	// 		layer.addEventListener(eventType, self.events[eventType]);
-	// 	}
-
-	// 	return this;
-	// }
-
 	if (enableEvents) {
 		let eventsInstance = new Events(root);
 		layer.addEventListener('mousemove', e => {
@@ -2126,6 +2078,18 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 		layer.addEventListener('wheel', e => {
 			e.preventDefault();
 			eventsInstance.wheelEventCheck(e);
+		});
+		layer.addEventListener('pointerdown', e => {
+			e.preventDefault();
+			eventsInstance.pointerdownCheck(e);
+		});
+		layer.addEventListener('pointerup', e => {
+			e.preventDefault();
+			eventsInstance.pointerupCheck(e);
+		});
+		layer.addEventListener('pointermove', e => {
+			e.preventDefault();
+			eventsInstance.pointermoveCheck(e);
 		});
 	}
 

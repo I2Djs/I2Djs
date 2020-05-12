@@ -415,9 +415,11 @@ Path.prototype.parse = function parse (path) {
 	return this.stack;
 };
 
-Path.prototype.execute = function (ctx) {
+Path.prototype.execute = function (ctx, clippath) {
 	let c;
-	ctx.beginPath();
+	if (!clippath) {
+		ctx.beginPath();
+	}
 	for (let i = 0; i < this.stack.length; i++) {
 		c = this.stack[i];
 		if (c.type === 'M' || c.type === 'm') {
@@ -432,7 +434,9 @@ Path.prototype.execute = function (ctx) {
 			ctx.lineTo(c.p1.x, c.p1.y);
 		}
 	}
-	ctx.closePath();
+	if (!clippath) {
+		ctx.closePath();
+	}
 };
 
 Path.prototype.fetchPathString = function () {

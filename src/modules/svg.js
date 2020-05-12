@@ -822,58 +822,24 @@ function svgLayer (container, layerSettings = {}) {
 	};
 
 	let dragNode = null;
-	root.dom.addEventListener('mousedown', function (e) {
+	root.dom.addEventListener('pointerdown', e => {
 		e.preventDefault();
 		if (e.target.drag_) {
-			e.target.drag_(e, 'mousedown');
+			e.target.drag_(e, 'pointerdown');
 			dragNode = e.target;
 		}
 	});
-	root.dom.addEventListener('touchstart', function (e) {
-		e.preventDefault();
-		if (e.target.drag_) {
-			e.target.drag_(e, 'mousedown');
-			dragNode = e.target;
-		}
-	});
-	root.dom.addEventListener('mousemove', function (e) {
+	root.dom.addEventListener('pointerup', e => {
 		e.preventDefault();
 		if (dragNode) {
-			dragNode.drag_(e, 'mousemove');
-		}
-	});
-	root.dom.addEventListener('touchmove', function (e) {
-		e.preventDefault();
-		if (dragNode) {
-			dragNode.drag_(e, 'mousemove');
-		}
-	});
-	root.dom.addEventListener('mouseup', function (e) {
-		e.preventDefault();
-		if (dragNode) {
-			dragNode.drag_(e, 'mouseup');
+			dragNode.drag_(e, 'pointerup');
 			dragNode = null;
 		}
 	});
-	root.dom.addEventListener('mouseleave', function (e) {
+	root.dom.addEventListener('pointermove', e => {
 		e.preventDefault();
 		if (dragNode) {
-			dragNode.drag_(e, 'mouseleave');
-			dragNode = null;
-		}
-	});
-	layer.addEventListener('touchcancel', e => {
-		e.preventDefault();
-		if (dragNode) {
-			dragNode.drag_(e, 'mouseleave');
-			dragNode = null;
-		}
-	});
-	layer.addEventListener('touchend', e => {
-		e.preventDefault();
-		if (dragNode) {
-			dragNode.drag_(e, 'mouseleave');
-			dragNode = null;
+			dragNode.drag_(e, 'pointermove');
 		}
 	});
 	queueInstance.execute();
