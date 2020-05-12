@@ -1,38 +1,84 @@
-// let Event = function (x, y) {
-// 	this.x = x;
-// 	this.y = y;
-// 	this.dx = 0;
-// 	this.dy = 0;
-// };
-
 function Events (vDom) {
 	this.vDom = vDom;
 	this.disable = false;
 	this.dragNode = null;
 	this.touchNode = null;
 	this.wheelNode = null;
-	// this.clickDown = false;
-	// this.touchDown = false;
 }
 
 Events.prototype.getNode = function (e) {};
 
-Events.prototype.mousemoveCheck = function (e) {
-	let node;
-	if (this.dragNode) {
-		node = this.dragNode;
-		if (this.dragNode.events.drag) {
-			this.dragNode.events.drag.execute(this.dragNode, e, 'mousemove');
+Events.prototype.clickCheck = function (e) {
+	propogateEvent([this.vDom], {
+		x: e.offsetX,
+		y: e.offsetY
+	}, e, 'click');
+};
+
+Events.prototype.dblclickCheck = function (e) {
+	propogateEvent([this.vDom], {
+		x: e.offsetX,
+		y: e.offsetY
+	}, e, 'dblclick');
+};
+
+Events.prototype.pointerdownCheck = function (e) {
+	let node = propogateEvent([this.vDom], {
+		x: e.offsetX,
+		y: e.offsetY
+	}, e, 'pointerdown');
+	if (node) {
+		this.pointerNode = node;
+		if (node.events.zoom && node.events.zoom.panFlag) {
+			node.events.zoom.panExecute(node, e, 'pointerdown');
 		}
-		if (this.dragNode.events.zoom) {
-			this.dragNode.events.zoom.panExecute(this.dragNode, e, 'mousemove');
+		if (node && node.events.drag) {
+			node.events.drag.execute(node, e, 'pointerdown');
 		}
+	}
+};
+
+Events.prototype.pointermoveCheck = function (e) {
+	let node = this.pointerNode;
+	if (node && node.events.zoom && node.events.zoom.panFlag) {
+		node.events.zoom.panExecute(node, e, 'pointermove');
+	}
+	if (node && node.events.drag) {
+		node.events.drag.execute(node, e, 'pointermove');
+	}
+};
+
+Events.prototype.pointerupCheck = function (e) {
+	let node = this.pointerNode;
+
+	if (node) {
+		if (node.events.drag) {
+			node.events.drag.execute(node, e, 'pointerup');
+		}
+		if (node.events.zoom && node.events.zoom.panFlag) {
+			node.events.zoom.panExecute(node, e, 'pointerup');
+		}
+		this.pointerNode = null;
 	} else {
-		node = propogateEvent([this.vDom], {
+		propogateEvent([this.vDom], {
 			x: e.offsetX,
 			y: e.offsetY
-		}, e, 'mousemove');
+		}, e, 'mouseup');
 	}
+};
+
+Events.prototype.mousedownCheck = function (e) {
+	propogateEvent([this.vDom], {
+		x: e.offsetX,
+		y: e.offsetY
+	}, e, 'mousedown');
+};
+
+Events.prototype.mousemoveCheck = function (e) {
+	let node = propogateEvent([this.vDom], {
+		x: e.offsetX,
+		y: e.offsetY
+	}, e, 'mousemove');
 
 	if (node && (node.events['mouseover'] || node.events['mousein'])) {
 		if (this.selectedNode !== node) {
@@ -57,72 +103,18 @@ Events.prototype.mousemoveCheck = function (e) {
 	this.selectedNode = node;
 };
 
-Events.prototype.clickCheck = function (e) {
-	propogateEvent([this.vDom], {
-		x: e.offsetX,
-		y: e.offsetY
-	}, e, 'click');
-};
-
-Events.prototype.dblclickCheck = function (e) {
-	propogateEvent([this.vDom], {
-		x: e.offsetX,
-		y: e.offsetY
-	}, e, 'dblclick');
-};
-
-Events.prototype.mousedownCheck = function (e) {
-	let node = propogateEvent([this.vDom], {
-		x: e.offsetX,
-		y: e.offsetY
-	}, e, 'mousedown');
-
-	if (node && node.events.drag) {
-		node.events.drag.execute(node, e, 'mousedown');
-		this.dragNode = node;
-	}
-
-	if (node && node.events.zoom && node.events.zoom.panFlag) {
-		node.events.zoom.panExecute(node, e, 'mousedown');
-		this.dragNode = node;
-	}
-};
-
 Events.prototype.mouseupCheck = function (e) {
-	let node = this.dragNode;
-
-	if (node) {
-		if (node.events.drag) {
-			node.events.drag.execute(node, e, 'mouseup');
-		}
-		if (node.events.zoom && node.events.zoom.panFlag) {
-			node.events.zoom.panExecute(node, e, 'mouseup');
-		}
-		this.dragNode = null;
-	} else {
-		propogateEvent([this.vDom], {
-			x: e.offsetX,
-			y: e.offsetY
-		}, e, 'mouseup');
-	}
+	propogateEvent([this.vDom], {
+		x: e.offsetX,
+		y: e.offsetY
+	}, e, 'mouseup');
 };
 
 Events.prototype.mouseleaveCheck = function (e) {
-	let node = this.dragNode;
-	if (node) {
-		if (node.events.drag) {
-			node.events.drag.execute(node, e, 'mouseleave');
-		}
-		if (node.events.zoom && node.events.zoom.panFlag) {
-			node.events.zoom.panExecute(node, e, 'mouseleave');
-		}
-		this.dragNode = null;
-	} else {
-		propogateEvent([this.vDom], {
-			x: e.offsetX,
-			y: e.offsetY
-		}, e, 'mouseleave');
-	}
+	propogateEvent([this.vDom], {
+		x: e.offsetX,
+		y: e.offsetY
+	}, e, 'mouseleave');
 };
 Events.prototype.contextmenuCheck = function (e) {
 	propogateEvent([this.vDom], {
@@ -132,46 +124,17 @@ Events.prototype.contextmenuCheck = function (e) {
 };
 
 Events.prototype.touchstartCheck = function (e) {
-	let touches = e.touches;
-	if (touches.length === 0) {
-		return;
-	}
-
-	let node = propogateEvent([this.vDom], {
-		x: touches[0].clientX,
-		y: touches[0].clientY
-	}, e, 'click');
-
-	if (node.events.drag) {
-		node.events.drag.execute(node, e, 'mousedown');
-		this.dragNode = node;
-	}
-	if (node && node.events.zoom && node.events.zoom.panFlag) {
-		node.events.zoom.panExecute(node, e, 'mousedown');
-		this.dragNode = node;
-	}
-
-	// if (node && node.events.touch && node.events.touch.onTouchStart) {
-	// 	node.events.touch.touchStartFlag = true;
-	// 	node.events.touch.onTouchStart.call(node, e);
-	// 	let event = new Event(touches[0].clientX, touches[0].clientY);
-	// 	event.e = e;
-	// 	node.events.touch.event = event;
-	// 	this.touchNode = node;
-	// }
+	propogateEvent([this.vDom], {
+		x: e.offsetX,
+		y: e.offsetY
+	}, e, 'touchstart');
 };
 
 Events.prototype.touchendCheck = function (e) {
-	let node = this.dragNode;
-	if (node) {
-		if (node.events.drag) {
-			node.events.drag.execute(node, e, 'mouseleave');
-		}
-		if (node.events.zoom && node.events.zoom.panFlag) {
-			node.events.zoom.panExecute(node, e, 'mouseleave');
-		}
-		this.dragNode = null;
-	}
+	propogateEvent([this.vDom], {
+		x: e.offsetX,
+		y: e.offsetY
+	}, e, 'touchend');
 };
 
 Events.prototype.touchmoveCheck = function (e) {
@@ -180,20 +143,10 @@ Events.prototype.touchmoveCheck = function (e) {
 		return;
 	}
 
-	let node = this.dragNode;
-	if (node) {
-		if (this.dragNode.events.drag) {
-			this.dragNode.events.drag.execute(this.dragNode, e, 'mousemove');
-		}
-		if (this.dragNode.events.zoom) {
-			this.dragNode.events.zoom.panExecute(this.dragNode, e, 'mousemove');
-		}
-	} else {
-		node = propogateEvent([this.vDom], {
-			x: touches[0].clientX,
-			y: touches[0].clientY
-		}, e, 'mousemove');
-	}
+	let node = propogateEvent([this.vDom], {
+		x: touches[0].clientX,
+		y: touches[0].clientY
+	}, e, 'mousemove');
 
 	if (node && (node.events['mouseover'] || node.events['mousein'])) {
 		if (this.selectedNode !== node) {
@@ -218,25 +171,10 @@ Events.prototype.touchmoveCheck = function (e) {
 };
 
 Events.prototype.touchcancelCheck = function (e) {
-	let touches = e.touches;
-	// if (touches.length === 0) {
-	// 	return;
-	// }
-	let node = this.dragNode;
-	if (node) {
-		if (node.events.drag) {
-			node.events.drag.execute(node, e, 'mouseleave');
-		}
-		if (node.events.zoom && node.events.zoom.panFlag) {
-			node.events.zoom.panExecute(node, e, 'mouseleave');
-		}
-		this.dragNode = null;
-	} else {
-		propogateEvent([this.vDom], {
-			x: touches[0].clientX,
-			y: touches[0].clientY
-		}, e, 'touchcacel');
-	}
+	propogateEvent([this.vDom], {
+		x: e.x,
+		y: e.y
+	}, e, 'touchcacel');
 };
 
 let wheelCounter = 0;
@@ -287,7 +225,7 @@ function propogateEvent (nodes, mouseCoor, rawEvent, eventType) {
 		};
 
 		if (!d.bbox) {
-			return;
+			continue;
 		}
 
 		transformCoOr(d, coOr);

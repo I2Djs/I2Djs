@@ -115,87 +115,22 @@ DragClass.prototype = {
 	execute: function (trgt, event, eventType) {
 		let self = this;
 		this.event.e = event;
-		if ((event.type === 'touchstart' || event.type === 'touchmove') && event.touches && event.touches.length > 0) {
-			event.offsetX = event.touches[0].clientX;
-			event.offsetY = event.touches[0].clientY;
-		} else if (event.type === 'touchend' || event.type === 'touchcancel') {
-			event.offsetX = this.event.x;
-			event.offsetY = this.event.y;
-		}
-		if (!this.dragStartFlag && eventType === 'mousedown') {
+		// if ((event.type === 'touchstart' || event.type === 'touchmove') && event.touches && event.touches.length > 0) {
+		// 	event.offsetX = event.touches[0].clientX;
+		// 	event.offsetY = event.touches[0].clientY;
+		// } else if (event.type === 'touchend' || event.type === 'touchcancel') {
+		// 	event.offsetX = this.event.x;
+		// 	event.offsetY = this.event.y;
+		// }
+		if (!this.dragStartFlag && (eventType === 'mousedown' || eventType === 'pointerdown')) {
 			self.onDragStart(trgt, event);
-		} else if (this.onDragEnd && (eventType === 'mouseup' || eventType === 'mouseleave')) {
+		} else if (this.onDragEnd && (eventType === 'mouseup' || eventType === 'mouseleave' || eventType === 'pointerleave' || eventType === 'pointerup')) {
 			self.onDragEnd(trgt, event);
 		} else if (this.onDrag) {
 			self.onDrag(trgt, event);
 		}
 	}
 };
-
-// let TouchClass = function () {
-// 	let self = this;
-// 	this.touchStartFlag = false;
-// 	this.touchExtent = [[-Infinity, -Infinity], [Infinity, Infinity]];
-// 	this.event = {
-// 		x: 0,
-// 		y: 0,
-// 		dx: 0,
-// 		dy: 0,
-// 		transform: {
-// 			translate: [0, 0],
-// 			scale: [1, 1]
-// 		}
-// 	};
-// 	this.onTouchStart = function (trgt, event) {
-// 		self.event.x = event.offsetX;
-// 		self.event.y = event.offsetY;
-// 		self.event.dx = 0;
-// 		self.event.dy = 0;
-// 		self.touchStartFlag = true;
-// 	};
-// 	this.onTouch = function () {
-
-// 	};
-// 	this.onTouchEnd = function () {
-// 		self.event.x = event.offsetX;
-// 		self.event.y = event.offsetY;
-// 		self.event.dx = 0;
-// 		self.event.dy = 0;
-// 		self.touchStartFlag = false;
-// 	};
-// };
-// TouchClass.prototype = {
-// 	touchStart: function (fun) {
-// 		if (typeof fun === 'function') {
-// 			this.onTouchStart = fun;
-// 		}
-// 		return this;
-// 	},
-// 	touch: function (fun) {
-// 		if (typeof fun === 'function') {
-// 			this.onTouch = fun;
-// 		}
-// 		return this;
-// 	},
-// 	touchEnd: function (fun) {
-// 		if (typeof fun === 'function') {
-// 			this.onTouchEnd = fun;
-// 		}
-// 		return this;
-// 	},
-// 	execute: function (trgt, event, eventType) {
-// 		let self = this;
-// 		this.event.e = event;
-// 		if (!this.dragStartFlag && eventType === 'mousedown') {
-// 			self.onDragStart(trgt, event);
-// 		} else if (this.onDragEnd && (eventType === 'mouseup' || eventType === 'mouseleave')) {
-// 			self.onDragEnd(trgt, event);
-// 		} else if (this.onDrag) {
-// 			self.onDrag(trgt, event);
-// 		}
-// 	}
-// };
-
 
 function scaleRangeCheck (range, scale) {
 	if (scale <= range[0]) {
@@ -315,7 +250,6 @@ ZoomClass.prototype.zoomEnd = function (fun) {
 			self.event.dy = 0;
 			self.zoomStartFlag = false;
 			fun.call(trgt, self.event);
-			event.preventDefault();
 		};
 	}
 	return this;
@@ -501,9 +435,9 @@ ZoomClass.prototype.panExecute = function (trgt, event, eventType) {
 		event.offsetX = event.touches[0].clientX;
 		event.offsetY = event.touches[0].clientY;
 	}
-	if (!this.zoomStartFlag && eventType === 'mousedown') {
+	if (!this.zoomStartFlag && (eventType === 'mousedown' || eventType === 'pointerdown')) {
 		this.onZoomStart(trgt, event);
-	} else if (this.onZoomEnd && (eventType === 'mouseup' || eventType === 'mouseleave')) {
+	} else if (this.onZoomEnd && (eventType === 'mouseup' || eventType === 'mouseleave' || eventType === 'pointerup' || eventType === 'pointerleave')) {
 		this.onZoomEnd(trgt, event);
 	} else if (this.zoomExe) {
 		let dx = event.offsetX - this.event.x;
