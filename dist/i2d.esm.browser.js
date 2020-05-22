@@ -5362,10 +5362,10 @@ const imageDataMap = {};
 
 function imageInstance (self) {
 	let imageIns = new Image();
+	imageIns.crossOrigin = 'anonymous';
 	imageIns.onload = function onload () {
-		this.crossOrigin = 'anonymous';
-		self.attr.height = self.attr.height ? self.attr.height : this.height;
-		self.attr.width = self.attr.width ? self.attr.width : this.width;
+		self.attr.height = self.attr.height !== undefined ? self.attr.height : this.height;
+		self.attr.width = self.attr.width !== undefined ? self.attr.width : this.width;
 
 		if (imageDataMap[self.attr.src]) {
 			self.imageObj = imageDataMap[self.attr.src];
@@ -5472,20 +5472,20 @@ RenderImage.prototype.clipImage = function () {
 	const ctxX = self.rImageObj.getContext('2d');
 	const {
 		clip,
-		width,
-		height
+		width = 0,
+		height = 0
 	} = self.attr;
 	let {
-		sx,
-		sy,
-		swidth,
-		sheight
+		sx = 0,
+		sy = 0,
+		swidth = width,
+		sheight = height
 	} = clip;
-	sx = sx !== undefined ? sx : 0;
-	sy = sy !== undefined ? sy : 0;
-	swidth = swidth !== undefined ? swidth : width;
-	sheight = sheight !== undefined ? sheight : height;
+
 	ctxX.clearRect(0, 0, width, height);
+	if (width === 0 || height === 0) {
+		return;
+	}
 	ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
 };
 
@@ -5561,14 +5561,14 @@ RenderImage.prototype.updateBBox = function RIupdateBBox () {
 
 RenderImage.prototype.execute = function RIexecute () {
 	const {
-		width,
-		height,
-		x,
-		y
+		width = 0,
+		height = 0,
+		x = 0,
+		y = 0
 	} = this.attr;
 
-	if (this.imageObj) {
-		this.ctx.drawImage(this.rImageObj ? this.rImageObj : this.imageObj, x || 0, y || 0, width, height);
+	if (this.imageObj && width !== 0 && height !== 0) {
+		this.ctx.drawImage(this.rImageObj ? this.rImageObj : this.imageObj, x, y, width, height);
 	}
 };
 

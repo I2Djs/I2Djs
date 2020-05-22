@@ -5383,10 +5383,10 @@
 
 	function imageInstance (self) {
 		var imageIns = new Image();
+		imageIns.crossOrigin = 'anonymous';
 		imageIns.onload = function onload () {
-			this.crossOrigin = 'anonymous';
-			self.attr.height = self.attr.height ? self.attr.height : this.height;
-			self.attr.width = self.attr.width ? self.attr.width : this.width;
+			self.attr.height = self.attr.height !== undefined ? self.attr.height : this.height;
+			self.attr.width = self.attr.width !== undefined ? self.attr.width : this.width;
 
 			if (imageDataMap[self.attr.src]) {
 				self.imageObj = imageDataMap[self.attr.src];
@@ -5493,17 +5493,17 @@
 		var ctxX = self.rImageObj.getContext('2d');
 		var ref = self.attr;
 		var clip = ref.clip;
-		var width = ref.width;
-		var height = ref.height;
-		var sx = clip.sx;
-		var sy = clip.sy;
-		var swidth = clip.swidth;
-		var sheight = clip.sheight;
-		sx = sx !== undefined ? sx : 0;
-		sy = sy !== undefined ? sy : 0;
-		swidth = swidth !== undefined ? swidth : width;
-		sheight = sheight !== undefined ? sheight : height;
+		var width = ref.width; if ( width === void 0 ) width = 0;
+		var height = ref.height; if ( height === void 0 ) height = 0;
+		var sx = clip.sx; if ( sx === void 0 ) sx = 0;
+		var sy = clip.sy; if ( sy === void 0 ) sy = 0;
+		var swidth = clip.swidth; if ( swidth === void 0 ) swidth = width;
+		var sheight = clip.sheight; if ( sheight === void 0 ) sheight = height;
+
 		ctxX.clearRect(0, 0, width, height);
+		if (width === 0 || height === 0) {
+			return;
+		}
 		ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
 	};
 
@@ -5578,13 +5578,13 @@
 
 	RenderImage.prototype.execute = function RIexecute () {
 		var ref = this.attr;
-		var width = ref.width;
-		var height = ref.height;
-		var x = ref.x;
-		var y = ref.y;
+		var width = ref.width; if ( width === void 0 ) width = 0;
+		var height = ref.height; if ( height === void 0 ) height = 0;
+		var x = ref.x; if ( x === void 0 ) x = 0;
+		var y = ref.y; if ( y === void 0 ) y = 0;
 
-		if (this.imageObj) {
-			this.ctx.drawImage(this.rImageObj ? this.rImageObj : this.imageObj, x || 0, y || 0, width, height);
+		if (this.imageObj && width !== 0 && height !== 0) {
+			this.ctx.drawImage(this.rImageObj ? this.rImageObj : this.imageObj, x, y, width, height);
 		}
 	};
 
