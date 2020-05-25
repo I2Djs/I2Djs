@@ -28,8 +28,6 @@ CanvasCollection.prototype.createNode = function (ctx, config, vDomIndex) {
 	return new CanvasNodeExe(ctx, config, domId(), vDomIndex);
 };
 
-let ratio;
-
 function getPixlRatio (ctx) {
 	const dpr = window.devicePixelRatio || 1;
 	const bsr = ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1;
@@ -373,8 +371,8 @@ const imageDataMap = {};
 
 function imageInstance (self) {
 	let imageIns = new Image();
+	imageIns.crossOrigin = 'anonymous';
 	imageIns.onload = function onload () {
-		this.crossOrigin = 'anonymous';
 		self.attr.height = self.attr.height ? self.attr.height : this.height;
 		self.attr.width = self.attr.width ? self.attr.width : this.width;
 
@@ -971,7 +969,7 @@ RenderPath.prototype.in = function RPinfun (co) {
 	}
 
 	this.ctx.save();
-	this.ctx.scale(1 / ratio, 1 / ratio);
+	this.ctx.scale(1 / this.ctx.pixelRatio, 1 / this.ctx.pixelRatio);
 	flag = this.style.fillStyle ? this.ctx.isPointInPath(this.pathNode, co.x, co.y) : flag;
 	this.ctx.restore();
 	return flag;
@@ -1069,7 +1067,7 @@ RenderPolygon.prototype.in = function RPolyinfun (co) {
 	}
 
 	this.ctx.save();
-	this.ctx.scale(1 / ratio, 1 / ratio);
+	this.ctx.scale(1 / this.ctx.pixelRatio, 1 / this.ctx.pixelRatio);
 	flag = this.style.fillStyle ? this.ctx.isPointInPath(this.polygon.path, co.x, co.y) : flag;
 	this.ctx.restore();
 	return flag;
@@ -1311,10 +1309,6 @@ RenderGroup.prototype.updateBBox = function RGupdateBBox (children) {
 	let maxX;
 	let minY;
 	let maxY;
-	// let gTranslateX = 0;
-	// let gTranslateY = 0;
-	// let scaleX = 1;
-	// let scaleY = 1;
 	const {
 		transform
 	} = self.attr;
@@ -1325,15 +1319,6 @@ RenderGroup.prototype.updateBBox = function RGupdateBBox (children) {
 		scaleY
 	} = parseTransform(transform);
 	self.BBox = {};
-
-	// if (transform && transform.translate) {
-	// 	gTranslateX = transform.translate[0] !== undefined ? transform.translate[0] : 0;
-	// 	gTranslateY = transform.translate[1] !== undefined ? transform.translate[1] : gTranslateX;
-	// }
-
-	// if (transform && self.attr.transform.scale && self.attr.id !== 'rootNode') {
-	// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
-	// }
 
 	if (children && children.length > 0) {
 		let d;
@@ -1402,19 +1387,6 @@ RenderGroup.prototype.in = function RGinfun (coOr) {
 		scaleX,
 		scaleY
 	} = parseTransform(transform);
-	// let gTranslateX = 0;
-	// let gTranslateY = 0;
-	// let scaleX = 1;
-	// let scaleY = 1;
-
-	// if (transform && transform.translate) {
-	// 	[gTranslateX, gTranslateY] = transform.translate;
-	// }
-
-
-	// if (transform && transform.scale) {
-	// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
-	// }
 
 	return co.x >= (BBox.x - translateX) / scaleX && co.x <= (BBox.x - translateX + BBox.width) / scaleX && co.y >= (BBox.y - translateY) / scaleY && co.y <= (BBox.y - translateY + BBox.height) / scaleY;
 };
@@ -1662,13 +1634,11 @@ CanvasNodeExe.prototype.execute = function Cexecute () {
 	this.ctx.save();
 	this.stylesExe();
 	this.attributesExe();
-
 	if (this.dom instanceof RenderGroup) {
 		for (let i = 0, len = this.children.length; i < len; i += 1) {
 			this.children[i].execute();
 		}
 	}
-
 	this.ctx.restore();
 };
 
@@ -1749,11 +1719,8 @@ CanvasNodeExe.prototype.on = function Con (eventType, hndlr) {
 			};
 		} else if (typeof hndlr === 'object') {
 			this.events[eventType] = hndlr;
-			if (hndlr.constructor === zoomInstance.constructor) {
+			if (hndlr.constructor === zoomInstance.constructor || hndlr.constructor === dragInstance.constructor) {
 				hndlr.bindMethods(this);
-			}
-			if (hndlr.constructor === dragInstance.constructor) {
-				
 			}
 		}
 	}
@@ -1843,7 +1810,8 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 	const layer = document.createElement('canvas');
 	const ctx = layer.getContext('2d', contextConfig);
 	let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
-	ratio = getPixlRatio(ctx);
+	let ratio = getPixlRatio(ctx);
+	ctx.pixelRatio = ratio;
 	let onClear = function (ctx) {
 		ctx.clearRect(0, 0, width * ratio, height * ratio);
 	};
@@ -1887,6 +1855,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 	root.height = height;
 	root.width = width;
 	root.type = 'CANVAS';
+	root.ctx = ctx;
 
 	root.setClear = function (exe) {
 		 onClear = exe;
@@ -1910,6 +1879,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 
 	root.setPixelRatio = function (val) {
 		ratio = val;
+		this.ctx.pixelRatio = ratio;
 		this.setSize(this.width, this.height);
 	};
 
@@ -2112,7 +2082,7 @@ function canvasNodeLayer (config, height = 0, width = 0) {
 
 	let layer = new Canvas(width, height);
 	const ctx = layer.getContext('2d', config);
-	ratio = getPixlRatio(ctx);
+	let ratio = getPixlRatio(ctx);
 	let onClear = function (ctx) {
 		ctx.clearRect(0, 0, width * ratio, height * ratio);
 	};

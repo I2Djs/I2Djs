@@ -13,17 +13,17 @@
 var renderer_ = i2d.svgLayer('#myCanvas', {}, {});
 
 var clipInstance = renderer_.createClip();
-clipInstance.clip.createEls([1,2,3,4,5,6,7,8,9], {
+clipInstance.clip.createEls([1,2,3,4,5,6], {
 	el: 'circle',
 	attr: {
 		cx: function  (d) {
-			return Math.random() * 566 * 2;
+			return Math.random() * 566 * 1.5;
 		},
 		cy: function  (d) {
-			return Math.random() * 200 * 2;
+			return Math.random() * 200 * 1.5;
 		},
 		r: function (d) {
-			return 30 + Math.random() * 50
+			return 30 + Math.random() * 100
 		},
 		stroke:"#000000",
 		'stroke-miterlimit': "10"
@@ -33,7 +33,7 @@ clipInstance.clip.createEls([1,2,3,4,5,6,7,8,9], {
 renderer_.createEl({
 	el: 'image',
 	attr:{
-		'xlink:href': './../images/grass.jpeg',
+		'xlink:href': './../images/flowers.jpg',
 		x: 0,
 		y: 0,
 		width: (566 * 2),

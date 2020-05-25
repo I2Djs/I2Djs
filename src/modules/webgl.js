@@ -1,12 +1,20 @@
 import queue from './queue.js';
 import VDom from './VDom.js';
 import colorMap from './colorMap.js';
+import geometry from './geometry.js';
 import shaders from './shaders.js';
 import earcut from 'earcut';
+import Events from './events.js';
+import behaviour from './behaviour.js';
 import { CollectionPrototype, NodePrototype } from './coreApi.js';
+
+let t2DGeometry = geometry;
 
 let ratio;
 const queueInstance = queue;
+
+let zoomInstance = behaviour.zoom();
+let dragInstance = behaviour.drag();
 
 function getPixlRatio (ctx) {
 	const dpr = window.devicePixelRatio || 1;
@@ -19,6 +27,77 @@ let Id = 0;
 function domId () {
 	Id += 1;
 	return Id;
+}
+
+function parseTransform (transform) {
+	let output = {
+		translateX: 0,
+		translateY: 0,
+		scaleX: 1,
+		scaleY: 1
+	};
+
+	if (transform) {
+		if (transform.translate && transform.translate.length > 0) {
+			output.translateX = transform.translate[0];
+			output.translateY = transform.translate[1];
+		}
+
+		if (transform.scale && transform.scale.length > 0) {
+			output.scaleX = transform.scale[0];
+			output.scaleY = transform.scale[1] || output.scaleX;
+		}
+	}
+
+	return output;
+}
+
+function RPolyupdateBBox () {
+	const self = this;
+	const {
+		transform,
+		points = []
+	} = self.attr;
+	let {
+		translateX,
+		translateY,
+		scaleX,
+		scaleY
+	} = parseTransform(transform);
+
+	if (points && points.length > 0) {
+		let minX = points[0].x;
+		let maxX = points[0].x;
+		let minY = points[0].y;
+		let maxY = points[0].y;
+
+		for (let i = 1; i < points.length; i += 1) {
+			if (minX > points[i].x) minX = points[i].x;
+			if (maxX < points[i].x) maxX = points[i].x;
+			if (minY > points[i].y) minY = points[i].y;
+			if (maxY < points[i].y) maxY = points[i].y;
+		}
+
+		self.BBox = {
+			x: translateX + (minX * scaleX),
+			y: translateY + (minY * scaleY),
+			width: (maxX - minX) * scaleX,
+			height: (maxY - minY) * scaleY
+		};
+	} else {
+		self.BBox = {
+			x: 0,
+			y: 0,
+			width: 0,
+			height: 0
+		};
+	}
+
+	if (transform && transform.rotate) {
+		self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+	} else {
+		self.BBoxHit = this.BBox;
+	}
 }
 
 let WebglCollection = function () {
@@ -69,10 +148,51 @@ function getProgram (ctx, shaderCode) {
 	return createProgram(ctx, shaders);
 }
 
+function WebglDom () {
+	this.BBox = {
+		x: 0,
+		y: 0,
+		width: 0,
+		height: 0
+	};
+	this.BBoxHit = {
+		x: 0,
+		y: 0,
+		width: 0,
+		height: 0
+	};
+}
+
+WebglDom.prototype.setStyle = function (key, value) {
+	this.style[key] = value;
+	if (this.shader && (key === 'fill')) {
+		if (this.style.opacity !== undefined) {
+			value.a *= this.style.opacity;
+		}
+		this.shader.updateColor(this.pindex, value);
+	}
+	if (this.shader && key === 'opacity') {
+		if (this.style.fill !== undefined) {
+			this.style.fill.a *= this.style.opacity;
+		}
+		this.shader.updateColor(this.pindex, this.style.fill); ;
+	}
+};
+WebglDom.prototype.getAttr = function (key) {
+	return this.attr[key];
+};
+
+WebglDom.prototype.getStyle = function (key) {
+	return this.style[key];
+};
+
 function PointNode (attr, style) {
 	this.attr = attr || {};
 	this.style = style || {};
 };
+
+PointNode.prototype = new WebglDom();
+PointNode.prototype.constructor = PointNode;
 
 PointNode.prototype.setShader = function (shader) {
 	this.shader = shader;
@@ -84,7 +204,7 @@ PointNode.prototype.setShader = function (shader) {
 };
 
 PointNode.prototype.setAttr = function (prop, value) {
-	// this.attr[prop] = value;
+	this.attr[prop] = value;
 	if (this.shader && (prop === 'x' || prop === 'y')) {
 		this.shader.updateVertex(this.pindex, this.attr.x, this.attr.y);
 	}
@@ -93,24 +213,26 @@ PointNode.prototype.setAttr = function (prop, value) {
 		this.shader.updateSize(this.pindex, this.attr.size || 0);
 	}
 };
-PointNode.prototype.setStyle = function (key, value) {
-	this.style[key] = value;
-	if (this.shader && key === 'fill') {
-		this.shader.updateColor(this.pindex, value);
-	}
-};
-PointNode.prototype.getAttr = function (key) {
-	return this.attr[key];
-};
-PointNode.prototype.getStyle = function (key) {
-	return this.style[key];
-};
+// PointNode.prototype.setStyle = function (key, value) {
+// 	this.style[key] = value;
+// 	if (this.shader && key === 'fill') {
+// 		this.shader.updateColor(this.pindex, value);
+// 	}
+// };
+// PointNode.prototype.getAttr = function (key) {
+// 	return this.attr[key];
+// };
+// PointNode.prototype.getStyle = function (key) {
+// 	return this.style[key];
+// };
 
 
 function RectNode (attr, style) {
 	this.attr = attr || {};
 	this.style = style || {};
 }
+RectNode.prototype = new WebglDom();
+RectNode.prototype.constructor = RectNode;
 RectNode.prototype.setShader = function (shader) {
 	this.shader = shader;
 	if (this.shader) {
@@ -131,25 +253,67 @@ RectNode.prototype.setAttr = function (key, value) {
 		this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
 	}
 };
-RectNode.prototype.getAttr = function (key) {
-	return this.attr[key];
+// RectNode.prototype.getAttr = function (key) {
+// 	return this.attr[key];
+// };
+
+// RectNode.prototype.setStyle = function (key, value) {
+// 	this.style[key] = value;
+// 	if (this.shader && key === 'fill') {
+// 		this.shader.updateColor(this.pindex, value);
+// 	}
+// };
+
+// RectNode.prototype.getStyle = function (key) {
+// 	return this.style[key];
+// };
+
+RectNode.prototype.in = function RRinfun (co) {
+	const {
+		x = 0,
+		y = 0,
+		width = 0,
+		height = 0
+	} = this.attr;
+	return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
 };
 
-RectNode.prototype.setStyle = function (key, value) {
-	this.style[key] = value;
-	if (this.shader && key === 'fill') {
-		this.shader.updateColor(this.pindex, value);
+RectNode.prototype.updateBBox = function RRupdateBBox () {
+	const self = this;
+	const {
+		transform,
+		x = 0,
+		y = 0,
+		width = 0,
+		height = 0
+	} = self.attr;
+	let {
+		translateX,
+		translateY,
+		scaleX,
+		scaleY
+	} = parseTransform(transform);
+
+	self.BBox = {
+		x: translateX + (x * scaleX),
+		y: translateY + (y * scaleY),
+		width: width * scaleX,
+		height: height * scaleY
+	};
+
+	if (transform && transform.rotate) {
+		self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+	} else {
+		self.BBoxHit = this.BBox;
 	}
-};
-
-RectNode.prototype.getStyle = function (key) {
-	return this.style[key];
 };
 
 function PolyLineNode (attr, style) {
 	this.attr = attr || {};
 	this.style = style || {};
 }
+PolyLineNode.prototype = new WebglDom();
+PolyLineNode.prototype.constructor = PolyLineNode;
 
 PolyLineNode.prototype.setShader = function (shader) {
 	this.shader = shader;
@@ -166,55 +330,69 @@ PolyLineNode.prototype.setAttr = function (key, value) {
 	}
 };
 
-PolyLineNode.prototype.getAttr = function (key) {
-	return this.attr[key];
-};
+// PolyLineNode.prototype.getAttr = function (key) {
+// 	return this.attr[key];
+// };
 
-PolyLineNode.prototype.setStyle = function (key, value) {
-	this.style[key] = value;
-	if (this.shader && key === 'stroke') {
-		this.shader.updateColor(this.pindex, value);
-	}
-};
+// PolyLineNode.prototype.setStyle = function (key, value) {
+// 	this.style[key] = value;
+// 	if (this.shader && key === 'stroke') {
+// 		this.shader.updateColor(this.pindex, value);
+// 	}
+// };
 
-PolyLineNode.prototype.getStyle = function (key) {
-	return this.style[key];
-};
+// PolyLineNode.prototype.getStyle = function (key) {
+// 	return this.style[key];
+// };
 
 function LineNode (attr, style) {
 	this.attr = attr || {};
 	this.style = style || {};
 }
 
+LineNode.prototype = new WebglDom();
+LineNode.prototype.constructor = LineNode;
+
 LineNode.prototype.setShader = function (shader) {
 	this.shader = shader;
+	let {
+		x1 = 0,
+		y1 = 0,
+		x2 = x1,
+		y2 = y1
+	} = this.attr;
+
 	if (this.shader) {
-		this.shader.addVertex(this.attr.x1 || 0, this.attr.y1 || 0, this.attr.x2 || 0, this.attr.y2 || 0, this.pindex);
+		this.shader.addVertex(x1, y1, x2, y2, this.pindex);
 		this.shader.addColors(this.style.stroke || defaultColor, this.pindex);
 	}
 };
 
 LineNode.prototype.setAttr = function (key, value) {
 	this.attr[key] = value;
+	if (value === undefined || value === null) {
+		delete this.attr[key];
+		return;
+	}
 	if (this.shader && (key === 'x1' || key === 'y1' || key === 'x2' || key === 'y2')) {
 		this.shader.updateVertex(this.pindex, this.attr.x1, this.attr.y1, this.attr.x2, this.attr.y2);
 	}
 };
 
-LineNode.prototype.getAttr = function (key) {
-	return this.attr[key];
-};
+// LineNode.prototype.getAttr = function (key) {
+// 	return this.attr[key];
+// };
 
-LineNode.prototype.setStyle = function (key, value) {
-	this.style[key] = value;
-	if (this.shader && key === 'stroke') {
-		this.shader.updateColor(this.pindex, value);
-	}
-};
+// LineNode.prototype.setStyle = function (key, value) {
+// 	this.style[key] = value;
+// 	if (this.shader && key === 'stroke') {
+// 		this.shader.updateColor(this.pindex, value);
+// 	}
+// };
 
-LineNode.prototype.getStyle = function (key) {
-	return this.style[key];
-};
+// LineNode.prototype.getStyle = function (key) {
+// 	return this.style[key];
+// };
 
 function polygonPointsMapper (value) {
 	return earcut(value.reduce(function (p, c) {
@@ -236,6 +414,9 @@ function PolygonNode (attr, style) {
 	}
 }
 
+PolygonNode.prototype = new WebglDom();
+PolygonNode.prototype.constructor = PolygonNode;
+
 PolygonNode.prototype.setShader = function (shader) {
 	this.shader = shader;
 	if (this.shader) {
@@ -244,15 +425,19 @@ PolygonNode.prototype.setShader = function (shader) {
 	}
 };
 
-PolygonNode.prototype.setStyle = function (key, value) {
-	this.style[key] = value;
-	if (this.shader && key === 'fill') {
-		this.shader.updateColors(value || defaultColor);
-	}
-};
+// PolygonNode.prototype.setStyle = function (key, value) {
+// 	this.style[key] = value;
+// 	if (this.shader && key === 'fill') {
+// 		this.shader.updateColors(value || defaultColor);
+// 	}
+// };
 
 PolygonNode.prototype.setAttr = function (key, value) {
 	this.attr[key] = value;
+	if (value === undefined || value === null) {
+		delete this.attr[key];
+		return;
+	}
 	if (key === 'points') {
 		this.triangulatedPoints = polygonPointsMapper(value);
 		if (this.shader) {
@@ -261,18 +446,23 @@ PolygonNode.prototype.setAttr = function (key, value) {
 	}
 };
 
-PolygonNode.prototype.getAttr = function (key) {
-	return this.attr[key];
-};
+// PolygonNode.prototype.getAttr = function (key) {
+// 	return this.attr[key];
+// };
 
-PolygonNode.prototype.getStyle = function (key) {
-	return this.style[key];
-};
+// PolygonNode.prototype.getStyle = function (key) {
+// 	return this.style[key];
+// };
+
+PolygonNode.prototype.updateBBox = RPolyupdateBBox;
 
 function CircleNode (attr, style) {
 	this.attr = attr;
 	this.style = style;
 }
+
+CircleNode.prototype = new WebglDom();
+CircleNode.prototype.constructor = CircleNode;
 
 CircleNode.prototype.setShader = function (shader) {
 	this.shader = shader;
@@ -285,6 +475,10 @@ CircleNode.prototype.setShader = function (shader) {
 
 CircleNode.prototype.setAttr = function (prop, value) {
 	this.attr[prop] = value;
+	if (value === undefined || value === null) {
+		delete this.attr[prop];
+		return;
+	}
 	if (this.shader && (prop === 'cx' || prop === 'cy')) {
 		this.shader.updateVertex(this.pindex, this.attr.cx, this.attr.cy);
 	}
@@ -293,19 +487,58 @@ CircleNode.prototype.setAttr = function (prop, value) {
 		this.shader.updateSize(this.pindex, this.attr.r || 0);
 	}
 };
-CircleNode.prototype.setStyle = function (key, value) {
-	this.style[key] = value;
-	if (this.shader && key === 'fill') {
-		this.shader.updateColor(this.pindex, value);
+// CircleNode.prototype.setStyle = function (key, value) {
+// 	this.style[key] = value;
+// 	if (this.shader && key === 'fill') {
+// 		this.shader.updateColor(this.pindex, value);
+// 	}
+// };
+
+// CircleNode.prototype.getAttr = function (key) {
+// 	return this.attr[key];
+// };
+
+// CircleNode.prototype.getStyle = function (key) {
+// 	return this.style[key];
+// };
+
+CircleNode.prototype.in = function RCinfun (co, eventType) {
+	const {
+		r = 0,
+		cx = 0,
+		cy = 0
+	} = this.attr;
+	let tr = Math.sqrt(((co.x - cx) * (co.x - cx)) + ((co.y - cy) * (co.y - cy)));
+	return tr <= r;
+};
+
+CircleNode.prototype.updateBBox = function RCupdateBBox () {
+	const self = this;
+	const {
+		transform,
+		r = 0,
+		cx = 0,
+		cy = 0
+	} = self.attr;
+	let {
+		translateX,
+		translateY,
+		scaleX,
+		scaleY
+	} = parseTransform(transform);
+
+	self.BBox = {
+		x: translateX + ((cx - r) * scaleX),
+		y: translateY + ((cy - r) * scaleY),
+		width: 2 * r * scaleX,
+		height: 2 * r * scaleY
+	};
+
+	if (transform && transform.rotate) {
+		self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+	} else {
+		self.BBoxHit = this.BBox;
 	}
-};
-
-CircleNode.prototype.getAttr = function (key) {
-	return this.attr[key];
-};
-
-CircleNode.prototype.getStyle = function (key) {
-	return this.style[key];
 };
 
 let webGLImageTextures = {};
@@ -328,15 +561,24 @@ function ImageNode (ctx, attr, style, vDomIndex) {
 	}
 };
 
+ImageNode.prototype = new WebglDom();
+ImageNode.prototype.constructor = ImageNode;
+
 ImageNode.prototype.setShader = function (shader) {
 	this.shader = shader;
 	if (this.shader) {
 		this.shader.addVertex(this.attr.x || 0, this.attr.y || 0, this.attr.width || 0, this.attr.height || 0, this.pindex);
+		// this.shader.addOpacity(1, this.pindex);
 	}
 };
 
 ImageNode.prototype.setAttr = function (key, value) {
 	this.attr[key] = value;
+
+	if (value === undefined || value === null) {
+		delete this.attr[key];
+		return;
+	}
 
 	if (key === 'src' && (typeof value === 'string')) {
 		if (value && !webGLImageTextures[value]) {
@@ -356,12 +598,59 @@ ImageNode.prototype.setAttr = function (key, value) {
 	}
 };
 
+ImageNode.prototype.setStyle = function (key, value) {
+	this.style[key] = value;
+	// if (this.shader && key === 'opacity') {
+	// 	this.shader.updateOpacity(this.pindex, value);
+	// }
+};
+
 ImageNode.prototype.getAttr = function (key) {
 	return this.attr[key];
 };
 
 ImageNode.prototype.getStyle = function (key) {
 	return this.style[key];
+};
+
+ImageNode.prototype.in = function RIinfun (co) {
+	const {
+		width = 0,
+		height = 0,
+		x = 0,
+		y = 0
+	} = this.attr;
+	return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
+};
+
+ImageNode.prototype.updateBBox = function RIupdateBBox () {
+	const self = this;
+	const {
+		transform,
+		x = 0,
+		y = 0,
+		width = 0,
+		height = 0
+	} = self.attr;
+	let {
+		translateX,
+		translateY,
+		scaleX,
+		scaleY
+	} = parseTransform(transform);
+
+	self.BBox = {
+		x: (translateX + x) * scaleX,
+		y: (translateY + y) * scaleY,
+		width: width * scaleX,
+		height: height * scaleY
+	};
+
+	if (transform && transform.rotate) {
+		self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+	} else {
+		self.BBoxHit = this.BBox;
+	}
 };
 
 
@@ -388,6 +677,9 @@ function WebglGroupNode (ctx, attr, style, renderTarget, vDomIndex) {
 	}
 }
 
+WebglGroupNode.prototype = new WebglDom();
+WebglGroupNode.prototype.constructor = WebglGroupNode;
+
 WebglGroupNode.prototype.setAttr = function (key, value) {
 	this.attr[key] = value;
 	if (key === 'shaderType') {
@@ -410,12 +702,83 @@ WebglGroupNode.prototype.setShader = function () {
 
 };
 
-WebglGroupNode.prototype.getAttr = function (key) {
-	return this.attr[key];
+// WebglGroupNode.prototype.getAttr = function (key) {
+// 	return this.attr[key];
+// };
+
+// WebglGroupNode.prototype.getStyle = function (key) {
+// 	return this.style[key];
+// };
+
+WebglGroupNode.prototype.in = function RGinfun (coOr) {
+	const self = this;
+	const co = {
+		x: coOr.x,
+		y: coOr.y
+	};
+	const {
+		BBox
+	} = this;
+	const {
+		transform
+	} = self.attr;
+	let {
+		translateX,
+		translateY,
+		scaleX,
+		scaleY
+	} = parseTransform(transform);
+
+	return co.x >= (BBox.x - translateX) / scaleX && co.x <= (BBox.x - translateX + BBox.width) / scaleX && co.y >= (BBox.y - translateY) / scaleY && co.y <= (BBox.y - translateY + BBox.height) / scaleY;
 };
 
-WebglGroupNode.prototype.getStyle = function (key) {
-	return this.style[key];
+WebglGroupNode.prototype.updateBBox = function RGupdateBBox (children) {
+	const self = this;
+	let minX;
+	let maxX;
+	let minY;
+	let maxY;
+	const {
+		transform
+	} = self.attr;
+	let {
+		translateX,
+		translateY,
+		scaleX,
+		scaleY
+	} = parseTransform(transform);
+	self.BBox = {};
+
+	if (children && children.length > 0) {
+		let d;
+		let boxX;
+		let boxY;
+
+		for (let i = 0; i < children.length; i += 1) {
+			d = children[i];
+			boxX = d.dom.BBoxHit.x;
+			boxY = d.dom.BBoxHit.y;
+			minX = minX === undefined ? boxX : minX > boxX ? boxX : minX;
+			minY = minY === undefined ? boxY : minY > boxY ? boxY : minY;
+			maxX = maxX === undefined ? boxX + d.dom.BBoxHit.width : maxX < boxX + d.dom.BBoxHit.width ? boxX + d.dom.BBoxHit.width : maxX;
+			maxY = maxY === undefined ? boxY + d.dom.BBoxHit.height : maxY < boxY + d.dom.BBoxHit.height ? boxY + d.dom.BBoxHit.height : maxY;
+		}
+	}
+
+	minX = minX === undefined ? 0 : minX;
+	minY = minY === undefined ? 0 : minY;
+	maxX = maxX === undefined ? 0 : maxX;
+	maxY = maxY === undefined ? 0 : maxY;
+	self.BBox.x = translateX + (minX * scaleX);
+	self.BBox.y = translateY + (minY * scaleY);
+	self.BBox.width = Math.abs(maxX - minX) * scaleX;
+	self.BBox.height = Math.abs(maxY - minY) * scaleY;
+
+	if (self.attr.transform && self.attr.transform.rotate) {
+		self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, this.attr.transform);
+	} else {
+		self.BBoxHit = this.BBox;
+	}
 };
 
 let defaultColor = colorMap.rgba(0, 0, 0, 255);
@@ -508,7 +871,11 @@ function webGlUniformMapper (ctx, program, uniform, uniObj) {
 
 function RenderWebglShader (ctx, shader, vDomIndex) {
 	this.ctx = ctx;
-	this.dom = {};
+	this.dom = {
+		BBoxHit: {
+			x: 0, y: 0, height: 0, width: 0
+		}
+	};
 	this.shader = shader;
 	this.vDomIndex = vDomIndex;
 	this.program = getProgram(ctx, shader);
@@ -541,6 +908,9 @@ function RenderWebglShader (ctx, shader, vDomIndex) {
 		this.indexesObj = webGlIndexMapper(ctx, this.program, this.indexes);
 	}
 }
+
+RenderWebglShader.prototype = new ShaderNodePrototype();
+RenderWebglShader.prototype.constructor = RenderWebglShader;
 
 RenderWebglShader.prototype.useProgram = function () {
 	this.ctx.useProgram(this.program);
@@ -586,6 +956,10 @@ RenderWebglShader.prototype.drawElements = function () {
 	this.ctx.drawElements(this.ctx[this.geometry.drawType], this.indexesObj.count, this.indexesObj.type ? this.indexesObj.type : this.ctx.UNSIGNED_SHORT, this.indexesObj.offset);
 };
 
+RenderWebglShader.prototype.updateBBox = function (argument) {
+	return true;
+};
+
 RenderWebglShader.prototype.execute = function () {
 	this.ctx.useProgram(this.program);
 	this.applyUniforms();
@@ -628,6 +1002,7 @@ RenderWebglShader.prototype.setAttributeData = function (key, value) {
 };
 RenderWebglShader.prototype.applyAttributeData = function (key, value) {
 	this.attributes[key].value = value;
+	this.attrObjs[key].value = value;
 	let d = this.attrObjs[key];
 	this.ctx.bindBuffer(d.bufferType, d.buffer);
 	this.ctx.bufferData(d.bufferType, this.attributes[d.attr].value, d.drawType);
@@ -648,7 +1023,7 @@ RenderWebglShader.prototype.applyUniformData = function (uniform, value) {
 	queueInstance.vDomChanged(this.vDomIndex);
 };
 
-function ShaderNodePrototype () { }
+function ShaderNodePrototype () {}
 ShaderNodePrototype.prototype.translate = function (trans) {
 	this.attr.transform['translate'] = trans;
 };
@@ -1062,6 +1437,7 @@ function RenderWebglLines (ctx, attr, style, renderTarget, vDomIndex) {
 		value: new Float32Array(this.positionArray),
 		size: 2
 	});
+	
 	this.geometry.setDrawRange(0, this.positionArray.length / 2);
 
 	this.shaderInstance = new RenderWebglShader(ctx, {
@@ -1104,6 +1480,9 @@ RenderWebglLines.prototype.clear = function (index) {
 	positionArray[len + 1] = undefined;
 	positionArray[len + 2] = undefined;
 	positionArray[len + 3] = undefined;
+
+	colorArray[ti] = undefined;
+	colorArray[ti + 1] = undefined;
 
 	this.filterPositionFlag = true;
 	this.filterColorFlag = true;
@@ -1491,6 +1870,7 @@ function RenderWebglCircles (ctx, attr, style, renderTarget, vDomIndex) {
 		value: new Float32Array(this.positionArray),
 		size: 2
 	});
+	
 	this.geometry.setDrawRange(0, 0);
 
 	this.shaderInstance = new RenderWebglShader(ctx, {
@@ -1702,6 +2082,9 @@ function RenderWebglImages (ctx, attr, style, renderTarget, vDomIndex) {
 			},
 			u_image: {
 				value: new TextureObject(this.ctx, {}, this.vDomIndex)
+			},
+			u_opacity: {
+				value: (1.0).toFixed(2)
 			}
 		},
 		geometry: this.geometry
@@ -1748,6 +2131,16 @@ RenderWebglImages.prototype.addVertex = function (x, y, width, height, index) {
 	this.vertexUpdate = true;
 };
 
+// RenderWebglImages.prototype.addOpacity = function (value, index) {
+// 	this.opacityArray[index] = value;
+// 	this.opacityUpdate = true;
+// };
+
+// RenderWebglImages.prototype.updateOpacity = function (index, value) {
+// 	let opacityArray = this.opacityUpdate ? this.opacityArray : this.typedOpacityArray;
+// 	opacityArray[index] = value;
+// };
+
 RenderWebglImages.prototype.execute = function (stack) {
 	if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
 		this.renderTarget.update();
@@ -1788,6 +2181,7 @@ RenderWebglImages.prototype.execute = function (stack) {
 			this.shaderInstance.applyUniformData('u_image', node.attr.src);
 		}
 		this.shaderInstance.applyAttributeData('a_position', this.positionArray[i]);
+		this.shaderInstance.applyUniformData('u_opacity', node.style.opacity || this.style.opacity || 1.0);
 		this.shaderInstance.draw();
 	}
 
@@ -1849,6 +2243,8 @@ function WebglNodeExe (ctx, config, id, vDomIndex) {
 	this.el = config.el;
 	this.shaderType = config.shaderType;
 	this.exeCtx = config.ctx;
+	this.bbox = config['bbox'] !== undefined ? config['bbox'] : true;
+	this.events = {};
 
 	switch (config.el) {
 		case 'point':
@@ -1908,7 +2304,7 @@ WebglNodeExe.prototype.reIndexChildren = function () {
 
 WebglNodeExe.prototype.setAttr = function WsetAttr (attr, value) {
 	if (arguments.length === 2) {
-		if (!value) {
+		if (value === undefined || value === null) {
 			delete this.attr[attr];
 		} else {
 			this.attr[attr] = value;
@@ -1916,11 +2312,15 @@ WebglNodeExe.prototype.setAttr = function WsetAttr (attr, value) {
 		}
 	} else if (arguments.length === 1 && typeof attr === 'object') {
 		for (let key in attr) {
-			this.attr[key] = attr[key];
-			this.dom.setAttr(key, attr[key]);
+			if (attr[key] === undefined || attr[key] === null) {
+				delete this.attr[key];
+			} else {
+				this.attr[key] = attr[key];
+				this.dom.setAttr(key, attr[key]);
+			}
 		}
 	}
-
+	this.BBoxUpdate = true;
 	queueInstance.vDomChanged(this.vDomIndex);
 	return this;
 };
@@ -1950,6 +2350,56 @@ WebglNodeExe.prototype.setStyle = function WsetStyle (attr, value) {
 
 WebglNodeExe.prototype.setReIndex = function () {
 	this.reindex = true;
+};
+
+WebglNodeExe.prototype.updateBBox = function CupdateBBox () {
+	let status;
+
+	for (let i = 0, len = this.children.length; i < len; i += 1) {
+		if (this.bbox) {
+			status = this.children[i].updateBBox() || status;
+		}
+	}
+
+	if (this.bbox) {
+		if (this.BBoxUpdate || status) {
+			this.dom.updateBBox(this.children);
+			this.BBoxUpdate = false;
+			return true;
+		}
+	}
+
+	return false;
+};
+
+WebglNodeExe.prototype.in = function Cinfun (co) {
+	return this.dom.in(co);
+};
+
+WebglNodeExe.prototype.on = function Con (eventType, hndlr) {
+	let self = this;
+	// this.dom.on(eventType, hndlr);
+	if (!this.events) {
+		this.events = {};
+	}
+
+	if (!hndlr && this.events[eventType]) {
+		delete this.events[eventType];
+	} else if (hndlr) {
+		if (typeof hndlr === 'function') {
+			const hnd = hndlr.bind(self);
+			this.events[eventType] = function (event) {
+				hnd(event);
+			};
+		} else if (typeof hndlr === 'object') {
+			this.events[eventType] = hndlr;
+			if (hndlr.constructor === zoomInstance.constructor || hndlr.constructor === dragInstance.constructor) {
+				hndlr.bindMethods(this);
+			}
+		}
+	}
+	
+	return this;
 };
 
 WebglNodeExe.prototype.execute = function Cexecute () {
@@ -2047,7 +2497,7 @@ WebglNodeExe.prototype.removeChild = function WremoveChild (obj) {
 		const removedNode = this.children.splice(index, 1)[0];
 		this.dom.removeChild(removedNode.dom);
 	}
-
+	this.BBoxUpdate = true;
 	queueInstance.vDomChanged(this.vDomIndex);
 };
 
@@ -2056,7 +2506,7 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 	let height = res ? res.clientHeight : 0;
 	let width = res ? res.clientWidth : 0;
 	let clearColor = colorMap.rgba(0, 0, 0, 0);
-	let { autoUpdate = true, enableResize = true } = layerSettings;
+	let { enableEvents = false, autoUpdate = true, enableResize = true } = layerSettings;
 
 	contextConfig = contextConfig || {
 		premultipliedAlpha: false,
@@ -2122,6 +2572,7 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 
 	root.execute = function () {
 		onClear(this.ctx);
+		this.updateBBox();
 		execute();
 	};
 
@@ -2248,6 +2699,70 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 	root.RenderTarget = function (config) {
 		return new RenderTarget(this.ctx, config, this.vDomIndex);
 	};
+
+	if (enableEvents) {
+		let eventsInstance = new Events(root);
+		layer.addEventListener('mousemove', e => {
+			e.preventDefault();
+			eventsInstance.mousemoveCheck(e);
+		});
+		layer.addEventListener('click', e => {
+			e.preventDefault();
+			eventsInstance.clickCheck(e);
+		});
+		layer.addEventListener('dblclick', e => {
+			e.preventDefault();
+			eventsInstance.dblclickCheck(e);
+		});
+		layer.addEventListener('mousedown', e => {
+			e.preventDefault();
+			eventsInstance.mousedownCheck(e);
+		});
+		layer.addEventListener('mouseup', e => {
+			e.preventDefault();
+			eventsInstance.mouseupCheck(e);
+		});
+		layer.addEventListener('mouseleave', e => {
+			e.preventDefault();
+			eventsInstance.mouseleaveCheck(e);
+		});
+		layer.addEventListener('contextmenu', e => {
+			e.preventDefault();
+			eventsInstance.contextmenuCheck(e);
+		});
+		layer.addEventListener('touchstart', e => {
+			e.preventDefault();
+			eventsInstance.touchstartCheck(e);
+		});
+		layer.addEventListener('touchend', e => {
+			e.preventDefault();
+			eventsInstance.touchendCheck(e);
+		});
+		layer.addEventListener('touchmove', e => {
+			e.preventDefault();
+			eventsInstance.touchmoveCheck(e);
+		});
+		layer.addEventListener('touchcancel', e => {
+			e.preventDefault();
+			eventsInstance.touchcancelCheck(e);
+		});
+		layer.addEventListener('wheel', e => {
+			e.preventDefault();
+			eventsInstance.wheelEventCheck(e);
+		});
+		layer.addEventListener('pointerdown', e => {
+			e.preventDefault();
+			eventsInstance.pointerdownCheck(e);
+		});
+		layer.addEventListener('pointerup', e => {
+			e.preventDefault();
+			eventsInstance.pointerupCheck(e);
+		});
+		layer.addEventListener('pointermove', e => {
+			e.preventDefault();
+			eventsInstance.pointermoveCheck(e);
+		});
+	}
 
 	queueInstance.execute();
 
