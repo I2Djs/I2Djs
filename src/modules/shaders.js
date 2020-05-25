@@ -17,10 +17,10 @@ function shaders (el) {
           
           varying vec4 v_color;
           void main() {
-            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
+            vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;
             vec2 clipSpace = ((zeroToOne) * 2.0) - 1.0;
             gl_Position = vec4((clipSpace * vec2(1.0, -1.0)), 0, 1);
-            gl_PointSize = a_size;
+            gl_PointSize = a_size * u_scale.x;
             v_color = a_color;
           }
           `,
@@ -46,11 +46,11 @@ function shaders (el) {
           uniform vec2 u_scale;
           varying vec4 v_color;
           void main() {
-            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
+            vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;
             vec2 zeroToTwo = zeroToOne * 2.0;
             vec2 clipSpace = zeroToTwo - 1.0;
             gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-            gl_PointSize = a_radius;
+            gl_PointSize = a_radius * u_scale.x;
             v_color = a_color;
           }
           `,
@@ -87,7 +87,7 @@ function shaders (el) {
           varying float v_r1;
           varying float v_r2;
           void main() {
-            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
+            vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;
             vec2 zeroToTwo = zeroToOne * 2.0;
             vec2 clipSpace = zeroToTwo - 1.0;
             gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
@@ -128,7 +128,7 @@ function shaders (el) {
                     uniform vec2 u_scale;
                     varying vec2 v_texCoord;
                     void main() {
-                      vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
+                      vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;
                       vec2 clipSpace = zeroToOne * 2.0 - 1.0;
                       gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
                       v_texCoord = a_texCoord;
@@ -137,9 +137,11 @@ function shaders (el) {
 				fragmentShader: `
                     precision mediump float;
                     uniform sampler2D u_image;
+                    uniform float u_opacity;
                     varying vec2 v_texCoord;
                     void main() {
                       gl_FragColor = texture2D(u_image, v_texCoord);
+                      gl_FragColor.a *= u_opacity;
                     }
                     `
 			};
@@ -155,7 +157,7 @@ function shaders (el) {
                     uniform vec2 u_translate;
                     uniform vec2 u_scale;
                     void main() {
-                    vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
+                    vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;
                     vec2 clipSpace = zeroToOne * 2.0 - 1.0;
                     gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
                     }
@@ -181,7 +183,7 @@ function shaders (el) {
                     uniform vec2 u_scale;
                     varying vec4 v_color;
                     void main() {
-                    vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;
+                    vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;
                     vec2 clipSpace = zeroToOne * 2.0 - 1.0;
                     gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0, 1);
                     v_color = a_color;

@@ -112,6 +112,12 @@ DragClass.prototype = {
 		}
 		return this;
 	},
+	bindMethods: function (trgt) {
+		let self = this;
+		trgt.dragTo = function (k, point) {
+			self.dragTo(trgt, k, point);
+		};
+	},
 	execute: function (trgt, event, eventType) {
 		let self = this;
 		this.event.e = event;

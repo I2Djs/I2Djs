@@ -5196,6 +5196,12 @@
 			}
 			return this;
 		},
+		bindMethods: function (trgt) {
+			var self = this;
+			trgt.dragTo = function (k, point) {
+				self.dragTo(trgt, k, point);
+			};
+		},
 		execute: function (trgt, event, eventType) {
 			var self = this;
 			this.event.e = event;
@@ -5567,8 +5573,6 @@
 		return new CanvasNodeExe(ctx, config, domId$1(), vDomIndex);
 	};
 
-	var ratio;
-
 	function getPixlRatio (ctx) {
 		var dpr = window.devicePixelRatio || 1;
 		var bsr = ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1;
@@ -5914,8 +5918,8 @@
 
 	function imageInstance (self) {
 		var imageIns = new Image();
+		imageIns.crossOrigin = 'anonymous';
 		imageIns.onload = function onload () {
-			this.crossOrigin = 'anonymous';
 			self.attr.height = self.attr.height ? self.attr.height : this.height;
 			self.attr.width = self.attr.width ? self.attr.width : this.width;
 
@@ -6489,7 +6493,7 @@
 		}
 
 		this.ctx.save();
-		this.ctx.scale(1 / ratio, 1 / ratio);
+		this.ctx.scale(1 / this.ctx.pixelRatio, 1 / this.ctx.pixelRatio);
 		flag = this.style.fillStyle ? this.ctx.isPointInPath(this.pathNode, co.x, co.y) : flag;
 		this.ctx.restore();
 		return flag;
@@ -6587,7 +6591,7 @@
 		}
 
 		this.ctx.save();
-		this.ctx.scale(1 / ratio, 1 / ratio);
+		this.ctx.scale(1 / this.ctx.pixelRatio, 1 / this.ctx.pixelRatio);
 		flag = this.style.fillStyle ? this.ctx.isPointInPath(this.polygon.path, co.x, co.y) : flag;
 		this.ctx.restore();
 		return flag;
@@ -6819,10 +6823,6 @@
 		var maxX;
 		var minY;
 		var maxY;
-		// let gTranslateX = 0;
-		// let gTranslateY = 0;
-		// let scaleX = 1;
-		// let scaleY = 1;
 		var ref = self.attr;
 		var transform = ref.transform;
 		var ref$1 = parseTransform(transform);
@@ -6831,15 +6831,6 @@
 		var scaleX = ref$1.scaleX;
 		var scaleY = ref$1.scaleY;
 		self.BBox = {};
-
-		// if (transform && transform.translate) {
-		// 	gTranslateX = transform.translate[0] !== undefined ? transform.translate[0] : 0;
-		// 	gTranslateY = transform.translate[1] !== undefined ? transform.translate[1] : gTranslateX;
-		// }
-
-		// if (transform && self.attr.transform.scale && self.attr.id !== 'rootNode') {
-		// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
-		// }
 
 		if (children && children.length > 0) {
 			var d;
@@ -6905,19 +6896,6 @@
 		var translateY = ref$2.translateY;
 		var scaleX = ref$2.scaleX;
 		var scaleY = ref$2.scaleY;
-		// let gTranslateX = 0;
-		// let gTranslateY = 0;
-		// let scaleX = 1;
-		// let scaleY = 1;
-
-		// if (transform && transform.translate) {
-		// 	[gTranslateX, gTranslateY] = transform.translate;
-		// }
-
-
-		// if (transform && transform.scale) {
-		// 	[scaleX = 1, scaleY = scaleX] = transform.scale;
-		// }
 
 		return co.x >= (BBox.x - translateX) / scaleX && co.x <= (BBox.x - translateX + BBox.width) / scaleX && co.y >= (BBox.y - translateY) / scaleY && co.y <= (BBox.y - translateY + BBox.height) / scaleY;
 	};
@@ -7164,13 +7142,11 @@
 		this.ctx.save();
 		this.stylesExe();
 		this.attributesExe();
-
 		if (this.dom instanceof RenderGroup) {
 			for (var i = 0, len = this.children.length; i < len; i += 1) {
 				this.children[i].execute();
 			}
 		}
-
 		this.ctx.restore();
 	};
 
@@ -7251,10 +7227,9 @@
 				};
 			} else if (typeof hndlr === 'object') {
 				this.events[eventType] = hndlr;
-				if (hndlr.constructor === zoomInstance.constructor) {
+				if (hndlr.constructor === zoomInstance.constructor || hndlr.constructor === dragInstance.constructor) {
 					hndlr.bindMethods(this);
 				}
-				if (hndlr.constructor === dragInstance.constructor) ;
 			}
 		}
 		
@@ -7348,7 +7323,8 @@
 		var enableEvents = layerSettings.enableEvents; if ( enableEvents === void 0 ) enableEvents = true;
 		var autoUpdate = layerSettings.autoUpdate; if ( autoUpdate === void 0 ) autoUpdate = true;
 		var enableResize = layerSettings.enableResize; if ( enableResize === void 0 ) enableResize = true;
-		ratio = getPixlRatio(ctx);
+		var ratio = getPixlRatio(ctx);
+		ctx.pixelRatio = ratio;
 		var onClear = function (ctx) {
 			ctx.clearRect(0, 0, width * ratio, height * ratio);
 		};
@@ -7392,6 +7368,7 @@
 		root.height = height;
 		root.width = width;
 		root.type = 'CANVAS';
+		root.ctx = ctx;
 
 		root.setClear = function (exe) {
 			 onClear = exe;
@@ -7415,6 +7392,7 @@
 
 		root.setPixelRatio = function (val) {
 			ratio = val;
+			this.ctx.pixelRatio = ratio;
 			this.setSize(this.width, this.height);
 		};
 
@@ -7620,7 +7598,7 @@
 
 		var layer = new Canvas(width, height);
 		var ctx = layer.getContext('2d', config);
-		ratio = getPixlRatio(ctx);
+		var ratio = getPixlRatio(ctx);
 		var onClear = function (ctx) {
 			ctx.clearRect(0, 0, width * ratio, height * ratio);
 		};
@@ -7691,43 +7669,43 @@
 		switch (el) {
 			case 'point':
 				res = {
-					vertexShader: "\n          precision highp float;\n          attribute vec2 a_position;\n          attribute vec4 a_color;\n          attribute float a_size;\n          \n          uniform vec2 u_resolution;\n          uniform vec2 u_translate;\n          uniform vec2 u_scale;\n          \n          varying vec4 v_color;\n          void main() {\n            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;\n            vec2 clipSpace = ((zeroToOne) * 2.0) - 1.0;\n            gl_Position = vec4((clipSpace * vec2(1.0, -1.0)), 0, 1);\n            gl_PointSize = a_size;\n            v_color = a_color;\n          }\n          ",
+					vertexShader: "\n          precision highp float;\n          attribute vec2 a_position;\n          attribute vec4 a_color;\n          attribute float a_size;\n          \n          uniform vec2 u_resolution;\n          uniform vec2 u_translate;\n          uniform vec2 u_scale;\n          \n          varying vec4 v_color;\n          void main() {\n            vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;\n            vec2 clipSpace = ((zeroToOne) * 2.0) - 1.0;\n            gl_Position = vec4((clipSpace * vec2(1.0, -1.0)), 0, 1);\n            gl_PointSize = a_size * u_scale.x;\n            v_color = a_color;\n          }\n          ",
 					fragmentShader: "\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                        gl_FragColor = v_color;\n                    }\n                    "
 				};
 				break;
 
 			case 'circle':
 				res = {
-					vertexShader: "\n        precision highp float;\n          attribute vec2 a_position;\n          attribute vec4 a_color;\n          attribute float a_radius;\n          uniform vec2 u_resolution;\n          uniform vec2 u_translate;\n          uniform vec2 u_scale;\n          varying vec4 v_color;\n          void main() {\n            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;\n            vec2 zeroToTwo = zeroToOne * 2.0;\n            vec2 clipSpace = zeroToTwo - 1.0;\n            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n            gl_PointSize = a_radius;\n            v_color = a_color;\n          }\n          ",
+					vertexShader: "\n        precision highp float;\n          attribute vec2 a_position;\n          attribute vec4 a_color;\n          attribute float a_radius;\n          uniform vec2 u_resolution;\n          uniform vec2 u_translate;\n          uniform vec2 u_scale;\n          varying vec4 v_color;\n          void main() {\n            vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;\n            vec2 zeroToTwo = zeroToOne * 2.0;\n            vec2 clipSpace = zeroToTwo - 1.0;\n            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n            gl_PointSize = a_radius * u_scale.x;\n            v_color = a_color;\n          }\n          ",
 					fragmentShader: "\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                      float r = 0.0, delta = 0.0, alpha = 1.0;\n                      vec2 cxy = 2.0 * gl_PointCoord - 1.0;\n                      r = dot(cxy, cxy);\n                      if(r > 1.0) {\n                        discard;\n                      }\n                      delta = 0.09;\n                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);\n                      gl_FragColor = v_color * alpha;\n                    }\n                    "
 				};
 				break;
 
 			case 'ellipse':
 				res = {
-					vertexShader: "\n        precision highp float;\n          attribute vec2 a_position;\n          attribute vec4 a_color;\n          attribute float a_r1;\n          attribute float a_r2;\n          uniform vec2 u_resolution;\n          uniform vec2 u_translate;\n          uniform vec2 u_scale;\n          varying vec4 v_color;\n          varying float v_r1;\n          varying float v_r2;\n          void main() {\n            vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;\n            vec2 zeroToTwo = zeroToOne * 2.0;\n            vec2 clipSpace = zeroToTwo - 1.0;\n            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n            gl_PointSize = max(a_r1, a_r2);\n            v_color = a_color;\n            v_r1 = a_r1;\n            v_r2 = a_r2;\n          }\n          ",
+					vertexShader: "\n        precision highp float;\n          attribute vec2 a_position;\n          attribute vec4 a_color;\n          attribute float a_r1;\n          attribute float a_r2;\n          uniform vec2 u_resolution;\n          uniform vec2 u_translate;\n          uniform vec2 u_scale;\n          varying vec4 v_color;\n          varying float v_r1;\n          varying float v_r2;\n          void main() {\n            vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;\n            vec2 zeroToTwo = zeroToOne * 2.0;\n            vec2 clipSpace = zeroToTwo - 1.0;\n            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n            gl_PointSize = max(a_r1, a_r2);\n            v_color = a_color;\n            v_r1 = a_r1;\n            v_r2 = a_r2;\n          }\n          ",
 					fragmentShader: "\n                    precision mediump float;\n                    varying vec4 v_color;\n                    varying float v_r1;\n                    varying float v_r2;\n                    void main() {\n                      float r = 0.0, delta = 0.0, alpha = 1.0;\n                      vec2 cxy = 2.0 * gl_PointCoord - 1.0;\n                      r = ((cxy.x * cxy.x) / (v_r1 * v_r1), (cxy.y * cxy.y) / (v_r2 * v_r2));\n                      if(r > 1.0) {\n                        discard;\n                      }\n                      delta = 0.09;\n                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);\n                      gl_FragColor = v_color * alpha;\n                    }\n                    "
 				};
 				break;
 
 			case 'image':
 				res = {
-					vertexShader: "\n                    precision highp float;\n                    attribute vec2 a_position;\n                    attribute vec2 a_texCoord;\n                    uniform vec2 u_resolution;\n                    uniform vec2 u_translate;\n                    uniform vec2 u_scale;\n                    varying vec2 v_texCoord;\n                    void main() {\n                      vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;\n                      vec2 clipSpace = zeroToOne * 2.0 - 1.0;\n                      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                      v_texCoord = a_texCoord;\n                    }\n          ",
-					fragmentShader: "\n                    precision mediump float;\n                    uniform sampler2D u_image;\n                    varying vec2 v_texCoord;\n                    void main() {\n                      gl_FragColor = texture2D(u_image, v_texCoord);\n                    }\n                    "
+					vertexShader: "\n                    precision highp float;\n                    attribute vec2 a_position;\n                    attribute vec2 a_texCoord;\n                    uniform vec2 u_resolution;\n                    uniform vec2 u_translate;\n                    uniform vec2 u_scale;\n                    varying vec2 v_texCoord;\n                    void main() {\n                      vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;\n                      vec2 clipSpace = zeroToOne * 2.0 - 1.0;\n                      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                      v_texCoord = a_texCoord;\n                    }\n          ",
+					fragmentShader: "\n                    precision mediump float;\n                    uniform sampler2D u_image;\n                    uniform float u_opacity;\n                    varying vec2 v_texCoord;\n                    void main() {\n                      gl_FragColor = texture2D(u_image, v_texCoord);\n                      gl_FragColor.a *= u_opacity;\n                    }\n                    "
 				};
 				break;
 
 			case 'polyline':
 			case 'polygon':
 				res = {
-					vertexShader: "\n                    precision highp float;\n                    attribute vec2 a_position;\n                    uniform vec2 u_resolution;\n                    uniform vec2 u_translate;\n                    uniform vec2 u_scale;\n                    void main() {\n                    vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;\n                    vec2 clipSpace = zeroToOne * 2.0 - 1.0;\n                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                    }\n                    ",
+					vertexShader: "\n                    precision highp float;\n                    attribute vec2 a_position;\n                    uniform vec2 u_resolution;\n                    uniform vec2 u_translate;\n                    uniform vec2 u_scale;\n                    void main() {\n                    vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;\n                    vec2 clipSpace = zeroToOne * 2.0 - 1.0;\n                    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                    }\n                    ",
 					fragmentShader: "\n                    precision mediump float;\n                    uniform vec4 u_color;\n                    void main() {\n                        gl_FragColor = u_color;\n                    }\n                    "
 				};
 				break;
 
 			default:
 				res = {
-					vertexShader: "\n                    precision highp float;\n                    attribute vec2 a_position;\n                    attribute vec4 a_color;\n                    uniform vec2 u_resolution;\n                    uniform vec2 u_translate;\n                    uniform vec2 u_scale;\n                    varying vec4 v_color;\n                    void main() {\n                    vec2 zeroToOne = (u_scale * (a_position + u_translate)) / u_resolution;\n                    vec2 clipSpace = zeroToOne * 2.0 - 1.0;\n                    gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0, 1);\n                    v_color = a_color;\n                    }\n                    ",
+					vertexShader: "\n                    precision highp float;\n                    attribute vec2 a_position;\n                    attribute vec4 a_color;\n                    uniform vec2 u_resolution;\n                    uniform vec2 u_translate;\n                    uniform vec2 u_scale;\n                    varying vec4 v_color;\n                    void main() {\n                    vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;\n                    vec2 clipSpace = zeroToOne * 2.0 - 1.0;\n                    gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0, 1);\n                    v_color = a_color;\n                    }\n                    ",
 					fragmentShader: "\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                        gl_FragColor = v_color;\n                    }\n                    "
 				};
 		}
@@ -8385,8 +8363,13 @@
 	};
 	earcut_1.default = default_1;
 
-	var ratio$1;
+	var t2DGeometry$4 = geometry;
+
+	var ratio;
 	var queueInstance$5 = queue;
+
+	var zoomInstance$1 = behaviour.zoom();
+	var dragInstance$1 = behaviour.drag();
 
 	function getPixlRatio$1 (ctx) {
 		var dpr = window.devicePixelRatio || 1;
@@ -8399,6 +8382,75 @@
 	function domId$2 () {
 		Id$3 += 1;
 		return Id$3;
+	}
+
+	function parseTransform$1 (transform) {
+		var output = {
+			translateX: 0,
+			translateY: 0,
+			scaleX: 1,
+			scaleY: 1
+		};
+
+		if (transform) {
+			if (transform.translate && transform.translate.length > 0) {
+				output.translateX = transform.translate[0];
+				output.translateY = transform.translate[1];
+			}
+
+			if (transform.scale && transform.scale.length > 0) {
+				output.scaleX = transform.scale[0];
+				output.scaleY = transform.scale[1] || output.scaleX;
+			}
+		}
+
+		return output;
+	}
+
+	function RPolyupdateBBox$1 () {
+		var self = this;
+		var ref = self.attr;
+		var transform = ref.transform;
+		var points = ref.points; if ( points === void 0 ) points = [];
+		var ref$1 = parseTransform$1(transform);
+		var translateX = ref$1.translateX;
+		var translateY = ref$1.translateY;
+		var scaleX = ref$1.scaleX;
+		var scaleY = ref$1.scaleY;
+
+		if (points && points.length > 0) {
+			var minX = points[0].x;
+			var maxX = points[0].x;
+			var minY = points[0].y;
+			var maxY = points[0].y;
+
+			for (var i = 1; i < points.length; i += 1) {
+				if (minX > points[i].x) { minX = points[i].x; }
+				if (maxX < points[i].x) { maxX = points[i].x; }
+				if (minY > points[i].y) { minY = points[i].y; }
+				if (maxY < points[i].y) { maxY = points[i].y; }
+			}
+
+			self.BBox = {
+				x: translateX + (minX * scaleX),
+				y: translateY + (minY * scaleY),
+				width: (maxX - minX) * scaleX,
+				height: (maxY - minY) * scaleY
+			};
+		} else {
+			self.BBox = {
+				x: 0,
+				y: 0,
+				width: 0,
+				height: 0
+			};
+		}
+
+		if (transform && transform.rotate) {
+			self.BBoxHit = t2DGeometry$4.rotateBBox(this.BBox, transform);
+		} else {
+			self.BBoxHit = this.BBox;
+		}
 	}
 
 	var WebglCollection = function () {
@@ -8449,10 +8501,50 @@
 		return createProgram(ctx, shaders);
 	}
 
+	function WebglDom () {
+		this.BBox = {
+			x: 0,
+			y: 0,
+			width: 0,
+			height: 0
+		};
+		this.BBoxHit = {
+			x: 0,
+			y: 0,
+			width: 0,
+			height: 0
+		};
+	}
+
+	WebglDom.prototype.setStyle = function (key, value) {
+		this.style[key] = value;
+		if (this.shader && (key === 'fill')) {
+			if (this.style.opacity !== undefined) {
+				value.a *= this.style.opacity;
+			}
+			this.shader.updateColor(this.pindex, value);
+		}
+		if (this.shader && key === 'opacity') {
+			if (this.style.fill !== undefined) {
+				this.style.fill.a *= this.style.opacity;
+			}
+			this.shader.updateColor(this.pindex, this.style.fill);	}
+	};
+	WebglDom.prototype.getAttr = function (key) {
+		return this.attr[key];
+	};
+
+	WebglDom.prototype.getStyle = function (key) {
+		return this.style[key];
+	};
+
 	function PointNode (attr, style) {
 		this.attr = attr || {};
 		this.style = style || {};
 	}
+	PointNode.prototype = new WebglDom();
+	PointNode.prototype.constructor = PointNode;
+
 	PointNode.prototype.setShader = function (shader) {
 		this.shader = shader;
 		if (this.shader) {
@@ -8463,7 +8555,7 @@
 	};
 
 	PointNode.prototype.setAttr = function (prop, value) {
-		// this.attr[prop] = value;
+		this.attr[prop] = value;
 		if (this.shader && (prop === 'x' || prop === 'y')) {
 			this.shader.updateVertex(this.pindex, this.attr.x, this.attr.y);
 		}
@@ -8472,24 +8564,26 @@
 			this.shader.updateSize(this.pindex, this.attr.size || 0);
 		}
 	};
-	PointNode.prototype.setStyle = function (key, value) {
-		this.style[key] = value;
-		if (this.shader && key === 'fill') {
-			this.shader.updateColor(this.pindex, value);
-		}
-	};
-	PointNode.prototype.getAttr = function (key) {
-		return this.attr[key];
-	};
-	PointNode.prototype.getStyle = function (key) {
-		return this.style[key];
-	};
+	// PointNode.prototype.setStyle = function (key, value) {
+	// 	this.style[key] = value;
+	// 	if (this.shader && key === 'fill') {
+	// 		this.shader.updateColor(this.pindex, value);
+	// 	}
+	// };
+	// PointNode.prototype.getAttr = function (key) {
+	// 	return this.attr[key];
+	// };
+	// PointNode.prototype.getStyle = function (key) {
+	// 	return this.style[key];
+	// };
 
 
 	function RectNode (attr, style) {
 		this.attr = attr || {};
 		this.style = style || {};
 	}
+	RectNode.prototype = new WebglDom();
+	RectNode.prototype.constructor = RectNode;
 	RectNode.prototype.setShader = function (shader) {
 		this.shader = shader;
 		if (this.shader) {
@@ -8510,25 +8604,64 @@
 			this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
 		}
 	};
-	RectNode.prototype.getAttr = function (key) {
-		return this.attr[key];
+	// RectNode.prototype.getAttr = function (key) {
+	// 	return this.attr[key];
+	// };
+
+	// RectNode.prototype.setStyle = function (key, value) {
+	// 	this.style[key] = value;
+	// 	if (this.shader && key === 'fill') {
+	// 		this.shader.updateColor(this.pindex, value);
+	// 	}
+	// };
+
+	// RectNode.prototype.getStyle = function (key) {
+	// 	return this.style[key];
+	// };
+
+	RectNode.prototype.in = function RRinfun (co) {
+		var ref = this.attr;
+		var x = ref.x; if ( x === void 0 ) x = 0;
+		var y = ref.y; if ( y === void 0 ) y = 0;
+		var width = ref.width; if ( width === void 0 ) width = 0;
+		var height = ref.height; if ( height === void 0 ) height = 0;
+		return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
 	};
 
-	RectNode.prototype.setStyle = function (key, value) {
-		this.style[key] = value;
-		if (this.shader && key === 'fill') {
-			this.shader.updateColor(this.pindex, value);
+	RectNode.prototype.updateBBox = function RRupdateBBox () {
+		var self = this;
+		var ref = self.attr;
+		var transform = ref.transform;
+		var x = ref.x; if ( x === void 0 ) x = 0;
+		var y = ref.y; if ( y === void 0 ) y = 0;
+		var width = ref.width; if ( width === void 0 ) width = 0;
+		var height = ref.height; if ( height === void 0 ) height = 0;
+		var ref$1 = parseTransform$1(transform);
+		var translateX = ref$1.translateX;
+		var translateY = ref$1.translateY;
+		var scaleX = ref$1.scaleX;
+		var scaleY = ref$1.scaleY;
+
+		self.BBox = {
+			x: translateX + (x * scaleX),
+			y: translateY + (y * scaleY),
+			width: width * scaleX,
+			height: height * scaleY
+		};
+
+		if (transform && transform.rotate) {
+			self.BBoxHit = t2DGeometry$4.rotateBBox(this.BBox, transform);
+		} else {
+			self.BBoxHit = this.BBox;
 		}
-	};
-
-	RectNode.prototype.getStyle = function (key) {
-		return this.style[key];
 	};
 
 	function PolyLineNode (attr, style) {
 		this.attr = attr || {};
 		this.style = style || {};
 	}
+	PolyLineNode.prototype = new WebglDom();
+	PolyLineNode.prototype.constructor = PolyLineNode;
 
 	PolyLineNode.prototype.setShader = function (shader) {
 		this.shader = shader;
@@ -8545,55 +8678,68 @@
 		}
 	};
 
-	PolyLineNode.prototype.getAttr = function (key) {
-		return this.attr[key];
-	};
+	// PolyLineNode.prototype.getAttr = function (key) {
+	// 	return this.attr[key];
+	// };
 
-	PolyLineNode.prototype.setStyle = function (key, value) {
-		this.style[key] = value;
-		if (this.shader && key === 'stroke') {
-			this.shader.updateColor(this.pindex, value);
-		}
-	};
+	// PolyLineNode.prototype.setStyle = function (key, value) {
+	// 	this.style[key] = value;
+	// 	if (this.shader && key === 'stroke') {
+	// 		this.shader.updateColor(this.pindex, value);
+	// 	}
+	// };
 
-	PolyLineNode.prototype.getStyle = function (key) {
-		return this.style[key];
-	};
+	// PolyLineNode.prototype.getStyle = function (key) {
+	// 	return this.style[key];
+	// };
 
 	function LineNode (attr, style) {
 		this.attr = attr || {};
 		this.style = style || {};
 	}
 
+	LineNode.prototype = new WebglDom();
+	LineNode.prototype.constructor = LineNode;
+
 	LineNode.prototype.setShader = function (shader) {
 		this.shader = shader;
+		var ref = this.attr;
+		var x1 = ref.x1; if ( x1 === void 0 ) x1 = 0;
+		var y1 = ref.y1; if ( y1 === void 0 ) y1 = 0;
+		var x2 = ref.x2; if ( x2 === void 0 ) x2 = x1;
+		var y2 = ref.y2; if ( y2 === void 0 ) y2 = y1;
+
 		if (this.shader) {
-			this.shader.addVertex(this.attr.x1 || 0, this.attr.y1 || 0, this.attr.x2 || 0, this.attr.y2 || 0, this.pindex);
+			this.shader.addVertex(x1, y1, x2, y2, this.pindex);
 			this.shader.addColors(this.style.stroke || defaultColor$1, this.pindex);
 		}
 	};
 
 	LineNode.prototype.setAttr = function (key, value) {
 		this.attr[key] = value;
+		if (value === undefined || value === null) {
+			delete this.attr[key];
+			return;
+		}
 		if (this.shader && (key === 'x1' || key === 'y1' || key === 'x2' || key === 'y2')) {
 			this.shader.updateVertex(this.pindex, this.attr.x1, this.attr.y1, this.attr.x2, this.attr.y2);
 		}
 	};
 
-	LineNode.prototype.getAttr = function (key) {
-		return this.attr[key];
-	};
+	// LineNode.prototype.getAttr = function (key) {
+	// 	return this.attr[key];
+	// };
 
-	LineNode.prototype.setStyle = function (key, value) {
-		this.style[key] = value;
-		if (this.shader && key === 'stroke') {
-			this.shader.updateColor(this.pindex, value);
-		}
-	};
+	// LineNode.prototype.setStyle = function (key, value) {
+	// 	this.style[key] = value;
+	// 	if (this.shader && key === 'stroke') {
+	// 		this.shader.updateColor(this.pindex, value);
+	// 	}
+	// };
 
-	LineNode.prototype.getStyle = function (key) {
-		return this.style[key];
-	};
+	// LineNode.prototype.getStyle = function (key) {
+	// 	return this.style[key];
+	// };
 
 	function polygonPointsMapper (value) {
 		return earcut_1(value.reduce(function (p, c) {
@@ -8615,6 +8761,9 @@
 		}
 	}
 
+	PolygonNode.prototype = new WebglDom();
+	PolygonNode.prototype.constructor = PolygonNode;
+
 	PolygonNode.prototype.setShader = function (shader) {
 		this.shader = shader;
 		if (this.shader) {
@@ -8623,15 +8772,19 @@
 		}
 	};
 
-	PolygonNode.prototype.setStyle = function (key, value) {
-		this.style[key] = value;
-		if (this.shader && key === 'fill') {
-			this.shader.updateColors(value || defaultColor$1);
-		}
-	};
+	// PolygonNode.prototype.setStyle = function (key, value) {
+	// 	this.style[key] = value;
+	// 	if (this.shader && key === 'fill') {
+	// 		this.shader.updateColors(value || defaultColor);
+	// 	}
+	// };
 
 	PolygonNode.prototype.setAttr = function (key, value) {
 		this.attr[key] = value;
+		if (value === undefined || value === null) {
+			delete this.attr[key];
+			return;
+		}
 		if (key === 'points') {
 			this.triangulatedPoints = polygonPointsMapper(value);
 			if (this.shader) {
@@ -8640,18 +8793,23 @@
 		}
 	};
 
-	PolygonNode.prototype.getAttr = function (key) {
-		return this.attr[key];
-	};
+	// PolygonNode.prototype.getAttr = function (key) {
+	// 	return this.attr[key];
+	// };
 
-	PolygonNode.prototype.getStyle = function (key) {
-		return this.style[key];
-	};
+	// PolygonNode.prototype.getStyle = function (key) {
+	// 	return this.style[key];
+	// };
+
+	PolygonNode.prototype.updateBBox = RPolyupdateBBox$1;
 
 	function CircleNode (attr, style) {
 		this.attr = attr;
 		this.style = style;
 	}
+
+	CircleNode.prototype = new WebglDom();
+	CircleNode.prototype.constructor = CircleNode;
 
 	CircleNode.prototype.setShader = function (shader) {
 		this.shader = shader;
@@ -8664,6 +8822,10 @@
 
 	CircleNode.prototype.setAttr = function (prop, value) {
 		this.attr[prop] = value;
+		if (value === undefined || value === null) {
+			delete this.attr[prop];
+			return;
+		}
 		if (this.shader && (prop === 'cx' || prop === 'cy')) {
 			this.shader.updateVertex(this.pindex, this.attr.cx, this.attr.cy);
 		}
@@ -8672,19 +8834,55 @@
 			this.shader.updateSize(this.pindex, this.attr.r || 0);
 		}
 	};
-	CircleNode.prototype.setStyle = function (key, value) {
-		this.style[key] = value;
-		if (this.shader && key === 'fill') {
-			this.shader.updateColor(this.pindex, value);
+	// CircleNode.prototype.setStyle = function (key, value) {
+	// 	this.style[key] = value;
+	// 	if (this.shader && key === 'fill') {
+	// 		this.shader.updateColor(this.pindex, value);
+	// 	}
+	// };
+
+	// CircleNode.prototype.getAttr = function (key) {
+	// 	return this.attr[key];
+	// };
+
+	// CircleNode.prototype.getStyle = function (key) {
+	// 	return this.style[key];
+	// };
+
+	CircleNode.prototype.in = function RCinfun (co, eventType) {
+		var ref = this.attr;
+		var r = ref.r; if ( r === void 0 ) r = 0;
+		var cx = ref.cx; if ( cx === void 0 ) cx = 0;
+		var cy = ref.cy; if ( cy === void 0 ) cy = 0;
+		var tr = Math.sqrt(((co.x - cx) * (co.x - cx)) + ((co.y - cy) * (co.y - cy)));
+		return tr <= r;
+	};
+
+	CircleNode.prototype.updateBBox = function RCupdateBBox () {
+		var self = this;
+		var ref = self.attr;
+		var transform = ref.transform;
+		var r = ref.r; if ( r === void 0 ) r = 0;
+		var cx = ref.cx; if ( cx === void 0 ) cx = 0;
+		var cy = ref.cy; if ( cy === void 0 ) cy = 0;
+		var ref$1 = parseTransform$1(transform);
+		var translateX = ref$1.translateX;
+		var translateY = ref$1.translateY;
+		var scaleX = ref$1.scaleX;
+		var scaleY = ref$1.scaleY;
+
+		self.BBox = {
+			x: translateX + ((cx - r) * scaleX),
+			y: translateY + ((cy - r) * scaleY),
+			width: 2 * r * scaleX,
+			height: 2 * r * scaleY
+		};
+
+		if (transform && transform.rotate) {
+			self.BBoxHit = t2DGeometry$4.rotateBBox(this.BBox, transform);
+		} else {
+			self.BBoxHit = this.BBox;
 		}
-	};
-
-	CircleNode.prototype.getAttr = function (key) {
-		return this.attr[key];
-	};
-
-	CircleNode.prototype.getStyle = function (key) {
-		return this.style[key];
 	};
 
 	var webGLImageTextures = {};
@@ -8706,15 +8904,24 @@
 			}, this.vDomIndex);
 		}
 	}
+	ImageNode.prototype = new WebglDom();
+	ImageNode.prototype.constructor = ImageNode;
+
 	ImageNode.prototype.setShader = function (shader) {
 		this.shader = shader;
 		if (this.shader) {
 			this.shader.addVertex(this.attr.x || 0, this.attr.y || 0, this.attr.width || 0, this.attr.height || 0, this.pindex);
+			// this.shader.addOpacity(1, this.pindex);
 		}
 	};
 
 	ImageNode.prototype.setAttr = function (key, value) {
 		this.attr[key] = value;
+
+		if (value === undefined || value === null) {
+			delete this.attr[key];
+			return;
+		}
 
 		if (key === 'src' && (typeof value === 'string')) {
 			if (value && !webGLImageTextures[value]) {
@@ -8734,12 +8941,56 @@
 		}
 	};
 
+	ImageNode.prototype.setStyle = function (key, value) {
+		this.style[key] = value;
+		// if (this.shader && key === 'opacity') {
+		// 	this.shader.updateOpacity(this.pindex, value);
+		// }
+	};
+
 	ImageNode.prototype.getAttr = function (key) {
 		return this.attr[key];
 	};
 
 	ImageNode.prototype.getStyle = function (key) {
 		return this.style[key];
+	};
+
+	ImageNode.prototype.in = function RIinfun (co) {
+		var ref = this.attr;
+		var width = ref.width; if ( width === void 0 ) width = 0;
+		var height = ref.height; if ( height === void 0 ) height = 0;
+		var x = ref.x; if ( x === void 0 ) x = 0;
+		var y = ref.y; if ( y === void 0 ) y = 0;
+		return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
+	};
+
+	ImageNode.prototype.updateBBox = function RIupdateBBox () {
+		var self = this;
+		var ref = self.attr;
+		var transform = ref.transform;
+		var x = ref.x; if ( x === void 0 ) x = 0;
+		var y = ref.y; if ( y === void 0 ) y = 0;
+		var width = ref.width; if ( width === void 0 ) width = 0;
+		var height = ref.height; if ( height === void 0 ) height = 0;
+		var ref$1 = parseTransform$1(transform);
+		var translateX = ref$1.translateX;
+		var translateY = ref$1.translateY;
+		var scaleX = ref$1.scaleX;
+		var scaleY = ref$1.scaleY;
+
+		self.BBox = {
+			x: (translateX + x) * scaleX,
+			y: (translateY + y) * scaleY,
+			width: width * scaleX,
+			height: height * scaleY
+		};
+
+		if (transform && transform.rotate) {
+			self.BBoxHit = t2DGeometry$4.rotateBBox(this.BBox, transform);
+		} else {
+			self.BBoxHit = this.BBox;
+		}
 	};
 
 
@@ -8766,6 +9017,9 @@
 		}
 	}
 
+	WebglGroupNode.prototype = new WebglDom();
+	WebglGroupNode.prototype.constructor = WebglGroupNode;
+
 	WebglGroupNode.prototype.setAttr = function (key, value) {
 		this.attr[key] = value;
 		if (key === 'shaderType') {
@@ -8788,12 +9042,78 @@
 
 	};
 
-	WebglGroupNode.prototype.getAttr = function (key) {
-		return this.attr[key];
+	// WebglGroupNode.prototype.getAttr = function (key) {
+	// 	return this.attr[key];
+	// };
+
+	// WebglGroupNode.prototype.getStyle = function (key) {
+	// 	return this.style[key];
+	// };
+
+	WebglGroupNode.prototype.in = function RGinfun (coOr) {
+		var self = this;
+		var co = {
+			x: coOr.x,
+			y: coOr.y
+		};
+		var ref = this;
+		var BBox = ref.BBox;
+		var ref$1 = self.attr;
+		var transform = ref$1.transform;
+		var ref$2 = parseTransform$1(transform);
+		var translateX = ref$2.translateX;
+		var translateY = ref$2.translateY;
+		var scaleX = ref$2.scaleX;
+		var scaleY = ref$2.scaleY;
+
+		return co.x >= (BBox.x - translateX) / scaleX && co.x <= (BBox.x - translateX + BBox.width) / scaleX && co.y >= (BBox.y - translateY) / scaleY && co.y <= (BBox.y - translateY + BBox.height) / scaleY;
 	};
 
-	WebglGroupNode.prototype.getStyle = function (key) {
-		return this.style[key];
+	WebglGroupNode.prototype.updateBBox = function RGupdateBBox (children) {
+		var self = this;
+		var minX;
+		var maxX;
+		var minY;
+		var maxY;
+		var ref = self.attr;
+		var transform = ref.transform;
+		var ref$1 = parseTransform$1(transform);
+		var translateX = ref$1.translateX;
+		var translateY = ref$1.translateY;
+		var scaleX = ref$1.scaleX;
+		var scaleY = ref$1.scaleY;
+		self.BBox = {};
+
+		if (children && children.length > 0) {
+			var d;
+			var boxX;
+			var boxY;
+
+			for (var i = 0; i < children.length; i += 1) {
+				d = children[i];
+				boxX = d.dom.BBoxHit.x;
+				boxY = d.dom.BBoxHit.y;
+				minX = minX === undefined ? boxX : minX > boxX ? boxX : minX;
+				minY = minY === undefined ? boxY : minY > boxY ? boxY : minY;
+				maxX = maxX === undefined ? boxX + d.dom.BBoxHit.width : maxX < boxX + d.dom.BBoxHit.width ? boxX + d.dom.BBoxHit.width : maxX;
+				maxY = maxY === undefined ? boxY + d.dom.BBoxHit.height : maxY < boxY + d.dom.BBoxHit.height ? boxY + d.dom.BBoxHit.height : maxY;
+			}
+		}
+
+		minX = minX === undefined ? 0 : minX;
+		minY = minY === undefined ? 0 : minY;
+		maxX = maxX === undefined ? 0 : maxX;
+		maxY = maxY === undefined ? 0 : maxY;
+		self.BBox.x = translateX + (minX * scaleX);
+		self.BBox.y = translateY + (minY * scaleY);
+		self.BBox.width = Math.abs(maxX - minX) * scaleX;
+		self.BBox.height = Math.abs(maxY - minY) * scaleY;
+
+		if (self.attr.transform && self.attr.transform.rotate) {
+			self.BBoxHit = t2DGeometry$4.rotateBBox(this.BBox, this.attr.transform);
+		} else {
+			self.BBoxHit = this.BBox;
+		}
 	};
 
 	var defaultColor$1 = colorMap$1.rgba(0, 0, 0, 255);
@@ -8886,7 +9206,11 @@
 
 	function RenderWebglShader (ctx, shader, vDomIndex) {
 		this.ctx = ctx;
-		this.dom = {};
+		this.dom = {
+			BBoxHit: {
+				x: 0, y: 0, height: 0, width: 0
+			}
+		};
 		this.shader = shader;
 		this.vDomIndex = vDomIndex;
 		this.program = getProgram(ctx, shader);
@@ -8919,6 +9243,9 @@
 			this.indexesObj = webGlIndexMapper(ctx, this.program, this.indexes);
 		}
 	}
+
+	RenderWebglShader.prototype = new ShaderNodePrototype();
+	RenderWebglShader.prototype.constructor = RenderWebglShader;
 
 	RenderWebglShader.prototype.useProgram = function () {
 		this.ctx.useProgram(this.program);
@@ -8964,6 +9291,10 @@
 		this.ctx.drawElements(this.ctx[this.geometry.drawType], this.indexesObj.count, this.indexesObj.type ? this.indexesObj.type : this.ctx.UNSIGNED_SHORT, this.indexesObj.offset);
 	};
 
+	RenderWebglShader.prototype.updateBBox = function (argument) {
+		return true;
+	};
+
 	RenderWebglShader.prototype.execute = function () {
 		this.ctx.useProgram(this.program);
 		this.applyUniforms();
@@ -9006,6 +9337,7 @@
 	};
 	RenderWebglShader.prototype.applyAttributeData = function (key, value) {
 		this.attributes[key].value = value;
+		this.attrObjs[key].value = value;
 		var d = this.attrObjs[key];
 		this.ctx.bindBuffer(d.bufferType, d.buffer);
 		this.ctx.bufferData(d.bufferType, this.attributes[d.attr].value, d.drawType);
@@ -9026,7 +9358,7 @@
 		queueInstance$5.vDomChanged(this.vDomIndex);
 	};
 
-	function ShaderNodePrototype () { }
+	function ShaderNodePrototype () {}
 	ShaderNodePrototype.prototype.translate = function (trans) {
 		this.attr.transform['translate'] = trans;
 	};
@@ -9220,7 +9552,7 @@
 			});
 			this.filterSizeFlag = false;
 		}
-		this.shaderInstance.setUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1]));
+		this.shaderInstance.setUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio]));
 		this.shaderInstance.setUniformData('u_scale', new Float32Array([this.attr.transform.scale[0], this.attr.transform.scale[1]]));
 		this.shaderInstance.setUniformData('u_translate', new Float32Array([this.attr.transform.translate[0], this.attr.transform.translate[1]]));
 		this.shaderInstance.setAttributeData('a_color', this.typedColorArray);
@@ -9402,7 +9734,7 @@
 		this.shaderInstance.setAttributeData('a_color', this.typedColorArray);
 		this.shaderInstance.setAttributeData('a_position', this.typedPositionArray);
 		this.geometry.setDrawRange(0, this.typedPositionArray.length / 2);
-		this.shaderInstance.setUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1]));
+		this.shaderInstance.setUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio]));
 		this.shaderInstance.setUniformData('u_scale', new Float32Array([this.attr.transform.scale[0], this.attr.transform.scale[1]]));
 		this.shaderInstance.setUniformData('u_translate', new Float32Array([this.attr.transform.translate[0], this.attr.transform.translate[1]]));
 		this.shaderInstance.execute();
@@ -9439,6 +9771,7 @@
 			value: new Float32Array(this.positionArray),
 			size: 2
 		});
+		
 		this.geometry.setDrawRange(0, this.positionArray.length / 2);
 
 		this.shaderInstance = new RenderWebglShader(ctx, {
@@ -9481,6 +9814,9 @@
 		positionArray[len + 1] = undefined;
 		positionArray[len + 2] = undefined;
 		positionArray[len + 3] = undefined;
+
+		colorArray[ti] = undefined;
+		colorArray[ti + 1] = undefined;
 
 		this.filterPositionFlag = true;
 		this.filterColorFlag = true;
@@ -9571,7 +9907,7 @@
 		this.shaderInstance.setAttributeData('a_color', this.typedColorArray);
 		this.shaderInstance.setAttributeData('a_position', this.typedPositionArray);
 		this.geometry.setDrawRange(0, this.typedPositionArray.length / 2);
-		this.shaderInstance.setUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1]));
+		this.shaderInstance.setUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio]));
 		this.shaderInstance.setUniformData('u_scale', new Float32Array([this.attr.transform.scale[0], this.attr.transform.scale[1]]));
 		this.shaderInstance.setUniformData('u_translate', new Float32Array([this.attr.transform.translate[0], this.attr.transform.translate[1]]));
 		this.shaderInstance.execute();
@@ -9693,7 +10029,7 @@
 			this.filterColorFlag = false;
 		}
 
-		this.shaderInstance.setUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1]));
+		this.shaderInstance.setUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio]));
 		this.shaderInstance.setUniformData('u_scale', new Float32Array([this.attr.transform.scale[0], this.attr.transform.scale[1]]));
 		this.shaderInstance.setUniformData('u_translate', new Float32Array([this.attr.transform.translate[0], this.attr.transform.translate[1]]));
 
@@ -9822,7 +10158,7 @@
 		}
 
 		this.shaderInstance.useProgram();
-		this.shaderInstance.applyUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1]));
+		this.shaderInstance.applyUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio]));
 		this.shaderInstance.applyUniformData('u_scale', new Float32Array([this.attr.transform.scale[0], this.attr.transform.scale[1]]));
 		this.shaderInstance.applyUniformData('u_translate', new Float32Array([this.attr.transform.translate[0], this.attr.transform.translate[1]]));
 
@@ -9868,6 +10204,7 @@
 			value: new Float32Array(this.positionArray),
 			size: 2
 		});
+		
 		this.geometry.setDrawRange(0, 0);
 
 		this.shaderInstance = new RenderWebglShader(ctx, {
@@ -10022,7 +10359,7 @@
 			this.filterSizeFlag = false;
 		}
 
-		this.shaderInstance.setUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1]));
+		this.shaderInstance.setUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio]));
 		this.shaderInstance.setUniformData('u_scale', new Float32Array([this.attr.transform.scale[0], this.attr.transform.scale[1]]));
 		this.shaderInstance.setUniformData('u_translate', new Float32Array([this.attr.transform.translate[0], this.attr.transform.translate[1]]));
 		this.shaderInstance.setAttributeData('a_radius', this.typedSizeArray);
@@ -10078,6 +10415,9 @@
 				},
 				u_image: {
 					value: new TextureObject(this.ctx, {}, this.vDomIndex)
+				},
+				u_opacity: {
+					value: (1.0).toFixed(2)
 				}
 			},
 			geometry: this.geometry
@@ -10123,6 +10463,16 @@
 		this.vertexUpdate = true;
 	};
 
+	// RenderWebglImages.prototype.addOpacity = function (value, index) {
+	// 	this.opacityArray[index] = value;
+	// 	this.opacityUpdate = true;
+	// };
+
+	// RenderWebglImages.prototype.updateOpacity = function (index, value) {
+	// 	let opacityArray = this.opacityUpdate ? this.opacityArray : this.typedOpacityArray;
+	// 	opacityArray[index] = value;
+	// };
+
 	RenderWebglImages.prototype.execute = function (stack) {
 		if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
 			this.renderTarget.update();
@@ -10138,7 +10488,7 @@
 			this.attr.transform.translate = [0.0, 0.0];
 		}
 
-		this.shaderInstance.applyUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio$1, this.ctx.canvas.height / ratio$1]));
+		this.shaderInstance.applyUniformData('u_resolution', new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio]));
 		this.shaderInstance.applyUniformData('u_scale', this.attr.transform.scale);
 		this.shaderInstance.applyUniformData('u_translate', this.attr.transform.translate);
 		this.shaderInstance.applyAttributeData('a_texCoord', this.textCoor);
@@ -10163,6 +10513,7 @@
 				this.shaderInstance.applyUniformData('u_image', node.attr.src);
 			}
 			this.shaderInstance.applyAttributeData('a_position', this.positionArray[i]);
+			this.shaderInstance.applyUniformData('u_opacity', node.style.opacity || this.style.opacity || 1.0);
 			this.shaderInstance.draw();
 		}
 
@@ -10224,6 +10575,8 @@
 		this.el = config.el;
 		this.shaderType = config.shaderType;
 		this.exeCtx = config.ctx;
+		this.bbox = config['bbox'] !== undefined ? config['bbox'] : true;
+		this.events = {};
 
 		switch (config.el) {
 			case 'point':
@@ -10282,7 +10635,7 @@
 
 	WebglNodeExe.prototype.setAttr = function WsetAttr (attr, value) {
 		if (arguments.length === 2) {
-			if (!value) {
+			if (value === undefined || value === null) {
 				delete this.attr[attr];
 			} else {
 				this.attr[attr] = value;
@@ -10290,11 +10643,15 @@
 			}
 		} else if (arguments.length === 1 && typeof attr === 'object') {
 			for (var key in attr) {
-				this.attr[key] = attr[key];
-				this.dom.setAttr(key, attr[key]);
+				if (attr[key] === undefined || attr[key] === null) {
+					delete this.attr[key];
+				} else {
+					this.attr[key] = attr[key];
+					this.dom.setAttr(key, attr[key]);
+				}
 			}
 		}
-
+		this.BBoxUpdate = true;
 		queueInstance$5.vDomChanged(this.vDomIndex);
 		return this;
 	};
@@ -10324,6 +10681,56 @@
 
 	WebglNodeExe.prototype.setReIndex = function () {
 		this.reindex = true;
+	};
+
+	WebglNodeExe.prototype.updateBBox = function CupdateBBox () {
+		var status;
+
+		for (var i = 0, len = this.children.length; i < len; i += 1) {
+			if (this.bbox) {
+				status = this.children[i].updateBBox() || status;
+			}
+		}
+
+		if (this.bbox) {
+			if (this.BBoxUpdate || status) {
+				this.dom.updateBBox(this.children);
+				this.BBoxUpdate = false;
+				return true;
+			}
+		}
+
+		return false;
+	};
+
+	WebglNodeExe.prototype.in = function Cinfun (co) {
+		return this.dom.in(co);
+	};
+
+	WebglNodeExe.prototype.on = function Con (eventType, hndlr) {
+		var self = this;
+		// this.dom.on(eventType, hndlr);
+		if (!this.events) {
+			this.events = {};
+		}
+
+		if (!hndlr && this.events[eventType]) {
+			delete this.events[eventType];
+		} else if (hndlr) {
+			if (typeof hndlr === 'function') {
+				var hnd = hndlr.bind(self);
+				this.events[eventType] = function (event) {
+					hnd(event);
+				};
+			} else if (typeof hndlr === 'object') {
+				this.events[eventType] = hndlr;
+				if (hndlr.constructor === zoomInstance$1.constructor || hndlr.constructor === dragInstance$1.constructor) {
+					hndlr.bindMethods(this);
+				}
+			}
+		}
+		
+		return this;
 	};
 
 	WebglNodeExe.prototype.execute = function Cexecute () {
@@ -10420,7 +10827,7 @@
 			var removedNode = this.children.splice(index, 1)[0];
 			this.dom.removeChild(removedNode.dom);
 		}
-
+		this.BBoxUpdate = true;
 		queueInstance$5.vDomChanged(this.vDomIndex);
 	};
 
@@ -10432,6 +10839,7 @@
 		var height = res ? res.clientHeight : 0;
 		var width = res ? res.clientWidth : 0;
 		var clearColor = colorMap$1.rgba(0, 0, 0, 0);
+		var enableEvents = layerSettings.enableEvents; if ( enableEvents === void 0 ) enableEvents = true;
 		var autoUpdate = layerSettings.autoUpdate; if ( autoUpdate === void 0 ) autoUpdate = true;
 		var enableResize = layerSettings.enableResize; if ( enableResize === void 0 ) enableResize = true;
 
@@ -10444,12 +10852,12 @@
 		var layer = document.createElement('canvas');
 		var ctx = layer.getContext('webgl', contextConfig);
 
-		ratio$1 = getPixlRatio$1(ctx);
+		ratio = getPixlRatio$1(ctx);
 		// ctx.enable(ctx.BLEND);
 		// ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
 		// ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
-		layer.setAttribute('height', height * ratio$1);
-		layer.setAttribute('width', width * ratio$1);
+		layer.setAttribute('height', height * ratio);
+		layer.setAttribute('width', width * ratio);
 		layer.style.height = height + "px";
 		layer.style.width = width + "px";
 		layer.style.position = 'absolute';
@@ -10488,7 +10896,7 @@
 		root.height = height;
 		root.width = width;
 		root.type = 'WEBGL';
-		root.pixelRatio = ratio$1;
+		root.pixelRatio = ratio;
 
 		var onClear = function (ctx) {
 			ctx.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -10497,6 +10905,7 @@
 
 		root.execute = function () {
 			onClear(this.ctx);
+			this.updateBBox();
 			execute();
 		};
 
@@ -10541,8 +10950,8 @@
 			}
 			height =  res.clientHeight;
 			width =  res.clientWidth;
-			layer.setAttribute('height', height * ratio$1);
-			layer.setAttribute('width', width * ratio$1);
+			layer.setAttribute('height', height * ratio);
+			layer.setAttribute('width', width * ratio);
 			layer.style.height = height + "px";
 			layer.style.width = width + "px";
 			root.width = width;
@@ -10570,8 +10979,8 @@
 		};
 
 		root.setSize = function (width_, height_) {
-			this.domEl.setAttribute('height', height_ * ratio$1);
-			this.domEl.setAttribute('width', width_ * ratio$1);
+			this.domEl.setAttribute('height', height_ * ratio);
+			this.domEl.setAttribute('width', width_ * ratio);
 			this.domEl.style.height = height_ + "px";
 			this.domEl.style.width = width_ + "px";
 			this.width = width_;
@@ -10623,6 +11032,70 @@
 		root.RenderTarget = function (config) {
 			return new RenderTarget(this.ctx, config, this.vDomIndex);
 		};
+
+		if (enableEvents) {
+			var eventsInstance = new Events(root);
+			layer.addEventListener('mousemove', function (e) {
+				e.preventDefault();
+				eventsInstance.mousemoveCheck(e);
+			});
+			layer.addEventListener('click', function (e) {
+				e.preventDefault();
+				eventsInstance.clickCheck(e);
+			});
+			layer.addEventListener('dblclick', function (e) {
+				e.preventDefault();
+				eventsInstance.dblclickCheck(e);
+			});
+			layer.addEventListener('mousedown', function (e) {
+				e.preventDefault();
+				eventsInstance.mousedownCheck(e);
+			});
+			layer.addEventListener('mouseup', function (e) {
+				e.preventDefault();
+				eventsInstance.mouseupCheck(e);
+			});
+			layer.addEventListener('mouseleave', function (e) {
+				e.preventDefault();
+				eventsInstance.mouseleaveCheck(e);
+			});
+			layer.addEventListener('contextmenu', function (e) {
+				e.preventDefault();
+				eventsInstance.contextmenuCheck(e);
+			});
+			layer.addEventListener('touchstart', function (e) {
+				e.preventDefault();
+				eventsInstance.touchstartCheck(e);
+			});
+			layer.addEventListener('touchend', function (e) {
+				e.preventDefault();
+				eventsInstance.touchendCheck(e);
+			});
+			layer.addEventListener('touchmove', function (e) {
+				e.preventDefault();
+				eventsInstance.touchmoveCheck(e);
+			});
+			layer.addEventListener('touchcancel', function (e) {
+				e.preventDefault();
+				eventsInstance.touchcancelCheck(e);
+			});
+			layer.addEventListener('wheel', function (e) {
+				e.preventDefault();
+				eventsInstance.wheelEventCheck(e);
+			});
+			layer.addEventListener('pointerdown', function (e) {
+				e.preventDefault();
+				eventsInstance.pointerdownCheck(e);
+			});
+			layer.addEventListener('pointerup', function (e) {
+				e.preventDefault();
+				eventsInstance.pointerupCheck(e);
+			});
+			layer.addEventListener('pointermove', function (e) {
+				e.preventDefault();
+				eventsInstance.pointermoveCheck(e);
+			});
+		}
 
 		queueInstance$5.execute();
 
