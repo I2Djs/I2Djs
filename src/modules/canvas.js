@@ -316,11 +316,11 @@ function RenderImage (ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
 	self.attr = props;
 	self.style = stylesProps;
 	self.nodeName = 'Image';
-	self.image = new Image(); // self.image.crossOrigin="anonymous"
+	self.image = new Image();
+	self.image.crossOrigin = 'anonymous';
 	// self.image.setAttribute('crossOrigin', '*')
 
 	self.image.onload = function onload () {
-		this.crossOrigin = 'anonymous';
 		self.attr.height = self.attr.height ? self.attr.height : this.height;
 		self.attr.width = self.attr.width ? self.attr.width : this.width;
 

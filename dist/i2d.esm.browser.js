@@ -1,6 +1,6 @@
 /*!
       * i2djs v2.0.4
-      * (c) 2019 Narayana Swamy (narayanaswamy14@gmail.com)
+      * (c) 2020 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
 /* eslint-disable no-undef */
@@ -5051,11 +5051,11 @@ function RenderImage (ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
 	self.attr = props;
 	self.style = stylesProps;
 	self.nodeName = 'Image';
-	self.image = new Image(); // self.image.crossOrigin="anonymous"
+	self.image = new Image(); 
+	self.image.crossOrigin="anonymous";
 	// self.image.setAttribute('crossOrigin', '*')
 
 	self.image.onload = function onload () {
-		this.crossOrigin = 'anonymous';
 		self.attr.height = self.attr.height ? self.attr.height : this.height;
 		self.attr.width = self.attr.width ? self.attr.width : this.width;
 
