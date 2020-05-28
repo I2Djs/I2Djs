@@ -25,7 +25,7 @@ var path = d3.geoPath()               // path generator that will convert GeoJSO
 var renderer = i2d.svgLayer('#myCanvas', {}, {});
 var zoomInstance = i2d.behaviour.zoom();
 
-var worldmap = d3.json("./../data/world.geo.json");
+var worldmap = d3.json("https://nswamy14.github.io/geoJson/world.geo.json");
 
 var g = renderer.createEl({
 	el: 'g'
