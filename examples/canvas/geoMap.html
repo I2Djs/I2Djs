@@ -23,8 +23,8 @@ var projection = d3.geoMercator()
 var path = d3.geoPath()
 		  	 .projection(projection);
 
-var worldmap = d3.json("./../data/world.geo.json");
-var latlngmap = d3.json("./../data/geoLatLong.json");
+var worldmap = d3.json("https://nswamy14.github.io/geoJson/world.geo.json");
+var latlngmap = d3.json("https://nswamy14.github.io/geoJson/geoLatLong.json");
 
 var pg = renderer.createEl({
 	el: 'group'

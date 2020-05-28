@@ -213,6 +213,36 @@ PointNode.prototype.setAttr = function (prop, value) {
 		this.shader.updateSize(this.pindex, this.attr.size || 0);
 	}
 };
+
+PointNode.prototype.updateBBox = function RRupdateBBox () {
+	const self = this;
+	const {
+		transform,
+		x = 0,
+		y = 0,
+		size = 0
+	} = self.attr;
+	let {
+		translateX,
+		translateY,
+		scaleX,
+		scaleY
+	} = parseTransform(transform);
+
+	self.BBox = {
+		x: translateX + (x * scaleX),
+		y: translateY + (y * scaleY),
+		width: size * scaleX,
+		height: size * scaleY
+	};
+
+	if (transform && transform.rotate) {
+		self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+	} else {
+		self.BBoxHit = this.BBox;
+	}
+};
+
 // PointNode.prototype.setStyle = function (key, value) {
 // 	this.style[key] = value;
 // 	if (this.shader && key === 'fill') {
@@ -756,6 +786,9 @@ WebglGroupNode.prototype.updateBBox = function RGupdateBBox (children) {
 
 		for (let i = 0; i < children.length; i += 1) {
 			d = children[i];
+			if (!d) {
+				continue;
+			}
 			boxX = d.dom.BBoxHit.x;
 			boxY = d.dom.BBoxHit.y;
 			minX = minX === undefined ? boxX : minX > boxX ? boxX : minX;
@@ -2356,7 +2389,7 @@ WebglNodeExe.prototype.updateBBox = function CupdateBBox () {
 	let status;
 
 	for (let i = 0, len = this.children.length; i < len; i += 1) {
-		if (this.bbox) {
+		if (this.bbox && this.children[i]) {
 			status = this.children[i].updateBBox() || status;
 		}
 	}

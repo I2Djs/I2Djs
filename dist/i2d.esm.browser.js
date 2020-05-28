@@ -5577,16 +5577,34 @@ function cRender (attr) {
 		const {
 			transform
 		} = attr;
-		const hozScale = transform.scale && transform.scale.length > 0 ? transform.scale[0] : 1;
-		const verScale = transform.scale && transform.scale.length > 1 ? transform.scale[1] : hozScale || 1;
-		const hozSkew = transform.skewX ? transform.skewX[0] : 0;
-		const verSkew = transform.skewY ? transform.skewY[0] : 0;
-		const hozMove = transform.translate && transform.translate.length > 0 ? transform.translate[0] : 0;
-		const verMove = transform.translate && transform.translate.length > 1 ? transform.translate[1] : hozMove || 0;
+		const {
+			scale = [1, 1],
+			skew = [0, 0],
+			translate = [0, 0]
+		} = transform;
+		const [
+			hozScale = 1,
+			verScale = hozScale
+		] = scale;
+		const [
+			hozSkew = 0,
+			verSkew = hozSkew
+		] = skew;
+		const [
+			hozMove = 0,
+			verMove = hozMove
+		] = translate;
+
+		// const hozScale = scale && scale.length > 0 ? scale[0] : 1;
+		// const verScale = scale && scale.length > 1 ? scale[1] : hozScale || 1;
+		// const hozSkew = transform.skew && transform.skew.length > 0 ? transform.skew[0] : 0;
+		// const verSkew = transform.skew && transform.skew.length > 1 ? transform.skew[1] : 0;
+		// const hozMove = transform.translate && transform.translate.length > 0 ? transform.translate[0] : 0;
+		// const verMove = transform.translate && transform.translate.length > 1 ? transform.translate[1] : 0;
 
 		self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove);
 
-		if (transform.rotate) {
+		if (transform.rotate && transform.rotate.length > 0) {
 			self.ctx.translate(transform.rotate[1] || 0, transform.rotate[2] || 0);
 			self.ctx.rotate(transform.rotate[0] * (Math.PI / 180));
 			self.ctx.translate(-transform.rotate[1] || 0, -transform.rotate[2] || 0);
@@ -6488,7 +6506,7 @@ RenderPath.prototype.in = function RPinfun (co) {
 
 	this.ctx.save();
 	this.ctx.scale(1 / this.ctx.pixelRatio, 1 / this.ctx.pixelRatio);
-	flag = this.style.fillStyle ? this.ctx.isPointInPath(this.pathNode, co.x, co.y) : flag;
+	flag = (this.style.fillStyle || this.style.strokeStyle) ? this.ctx.isPointInPath(this.pathNode, co.x, co.y) : flag;
 	this.ctx.restore();
 	return flag;
 };
@@ -7128,8 +7146,11 @@ CanvasNodeExe.prototype.skewX = function CskewX (x) {
 	if (!this.attr.transform) {
 		this.attr.transform = {};
 	}
+	if (!this.attr.transform.skew) {
+		this.attr.transform.skew = [];
+	}
 
-	this.attr.transform.skewX = [x];
+	this.attr.transform.skew[0] = x;
 	this.dom.setAttr('transform', this.attr.transform);
 	this.BBoxUpdate = true;
 	queueInstance$4.vDomChanged(this.vDomIndex);
@@ -7140,8 +7161,11 @@ CanvasNodeExe.prototype.skewY = function CskewY (y) {
 	if (!this.attr.transform) {
 		this.attr.transform = {};
 	}
+	if (!this.attr.transform.skew) {
+		this.attr.transform.skew = [];
+	}
 
-	this.attr.transform.skewY = [y];
+	this.attr.transform.skew[1] = y;
 	this.dom.setAttr('transform', this.attr.transform);
 	this.BBoxUpdate = true;
 	queueInstance$4.vDomChanged(this.vDomIndex);
@@ -8721,6 +8745,36 @@ PointNode.prototype.setAttr = function (prop, value) {
 		this.shader.updateSize(this.pindex, this.attr.size || 0);
 	}
 };
+
+PointNode.prototype.updateBBox = function RRupdateBBox () {
+	const self = this;
+	const {
+		transform,
+		x = 0,
+		y = 0,
+		size = 0
+	} = self.attr;
+	let {
+		translateX,
+		translateY,
+		scaleX,
+		scaleY
+	} = parseTransform$1(transform);
+
+	self.BBox = {
+		x: translateX + (x * scaleX),
+		y: translateY + (y * scaleY),
+		width: size * scaleX,
+		height: size * scaleY
+	};
+
+	if (transform && transform.rotate) {
+		self.BBoxHit = t2DGeometry$4.rotateBBox(this.BBox, transform);
+	} else {
+		self.BBoxHit = this.BBox;
+	}
+};
+
 // PointNode.prototype.setStyle = function (key, value) {
 // 	this.style[key] = value;
 // 	if (this.shader && key === 'fill') {
@@ -9263,6 +9317,9 @@ WebglGroupNode.prototype.updateBBox = function RGupdateBBox (children) {
 
 		for (let i = 0; i < children.length; i += 1) {
 			d = children[i];
+			if (!d) {
+				continue;
+			}
 			boxX = d.dom.BBoxHit.x;
 			boxY = d.dom.BBoxHit.y;
 			minX = minX === undefined ? boxX : minX > boxX ? boxX : minX;
@@ -10859,7 +10916,7 @@ WebglNodeExe.prototype.updateBBox = function CupdateBBox () {
 	let status;
 
 	for (let i = 0, len = this.children.length; i < len; i += 1) {
-		if (this.bbox) {
+		if (this.bbox && this.children[i]) {
 			status = this.children[i].updateBBox() || status;
 		}
 	}
@@ -11009,7 +11066,7 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 	let height = res ? res.clientHeight : 0;
 	let width = res ? res.clientWidth : 0;
 	let clearColor = colorMap$1.rgba(0, 0, 0, 0);
-	let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
+	let { enableEvents = false, autoUpdate = true, enableResize = true } = layerSettings;
 
 	contextConfig = contextConfig || {
 		premultipliedAlpha: false,

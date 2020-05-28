@@ -60,7 +60,8 @@ function animate (chain_, path, position) {
 				scale: [1, 1],
 				translate: [position.x, position.y]
 			}
-		}
+		},
+		bbox: false
 	}).createEls(pointsData, {
 		el: 'point',
 		attr: {

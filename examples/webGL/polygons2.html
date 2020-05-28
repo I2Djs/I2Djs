@@ -30,7 +30,8 @@ var polygonsRef = webglRenderer.createEl({
 	el: 'group',
 	attr: {
 		shaderType: 'polygon'
-	}
+	},
+	bbox: false
 });
 polygonsRef.createEls(polygonsData, {
 	el: 'polygon',
