@@ -10624,7 +10624,7 @@ function RenderWebglImages (ctx, attr, style, renderTarget, vDomIndex) {
 		size: 2
 	});
 	this.geometry.setAttr('a_position', {
-		value: new Float32Array([]),
+		value: new Float32Array([0, 0]),
 		size: 2
 	});
 	this.geometry.setDrawRange(0, 6);
@@ -11453,9 +11453,9 @@ RenderTarget.prototype.clear = function () {
 };
 
 function WebGLGeometry () {
-	this.attributes = {};
-	this.indexes = null;
-	this.drawRange = [0, 0];
+	// this.attributes = {};
+	// this.indexes = null;
+	// this.drawRange = [0, 0];
 }
 WebGLGeometry.prototype.setAttr = function (attr, value) {
 	if (!value && this.attributes[attr]) {
@@ -11475,19 +11475,28 @@ WebGLGeometry.prototype.setIndex = function (obj) {
 };
 
 function MeshGeometry (ctx) {
+	this.attributes = {};
 	this.drawType = 'TRIANGLES';
+	this.indexes = null;
+	this.drawRange = [0, 0];
 }MeshGeometry.prototype = new WebGLGeometry();
 MeshGeometry.constructor = MeshGeometry;
 
 function PointsGeometry (ctx) {
+	this.attributes = {};
 	this.drawType = 'POINTS';
+	this.indexes = null;
+	this.drawRange = [0, 0];
 }
 
 PointsGeometry.prototype = new WebGLGeometry();
 PointsGeometry.constructor = PointsGeometry;
 
 function LineGeometry (ctx) {
+	this.attributes = {};
 	this.drawType = 'LINES';
+	this.indexes = null;
+	this.drawRange = [0, 0];
 }
 LineGeometry.prototype = new WebGLGeometry();
 LineGeometry.constructor = LineGeometry;
