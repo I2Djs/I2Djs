@@ -120,7 +120,7 @@ function shaders (el) {
 		case 'image':
 			res = {
 				vertexShader: `
-                    precision highp float;
+                    precision lowp float;
                     attribute vec2 a_position;
                     attribute vec2 a_texCoord;
                     uniform vec2 u_resolution;
@@ -135,7 +135,7 @@ function shaders (el) {
                     }
           `,
 				fragmentShader: `
-                    precision mediump float;
+                    precision lowp float;
                     uniform sampler2D u_image;
                     uniform float u_opacity;
                     varying vec2 v_texCoord;
