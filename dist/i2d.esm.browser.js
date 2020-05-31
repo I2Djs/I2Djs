@@ -4789,37 +4789,73 @@ Events.prototype.pointerdownCheck = function (e) {
 		y: e.offsetY
 	}, e, 'pointerdown');
 	if (node) {
-		this.pointerNode = node;
-		if (node.events.zoom && node.events.zoom.panFlag) {
-			node.events.zoom.panExecute(node, e, 'pointerdown');
+		if (!this.pointerNode || (this.pointerNode.node !== node)) {
+			this.pointerNode = {
+				node: node,
+				clickCounter: 1,
+				dragCounter: 0
+			};
+		} else {
+			this.pointerNode.clickCounter += 1;
 		}
-		if (node && node.events.drag) {
+		
+		if (node.events.zoom) {
+			node.events.zoom.pointerAdd(e);
+			if (node.events.zoom.panFlag) {
+				node.events.zoom.panExecute(node, e, 'pointerdown');
+			}
+		}
+		if (node.events.drag) {
 			node.events.drag.execute(node, e, 'pointerdown');
 		}
 	}
 };
 
 Events.prototype.pointermoveCheck = function (e) {
-	let node = this.pointerNode;
-	if (node && node.events.zoom && node.events.zoom.panFlag) {
-		node.events.zoom.panExecute(node, e, 'pointermove');
+	let node = this.pointerNode.node;
+	this.pointerNode.dragCounter += 1;
+	if (node && node.events.zoom) {
+		if (node.events.zoom.panFlag) {
+			node.events.zoom.panExecute(node, e, 'pointermove');
+		}
+		node.events.zoom.zoomPinch(node, e);
 	}
 	if (node && node.events.drag) {
 		node.events.drag.execute(node, e, 'pointermove');
 	}
 };
 
+let clickInterval;
 Events.prototype.pointerupCheck = function (e) {
-	let node = this.pointerNode;
-
+	let self = this;
+	let node = this.pointerNode.node;
 	if (node) {
 		if (node.events.drag) {
 			node.events.drag.execute(node, e, 'pointerup');
 		}
-		if (node.events.zoom && node.events.zoom.panFlag) {
-			node.events.zoom.panExecute(node, e, 'pointerup');
+		if (node.events.zoom) {
+			if (node.events.zoom.panFlag) {
+				node.events.zoom.panExecute(node, e, 'pointerup');
+			}
+			node.events.zoom.pointerRemove(e);
 		}
-		this.pointerNode = null;
+		if (this.pointerNode.dragCounter === 0) {
+			if (this.pointerNode.clickCounter === 1 && node.events['click']) {
+				clickInterval = setTimeout(function () {
+					self.pointerNode = null;
+					node.events['click'].call(node, e);
+					clickInterval = null;
+				}, 500);
+			} else if (this.pointerNode.clickCounter === 2 && node.events['dbclick']) {
+				if (clickInterval) {
+					clearTimeout(clickInterval);
+				}
+				node.events['dbclick'].call(node, e);
+				self.pointerNode = null;
+			} else {
+				this.pointerNode = null;
+			}
+		}
 	} else {
 		propogateEvent([this.vDom], {
 			x: e.offsetX,
@@ -4904,31 +4940,31 @@ Events.prototype.touchmoveCheck = function (e) {
 		return;
 	}
 
-	let node = propogateEvent([this.vDom], {
+	propogateEvent([this.vDom], {
 		x: touches[0].clientX,
 		y: touches[0].clientY
-	}, e, 'mousemove');
+	}, e, 'touchmove');
 
-	if (node && (node.events['mouseover'] || node.events['mousein'])) {
-		if (this.selectedNode !== node) {
-			if (node.events['mouseover']) {
-				node.events['mouseover'].call(node, e);
-			}
-			if (node.events['mousein']) {
-				node.events['mousein'].call(node, e);
-			}
-		}
-	}
+	// if (node && (node.events['mouseover'] || node.events['mousein'])) {
+	// 	if (this.selectedNode !== node) {
+	// 		if (node.events['mouseover']) {
+	// 			node.events['mouseover'].call(node, e);
+	// 		}
+	// 		if (node.events['mousein']) {
+	// 			node.events['mousein'].call(node, e);
+	// 		}
+	// 	}
+	// }
 
-	if (this.selectedNode && this.selectedNode !== node) {
-		if (this.selectedNode.events['mouseout']) {
-			this.selectedNode.events['mouseout'].call(this.selectedNode, e);
-		}
-		if (this.selectedNode.events['mouseleave']) {
-			this.selectedNode.events['mouseleave'].call(this.selectedNode, e);
-		}
-	}
-	this.selectedNode = node;
+	// if (this.selectedNode && this.selectedNode !== node) {
+	// 	if (this.selectedNode.events['mouseout']) {
+	// 		this.selectedNode.events['mouseout'].call(this.selectedNode, e);
+	// 	}
+	// 	if (this.selectedNode.events['mouseleave']) {
+	// 		this.selectedNode.events['mouseleave'].call(this.selectedNode, e);
+	// 	}
+	// }
+	// this.selectedNode = node;
 };
 
 Events.prototype.touchcancelCheck = function (e) {
@@ -4973,6 +5009,7 @@ Events.prototype.wheelEventCheck = function (e) {
 			}
 		}, 100);
 	}
+	e.preventDefault();
 };
 
 function propogateEvent (nodes, mouseCoor, rawEvent, eventType) {
@@ -5216,6 +5253,8 @@ function computeTransform (transformObj, oScale, nScale, point) {
 	transformObj.translate[0] *= nScale;
 	transformObj.translate[1] *= nScale;
 
+	// console.log(transformObj.translate[0], transformObj.translate[1]);
+
 	return transformObj;
 }
 
@@ -5228,6 +5267,7 @@ let ZoomClass = function () {
 		dx: 0,
 		dy: 0
 	};
+	this.event.pointers = [];
 	this.event.transform = {
 		translate: [0, 0],
 		scale: [1, 1]
@@ -5319,6 +5359,79 @@ ZoomClass.prototype.zoomEnd = function (fun) {
 		};
 	}
 	return this;
+};
+
+ZoomClass.prototype.pointerAdd = function (e) {
+	this.event.pointers.push(e);
+	if (this.event.pointers.length === 2) {
+		let pointers = this.event.pointers;
+		this.event.zoomTouchPoint = {
+			x: pointers[0].offsetX + ((pointers[1].offsetX - pointers[0].offsetX) * 0.5),
+			y: pointers[0].offsetY + ((pointers[1].offsetY - pointers[0].offsetY) * 0.5)
+		};
+	} else if (this.event.pointers.length === 1) {
+		this.event.zoomTouchPoint = {
+			x: this.event.pointers[0].offsetX,
+			y: this.event.pointers[0].offsetY
+		};
+		this.event.x = this.event.pointers[0].offsetX;
+		this.event.y = this.event.pointers[0].offsetY;
+	}
+};
+
+ZoomClass.prototype.pointerRemove = function (e) {
+	let self = this;
+	let pointers = this.event.pointers;
+	let index = -1;
+	for (var i = 0; i < pointers.length; i++) {
+		if (e.pointerId === pointers[i].pointerId) {
+		    index = i;
+			break;
+		}
+	}
+	if (index !== -1) {
+		// setTimeout(function (argument) {
+		self.event.pointers = [];
+		self.event.distance = 0;
+		self.event.zoomTouchPoint = {};
+		// }, 100);
+	}
+};
+
+ZoomClass.prototype.zoomTransition = function () {
+
+};
+
+ZoomClass.prototype.zoomExecute = function (trgt, event) {
+	this.eventType = 'zoom';
+	if (!this.zoomStartFlag) {
+		this.onZoomStart(trgt, event);
+	} else if (this.onZoom) {
+		this.onZoom(trgt, event);
+	}
+	// event.preventDefault();
+};
+
+ZoomClass.prototype.zoomPinch = function (trgt, event) {
+	let pointers = this.event.pointers;
+	let distance_ = this.event.distance;
+	if (pointers.length === 2) {
+		for (var i = 0; i < pointers.length; i++) {
+			if (event.pointerId === pointers[i].pointerId) {
+			    pointers[i] = event;
+				break;
+			}
+		}
+		let distance = geometry.getDistance({ x: pointers[0].offsetX, y: pointers[0].offsetY }, { x: pointers[1].offsetX, y: pointers[1].offsetY });
+		let zoomTouchPoint = this.event.zoomTouchPoint;
+		let pinchEvent = {
+			offsetX: zoomTouchPoint.x, // + ((pointers[1].clientX - pointers[0].clientX) * 0.5),
+			offsetY: zoomTouchPoint.y, // + ((pointers[1].clientY - pointers[0].clientY) * 0.5),
+			deltaY: !distance_ ? 0 : distance_ - distance
+		};
+		this.event.distance = distance;
+		this.zoomExecute(trgt, pinchEvent);
+	}
 };
 
 ZoomClass.prototype.scaleBy = function scaleBy (trgt, k, point) {
@@ -5480,24 +5593,14 @@ ZoomClass.prototype.panExtent = function (range) {
 	return this;
 };
 
-ZoomClass.prototype.zoomTransition = function () {
-
-};
-
-ZoomClass.prototype.zoomExecute = function (trgt, event) {
-	this.eventType = 'zoom';
-	if (!this.zoomStartFlag) {
-		this.onZoomStart(trgt, event);
-	} else if (this.onZoom) {
-		this.onZoom(trgt, event);
-	}
-	event.preventDefault();
-};
-
 ZoomClass.prototype.panExecute = function (trgt, event, eventType) {
+	if (this.event.pointers.length !== 1) {
+		return;
+	}
 	this.event.e = event;
 	this.eventType = 'pan';
 	if (event.type === 'touchstart' || event.type === 'touchmove' || event.type === 'touchend' || event.type === 'touchcancel') {
+		console.log(event);
 		event.offsetX = event.touches[0].clientX;
 		event.offsetY = event.touches[0].clientY;
 	}
@@ -11077,7 +11180,9 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 	const layer = document.createElement('canvas');
 	const ctx = layer.getContext('webgl', contextConfig);
 
-	ratio = getPixlRatio$1(ctx);
+	const actualPixel = getPixlRatio$1(ctx);
+
+	ratio = actualPixel >= 2 ? 2 : Math.floor(actualPixel);
 	// ctx.enable(ctx.BLEND);
 	// ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
 	// ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
@@ -11348,14 +11453,15 @@ function imageInstance$1 (self) {
 
 function TextureObject (ctx, config, vDomIndex) {
 	let self = this;
+	let maxTextureSize = ctx.getParameter(ctx.MAX_TEXTURE_SIZE);
 	this.ctx = ctx;
 	this.texture = ctx.createTexture();
 	this.type = 'TEXTURE_2D';
-	this.width = config.width ? config.width : 0;
-	this.height = config.height ? config.height : 0;
+	this.width = config.width > maxTextureSize ? maxTextureSize : config.width;	this.height = config.height > maxTextureSize ? maxTextureSize : config.height;
 	this.border = config.border ? config.border : 0;
 	this.format = config.format ? config.format : 'RGBA';
 	this.type = config.type ? config.type : 'UNSIGNED_BYTE';
+	// Math.pow(2, Math.ceil(Math.log(config.width) / Math.log(2)))
 	// this.pixels = config.pixels ? config.pixels : null;
 	this.warpS = config.warpS ? config.warpS : 'CLAMP_TO_EDGE';
 	this.warpT = config.warpT ? config.warpT : 'CLAMP_TO_EDGE';
@@ -11376,6 +11482,10 @@ function TextureObject (ctx, config, vDomIndex) {
 		self.updated = true;
 	} else if (config.src instanceof NodePrototype) {
 		self.image = config.src.domEl;
+		self.update();
+		self.updated = true;
+	} else {
+		self.image = new Uint8Array(new ArrayBuffer(this.width * this.height * 4));
 		self.update();
 		self.updated = true;
 	}
@@ -11413,6 +11523,8 @@ TextureObject.prototype.update = function () {
 		ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], ctx[this.format], ctx[this.type], this.image);
 	} else {
 		ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], this.width, this.height, 0, ctx[this.format], ctx[this.type], this.image);
+		// ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], ctx[this.format], ctx[this.type], new Uint8Array(this.width * this.height * 4));
+		// ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], this.width, this.height, 0, ctx[this.format], ctx[this.type], new Uint8Array(this.width * this.height * 4));
 	}
 
 	if (this.mipMap) {
