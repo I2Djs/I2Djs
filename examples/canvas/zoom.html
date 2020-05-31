@@ -16,6 +16,7 @@ var zoomInstance = i2d.behaviour.zoom();
 var circle;
 zoomInstance.scaleExtent([1, 3]);
 zoomInstance.zoom(function (event) {
+	console.log(event.x, event.y);
 	circle.setAttr('transform', event.transform);
 });
 zoomInstance.panExtent([[-500, -500], [500, 500]]);
@@ -44,6 +45,12 @@ circle = g.createEl({
 })
 .on('mouseout', function () {
 	this.setStyle('fillStyle', '#ff0000');
+})
+.on('click', function () {
+	console.log('click');
+})
+.on('dbclick', function () {
+	console.log('dbclick');
 })
 .on('zoom', zoomInstance);
 

@@ -28,37 +28,73 @@ Events.prototype.pointerdownCheck = function (e) {
 		y: e.offsetY
 	}, e, 'pointerdown');
 	if (node) {
-		this.pointerNode = node;
-		if (node.events.zoom && node.events.zoom.panFlag) {
-			node.events.zoom.panExecute(node, e, 'pointerdown');
+		if (!this.pointerNode || (this.pointerNode.node !== node)) {
+			this.pointerNode = {
+				node: node,
+				clickCounter: 1,
+				dragCounter: 0
+			};
+		} else {
+			this.pointerNode.clickCounter += 1;
 		}
-		if (node && node.events.drag) {
+		
+		if (node.events.zoom) {
+			node.events.zoom.pointerAdd(e);
+			if (node.events.zoom.panFlag) {
+				node.events.zoom.panExecute(node, e, 'pointerdown');
+			}
+		}
+		if (node.events.drag) {
 			node.events.drag.execute(node, e, 'pointerdown');
 		}
 	}
 };
 
 Events.prototype.pointermoveCheck = function (e) {
-	let node = this.pointerNode;
-	if (node && node.events.zoom && node.events.zoom.panFlag) {
-		node.events.zoom.panExecute(node, e, 'pointermove');
+	let node = this.pointerNode.node;
+	this.pointerNode.dragCounter += 1;
+	if (node && node.events.zoom) {
+		if (node.events.zoom.panFlag) {
+			node.events.zoom.panExecute(node, e, 'pointermove');
+		}
+		node.events.zoom.zoomPinch(node, e);
 	}
 	if (node && node.events.drag) {
 		node.events.drag.execute(node, e, 'pointermove');
 	}
 };
 
+let clickInterval;
 Events.prototype.pointerupCheck = function (e) {
-	let node = this.pointerNode;
-
+	let self = this;
+	let node = this.pointerNode.node;
 	if (node) {
 		if (node.events.drag) {
 			node.events.drag.execute(node, e, 'pointerup');
 		}
-		if (node.events.zoom && node.events.zoom.panFlag) {
-			node.events.zoom.panExecute(node, e, 'pointerup');
+		if (node.events.zoom) {
+			if (node.events.zoom.panFlag) {
+				node.events.zoom.panExecute(node, e, 'pointerup');
+			}
+			node.events.zoom.pointerRemove(e);
 		}
-		this.pointerNode = null;
+		if (this.pointerNode.dragCounter === 0) {
+			if (this.pointerNode.clickCounter === 1 && node.events['click']) {
+				clickInterval = setTimeout(function () {
+					self.pointerNode = null;
+					node.events['click'].call(node, e);
+					clickInterval = null;
+				}, 500);
+			} else if (this.pointerNode.clickCounter === 2 && node.events['dbclick']) {
+				if (clickInterval) {
+					clearTimeout(clickInterval);
+				}
+				node.events['dbclick'].call(node, e);
+				self.pointerNode = null;
+			} else {
+				this.pointerNode = null;
+			}
+		}
 	} else {
 		propogateEvent([this.vDom], {
 			x: e.offsetX,
@@ -143,31 +179,31 @@ Events.prototype.touchmoveCheck = function (e) {
 		return;
 	}
 
-	let node = propogateEvent([this.vDom], {
+	propogateEvent([this.vDom], {
 		x: touches[0].clientX,
 		y: touches[0].clientY
-	}, e, 'mousemove');
+	}, e, 'touchmove');
 
-	if (node && (node.events['mouseover'] || node.events['mousein'])) {
-		if (this.selectedNode !== node) {
-			if (node.events['mouseover']) {
-				node.events['mouseover'].call(node, e);
-			}
-			if (node.events['mousein']) {
-				node.events['mousein'].call(node, e);
-			}
-		}
-	}
+	// if (node && (node.events['mouseover'] || node.events['mousein'])) {
+	// 	if (this.selectedNode !== node) {
+	// 		if (node.events['mouseover']) {
+	// 			node.events['mouseover'].call(node, e);
+	// 		}
+	// 		if (node.events['mousein']) {
+	// 			node.events['mousein'].call(node, e);
+	// 		}
+	// 	}
+	// }
 
-	if (this.selectedNode && this.selectedNode !== node) {
-		if (this.selectedNode.events['mouseout']) {
-			this.selectedNode.events['mouseout'].call(this.selectedNode, e);
-		}
-		if (this.selectedNode.events['mouseleave']) {
-			this.selectedNode.events['mouseleave'].call(this.selectedNode, e);
-		}
-	}
-	this.selectedNode = node;
+	// if (this.selectedNode && this.selectedNode !== node) {
+	// 	if (this.selectedNode.events['mouseout']) {
+	// 		this.selectedNode.events['mouseout'].call(this.selectedNode, e);
+	// 	}
+	// 	if (this.selectedNode.events['mouseleave']) {
+	// 		this.selectedNode.events['mouseleave'].call(this.selectedNode, e);
+	// 	}
+	// }
+	// this.selectedNode = node;
 };
 
 Events.prototype.touchcancelCheck = function (e) {
@@ -212,6 +248,7 @@ Events.prototype.wheelEventCheck = function (e) {
 			}
 		}, 100);
 	}
+	e.preventDefault();
 };
 
 function propogateEvent (nodes, mouseCoor, rawEvent, eventType) {

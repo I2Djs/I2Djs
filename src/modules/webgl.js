@@ -2550,7 +2550,9 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 	const layer = document.createElement('canvas');
 	const ctx = layer.getContext('webgl', contextConfig);
 
-	ratio = getPixlRatio(ctx);
+	const actualPixel = getPixlRatio(ctx);
+
+	ratio = actualPixel >= 2 ? 2 : Math.floor(actualPixel);
 	// ctx.enable(ctx.BLEND);
 	// ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
 	// ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
@@ -2826,14 +2828,16 @@ function imageInstance (self) {
 
 function TextureObject (ctx, config, vDomIndex) {
 	let self = this;
+	let maxTextureSize = ctx.getParameter(ctx.MAX_TEXTURE_SIZE);
 	this.ctx = ctx;
 	this.texture = ctx.createTexture();
 	this.type = 'TEXTURE_2D';
-	this.width = config.width ? config.width : 0;
-	this.height = config.height ? config.height : 0;
+	this.width = config.width > maxTextureSize ? maxTextureSize : config.width; ;
+	this.height = config.height > maxTextureSize ? maxTextureSize : config.height;
 	this.border = config.border ? config.border : 0;
 	this.format = config.format ? config.format : 'RGBA';
 	this.type = config.type ? config.type : 'UNSIGNED_BYTE';
+	// Math.pow(2, Math.ceil(Math.log(config.width) / Math.log(2)))
 	// this.pixels = config.pixels ? config.pixels : null;
 	this.warpS = config.warpS ? config.warpS : 'CLAMP_TO_EDGE';
 	this.warpT = config.warpT ? config.warpT : 'CLAMP_TO_EDGE';
@@ -2854,6 +2858,10 @@ function TextureObject (ctx, config, vDomIndex) {
 		self.updated = true;
 	} else if (config.src instanceof NodePrototype) {
 		self.image = config.src.domEl;
+		self.update();
+		self.updated = true;
+	} else {
+		self.image = new Uint8Array(new ArrayBuffer(this.width * this.height * 4));
 		self.update();
 		self.updated = true;
 	}
@@ -2892,6 +2900,8 @@ TextureObject.prototype.update = function () {
 		ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], ctx[this.format], ctx[this.type], this.image);
 	} else {
 		ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], this.width, this.height, 0, ctx[this.format], ctx[this.type], this.image);
+		// ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], ctx[this.format], ctx[this.type], new Uint8Array(this.width * this.height * 4));
+		// ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], this.width, this.height, 0, ctx[this.format], ctx[this.type], new Uint8Array(this.width * this.height * 4));
 	}
 
 	if (this.mipMap) {
