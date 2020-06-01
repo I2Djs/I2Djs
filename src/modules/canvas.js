@@ -2029,14 +2029,14 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 			e.preventDefault();
 			eventsInstance.mousemoveCheck(e);
 		});
-		layer.addEventListener('click', e => {
-			e.preventDefault();
-			eventsInstance.clickCheck(e);
-		});
-		layer.addEventListener('dblclick', e => {
-			e.preventDefault();
-			eventsInstance.dblclickCheck(e);
-		});
+		// layer.addEventListener('click', e => {
+		// 	e.preventDefault();
+		// 	eventsInstance.clickCheck(e);
+		// });
+		// layer.addEventListener('dblclick', e => {
+		// 	e.preventDefault();
+		// 	eventsInstance.dblclickCheck(e);
+		// });
 		layer.addEventListener('mousedown', e => {
 			e.preventDefault();
 			eventsInstance.mousedownCheck(e);

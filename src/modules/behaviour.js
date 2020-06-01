@@ -504,7 +504,6 @@ ZoomClass.prototype.panExecute = function (trgt, event, eventType) {
 	this.event.e = event;
 	this.eventType = 'pan';
 	if (event.type === 'touchstart' || event.type === 'touchmove' || event.type === 'touchend' || event.type === 'touchcancel') {
-		console.log(event);
 		event.offsetX = event.touches[0].clientX;
 		event.offsetY = event.touches[0].clientY;
 	}

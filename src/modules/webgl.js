@@ -360,6 +360,8 @@ PolyLineNode.prototype.setAttr = function (key, value) {
 	}
 };
 
+PolyLineNode.prototype.updateBBox = RPolyupdateBBox;
+
 // PolyLineNode.prototype.getAttr = function (key) {
 // 	return this.attr[key];
 // };
@@ -406,6 +408,36 @@ LineNode.prototype.setAttr = function (key, value) {
 	}
 	if (this.shader && (key === 'x1' || key === 'y1' || key === 'x2' || key === 'y2')) {
 		this.shader.updateVertex(this.pindex, this.attr.x1, this.attr.y1, this.attr.x2, this.attr.y2);
+	}
+};
+
+LineNode.prototype.updateBBox = function RLupdateBBox () {
+	const self = this;
+	const {
+		transform,
+		x1 = 0,
+		y1 = 0,
+		x2 = 0,
+		y2 = 0
+	} = self.attr;
+	let {
+		translateX,
+		translateY,
+		scaleX,
+		scaleY
+	} = parseTransform(transform);
+
+	self.BBox = {
+		x: translateX + ((x1 < x2 ? x1 : x2) * scaleX),
+		y: translateY + ((y1 < y2 ? y1 : y2) * scaleY),
+		width: Math.abs(x2 - x1) * scaleX,
+		height: Math.abs(y2 - y1) * scaleY
+	};
+
+	if (transform && transform.rotate) {
+		self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+	} else {
+		self.BBoxHit = this.BBox;
 	}
 };
 
@@ -729,7 +761,7 @@ WebglGroupNode.prototype.setAttr = function (key, value) {
 };
 
 WebglGroupNode.prototype.setShader = function () {
-
+	
 };
 
 // WebglGroupNode.prototype.getAttr = function (key) {
@@ -2741,14 +2773,14 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 			e.preventDefault();
 			eventsInstance.mousemoveCheck(e);
 		});
-		layer.addEventListener('click', e => {
-			e.preventDefault();
-			eventsInstance.clickCheck(e);
-		});
-		layer.addEventListener('dblclick', e => {
-			e.preventDefault();
-			eventsInstance.dblclickCheck(e);
-		});
+		// layer.addEventListener('click', e => {
+		// 	e.preventDefault();
+		// 	eventsInstance.clickCheck(e);
+		// });
+		// layer.addEventListener('dblclick', e => {
+		// 	e.preventDefault();
+		// 	eventsInstance.dblclickCheck(e);
+		// });
 		layer.addEventListener('mousedown', e => {
 			e.preventDefault();
 			eventsInstance.mousedownCheck(e);
