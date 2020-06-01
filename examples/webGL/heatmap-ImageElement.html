@@ -16,7 +16,9 @@
         <script id="fragmentShader" type="x-shader/x-fragment">
             precision mediump float;
             varying vec2 v_texCoord;
-            uniform sampler2D u_framebuffer; uniform vec4 u_colorArr[100]; uniform float u_colorCount; uniform float u_opacity; uniform float u_offset[100];
+            uniform sampler2D u_framebuffer;
+            uniform vec4 u_colorArr[15];
+            uniform float u_offset[15];
 
             float remap ( float minval, float maxval, float curval ) {
                 return ( curval - minval ) / ( maxval - minval );
@@ -51,7 +53,7 @@
                     } else {
                         color_ = vec4(0.0, 0.0, 0.0, 0.0);
                     }
-                    color_.a = color_.a - (1.0 - u_opacity);
+                    color_.a = color_.a;
                     if (color_.a < 0.0) {
                         color_.a = 0.0;
                     }
@@ -93,7 +95,9 @@
                 antialias: true,
                 alpha: true,
                 preserveDrawingBuffer: false
-            }, {});
+            }, {
+                enableEvents: true
+            });
 
         webglRenderer.setClearColor(i2d.color.rgba(0, 0, 0, 0));
 
@@ -158,15 +162,9 @@
                     value: colorGradMap.value,
                     size: 4
                 },
-                u_colorCount: {
-                    value: colorGradMap.length.toFixed(2)
-                },
                 u_offset: {
                     value: colorGradMap.offset,
                     size: 1
-                },
-                u_opacity: {
-                    value: (1.0).toFixed(2)
                 },
                 u_framebuffer: {
                     value: Texture
@@ -182,8 +180,8 @@
         });
 
         var dataPush = true;
-        document.getElementById('canvas').addEventListener("mousemove", function (e) {
-            if (dataPush) {
+        webglRenderer.on('mousemove', function (e) {
+           if (dataPush) {
                 imageGroup.createEl({
                     el: 'image',
                     attr: {
@@ -198,6 +196,9 @@
                 setTimeout(idleFlag, 20);
             }
         });
+        // document.getElementById('canvas').addEventListener("mousemove", function (e) {
+            
+        // });
 
         function idleFlag () {
             dataPush = true;

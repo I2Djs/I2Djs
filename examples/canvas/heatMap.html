@@ -72,7 +72,8 @@
         let dataPush = true;
         let gradPallet = LinearGrad.getPixels(0, 0, 256, 1).imageData.data;
 
-        document.addEventListener("pointermove", function(e) {
+        // document.addEventListener("pointermove", function(e) {
+        renderer_2.on('mousemove', function (e) {
             if (dataPush) {
                 renderer_.createEl({
                     el:'image',

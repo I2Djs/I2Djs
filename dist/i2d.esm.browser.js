@@ -4769,26 +4769,26 @@ function Events (vDom) {
 
 Events.prototype.getNode = function (e) {};
 
-Events.prototype.clickCheck = function (e) {
-	propogateEvent([this.vDom], {
-		x: e.offsetX,
-		y: e.offsetY
-	}, e, 'click');
-};
+// Events.prototype.clickCheck = function (e) {
+// 	propogateEvent([this.vDom], {
+// 		x: e.offsetX,
+// 		y: e.offsetY
+// 	}, e, 'click');
+// };
 
-Events.prototype.dblclickCheck = function (e) {
-	propogateEvent([this.vDom], {
-		x: e.offsetX,
-		y: e.offsetY
-	}, e, 'dblclick');
-};
+// Events.prototype.dblclickCheck = function (e) {
+// 	propogateEvent([this.vDom], {
+// 		x: e.offsetX,
+// 		y: e.offsetY
+// 	}, e, 'dblclick');
+// };
 
 Events.prototype.pointerdownCheck = function (e) {
 	let node = propogateEvent([this.vDom], {
 		x: e.offsetX,
 		y: e.offsetY
 	}, e, 'pointerdown');
-	if (node) {
+	if (node && (node.events.zoom || node.events.drag)) {
 		if (!this.pointerNode || (this.pointerNode.node !== node)) {
 			this.pointerNode = {
 				node: node,
@@ -4808,27 +4808,41 @@ Events.prototype.pointerdownCheck = function (e) {
 		if (node.events.drag) {
 			node.events.drag.execute(node, e, 'pointerdown');
 		}
+	} else {
+		if (e.pointerType === 'touch') {
+			this.mousedownCheck(e);
+		}
 	}
 };
 
 Events.prototype.pointermoveCheck = function (e) {
-	let node = this.pointerNode.node;
-	this.pointerNode.dragCounter += 1;
-	if (node && node.events.zoom) {
-		if (node.events.zoom.panFlag) {
-			node.events.zoom.panExecute(node, e, 'pointermove');
+	let node = this.pointerNode ? this.pointerNode.node : null;
+	if (node) {
+		this.pointerNode.dragCounter += 1;
+		if (node.events.zoom) {
+			if (node.events.zoom.panFlag) {
+				node.events.zoom.panExecute(node, e, 'pointermove');
+			}
+			node.events.zoom.zoomPinch(node, e);
 		}
-		node.events.zoom.zoomPinch(node, e);
+		if (node.events.drag) {
+			node.events.drag.execute(node, e, 'pointermove');
+		}
+		if (node.events['mousemove']) {
+			node.events['mousemove'].call(node, e);
+		}
+	} else {
+		if (e.pointerType === 'touch') {
+			this.mousemoveCheck(e);
+		}
 	}
-	if (node && node.events.drag) {
-		node.events.drag.execute(node, e, 'pointermove');
-	}
+	e.preventDefault();
 };
 
 let clickInterval;
 Events.prototype.pointerupCheck = function (e) {
 	let self = this;
-	let node = this.pointerNode.node;
+	let node = this.pointerNode ? this.pointerNode.node : null;
 	if (node) {
 		if (node.events.drag) {
 			node.events.drag.execute(node, e, 'pointerup');
@@ -4845,22 +4859,23 @@ Events.prototype.pointerupCheck = function (e) {
 					self.pointerNode = null;
 					node.events['click'].call(node, e);
 					clickInterval = null;
-				}, 500);
-			} else if (this.pointerNode.clickCounter === 2 && node.events['dbclick']) {
+				}, 250);
+			} else if (this.pointerNode.clickCounter === 2 && node.events['dblclick']) {
 				if (clickInterval) {
 					clearTimeout(clickInterval);
 				}
-				node.events['dbclick'].call(node, e);
+				node.events['dblclick'].call(node, e);
 				self.pointerNode = null;
 			} else {
 				this.pointerNode = null;
 			}
+		} else {
+			this.pointerNode = null;
 		}
 	} else {
-		propogateEvent([this.vDom], {
-			x: e.offsetX,
-			y: e.offsetY
-		}, e, 'mouseup');
+		if (e.pointerType === 'touch') {
+			this.mouseupCheck(e);
+		}
 	}
 };
 
@@ -4876,7 +4891,6 @@ Events.prototype.mousemoveCheck = function (e) {
 		x: e.offsetX,
 		y: e.offsetY
 	}, e, 'mousemove');
-
 	if (node && (node.events['mouseover'] || node.events['mousein'])) {
 		if (this.selectedNode !== node) {
 			if (node.events['mouseover']) {
@@ -4898,6 +4912,7 @@ Events.prototype.mousemoveCheck = function (e) {
 	}
 
 	this.selectedNode = node;
+	e.preventDefault();
 };
 
 Events.prototype.mouseupCheck = function (e) {
@@ -5600,7 +5615,6 @@ ZoomClass.prototype.panExecute = function (trgt, event, eventType) {
 	this.event.e = event;
 	this.eventType = 'pan';
 	if (event.type === 'touchstart' || event.type === 'touchmove' || event.type === 'touchend' || event.type === 'touchcancel') {
-		console.log(event);
 		event.offsetX = event.touches[0].clientX;
 		event.offsetY = event.touches[0].clientY;
 	}
@@ -7650,14 +7664,14 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 			e.preventDefault();
 			eventsInstance.mousemoveCheck(e);
 		});
-		layer.addEventListener('click', e => {
-			e.preventDefault();
-			eventsInstance.clickCheck(e);
-		});
-		layer.addEventListener('dblclick', e => {
-			e.preventDefault();
-			eventsInstance.dblclickCheck(e);
-		});
+		// layer.addEventListener('click', e => {
+		// 	e.preventDefault();
+		// 	eventsInstance.clickCheck(e);
+		// });
+		// layer.addEventListener('dblclick', e => {
+		// 	e.preventDefault();
+		// 	eventsInstance.dblclickCheck(e);
+		// });
 		layer.addEventListener('mousedown', e => {
 			e.preventDefault();
 			eventsInstance.mousedownCheck(e);
@@ -8995,6 +9009,8 @@ PolyLineNode.prototype.setAttr = function (key, value) {
 	}
 };
 
+PolyLineNode.prototype.updateBBox = RPolyupdateBBox$1;
+
 // PolyLineNode.prototype.getAttr = function (key) {
 // 	return this.attr[key];
 // };
@@ -9041,6 +9057,36 @@ LineNode.prototype.setAttr = function (key, value) {
 	}
 	if (this.shader && (key === 'x1' || key === 'y1' || key === 'x2' || key === 'y2')) {
 		this.shader.updateVertex(this.pindex, this.attr.x1, this.attr.y1, this.attr.x2, this.attr.y2);
+	}
+};
+
+LineNode.prototype.updateBBox = function RLupdateBBox () {
+	const self = this;
+	const {
+		transform,
+		x1 = 0,
+		y1 = 0,
+		x2 = 0,
+		y2 = 0
+	} = self.attr;
+	let {
+		translateX,
+		translateY,
+		scaleX,
+		scaleY
+	} = parseTransform$1(transform);
+
+	self.BBox = {
+		x: translateX + ((x1 < x2 ? x1 : x2) * scaleX),
+		y: translateY + ((y1 < y2 ? y1 : y2) * scaleY),
+		width: Math.abs(x2 - x1) * scaleX,
+		height: Math.abs(y2 - y1) * scaleY
+	};
+
+	if (transform && transform.rotate) {
+		self.BBoxHit = t2DGeometry$4.rotateBBox(this.BBox, transform);
+	} else {
+		self.BBoxHit = this.BBox;
 	}
 };
 
@@ -9363,7 +9409,7 @@ WebglGroupNode.prototype.setAttr = function (key, value) {
 };
 
 WebglGroupNode.prototype.setShader = function () {
-
+	
 };
 
 // WebglGroupNode.prototype.getAttr = function (key) {
@@ -11369,14 +11415,14 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 			e.preventDefault();
 			eventsInstance.mousemoveCheck(e);
 		});
-		layer.addEventListener('click', e => {
-			e.preventDefault();
-			eventsInstance.clickCheck(e);
-		});
-		layer.addEventListener('dblclick', e => {
-			e.preventDefault();
-			eventsInstance.dblclickCheck(e);
-		});
+		// layer.addEventListener('click', e => {
+		// 	e.preventDefault();
+		// 	eventsInstance.clickCheck(e);
+		// });
+		// layer.addEventListener('dblclick', e => {
+		// 	e.preventDefault();
+		// 	eventsInstance.dblclickCheck(e);
+		// });
 		layer.addEventListener('mousedown', e => {
 			e.preventDefault();
 			eventsInstance.mousedownCheck(e);
