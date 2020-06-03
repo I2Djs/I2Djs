@@ -16,7 +16,9 @@ var webglRenderer = i2d.webglLayer('#canvas', {
     antialias: true,
     alpha: true,
     preserveDrawingBuffer: false
-}, {});
+}, {
+
+});
 
 let ctx = webglRenderer.ctx;
     ctx.clearColor(0, 0, 0, 0);
@@ -260,12 +262,12 @@ var intensityArray = [];
 var dataPush = true;
     document.getElementById('canvas').addEventListener("pointermove", function (e) {
         if (dataPush) {
-            positionArray[positionArray.length] = e.x;
-            positionArray[positionArray.length] = e.y;
-            intensityArray[intensityArray.length] = 20;
-            gradshaderRef.setAttributeData('a_position', new Float32Array(positionArray));
-            gradshaderRef.setAttributeData('a_intensity', new Float32Array(intensityArray));
-            geome.setDrawRange(0, positionArray.length / 2);
+            // positionArray[positionArray.length] = e.x;
+            // positionArray[positionArray.length] = e.y;
+            // intensityArray[intensityArray.length] = 20;
+            gradshaderRef.setAttributeData('a_position', new Float32Array([e.x, e.y]));
+            gradshaderRef.setAttributeData('a_intensity', new Float32Array([20]));
+            geome.setDrawRange(0, 1);
             // shaderRef.execute();
             dataPush = false;
             setTimeout(idleFlag, 20);

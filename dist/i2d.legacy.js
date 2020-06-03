@@ -9230,7 +9230,7 @@
 	};
 
 	WebglGroupNode.prototype.setShader = function () {
-		
+
 	};
 
 	// WebglGroupNode.prototype.getAttr = function (key) {
@@ -11367,11 +11367,9 @@
 			} else if (value instanceof HTMLImageElement || value instanceof SVGImageElement || value instanceof HTMLCanvasElement || value instanceof Uint8Array) {
 				this.image = value;
 				this.update();
-				this.updated = true;
 			} else if (value instanceof NodePrototype) {
 				this.image = value.domEl;
 				this.update();
-				this.updated = true;
 			}
 		}
 	};
@@ -11379,6 +11377,10 @@
 	TextureObject.prototype.loadTexture = function () {
 		// this.ctx.activeTexture(this.ctx.TEXTURE0);
 		this.ctx.bindTexture(this.ctx.TEXTURE_2D, this.texture);
+	};
+
+	TextureObject.prototype.clear = function (argument) {
+		
 	};
 
 	TextureObject.prototype.update = function () {
@@ -11406,12 +11408,16 @@
 			ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx[this.minFilter]);
 			ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx[this.minFilter]);
 		}
+		this.updated = true;
 	};
 
 	function RenderTarget (ctx, config) {
 		this.ctx = ctx;
 		this.fbo = ctx.createFramebuffer();
 		this.texture = config.texture;
+		if (!this.texture.updated) {
+			this.texture.update();
+		}
 	}
 	RenderTarget.prototype.setAttr = function (attr, value) {
 		this[attr] = value;
@@ -11421,9 +11427,10 @@
 		if (!this.texture || !(this.texture instanceof TextureObject)) {
 			return;
 		}
-		this.texture.update();
 		this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, this.fbo);
 		this.ctx.framebufferTexture2D(this.ctx.FRAMEBUFFER, this.ctx.COLOR_ATTACHMENT0, this.ctx.TEXTURE_2D, this.texture.texture, 0);
+		this.ctx.clearColor(0, 0, 0, 0);
+		this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT);
 	};
 
 	RenderTarget.prototype.clear = function () {
