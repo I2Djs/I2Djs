@@ -9593,6 +9593,7 @@ function RenderWebglShader (ctx, shader, vDomIndex) {
 	this.vDomIndex = vDomIndex;
 	this.program = getProgram(ctx, shader);
 	this.uniforms = {};
+	this.attr = {};
 	this.attrObjs = {};
 	this.indexesObj = null;
 	this.preDraw = shader.preDraw;
