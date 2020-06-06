@@ -1,4 +1,5 @@
 import queue from './queue.js';
+import canvas from './canvas.js';
 import VDom from './VDom.js';
 import colorMap from './colorMap.js';
 import geometry from './geometry.js';
@@ -609,6 +610,177 @@ function isPowerOf2 (value) {
 	return (value & value - 1) === 0;
 }
 
+function buildCanvasTextEl (str, style) {
+	let text = canvas.canvasLayer(null, {}, {});
+	text.setPixelRatio(ratio);
+	let fontSize = parseInt(style.font, 10) || 12;
+	let twid = text.ctx.measureText(str).width;
+	let width = twid * fontSize * 0.1;
+	let height = fontSize;
+	text.setSize(width, height);
+
+	text.createEl({
+		el: 'rect',
+		attr: {
+			x: 0,
+			y: 0,
+			width: width,
+			height: height
+		},
+		style: {
+			fillStyle: '#fff'
+		}
+	});
+
+	text.createEl({
+		el: 'text',
+		attr: {
+			x: 0,
+			y: (height * 0.75),
+			text: str
+		},
+		style: style
+	});
+	text.execute();
+
+	return text;
+}
+
+function TextNode (ctx, attr, style, vDomIndex) {
+	let self = this;
+	this.ctx = ctx;
+	this.attr = attr;
+	this.style = style;
+	this.vDomIndex = vDomIndex;
+	
+	if (self.attr.text && (typeof self.attr.text === 'string')) {
+		this.text = buildCanvasTextEl(self.attr.text, self.style);
+		this.attr.width = this.text.width * 1;
+		this.attr.height = this.text.height;
+	}
+
+	if (this.text) {
+		this.textureNode = new TextureObject(ctx, {
+			src: this.text
+		}, this.vDomIndex);
+	}
+}
+TextNode.prototype = new WebglDom();
+TextNode.prototype.constructor = TextNode;
+
+TextNode.prototype.setShader = function (shader) {
+	this.shader = shader;
+	if (this.shader) {
+		this.shader.addVertex(this.attr.x || 0, this.attr.y || 0, this.attr.width || 0, this.attr.height || 0, this.pindex);
+		// this.shader.addOpacity(1, this.pindex);
+	}
+};
+
+TextNode.prototype.setAttr = function (key, value) {
+	this.attr[key] = value;
+
+	if (value === undefined || value === null) {
+		delete this.attr[key];
+		return;
+	}
+
+	if (key === 'text' && (typeof value === 'string')) {
+		if (this.text) {
+			this.text = buildCanvasTextEl(this.attr.text, this.style);
+			// this.attr.width = this.text.width;
+			// this.attr.height = this.text.height;
+		} else {
+			this.text = buildCanvasTextEl(value, this.style);
+		}
+		this.attr.width = this.text.width * 1;
+		this.attr.height = this.text.height;
+		// this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+		// this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
+		if (this.textureNode) {
+			this.textureNode.setAttr('src', this.text);
+		} else {
+			this.textureNode = new TextureObject(this.ctx, {
+				src: this.text
+			}, this.vDomIndex);
+		}
+	}
+	
+	if (this.shader && (key === 'x')) {
+		this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+	}
+	if (this.shader && (key === 'y')) {
+		this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
+	}
+};
+
+TextNode.prototype.setStyle = function (key, value) {
+	this.style[key] = value;
+	if (this.text) {
+		if (key === 'font') {
+			let fontSize = parseInt(value, 10) || 12;
+			let twid = this.text.ctx.measureText(this.attr.text).width;
+			let width = twid * fontSize * 0.07;
+			let height = fontSize * 0.5;
+			this.attr.width = width;
+			this.attr.height = height;
+			this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+			this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
+		} else {
+			this.text.fetchEl('text').setStyle(key, value);
+			this.text.execute();
+			this.textureNode.setAttr('src', this.text);
+		}
+	}
+};
+
+TextNode.prototype.getAttr = function (key) {
+	return this.attr[key];
+};
+
+TextNode.prototype.getStyle = function (key) {
+	return this.style[key];
+};
+
+TextNode.prototype.in = function RIinfun (co) {
+	const {
+		width = 0,
+		height = 0,
+		x = 0,
+		y = 0
+	} = this.attr;
+	return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
+};
+
+TextNode.prototype.updateBBox = function RIupdateBBox () {
+	const self = this;
+	const {
+		transform,
+		x = 0,
+		y = 0,
+		width = 0,
+		height = 0
+	} = self.attr;
+	let {
+		translateX,
+		translateY,
+		scaleX,
+		scaleY
+	} = parseTransform(transform);
+
+	self.BBox = {
+		x: (translateX + x) * scaleX,
+		y: (translateY + y) * scaleY,
+		width: width * scaleX,
+		height: height * scaleY
+	};
+
+	if (transform && transform.rotate) {
+		self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+	} else {
+		self.BBoxHit = this.BBox;
+	}
+};
+
 function ImageNode (ctx, attr, style, vDomIndex) {
 	let self = this;
 	this.ctx = ctx;
@@ -616,10 +788,15 @@ function ImageNode (ctx, attr, style, vDomIndex) {
 	this.style = style;
 	this.vDomIndex = vDomIndex;
 	
-	if (self.attr.src && (typeof self.attr.src === 'string') && !webGLImageTextures[self.attr.src]) {
-		webGLImageTextures[self.attr.src] = new TextureObject(ctx, {
+	if (self.attr.src && typeof self.attr.src === 'string' && !webGLImageTextures[self.attr.src]) {
+		this.textureNode = new TextureObject(ctx, {
 			src: this.attr.src
 		}, this.vDomIndex);
+		webGLImageTextures[self.attr.src] = this.textureNode;
+	} else if (typeof self.attr.src === 'string' && webGLImageTextures[self.attr.src]) {
+		this.textureNode = webGLImageTextures[self.attr.src];
+	} else if (self.attr.src && self.attr.src instanceof TextureObject) {
+		this.textureNode = self.attr.src;
 	}
 };
 
@@ -644,10 +821,17 @@ ImageNode.prototype.setAttr = function (key, value) {
 
 	if (key === 'src' && (typeof value === 'string')) {
 		if (value && !webGLImageTextures[value]) {
-			webGLImageTextures[value] = new TextureObject(this.ctx, {
+			this.textureNode = new TextureObject(this.ctx, {
 				src: value
 			}, this.vDomIndex);
+			 webGLImageTextures[value] = this.textureNode;
 		}
+	} else if (key === 'src' && value instanceof NodePrototype) {
+		this.textureNode = new TextureObject(this.ctx, {
+			src: value
+		}, this.vDomIndex);
+	} else if (key === 'src' && value instanceof TextureObject) {
+		this.textureNode = value;
 	}
 	if (!this.shader) {
 		return;
@@ -2236,16 +2420,22 @@ RenderWebglImages.prototype.execute = function (stack) {
 
 	for (var i = 0, len = stack.length; i < len; i++) {
 		let node = stack[i];
-		if (typeof node.attr.src === 'string') {
-			if (!webGLImageTextures[node.attr.src].updated) {
-				continue;
-			}
-			webGLImageTextures[node.attr.src].loadTexture();
-			this.shaderInstance.applyUniformData('u_image', webGLImageTextures[node.attr.src]);
-		} else if (node.attr.src instanceof TextureObject) {
-			node.attr.src.loadTexture();
-			this.shaderInstance.applyUniformData('u_image', node.attr.src);
+		if (!node.dom.textureNode) {
+			continue;
 		}
+		if (node.style.display === 'none') {
+			continue;
+		}
+		// if (typeof node.attr.src === 'string') {
+			
+		// 	node.textureNode.loadTexture();
+		// 	this.shaderInstance.applyUniformData('u_image', node.textureNode);
+		// } else if (node.attr.src instanceof TextureObject) {
+		// 	node.attr.src.loadTexture();
+		// 	this.shaderInstance.applyUniformData('u_image', node.attr.src);
+		// }
+		node.dom.textureNode.loadTexture();
+		this.shaderInstance.applyUniformData('u_image', node.dom.textureNode);
 		this.shaderInstance.applyAttributeData('a_position', this.positionArray[i]);
 		this.shaderInstance.applyUniformData('u_opacity', node.style.opacity || this.style.opacity || 1.0);
 		this.shaderInstance.draw();
@@ -2285,6 +2475,10 @@ function getTypeShader (ctx, attr, style, type, renderTarget, vDomIndex) {
 			break;
 
 		case 'image':
+			e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
+			break;
+
+		case 'text':
 			e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
 			break;
 
@@ -2339,6 +2533,10 @@ function WebglNodeExe (ctx, config, id, vDomIndex) {
 
 		case 'image':
 			this.dom = new ImageNode(this.ctx, this.attr, this.style, vDomIndex);
+			break;
+
+		case 'text':
+			this.dom = new TextNode(this.ctx, this.attr, this.style, vDomIndex);
 			break;
 
 		case 'group':
@@ -2469,6 +2667,9 @@ WebglNodeExe.prototype.on = function Con (eventType, hndlr) {
 };
 
 WebglNodeExe.prototype.execute = function Cexecute () {
+	if (this.style.display === 'none') {
+		return;
+	}
 	if (!this.dom.shader && this.dom instanceof WebglGroupNode) {
 		for (let i = 0, len = this.children.length; i < len; i += 1) {
 			this.children[i].execute();
@@ -2820,10 +3021,12 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 		});
 		layer.addEventListener('pointerdown', e => {
 			e.preventDefault();
+			eventsInstance.addPointer(e);
 			eventsInstance.pointerdownCheck(e);
 		});
 		layer.addEventListener('pointerup', e => {
 			e.preventDefault();
+			eventsInstance.removePointer(e);
 			eventsInstance.pointerupCheck(e);
 		});
 		layer.addEventListener('pointermove', e => {

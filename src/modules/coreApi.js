@@ -919,6 +919,17 @@ function CollectionPrototype (contextInfo, data, config, vDomIndex) {
 			bbox: bbox
 		}, vDomIndex);
 
+		for (let j = 0, len = styleKeys.length; j < len; j += 1) {
+			key = styleKeys[j];
+
+			if (typeof config.style[key] === 'function') {
+				const resValue = config.style[key].call(node, d, i);
+				node.setStyle(key, resValue);
+			} else {
+				node.setStyle(key, config.style[key]);
+			}
+		}
+
 		for (let j = 0, len = attrKeys.length; j < len; j += 1) {
 			key = attrKeys[j];
 
@@ -941,17 +952,6 @@ function CollectionPrototype (contextInfo, data, config, vDomIndex) {
 				for (const trns in transform) {
 					node[trns](transform[trns]);
 				}
-			}
-		}
-
-		for (let j = 0, len = styleKeys.length; j < len; j += 1) {
-			key = styleKeys[j];
-
-			if (typeof config.style[key] === 'function') {
-				const resValue = config.style[key].call(node, d, i);
-				node.setStyle(key, resValue);
-			} else {
-				node.setStyle(key, config.style[key]);
 			}
 		}
 

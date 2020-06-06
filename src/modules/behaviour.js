@@ -169,7 +169,8 @@ let ZoomClass = function () {
 		x: 0,
 		y: 0,
 		dx: 0,
-		dy: 0
+		dy: 0,
+		distance: 0
 	};
 	this.event.pointers = [];
 	this.event.transform = {
@@ -186,6 +187,7 @@ let ZoomClass = function () {
 		self.event.dx = 0;
 		self.event.dy = 0;
 		self.zoomStartFlag = true;
+		self.event.distance = 0;
 	};
 	this.onZoom = function (trgt, event) {
 		self.event.x = event.offsetX;
@@ -197,6 +199,7 @@ let ZoomClass = function () {
 		self.event.dx = 0;
 		self.event.dy = 0;
 		self.zoomStartFlag = false;
+		self.event.distance = 0;
 	};
 	this.onPanStart = function (trgt, event) {
 	};
@@ -212,7 +215,14 @@ ZoomClass.prototype.zoomStart = function (fun) {
 	let self = this;
 	if (typeof fun === 'function') {
 		this.zoomStartExe = fun;
-		this.onZoomStart = function (trgt, event) {
+		this.onZoomStart = function (trgt, event, eventsInstance) {
+			if (eventsInstance.pointers && eventsInstance.pointers.length === 2) {
+				let pointers = eventsInstance.pointers;
+				event = {
+					x: pointers[0].offsetX + ((pointers[1].offsetX - pointers[0].offsetX) * 0.5),
+					y: pointers[0].offsetY + ((pointers[1].offsetY - pointers[0].offsetY) * 0.5)
+				};
+			}
 			self.event.x = event.offsetX;
 			self.event.y = event.offsetY;
 			self.event.dx = 0;
@@ -221,6 +231,7 @@ ZoomClass.prototype.zoomStart = function (fun) {
 				fun.call(trgt, self.event);
 			}
 			self.zoomStartFlag = true;
+			self.event.distance = 0;
 		};
 	}
 	return this;
@@ -260,81 +271,85 @@ ZoomClass.prototype.zoomEnd = function (fun) {
 			self.event.dy = 0;
 			self.zoomStartFlag = false;
 			fun.call(trgt, self.event);
+			self.event.distance = 0;
 		};
 	}
 	return this;
 };
 
-ZoomClass.prototype.pointerAdd = function (e) {
-	this.event.pointers.push(e);
-	if (this.event.pointers.length === 2) {
-		let pointers = this.event.pointers;
-		this.event.zoomTouchPoint = {
-			x: pointers[0].offsetX + ((pointers[1].offsetX - pointers[0].offsetX) * 0.5),
-			y: pointers[0].offsetY + ((pointers[1].offsetY - pointers[0].offsetY) * 0.5)
-		};
-	} else if (this.event.pointers.length === 1) {
-		this.event.zoomTouchPoint = {
-			x: this.event.pointers[0].offsetX,
-			y: this.event.pointers[0].offsetY
-		};
-		this.event.x = this.event.pointers[0].offsetX;
-		this.event.y = this.event.pointers[0].offsetY;
-	}
-};
+// ZoomClass.prototype.pointerAdd = function (e) {
+// 	this.event.pointers.push(e);
+// 	if (this.event.pointers.length === 2) {
+// 		let pointers = this.event.pointers;
+// 		this.event.zoomTouchPoint = {
+// 			x: pointers[0].offsetX + ((pointers[1].offsetX - pointers[0].offsetX) * 0.5),
+// 			y: pointers[0].offsetY + ((pointers[1].offsetY - pointers[0].offsetY) * 0.5)
+// 		};
+// 	} else if (this.event.pointers.length === 1) {
+// 		this.event.zoomTouchPoint = {
+// 			x: this.event.pointers[0].offsetX,
+// 			y: this.event.pointers[0].offsetY
+// 		};
+// 		this.event.x = this.event.pointers[0].offsetX;
+// 		this.event.y = this.event.pointers[0].offsetY;
+// 	}
+// };
 
-ZoomClass.prototype.pointerRemove = function (e) {
-	let self = this;
-	let pointers = this.event.pointers;
-	let index = -1;
-	for (var i = 0; i < pointers.length; i++) {
-		if (e.pointerId === pointers[i].pointerId) {
-		    index = i;
-			break;
-		}
-	}
-	if (index !== -1) {
-		// setTimeout(function (argument) {
-		self.event.pointers = [];
-		self.event.distance = 0;
-		self.event.zoomTouchPoint = {};
-		// }, 100);
-	}
-};
+// ZoomClass.prototype.pointerRemove = function (e) {
+// 	let self = this;
+// 	let pointers = this.event.pointers;
+// 	let index = -1;
+// 	for (var i = 0; i < pointers.length; i++) {
+// 		if (e.pointerId === pointers[i].pointerId) {
+// 		    index = i;
+// 			break;
+// 		}
+// 	}
+// 	if (index !== -1) {
+// 		// setTimeout(function (argument) {
+// 		self.event.pointers = [];
+// 		self.event.distance = 0;
+// 		self.event.zoomTouchPoint = {};
+// 		// }, 100);
+// 	}
+// };
 
 ZoomClass.prototype.zoomTransition = function () {
 
 };
 
-ZoomClass.prototype.zoomExecute = function (trgt, event) {
+ZoomClass.prototype.zoomExecute = function (trgt, event, eventsInstance) {
 	this.eventType = 'zoom';
 	if (!this.zoomStartFlag) {
-		this.onZoomStart(trgt, event);
-	} else if (this.onZoom) {
+		this.onZoomStart(trgt, event, eventsInstance);
+	} else {
 		this.onZoom(trgt, event);
 	}
-	// event.preventDefault();
 };
 
-ZoomClass.prototype.zoomPinch = function (trgt, event) {
-	let pointers = this.event.pointers;
-	let distance_ = this.event.distance;
-	if (pointers.length === 2) {
-		for (var i = 0; i < pointers.length; i++) {
-			if (event.pointerId === pointers[i].pointerId) {
-			    pointers[i] = event;
-				break;
+ZoomClass.prototype.zoomPinch = function (trgt, event, eventsInstance) {
+	let pointers = eventsInstance.pointers;
+	if (eventsInstance.pointers.length === 2) {
+		if (!this.zoomStartFlag) {
+			this.onZoomStart(trgt, event, eventsInstance);
+		} else {
+			let distance_ = this.event.distance;
+			for (var i = 0; i < pointers.length; i++) {
+				if (event.pointerId === pointers[i].pointerId) {
+				    pointers[i] = event;
+					break;
+				}
 			}
+			let distance = geometry.getDistance({ x: pointers[0].offsetX, y: pointers[0].offsetY }, { x: pointers[1].offsetX, y: pointers[1].offsetY });
+			let pinchEvent = {
+				offsetX: this.event.x, // + ((pointers[1].clientX - pointers[0].clientX) * 0.5),
+				offsetY: this.event.y, // + ((pointers[1].clientY - pointers[0].clientY) * 0.5),
+				deltaY: !distance_ ? 0 : distance_ - distance
+			};
+			// console.log(pinchEvent.deltaY);
+			this.event.distance = distance;
+			this.onZoom(trgt, pinchEvent);
 		}
-		let distance = geometry.getDistance({ x: pointers[0].offsetX, y: pointers[0].offsetY }, { x: pointers[1].offsetX, y: pointers[1].offsetY });
-		let zoomTouchPoint = this.event.zoomTouchPoint;
-		let pinchEvent = {
-			offsetX: zoomTouchPoint.x, // + ((pointers[1].clientX - pointers[0].clientX) * 0.5),
-			offsetY: zoomTouchPoint.y, // + ((pointers[1].clientY - pointers[0].clientY) * 0.5),
-			deltaY: !distance_ ? 0 : distance_ - distance
-		};
-		this.event.distance = distance;
-		this.zoomExecute(trgt, pinchEvent);
 	}
 };
 
@@ -405,7 +420,7 @@ ZoomClass.prototype.scaleTo = function scaleTo (trgt, newScale, point) {
 				self.onZoomStart(trgt, {
 					offsetX: point[0],
 					offsetY: point[1]
-				});
+				}, {});
 			}
 
 			if (self.zoomExe) {
@@ -497,8 +512,8 @@ ZoomClass.prototype.panExtent = function (range) {
 	return this;
 };
 
-ZoomClass.prototype.panExecute = function (trgt, event, eventType) {
-	if (this.event.pointers.length !== 1) {
+ZoomClass.prototype.panExecute = function (trgt, event, eventType, eventsInstance) {
+	if (eventsInstance.pointers.length !== 1) {
 		return;
 	}
 	this.event.e = event;
@@ -508,7 +523,7 @@ ZoomClass.prototype.panExecute = function (trgt, event, eventType) {
 		event.offsetY = event.touches[0].clientY;
 	}
 	if (!this.zoomStartFlag && (eventType === 'mousedown' || eventType === 'pointerdown')) {
-		this.onZoomStart(trgt, event);
+		this.onZoomStart(trgt, event, {});
 	} else if (this.onZoomEnd && (eventType === 'mouseup' || eventType === 'mouseleave' || eventType === 'pointerup' || eventType === 'pointerleave')) {
 		this.onZoomEnd(trgt, event);
 	} else if (this.zoomExe) {

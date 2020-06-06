@@ -4,9 +4,34 @@ function Events (vDom) {
 	this.dragNode = null;
 	this.touchNode = null;
 	this.wheelNode = null;
+	this.pointers = [];
 }
 
 Events.prototype.getNode = function (e) {};
+
+Events.prototype.addPointer = function (e) {
+	this.pointers.push(e);
+};
+
+Events.prototype.removePointer = function (e) {
+	let self = this;
+	let pointers = this.pointers;
+	let index = -1;
+	for (var i = 0; i < pointers.length; i++) {
+		if (e.pointerId === pointers[i].pointerId) {
+		    index = i;
+			break;
+		}
+	}
+	if (index !== -1) {
+		self.pointers = [];
+		self.distance = 0;
+		if (this.pointerNode) {
+			this.pointerNode.node.events.zoom.onZoomEnd(this.pointerNode.node, e, self);
+		}
+	}
+};
+
 
 // Events.prototype.clickCheck = function (e) {
 // 	propogateEvent([this.vDom], {
@@ -23,6 +48,7 @@ Events.prototype.getNode = function (e) {};
 // };
 
 Events.prototype.pointerdownCheck = function (e) {
+	let self = this;
 	let node = propogateEvent([this.vDom], {
 		x: e.offsetX,
 		y: e.offsetY
@@ -39,13 +65,12 @@ Events.prototype.pointerdownCheck = function (e) {
 		}
 		
 		if (node.events.zoom) {
-			node.events.zoom.pointerAdd(e);
 			if (node.events.zoom.panFlag) {
-				node.events.zoom.panExecute(node, e, 'pointerdown');
+				node.events.zoom.panExecute(node, e, 'pointerdown', self);
 			}
 		}
 		if (node.events.drag) {
-			node.events.drag.execute(node, e, 'pointerdown');
+			node.events.drag.execute(node, e, 'pointerdown', self);
 		}
 	} else {
 		if (e.pointerType === 'touch') {
@@ -55,17 +80,18 @@ Events.prototype.pointerdownCheck = function (e) {
 };
 
 Events.prototype.pointermoveCheck = function (e) {
+	let self = this;
 	let node = this.pointerNode ? this.pointerNode.node : null;
 	if (node) {
 		this.pointerNode.dragCounter += 1;
 		if (node.events.zoom) {
 			if (node.events.zoom.panFlag) {
-				node.events.zoom.panExecute(node, e, 'pointermove');
+				node.events.zoom.panExecute(node, e, 'pointermove', self);
 			}
-			node.events.zoom.zoomPinch(node, e);
+			node.events.zoom.zoomPinch(node, e, self);
 		}
 		if (node.events.drag) {
-			node.events.drag.execute(node, e, 'pointermove');
+			node.events.drag.execute(node, e, 'pointermove', self);
 		}
 		if (node.events['mousemove']) {
 			node.events['mousemove'].call(node, e);
@@ -84,13 +110,12 @@ Events.prototype.pointerupCheck = function (e) {
 	let node = this.pointerNode ? this.pointerNode.node : null;
 	if (node) {
 		if (node.events.drag) {
-			node.events.drag.execute(node, e, 'pointerup');
+			node.events.drag.execute(node, e, 'pointerup', self);
 		}
 		if (node.events.zoom) {
 			if (node.events.zoom.panFlag) {
-				node.events.zoom.panExecute(node, e, 'pointerup');
+				node.events.zoom.panExecute(node, e, 'pointerup', self);
 			}
-			node.events.zoom.pointerRemove(e);
 		}
 		if (this.pointerNode.dragCounter === 0) {
 			if (this.pointerNode.clickCounter === 1 && node.events['click']) {
@@ -240,12 +265,12 @@ Events.prototype.wheelEventCheck = function (e) {
 		node = node || this.vDom;
 		if (node && node.events.zoom) {
 			if (!node.events.zoom.disableWheel) {
-				node.events.zoom.zoomExecute(node, e);
+				node.events.zoom.zoomExecute(node, e, self);
 				this.wheelNode = node;
 			}
 		}
 	} else {
-		this.wheelNode.events.zoom.zoomExecute(this.wheelNode, e);
+		this.wheelNode.events.zoom.zoomExecute(this.wheelNode, e, self);
 		wheelCounter += 1;
 		if (this.wheelHndl) {
 			clearTimeout(this.wheelHndl);
@@ -257,7 +282,7 @@ Events.prototype.wheelEventCheck = function (e) {
 				deltaWheel = wheelCounter;
 			} else {
 				self.wheelHndl = null;
-				self.wheelNode.events.zoom.onZoomEnd(self.wheelNode, e);
+				self.wheelNode.events.zoom.onZoomEnd(self.wheelNode, e, self);
 				self.wheelNode = null;
 				wheelCounter = 0;
 			}
