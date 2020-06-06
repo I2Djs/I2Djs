@@ -2075,10 +2075,12 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 		});
 		layer.addEventListener('pointerdown', e => {
 			e.preventDefault();
+			eventsInstance.addPointer(e);
 			eventsInstance.pointerdownCheck(e);
 		});
 		layer.addEventListener('pointerup', e => {
 			e.preventDefault();
+			eventsInstance.removePointer(e);
 			eventsInstance.pointerupCheck(e);
 		});
 		layer.addEventListener('pointermove', e => {

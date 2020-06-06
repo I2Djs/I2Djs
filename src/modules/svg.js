@@ -2,6 +2,7 @@ import queue from './queue.js';
 import VDom from './VDom.js';
 import path from './path.js';
 import colorMap from './colorMap.js';
+import Events from './events.js';
 import { CollectionPrototype, NodePrototype } from './coreApi.js';
 
 const queueInstance = queue;
@@ -743,6 +744,8 @@ function svgLayer (container, layerSettings = {}) {
 	root.width = width;
 	root.height = height;
 
+	let eventsInstance = new Events(root);
+
 	if (vDomInstance) {
 		vDomInstance.rootNode(root);
 	}
@@ -824,6 +827,7 @@ function svgLayer (container, layerSettings = {}) {
 	let dragNode = null;
 	root.dom.addEventListener('pointerdown', e => {
 		e.preventDefault();
+		eventsInstance.addPointer(e);
 		if (e.target.drag_) {
 			e.target.drag_(e, 'pointerdown');
 			dragNode = e.target;
@@ -831,6 +835,7 @@ function svgLayer (container, layerSettings = {}) {
 	});
 	root.dom.addEventListener('pointerup', e => {
 		e.preventDefault();
+		eventsInstance.removePointer(e);
 		if (dragNode) {
 			dragNode.drag_(e, 'pointerup');
 			dragNode = null;

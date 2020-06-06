@@ -2926,6 +2926,385 @@
 		}
 	};
 
+	function Events (vDom) {
+		this.vDom = vDom;
+		this.disable = false;
+		this.dragNode = null;
+		this.touchNode = null;
+		this.wheelNode = null;
+		this.pointers = [];
+	}
+
+	Events.prototype.getNode = function (e) {};
+
+	Events.prototype.addPointer = function (e) {
+		this.pointers.push(e);
+	};
+
+	Events.prototype.removePointer = function (e) {
+		let self = this;
+		let pointers = this.pointers;
+		let index = -1;
+		for (var i = 0; i < pointers.length; i++) {
+			if (e.pointerId === pointers[i].pointerId) {
+			    index = i;
+				break;
+			}
+		}
+		if (index !== -1) {
+			self.pointers = [];
+			self.distance = 0;
+			if (this.pointerNode) {
+				this.pointerNode.node.events.zoom.onZoomEnd(this.pointerNode.node, e, self);
+			}
+		}
+	};
+
+
+	// Events.prototype.clickCheck = function (e) {
+	// 	propogateEvent([this.vDom], {
+	// 		x: e.offsetX,
+	// 		y: e.offsetY
+	// 	}, e, 'click');
+	// };
+
+	// Events.prototype.dblclickCheck = function (e) {
+	// 	propogateEvent([this.vDom], {
+	// 		x: e.offsetX,
+	// 		y: e.offsetY
+	// 	}, e, 'dblclick');
+	// };
+
+	Events.prototype.pointerdownCheck = function (e) {
+		let self = this;
+		let node = propogateEvent([this.vDom], {
+			x: e.offsetX,
+			y: e.offsetY
+		}, e, 'pointerdown');
+		if (node && (node.events.zoom || node.events.drag)) {
+			if (!this.pointerNode || (this.pointerNode.node !== node)) {
+				this.pointerNode = {
+					node: node,
+					clickCounter: 1,
+					dragCounter: 0
+				};
+			} else {
+				this.pointerNode.clickCounter += 1;
+			}
+			
+			if (node.events.zoom) {
+				if (node.events.zoom.panFlag) {
+					node.events.zoom.panExecute(node, e, 'pointerdown', self);
+				}
+			}
+			if (node.events.drag) {
+				node.events.drag.execute(node, e, 'pointerdown', self);
+			}
+		} else {
+			if (e.pointerType === 'touch') {
+				this.mousedownCheck(e);
+			}
+		}
+	};
+
+	Events.prototype.pointermoveCheck = function (e) {
+		let self = this;
+		let node = this.pointerNode ? this.pointerNode.node : null;
+		if (node) {
+			this.pointerNode.dragCounter += 1;
+			if (node.events.zoom) {
+				if (node.events.zoom.panFlag) {
+					node.events.zoom.panExecute(node, e, 'pointermove', self);
+				}
+				node.events.zoom.zoomPinch(node, e, self);
+			}
+			if (node.events.drag) {
+				node.events.drag.execute(node, e, 'pointermove', self);
+			}
+			if (node.events['mousemove']) {
+				node.events['mousemove'].call(node, e);
+			}
+		} else {
+			if (e.pointerType === 'touch') {
+				this.mousemoveCheck(e);
+			}
+		}
+		e.preventDefault();
+	};
+
+	let clickInterval;
+	Events.prototype.pointerupCheck = function (e) {
+		let self = this;
+		let node = this.pointerNode ? this.pointerNode.node : null;
+		if (node) {
+			if (node.events.drag) {
+				node.events.drag.execute(node, e, 'pointerup', self);
+			}
+			if (node.events.zoom) {
+				if (node.events.zoom.panFlag) {
+					node.events.zoom.panExecute(node, e, 'pointerup', self);
+				}
+			}
+			if (this.pointerNode.dragCounter === 0) {
+				if (this.pointerNode.clickCounter === 1 && node.events['click']) {
+					clickInterval = setTimeout(function () {
+						self.pointerNode = null;
+						node.events['click'].call(node, e);
+						clickInterval = null;
+					}, 250);
+				} else if (this.pointerNode.clickCounter === 2 && node.events['dblclick']) {
+					if (clickInterval) {
+						clearTimeout(clickInterval);
+					}
+					node.events['dblclick'].call(node, e);
+					self.pointerNode = null;
+				} else {
+					this.pointerNode = null;
+				}
+			} else {
+				this.pointerNode = null;
+			}
+		} else {
+			if (e.pointerType === 'touch') {
+				this.mouseupCheck(e);
+			}
+		}
+	};
+
+	Events.prototype.mousedownCheck = function (e) {
+		propogateEvent([this.vDom], {
+			x: e.offsetX,
+			y: e.offsetY
+		}, e, 'mousedown');
+	};
+
+	Events.prototype.mousemoveCheck = function (e) {
+		let node = propogateEvent([this.vDom], {
+			x: e.offsetX,
+			y: e.offsetY
+		}, e, 'mousemove');
+		if (node && (node.events['mouseover'] || node.events['mousein'])) {
+			if (this.selectedNode !== node) {
+				if (node.events['mouseover']) {
+					node.events['mouseover'].call(node, e);
+				}
+				if (node.events['mousein']) {
+					node.events['mousein'].call(node, e);
+				}
+			}
+		}
+
+		if (this.selectedNode && this.selectedNode !== node) {
+			if (this.selectedNode.events['mouseout']) {
+				this.selectedNode.events['mouseout'].call(this.selectedNode, e);
+			}
+			if (this.selectedNode.events['mouseleave']) {
+				this.selectedNode.events['mouseleave'].call(this.selectedNode, e);
+			}
+		}
+
+		this.selectedNode = node;
+		e.preventDefault();
+	};
+
+	Events.prototype.mouseupCheck = function (e) {
+		propogateEvent([this.vDom], {
+			x: e.offsetX,
+			y: e.offsetY
+		}, e, 'mouseup');
+	};
+
+	Events.prototype.mouseleaveCheck = function (e) {
+		propogateEvent([this.vDom], {
+			x: e.offsetX,
+			y: e.offsetY
+		}, e, 'mouseleave');
+	};
+	Events.prototype.contextmenuCheck = function (e) {
+		propogateEvent([this.vDom], {
+			x: e.offsetX,
+			y: e.offsetY
+		}, e, 'contextmenu');
+	};
+
+	Events.prototype.touchstartCheck = function (e) {
+		propogateEvent([this.vDom], {
+			x: e.offsetX,
+			y: e.offsetY
+		}, e, 'touchstart');
+	};
+
+	Events.prototype.touchendCheck = function (e) {
+		propogateEvent([this.vDom], {
+			x: e.offsetX,
+			y: e.offsetY
+		}, e, 'touchend');
+	};
+
+	Events.prototype.touchmoveCheck = function (e) {
+		let touches = e.touches;
+		if (touches.length === 0) {
+			return;
+		}
+
+		propogateEvent([this.vDom], {
+			x: touches[0].clientX,
+			y: touches[0].clientY
+		}, e, 'touchmove');
+
+		// if (node && (node.events['mouseover'] || node.events['mousein'])) {
+		// 	if (this.selectedNode !== node) {
+		// 		if (node.events['mouseover']) {
+		// 			node.events['mouseover'].call(node, e);
+		// 		}
+		// 		if (node.events['mousein']) {
+		// 			node.events['mousein'].call(node, e);
+		// 		}
+		// 	}
+		// }
+
+		// if (this.selectedNode && this.selectedNode !== node) {
+		// 	if (this.selectedNode.events['mouseout']) {
+		// 		this.selectedNode.events['mouseout'].call(this.selectedNode, e);
+		// 	}
+		// 	if (this.selectedNode.events['mouseleave']) {
+		// 		this.selectedNode.events['mouseleave'].call(this.selectedNode, e);
+		// 	}
+		// }
+		// this.selectedNode = node;
+	};
+
+	Events.prototype.touchcancelCheck = function (e) {
+		propogateEvent([this.vDom], {
+			x: e.x,
+			y: e.y
+		}, e, 'touchcacel');
+	};
+
+	let wheelCounter = 0;
+	let deltaWheel = 0;
+	Events.prototype.wheelEventCheck = function (e) {
+		let self = this;
+		if (!this.wheelNode) {
+			let node = propogateEvent([this.vDom], {
+				x: e.offsetX,
+				y: e.offsetY
+			}, e, 'wheel');
+			node = node || this.vDom;
+			if (node && node.events.zoom) {
+				if (!node.events.zoom.disableWheel) {
+					node.events.zoom.zoomExecute(node, e, self);
+					this.wheelNode = node;
+				}
+			}
+		} else {
+			this.wheelNode.events.zoom.zoomExecute(this.wheelNode, e, self);
+			wheelCounter += 1;
+			if (this.wheelHndl) {
+				clearTimeout(this.wheelHndl);
+				this.wheelHndl = null;
+				deltaWheel = wheelCounter;
+			}
+			this.wheelHndl = setTimeout(function () {
+				if (deltaWheel !== wheelCounter) {
+					deltaWheel = wheelCounter;
+				} else {
+					self.wheelHndl = null;
+					self.wheelNode.events.zoom.onZoomEnd(self.wheelNode, e, self);
+					self.wheelNode = null;
+					wheelCounter = 0;
+				}
+			}, 100);
+		}
+		e.preventDefault();
+	};
+
+	function propogateEvent (nodes, mouseCoor, rawEvent, eventType) {
+		let node, temp;
+		
+		for (var i = nodes.length - 1; i >= 0; i -= 1) {
+			var d = nodes[i];
+			var coOr = {
+				x: mouseCoor.x,
+				y: mouseCoor.y
+			};
+
+			if (!d.bbox) {
+				continue;
+			}
+
+			transformCoOr$1(d, coOr);
+
+			if (d.in({ x: coOr.x, y: coOr.y })) {
+				if (d.children && d.children.length > 0) {
+					temp = propogateEvent(d.children, {
+						x: coOr.x,
+						y: coOr.y
+					}, rawEvent, eventType);
+
+					if (temp) {
+						node = temp;
+					}
+				} else {
+					node = d;
+				}
+				if (d.events[eventType] && typeof d.events[eventType] === 'function') {
+					d.events[eventType](rawEvent);
+				}
+				if (node) {
+					break;
+				}
+			}
+		}
+
+		if (!node && d.attr.id === 'rootNode') {
+			node = d;
+			if (d.events[eventType] && typeof d.events[eventType] === 'function') {
+				d.events[eventType](rawEvent);
+			}
+		}
+		return node;
+	}
+
+	function transformCoOr$1 (d, coOr) {
+		let hozMove = 0;
+		let verMove = 0;
+		let scaleX = 1;
+		let scaleY = 1;
+		const coOrLocal = coOr;
+
+		if (d.attr.transform && d.attr.transform.translate) {
+			[hozMove, verMove] = d.attr.transform.translate;
+			coOrLocal.x -= hozMove;
+			coOrLocal.y -= verMove;
+		}
+
+		if (d.attr.transform && d.attr.transform.scale) {
+			scaleX = d.attr.transform.scale[0] !== undefined ? d.attr.transform.scale[0] : 1;
+			scaleY = d.attr.transform.scale[1] !== undefined ? d.attr.transform.scale[1] : scaleX;
+			coOrLocal.x /= scaleX;
+			coOrLocal.y /= scaleY;
+		}
+
+		if (d.attr.transform && d.attr.transform.rotate) {
+			const rotate = d.attr.transform.rotate[0];
+
+			const cen = {
+				x: d.attr.transform.rotate[1],
+				y: d.attr.transform.rotate[2]
+			};
+			let x = coOrLocal.x;
+			let y = coOrLocal.y;
+			let cx = cen.x;
+			let cy = cen.y;
+			var radians = Math.PI / 180 * rotate;
+			var cos = Math.cos(radians);
+			var sin = Math.sin(radians);
+			coOrLocal.x = (cos * (x - cx)) + (sin * (y - cy)) + cx;
+			coOrLocal.y = (cos * (y - cy)) - (sin * (x - cx)) + cy;
+		}
+	}
+
 	/* eslint-disable no-undef */
 
 	let animeIdentifier = 0;
@@ -3839,6 +4218,17 @@
 				bbox: bbox
 			}, vDomIndex);
 
+			for (let j = 0, len = styleKeys.length; j < len; j += 1) {
+				key = styleKeys[j];
+
+				if (typeof config.style[key] === 'function') {
+					const resValue = config.style[key].call(node, d, i);
+					node.setStyle(key, resValue);
+				} else {
+					node.setStyle(key, config.style[key]);
+				}
+			}
+
 			for (let j = 0, len = attrKeys.length; j < len; j += 1) {
 				key = attrKeys[j];
 
@@ -3861,17 +4251,6 @@
 					for (const trns in transform) {
 						node[trns](transform[trns]);
 					}
-				}
-			}
-
-			for (let j = 0, len = styleKeys.length; j < len; j += 1) {
-				key = styleKeys[j];
-
-				if (typeof config.style[key] === 'function') {
-					const resValue = config.style[key].call(node, d, i);
-					node.setStyle(key, resValue);
-				} else {
-					node.setStyle(key, config.style[key]);
 				}
 			}
 
@@ -4657,6 +5036,8 @@
 		root.width = width;
 		root.height = height;
 
+		let eventsInstance = new Events(root);
+
 		if (vDomInstance) {
 			vDomInstance.rootNode(root);
 		}
@@ -4738,6 +5119,7 @@
 		let dragNode = null;
 		root.dom.addEventListener('pointerdown', e => {
 			e.preventDefault();
+			eventsInstance.addPointer(e);
 			if (e.target.drag_) {
 				e.target.drag_(e, 'pointerdown');
 				dragNode = e.target;
@@ -4745,6 +5127,7 @@
 		});
 		root.dom.addEventListener('pointerup', e => {
 			e.preventDefault();
+			eventsInstance.removePointer(e);
 			if (dragNode) {
 				dragNode.drag_(e, 'pointerup');
 				dragNode = null;
@@ -4763,360 +5146,6 @@
 		}
 
 		return root;
-	}
-
-	function Events (vDom) {
-		this.vDom = vDom;
-		this.disable = false;
-		this.dragNode = null;
-		this.touchNode = null;
-		this.wheelNode = null;
-	}
-
-	Events.prototype.getNode = function (e) {};
-
-	// Events.prototype.clickCheck = function (e) {
-	// 	propogateEvent([this.vDom], {
-	// 		x: e.offsetX,
-	// 		y: e.offsetY
-	// 	}, e, 'click');
-	// };
-
-	// Events.prototype.dblclickCheck = function (e) {
-	// 	propogateEvent([this.vDom], {
-	// 		x: e.offsetX,
-	// 		y: e.offsetY
-	// 	}, e, 'dblclick');
-	// };
-
-	Events.prototype.pointerdownCheck = function (e) {
-		let node = propogateEvent([this.vDom], {
-			x: e.offsetX,
-			y: e.offsetY
-		}, e, 'pointerdown');
-		if (node && (node.events.zoom || node.events.drag)) {
-			if (!this.pointerNode || (this.pointerNode.node !== node)) {
-				this.pointerNode = {
-					node: node,
-					clickCounter: 1,
-					dragCounter: 0
-				};
-			} else {
-				this.pointerNode.clickCounter += 1;
-			}
-			
-			if (node.events.zoom) {
-				node.events.zoom.pointerAdd(e);
-				if (node.events.zoom.panFlag) {
-					node.events.zoom.panExecute(node, e, 'pointerdown');
-				}
-			}
-			if (node.events.drag) {
-				node.events.drag.execute(node, e, 'pointerdown');
-			}
-		} else {
-			if (e.pointerType === 'touch') {
-				this.mousedownCheck(e);
-			}
-		}
-	};
-
-	Events.prototype.pointermoveCheck = function (e) {
-		let node = this.pointerNode ? this.pointerNode.node : null;
-		if (node) {
-			this.pointerNode.dragCounter += 1;
-			if (node.events.zoom) {
-				if (node.events.zoom.panFlag) {
-					node.events.zoom.panExecute(node, e, 'pointermove');
-				}
-				node.events.zoom.zoomPinch(node, e);
-			}
-			if (node.events.drag) {
-				node.events.drag.execute(node, e, 'pointermove');
-			}
-			if (node.events['mousemove']) {
-				node.events['mousemove'].call(node, e);
-			}
-		} else {
-			if (e.pointerType === 'touch') {
-				this.mousemoveCheck(e);
-			}
-		}
-		e.preventDefault();
-	};
-
-	let clickInterval;
-	Events.prototype.pointerupCheck = function (e) {
-		let self = this;
-		let node = this.pointerNode ? this.pointerNode.node : null;
-		if (node) {
-			if (node.events.drag) {
-				node.events.drag.execute(node, e, 'pointerup');
-			}
-			if (node.events.zoom) {
-				if (node.events.zoom.panFlag) {
-					node.events.zoom.panExecute(node, e, 'pointerup');
-				}
-				node.events.zoom.pointerRemove(e);
-			}
-			if (this.pointerNode.dragCounter === 0) {
-				if (this.pointerNode.clickCounter === 1 && node.events['click']) {
-					clickInterval = setTimeout(function () {
-						self.pointerNode = null;
-						node.events['click'].call(node, e);
-						clickInterval = null;
-					}, 250);
-				} else if (this.pointerNode.clickCounter === 2 && node.events['dblclick']) {
-					if (clickInterval) {
-						clearTimeout(clickInterval);
-					}
-					node.events['dblclick'].call(node, e);
-					self.pointerNode = null;
-				} else {
-					this.pointerNode = null;
-				}
-			} else {
-				this.pointerNode = null;
-			}
-		} else {
-			if (e.pointerType === 'touch') {
-				this.mouseupCheck(e);
-			}
-		}
-	};
-
-	Events.prototype.mousedownCheck = function (e) {
-		propogateEvent([this.vDom], {
-			x: e.offsetX,
-			y: e.offsetY
-		}, e, 'mousedown');
-	};
-
-	Events.prototype.mousemoveCheck = function (e) {
-		let node = propogateEvent([this.vDom], {
-			x: e.offsetX,
-			y: e.offsetY
-		}, e, 'mousemove');
-		if (node && (node.events['mouseover'] || node.events['mousein'])) {
-			if (this.selectedNode !== node) {
-				if (node.events['mouseover']) {
-					node.events['mouseover'].call(node, e);
-				}
-				if (node.events['mousein']) {
-					node.events['mousein'].call(node, e);
-				}
-			}
-		}
-
-		if (this.selectedNode && this.selectedNode !== node) {
-			if (this.selectedNode.events['mouseout']) {
-				this.selectedNode.events['mouseout'].call(this.selectedNode, e);
-			}
-			if (this.selectedNode.events['mouseleave']) {
-				this.selectedNode.events['mouseleave'].call(this.selectedNode, e);
-			}
-		}
-
-		this.selectedNode = node;
-		e.preventDefault();
-	};
-
-	Events.prototype.mouseupCheck = function (e) {
-		propogateEvent([this.vDom], {
-			x: e.offsetX,
-			y: e.offsetY
-		}, e, 'mouseup');
-	};
-
-	Events.prototype.mouseleaveCheck = function (e) {
-		propogateEvent([this.vDom], {
-			x: e.offsetX,
-			y: e.offsetY
-		}, e, 'mouseleave');
-	};
-	Events.prototype.contextmenuCheck = function (e) {
-		propogateEvent([this.vDom], {
-			x: e.offsetX,
-			y: e.offsetY
-		}, e, 'contextmenu');
-	};
-
-	Events.prototype.touchstartCheck = function (e) {
-		propogateEvent([this.vDom], {
-			x: e.offsetX,
-			y: e.offsetY
-		}, e, 'touchstart');
-	};
-
-	Events.prototype.touchendCheck = function (e) {
-		propogateEvent([this.vDom], {
-			x: e.offsetX,
-			y: e.offsetY
-		}, e, 'touchend');
-	};
-
-	Events.prototype.touchmoveCheck = function (e) {
-		let touches = e.touches;
-		if (touches.length === 0) {
-			return;
-		}
-
-		propogateEvent([this.vDom], {
-			x: touches[0].clientX,
-			y: touches[0].clientY
-		}, e, 'touchmove');
-
-		// if (node && (node.events['mouseover'] || node.events['mousein'])) {
-		// 	if (this.selectedNode !== node) {
-		// 		if (node.events['mouseover']) {
-		// 			node.events['mouseover'].call(node, e);
-		// 		}
-		// 		if (node.events['mousein']) {
-		// 			node.events['mousein'].call(node, e);
-		// 		}
-		// 	}
-		// }
-
-		// if (this.selectedNode && this.selectedNode !== node) {
-		// 	if (this.selectedNode.events['mouseout']) {
-		// 		this.selectedNode.events['mouseout'].call(this.selectedNode, e);
-		// 	}
-		// 	if (this.selectedNode.events['mouseleave']) {
-		// 		this.selectedNode.events['mouseleave'].call(this.selectedNode, e);
-		// 	}
-		// }
-		// this.selectedNode = node;
-	};
-
-	Events.prototype.touchcancelCheck = function (e) {
-		propogateEvent([this.vDom], {
-			x: e.x,
-			y: e.y
-		}, e, 'touchcacel');
-	};
-
-	let wheelCounter = 0;
-	let deltaWheel = 0;
-	Events.prototype.wheelEventCheck = function (e) {
-		let self = this;
-		if (!this.wheelNode) {
-			let node = propogateEvent([this.vDom], {
-				x: e.offsetX,
-				y: e.offsetY
-			}, e, 'wheel');
-			node = node || this.vDom;
-			if (node && node.events.zoom) {
-				if (!node.events.zoom.disableWheel) {
-					node.events.zoom.zoomExecute(node, e);
-					this.wheelNode = node;
-				}
-			}
-		} else {
-			this.wheelNode.events.zoom.zoomExecute(this.wheelNode, e);
-			wheelCounter += 1;
-			if (this.wheelHndl) {
-				clearTimeout(this.wheelHndl);
-				this.wheelHndl = null;
-				deltaWheel = wheelCounter;
-			}
-			this.wheelHndl = setTimeout(function () {
-				if (deltaWheel !== wheelCounter) {
-					deltaWheel = wheelCounter;
-				} else {
-					self.wheelHndl = null;
-					self.wheelNode.events.zoom.onZoomEnd(self.wheelNode, e);
-					self.wheelNode = null;
-					wheelCounter = 0;
-				}
-			}, 100);
-		}
-		e.preventDefault();
-	};
-
-	function propogateEvent (nodes, mouseCoor, rawEvent, eventType) {
-		let node, temp;
-		
-		for (var i = nodes.length - 1; i >= 0; i -= 1) {
-			var d = nodes[i];
-			var coOr = {
-				x: mouseCoor.x,
-				y: mouseCoor.y
-			};
-
-			if (!d.bbox) {
-				continue;
-			}
-
-			transformCoOr$1(d, coOr);
-
-			if (d.in({ x: coOr.x, y: coOr.y })) {
-				if (d.children && d.children.length > 0) {
-					temp = propogateEvent(d.children, {
-						x: coOr.x,
-						y: coOr.y
-					}, rawEvent, eventType);
-
-					if (temp) {
-						node = temp;
-					}
-				} else {
-					node = d;
-				}
-				if (d.events[eventType] && typeof d.events[eventType] === 'function') {
-					d.events[eventType](rawEvent);
-				}
-				if (node) {
-					break;
-				}
-			}
-		}
-
-		if (!node && d.attr.id === 'rootNode') {
-			node = d;
-			if (d.events[eventType] && typeof d.events[eventType] === 'function') {
-				d.events[eventType](rawEvent);
-			}
-		}
-		return node;
-	}
-
-	function transformCoOr$1 (d, coOr) {
-		let hozMove = 0;
-		let verMove = 0;
-		let scaleX = 1;
-		let scaleY = 1;
-		const coOrLocal = coOr;
-
-		if (d.attr.transform && d.attr.transform.translate) {
-			[hozMove, verMove] = d.attr.transform.translate;
-			coOrLocal.x -= hozMove;
-			coOrLocal.y -= verMove;
-		}
-
-		if (d.attr.transform && d.attr.transform.scale) {
-			scaleX = d.attr.transform.scale[0] !== undefined ? d.attr.transform.scale[0] : 1;
-			scaleY = d.attr.transform.scale[1] !== undefined ? d.attr.transform.scale[1] : scaleX;
-			coOrLocal.x /= scaleX;
-			coOrLocal.y /= scaleY;
-		}
-
-		if (d.attr.transform && d.attr.transform.rotate) {
-			const rotate = d.attr.transform.rotate[0];
-
-			const cen = {
-				x: d.attr.transform.rotate[1],
-				y: d.attr.transform.rotate[2]
-			};
-			let x = coOrLocal.x;
-			let y = coOrLocal.y;
-			let cx = cen.x;
-			let cy = cen.y;
-			var radians = Math.PI / 180 * rotate;
-			var cos = Math.cos(radians);
-			var sin = Math.sin(radians);
-			coOrLocal.x = (cos * (x - cx)) + (sin * (y - cy)) + cx;
-			coOrLocal.y = (cos * (y - cy)) - (sin * (x - cx)) + cy;
-		}
 	}
 
 	const queueInstance$3 = queue;
@@ -5286,7 +5315,8 @@
 			x: 0,
 			y: 0,
 			dx: 0,
-			dy: 0
+			dy: 0,
+			distance: 0
 		};
 		this.event.pointers = [];
 		this.event.transform = {
@@ -5303,6 +5333,7 @@
 			self.event.dx = 0;
 			self.event.dy = 0;
 			self.zoomStartFlag = true;
+			self.event.distance = 0;
 		};
 		this.onZoom = function (trgt, event) {
 			self.event.x = event.offsetX;
@@ -5314,6 +5345,7 @@
 			self.event.dx = 0;
 			self.event.dy = 0;
 			self.zoomStartFlag = false;
+			self.event.distance = 0;
 		};
 		this.onPanStart = function (trgt, event) {
 		};
@@ -5329,7 +5361,14 @@
 		let self = this;
 		if (typeof fun === 'function') {
 			this.zoomStartExe = fun;
-			this.onZoomStart = function (trgt, event) {
+			this.onZoomStart = function (trgt, event, eventsInstance) {
+				if (eventsInstance.pointers && eventsInstance.pointers.length === 2) {
+					let pointers = eventsInstance.pointers;
+					event = {
+						x: pointers[0].offsetX + ((pointers[1].offsetX - pointers[0].offsetX) * 0.5),
+						y: pointers[0].offsetY + ((pointers[1].offsetY - pointers[0].offsetY) * 0.5)
+					};
+				}
 				self.event.x = event.offsetX;
 				self.event.y = event.offsetY;
 				self.event.dx = 0;
@@ -5338,6 +5377,7 @@
 					fun.call(trgt, self.event);
 				}
 				self.zoomStartFlag = true;
+				self.event.distance = 0;
 			};
 		}
 		return this;
@@ -5377,81 +5417,85 @@
 				self.event.dy = 0;
 				self.zoomStartFlag = false;
 				fun.call(trgt, self.event);
+				self.event.distance = 0;
 			};
 		}
 		return this;
 	};
 
-	ZoomClass.prototype.pointerAdd = function (e) {
-		this.event.pointers.push(e);
-		if (this.event.pointers.length === 2) {
-			let pointers = this.event.pointers;
-			this.event.zoomTouchPoint = {
-				x: pointers[0].offsetX + ((pointers[1].offsetX - pointers[0].offsetX) * 0.5),
-				y: pointers[0].offsetY + ((pointers[1].offsetY - pointers[0].offsetY) * 0.5)
-			};
-		} else if (this.event.pointers.length === 1) {
-			this.event.zoomTouchPoint = {
-				x: this.event.pointers[0].offsetX,
-				y: this.event.pointers[0].offsetY
-			};
-			this.event.x = this.event.pointers[0].offsetX;
-			this.event.y = this.event.pointers[0].offsetY;
-		}
-	};
+	// ZoomClass.prototype.pointerAdd = function (e) {
+	// 	this.event.pointers.push(e);
+	// 	if (this.event.pointers.length === 2) {
+	// 		let pointers = this.event.pointers;
+	// 		this.event.zoomTouchPoint = {
+	// 			x: pointers[0].offsetX + ((pointers[1].offsetX - pointers[0].offsetX) * 0.5),
+	// 			y: pointers[0].offsetY + ((pointers[1].offsetY - pointers[0].offsetY) * 0.5)
+	// 		};
+	// 	} else if (this.event.pointers.length === 1) {
+	// 		this.event.zoomTouchPoint = {
+	// 			x: this.event.pointers[0].offsetX,
+	// 			y: this.event.pointers[0].offsetY
+	// 		};
+	// 		this.event.x = this.event.pointers[0].offsetX;
+	// 		this.event.y = this.event.pointers[0].offsetY;
+	// 	}
+	// };
 
-	ZoomClass.prototype.pointerRemove = function (e) {
-		let self = this;
-		let pointers = this.event.pointers;
-		let index = -1;
-		for (var i = 0; i < pointers.length; i++) {
-			if (e.pointerId === pointers[i].pointerId) {
-			    index = i;
-				break;
-			}
-		}
-		if (index !== -1) {
-			// setTimeout(function (argument) {
-			self.event.pointers = [];
-			self.event.distance = 0;
-			self.event.zoomTouchPoint = {};
-			// }, 100);
-		}
-	};
+	// ZoomClass.prototype.pointerRemove = function (e) {
+	// 	let self = this;
+	// 	let pointers = this.event.pointers;
+	// 	let index = -1;
+	// 	for (var i = 0; i < pointers.length; i++) {
+	// 		if (e.pointerId === pointers[i].pointerId) {
+	// 		    index = i;
+	// 			break;
+	// 		}
+	// 	}
+	// 	if (index !== -1) {
+	// 		// setTimeout(function (argument) {
+	// 		self.event.pointers = [];
+	// 		self.event.distance = 0;
+	// 		self.event.zoomTouchPoint = {};
+	// 		// }, 100);
+	// 	}
+	// };
 
 	ZoomClass.prototype.zoomTransition = function () {
 
 	};
 
-	ZoomClass.prototype.zoomExecute = function (trgt, event) {
+	ZoomClass.prototype.zoomExecute = function (trgt, event, eventsInstance) {
 		this.eventType = 'zoom';
 		if (!this.zoomStartFlag) {
-			this.onZoomStart(trgt, event);
-		} else if (this.onZoom) {
+			this.onZoomStart(trgt, event, eventsInstance);
+		} else {
 			this.onZoom(trgt, event);
 		}
-		// event.preventDefault();
 	};
 
-	ZoomClass.prototype.zoomPinch = function (trgt, event) {
-		let pointers = this.event.pointers;
-		let distance_ = this.event.distance;
-		if (pointers.length === 2) {
-			for (var i = 0; i < pointers.length; i++) {
-				if (event.pointerId === pointers[i].pointerId) {
-				    pointers[i] = event;
-					break;
+	ZoomClass.prototype.zoomPinch = function (trgt, event, eventsInstance) {
+		let pointers = eventsInstance.pointers;
+		if (eventsInstance.pointers.length === 2) {
+			if (!this.zoomStartFlag) {
+				this.onZoomStart(trgt, event, eventsInstance);
+			} else {
+				let distance_ = this.event.distance;
+				for (var i = 0; i < pointers.length; i++) {
+					if (event.pointerId === pointers[i].pointerId) {
+					    pointers[i] = event;
+						break;
+					}
 				}
+				let distance = geometry.getDistance({ x: pointers[0].offsetX, y: pointers[0].offsetY }, { x: pointers[1].offsetX, y: pointers[1].offsetY });
+				let pinchEvent = {
+					offsetX: this.event.x, // + ((pointers[1].clientX - pointers[0].clientX) * 0.5),
+					offsetY: this.event.y, // + ((pointers[1].clientY - pointers[0].clientY) * 0.5),
+					deltaY: !distance_ ? 0 : distance_ - distance
+				};
+				// console.log(pinchEvent.deltaY);
+				this.event.distance = distance;
+				this.onZoom(trgt, pinchEvent);
 			}
-			let distance = geometry.getDistance({ x: pointers[0].offsetX, y: pointers[0].offsetY }, { x: pointers[1].offsetX, y: pointers[1].offsetY });
-			let zoomTouchPoint = this.event.zoomTouchPoint;
-			let pinchEvent = {
-				offsetX: zoomTouchPoint.x, // + ((pointers[1].clientX - pointers[0].clientX) * 0.5),
-				offsetY: zoomTouchPoint.y, // + ((pointers[1].clientY - pointers[0].clientY) * 0.5),
-				deltaY: !distance_ ? 0 : distance_ - distance
-			};
-			this.event.distance = distance;
-			this.zoomExecute(trgt, pinchEvent);
 		}
 	};
 
@@ -5522,7 +5566,7 @@
 					self.onZoomStart(trgt, {
 						offsetX: point[0],
 						offsetY: point[1]
-					});
+					}, {});
 				}
 
 				if (self.zoomExe) {
@@ -5614,8 +5658,8 @@
 		return this;
 	};
 
-	ZoomClass.prototype.panExecute = function (trgt, event, eventType) {
-		if (this.event.pointers.length !== 1) {
+	ZoomClass.prototype.panExecute = function (trgt, event, eventType, eventsInstance) {
+		if (eventsInstance.pointers.length !== 1) {
 			return;
 		}
 		this.event.e = event;
@@ -5625,7 +5669,7 @@
 			event.offsetY = event.touches[0].clientY;
 		}
 		if (!this.zoomStartFlag && (eventType === 'mousedown' || eventType === 'pointerdown')) {
-			this.onZoomStart(trgt, event);
+			this.onZoomStart(trgt, event, {});
 		} else if (this.onZoomEnd && (eventType === 'mouseup' || eventType === 'mouseleave' || eventType === 'pointerup' || eventType === 'pointerleave')) {
 			this.onZoomEnd(trgt, event);
 		} else if (this.zoomExe) {
@@ -7716,10 +7760,12 @@
 			});
 			layer.addEventListener('pointerdown', e => {
 				e.preventDefault();
+				eventsInstance.addPointer(e);
 				eventsInstance.pointerdownCheck(e);
 			});
 			layer.addEventListener('pointerup', e => {
 				e.preventDefault();
+				eventsInstance.removePointer(e);
 				eventsInstance.pointerupCheck(e);
 			});
 			layer.addEventListener('pointermove', e => {
@@ -9264,6 +9310,177 @@
 		return (value & value - 1) === 0;
 	}
 
+	function buildCanvasTextEl (str, style) {
+		let text = canvasAPI.canvasLayer(null, {}, {});
+		text.setPixelRatio(ratio);
+		let fontSize = parseInt(style.font, 10) || 12;
+		let twid = text.ctx.measureText(str).width;
+		let width = twid * fontSize * 0.1;
+		let height = fontSize;
+		text.setSize(width, height);
+
+		text.createEl({
+			el: 'rect',
+			attr: {
+				x: 0,
+				y: 0,
+				width: width,
+				height: height
+			},
+			style: {
+				fillStyle: '#fff'
+			}
+		});
+
+		text.createEl({
+			el: 'text',
+			attr: {
+				x: 0,
+				y: (height * 0.75),
+				text: str
+			},
+			style: style
+		});
+		text.execute();
+
+		return text;
+	}
+
+	function TextNode (ctx, attr, style, vDomIndex) {
+		let self = this;
+		this.ctx = ctx;
+		this.attr = attr;
+		this.style = style;
+		this.vDomIndex = vDomIndex;
+		
+		if (self.attr.text && (typeof self.attr.text === 'string')) {
+			this.text = buildCanvasTextEl(self.attr.text, self.style);
+			this.attr.width = this.text.width * 1;
+			this.attr.height = this.text.height;
+		}
+
+		if (this.text) {
+			this.textureNode = new TextureObject(ctx, {
+				src: this.text
+			}, this.vDomIndex);
+		}
+	}
+	TextNode.prototype = new WebglDom();
+	TextNode.prototype.constructor = TextNode;
+
+	TextNode.prototype.setShader = function (shader) {
+		this.shader = shader;
+		if (this.shader) {
+			this.shader.addVertex(this.attr.x || 0, this.attr.y || 0, this.attr.width || 0, this.attr.height || 0, this.pindex);
+			// this.shader.addOpacity(1, this.pindex);
+		}
+	};
+
+	TextNode.prototype.setAttr = function (key, value) {
+		this.attr[key] = value;
+
+		if (value === undefined || value === null) {
+			delete this.attr[key];
+			return;
+		}
+
+		if (key === 'text' && (typeof value === 'string')) {
+			if (this.text) {
+				this.text = buildCanvasTextEl(this.attr.text, this.style);
+				// this.attr.width = this.text.width;
+				// this.attr.height = this.text.height;
+			} else {
+				this.text = buildCanvasTextEl(value, this.style);
+			}
+			this.attr.width = this.text.width * 1;
+			this.attr.height = this.text.height;
+			// this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+			// this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
+			if (this.textureNode) {
+				this.textureNode.setAttr('src', this.text);
+			} else {
+				this.textureNode = new TextureObject(this.ctx, {
+					src: this.text
+				}, this.vDomIndex);
+			}
+		}
+		
+		if (this.shader && (key === 'x')) {
+			this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+		}
+		if (this.shader && (key === 'y')) {
+			this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
+		}
+	};
+
+	TextNode.prototype.setStyle = function (key, value) {
+		this.style[key] = value;
+		if (this.text) {
+			if (key === 'font') {
+				let fontSize = parseInt(value, 10) || 12;
+				let twid = this.text.ctx.measureText(this.attr.text).width;
+				let width = twid * fontSize * 0.07;
+				let height = fontSize * 0.5;
+				this.attr.width = width;
+				this.attr.height = height;
+				this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+				this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
+			} else {
+				this.text.fetchEl('text').setStyle(key, value);
+				this.text.execute();
+				this.textureNode.setAttr('src', this.text);
+			}
+		}
+	};
+
+	TextNode.prototype.getAttr = function (key) {
+		return this.attr[key];
+	};
+
+	TextNode.prototype.getStyle = function (key) {
+		return this.style[key];
+	};
+
+	TextNode.prototype.in = function RIinfun (co) {
+		const {
+			width = 0,
+			height = 0,
+			x = 0,
+			y = 0
+		} = this.attr;
+		return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
+	};
+
+	TextNode.prototype.updateBBox = function RIupdateBBox () {
+		const self = this;
+		const {
+			transform,
+			x = 0,
+			y = 0,
+			width = 0,
+			height = 0
+		} = self.attr;
+		let {
+			translateX,
+			translateY,
+			scaleX,
+			scaleY
+		} = parseTransform$1(transform);
+
+		self.BBox = {
+			x: (translateX + x) * scaleX,
+			y: (translateY + y) * scaleY,
+			width: width * scaleX,
+			height: height * scaleY
+		};
+
+		if (transform && transform.rotate) {
+			self.BBoxHit = t2DGeometry$4.rotateBBox(this.BBox, transform);
+		} else {
+			self.BBoxHit = this.BBox;
+		}
+	};
+
 	function ImageNode (ctx, attr, style, vDomIndex) {
 		let self = this;
 		this.ctx = ctx;
@@ -9271,10 +9488,15 @@
 		this.style = style;
 		this.vDomIndex = vDomIndex;
 		
-		if (self.attr.src && (typeof self.attr.src === 'string') && !webGLImageTextures[self.attr.src]) {
-			webGLImageTextures[self.attr.src] = new TextureObject(ctx, {
+		if (self.attr.src && typeof self.attr.src === 'string' && !webGLImageTextures[self.attr.src]) {
+			this.textureNode = new TextureObject(ctx, {
 				src: this.attr.src
 			}, this.vDomIndex);
+			webGLImageTextures[self.attr.src] = this.textureNode;
+		} else if (typeof self.attr.src === 'string' && webGLImageTextures[self.attr.src]) {
+			this.textureNode = webGLImageTextures[self.attr.src];
+		} else if (self.attr.src && self.attr.src instanceof TextureObject) {
+			this.textureNode = self.attr.src;
 		}
 	}
 	ImageNode.prototype = new WebglDom();
@@ -9298,10 +9520,17 @@
 
 		if (key === 'src' && (typeof value === 'string')) {
 			if (value && !webGLImageTextures[value]) {
-				webGLImageTextures[value] = new TextureObject(this.ctx, {
+				this.textureNode = new TextureObject(this.ctx, {
 					src: value
 				}, this.vDomIndex);
+				 webGLImageTextures[value] = this.textureNode;
 			}
+		} else if (key === 'src' && value instanceof NodePrototype) {
+			this.textureNode = new TextureObject(this.ctx, {
+				src: value
+			}, this.vDomIndex);
+		} else if (key === 'src' && value instanceof TextureObject) {
+			this.textureNode = value;
 		}
 		if (!this.shader) {
 			return;
@@ -10887,16 +11116,22 @@
 
 		for (var i = 0, len = stack.length; i < len; i++) {
 			let node = stack[i];
-			if (typeof node.attr.src === 'string') {
-				if (!webGLImageTextures[node.attr.src].updated) {
-					continue;
-				}
-				webGLImageTextures[node.attr.src].loadTexture();
-				this.shaderInstance.applyUniformData('u_image', webGLImageTextures[node.attr.src]);
-			} else if (node.attr.src instanceof TextureObject) {
-				node.attr.src.loadTexture();
-				this.shaderInstance.applyUniformData('u_image', node.attr.src);
+			if (!node.dom.textureNode) {
+				continue;
 			}
+			if (node.style.display === 'none') {
+				continue;
+			}
+			// if (typeof node.attr.src === 'string') {
+				
+			// 	node.textureNode.loadTexture();
+			// 	this.shaderInstance.applyUniformData('u_image', node.textureNode);
+			// } else if (node.attr.src instanceof TextureObject) {
+			// 	node.attr.src.loadTexture();
+			// 	this.shaderInstance.applyUniformData('u_image', node.attr.src);
+			// }
+			node.dom.textureNode.loadTexture();
+			this.shaderInstance.applyUniformData('u_image', node.dom.textureNode);
 			this.shaderInstance.applyAttributeData('a_position', this.positionArray[i]);
 			this.shaderInstance.applyUniformData('u_opacity', node.style.opacity || this.style.opacity || 1.0);
 			this.shaderInstance.draw();
@@ -10936,6 +11171,10 @@
 				break;
 
 			case 'image':
+				e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
+				break;
+
+			case 'text':
 				e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
 				break;
 
@@ -10990,6 +11229,10 @@
 
 			case 'image':
 				this.dom = new ImageNode(this.ctx, this.attr, this.style, vDomIndex);
+				break;
+
+			case 'text':
+				this.dom = new TextNode(this.ctx, this.attr, this.style, vDomIndex);
 				break;
 
 			case 'group':
@@ -11119,6 +11362,9 @@
 	};
 
 	WebglNodeExe.prototype.execute = function Cexecute () {
+		if (this.style.display === 'none') {
+			return;
+		}
 		if (!this.dom.shader && this.dom instanceof WebglGroupNode) {
 			for (let i = 0, len = this.children.length; i < len; i += 1) {
 				this.children[i].execute();
@@ -11468,10 +11714,12 @@
 			});
 			layer.addEventListener('pointerdown', e => {
 				e.preventDefault();
+				eventsInstance.addPointer(e);
 				eventsInstance.pointerdownCheck(e);
 			});
 			layer.addEventListener('pointerup', e => {
 				e.preventDefault();
+				eventsInstance.removePointer(e);
 				eventsInstance.pointerupCheck(e);
 			});
 			layer.addEventListener('pointermove', e => {
