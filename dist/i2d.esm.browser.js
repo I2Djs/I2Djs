@@ -9314,19 +9314,6 @@ function buildCanvasTextEl (str, style) {
 	text.setSize(width, height);
 
 	text.createEl({
-		el: 'rect',
-		attr: {
-			x: 0,
-			y: 0,
-			width: width,
-			height: height
-		},
-		style: {
-			fillStyle: '#fff'
-		}
-	});
-
-	text.createEl({
 		el: 'text',
 		attr: {
 			x: 0,
