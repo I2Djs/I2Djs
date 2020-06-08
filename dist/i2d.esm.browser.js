@@ -2948,7 +2948,7 @@ Events.prototype.removePointer = function (e) {
 	if (index !== -1) {
 		self.pointers = [];
 		self.distance = 0;
-		if (this.pointerNode) {
+		if (this.pointerNode && this.pointerNode.node.events.zoom) {
 			this.pointerNode.node.events.zoom.onZoomEnd(this.pointerNode.node, e, self);
 		}
 	}
@@ -2975,17 +2975,16 @@ Events.prototype.pointerdownCheck = function (e) {
 		x: e.offsetX,
 		y: e.offsetY
 	}, e, 'pointerdown');
+	if (node && (!this.pointerNode || (this.pointerNode.node !== node))) {
+		this.pointerNode = {
+			node: node,
+			clickCounter: 1,
+			dragCounter: 0
+		};
+	} else if (this.pointerNode) {
+		this.pointerNode.clickCounter += 1;
+	}
 	if (node && (node.events.zoom || node.events.drag)) {
-		if (!this.pointerNode || (this.pointerNode.node !== node)) {
-			this.pointerNode = {
-				node: node,
-				clickCounter: 1,
-				dragCounter: 0
-			};
-		} else {
-			this.pointerNode.clickCounter += 1;
-		}
-		
 		if (node.events.zoom) {
 			if (node.events.zoom.panFlag) {
 				node.events.zoom.panExecute(node, e, 'pointerdown', self);
@@ -2994,9 +2993,9 @@ Events.prototype.pointerdownCheck = function (e) {
 		if (node.events.drag) {
 			node.events.drag.execute(node, e, 'pointerdown', self);
 		}
-	} else {
+	} else if (node) {
 		if (e.pointerType === 'touch') {
-			this.mousedownCheck(e);
+			node.events['mouseover'].call(node, e);
 		}
 	}
 };
@@ -3018,9 +3017,9 @@ Events.prototype.pointermoveCheck = function (e) {
 		if (node.events['mousemove']) {
 			node.events['mousemove'].call(node, e);
 		}
-	} else {
+	} else if (node) {
 		if (e.pointerType === 'touch') {
-			this.mousemoveCheck(e);
+			node.events['mousemove'].call(node, e);
 		}
 	}
 	e.preventDefault();
@@ -3058,9 +3057,9 @@ Events.prototype.pointerupCheck = function (e) {
 		} else {
 			this.pointerNode = null;
 		}
-	} else {
+	} else if (node) {
 		if (e.pointerType === 'touch') {
-			this.mouseupCheck(e);
+			node.events['mouseup'].call(node, e);
 		}
 	}
 };
@@ -5519,7 +5518,7 @@ ZoomClass.prototype.scaleBy = function scaleBy (trgt, k, point) {
 			}
 		},
 		target: trgt,
-		duration: 250,
+		duration: self.zoomDuration,
 		delay: 0,
 		end: function () {
 			if (self.onZoomEnd) {
@@ -5568,7 +5567,7 @@ ZoomClass.prototype.scaleTo = function scaleTo (trgt, newScale, point) {
 			}
 		},
 		target: trgt,
-		duration: 250,
+		duration: self.zoomDuration,
 		delay: 0,
 		end: function () {
 			if (self.onZoomEnd) {
@@ -5602,7 +5601,7 @@ ZoomClass.prototype.panTo = function panTo (trgt, point) {
 			}
 		},
 		target: trgt,
-		duration: 250,
+		duration: self.zoomDuration,
 		delay: 0,
 		end: function () {
 			if (self.onZoomEnd) {

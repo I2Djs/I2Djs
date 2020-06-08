@@ -2954,7 +2954,7 @@
 		if (index !== -1) {
 			self.pointers = [];
 			self.distance = 0;
-			if (this.pointerNode) {
+			if (this.pointerNode && this.pointerNode.node.events.zoom) {
 				this.pointerNode.node.events.zoom.onZoomEnd(this.pointerNode.node, e, self);
 			}
 		}
@@ -2981,17 +2981,16 @@
 			x: e.offsetX,
 			y: e.offsetY
 		}, e, 'pointerdown');
+		if (node && (!this.pointerNode || (this.pointerNode.node !== node))) {
+			this.pointerNode = {
+				node: node,
+				clickCounter: 1,
+				dragCounter: 0
+			};
+		} else if (this.pointerNode) {
+			this.pointerNode.clickCounter += 1;
+		}
 		if (node && (node.events.zoom || node.events.drag)) {
-			if (!this.pointerNode || (this.pointerNode.node !== node)) {
-				this.pointerNode = {
-					node: node,
-					clickCounter: 1,
-					dragCounter: 0
-				};
-			} else {
-				this.pointerNode.clickCounter += 1;
-			}
-			
 			if (node.events.zoom) {
 				if (node.events.zoom.panFlag) {
 					node.events.zoom.panExecute(node, e, 'pointerdown', self);
@@ -3000,9 +2999,9 @@
 			if (node.events.drag) {
 				node.events.drag.execute(node, e, 'pointerdown', self);
 			}
-		} else {
+		} else if (node) {
 			if (e.pointerType === 'touch') {
-				this.mousedownCheck(e);
+				node.events['mouseover'].call(node, e);
 			}
 		}
 	};
@@ -3024,9 +3023,9 @@
 			if (node.events['mousemove']) {
 				node.events['mousemove'].call(node, e);
 			}
-		} else {
+		} else if (node) {
 			if (e.pointerType === 'touch') {
-				this.mousemoveCheck(e);
+				node.events['mousemove'].call(node, e);
 			}
 		}
 		e.preventDefault();
@@ -3064,9 +3063,9 @@
 			} else {
 				this.pointerNode = null;
 			}
-		} else {
+		} else if (node) {
 			if (e.pointerType === 'touch') {
-				this.mouseupCheck(e);
+				node.events['mouseup'].call(node, e);
 			}
 		}
 	};
@@ -5525,7 +5524,7 @@
 				}
 			},
 			target: trgt,
-			duration: 250,
+			duration: self.zoomDuration,
 			delay: 0,
 			end: function () {
 				if (self.onZoomEnd) {
@@ -5574,7 +5573,7 @@
 				}
 			},
 			target: trgt,
-			duration: 250,
+			duration: self.zoomDuration,
 			delay: 0,
 			end: function () {
 				if (self.onZoomEnd) {
@@ -5608,7 +5607,7 @@
 				}
 			},
 			target: trgt,
-			duration: 250,
+			duration: self.zoomDuration,
 			delay: 0,
 			end: function () {
 				if (self.onZoomEnd) {
