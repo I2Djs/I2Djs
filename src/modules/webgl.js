@@ -1,5 +1,4 @@
 import queue from './queue.js';
-import canvas from './canvas.js';
 import VDom from './VDom.js';
 import colorMap from './colorMap.js';
 import geometry from './geometry.js';
@@ -610,27 +609,48 @@ function isPowerOf2 (value) {
 	return (value & value - 1) === 0;
 }
 
+let onClear = function (ctx, width, height, ratio) {
+	ctx.clearRect(0, 0, width * ratio, height * ratio);
+};
+
 function buildCanvasTextEl (str, style) {
-	let text = canvas.canvasLayer(null, {}, {});
-	text.setPixelRatio(ratio);
-	let fontSize = parseInt(style.font, 10) || 12;
-	let twid = text.ctx.measureText(str).width;
+	const layer = document.createElement('canvas');
+	const ctx = layer.getContext('2d', {});
+	// let ratio = getPixlRatio(ctx);
+	style = style || {
+		fill: '#fff'
+	};
+
+	let fontSize = parseFloat(style.font, 10) || 12;
+	let twid = ctx.measureText(str).width;
 	let width = twid * fontSize * 0.1;
 	let height = fontSize;
-	text.setSize(width, height);
+	layer.setAttribute('height', height * ratio);
+	layer.setAttribute('width', width * ratio);
+	layer.style.height = height + 'px';
+	layer.style.width = width + 'px';
 
-	text.createEl({
-		el: 'text',
-		attr: {
-			x: 0,
-			y: (height * 0.75),
-			text: str
-		},
-		style: style
-	});
-	text.execute();
+	for (let st in style) {
+		ctx[st] = style[st];
+	}
+	ctx.fillText(str, 0, height * 0.75);
 
-	return text;
+	return {
+		dom: layer,
+		ctx: ctx,
+		width: width,
+		height: height,
+		ratio: ratio,
+		style: style,
+		str: str,
+		updateText: function () {
+			onClear(this.ctx, this.width, this.height, this.ratio);
+			for (let st in this.style) {
+				this.ctx[st] = this.style[st];
+			}
+			this.ctx.fillText(this.str, 0, (this.height * 0.75));
+		}
+	};
 }
 
 function TextNode (ctx, attr, style, vDomIndex) {
@@ -642,13 +662,13 @@ function TextNode (ctx, attr, style, vDomIndex) {
 	
 	if (self.attr.text && (typeof self.attr.text === 'string')) {
 		this.text = buildCanvasTextEl(self.attr.text, self.style);
-		this.attr.width = this.text.width * 1;
+		this.attr.width = this.text.width;
 		this.attr.height = this.text.height;
 	}
 
 	if (this.text) {
 		this.textureNode = new TextureObject(ctx, {
-			src: this.text
+			src: this.text.dom
 		}, this.vDomIndex);
 	}
 }
@@ -679,20 +699,21 @@ TextNode.prototype.setAttr = function (key, value) {
 		} else {
 			this.text = buildCanvasTextEl(value, this.style);
 		}
-		this.attr.width = this.text.width * 1;
+		this.attr.width = this.text.width;
 		this.attr.height = this.text.height;
 		// this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
 		// this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
 		if (this.textureNode) {
-			this.textureNode.setAttr('src', this.text);
+			this.textureNode.setAttr('src', this.text.dom);
 		} else {
 			this.textureNode = new TextureObject(this.ctx, {
-				src: this.text
+				src: this.text.dom
 			}, this.vDomIndex);
 		}
 	}
 	
 	if (this.shader && (key === 'x')) {
+		console.log(this.attr.x);
 		this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
 	}
 	if (this.shader && (key === 'y')) {
@@ -704,18 +725,19 @@ TextNode.prototype.setStyle = function (key, value) {
 	this.style[key] = value;
 	if (this.text) {
 		if (key === 'font') {
-			let fontSize = parseInt(value, 10) || 12;
+			let fontSize = parseFloat(value, 10) || 12;
 			let twid = this.text.ctx.measureText(this.attr.text).width;
-			let width = twid * fontSize * 0.07;
-			let height = fontSize * 0.5;
+			let width = twid * fontSize * 0.1;
+			let height = fontSize;
 			this.attr.width = width;
 			this.attr.height = height;
 			this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
 			this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
 		} else {
-			this.text.fetchEl('text').setStyle(key, value);
-			this.text.execute();
-			this.textureNode.setAttr('src', this.text);
+			this.text.style[key] = value;
+			// this.text.execute();
+			this.text.updateText();
+			this.textureNode.setAttr('src', this.text.dom);
 		}
 	}
 };
@@ -727,6 +749,134 @@ TextNode.prototype.getAttr = function (key) {
 TextNode.prototype.getStyle = function (key) {
 	return this.style[key];
 };
+
+// TextNode.prototype.in = function RIinfun (co) {
+// 	const {
+// 		width = 0,
+// 		height = 0,
+// 		x = 0,
+// 		y = 0
+// 	} = this.attr;
+// 	return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
+// };
+
+// function buildCanvasTextEl (str, style) {
+// 	let text = canvas.canvasLayer(null, {}, {});
+// 	text.setPixelRatio(ratio);
+// 	let fontSize = parseInt(style.font, 10) || 12;
+// 	let twid = text.ctx.measureText(str).width;
+// 	let width = twid * fontSize * 0.1;
+// 	let height = fontSize;
+// 	text.setSize(width, height);
+
+// 	text.createEl({
+// 		el: 'text',
+// 		attr: {
+// 			x: 0,
+// 			y: (height * 0.75),
+// 			text: str
+// 		},
+// 		style: style
+// 	});
+// 	text.execute();
+
+// 	return text;
+// }
+
+// function TextNode (ctx, attr, style, vDomIndex) {
+// 	let self = this;
+// 	this.ctx = ctx;
+// 	this.attr = attr;
+// 	this.style = style;
+// 	this.vDomIndex = vDomIndex;
+	
+// 	if (self.attr.text && (typeof self.attr.text === 'string')) {
+// 		this.text = buildCanvasTextEl(self.attr.text, self.style);
+// 		this.attr.width = this.text.width * 1;
+// 		this.attr.height = this.text.height;
+// 	}
+
+// 	if (this.text) {
+// 		this.textureNode = new TextureObject(ctx, {
+// 			src: this.text
+// 		}, this.vDomIndex);
+// 	}
+// }
+// TextNode.prototype = new WebglDom();
+// TextNode.prototype.constructor = TextNode;
+
+// TextNode.prototype.setShader = function (shader) {
+// 	this.shader = shader;
+// 	if (this.shader) {
+// 		this.shader.addVertex(this.attr.x || 0, this.attr.y || 0, this.attr.width || 0, this.attr.height || 0, this.pindex);
+// 		// this.shader.addOpacity(1, this.pindex);
+// 	}
+// };
+
+// TextNode.prototype.setAttr = function (key, value) {
+// 	this.attr[key] = value;
+
+// 	if (value === undefined || value === null) {
+// 		delete this.attr[key];
+// 		return;
+// 	}
+
+// 	if (key === 'text' && (typeof value === 'string')) {
+// 		if (this.text) {
+// 			this.text = buildCanvasTextEl(this.attr.text, this.style);
+// 			// this.attr.width = this.text.width;
+// 			// this.attr.height = this.text.height;
+// 		} else {
+// 			this.text = buildCanvasTextEl(value, this.style);
+// 		}
+// 		this.attr.width = this.text.width * 1;
+// 		this.attr.height = this.text.height;
+// 		// this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+// 		// this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
+// 		if (this.textureNode) {
+// 			this.textureNode.setAttr('src', this.text);
+// 		} else {
+// 			this.textureNode = new TextureObject(this.ctx, {
+// 				src: this.text
+// 			}, this.vDomIndex);
+// 		}
+// 	}
+	
+// 	if (this.shader && (key === 'x')) {
+// 		this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+// 	}
+// 	if (this.shader && (key === 'y')) {
+// 		this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
+// 	}
+// };
+
+// TextNode.prototype.setStyle = function (key, value) {
+// 	this.style[key] = value;
+// 	if (this.text) {
+// 		if (key === 'font') {
+// 			let fontSize = parseInt(value, 10) || 12;
+// 			let twid = this.text.ctx.measureText(this.attr.text).width;
+// 			let width = twid * fontSize * 0.07;
+// 			let height = fontSize * 0.5;
+// 			this.attr.width = width;
+// 			this.attr.height = height;
+// 			this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+// 			this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
+// 		} else {
+// 			this.text.fetchEl('text').setStyle(key, value);
+// 			this.text.execute();
+// 			this.textureNode.setAttr('src', this.text);
+// 		}
+// 	}
+// };
+
+// TextNode.prototype.getAttr = function (key) {
+// 	return this.attr[key];
+// };
+
+// TextNode.prototype.getStyle = function (key) {
+// 	return this.style[key];
+// };
 
 TextNode.prototype.in = function RIinfun (co) {
 	const {

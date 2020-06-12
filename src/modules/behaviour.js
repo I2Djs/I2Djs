@@ -379,7 +379,7 @@ ZoomClass.prototype.scaleBy = function scaleBy (trgt, k, point) {
 			}
 		},
 		target: trgt,
-		duration: 250,
+		duration: self.zoomDuration,
 		delay: 0,
 		end: function () {
 			if (self.onZoomEnd) {
@@ -428,7 +428,7 @@ ZoomClass.prototype.scaleTo = function scaleTo (trgt, newScale, point) {
 			}
 		},
 		target: trgt,
-		duration: 250,
+		duration: self.zoomDuration,
 		delay: 0,
 		end: function () {
 			if (self.onZoomEnd) {
@@ -462,7 +462,7 @@ ZoomClass.prototype.panTo = function panTo (trgt, point) {
 			}
 		},
 		target: trgt,
-		duration: 250,
+		duration: self.zoomDuration,
 		delay: 0,
 		end: function () {
 			if (self.onZoomEnd) {
