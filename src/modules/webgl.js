@@ -983,9 +983,9 @@ ImageNode.prototype.setAttr = function (key, value) {
 
 ImageNode.prototype.setStyle = function (key, value) {
 	this.style[key] = value;
-	// if (this.shader && key === 'opacity') {
-	// 	this.shader.updateOpacity(this.pindex, value);
-	// }
+	if (this.shader && key === 'opacity') {
+		this.shader.updateOpacity(this.pindex, value);
+	}
 };
 
 ImageNode.prototype.getAttr = function (key) {
@@ -2571,10 +2571,11 @@ RenderWebglImages.prototype.execute = function (stack) {
 		// 	node.attr.src.loadTexture();
 		// 	this.shaderInstance.applyUniformData('u_image', node.attr.src);
 		// }
+		let op = node.style.opacity !== undefined ? node.style.opacity : (this.style.opacity !== undefined ? this.style.opacity : 1.0);
 		node.dom.textureNode.loadTexture();
 		this.shaderInstance.applyUniformData('u_image', node.dom.textureNode);
 		this.shaderInstance.applyAttributeData('a_position', this.positionArray[i]);
-		this.shaderInstance.applyUniformData('u_opacity', node.style.opacity || this.style.opacity || 1.0);
+		this.shaderInstance.applyUniformData('u_opacity', op);
 		this.shaderInstance.draw();
 	}
 
@@ -3241,21 +3242,43 @@ function TextureObject (ctx, config, vDomIndex) {
 	queueInstance.vDomChanged(self.vDomIndex);
 };
 TextureObject.prototype.setAttr = function (attr, value) {
-	this[attr] = value;
-	if (attr === 'src') {
-		if (typeof value === 'string') {
-			if (!this.image || !(this.image instanceof Image)) {
-				this.image = imageInstance(this);
+	if (arguments.length === 1) {
+		for (let key in attr) {
+			this[key] = attr[key];
+			if (key === 'src') {
+				if (typeof value === 'string') {
+					if (!this.image || !(this.image instanceof Image)) {
+						this.image = imageInstance(this);
+					}
+					this.image.src = value;
+				} else if (value instanceof HTMLImageElement || value instanceof SVGImageElement || value instanceof HTMLCanvasElement || value instanceof Uint8Array) {
+					this.image = value;
+					// this.update();
+				} else if (value instanceof NodePrototype) {
+					this.image = value.domEl;
+					// this.update();
+				}
 			}
-			this.image.src = value;
-		} else if (value instanceof HTMLImageElement || value instanceof SVGImageElement || value instanceof HTMLCanvasElement || value instanceof Uint8Array) {
-			this.image = value;
-			this.update();
-		} else if (value instanceof NodePrototype) {
-			this.image = value.domEl;
-			this.update();
+		}
+	} else {
+		this[attr] = value;
+		console.warning('Instead of key, value, pass Object of key,value for optimal rendering');
+		if (attr === 'src') {
+			if (typeof value === 'string') {
+				if (!this.image || !(this.image instanceof Image)) {
+					this.image = imageInstance(this);
+				}
+				this.image.src = value;
+			} else if (value instanceof HTMLImageElement || value instanceof SVGImageElement || value instanceof HTMLCanvasElement || value instanceof Uint8Array) {
+				this.image = value;
+				// this.update();
+			} else if (value instanceof NodePrototype) {
+				this.image = value.domEl;
+				// this.update();
+			}
 		}
 	}
+	this.update();
 };
 
 TextureObject.prototype.loadTexture = function () {
