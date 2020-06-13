@@ -713,7 +713,6 @@ TextNode.prototype.setAttr = function (key, value) {
 	}
 	
 	if (this.shader && (key === 'x')) {
-		console.log(this.attr.x);
 		this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
 	}
 	if (this.shader && (key === 'y')) {
@@ -983,9 +982,9 @@ ImageNode.prototype.setAttr = function (key, value) {
 
 ImageNode.prototype.setStyle = function (key, value) {
 	this.style[key] = value;
-	if (this.shader && key === 'opacity') {
-		this.shader.updateOpacity(this.pindex, value);
-	}
+	// if (this.shader && key === 'opacity') {
+	// 	this.shader.updateOpacity(this.pindex, value);
+	// }
 };
 
 ImageNode.prototype.getAttr = function (key) {
