@@ -164,18 +164,22 @@ function WebglDom () {
 }
 
 WebglDom.prototype.setStyle = function (key, value) {
-	this.style[key] = value;
-	if (this.shader && (key === 'fill')) {
-		if (this.style.opacity !== undefined) {
-			value.a *= this.style.opacity;
+	if (value) {
+		this.style[key] = value;
+		if (this.shader && (key === 'fill')) {
+			if (this.style.opacity !== undefined) {
+				value.a *= this.style.opacity;
+			}
+			this.shader.updateColor(this.pindex, value);
 		}
-		this.shader.updateColor(this.pindex, value);
-	}
-	if (this.shader && key === 'opacity') {
-		if (this.style.fill !== undefined) {
-			this.style.fill.a *= this.style.opacity;
+		if (this.shader && key === 'opacity') {
+			if (this.style.fill !== undefined) {
+				this.style.fill.a *= this.style.opacity;
+			}
+			this.shader.updateColor(this.pindex, this.style.fill); ;
 		}
-		this.shader.updateColor(this.pindex, this.style.fill); ;
+	} else if (this.style[key]) {
+		delete this.style[key];
 	}
 };
 WebglDom.prototype.getAttr = function (key) {
@@ -980,12 +984,17 @@ ImageNode.prototype.setAttr = function (key, value) {
 	}
 };
 
-ImageNode.prototype.setStyle = function (key, value) {
-	this.style[key] = value;
-	// if (this.shader && key === 'opacity') {
-	// 	this.shader.updateOpacity(this.pindex, value);
-	// }
-};
+// ImageNode.prototype.setStyle = function (key, value) {
+	
+// 	if (value) {
+// 		this.style[key] = value;
+// 	} else if (this.style[key]) {
+// 		delete this.style[key];
+// 	}
+// 	// if (this.shader && key === 'opacity') {
+// 	// 	this.shader.updateOpacity(this.pindex, value);
+// 	// }
+// };
 
 ImageNode.prototype.getAttr = function (key) {
 	return this.attr[key];

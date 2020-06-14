@@ -982,14 +982,22 @@ RenderPath.prototype.applyStyles = function RPapplyStyles () {};
 RenderPath.prototype.in = function RPinfun (co) {
 	let flag = false;
 
-	if (!this.attr.d) {
+	if (!(this.attr.d && this.pathNode)) {
 		return flag;
 	}
-
-	this.ctx.save();
-	this.ctx.scale(1 / this.ctx.pixelRatio, 1 / this.ctx.pixelRatio);
-	flag = (this.style.fillStyle || this.style.strokeStyle) ? this.ctx.isPointInPath(this.pathNode, co.x, co.y) : flag;
-	this.ctx.restore();
+	const {
+		width = 0,
+		height = 0,
+		x = 0,
+		y = 0
+	} = this.BBox;
+	if (co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height) {
+		this.ctx.save();
+		this.ctx.scale(1 / this.ctx.pixelRatio, 1 / this.ctx.pixelRatio);
+		flag = this.ctx.isPointInPath(this.pathNode, co.x, co.y);
+		this.ctx.restore();
+	}
+	
 	return flag;
 };
 /** *****************End Render Path */
@@ -1540,12 +1548,24 @@ CanvasNodeExe.prototype.attributesExe = function CattributesExe () {
 
 CanvasNodeExe.prototype.setStyle = function CsetStyle (attr, value) {
 	if (arguments.length === 2) {
-		this.style[attr] = valueCheck(value);
+		if (value) {
+			this.style[attr] = valueCheck(value);
+		} else {
+			if (this.style[attr]) {
+				delete this.style[attr];
+			}
+		}
 	} else if (arguments.length === 1 && typeof attr === 'object') {
 		const styleKeys = Object.keys(attr);
 
 		for (let i = 0, len = styleKeys.length; i < len; i += 1) {
-			this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
+			if (attr[styleKeys[i]]) {
+				this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
+			} else {
+				if (this.style[styleKeys[i]]) {
+					delete this.style[styleKeys[i]];
+				}
+			}
 		}
 	}
 
