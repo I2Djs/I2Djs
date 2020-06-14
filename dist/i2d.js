@@ -4750,15 +4750,19 @@
 
 	DomExe.prototype.setStyle = function DMsetStyle (attr, value) {
 		if (arguments.length === 2) {
-			if (typeof value === 'function') {
-				value = value.call(this, this.dataObj);
-			}
+			if (value) {
+				if (typeof value === 'function') {
+					value = value.call(this, this.dataObj);
+				}
 
-			if (colorMap$1.RGBAInstanceCheck(value)) {
-				value = value.rgba;
-			}
+				if (colorMap$1.RGBAInstanceCheck(value)) {
+					value = value.rgba;
+				}
 
-			this.style[attr] = value;
+				this.style[attr] = value;
+			} else if (this.style[attr]) {
+				delete this.style[attr];
+			}
 			this.changedStyles[attr] = value;
 		} else if (arguments.length === 1 && typeof attr === 'object') {
 			let key;
@@ -6666,14 +6670,15 @@
 	RenderPath.prototype.in = function RPinfun (co) {
 		let flag = false;
 
-		if (!this.attr.d) {
+		if (!(this.attr.d && this.pathNode)) {
 			return flag;
 		}
 
-		this.ctx.save();
-		this.ctx.scale(1 / this.ctx.pixelRatio, 1 / this.ctx.pixelRatio);
-		flag = (this.style.fillStyle || this.style.strokeStyle) ? this.ctx.isPointInPath(this.pathNode, co.x, co.y) : flag;
-		this.ctx.restore();
+			this.ctx.save();
+			this.ctx.scale(1 / this.ctx.pixelRatio, 1 / this.ctx.pixelRatio);
+			flag = this.ctx.isPointInPath(this.pathNode, co.x, co.y);
+			this.ctx.restore();
+		
 		return flag;
 	};
 	/** *****************End Render Path */
@@ -7224,12 +7229,24 @@
 
 	CanvasNodeExe.prototype.setStyle = function CsetStyle (attr, value) {
 		if (arguments.length === 2) {
-			this.style[attr] = valueCheck(value);
+			if (value) {
+				this.style[attr] = valueCheck(value);
+			} else {
+				if (this.style[attr]) {
+					delete this.style[attr];
+				}
+			}
 		} else if (arguments.length === 1 && typeof attr === 'object') {
 			const styleKeys = Object.keys(attr);
 
 			for (let i = 0, len = styleKeys.length; i < len; i += 1) {
-				this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
+				if (attr[styleKeys[i]]) {
+					this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
+				} else {
+					if (this.style[styleKeys[i]]) {
+						delete this.style[styleKeys[i]];
+					}
+				}
 			}
 		}
 
@@ -7389,13 +7406,13 @@
 	CanvasNodeExe.prototype.updateBBox = function CupdateBBox () {
 		let status;
 
-		for (let i = 0, len = this.children.length; i < len; i += 1) {
-			if (this.bbox) {
-				status = this.children[i].updateBBox() || status;
-			}
-		}
-
 		if (this.bbox) {
+			for (let i = 0, len = this.children.length; i < len; i += 1) {
+				if (this.bbox) {
+					status = this.children[i].updateBBox() || status;
+				}
+			}
+		
 			if (this.BBoxUpdate || status) {
 				this.dom.updateBBox(this.children);
 				this.BBoxUpdate = false;
@@ -8866,18 +8883,22 @@
 	}
 
 	WebglDom.prototype.setStyle = function (key, value) {
-		this.style[key] = value;
-		if (this.shader && (key === 'fill')) {
-			if (this.style.opacity !== undefined) {
-				value.a *= this.style.opacity;
+		if (value) {
+			this.style[key] = value;
+			if (this.shader && (key === 'fill')) {
+				if (this.style.opacity !== undefined) {
+					value.a *= this.style.opacity;
+				}
+				this.shader.updateColor(this.pindex, value);
 			}
-			this.shader.updateColor(this.pindex, value);
+			if (this.shader && key === 'opacity') {
+				if (this.style.fill !== undefined) {
+					this.style.fill.a *= this.style.opacity;
+				}
+				this.shader.updateColor(this.pindex, this.style.fill);		}
+		} else if (this.style[key]) {
+			delete this.style[key];
 		}
-		if (this.shader && key === 'opacity') {
-			if (this.style.fill !== undefined) {
-				this.style.fill.a *= this.style.opacity;
-			}
-			this.shader.updateColor(this.pindex, this.style.fill);	}
 	};
 	WebglDom.prototype.getAttr = function (key) {
 		return this.attr[key];
@@ -9413,7 +9434,6 @@
 		}
 		
 		if (this.shader && (key === 'x')) {
-			console.log(this.attr.x);
 			this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
 		}
 		if (this.shader && (key === 'y')) {
@@ -9681,7 +9701,12 @@
 	};
 
 	ImageNode.prototype.setStyle = function (key, value) {
-		this.style[key] = value;
+		
+		if (value) {
+			this.style[key] = value;
+		} else if (this.style[key]) {
+			delete this.style[key];
+		}
 		// if (this.shader && key === 'opacity') {
 		// 	this.shader.updateOpacity(this.pindex, value);
 		// }
@@ -11267,10 +11292,11 @@
 			// 	node.attr.src.loadTexture();
 			// 	this.shaderInstance.applyUniformData('u_image', node.attr.src);
 			// }
+			let op = node.style.opacity !== undefined ? node.style.opacity : (this.style.opacity !== undefined ? this.style.opacity : 1.0);
 			node.dom.textureNode.loadTexture();
 			this.shaderInstance.applyUniformData('u_image', node.dom.textureNode);
 			this.shaderInstance.applyAttributeData('a_position', this.positionArray[i]);
-			this.shaderInstance.applyUniformData('u_opacity', node.style.opacity || this.style.opacity || 1.0);
+			this.shaderInstance.applyUniformData('u_opacity', op);
 			this.shaderInstance.draw();
 		}
 
@@ -11451,13 +11477,12 @@
 	WebglNodeExe.prototype.updateBBox = function CupdateBBox () {
 		let status;
 
-		for (let i = 0, len = this.children.length; i < len; i += 1) {
-			if (this.bbox && this.children[i]) {
-				status = this.children[i].updateBBox() || status;
-			}
-		}
-
 		if (this.bbox) {
+			for (let i = 0, len = this.children.length; i < len; i += 1) {
+				if (this.bbox && this.children[i]) {
+					status = this.children[i].updateBBox() || status;
+				}
+			}
 			if (this.BBoxUpdate || status) {
 				this.dom.updateBBox(this.children);
 				this.BBoxUpdate = false;
@@ -11929,21 +11954,43 @@
 		}
 		queueInstance$5.vDomChanged(self.vDomIndex);
 	}TextureObject.prototype.setAttr = function (attr, value) {
-		this[attr] = value;
-		if (attr === 'src') {
-			if (typeof value === 'string') {
-				if (!this.image || !(this.image instanceof Image)) {
-					this.image = imageInstance$1(this);
+		if (arguments.length === 1) {
+			for (let key in attr) {
+				this[key] = attr[key];
+				if (key === 'src') {
+					if (typeof value === 'string') {
+						if (!this.image || !(this.image instanceof Image)) {
+							this.image = imageInstance$1(this);
+						}
+						this.image.src = value;
+					} else if (value instanceof HTMLImageElement || value instanceof SVGImageElement || value instanceof HTMLCanvasElement || value instanceof Uint8Array) {
+						this.image = value;
+						// this.update();
+					} else if (value instanceof NodePrototype) {
+						this.image = value.domEl;
+						// this.update();
+					}
 				}
-				this.image.src = value;
-			} else if (value instanceof HTMLImageElement || value instanceof SVGImageElement || value instanceof HTMLCanvasElement || value instanceof Uint8Array) {
-				this.image = value;
-				this.update();
-			} else if (value instanceof NodePrototype) {
-				this.image = value.domEl;
-				this.update();
+			}
+		} else {
+			this[attr] = value;
+			console.warning('Instead of key, value, pass Object of key,value for optimal rendering');
+			if (attr === 'src') {
+				if (typeof value === 'string') {
+					if (!this.image || !(this.image instanceof Image)) {
+						this.image = imageInstance$1(this);
+					}
+					this.image.src = value;
+				} else if (value instanceof HTMLImageElement || value instanceof SVGImageElement || value instanceof HTMLCanvasElement || value instanceof Uint8Array) {
+					this.image = value;
+					// this.update();
+				} else if (value instanceof NodePrototype) {
+					this.image = value.domEl;
+					// this.update();
+				}
 			}
 		}
+		this.update();
 	};
 
 	TextureObject.prototype.loadTexture = function () {

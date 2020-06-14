@@ -459,15 +459,19 @@ DomExe.prototype.rotate = function DMrotate (angle, x, y) {
 
 DomExe.prototype.setStyle = function DMsetStyle (attr, value) {
 	if (arguments.length === 2) {
-		if (typeof value === 'function') {
-			value = value.call(this, this.dataObj);
-		}
+		if (value) {
+			if (typeof value === 'function') {
+				value = value.call(this, this.dataObj);
+			}
 
-		if (colorMap.RGBAInstanceCheck(value)) {
-			value = value.rgba;
-		}
+			if (colorMap.RGBAInstanceCheck(value)) {
+				value = value.rgba;
+			}
 
-		this.style[attr] = value;
+			this.style[attr] = value;
+		} else if (this.style[attr]) {
+			delete this.style[attr];
+		}
 		this.changedStyles[attr] = value;
 	} else if (arguments.length === 1 && typeof attr === 'object') {
 		let key;
