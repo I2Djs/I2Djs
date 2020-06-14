@@ -6674,10 +6674,10 @@
 			return flag;
 		}
 
-			this.ctx.save();
-			this.ctx.scale(1 / this.ctx.pixelRatio, 1 / this.ctx.pixelRatio);
-			flag = this.ctx.isPointInPath(this.pathNode, co.x, co.y);
-			this.ctx.restore();
+		this.ctx.save();
+		this.ctx.scale(1 / this.ctx.pixelRatio, 1 / this.ctx.pixelRatio);
+		flag = this.ctx.isPointInPath(this.pathNode, co.x, co.y);
+		this.ctx.restore();
 		
 		return flag;
 	};
@@ -9701,7 +9701,6 @@
 	};
 
 	ImageNode.prototype.setStyle = function (key, value) {
-		
 		if (value) {
 			this.style[key] = value;
 		} else if (this.style[key]) {
@@ -11630,7 +11629,7 @@
 		let height = res ? res.clientHeight : 0;
 		let width = res ? res.clientWidth : 0;
 		let clearColor = colorMap$1.rgba(0, 0, 0, 0);
-		let { enableEvents = false, autoUpdate = true, enableResize = true } = layerSettings;
+		let { enableEvents = false, autoUpdate = true, enableResize = false } = layerSettings;
 
 		contextConfig = contextConfig || {
 			premultipliedAlpha: false,
@@ -11743,16 +11742,19 @@
 			width =  res.clientWidth;
 			layer.setAttribute('height', height * ratio);
 			layer.setAttribute('width', width * ratio);
-			layer.style.height = `${height}px`;
-			layer.style.width = `${width}px`;
 			root.width = width;
 			root.height = height;
+
+			onClear(root.ctx);
 
 			if (resizeCall) {
 				resizeCall();
 			}
 
 			root.execute();
+
+			layer.style.height = `${height}px`;
+			layer.style.width = `${width}px`;
 		};
 
 		root.onResize = function (exec) {
@@ -11914,6 +11916,10 @@
 		return imageIns;
 	}
 
+	function createEmptyArrayBuffer (width, height) {
+		return new Uint8Array(new ArrayBuffer(width * height * 4));
+	}
+
 	function TextureObject (ctx, config, vDomIndex) {
 		let self = this;
 		let maxTextureSize = ctx.getParameter(ctx.MAX_TEXTURE_SIZE);
@@ -11948,8 +11954,10 @@
 			self.update();
 			self.updated = true;
 		} else {
-			self.image = new Uint8Array(new ArrayBuffer(this.width * this.height * 4));
-			self.update();
+			if (this.width && this.height) {
+				self.image = createEmptyArrayBuffer(this.width, this.height);
+				self.update();
+			}
 			self.updated = true;
 		}
 		queueInstance$5.vDomChanged(self.vDomIndex);
@@ -11970,6 +11978,9 @@
 						this.image = value.domEl;
 						// this.update();
 					}
+				}
+				if (attr['height'] || attr['width']) {
+					self.image = createEmptyArrayBuffer(this.width, this.height);
 				}
 			}
 		} else {

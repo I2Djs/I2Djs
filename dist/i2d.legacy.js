@@ -11440,7 +11440,7 @@
 		var clearColor = colorMap$1.rgba(0, 0, 0, 0);
 		var enableEvents = layerSettings.enableEvents; if ( enableEvents === void 0 ) enableEvents = false;
 		var autoUpdate = layerSettings.autoUpdate; if ( autoUpdate === void 0 ) autoUpdate = true;
-		var enableResize = layerSettings.enableResize; if ( enableResize === void 0 ) enableResize = true;
+		var enableResize = layerSettings.enableResize; if ( enableResize === void 0 ) enableResize = false;
 
 		contextConfig = contextConfig || {
 			premultipliedAlpha: false,
@@ -11553,16 +11553,19 @@
 			width =  res.clientWidth;
 			layer.setAttribute('height', height * ratio);
 			layer.setAttribute('width', width * ratio);
-			layer.style.height = height + "px";
-			layer.style.width = width + "px";
 			root.width = width;
 			root.height = height;
+
+			onClear(root.ctx);
 
 			if (resizeCall) {
 				resizeCall();
 			}
 
 			root.execute();
+
+			layer.style.height = height + "px";
+			layer.style.width = width + "px";
 		};
 
 		root.onResize = function (exec) {
@@ -11724,6 +11727,10 @@
 		return imageIns;
 	}
 
+	function createEmptyArrayBuffer (width, height) {
+		return new Uint8Array(new ArrayBuffer(width * height * 4));
+	}
+
 	function TextureObject (ctx, config, vDomIndex) {
 		var self = this;
 		var maxTextureSize = ctx.getParameter(ctx.MAX_TEXTURE_SIZE);
@@ -11758,8 +11765,10 @@
 			self.update();
 			self.updated = true;
 		} else {
-			self.image = new Uint8Array(new ArrayBuffer(this.width * this.height * 4));
-			self.update();
+			if (this.width && this.height) {
+				self.image = createEmptyArrayBuffer(this.width, this.height);
+				self.update();
+			}
 			self.updated = true;
 		}
 		queueInstance$5.vDomChanged(self.vDomIndex);
@@ -11780,6 +11789,9 @@
 						this.image = value.domEl;
 						// this.update();
 					}
+				}
+				if (attr['height'] || attr['width']) {
+					self.image = createEmptyArrayBuffer(this.width, this.height);
 				}
 			}
 		} else {
