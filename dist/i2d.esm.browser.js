@@ -6667,18 +6667,11 @@ RenderPath.prototype.in = function RPinfun (co) {
 	if (!(this.attr.d && this.pathNode)) {
 		return flag;
 	}
-	const {
-		width = 0,
-		height = 0,
-		x = 0,
-		y = 0
-	} = this.BBox;
-	if (co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height) {
+
 		this.ctx.save();
 		this.ctx.scale(1 / this.ctx.pixelRatio, 1 / this.ctx.pixelRatio);
 		flag = this.ctx.isPointInPath(this.pathNode, co.x, co.y);
 		this.ctx.restore();
-	}
 	
 	return flag;
 };
@@ -7248,7 +7241,6 @@ CanvasNodeExe.prototype.setStyle = function CsetStyle (attr, value) {
 					delete this.style[styleKeys[i]];
 				}
 			}
-			
 		}
 	}
 
@@ -7408,13 +7400,13 @@ CanvasNodeExe.prototype.child = function child (childrens) {
 CanvasNodeExe.prototype.updateBBox = function CupdateBBox () {
 	let status;
 
-	for (let i = 0, len = this.children.length; i < len; i += 1) {
-		if (this.bbox) {
-			status = this.children[i].updateBBox() || status;
-		}
-	}
-
 	if (this.bbox) {
+		for (let i = 0, len = this.children.length; i < len; i += 1) {
+			if (this.bbox) {
+				status = this.children[i].updateBBox() || status;
+			}
+		}
+	
 		if (this.BBoxUpdate || status) {
 			this.dom.updateBBox(this.children);
 			this.BBoxUpdate = false;
@@ -8901,7 +8893,6 @@ WebglDom.prototype.setStyle = function (key, value) {
 	} else if (this.style[key]) {
 		delete this.style[key];
 	}
-	
 };
 WebglDom.prototype.getAttr = function (key) {
 	return this.attr[key];
@@ -9703,17 +9694,17 @@ ImageNode.prototype.setAttr = function (key, value) {
 	}
 };
 
-// ImageNode.prototype.setStyle = function (key, value) {
+ImageNode.prototype.setStyle = function (key, value) {
 	
-// 	if (value) {
-// 		this.style[key] = value;
-// 	} else if (this.style[key]) {
-// 		delete this.style[key];
-// 	}
-// 	// if (this.shader && key === 'opacity') {
-// 	// 	this.shader.updateOpacity(this.pindex, value);
-// 	// }
-// };
+	if (value) {
+		this.style[key] = value;
+	} else if (this.style[key]) {
+		delete this.style[key];
+	}
+	// if (this.shader && key === 'opacity') {
+	// 	this.shader.updateOpacity(this.pindex, value);
+	// }
+};
 
 ImageNode.prototype.getAttr = function (key) {
 	return this.attr[key];
@@ -11480,13 +11471,12 @@ WebglNodeExe.prototype.setReIndex = function () {
 WebglNodeExe.prototype.updateBBox = function CupdateBBox () {
 	let status;
 
-	for (let i = 0, len = this.children.length; i < len; i += 1) {
-		if (this.bbox && this.children[i]) {
-			status = this.children[i].updateBBox() || status;
-		}
-	}
-
 	if (this.bbox) {
+		for (let i = 0, len = this.children.length; i < len; i += 1) {
+			if (this.bbox && this.children[i]) {
+				status = this.children[i].updateBBox() || status;
+			}
+		}
 		if (this.BBoxUpdate || status) {
 			this.dom.updateBBox(this.children);
 			this.BBoxUpdate = false;

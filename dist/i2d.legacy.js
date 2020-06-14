@@ -6665,17 +6665,11 @@
 		if (!(this.attr.d && this.pathNode)) {
 			return flag;
 		}
-		var ref = this.BBox;
-		var width = ref.width; if ( width === void 0 ) width = 0;
-		var height = ref.height; if ( height === void 0 ) height = 0;
-		var x = ref.x; if ( x === void 0 ) x = 0;
-		var y = ref.y; if ( y === void 0 ) y = 0;
-		if (co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height) {
-			this.ctx.save();
-			this.ctx.scale(1 / this.ctx.pixelRatio, 1 / this.ctx.pixelRatio);
-			flag = this.ctx.isPointInPath(this.pathNode, co.x, co.y);
-			this.ctx.restore();
-		}
+
+		this.ctx.save();
+		this.ctx.scale(1 / this.ctx.pixelRatio, 1 / this.ctx.pixelRatio);
+		flag = this.ctx.isPointInPath(this.pathNode, co.x, co.y);
+		this.ctx.restore();
 		
 		return flag;
 	};
@@ -7388,13 +7382,13 @@
 	CanvasNodeExe.prototype.updateBBox = function CupdateBBox () {
 		var status;
 
-		for (var i = 0, len = this.children.length; i < len; i += 1) {
-			if (this.bbox) {
-				status = this.children[i].updateBBox() || status;
-			}
-		}
-
 		if (this.bbox) {
+			for (var i = 0, len = this.children.length; i < len; i += 1) {
+				if (this.bbox) {
+					status = this.children[i].updateBBox() || status;
+				}
+			}
+		
 			if (this.BBoxUpdate || status) {
 				this.dom.updateBBox(this.children);
 				this.BBoxUpdate = false;
@@ -9521,17 +9515,16 @@
 		}
 	};
 
-	// ImageNode.prototype.setStyle = function (key, value) {
-		
-	// 	if (value) {
-	// 		this.style[key] = value;
-	// 	} else if (this.style[key]) {
-	// 		delete this.style[key];
-	// 	}
-	// 	// if (this.shader && key === 'opacity') {
-	// 	// 	this.shader.updateOpacity(this.pindex, value);
-	// 	// }
-	// };
+	ImageNode.prototype.setStyle = function (key, value) {
+		if (value) {
+			this.style[key] = value;
+		} else if (this.style[key]) {
+			delete this.style[key];
+		}
+		// if (this.shader && key === 'opacity') {
+		// 	this.shader.updateOpacity(this.pindex, value);
+		// }
+	};
 
 	ImageNode.prototype.getAttr = function (key) {
 		return this.attr[key];
@@ -11290,13 +11283,12 @@
 	WebglNodeExe.prototype.updateBBox = function CupdateBBox () {
 		var status;
 
-		for (var i = 0, len = this.children.length; i < len; i += 1) {
-			if (this.bbox && this.children[i]) {
-				status = this.children[i].updateBBox() || status;
-			}
-		}
-
 		if (this.bbox) {
+			for (var i = 0, len = this.children.length; i < len; i += 1) {
+				if (this.bbox && this.children[i]) {
+					status = this.children[i].updateBBox() || status;
+				}
+			}
 			if (this.BBoxUpdate || status) {
 				this.dom.updateBBox(this.children);
 				this.BBoxUpdate = false;

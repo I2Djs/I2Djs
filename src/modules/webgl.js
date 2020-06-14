@@ -984,17 +984,16 @@ ImageNode.prototype.setAttr = function (key, value) {
 	}
 };
 
-// ImageNode.prototype.setStyle = function (key, value) {
-	
-// 	if (value) {
-// 		this.style[key] = value;
-// 	} else if (this.style[key]) {
-// 		delete this.style[key];
-// 	}
-// 	// if (this.shader && key === 'opacity') {
-// 	// 	this.shader.updateOpacity(this.pindex, value);
-// 	// }
-// };
+ImageNode.prototype.setStyle = function (key, value) {
+	if (value) {
+		this.style[key] = value;
+	} else if (this.style[key]) {
+		delete this.style[key];
+	}
+	// if (this.shader && key === 'opacity') {
+	// 	this.shader.updateOpacity(this.pindex, value);
+	// }
+};
 
 ImageNode.prototype.getAttr = function (key) {
 	return this.attr[key];
@@ -2765,13 +2764,12 @@ WebglNodeExe.prototype.setReIndex = function () {
 WebglNodeExe.prototype.updateBBox = function CupdateBBox () {
 	let status;
 
-	for (let i = 0, len = this.children.length; i < len; i += 1) {
-		if (this.bbox && this.children[i]) {
-			status = this.children[i].updateBBox() || status;
-		}
-	}
-
 	if (this.bbox) {
+		for (let i = 0, len = this.children.length; i < len; i += 1) {
+			if (this.bbox && this.children[i]) {
+				status = this.children[i].updateBBox() || status;
+			}
+		}
 		if (this.BBoxUpdate || status) {
 			this.dom.updateBBox(this.children);
 			this.BBoxUpdate = false;
