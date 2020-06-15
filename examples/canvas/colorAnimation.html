@@ -1,38 +1,35 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <div id="myCanvas" style="height: 100%; width: 100%;"></div>
 
-<div id="myCanvas" style="height: 100%;width:100%">
-</div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script type="text/javascript">
+            var renderer = i2d.canvasLayer("#myCanvas", {}, false);
 
-<script type="text/javascript">
-var renderer = i2d.canvasLayer('#myCanvas', {}, false);
-
-let rect = renderer.createEl({
-	el: 'rect',
-	attr: {
-		x: (renderer.width / 2) - 200,
-		y: (renderer.height / 2) - 200,
-		width: 400,
-		height: 400
-	},
-	style: {
-		fillStyle: 'hsl(90, 100%, 50%)'
-	}
-})
-	.animateTo({
-		duration: 3000,
-		style: {
-			fillStyle: 'hsl(43, 89%, 38%)'
-		}
-	});
-
-</script>
-
-</body>
+            let rect = renderer
+                .createEl({
+                    el: "rect",
+                    attr: {
+                        x: renderer.width / 2 - 200,
+                        y: renderer.height / 2 - 200,
+                        width: 400,
+                        height: 400,
+                    },
+                    style: {
+                        fillStyle: "hsl(90, 100%, 50%)",
+                    },
+                })
+                .animateTo({
+                    duration: 3000,
+                    style: {
+                        fillStyle: "hsl(43, 89%, 38%)",
+                    },
+                });
+        </script>
+    </body>
 </html>

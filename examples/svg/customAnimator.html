@@ -1,157 +1,184 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <div id="mySvg" style="height: 100%; width: 100%;"></div>
 
-<div id="mySvg" style="height: 100%;width:100%">
-</div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script type="text/javascript">
+            var renderer = i2d.svgLayer("#mySvg");
 
-<script type="text/javascript">
+            var data = [],
+                circles = [];
 
-var renderer = i2d.svgLayer('#mySvg');
+            for (var i = 1; i <= 10; i++) {
+                data.push(i - 10 / 2);
+            }
+            for (var i = 1; i <= 20; i++) {
+                circles.push(i);
+            }
 
-var data = [], circles = [];
+            var g_ = renderer
+                .createEls(data, {
+                    el: "group",
+                    attr: {
+                        transform: {
+                            translate: [0, 300],
+                        },
+                    },
+                })
+                .forEach(function (d, i) {
+                    var path = this.createEl({
+                        el: "path",
+                        attr: {
+                            d: pathGenerator(0, 40 * d, 60 * d, 1300),
+                        },
+                        style: {
+                            "stroke-width": 2,
+                            "stroke": "rgb(206, 212, 212)",
+                            "fill": "none",
+                        },
+                    });
 
-for (var i = 1; i <= 10; i++) {
-	data.push(i - 10 / 2);
-}
-for (var i = 1; i <= 20; i++) {
-	circles.push(i);
-}
+                    var length = path.node().getTotalLength();
 
-var g_ = renderer.createEls(data, {
-	el: 'group',
-	attr: {
-		transform: {
-			translate: [0, 300]
-		}
-	}
-})
-	.forEach(function (d, i) {
+                    var circle = this.createEls(circles, {
+                        el: "group",
+                        attr: {
+                            id: function (d) {
+                                return d + "_ID";
+                            },
+                            class: "imageGroup",
+                        },
+                        style: { opacity: 0 },
+                    })
+                        .forEach(function () {
+                            this.createEl({
+                                el: "circle",
+                                attr: {
+                                    r: 5,
+                                    cx: 0,
+                                    cy: 0,
+                                },
+                            });
+                        })
+                        .animateTo({
+                            duration: 3000,
+                            ease: "easeInOutCubic",
+                            delay: function (d, i) {
+                                return 50 * d;
+                            },
+                            attr: {
+                                transform: function (data, i) {
+                                    var Tlength = length - i * 100;
+                                    Tlength = Tlength < 0 ? 0 : Tlength;
 
-		var path = this.createEl({
-			el: 'path',
-			attr: {
-				'd': pathGenerator(0, (40 * d), ((60 * d)), 1300)
-			},
-			style: {
-				'stroke-width': 2,
-				stroke: 'rgb(206, 212, 212)',
-				fill: 'none'
-			}
-		});
+                                    var dim =
+                                        Tlength < 0 || Tlength > length
+                                            ? 0
+                                            : Tlength >= 300 && Tlength <= 1300 - 300
+                                            ? 1.5
+                                            : Tlength < 300
+                                            ? (1.5 / 300) * Tlength
+                                            : (1.5 / 300) * (1300 - Tlength);
+                                    dim = dim < 0 ? 0 : dim;
 
-		var length = path.node().getTotalLength();
+                                    return function (f) {
+                                        var point;
+                                        if (Tlength <= 0) point = { x: 0, y: 0 };
+                                        else point = path.node().getPointAtLength(f * Tlength);
+                                        return {
+                                            translate: [point.x, point.y],
+                                            scale: [dim, dim],
+                                        };
+                                    };
+                                },
+                            },
+                            style: {
+                                opacity: function (data, i) {
+                                    var Tlength = length - i * 100;
+                                    var o =
+                                        (0.9 / 300) *
+                                            (Tlength > 1300 - 300 ? 1300 - Tlength : Tlength) +
+                                        0.1;
 
-		var circle = this.createEls(circles, {
-			el: 'group',
-			attr: {
-				id: function (d) {
-					return d + '_ID';
-				},
-				class: 'imageGroup'
-			},
-			style: { opacity: 0 }
-		})
-			.forEach(function () {
-				this.createEl({
-					el: 'circle',
-					attr: {
-						r: 5,
-						cx: 0,
-						cy: 0
-					}
-				});
-			})
-			.animateTo({
-				duration: 3000,
-				ease: 'easeInOutCubic',
-				delay: function (d, i) {
-					return 50 * d;
-				},
-				attr: {
-					transform: function (data, i) {
-						var Tlength = length - i * 100;
-						Tlength = Tlength < 0 ? 0 : Tlength;
+                                    if (Tlength > 300 && Tlength < 1300 - 300) return 1;
+                                    else return o;
+                                },
+                            },
+                        });
+                });
 
-						var dim = (Tlength < 0 || Tlength > length) ? 0 : (Tlength >= 300 && Tlength <= (1300 - 300)) ? 1.5 : (Tlength < 300) ? ((1.5 / 300) * Tlength) : ((1.5 / 300) * (1300 - Tlength));
-						dim = dim < 0 ? 0 : dim;
+            function pathGenerator(x, y, y1, width) {
+                var startBegin = {
+                        x: 0,
+                        y: y,
+                    },
+                    startEnd = {
+                        x: startBegin.x + width * 0.2,
+                        y: y1,
+                    },
+                    endBegin = {
+                        x: startEnd.x + width * 0.6,
+                        y: y1,
+                    },
+                    endEnd = {
+                        x: width,
+                        y: y,
+                    };
+                var c1 = {
+                        x: startBegin.x + (startEnd.x - startBegin.x) * 0.6,
+                        y: startEnd.y + (startBegin.y - startEnd.y) * 0.9,
+                    },
+                    c2 = {
+                        x: startBegin.x + (startEnd.x - startBegin.x) * 0.5,
+                        y: startEnd.y + (startBegin.y - startEnd.y) * 0.05,
+                    },
+                    c3 = {
+                        x: endBegin.x + (endEnd.x - endBegin.x) * 0.5,
+                        y: endEnd.y + (endBegin.y - endEnd.y) * 0.05,
+                    },
+                    c4 = {
+                        x: endBegin.x + (endEnd.x - endBegin.x) * 0.6,
+                        y: endEnd.y + (endBegin.y - endEnd.y) * 0.9,
+                    };
 
-						return function (f) {
-							var point;
-							if (Tlength <= 0)
-								point = { x: 0, y: 0 };
-							else
-								point = path.node().getPointAtLength(f * Tlength);
-							return {
-								translate: [point.x, point.y],
-								scale: [dim, dim]
-							};
-						};
-
-					}
-				},
-				style: {
-					opacity: function (data, i) {
-						var Tlength = length - i * 100;
-						var o = ((0.9 / 300) * ((Tlength > (1300 - 300)) ? (1300 - Tlength) : Tlength)) + 0.1;
-
-						if (Tlength > 300 && Tlength < (1300 - 300))
-							return 1;
-						else
-							return o;
-
-					}
-				}
-			});
-	});
-
-function pathGenerator (x, y, y1, width) {
-
-	var startBegin = {
-			x: 0,
-			y: y
-		},
-		startEnd = {
-			x: startBegin.x + width * 0.2,
-			y: y1
-		},
-		endBegin = {
-			x: startEnd.x + width * 0.6,
-			y: y1
-		},
-		endEnd = {
-			x: width,
-			y: y
-		};
-	var c1 = {
-			x: startBegin.x + (startEnd.x - startBegin.x) * 0.6,
-			y: startEnd.y + (startBegin.y - startEnd.y) * 0.9
-		},
-		c2 = {
-			x: startBegin.x + (startEnd.x - startBegin.x) * 0.5,
-			y: startEnd.y + (startBegin.y - startEnd.y) * 0.05
-		},
-		c3 = {
-			x: endBegin.x + (endEnd.x - endBegin.x) * 0.5,
-			y: endEnd.y + (endBegin.y - endEnd.y) * 0.05
-		},
-		c4 = {
-			x: endBegin.x + (endEnd.x - endBegin.x) * 0.6,
-			y: endEnd.y + (endBegin.y - endEnd.y) * 0.9
-		};
-
-	return 'M' + startBegin.x + ',' + startBegin.y +
-		' C' + c1.x + ',' + c1.y + ' ' + c2.x + ',' + c2.y + ' ' + startEnd.x + ',' + startEnd.y +
-		' h' + width * 0.6 +
-		' C' + c4.x + ',' + c4.y + ' ' + c3.x + ',' + c3.y + ' ' + endEnd.x + ',' + endEnd.y;
-}
-
-</script>
-
-</body>
+                return (
+                    "M" +
+                    startBegin.x +
+                    "," +
+                    startBegin.y +
+                    " C" +
+                    c1.x +
+                    "," +
+                    c1.y +
+                    " " +
+                    c2.x +
+                    "," +
+                    c2.y +
+                    " " +
+                    startEnd.x +
+                    "," +
+                    startEnd.y +
+                    " h" +
+                    width * 0.6 +
+                    " C" +
+                    c4.x +
+                    "," +
+                    c4.y +
+                    " " +
+                    c3.x +
+                    "," +
+                    c3.y +
+                    " " +
+                    endEnd.x +
+                    "," +
+                    endEnd.y
+                );
+            }
+        </script>
+    </body>
 </html>

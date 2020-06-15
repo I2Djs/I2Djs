@@ -1,181 +1,187 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%;background: black">
-<div id="myCanvas" style="height: 100%;width:100%;position: absolute;">
-</div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
-<script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%; background: black;">
+        <div id="myCanvas" style="height: 100%; width: 100%; position: absolute;"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
 
-<script type="text/javascript">
+        <script type="text/javascript">
+            var renderer = i2d.canvasLayer("#myCanvas", {}, {});
+            var zoomInstance = i2d.behaviour.zoom();
 
-var renderer = i2d.canvasLayer('#myCanvas', {}, {});
-var zoomInstance = i2d.behaviour.zoom();
+            // console.log(renderer.height);
+            var projection = d3
+                .geoMercator()
+                .translate([renderer.width / 2, renderer.height / 2 + 100])
+                .center([0, 0])
+                .scale([160]);
 
-// console.log(renderer.height);
-var projection = d3.geoMercator()
-				   .translate([renderer.width/2, renderer.height/2 + 100])
-				   .center([0, 0])
-				   .scale([160]);
-        
-var path = d3.geoPath()
-		  	 .projection(projection);
+            var path = d3.geoPath().projection(projection);
 
-var worldmap = d3.json("https://nswamy14.github.io/geoJson/world.geo.json");
-var latlngmap = d3.json("https://nswamy14.github.io/geoJson/geoLatLong.json");
+            var worldmap = d3.json("https://nswamy14.github.io/geoJson/world.geo.json");
+            var latlngmap = d3.json("https://nswamy14.github.io/geoJson/geoLatLong.json");
 
-var pg = renderer.createEl({
-	el: 'group'
-});
+            var pg = renderer.createEl({
+                el: "group",
+            });
 
-var g = pg.createEl({
-	el: 'group'
-});
+            var g = pg.createEl({
+                el: "group",
+            });
 
-var circleG = pg.createEl({
-	el: 'group'
-});
+            var circleG = pg.createEl({
+                el: "group",
+            });
 
-var circleGRef = circleG.join([], 'g', {
-	joinOn: function () { },
-	action: {
-		enter: function (data) {
-			this.createEls(data['g'], {
-				el: 'g',
-				attr: {
-					transform: {
-						translate: [0, 0],
-						scale: [1]
-					}
-				}
-			}).forEach(function (d) {
-				let xy = projection([d.longitude, d.latitude]);
-				let scale = zoomInstance.event.transform.scale[0];
-				this.setAttr('transform', {
-					translate: xy,
-					scale: [1 / scale]
-				});
+            var circleGRef = circleG.join([], "g", {
+                joinOn: function () {},
+                action: {
+                    enter: function (data) {
+                        this.createEls(data["g"], {
+                            el: "g",
+                            attr: {
+                                transform: {
+                                    translate: [0, 0],
+                                    scale: [1],
+                                },
+                            },
+                        }).forEach(function (d) {
+                            let xy = projection([d.longitude, d.latitude]);
+                            let scale = zoomInstance.event.transform.scale[0];
+                            this.setAttr("transform", {
+                                translate: xy,
+                                scale: [1 / scale],
+                            });
 
-				// this.createEl({
-				// 	el: 'circle',
-				// 	attr: {
-				// 		cx: 0,
-				// 		cy: 0,
-				// 		r: 10
-				// 	},
-				// 	style: {
-				// 		fillStyle: 'green'
-				// 	}
-				// });
+                            // this.createEl({
+                            // 	el: 'circle',
+                            // 	attr: {
+                            // 		cx: 0,
+                            // 		cy: 0,
+                            // 		r: 10
+                            // 	},
+                            // 	style: {
+                            // 		fillStyle: 'green'
+                            // 	}
+                            // });
 
-				this.createEl({
-					el: 'text',
-					attr: {
-						x: 0,
-						y: 0,
-						text: d.properties.name
-					},
-					style: {
-						textAlign: 'center',
-						fillStyle: 'white'
-					}
-				});
-			});
-		},
-		update: function (nodes) {
-			let scale = zoomInstance.event.transform.scale[0];
-			nodes['g'].forEach(function (d) {
-				let transform = this.getAttr('transform');
-				this.setAttr('transform', {
-					translate: transform.translate,
-					scale: [1 / scale]
-				})
-			});
-		},
-		exit: function (nodes) {
+                            this.createEl({
+                                el: "text",
+                                attr: {
+                                    x: 0,
+                                    y: 0,
+                                    text: d.properties.name,
+                                },
+                                style: {
+                                    textAlign: "center",
+                                    fillStyle: "white",
+                                },
+                            });
+                        });
+                    },
+                    update: function (nodes) {
+                        let scale = zoomInstance.event.transform.scale[0];
+                        nodes["g"].forEach(function (d) {
+                            let transform = this.getAttr("transform");
+                            this.setAttr("transform", {
+                                translate: transform.translate,
+                                scale: [1 / scale],
+                            });
+                        });
+                    },
+                    exit: function (nodes) {},
+                },
+            });
 
-		}
-	}
-})
+            zoomInstance.scaleExtent([1, 3]);
+            zoomInstance.zoomStart(function (event) {});
+            zoomInstance.zoom(function (event) {
+                pg.setAttr("transform", event.transform);
+                circleGRef.update();
+            });
+            zoomInstance.panExtent([
+                [-10000, -10000],
+                [10000, 10000],
+            ]);
+            zoomInstance.zoomTarget([renderer.width / 2, renderer.height / 2]);
+            renderer.on("zoom", zoomInstance);
 
-zoomInstance.scaleExtent([1, 3]);
-zoomInstance.zoomStart(function (event) {
-});
-zoomInstance.zoom(function (event) {
-	pg.setAttr('transform', event.transform);
-	circleGRef.update();
-});
-zoomInstance.panExtent([[-10000, -10000], [10000, 10000]]);
-zoomInstance.zoomTarget([renderer.width / 2, renderer.height / 2]);
-renderer.on('zoom', zoomInstance);
+            Promise.all([worldmap, latlngmap]).then(function (values) {
+                let countriesMap = values[1].countries.reduce(function (p, c) {
+                    p[c.name] = c;
+                    return p;
+                }, {});
 
-Promise.all([worldmap, latlngmap]).then(function(values) {
-	let countriesMap = values[1].countries.reduce(function (p, c) {
-		p[c.name] = c;
-		return p;
-	}, {});
+                g.createEl({
+                    el: "path",
+                    attr: {
+                        d: path(values[0]),
+                    },
+                    style: {
+                        shadowBlur: 15,
+                        shadowColor: "#42baff",
+                        fillStyle: "rgba(0, 0, 1, 1)",
+                    },
+                })
+                    .on("mouseover", function () {
+                        this.setStyle("fillStyle", "rgba(22, 24, 26, 1)");
+                    })
+                    .on("mouseout", function () {
+                        this.setStyle("fillStyle", "rgba(0, 0, 1, 1)");
+                    })
+                    .on("zoom", zoomInstance);
+                let clist = [
+                    "India",
+                    "United States",
+                    "Australia",
+                    "China",
+                    "Myanmar [Burma]",
+                    "Sri Lanka",
+                    "France",
+                    "United Kingdom",
+                    "Germany",
+                    "Denmark",
+                ];
+                values[0].features.forEach(function (d) {
+                    if (clist.indexOf(d.properties.name) !== -1) {
+                        let latLng = countriesMap[d.properties.name];
+                        d.longitude = latLng.longitude;
+                        d.latitude = latLng.latitude;
 
-	g.createEl({
-		el: 'path',
-		attr: {
-			d: path(values[0])
-		},
-		style: {
-			shadowBlur: 15,
-			shadowColor: '#42baff',
-			fillStyle: 'rgba(0, 0, 1, 1)'
-		}
-	})
-	.on('mouseover', function() {
-		this.setStyle('fillStyle', 'rgba(22, 24, 26, 1)');
-	}).on('mouseout', function() {
-		this.setStyle('fillStyle', 'rgba(0, 0, 1, 1)');
-	})
-	.on('zoom', zoomInstance);
-	let clist = ['India', 'United States', 'Australia', 'China', 'Myanmar [Burma]', 'Sri Lanka', 'France', 'United Kingdom', 'Germany', 'Denmark'];
-	values[0].features.forEach(function (d) {
-		if (clist.indexOf(d.properties.name) !== -1) {
-			
-			let latLng = countriesMap[d.properties.name];
-			d.longitude = latLng.longitude;
-			d.latitude = latLng.latitude;
-			
-			circleGRef.push(d);
-			g.createEl({
-				el: 'path',
-				attr: {
-					d: path(d)
-				},
-				style: {
-					fillStyle: '#39a0db',
-					strokeStyle: '#000000',
-					strokeWidth: 1
-				}
-			})
-			.on('mouseover', function() {
-				this.setStyle('fillStyle', '#42baff');
-			}).on('mouseout', function() {
-				this.setStyle('fillStyle', '#39a0db');
-			})
-			.on('click', function (d, e) {
-				let translate = zoomInstance.event.transform.translate;
-				let scale = zoomInstance.event.transform.scale[0];
-				let latLngToXY = projection([latLng.longitude, latLng.latitude]);
-				latLngToXY[0] *= scale;
-				latLngToXY[1] *= scale;
-				latLngToXY[0] += (translate[0]);
-				latLngToXY[1] += (translate[1]);
-				renderer.scaleTo(3, latLngToXY);
-			});
-		}
-	})
-
-});
-
-</script>
-
-</body>
+                        circleGRef.push(d);
+                        g.createEl({
+                            el: "path",
+                            attr: {
+                                d: path(d),
+                            },
+                            style: {
+                                fillStyle: "#39a0db",
+                                strokeStyle: "#000000",
+                                strokeWidth: 1,
+                            },
+                        })
+                            .on("mouseover", function () {
+                                this.setStyle("fillStyle", "#42baff");
+                            })
+                            .on("mouseout", function () {
+                                this.setStyle("fillStyle", "#39a0db");
+                            })
+                            .on("click", function (d, e) {
+                                let translate = zoomInstance.event.transform.translate;
+                                let scale = zoomInstance.event.transform.scale[0];
+                                let latLngToXY = projection([latLng.longitude, latLng.latitude]);
+                                latLngToXY[0] *= scale;
+                                latLngToXY[1] *= scale;
+                                latLngToXY[0] += translate[0];
+                                latLngToXY[1] += translate[1];
+                                renderer.scaleTo(3, latLngToXY);
+                            });
+                    }
+                });
+            });
+        </script>
+    </body>
 </html>
-

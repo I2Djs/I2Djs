@@ -1,161 +1,183 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%;background: #000">
-<label style="position: absolute; color: white"> Canvas Example </label>
-<div id="fps"
-	 style="position: absolute;top:10px;left: 90%;height: 50px;width: 100px; background: #888888;color: #fff;font-size: 40px;text-align: center">
-	70
-</div>
-<div style="position: absolute; height: 100%;width:100%" id="myCanvas">
-</div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%; background: #000;">
+        <label style="position: absolute; color: white;"> Canvas Example </label>
+        <div
+            id="fps"
+            style="
+                position: absolute;
+                top: 10px;
+                left: 90%;
+                height: 50px;
+                width: 100px;
+                background: #888888;
+                color: #fff;
+                font-size: 40px;
+                text-align: center;
+            "
+        >
+            70
+        </div>
+        <div style="position: absolute; height: 100%; width: 100%;" id="myCanvas"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
+        <script type="text/javascript">
+            var renderer = i2d.canvasLayer("#myCanvas", {}, false);
+            var nodes = [];
+            var data = [],
+                circles = [];
 
-<script type="text/javascript">
+            for (var i = 1; i <= 10; i++) {
+                data.push(i - 10 / 2);
+            }
+            for (var i = 1; i <= 10; i++) {
+                circles.push(i);
+            }
 
-var renderer = i2d.canvasLayer('#myCanvas', {}, false);
-var nodes = [];
-var data = [], circles = [];
+            var g_ = renderer
+                .createEls(data, {
+                    el: "group",
+                    attr: {
+                        transform: {
+                            translate: [100, 300],
+                        },
+                    },
+                })
+                .forEach(function (d, i) {
+                    var path = this.createEl({
+                        el: "path",
+                        attr: {
+                            d: pathGenerator(0, 40 * d, 60 * d, 1300),
+                        },
+                        style: {
+                            lineWidth: 2,
+                            setLineDash: [4, 2],
+                            strokeStyle: "#333",
+                        },
+                    });
+                    var length = path.node().getTotalLength();
 
-for (var i = 1; i <= 10; i++) {
-	data.push(i - 10 / 2);
-}
-for (var i = 1; i <= 10; i++) {
-	circles.push(i);
-}
+                    this.createEls(circles, {
+                        el: "group",
+                    })
+                        .forEach(function (d, i) {
+                            this.createEl({
+                                el: "circle",
+                                attr: {
+                                    cx: 0,
+                                    cy: 0,
+                                    r: 10,
+                                },
+                                style: {
+                                    fillStyle: "red",
+                                },
+                            });
 
-var g_ = renderer.createEls(data, {
-	el: 'group',
-	attr: {
-		transform: {
-			translate: [100, 300]
-		}
-	}
-})
-	.forEach(function (d, i) {
+                            this.createEl({
+                                el: "text",
+                                attr: {
+                                    x: 0,
+                                    y: 20,
+                                },
+                                style: {
+                                    fillStyle: "green",
+                                    textAlign: "center",
+                                },
+                            }).text("10.65.10.22");
+                        })
+                        .animateTo({
+                            duration: 3000,
+                            ease: "easeInOutCubic",
+                            delay: function (d, i) {
+                                return 70 * d;
+                            },
+                            attr: {
+                                transform: function (data, i) {
+                                    var Tlength = length - i * 50;
+                                    var dim =
+                                        Tlength < 0 || Tlength > length
+                                            ? 0
+                                            : Tlength >= 300 && Tlength <= 1300 - 300
+                                            ? 1.7
+                                            : Tlength < 300
+                                            ? (1.5 / 300) * Tlength
+                                            : (1.5 / 300) * (1300 - Tlength);
+                                    dim = dim < 0 ? 0.5 : dim;
 
-		var path = this.createEl({
-			el: 'path',
-			attr: {
-				d: pathGenerator(0, (40 * d), ((60 * d)), 1300)
-			},
-			style: {
-				lineWidth: 2,
-				setLineDash: [4, 2],
-				strokeStyle: '#333'
-			}
-		});
-		var length = path.node().getTotalLength();
+                                    return function (f) {
+                                        var point = path.node().getPointAtLength(f * Tlength);
+                                        console.log(point);
+                                        return {
+                                            translate: [point.x, point.y],
+                                            // scale:[dim+(1-f)*(1.5-dim)]
+                                            // ,
+                                            // rotate:[(angle*180/Math.PI)]
+                                        };
+                                    };
+                                },
+                            },
+                        });
+                });
 
-		this.createEls(circles, {
-			el: 'group'
-		}).forEach(function (d, i) {
+            function pathGenerator(x, y, y1, width) {
+                var startBegin = {
+                        x: 0,
+                        y: y,
+                    },
+                    startEnd = {
+                        x: startBegin.x + width * 0.2,
+                        y: y1,
+                    },
+                    endBegin = {
+                        x: startEnd.x + width * 0.6,
+                        y: y1,
+                    },
+                    endEnd = {
+                        x: width,
+                        y: y,
+                    };
+                var c1 = {
+                        x: startBegin.x + (startEnd.x - startBegin.x) * 0.6,
+                        y: startEnd.y + (startBegin.y - startEnd.y) * 0.9,
+                    },
+                    c2 = {
+                        x: startBegin.x + (startEnd.x - startBegin.x) / 2,
+                        y: startEnd.y + (startBegin.y - startEnd.y) * 0.05,
+                    },
+                    c3 = {
+                        x: endBegin.x + (endEnd.x - endBegin.x) / 2,
+                        y: endEnd.y + (endBegin.y - endEnd.y) * 0.05,
+                    },
+                    c4 = {
+                        x: endBegin.x + (endEnd.x - endBegin.x) * 0.6,
+                        y: endEnd.y + (endBegin.y - endEnd.y) * 0.9,
+                    };
 
-			this.createEl({
-				el: 'circle',
-				attr: {
-					cx: 0,
-					cy: 0,
-					r: 10
-				},
-				style: {
-					fillStyle: 'red'
-				}
-			});
+                return i2d
+                    .Path()
+                    .m(false, { x: startBegin.x, y: startBegin.y })
+                    .c(
+                        true,
+                        { x: c1.x, y: c1.y },
+                        { x: c2.x, y: c2.y },
+                        { x: startEnd.x, y: startEnd.y }
+                    )
+                    .h(false, { x: width * 0.6, y: 0 })
+                    .c(
+                        true,
+                        { x: c4.x, y: c4.y },
+                        { x: c3.x, y: c3.y },
+                        { x: endEnd.x, y: endEnd.y }
+                    );
 
-			this.createEl({
-				el: 'text',
-				attr: {
-					x: 0,
-					y: 20
-				},
-				style: {
-					fillStyle: 'green',
-					textAlign: 'center'
-				}
-			}).text('10.65.10.22');
-
-		})
-			.animateTo({
-				duration: 3000,
-				ease: 'easeInOutCubic',
-				delay: function (d, i) {
-					return 70 * d;
-				},
-				attr: {
-					transform: function (data, i) {
-
-						var Tlength = length - i * 50;
-						var dim = (Tlength < 0 || Tlength > length) ? 0 : (Tlength >= 300 && Tlength <= (1300 - 300)) ? 1.7 : (Tlength < 300) ? ((1.5 / 300) * Tlength) : ((1.5 / 300) * (1300 - Tlength));
-						dim = dim < 0 ? 0.5 : dim;
-
-						return function (f) {
-
-							var point = path.node().getPointAtLength(f * Tlength);
-							console.log(point);
-							return {
-								translate: [point.x, point.y]
-								// scale:[dim+(1-f)*(1.5-dim)]
-								// ,
-								// rotate:[(angle*180/Math.PI)]
-							};
-						};
-
-					}
-				}
-			});
-	});
-
-function pathGenerator (x, y, y1, width) {
-
-	var startBegin = {
-			x: 0,
-			y: y
-		},
-		startEnd = {
-			x: startBegin.x + width * 0.2,
-			y: y1
-		},
-		endBegin = {
-			x: startEnd.x + width * 0.6,
-			y: y1
-		},
-		endEnd = {
-			x: width,
-			y: y
-		};
-	var c1 = {
-			x: startBegin.x + (startEnd.x - startBegin.x) * 0.6,
-			y: startEnd.y + (startBegin.y - startEnd.y) * 0.9
-		},
-		c2 = {
-			x: startBegin.x + (startEnd.x - startBegin.x) / 2,
-			y: startEnd.y + (startBegin.y - startEnd.y) * 0.05
-		},
-		c3 = {
-			x: endBegin.x + (endEnd.x - endBegin.x) / 2,
-			y: endEnd.y + (endBegin.y - endEnd.y) * 0.05
-		},
-		c4 = {
-			x: endBegin.x + (endEnd.x - endBegin.x) * 0.6,
-			y: endEnd.y + (endBegin.y - endEnd.y) * 0.9
-		};
-
-	return i2d.Path()
-		.m(false, { x: startBegin.x, y: startBegin.y })
-		.c(true, { x: c1.x, y: c1.y }, { x: c2.x, y: c2.y }, { x: startEnd.x, y: startEnd.y })
-		.h(false, { x: width * 0.6, y: 0 })
-		.c(true, { x: c4.x, y: c4.y }, { x: c3.x, y: c3.y }, { x: endEnd.x, y: endEnd.y });
-
-	// return "M"+startBegin.x+","+startBegin.y+
-	// 		" C"+c1.x+","+c1.y+" "+c2.x+","+c2.y +" "+startEnd.x+","+startEnd.y +
-	// 		" h"+width*0.6+
-	// 		" C"+c4.x+","+c4.y+" "+c3.x+","+c3.y +" "+endEnd.x+","+endEnd.y;
-}
-</script>
-
-</body>
+                // return "M"+startBegin.x+","+startBegin.y+
+                // 		" C"+c1.x+","+c1.y+" "+c2.x+","+c2.y +" "+startEnd.x+","+startEnd.y +
+                // 		" h"+width*0.6+
+                // 		" C"+c4.x+","+c4.y+" "+c3.x+","+c3.y +" "+endEnd.x+","+endEnd.y;
+            }
+        </script>
+    </body>
 </html>

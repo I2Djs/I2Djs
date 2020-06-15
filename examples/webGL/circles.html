@@ -1,77 +1,85 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
-<label style="position: absolute;color: white"> Webgl Example </label>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <label style="position: absolute; color: white;"> Webgl Example </label>
 
-<div id="canvas" style="height: 100%;width:100%;background: black">
-</div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+        <div id="canvas" style="height: 100%; width: 100%; background: black;"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript">
-var webglRenderer = i2d.webglLayer('#canvas', {}, {});
-/************** circles *****************/
+        <script type="text/javascript">
+            var webglRenderer = i2d.webglLayer("#canvas", {}, {});
+            /************** circles *****************/
 
-var circlesData = [];
-for (let i = 0; i < 1000; i++) {
-	circlesData.push({
-		cx: Math.random() * 1200,
-		cy: Math.random() * 800,
-		r: Math.random() * 50
-	});
-}
+            var circlesData = [];
+            for (let i = 0; i < 1000; i++) {
+                circlesData.push({
+                    cx: Math.random() * 1200,
+                    cy: Math.random() * 800,
+                    r: Math.random() * 50,
+                });
+            }
 
-var circlesRef = webglRenderer.createEl({
-	el: 'group',
-	attr: {
-		shaderType: 'circle'
-	},
-	bbox: false
-}).createEls(circlesData, {
-	el: 'circle',
-	attr: {
-		cx: function (d) {
-			return d.cx;
-		},
-		cy: function (d) {
-			return d.cy;
-		},
-		r: function (d) {
-			return d.r;
-		}
-	},
-	style: {
-		fill: function () {
-			return i2d.color.rgba(parseInt(Math.random() * 255), parseInt(Math.random() * 255), parseInt(Math.random() * 255), 255);
-		}
-	}
-});
+            var circlesRef = webglRenderer
+                .createEl({
+                    el: "group",
+                    attr: {
+                        shaderType: "circle",
+                    },
+                    bbox: false,
+                })
+                .createEls(circlesData, {
+                    el: "circle",
+                    attr: {
+                        cx: function (d) {
+                            return d.cx;
+                        },
+                        cy: function (d) {
+                            return d.cy;
+                        },
+                        r: function (d) {
+                            return d.r;
+                        },
+                    },
+                    style: {
+                        fill: function () {
+                            return i2d.color.rgba(
+                                parseInt(Math.random() * 255),
+                                parseInt(Math.random() * 255),
+                                parseInt(Math.random() * 255),
+                                255
+                            );
+                        },
+                    },
+                });
 
-circlesRef.animateTo({
-	duration: 10000,
-	loop: 10,
-	direction: 'alternate',
-	attr: {
-		cx: function (d) {
-			return parseInt(Math.random() * 1400);
-		},
-		cy: function (d) {
-			return parseInt(Math.random() * 1000);
-		}
-	},
-	style: {
-		fill: function () {
-			return i2d.color.rgba(parseInt(Math.random() * 255), parseInt(Math.random() * 255), parseInt(Math.random() * 255), 255);
-		}
-	}
-});
+            circlesRef.animateTo({
+                duration: 10000,
+                loop: 10,
+                direction: "alternate",
+                attr: {
+                    cx: function (d) {
+                        return parseInt(Math.random() * 1400);
+                    },
+                    cy: function (d) {
+                        return parseInt(Math.random() * 1000);
+                    },
+                },
+                style: {
+                    fill: function () {
+                        return i2d.color.rgba(
+                            parseInt(Math.random() * 255),
+                            parseInt(Math.random() * 255),
+                            parseInt(Math.random() * 255),
+                            255
+                        );
+                    },
+                },
+            });
 
-/************** End circles *****************/
-
-
-</script>
-
-</body>
+            /************** End circles *****************/
+        </script>
+    </body>
 </html>

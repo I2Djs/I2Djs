@@ -1,185 +1,176 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
-<div id="myCanvas" style="height: 100%;width:100%;position: absolute;">
-</div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <div id="myCanvas" style="height: 100%; width: 100%; position: absolute;"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript">
-var renderer = i2d.canvasLayer('#myCanvas', {}, {});
+        <script type="text/javascript">
+            var renderer = i2d.canvasLayer("#myCanvas", {}, {});
 
-var renderer_1 = i2d.canvasLayer(null, {}, {});
-renderer_1.setSize(566, 300);
+            var renderer_1 = i2d.canvasLayer(null, {}, {});
+            renderer_1.setSize(566, 300);
 
-renderer.addDependentLayer(renderer_1);
+            renderer.addDependentLayer(renderer_1);
 
+            var pattern2 = renderer.createPattern();
+            pattern2.pattern.setSize(8, 8);
+            pattern2.pattern.createEl({
+                el: "circle",
+                attr: {
+                    r: 3,
+                    cx: 3,
+                    cy: 3,
+                },
+                style: {
+                    fillStyle: "#fff",
+                },
+            });
 
-var pattern2 = renderer.createPattern();
-pattern2.pattern.setSize(8, 8);
-pattern2.pattern.createEl({
-	el: 'circle',
-	attr:{
-		r: 3,
-		cx: 3,
-		cy: 3
-	},
-	style: {
-		fillStyle: '#fff'
-	}
-});
+            var maskInstance = renderer_1.createMask();
+            maskInstance.mask.createEl({
+                el: "rect",
+                attr: {
+                    x: 0,
+                    y: 0,
+                    width: 566,
+                    height: 200,
+                },
+                style: {
+                    fillStyle: pattern2,
+                },
+            });
 
-var maskInstance = renderer_1.createMask();
-maskInstance.mask.createEl({
-	el: 'rect',
-	attr:{
-		x: 0,
-		y: 0,
-		width: 566,
-		height: 200
-	},
-	style: {
-		fillStyle: pattern2
-	}
-});
+            renderer_1.createEl({
+                el: "image",
+                attr: {
+                    src: "./../../i2djsLogo.png",
+                    x: 0,
+                    y: 0,
+                    width: 566,
+                    height: 300,
+                },
+                style: {
+                    mask: maskInstance,
+                },
+            });
 
-renderer_1.createEl({
-	el: 'image',
-	attr: {
-		src: './../../i2djsLogo.png',
-		x: 0,
-		y: 0,
-		width: 566,
-		height: 300
-	},
-	style: {
-		mask: maskInstance
-	}
-});
+            renderer.createEl({
+                el: "image",
+                attr: {
+                    src: renderer_1,
+                    x: 0,
+                    y: 0,
+                    width: 566,
+                    height: 300,
+                },
+            });
 
+            var renderer_2 = i2d.canvasLayer(null, {}, {});
+            renderer_2.setSize(566, 300);
 
-renderer.createEl({
-		el: 'image',
-		attr: {
-			src: renderer_1,
-			x: 0,
-			y: 0,
-			width: 566,
-			height: 300
-		}
-	});
+            renderer.addDependentLayer(renderer_2);
 
+            var maskInstance1 = renderer_2.createMask();
+            maskInstance1.mask.createEl({
+                el: "image",
+                attr: {
+                    src: "./../images/grass.jpeg",
+                    x: 0,
+                    y: 0,
+                    width: 566,
+                    height: 200,
+                },
+                style: {
+                    globalAlpha: 0.8,
+                },
+            });
 
-var renderer_2 = i2d.canvasLayer(null, {}, {});
-renderer_2.setSize(566, 300);
+            renderer_2.createEl({
+                el: "image",
+                attr: {
+                    src: "./../../i2djsLogo.png",
+                    x: 0,
+                    y: 0,
+                    width: 566,
+                    height: 300,
+                },
+                style: {
+                    mask: maskInstance1,
+                },
+            });
 
-renderer.addDependentLayer(renderer_2);
+            renderer.createEl({
+                el: "image",
+                attr: {
+                    src: renderer_2,
+                    x: 283,
+                    y: 350,
+                    width: 566,
+                    height: 300,
+                },
+            });
 
-var maskInstance1 = renderer_2.createMask();
-maskInstance1.mask.createEl({
-	el: 'image',
-	attr:{
-		src: './../images/grass.jpeg',
-		x: 0,
-		y: 0,
-		width: 566,
-		height: 200
-	}, 
-	style: {
-		globalAlpha: 0.8
-	}
-});
+            var renderer_3 = i2d.canvasLayer(null, {}, {});
+            renderer_3.setSize(566, 300);
+            renderer.addDependentLayer(renderer_3);
 
-renderer_2.createEl({
-	el: 'image',
-	attr: {
-		src: './../../i2djsLogo.png',
-		x: 0,
-		y: 0,
-		width: 566,
-		height: 300
-	},
-	style: {
-		mask: maskInstance1
-	}
-});
+            var pattern3 = renderer.createPattern();
+            pattern3.pattern.setSize(18, 10);
+            pattern3.pattern.createEl({
+                el: "text",
+                attr: {
+                    x: 0,
+                    y: 10,
+                    text: "I2D",
+                },
+                style: {
+                    fillStyle: "#fff",
+                    font: "10px Areal",
+                },
+            });
 
-renderer.createEl({
-	el: 'image',
-	attr: {
-		src: renderer_2,
-		x: 283,
-		y: 350,
-		width: 566,
-		height: 300
-	}
-});
+            var maskInstance3 = renderer_3.createMask();
+            maskInstance3.mask.createEl({
+                el: "rect",
+                attr: {
+                    x: 0,
+                    y: 0,
+                    width: 566,
+                    height: 200,
+                },
+                style: {
+                    fillStyle: pattern3,
+                },
+            });
 
+            renderer_3.createEl({
+                el: "image",
+                attr: {
+                    src: "./../../i2djsLogo.png",
+                    x: 0,
+                    y: 0,
+                    width: 566,
+                    height: 300,
+                },
+                style: {
+                    mask: maskInstance3,
+                    // globalCompositeOperation: 'destination-atop'
+                },
+            });
 
-var renderer_3 = i2d.canvasLayer(null, {}, {});
-renderer_3.setSize(566, 300);
-renderer.addDependentLayer(renderer_3);
-
-
-var pattern3 = renderer.createPattern();
-pattern3.pattern.setSize(18, 10);
-pattern3.pattern.createEl({
-	el: 'text',
-	attr:{
-		x: 0,
-		y: 10,
-		text: 'I2D'
-	},
-	style: {
-		fillStyle: '#fff',
-		font: '10px Areal'
-	}
-});
-
-var maskInstance3 = renderer_3.createMask();
-maskInstance3.mask.createEl({
-	el: 'rect',
-	attr:{
-		x: 0,
-		y: 0,
-		width: 566,
-		height: 200
-	},
-	style: {
-		fillStyle: pattern3
-	}
-});
-
-renderer_3.createEl({
-	el: 'image',
-	attr: {
-		src: './../../i2djsLogo.png',
-		x: 0,
-		y: 0,
-		width: 566,
-		height: 300
-	},
-	style: {
-		mask: maskInstance3,
-		// globalCompositeOperation: 'destination-atop'
-	}
-});
-
-renderer.createEl({
-		el: 'image',
-		attr: {
-			src: renderer_3,
-			x: 600,
-			y: 0,
-			width: 566,
-			height: 300
-		}
-	});
-
-
-</script>
-
-</body>
+            renderer.createEl({
+                el: "image",
+                attr: {
+                    src: renderer_3,
+                    x: 600,
+                    y: 0,
+                    width: 566,
+                    height: 300,
+                },
+            });
+        </script>
+    </body>
 </html>

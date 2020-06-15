@@ -1,108 +1,102 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
-<label style="position: absolute; color: white"> SVG Example </label>
-<div id="mySVG" style="position: absolute; height: 100%;width:100%; background: black">
-</div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <label style="position: absolute; color: white;"> SVG Example </label>
+        <div
+            id="mySVG"
+            style="position: absolute; height: 100%; width: 100%; background: black;"
+        ></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript">
+        <script type="text/javascript">
+            var renderer_ = i2d.svgLayer("#mySVG", {});
+            const n = 250;
+            const v = 2;
+            const m = 12;
+            let height = renderer_.height;
+            let width = renderer_.width;
+            const tadpoles = new Array(n).fill().map(() => ({
+                vx: (Math.random() - 0.5) * v,
+                vy: (Math.random() - 0.5) * v,
+                px: new Array(m).fill(Math.random() * width),
+                py: new Array(m).fill(Math.random() * height),
+                count: 0,
+            }));
 
+            var group = renderer_.createEl({
+                el: "group",
+                style: { stroke: "white" },
+            });
 
-var renderer_ = i2d.svgLayer('#mySVG', {});
-const n = 250;
-const v = 2;
-const m = 12;
-let height = renderer_.height;
-let width = renderer_.width;
-const tadpoles = new Array(n).fill().map(() => ({
-	vx: (Math.random() - 0.5) * v,
-	vy: (Math.random() - 0.5) * v,
-	px: new Array(m).fill(Math.random() * width),
-	py: new Array(m).fill(Math.random() * height),
-	count: 0
-}));
+            var nodes = group
+                .createEls(tadpoles, {
+                    el: "group",
+                    bbox: false,
+                })
+                .forEach(function (d) {
+                    this.createEl({
+                        el: "ellipse",
+                        attr: { cx: 0, cy: 0, rx: 6.5, ry: 4 },
+                        style: { fill: "white" },
+                    });
+                    this.createEl({
+                        el: "polyline",
+                        attr: { points: [], class: "mid" },
+                        style: { "stroke-width": 4, "fill": "none" },
+                    });
+                    this.createEl({
+                        el: "polyline",
+                        attr: { points: [], class: "tail" },
+                        style: { "stroke-width": 1, "fill": "none" },
+                    });
+                });
+            let atan2 = Math.atan2;
+            let sin = Math.sin;
+            let sqrt = Math.sqrt;
+            i2d.queue.onRequestFrame(function (t) {
+                var time = new Date();
+                nodes.forEach(function (t) {
+                    let dx = t.vx;
+                    let dy = t.vy;
+                    let x = (t.px[0] += dx);
+                    let y = (t.py[0] += dy);
+                    let speed = Math.sqrt(dx * dx + dy * dy);
+                    const count = speed * 10;
+                    const k1 = -5 - speed / 3;
 
-var group = renderer_.createEl({
-	el: 'group',
-	style: { stroke: 'white' }
-});
+                    // Bounce off the walls.
+                    if (x < 0 || x > width) t.vx *= -1;
+                    if (y < 0 || y > height) t.vy *= -1;
 
-var nodes = group.createEls(tadpoles, {
-	el: 'group',
-	bbox: false
-}).forEach(function (d) {
-	this.createEl({
-		el: 'ellipse',
-		attr: { cx: 0, cy: 0, rx: 6.5, ry: 4 },
-		style: { fill: 'white' }
-	});
-	this.createEl({
-		el: 'polyline',
-		attr: { points: [], class: 'mid' },
-		style: { 'stroke-width': 4, fill: 'none' }
-	});
-	this.createEl({
-		el: 'polyline',
-		attr: { points: [], class: 'tail' },
-		style: { 'stroke-width': 1, fill: 'none' }
-	});
-});
-let atan2 = Math.atan2;
-let sin = Math.sin;
-let sqrt = Math.sqrt;
-i2d.queue.onRequestFrame(function (t) {
-	var time = new Date();
-	nodes.forEach(function (t) {
-		let dx = t.vx;
-		let dy = t.vy;
-		let x = t.px[0] += dx;
-		let y = t.py[0] += dy;
-		let speed = Math.sqrt(dx * dx + dy * dy);
-		const count = speed * 10;
-		const k1 = -5 - speed / 3;
+                    // Swim!
+                    for (var j = 1; j < m; ++j) {
+                        const vx = x - t.px[j];
+                        const vy = y - t.py[j];
+                        const k2 = sin(((t.count += count) + j * 3) / 300) / speed;
+                        t.px[j] = (x += (dx / speed) * k1) - dy * k2;
+                        t.py[j] = (y += (dy / speed) * k1) + dx * k2;
+                        speed = sqrt((dx = vx) * dx + (dy = vy) * dy);
+                    }
 
-		// Bounce off the walls.
-		if (x < 0 || x > width) t.vx *= -1;
-		if (y < 0 || y > height) t.vy *= -1;
+                    let midArr = [];
+                    for (let i = 0; i < 3; ++i) midArr[i] = { x: t.px[i], y: t.py[i] };
 
-		// Swim!
-		for (var j = 1; j < m; ++j) {
-			const vx = x - t.px[j];
-			const vy = y - t.py[j];
-			const k2 = sin(((t.count += count) + j * 3) / 300) / speed;
-			t.px[j] = (x += dx / speed * k1) - dy * k2;
-			t.py[j] = (y += dy / speed * k1) + dx * k2;
-			speed = sqrt((dx = vx) * dx + (dy = vy) * dy);
-		}
+                    let tail = [];
+                    for (let i = 0; i < m; ++i) tail[i] = { x: t.px[i], y: t.py[i] };
 
-		let midArr = [];
-		for (let i = 0; i < 3; ++i)
-			midArr[i] = { x: t.px[i], y: t.py[i] };
+                    this.fetchEl("ellipse").setAttr("transform", {
+                        translate: [t.px[0], t.py[0]],
+                        rotate: [atan2(t.vy, t.vx) * (360 / (2 * Math.PI)), 0, 0],
+                    });
 
-		let tail = [];
-		for (let i = 0; i < m; ++i)
-			tail[i] = { x: t.px[i], y: t.py[i] };
+                    this.fetchEl(".mid").setAttr("points", midArr);
 
-		this.fetchEl('ellipse')
-			.setAttr('transform', {
-				translate: [t.px[0], t.py[0]],
-				rotate: [atan2(t.vy, t.vx) * (360 / (2 * Math.PI)), 0, 0]
-			});
-
-		this.fetchEl('.mid')
-			.setAttr('points', midArr);
-
-		this.fetchEl('.tail')
-			.setAttr('points', tail);
-	});
-});
-
-
-</script>
-
-</body>
+                    this.fetchEl(".tail").setAttr("points", tail);
+                });
+            });
+        </script>
+    </body>
 </html>

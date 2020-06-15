@@ -1,34 +1,32 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-	<style>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+        <style>
+            body {
+                margin: 0;
+                background: #222;
+                min-width: 960px;
+            }
 
-		body {
-			margin: 0;
-			background: #222;
-			min-width: 960px;
-		}
+            rect {
+                fill: none;
+                pointer-events: all;
+            }
 
-		rect {
-			fill: none;
-			pointer-events: all;
-		}
+            circle {
+                fill: none;
+                stroke-width: 2.5px;
+            }
+        </style>
+    </head>
+    <body style="height: 100%;">
+        <label style="position: absolute; color: white;"> Canvas Example </label>
+        <div id="myCanvas" style="height: 100%; width: 100%; background: black;"></div>
 
-		circle {
-			fill: none;
-			stroke-width: 2.5px;
-		}
-
-	</style>
-</head>
-<body style="height: 100%">
-<label style="position: absolute; color: white"> Canvas Example </label>
-<div id="myCanvas" style="height: 100%;width:100%;background: black"></div>
-
-<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
-<script type="text/javascript" src="../../dist/i2d.js"></script>
-<!--<script type="text/javascript" src="../../src/colorMap.js"></script>
+        <!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
+        <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
 <script type="text/javascript" src="../../src/geometry.js"></script>
 <script type="text/javascript" src="../../src/easing.js"></script>
 <script type="text/javascript" src="../../src/vDom.js"></script>
@@ -37,59 +35,56 @@
 <script type="text/javascript" src="../../src/path.js"></script>
 <script type="text/javascript" src="../../src/renderer.js"></script>-->
 
-<script type="text/javascript">
-var height = document.getElementById('myCanvas').offsetHeight;
-var width = document.getElementById('myCanvas').offsetWidth;
-var renderer_ = i2d.canvasLayer('#myCanvas', {}, {});
-var i = 0;
-var sqrt = Math.sqrt;
-var data = [];
+        <script type="text/javascript">
+            var height = document.getElementById("myCanvas").offsetHeight;
+            var width = document.getElementById("myCanvas").offsetWidth;
+            var renderer_ = i2d.canvasLayer("#myCanvas", {}, {});
+            var i = 0;
+            var sqrt = Math.sqrt;
+            var data = [];
 
-for (let i = 0; i < 100; i++) {
-	data.push(i);
-}
+            for (let i = 0; i < 100; i++) {
+                data.push(i);
+            }
 
-var g = renderer_.createEl({
-	el: 'group',
-	attr: {
-		transform: {
-			translate: [width / 2, height / 2]
-		}
-	}
-});
-g.createEls(data, {
-	el: 'circle',
-	attr: { r: 0, cx: 0, cy: 0 },
-	style: {
-		globalAlpha: 1,
-		lineWidth: 2,
-		strokeStyle: function (d, i) {
-			return 'hsl(' + (i = (i + 1) % 360) + ',100%,50%)';
-		}
-	}
-})
-	.animateTo({
-		duration: 7000,
-		delay: function (d) {
-			return d * 70;
-		},
-		ease: sqrt,
-		loop: 100,
-		attr: { r: 100 },
-		style: { globalAlpha: 0 },
-		end: function () {
-			this.remove();
-		}
-	});
+            var g = renderer_.createEl({
+                el: "group",
+                attr: {
+                    transform: {
+                        translate: [width / 2, height / 2],
+                    },
+                },
+            });
+            g.createEls(data, {
+                el: "circle",
+                attr: { r: 0, cx: 0, cy: 0 },
+                style: {
+                    globalAlpha: 1,
+                    lineWidth: 2,
+                    strokeStyle: function (d, i) {
+                        return "hsl(" + (i = (i + 1) % 360) + ",100%,50%)";
+                    },
+                },
+            }).animateTo({
+                duration: 7000,
+                delay: function (d) {
+                    return d * 70;
+                },
+                ease: sqrt,
+                loop: 100,
+                attr: { r: 100 },
+                style: { globalAlpha: 0 },
+                end: function () {
+                    this.remove();
+                },
+            });
 
-window.addEventListener('mousemove', function (e) {
-	g.setAttr('transform', {
-		translate: [e.x, e.y]
-	});
-	e.preventDefault();
-});
-
-</script>
-
-</body>
+            window.addEventListener("mousemove", function (e) {
+                g.setAttr("transform", {
+                    translate: [e.x, e.y],
+                });
+                e.preventDefault();
+            });
+        </script>
+    </body>
 </html>

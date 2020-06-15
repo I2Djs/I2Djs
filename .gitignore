@@ -30,3 +30,5 @@ yarn-error.log*
 
 # Removing Map files
 dist/*.js.map
+
+.eslintcache
