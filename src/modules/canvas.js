@@ -2039,7 +2039,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 	if (enableEvents) {
 		let eventsInstance = new Events(root);
 		layer.addEventListener('mousemove', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.mousemoveCheck(e);
 		});
 		// layer.addEventListener('click', e => {
@@ -2051,53 +2051,53 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 		// 	eventsInstance.dblclickCheck(e);
 		// });
 		layer.addEventListener('mousedown', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.mousedownCheck(e);
 		});
 		layer.addEventListener('mouseup', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.mouseupCheck(e);
 		});
 		layer.addEventListener('mouseleave', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.mouseleaveCheck(e);
 		});
 		layer.addEventListener('contextmenu', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.contextmenuCheck(e);
 		});
 		layer.addEventListener('touchstart', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.touchstartCheck(e);
 		});
 		layer.addEventListener('touchend', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.touchendCheck(e);
 		});
 		layer.addEventListener('touchmove', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.touchmoveCheck(e);
 		});
 		layer.addEventListener('touchcancel', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.touchcancelCheck(e);
 		});
 		layer.addEventListener('wheel', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.wheelEventCheck(e);
 		});
 		layer.addEventListener('pointerdown', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.addPointer(e);
 			eventsInstance.pointerdownCheck(e);
 		});
 		layer.addEventListener('pointerup', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.removePointer(e);
 			eventsInstance.pointerupCheck(e);
 		});
 		layer.addEventListener('pointermove', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.pointermoveCheck(e);
 		});
 	}

@@ -136,6 +136,9 @@ DragClass.prototype = {
 		} else if (this.onDrag) {
 			self.onDrag(trgt, event);
 		}
+		if (event.preventDefault) {
+			event.preventDefault();
+		}
 	}
 };
 
@@ -325,6 +328,9 @@ ZoomClass.prototype.zoomExecute = function (trgt, event, eventsInstance) {
 	} else {
 		this.onZoom(trgt, event);
 	}
+	if (event.preventDefault) {
+		event.preventDefault();
+	}
 };
 
 ZoomClass.prototype.zoomPinch = function (trgt, event, eventsInstance) {
@@ -350,6 +356,9 @@ ZoomClass.prototype.zoomPinch = function (trgt, event, eventsInstance) {
 			this.event.distance = distance;
 			this.onZoom(trgt, pinchEvent);
 		}
+	}
+	if (event.preventDefault) {
+		event.preventDefault();
 	}
 };
 
@@ -535,6 +544,9 @@ ZoomClass.prototype.panExecute = function (trgt, event, eventType, eventsInstanc
 
 		this.event = applyTranslate(this.event, { dx, dy }, this.panExtent_);
 		this.zoomExe.call(trgt, this.event);
+	}
+	if (event.preventDefault) {
+		event.preventDefault();
 	}
 };
 	

@@ -5115,7 +5115,7 @@ function svgLayer (container, layerSettings = {}) {
 
 	let dragNode = null;
 	root.dom.addEventListener('pointerdown', e => {
-		e.preventDefault();
+		// e.preventDefault();
 		eventsInstance.addPointer(e);
 		if (e.target.drag_) {
 			e.target.drag_(e, 'pointerdown');
@@ -5123,7 +5123,7 @@ function svgLayer (container, layerSettings = {}) {
 		}
 	});
 	root.dom.addEventListener('pointerup', e => {
-		e.preventDefault();
+		// e.preventDefault();
 		eventsInstance.removePointer(e);
 		if (dragNode) {
 			dragNode.drag_(e, 'pointerup');
@@ -5131,7 +5131,7 @@ function svgLayer (container, layerSettings = {}) {
 		}
 	});
 	root.dom.addEventListener('pointermove', e => {
-		e.preventDefault();
+		// e.preventDefault();
 		if (dragNode) {
 			dragNode.drag_(e, 'pointermove');
 		}
@@ -5278,6 +5278,9 @@ DragClass.prototype = {
 			self.onDragEnd(trgt, event);
 		} else if (this.onDrag) {
 			self.onDrag(trgt, event);
+		}
+		if (event.preventDefault) {
+			event.preventDefault();
 		}
 	}
 };
@@ -5468,6 +5471,9 @@ ZoomClass.prototype.zoomExecute = function (trgt, event, eventsInstance) {
 	} else {
 		this.onZoom(trgt, event);
 	}
+	if (event.preventDefault) {
+		event.preventDefault();
+	}
 };
 
 ZoomClass.prototype.zoomPinch = function (trgt, event, eventsInstance) {
@@ -5493,6 +5499,9 @@ ZoomClass.prototype.zoomPinch = function (trgt, event, eventsInstance) {
 			this.event.distance = distance;
 			this.onZoom(trgt, pinchEvent);
 		}
+	}
+	if (event.preventDefault) {
+		event.preventDefault();
 	}
 };
 
@@ -5678,6 +5687,9 @@ ZoomClass.prototype.panExecute = function (trgt, event, eventType, eventsInstanc
 
 		this.event = applyTranslate(this.event, { dx, dy }, this.panExtent_);
 		this.zoomExe.call(trgt, this.event);
+	}
+	if (event.preventDefault) {
+		event.preventDefault();
 	}
 };
 	
@@ -7721,7 +7733,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 	if (enableEvents) {
 		let eventsInstance = new Events(root);
 		layer.addEventListener('mousemove', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.mousemoveCheck(e);
 		});
 		// layer.addEventListener('click', e => {
@@ -7733,53 +7745,53 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 		// 	eventsInstance.dblclickCheck(e);
 		// });
 		layer.addEventListener('mousedown', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.mousedownCheck(e);
 		});
 		layer.addEventListener('mouseup', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.mouseupCheck(e);
 		});
 		layer.addEventListener('mouseleave', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.mouseleaveCheck(e);
 		});
 		layer.addEventListener('contextmenu', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.contextmenuCheck(e);
 		});
 		layer.addEventListener('touchstart', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.touchstartCheck(e);
 		});
 		layer.addEventListener('touchend', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.touchendCheck(e);
 		});
 		layer.addEventListener('touchmove', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.touchmoveCheck(e);
 		});
 		layer.addEventListener('touchcancel', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.touchcancelCheck(e);
 		});
 		layer.addEventListener('wheel', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.wheelEventCheck(e);
 		});
 		layer.addEventListener('pointerdown', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.addPointer(e);
 			eventsInstance.pointerdownCheck(e);
 		});
 		layer.addEventListener('pointerup', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.removePointer(e);
 			eventsInstance.pointerupCheck(e);
 		});
 		layer.addEventListener('pointermove', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.pointermoveCheck(e);
 		});
 	}
@@ -11823,7 +11835,7 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 	if (enableEvents) {
 		let eventsInstance = new Events(root);
 		layer.addEventListener('mousemove', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.mousemoveCheck(e);
 		});
 		// layer.addEventListener('click', e => {
@@ -11835,53 +11847,55 @@ function webglLayer (container, contextConfig = {}, layerSettings = {}) {
 		// 	eventsInstance.dblclickCheck(e);
 		// });
 		layer.addEventListener('mousedown', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.mousedownCheck(e);
 		});
 		layer.addEventListener('mouseup', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.mouseupCheck(e);
 		});
 		layer.addEventListener('mouseleave', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.mouseleaveCheck(e);
 		});
 		layer.addEventListener('contextmenu', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.contextmenuCheck(e);
 		});
 		layer.addEventListener('touchstart', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.touchstartCheck(e);
 		});
 		layer.addEventListener('touchend', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.touchendCheck(e);
 		});
 		layer.addEventListener('touchmove', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.touchmoveCheck(e);
 		});
 		layer.addEventListener('touchcancel', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.touchcancelCheck(e);
 		});
 		layer.addEventListener('wheel', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.wheelEventCheck(e);
 		});
 		layer.addEventListener('pointerdown', e => {
-			e.preventDefault();
+			// console.log('pointerdown');
 			eventsInstance.addPointer(e);
 			eventsInstance.pointerdownCheck(e);
+			// e.preventDefault();
 		});
 		layer.addEventListener('pointerup', e => {
-			e.preventDefault();
+			// console.log('pointerup');
 			eventsInstance.removePointer(e);
 			eventsInstance.pointerupCheck(e);
+			// e.preventDefault();
 		});
 		layer.addEventListener('pointermove', e => {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.pointermoveCheck(e);
 		});
 	}
