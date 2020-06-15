@@ -9,7 +9,7 @@
 
 Integrated-2D - is an Open source Javascript framework for rendering 2D graphics on SVG, Canvas and WebGL contexts. I2D's simple syntax and semantics lets you combine the power of Vector graphics and Bitmap to achieve complex visualisations easily.
 
-I2Djs provides single Application Programming Interface to create and animate elements across different graphic rendering contexts by leveraging their underlying capabilities. Developers can make use of I2D's multi-layered contextual approach with capabilities from more than one context seamlessly for creating powerful composite visualisation under a single roof.
+I2Djs provides same Application Programming Interface to create and animate elements across different graphic rendering contexts by leveraging their underlying capabilities. Developers can make use of I2D's multi-layered contextual approach with capabilities from more than one context seamlessly for creating powerful composite visualizations under a single roof.
 
 I2D also provides a unique data-driven approach with **join-actions** for DOM manipulation based on data binding.
 
