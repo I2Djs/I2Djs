@@ -1,79 +1,76 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
-<label style="position: absolute; color: white"> Canvas Example </label>
-<div id="myCanvas" style="height: 100%;width:100%;position: absolute;background: black">
-	<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
-</div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <label style="position: absolute; color: white;"> Canvas Example </label>
+        <div
+            id="myCanvas"
+            style="height: 100%; width: 100%; position: absolute; background: black;"
+        >
+            <!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
+        </div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript">
-var renderer_ = i2d.canvasLayer('#myCanvas', {}, { enableEvents: false });
-var circlesGrid = [];
-var gridSize = parseInt(Math.sqrt(10000));
+        <script type="text/javascript">
+            var renderer_ = i2d.canvasLayer("#myCanvas", {}, { enableEvents: false });
+            var circlesGrid = [];
+            var gridSize = parseInt(Math.sqrt(10000));
 
-for (var i = 0; i < 10000; i++) {
-	circlesGrid.push({
-		id: i,
-		x: (i % gridSize) * 10,
-		ox: (i % gridSize) * 10,
-		y: parseInt(i / gridSize) * 7,
-		oy: parseInt(i / gridSize) * 7
-	});
-}
+            for (var i = 0; i < 10000; i++) {
+                circlesGrid.push({
+                    id: i,
+                    x: (i % gridSize) * 10,
+                    ox: (i % gridSize) * 10,
+                    y: parseInt(i / gridSize) * 7,
+                    oy: parseInt(i / gridSize) * 7,
+                });
+            }
 
-var group = renderer_.createEl({
-	el: 'group',
-	attr: {
+            var group = renderer_.createEl({
+                el: "group",
+                attr: {},
+                style: {
+                    fillStyle: "#fff",
+                },
+                bbox: false,
+            });
 
-	},
-	style: {
-		fillStyle: '#fff'
-	},
-	bbox: false
-});
+            var circles = group.createEls(circlesGrid, {
+                el: "rect",
+                attr: {
+                    height: 2,
+                    width: 2,
+                    x: function (d) {
+                        return d.x;
+                    },
+                    y: function (d) {
+                        return d.y;
+                    },
+                },
+                bbox: false,
+            });
 
-var circles = group.createEls(circlesGrid, {
-	el: 'rect',
-	attr: {
-		height: 2,
-		width: 2,
-		x: function (d) {
-			return d.x;
-		},
-		y: function (d) {
-			return d.y;
-		}
-	},
-	bbox: false
-});
+            window.addEventListener("mousemove", function (e) {
+                var p1 = {
+                    x: e.pageX,
+                    y: e.pageY,
+                };
 
-window.addEventListener('mousemove', function (e) {
-	var p1 = {
-		x: e.pageX,
-		y: e.pageY
-	};
+                circles.forEach(function (d) {
+                    var dis = i2d.geometry.getDistance(p1, d);
+                    var angle = i2d.geometry.getAngle(p1, d);
+                    dis = Math.abs(dis) > 150 ? 0 : 150 - dis;
+                    var cx = dis * Math.cos(angle),
+                        cy = dis * Math.sin(angle);
 
-	circles.forEach(function (d) {
-
-		var dis = i2d.geometry.getDistance(p1, d);
-		var angle = i2d.geometry.getAngle(p1, d);
-		dis = Math.abs(dis) > 150 ? 0 : 150 - dis;
-		var cx = (dis) * Math.cos(angle),
-			cy = (dis) * Math.sin(angle);
-
-		this.setAttr({
-			x: d.x + cx,
-			y: d.y + cy
-		});
-
-	});
-});
-
-</script>
-
-</body>
+                    this.setAttr({
+                        x: d.x + cx,
+                        y: d.y + cy,
+                    });
+                });
+            });
+        </script>
+    </body>
 </html>

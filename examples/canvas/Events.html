@@ -1,123 +1,157 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
-    <label style="position: absolute; color: white"> Canvas Example </label>
-	<div style="height: 100%;width:100%;position: absolute;background: black" id="myCanvas">
-	</div>
-	<script type="text/javascript" src="../../dist/i2d.js"></script>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <label style="position: absolute; color: white;"> Canvas Example </label>
+        <div
+            style="height: 100%; width: 100%; position: absolute; background: black;"
+            id="myCanvas"
+        ></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-	<script type="text/javascript">
+        <script type="text/javascript">
+            var renderer_ = i2d.canvasLayer("#myCanvas", {}, true);
+            var i = 0;
+            var w = renderer_.width;
+            var h = renderer_.height;
 
-        var renderer_ = i2d.canvasLayer('#myCanvas',{}, true);
-        var i = 0;
-        var w = renderer_.width
-        var h = renderer_.height
-
-        var g = renderer_.createEl({
-            el: 'group',
-            attr: {
-                transform: {
-                    translate: [w / 2 - 50, h / 2 - 50]
-                }
-            }
-        })
-
-        g.createEl({
-            el:'rect',
-            attr:{
-                width: 100,
-                height: 100,
-                x: 0,
-                y: 0
-            },
-            style:{
-                fillStyle:'hsl(100,100%,50%)',
-                globalAlpha:1
-            }
-        }).on('touchstart', function () {
-            console.log('touchstart');
-        }).on('touchend', function () {
-            console.log('touchend');
-        }).on('click', function () {
-            this.setStyle('fillStyle', 'hsl(100,50%,50%)');
-        }).on('mousein', function () {
-            this.setStyle('fillStyle', '#ad5858');
-        }).on('mouseout', function () {
-            this.setStyle('fillStyle', 'hsl(100,100%,50%)');
-        }).on('mousedown', function () {
-            this.setStyle('fillStyle', 'hsl(100,80%,30%)');
-        }).on('mouseup', function () {
-            this.setStyle('fillStyle', 'hsl(100,100%,50%)');
-        });
-
-
-        var linearGradient = g.createLinearGradient({
-            id: 'linearG',
-            x1: 0,
-            y1: 0,
-            x2: 0,
-            y2: 100,
-            colorStops: [{ color: '#948e4e', value: 0 }, { color: '#faed68', value: 50 }, { color: '#948e4e', value: 100 }]
-        });
-
-        var highlightGrad = g.createLinearGradient({
-            id: 'linearGG',
-            x1: 0,
-            y1: 0,
-            x2: 0,
-            y2: 100,
-            colorStops: [{ color: '#ad5858', value: 0 }, { color: '#FF8383', value: 50 }, { color: '#ad5858', value: 100 }]
-        });
-
-        var rangeBand = 100;
-
-        var paths = g.createEls([1], {
-            el: 'path',
-            attr: {
-                d: function (d, i) {
-                    var xPos = i * 100;
-                    var yPos = 100;
-                    var rangeBandMid = rangeBand / 2;
-
-                    var path = i2d.Path()
-                        .m(false, { x: xPos, y: 0 })
-                        .c(false, { x: rangeBandMid * 0.5, y: 0 }, { x: rangeBandMid * 0.5, y: -yPos }, {
-                            x: rangeBandMid,
-                            y: -yPos
-                        })
-                        .c(false, { x: rangeBandMid * 0.5, y: 0 }, { x: rangeBandMid * 0.5, y: yPos }, {
-                            x: rangeBandMid,
-                            y: yPos
-                        })
-                        .c(false, { x: -rangeBandMid * 0.5, y: 0 }, { x: -rangeBandMid * 0.5, y: yPos }, {
-                            x: -rangeBandMid,
-                            y: yPos
-                        })
-                        .c(false, { x: -rangeBandMid * 0.5, y: 0 }, { x: -rangeBandMid * 0.5, y: -yPos }, {
-                            x: -rangeBandMid,
-                            y: -yPos
-                        })
-                        .z();
-
-                    return path.fetchPathString();
-                }
-            },
-            style: {
-                fillStyle: linearGradient
-            }
-        })
-            .on('mouseover', function (d, e) {
-                this.setStyle('fillStyle', highlightGrad);
-            })
-            .on('mouseout', function (d, e) {
-                this.setStyle('fillStyle', linearGradient);
+            var g = renderer_.createEl({
+                el: "group",
+                attr: {
+                    transform: {
+                        translate: [w / 2 - 50, h / 2 - 50],
+                    },
+                },
             });
-        
-                
-	</script>
 
-</body>
+            g.createEl({
+                el: "rect",
+                attr: {
+                    width: 100,
+                    height: 100,
+                    x: 0,
+                    y: 0,
+                },
+                style: {
+                    fillStyle: "hsl(100,100%,50%)",
+                    globalAlpha: 1,
+                },
+            })
+                .on("touchstart", function () {
+                    console.log("touchstart");
+                })
+                .on("touchend", function () {
+                    console.log("touchend");
+                })
+                .on("click", function () {
+                    this.setStyle("fillStyle", "hsl(100,50%,50%)");
+                })
+                .on("mousein", function () {
+                    this.setStyle("fillStyle", "#ad5858");
+                })
+                .on("mouseout", function () {
+                    this.setStyle("fillStyle", "hsl(100,100%,50%)");
+                })
+                .on("mousedown", function () {
+                    this.setStyle("fillStyle", "hsl(100,80%,30%)");
+                })
+                .on("mouseup", function () {
+                    this.setStyle("fillStyle", "hsl(100,100%,50%)");
+                });
+
+            var linearGradient = g.createLinearGradient({
+                id: "linearG",
+                x1: 0,
+                y1: 0,
+                x2: 0,
+                y2: 100,
+                colorStops: [
+                    { color: "#948e4e", value: 0 },
+                    { color: "#faed68", value: 50 },
+                    { color: "#948e4e", value: 100 },
+                ],
+            });
+
+            var highlightGrad = g.createLinearGradient({
+                id: "linearGG",
+                x1: 0,
+                y1: 0,
+                x2: 0,
+                y2: 100,
+                colorStops: [
+                    { color: "#ad5858", value: 0 },
+                    { color: "#FF8383", value: 50 },
+                    { color: "#ad5858", value: 100 },
+                ],
+            });
+
+            var rangeBand = 100;
+
+            var paths = g
+                .createEls([1], {
+                    el: "path",
+                    attr: {
+                        d: function (d, i) {
+                            var xPos = i * 100;
+                            var yPos = 100;
+                            var rangeBandMid = rangeBand / 2;
+
+                            var path = i2d
+                                .Path()
+                                .m(false, { x: xPos, y: 0 })
+                                .c(
+                                    false,
+                                    { x: rangeBandMid * 0.5, y: 0 },
+                                    { x: rangeBandMid * 0.5, y: -yPos },
+                                    {
+                                        x: rangeBandMid,
+                                        y: -yPos,
+                                    }
+                                )
+                                .c(
+                                    false,
+                                    { x: rangeBandMid * 0.5, y: 0 },
+                                    { x: rangeBandMid * 0.5, y: yPos },
+                                    {
+                                        x: rangeBandMid,
+                                        y: yPos,
+                                    }
+                                )
+                                .c(
+                                    false,
+                                    { x: -rangeBandMid * 0.5, y: 0 },
+                                    { x: -rangeBandMid * 0.5, y: yPos },
+                                    {
+                                        x: -rangeBandMid,
+                                        y: yPos,
+                                    }
+                                )
+                                .c(
+                                    false,
+                                    { x: -rangeBandMid * 0.5, y: 0 },
+                                    { x: -rangeBandMid * 0.5, y: -yPos },
+                                    {
+                                        x: -rangeBandMid,
+                                        y: -yPos,
+                                    }
+                                )
+                                .z();
+
+                            return path.fetchPathString();
+                        },
+                    },
+                    style: {
+                        fillStyle: linearGradient,
+                    },
+                })
+                .on("mouseover", function (d, e) {
+                    this.setStyle("fillStyle", highlightGrad);
+                })
+                .on("mouseout", function (d, e) {
+                    this.setStyle("fillStyle", linearGradient);
+                });
+        </script>
+    </body>
 </html>

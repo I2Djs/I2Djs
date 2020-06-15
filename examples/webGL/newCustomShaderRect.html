@@ -1,25 +1,23 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
-
-<div id="canvas" style="height: 100%;width:100%;background: black">
-</div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
-<script type="text/javascript">
-// import webglLayer from './../../src/modules/webgl.js';
-// import queue from './../../src/modules/queue.js';
-var webglRenderer = i2d.webglLayer('#canvas', {}, {});
-var fragmentShader = `
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <div id="canvas" style="height: 100%; width: 100%; background: black;"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script type="text/javascript">
+            // import webglLayer from './../../src/modules/webgl.js';
+            // import queue from './../../src/modules/queue.js';
+            var webglRenderer = i2d.webglLayer("#canvas", {}, {});
+            var fragmentShader = `
         precision mediump float;
         varying vec4 v_color;
         void main() {
             gl_FragColor = v_color;
         }
         `;
-var vertexShader = `
+            var vertexShader = `
                     attribute vec2 a_position;
                     attribute vec4 a_color;
                     uniform vec2 u_resolution;
@@ -34,99 +32,110 @@ var vertexShader = `
                     }
                     `;
 
-var color = {
-    r: 255,
-    g: 0,
-    b: 0,
-    a: 255
-};
-var stack = [{
-    x: 100,
-    y: 100,
-    width: 50,
-    height: 50,
-    color: color
-}, {
-    x: 200,
-    y: 100,
-    width: 50,
-    height: 50,
-    color: color
-}, {
-    x: 100,
-    y: 200,
-    width: 50,
-    height: 50,
-    color: color
-}, {
-    x: 30,
-    y: 100,
-    width: 50,
-    height: 50,
-    color: color
-}];
+            var color = {
+                r: 255,
+                g: 0,
+                b: 0,
+                a: 255,
+            };
+            var stack = [
+                {
+                    x: 100,
+                    y: 100,
+                    width: 50,
+                    height: 50,
+                    color: color,
+                },
+                {
+                    x: 200,
+                    y: 100,
+                    width: 50,
+                    height: 50,
+                    color: color,
+                },
+                {
+                    x: 100,
+                    y: 200,
+                    width: 50,
+                    height: 50,
+                    color: color,
+                },
+                {
+                    x: 30,
+                    y: 100,
+                    width: 50,
+                    height: 50,
+                    color: color,
+                },
+            ];
 
-let positionArray = [];
-let colorArray = [];
+            let positionArray = [];
+            let colorArray = [];
 
-    for (var i = 0, len = stack.length; i < len; i++) {
-        let node = stack[i];
+            for (var i = 0, len = stack.length; i < len; i++) {
+                let node = stack[i];
 
-        let x1 = node.x;
-        let x2 = x1 + node.width;
-        let y1 = node.y;
-        let y2 = y1 + node.height;
-        let posi = i * 12;
-        positionArray[posi] = positionArray[posi + 4] = positionArray[posi + 6] = x1;
-        positionArray[posi + 1] = positionArray[posi + 3] = positionArray[posi + 9] = y1;
-        positionArray[posi + 2] = positionArray[posi + 8] = positionArray[posi + 10] = x2;
-        positionArray[posi + 5] = positionArray[posi + 7] = positionArray[posi + 11] = y2;
+                let x1 = node.x;
+                let x2 = x1 + node.width;
+                let y1 = node.y;
+                let y2 = y1 + node.height;
+                let posi = i * 12;
+                positionArray[posi] = positionArray[posi + 4] = positionArray[posi + 6] = x1;
+                positionArray[posi + 1] = positionArray[posi + 3] = positionArray[posi + 9] = y1;
+                positionArray[posi + 2] = positionArray[posi + 8] = positionArray[posi + 10] = x2;
+                positionArray[posi + 5] = positionArray[posi + 7] = positionArray[posi + 11] = y2;
 
-        let fill = node.color;
-        let r = fill.r;
-        let g = fill.g;
-        let b = fill.b;
-        let a = fill.a === undefined ? 255 : fill.a;
-        let ti = i * 24;
-        colorArray[ti] = colorArray[ti + 4] = colorArray[ti + 8] = colorArray[ti + 12] = colorArray[ti + 16] = colorArray[ti + 20] = r;
-        colorArray[ti + 1] = colorArray[ti + 5] = colorArray[ti + 9] = colorArray[ti + 13] = colorArray[ti + 17] = colorArray[ti + 21] = g;
-        colorArray[ti + 2] = colorArray[ti + 6] = colorArray[ti + 10] = colorArray[ti + 14] = colorArray[ti + 18] = colorArray[ti + 22] = b;
-        colorArray[ti + 3] = colorArray[ti + 7] = colorArray[ti + 11] = colorArray[ti + 15] = colorArray[ti + 19] = colorArray[ti + 23] = a;
-    }
-
-var meshGeo = webglRenderer.MeshGeometry();
-    meshGeo.setAttr('a_color', {
-        value: new Uint8Array(colorArray),
-        size: 4
-    });
-    meshGeo.setAttr('a_position', {
-        value: new Float32Array(positionArray),
-        size: 2
-    });
-    meshGeo.setDrawRange(0, positionArray.length / 2);
-
-var shaderRef = webglRenderer.createShaderEl({
-        fragmentShader: fragmentShader,
-        vertexShader: vertexShader,
-        uniforms: {
-            u_resolution: {
-                value: new Float32Array([webglRenderer.width, webglRenderer.height])
-            },
-            u_translate: {
-                value: new Float32Array([0.0, 0.0])
-            },
-            u_scale: {
-                value: new Float32Array([1.0, 1.0])
+                let fill = node.color;
+                let r = fill.r;
+                let g = fill.g;
+                let b = fill.b;
+                let a = fill.a === undefined ? 255 : fill.a;
+                let ti = i * 24;
+                colorArray[ti] = colorArray[ti + 4] = colorArray[ti + 8] = colorArray[
+                    ti + 12
+                ] = colorArray[ti + 16] = colorArray[ti + 20] = r;
+                colorArray[ti + 1] = colorArray[ti + 5] = colorArray[ti + 9] = colorArray[
+                    ti + 13
+                ] = colorArray[ti + 17] = colorArray[ti + 21] = g;
+                colorArray[ti + 2] = colorArray[ti + 6] = colorArray[ti + 10] = colorArray[
+                    ti + 14
+                ] = colorArray[ti + 18] = colorArray[ti + 22] = b;
+                colorArray[ti + 3] = colorArray[ti + 7] = colorArray[ti + 11] = colorArray[
+                    ti + 15
+                ] = colorArray[ti + 19] = colorArray[ti + 23] = a;
             }
-        },
-        geometry: meshGeo
-    });
 
-// queue.onRequestFrame(function (t) {
-// 	shaderRef.setUniformData('u_a', -2.0 + Math.sin(t / 8000));
-// });
+            var meshGeo = webglRenderer.MeshGeometry();
+            meshGeo.setAttr("a_color", {
+                value: new Uint8Array(colorArray),
+                size: 4,
+            });
+            meshGeo.setAttr("a_position", {
+                value: new Float32Array(positionArray),
+                size: 2,
+            });
+            meshGeo.setDrawRange(0, positionArray.length / 2);
 
-</script>
+            var shaderRef = webglRenderer.createShaderEl({
+                fragmentShader: fragmentShader,
+                vertexShader: vertexShader,
+                uniforms: {
+                    u_resolution: {
+                        value: new Float32Array([webglRenderer.width, webglRenderer.height]),
+                    },
+                    u_translate: {
+                        value: new Float32Array([0.0, 0.0]),
+                    },
+                    u_scale: {
+                        value: new Float32Array([1.0, 1.0]),
+                    },
+                },
+                geometry: meshGeo,
+            });
 
-</body>
+            // queue.onRequestFrame(function (t) {
+            // 	shaderRef.setUniformData('u_a', -2.0 + Math.sin(t / 8000));
+            // });
+        </script>
+    </body>
 </html>

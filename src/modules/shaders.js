@@ -1,11 +1,11 @@
 /* eslint-disable no-undef */
-function shaders (el) {
-	let res;
+function shaders(el) {
+    let res;
 
-	switch (el) {
-		case 'point':
-			res = {
-				vertexShader: `
+    switch (el) {
+        case "point":
+            res = {
+                vertexShader: `
           precision highp float;
           attribute vec2 a_position;
           attribute vec4 a_color;
@@ -24,19 +24,19 @@ function shaders (el) {
             v_color = a_color;
           }
           `,
-				fragmentShader: `
+                fragmentShader: `
                     precision mediump float;
                     varying vec4 v_color;
                     void main() {
                         gl_FragColor = v_color;
                     }
-                    `
-			};
-			break;
+                    `,
+            };
+            break;
 
-		case 'circle':
-			res = {
-				vertexShader: `
+        case "circle":
+            res = {
+                vertexShader: `
         precision highp float;
           attribute vec2 a_position;
           attribute vec4 a_color;
@@ -54,7 +54,7 @@ function shaders (el) {
             v_color = a_color;
           }
           `,
-				fragmentShader: `
+                fragmentShader: `
                     precision mediump float;
                     varying vec4 v_color;
                     void main() {
@@ -68,13 +68,13 @@ function shaders (el) {
                       alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);
                       gl_FragColor = v_color * alpha;
                     }
-                    `
-			};
-			break;
+                    `,
+            };
+            break;
 
-		case 'ellipse':
-			res = {
-				vertexShader: `
+        case "ellipse":
+            res = {
+                vertexShader: `
         precision highp float;
           attribute vec2 a_position;
           attribute vec4 a_color;
@@ -97,7 +97,7 @@ function shaders (el) {
             v_r2 = a_r2;
           }
           `,
-				fragmentShader: `
+                fragmentShader: `
                     precision mediump float;
                     varying vec4 v_color;
                     varying float v_r1;
@@ -113,13 +113,13 @@ function shaders (el) {
                       alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);
                       gl_FragColor = v_color * alpha;
                     }
-                    `
-			};
-			break;
+                    `,
+            };
+            break;
 
-		case 'image':
-			res = {
-				vertexShader: `
+        case "image":
+            res = {
+                vertexShader: `
                     precision highp float;
                     attribute vec2 a_position;
                     attribute vec2 a_texCoord;
@@ -134,7 +134,7 @@ function shaders (el) {
                       v_texCoord = a_texCoord;
                     }
           `,
-				fragmentShader: `
+                fragmentShader: `
                     precision mediump float;
                     uniform sampler2D u_image;
                     uniform float u_opacity;
@@ -143,14 +143,14 @@ function shaders (el) {
                       gl_FragColor = texture2D(u_image, v_texCoord);
                       gl_FragColor.a *= u_opacity;
                     }
-                    `
-			};
-			break;
+                    `,
+            };
+            break;
 
-		case 'polyline':
-		case 'polygon':
-			res = {
-				vertexShader: `
+        case "polyline":
+        case "polygon":
+            res = {
+                vertexShader: `
                     precision highp float;
                     attribute vec2 a_position;
                     uniform vec2 u_resolution;
@@ -162,19 +162,19 @@ function shaders (el) {
                     gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
                     }
                     `,
-				fragmentShader: `
+                fragmentShader: `
                     precision mediump float;
                     uniform vec4 u_color;
                     void main() {
                         gl_FragColor = u_color;
                     }
-                    `
-			};
-			break;
+                    `,
+            };
+            break;
 
-		default:
-			res = {
-				vertexShader: `
+        default:
+            res = {
+                vertexShader: `
                     precision highp float;
                     attribute vec2 a_position;
                     attribute vec4 a_color;
@@ -189,17 +189,17 @@ function shaders (el) {
                     v_color = a_color;
                     }
                     `,
-				fragmentShader: `
+                fragmentShader: `
                     precision mediump float;
                     varying vec4 v_color;
                     void main() {
                         gl_FragColor = v_color;
                     }
-                    `
-			};
-	}
+                    `,
+            };
+    }
 
-	return res;
+    return res;
 }
 
 export default shaders;

@@ -6,7 +6,6 @@
 
 ### I2dJs - SVG + Canvas + WebGL
 
-
 Integrated-2D - is an Open source Javascript framework for rendering 2D graphics on SVG, Canvas and WebGL contexts. I2D's simple syntax and semantics lets you combine the power of Vector graphics and Bitmap to achieve complex visualisations easily.
 
 I2Djs provides same Application Programming Interface to create and animate elements across different graphic rendering contexts by leveraging their underlying capabilities. Developers can make use of I2D's multi-layered contextual approach with capabilities from more than one context seamlessly for creating powerful composite visualizations under a single roof.
@@ -14,40 +13,44 @@ I2Djs provides same Application Programming Interface to create and animate elem
 I2D also provides a unique data-driven approach with **join-actions** for DOM manipulation based on data binding.
 
 ## Documentation
+
 <a href="https://nswamy14.gitbook.io/i2djs/"><img width='150' src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/gitbookIcon.png"></a>
 
 ## Installing
 
 If npm
+
 ```
 npm install i2djs --save
 ```
+
 Download source code from below links
 
-* [i2D.min.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.min.js)
-* [i2D.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.js)
-* [i2D.esm.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.esm.js)
+-   [i2D.min.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.min.js)
+-   [i2D.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.js)
+-   [i2D.esm.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.esm.js)
 
 I2Djs is written in ES6 Modules. To import use below syntax
 
 Importing everthing into namespace
+
 ```
 import * as i2d from 'i2djs'
 ```
 
 Importing individual modules:
+
 ```
 import {canvasLayer} from 'i2djs'
 ```
 
-
-
 ## Resources
-* [API reference](https://nswamy14.gitbook.io/i2djs)
-* [I2Djs Medium Article](https://medium.com/@narayanaswamy14/i2djs-integrated-2d-js-328549ef642)
 
-Examples (SVG + Canvas + WebGL)
----
+-   [API reference](https://nswamy14.gitbook.io/i2djs)
+-   [I2Djs Medium Article](https://medium.com/@narayanaswamy14/i2djs-integrated-2d-js-328549ef642)
+
+## Examples (SVG + Canvas + WebGL)
+
 [Codepen Examples](https://codepen.io/search/pens?q=i2djs)
 
 <table>
@@ -77,6 +80,7 @@ Examples (SVG + Canvas + WebGL)
 </table>
 
 ### Basic Shapes
+
 <table>
     <tr>
         <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="45" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/square.png"></a></td>
@@ -90,17 +94,19 @@ Examples (SVG + Canvas + WebGL)
 </table>
 
 ### Scale
-| SVG  | Canvas |  WebGl |
-| ------------- | ------------- | ------------- |
-|  [5000 Particles ](https://i2djs.github.io/I2Djs/examples/svg/distortion2.html) | [30000 Particles ](https://i2djs.github.io/I2Djs/examples/canvas/distortion2.html)  | [100000 Particles ](https://i2djs.github.io/I2Djs/examples/webGL/distortion.html) |
+
+| SVG                                                                            | Canvas                                                                             | WebGl                                                                             |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| [5000 Particles ](https://i2djs.github.io/I2Djs/examples/svg/distortion2.html) | [30000 Particles ](https://i2djs.github.io/I2Djs/examples/canvas/distortion2.html) | [100000 Particles ](https://i2djs.github.io/I2Djs/examples/webGL/distortion.html) |
 
 ### Support & Compatibility
+
 I2D supports Universal Module Definition(UMD)(AMD,CommonJS and vanilla environments) , based on the environment it can be imported accordingly.
 It is compatible with all modern browsers with latest versions.
 
 ### Development Setup
 
-``` bash
+```bash
 # install deps
 npm install
 
@@ -109,4 +115,9 @@ npm run dev
 
 # build dist files
 npm run build
+
+#Lint files
+npm run lint
+---or---
+npm run lint-fix
 ```

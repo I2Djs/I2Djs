@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html style="height: 100%">
+<html style="height: 100%;">
     <head>
-    	<title></title>
+        <title></title>
     </head>
-    <body style="height: 100%">
+    <body style="height: 100%;">
         <script id="vertexShader" type="x-shader/x-vertex">
             attribute vec2 a_texCoord;
             varying vec2 v_texCoord;
@@ -61,67 +61,74 @@
                 }
             }
         </script>
-        <div id="canvas" style="height: 100%;width:100%;">
-        </div>
+        <div id="canvas" style="height: 100%; width: 100%;"></div>
         <script type="text/javascript" src="../../dist/i2d.js"></script>
 
         <script type="text/javascript">
-            var radialGrad = i2d.canvasLayer(null,{}, {});
-                radialGrad.setPixelRatio(1);
-                radialGrad.setSize(100, 100);
+            var radialGrad = i2d.canvasLayer(null, {}, {});
+            radialGrad.setPixelRatio(1);
+            radialGrad.setSize(100, 100);
 
             var radialGradiant = radialGrad.createRadialGradient({
-                            innerCircle: { x: 50, y: 50, r: 0 },
-                            outerCircle: { x: 50, y: 50, r: 50 },
-                            mode: 'percent',
-                            colorStops: [{ color: 'rgba(0, 0, 0, 0.1)', value: 0 },
-                                { color: 'rgba(0, 0, 0, 0)', value: 100 }]
-                        });
-
-            radialGrad.createEl({
-                            el:'circle',
-                            attr:{
-                                r: 50, cx: 50, cy: 50
-                            },
-                            style:{
-                                fillStyle: radialGradiant
-                            }
-                        });
-            radialGrad.execute();
-
-        var webglRenderer = i2d.webglLayer('#canvas', {
-                premultipliedAlpha: false,
-                depth: false,
-                antialias: true,
-                alpha: true,
-                preserveDrawingBuffer: false
-            }, {
-                enableEvents: true
+                innerCircle: { x: 50, y: 50, r: 0 },
+                outerCircle: { x: 50, y: 50, r: 50 },
+                mode: "percent",
+                colorStops: [
+                    { color: "rgba(0, 0, 0, 0.1)", value: 0 },
+                    { color: "rgba(0, 0, 0, 0)", value: 100 },
+                ],
             });
 
-        webglRenderer.setClearColor(i2d.color.rgba(0, 0, 0, 0));
+            radialGrad.createEl({
+                el: "circle",
+                attr: {
+                    r: 50,
+                    cx: 50,
+                    cy: 50,
+                },
+                style: {
+                    fillStyle: radialGradiant,
+                },
+            });
+            radialGrad.execute();
 
-        var Texture = webglRenderer.TextureObject({
+            var webglRenderer = i2d.webglLayer(
+                "#canvas",
+                {
+                    premultipliedAlpha: false,
+                    depth: false,
+                    antialias: true,
+                    alpha: true,
+                    preserveDrawingBuffer: false,
+                },
+                {
+                    enableEvents: true,
+                }
+            );
+
+            webglRenderer.setClearColor(i2d.color.rgba(0, 0, 0, 0));
+
+            var Texture = webglRenderer.TextureObject({
                 width: webglRenderer.width * webglRenderer.pixelRatio,
                 height: webglRenderer.height * webglRenderer.pixelRatio,
                 border: 0,
-                format: 'RGBA',
-                type: 'UNSIGNED_BYTE',
-                warpS: 'CLAMP_TO_EDGE',
-                warpT: 'CLAMP_TO_EDGE',
-                magFilter: 'LINEAR',
-                minFilter: 'LINEAR',
-                mipMap: false
+                format: "RGBA",
+                type: "UNSIGNED_BYTE",
+                warpS: "CLAMP_TO_EDGE",
+                warpT: "CLAMP_TO_EDGE",
+                magFilter: "LINEAR",
+                minFilter: "LINEAR",
+                mipMap: false,
             });
 
-        var renderTarget = webglRenderer.RenderTarget({
-                texture: Texture
+            var renderTarget = webglRenderer.RenderTarget({
+                texture: Texture,
             });
 
-        var imageGroup = webglRenderer.createEl({
-                el: 'group',
+            var imageGroup = webglRenderer.createEl({
+                el: "group",
                 attr: {
-                    shaderType: 'image'
+                    shaderType: "image",
                 },
                 bbox: false,
                 renderTarget: renderTarget,
@@ -130,99 +137,122 @@
                     ctx.blendEquation(ctx.FUNC_ADD);
                     ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
                     ctx.depthMask(true);
-                }
+                },
             });
 
-        var colorGrad = [{
-                    color: [255, 255, 255, 0.0], offset: 0
-                }, {
-                    color: [212, 225, 255, 1.0], offset: 0.2
-                }, {
-                    color: [166, 255, 115, 1.0], offset: 0.45
-                }, {
-                    color: [255, 255, 0, 0.5], offset: 0.75
-                }, {
-                    color: [255, 0, 0, 1.0], offset: 1.0
-                }];
-        var colorGradMap = gradientMapper(colorGrad);
-
-        var meshgeome = webglRenderer.MeshGeometry();
-        meshgeome.setAttr('a_texCoord', {
-            value: new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]),
-            size: 2
-        });
-        meshgeome.setDrawRange(0, 6);
-
-        var opacity = 1.0;
-        var colorShaderRef = webglRenderer.createShaderEl({
-            fragmentShader: document.getElementById('fragmentShader').textContent,
-            vertexShader: document.getElementById('vertexShader').textContent,
-            uniforms: {
-                u_colorArr: {
-                    value: colorGradMap.value,
-                    size: 4
+            var colorGrad = [
+                {
+                    color: [255, 255, 255, 0.0],
+                    offset: 0,
                 },
-                u_offset: {
-                    value: colorGradMap.offset,
-                    size: 1
+                {
+                    color: [212, 225, 255, 1.0],
+                    offset: 0.2,
                 },
-                u_framebuffer: {
-                    value: Texture
+                {
+                    color: [166, 255, 115, 1.0],
+                    offset: 0.45,
+                },
+                {
+                    color: [255, 255, 0, 0.5],
+                    offset: 0.75,
+                },
+                {
+                    color: [255, 0, 0, 1.0],
+                    offset: 1.0,
+                },
+            ];
+            var colorGradMap = gradientMapper(colorGrad);
+
+            var meshgeome = webglRenderer.MeshGeometry();
+            meshgeome.setAttr("a_texCoord", {
+                value: new Float32Array([
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    1.0,
+                    1.0,
+                    0.0,
+                    1.0,
+                    1.0,
+                ]),
+                size: 2,
+            });
+            meshgeome.setDrawRange(0, 6);
+
+            var opacity = 1.0;
+            var colorShaderRef = webglRenderer.createShaderEl({
+                fragmentShader: document.getElementById("fragmentShader").textContent,
+                vertexShader: document.getElementById("vertexShader").textContent,
+                uniforms: {
+                    u_colorArr: {
+                        value: colorGradMap.value,
+                        size: 4,
+                    },
+                    u_offset: {
+                        value: colorGradMap.offset,
+                        size: 1,
+                    },
+                    u_framebuffer: {
+                        value: Texture,
+                    },
+                },
+                geometry: meshgeome,
+            });
+
+            var TextureIns = webglRenderer.TextureObject({
+                width: 100,
+                height: 100,
+                src: radialGrad,
+            });
+
+            var dataPush = true;
+            webglRenderer.on("mousemove", function (e) {
+                if (dataPush) {
+                    imageGroup.createEl({
+                        el: "image",
+                        attr: {
+                            x: e.x - 50,
+                            y: e.y - 50,
+                            width: 100,
+                            height: 100,
+                            src: TextureIns,
+                        },
+                    });
+                    dataPush = false;
+                    setTimeout(idleFlag, 20);
                 }
-            },
-            geometry: meshgeome
-        });
+            });
+            // document.getElementById('canvas').addEventListener("mousemove", function (e) {
 
-        var TextureIns = webglRenderer.TextureObject({
-            width: 100,
-            height: 100,
-            src: radialGrad
-        });
+            // });
 
-        var dataPush = true;
-        webglRenderer.on('mousemove', function (e) {
-           if (dataPush) {
-                imageGroup.createEl({
-                    el: 'image',
-                    attr: {
-                        x: e.x - 50,
-                        y: e.y - 50,
-                        width: 100,
-                        height: 100,
-                        src: TextureIns
-                    }
-                });
-                dataPush = false;
-                setTimeout(idleFlag, 20);
+            function idleFlag() {
+                dataPush = true;
             }
-        });
-        // document.getElementById('canvas').addEventListener("mousemove", function (e) {
-            
-        // });
 
-        function idleFlag () {
-            dataPush = true;
-        }
+            function gradientMapper(grad) {
+                const arr = [];
+                const gradLength = grad.length;
+                const offSetsArray = [];
 
-        function gradientMapper (grad) {
-            const arr = [];
-            const gradLength = grad.length;
-            const offSetsArray = [];
-
-            grad.forEach(function (d) {
-                arr.push(d.color[0] / 255);
-                arr.push(d.color[1] / 255);
-                arr.push(d.color[2] / 255);
-                arr.push(d.color[3] === undefined ? 1.0 : d.color[3]);
-                offSetsArray.push(d.offset);
-            });
-            return {
-                value: new Float32Array(arr),
-                length: gradLength,
-                offset: new Float32Array(offSetsArray)
-            };
-        }
+                grad.forEach(function (d) {
+                    arr.push(d.color[0] / 255);
+                    arr.push(d.color[1] / 255);
+                    arr.push(d.color[2] / 255);
+                    arr.push(d.color[3] === undefined ? 1.0 : d.color[3]);
+                    offSetsArray.push(d.offset);
+                });
+                return {
+                    value: new Float32Array(arr),
+                    length: gradLength,
+                    offset: new Float32Array(offSetsArray),
+                };
+            }
         </script>
-
     </body>
 </html>

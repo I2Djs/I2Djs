@@ -1,117 +1,117 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
-<div id="myCanvas" style="position: absolute; height: 100%;width:100%">
-	<!--<canvas width="1400" height="900" id="myCanvas"></canvas>-->
-</div>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <div id="myCanvas" style="position: absolute; height: 100%; width: 100%;">
+            <!--<canvas width="1400" height="900" id="myCanvas"></canvas>-->
+        </div>
 
-<script type="text/javascript" src="../../dist/i2d.js"></script>
-<script src="https://d3js.org/d3-collection.v1.min.js"></script>
-<script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
-<script src="https://d3js.org/d3-quadtree.v1.min.js"></script>
-<script src="https://d3js.org/d3-timer.v1.min.js"></script>
-<script src="https://d3js.org/d3-force.v1.min.js"></script>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script src="https://d3js.org/d3-collection.v1.min.js"></script>
+        <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
+        <script src="https://d3js.org/d3-quadtree.v1.min.js"></script>
+        <script src="https://d3js.org/d3-timer.v1.min.js"></script>
+        <script src="https://d3js.org/d3-force.v1.min.js"></script>
 
-<script type="text/javascript">
-var renderer = i2d.canvasLayer('#myCanvas', {}, false);
-var width = renderer.width, height = renderer.height;
-var circles, links;
-var simulation = d3.forceSimulation()
-	.force('link', d3.forceLink().id(function (d) {
-		return d.id;
-	}).distance(20).strength(1))
-	.force('charge', d3.forceManyBody())
-	.force('center', d3.forceCenter(width / 2, height / 2));
+        <script type="text/javascript">
+            var renderer = i2d.canvasLayer("#myCanvas", {}, false);
+            var width = renderer.width,
+                height = renderer.height;
+            var circles, links;
+            var simulation = d3
+                .forceSimulation()
+                .force(
+                    "link",
+                    d3
+                        .forceLink()
+                        .id(function (d) {
+                            return d.id;
+                        })
+                        .distance(20)
+                        .strength(1)
+                )
+                .force("charge", d3.forceManyBody())
+                .force("center", d3.forceCenter(width / 2, height / 2));
 
-var data = fetch('../data/huge_graph.json')
-	.then(function (response) {
-		response.json().then(function (data) {
-			renderChart(data);
-		});
-	})
-	.catch(function (error) {
-	});
+            var data = fetch("../data/huge_graph.json")
+                .then(function (response) {
+                    response.json().then(function (data) {
+                        renderChart(data);
+                    });
+                })
+                .catch(function (error) {});
 
-var g = renderer.createEl({
-	el: 'group',
-	attr: {
-		class: 'g',
-		transform: {
-			translate: [width / 2, height / 2],
-			scale: [0.2, 0.2]
-		}
-	},
-	bbox: false
-});
+            var g = renderer.createEl({
+                el: "group",
+                attr: {
+                    class: "g",
+                    transform: {
+                        translate: [width / 2, height / 2],
+                        scale: [0.2, 0.2],
+                    },
+                },
+                bbox: false,
+            });
 
-var edgeGroup = g.createEl({
-	el: 'group',
-	style: {
-		strokeStyle: 'red'
-	}
-});
+            var edgeGroup = g.createEl({
+                el: "group",
+                style: {
+                    strokeStyle: "red",
+                },
+            });
 
-var NodeGroup = g.createEl({
-	el: 'group',
-	style: { fillStyle: '#1f77b4' }
-});
+            var NodeGroup = g.createEl({
+                el: "group",
+                style: { fillStyle: "#1f77b4" },
+            });
 
-function renderChart (graph) {
+            function renderChart(graph) {
+                links = edgeGroup.createEls(graph.links, {
+                    el: "line",
+                });
 
-	links = edgeGroup.createEls(graph.links, {
-		el: 'line'
-	});
+                rects = NodeGroup.createEls(graph.nodes, {
+                    el: "rect",
+                    attr: { height: 10, width: 10, x: -5, y: -5 },
+                });
 
-	rects = NodeGroup.createEls(graph.nodes, {
-		el: 'rect',
-		attr: { height: 10, width: 10, x: -5, y: -5 }
-	});
+                simulation.nodes(graph.nodes).on("tick", ticked);
+                // .on("end",function(){
+                //     links = g.createEls(graph.links,{
+                //         el:'line',
+                //         attr:{
+                //             x1:function(d){return d.source.x},
+                //             y1:function(d){return d.source.y},
+                //             x2:function(d){return d.target.x},
+                //             y2:function(d){return d.target.y}
+                //         },
+                //         style:{ strokeStyle:'#999' }
+                //     });
+                // });
 
-	simulation
-		.nodes(graph.nodes)
-		.on('tick', ticked);
-	// .on("end",function(){
-	//     links = g.createEls(graph.links,{
-	//         el:'line',
-	//         attr:{
-	//             x1:function(d){return d.source.x},
-	//             y1:function(d){return d.source.y},
-	//             x2:function(d){return d.target.x},
-	//             y2:function(d){return d.target.y}
-	//         },
-	//         style:{ strokeStyle:'#999' }
-	//     });
-	// });
+                simulation.force("link").links(graph.links);
 
-	simulation.force('link')
-		.links(graph.links);
+                function ticked() {
+                    rects //.setAttr(function(d){return {x: d.x, y: d.y} })
+                        .setAttr("y", function (d) {
+                            return d.y - 5;
+                        })
+                        .setAttr("x", function (d) {
+                            return d.x - 5;
+                        });
 
-	function ticked () {
-		rects//.setAttr(function(d){return {x: d.x, y: d.y} })
-			.setAttr('y', function (d) {
-				return d.y - 5;
-			})
-			.setAttr('x', function (d) {
-				return d.x - 5;
-			});
-
-		links.forEach(function (d) {
-			this.setAttr({
-				x1: d.source.x,
-				y1: d.source.y,
-				x2: d.target.x,
-				y2: d.target.y
-			});
-		});
-	}
-
-}
-
-
-</script>
-
-</body>
+                    links.forEach(function (d) {
+                        this.setAttr({
+                            x1: d.source.x,
+                            y1: d.source.y,
+                            x2: d.target.x,
+                            y2: d.target.y,
+                        });
+                    });
+                }
+            }
+        </script>
+    </body>
 </html>

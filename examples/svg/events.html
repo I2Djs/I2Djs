@@ -1,62 +1,57 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <div id="mySvg" style="height: 100%; width: 100%;"></div>
 
-<div id="mySvg" style="height: 100%;width:100%">
-</div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script type="text/javascript">
+            var renderer = i2d.svgLayer("#mySvg");
 
-<script type="text/javascript">
+            var data = [];
+            for (var i = 1; i <= 10; i++) {
+                data.push(i);
+            }
 
-var renderer = i2d.svgLayer('#mySvg');
+            var g = renderer.createEl({
+                el: "g",
+                attr: {
+                    transform: {
+                        translate: [100, 100],
+                    },
+                },
+            });
 
-var data = [];
-for (var i = 1; i <= 10; i++) {
-	data.push(i);
-}
-
-var g = renderer.createEl({
-	el: 'g',
-	attr: {
-		transform: {
-			translate: [100, 100]
-		}
-	}
-});
-
-g.createEls(data, {
-	el: 'circle',
-	attr: {
-		r: function (d, i) {
-			return Math.abs(Math.sin(d * 20 * 3.142 / 180)) * 10;
-		},
-		cx: function (d, i) {
-			return (d / Math.sqrt(data.length)) * 100 + 100;
-		},
-		cy: function (d, i) {
-			return (d % Math.sqrt(data.length)) * 70 + 100;
-		}
-	},
-	style: { fill: 'red' }
-})
-	.on('click', function () {
-		console.log('circle click');
-	})
-	.on('dblclick', function () {
-		this.setStyle('fill', '#a1d99b');
-	})
-	.on('mouseover', function () {
-		this.setStyle('stroke', 'black').setStyle('stroke-width', '2px');
-	})
-	.on('mouseout', function () {
-		this.setStyle('stroke', 'black').setStyle('stroke-width', '1px');
-	});
-
-</script>
-
-</body>
+            g.createEls(data, {
+                el: "circle",
+                attr: {
+                    r: function (d, i) {
+                        return Math.abs(Math.sin((d * 20 * 3.142) / 180)) * 10;
+                    },
+                    cx: function (d, i) {
+                        return (d / Math.sqrt(data.length)) * 100 + 100;
+                    },
+                    cy: function (d, i) {
+                        return (d % Math.sqrt(data.length)) * 70 + 100;
+                    },
+                },
+                style: { fill: "red" },
+            })
+                .on("click", function () {
+                    console.log("circle click");
+                })
+                .on("dblclick", function () {
+                    this.setStyle("fill", "#a1d99b");
+                })
+                .on("mouseover", function () {
+                    this.setStyle("stroke", "black").setStyle("stroke-width", "2px");
+                })
+                .on("mouseout", function () {
+                    this.setStyle("stroke", "black").setStyle("stroke-width", "1px");
+                });
+        </script>
+    </body>
 </html>

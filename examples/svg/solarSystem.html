@@ -1,83 +1,100 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%;background: black">
-<div id="mySvg" style="height: 100%;width:100%">
-</div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%; background: black;">
+        <div id="mySvg" style="height: 100%; width: 100%;"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript">
+        <script type="text/javascript">
+            var height = 820,
+                width = 1430;
 
-var height = 820, width = 1430;
+            var renderer_ = i2d.svgLayer("#mySvg");
+            var pGroup = renderer_.createEl({
+                el: "group",
+                attr: {
+                    transform: {
+                        translate: [750, 350],
+                    },
+                },
+            });
 
-var renderer_ = i2d.svgLayer('#mySvg');
-;
+            var sun = pGroup.createEl({
+                el: "image",
+                attr: {
+                    "xlink:href": "https://mdn.mozillademos.org/files/1456/Canvas_sun.png",
+                    "width": 300,
+                    "height": 300,
+                    "x": -150,
+                    "y": -150,
+                },
+            });
 
-var pGroup = renderer_.createEl({
-	el: 'group',
-	attr: {
-		transform: {
-			translate: [750, 350]
-		}
-	}
-});
+            var circle = pGroup.createEl({
+                el: "circle",
+                attr: {
+                    r: 142,
+                    cx: 0,
+                    cy: 0,
+                },
+                style: {
+                    fill: "none",
+                    stroke: "rgba(0, 153, 255, 0.4)",
+                },
+            });
 
-var sun = pGroup.createEl({
-	el: 'image',
-	attr: {
-		'xlink:href': 'https://mdn.mozillademos.org/files/1456/Canvas_sun.png',
-		width: 300, height: 300, x: -150, y: -150
-	}
-});
+            var group = pGroup.createEl({
+                el: "group",
+                attr: {
+                    transform: {
+                        translate: [-100, -100],
+                    },
+                },
+            });
 
-var circle = pGroup.createEl({
-	el: 'circle',
-	attr: {
-		r: 142, cx: 0, cy: 0
-	},
-	style: {
-		fill: 'none',
-		stroke: 'rgba(0, 153, 255, 0.4)'
-	}
-});
+            var earth = group.createEl({
+                el: "image",
+                attr: {
+                    "xlink:href": "https://mdn.mozillademos.org/files/1429/Canvas_earth.png",
+                    "x": -12.5,
+                    "y": -12.5,
+                    "width": 25,
+                    "height": 25,
+                },
+            });
+            var moon = group.createEl({
+                el: "image",
+                attr: {
+                    "xlink:href": "https://mdn.mozillademos.org/files/1443/Canvas_moon.png",
+                    "x": -3.5,
+                    "y": -3.5,
+                    "width": 7,
+                    "height": 7,
+                    "transform": {
+                        translate: [-25, -25],
+                    },
+                },
+            });
 
-var group = pGroup.createEl({
-	el: 'group',
-	attr: {
-		transform: {
-			translate: [-100, -100]
-		}
-	}
-});
-
-var earth = group.createEl({
-	el: 'image',
-	attr: {
-		'xlink:href': 'https://mdn.mozillademos.org/files/1429/Canvas_earth.png',
-		x: -12.5, y: -12.5, width: 25, height: 25
-	}
-});
-var moon = group.createEl({
-	el: 'image',
-	attr: {
-		'xlink:href': 'https://mdn.mozillademos.org/files/1443/Canvas_moon.png',
-		x: -3.5, y: -3.5, width: 7, height: 7,
-		transform: {
-			translate: [-25, -25]
-		}
-	}
-});
-
-i2d.queue.onRequestFrame(function (t) {
-	var time = new Date();
-	group.rotate((((2 * Math.PI) / 60) * time.getSeconds() + ((2 * Math.PI) / 60000) * time.getMilliseconds()) * (180 / Math.PI), 100, 100);
-	moon.rotate((((2 * Math.PI) / 6) * time.getSeconds() + ((2 * Math.PI) / 6000) * time.getMilliseconds()) * (180 / Math.PI), 25, 25);
-});
-
-
-</script>
-
-</body>
+            i2d.queue.onRequestFrame(function (t) {
+                var time = new Date();
+                group.rotate(
+                    (((2 * Math.PI) / 60) * time.getSeconds() +
+                        ((2 * Math.PI) / 60000) * time.getMilliseconds()) *
+                        (180 / Math.PI),
+                    100,
+                    100
+                );
+                moon.rotate(
+                    (((2 * Math.PI) / 6) * time.getSeconds() +
+                        ((2 * Math.PI) / 6000) * time.getMilliseconds()) *
+                        (180 / Math.PI),
+                    25,
+                    25
+                );
+            });
+        </script>
+    </body>
 </html>

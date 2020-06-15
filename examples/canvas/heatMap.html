@@ -1,109 +1,121 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
-    <label style="position: absolute; color: white"> Canvas Example </label>
-	<div style="height: 100%;width:100%;" id="myCanvas">
-	</div>
-	<!-- <script type="text/javascript" src="../../dist/i2d.js"></script> -->
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <label style="position: absolute; color: white;"> Canvas Example </label>
+        <div style="height: 100%; width: 100%;" id="myCanvas"></div>
+        <!-- <script type="text/javascript" src="../../dist/i2d.js"></script> -->
 
-	<script type="module">
+        <script type="module">
+            import canvasAPI from "../../src/modules/canvas.js";
 
-        import canvasAPI from "../../src/modules/canvas.js";
+            var radialGrad = canvasAPI.canvasLayer(null, {}, { enableResize: false });
+            radialGrad.setPixelRatio(1);
+            radialGrad.setSize(100, 100);
+            var LinearGrad = canvasAPI.canvasLayer(null, {}, { enableResize: false });
+            LinearGrad.setPixelRatio(1);
+            LinearGrad.setSize(256, 1);
 
-        var radialGrad = canvasAPI.canvasLayer(null,{}, { enableResize: false});
-        radialGrad.setPixelRatio(1);
-        radialGrad.setSize(100, 100);
-        var LinearGrad = canvasAPI.canvasLayer(null,{}, { enableResize: false });
-        LinearGrad.setPixelRatio(1);
-        LinearGrad.setSize(256, 1);
+            var renderer_2 = canvasAPI.canvasLayer("#myCanvas", {}, { enableResize: false });
+            renderer_2.setPixelRatio(1);
+            var renderer_ = canvasAPI.canvasLayer(null, {}, { enableResize: false });
+            renderer_.setPixelRatio(1);
+            renderer_.setSize(renderer_2.width, renderer_2.height);
 
-        var renderer_2 = canvasAPI.canvasLayer('#myCanvas',{}, { enableResize: false });
-        renderer_2.setPixelRatio(1);
-        var renderer_ = canvasAPI.canvasLayer(null,{}, { enableResize: false });
-        renderer_.setPixelRatio(1);
-        renderer_.setSize(renderer_2.width, renderer_2.height);
-
-        var radialGradiant = radialGrad.createRadialGradient({
+            var radialGradiant = radialGrad.createRadialGradient({
                 innerCircle: { x: 50, y: 50, r: 0 },
                 outerCircle: { x: 50, y: 50, r: 50 },
-                mode: 'percent',
-                colorStops: [{ color: 'rgba(0, 0, 0, 0.1)', value: 0 },
-                    { color: 'rgba(0, 0, 0, 0)', value: 100 }]
+                mode: "percent",
+                colorStops: [
+                    { color: "rgba(0, 0, 0, 0.1)", value: 0 },
+                    { color: "rgba(0, 0, 0, 0)", value: 100 },
+                ],
             });
-        
-        var linearGradiant = renderer_.createLinearGradient({
-            x1: 0, y1: 0, x2: 255, y2: 0,
-            mode: 'absolute',
-            colorStops: [
-                { color: 'rgba(255, 255, 255, 255)', value: 0 },
-                { color: 'rgba(0, 0, 122, 255)', value: 0.25 },
-                { color: 'rgba(0, 200, 0, 1)', value: 0.50 },
-                { color: 'rgba(200, 200, 0, 1)', value: 0.75 },
-                { color: 'rgba(255, 0, 0, 1)', value: 1 }
-            ]
-        });
 
-        LinearGrad.createEl({
-            el: 'rect',
-            attr: {
-                x: 0, y: 0, width: 256, height: 1
-            },
-            style: {
-                fillStyle: linearGradiant
-            }
-        });
+            var linearGradiant = renderer_.createLinearGradient({
+                x1: 0,
+                y1: 0,
+                x2: 255,
+                y2: 0,
+                mode: "absolute",
+                colorStops: [
+                    { color: "rgba(255, 255, 255, 255)", value: 0 },
+                    { color: "rgba(0, 0, 122, 255)", value: 0.25 },
+                    { color: "rgba(0, 200, 0, 1)", value: 0.5 },
+                    { color: "rgba(200, 200, 0, 1)", value: 0.75 },
+                    { color: "rgba(255, 0, 0, 1)", value: 1 },
+                ],
+            });
 
-        radialGrad.createEl({
-                    el:'circle',
-                    attr:{
-                        r: 50, cx: 50, cy: 50
-                    },
-                    style:{
-                        fillStyle: radialGradiant
+            LinearGrad.createEl({
+                el: "rect",
+                attr: {
+                    x: 0,
+                    y: 0,
+                    width: 256,
+                    height: 1,
+                },
+                style: {
+                    fillStyle: linearGradiant,
+                },
+            });
+
+            radialGrad.createEl({
+                el: "circle",
+                attr: {
+                    r: 50,
+                    cx: 50,
+                    cy: 50,
+                },
+                style: {
+                    fillStyle: radialGradiant,
+                },
+            });
+
+            LinearGrad.execute();
+            radialGrad.execute();
+
+            let dataPush = true;
+            let gradPallet = LinearGrad.getPixels(0, 0, 256, 1).imageData.data;
+
+            // document.addEventListener("pointermove", function(e) {
+            renderer_2.on("mousemove", function (e) {
+                if (dataPush) {
+                    renderer_
+                        .createEl({
+                            el: "image",
+                            attr: {
+                                x: e.x - 50,
+                                y: e.y - 50,
+                                src: radialGrad,
+                            },
+                            bbox: false,
+                        })
+                        .execute();
+
+                    let rawPixels = renderer_.getPixels(
+                        e.x - 50,
+                        e.y - 50,
+                        radialGrad.width,
+                        radialGrad.height
+                    );
+                    let pixeldata = rawPixels.imageData.data;
+                    for (let i = 3, len = pixeldata.length; i < len; i += 4) {
+                        pixeldata[i - 1] = gradPallet[pixeldata[i] * 4 + 2];
+                        pixeldata[i - 2] = gradPallet[pixeldata[i] * 4 + 1];
+                        pixeldata[i - 3] = gradPallet[pixeldata[i] * 4];
                     }
-                });
-
-        LinearGrad.execute();
-        radialGrad.execute();
-
-        let dataPush = true;
-        let gradPallet = LinearGrad.getPixels(0, 0, 256, 1).imageData.data;
-
-        // document.addEventListener("pointermove", function(e) {
-        renderer_2.on('mousemove', function (e) {
-            if (dataPush) {
-                renderer_.createEl({
-                    el:'image',
-                    attr:{
-                        x: e.x - 50,
-                        y: e.y - 50,
-                        src: radialGrad
-                    },
-                    bbox: false
-                }).execute();
-
-                let rawPixels = renderer_.getPixels(e.x - 50, e.y - 50, radialGrad.width, radialGrad.height);
-                let pixeldata = rawPixels.imageData.data;
-                for (let i = 3, len = pixeldata.length; i < len; i += 4) {
-                    pixeldata[i - 1] = gradPallet[pixeldata[i] * 4 + 2];
-                    pixeldata[i - 2] = gradPallet[pixeldata[i] * 4 + 1];
-                    pixeldata[i - 3] = gradPallet[pixeldata[i] * 4];
+                    renderer_2.putPixels(rawPixels, e.x - 50, e.y - 50);
+                    dataPush = false;
+                    setTimeout(idleFlag, 10);
                 }
-                renderer_2.putPixels(rawPixels, e.x - 50, e.y - 50);
-                dataPush = false;
-                setTimeout(idleFlag, 10);
+            });
+
+            function idleFlag() {
+                dataPush = true;
             }
-
-        });
-
-    function idleFlag () {
-        dataPush = true;
-    }
-                
-	</script>
-
-</body>
+        </script>
+    </body>
 </html>

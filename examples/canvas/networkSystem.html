@@ -1,314 +1,328 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%;background: black">
-<label style="position: absolute; color: white"> Canvas Example </label>
-<div id="myCanvas" style="height: 100%;width:100%;position: absolute;">
-	<div style="position: relative;z-index: 1;color: white; text-align: center"> Click on nodes to remove</div>
-	<!--<canvas width="1200" height="1000" id="myCanvas"></canvas>-->
-</div>
-<!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/webcola@3.3.6/WebCola/cola.min.js"></script>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%; background: black;">
+        <label style="position: absolute; color: white;"> Canvas Example </label>
+        <div id="myCanvas" style="height: 100%; width: 100%; position: absolute;">
+            <div style="position: relative; z-index: 1; color: white; text-align: center;">
+                Click on nodes to remove
+            </div>
+            <!--<canvas width="1200" height="1000" id="myCanvas"></canvas>-->
+        </div>
+        <!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
+        <script
+            type="text/javascript"
+            src="https://cdn.jsdelivr.net/npm/webcola@3.3.6/WebCola/cola.min.js"
+        ></script>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript">
+        <script type="text/javascript">
+            var circles = [];
 
-var circles = [];
+            var sourceDestTree = {};
+            var nodeToEdgeTree = {};
+            var width = 1200,
+                height = 600;
+            var renderer_ = i2d.canvasLayer("#myCanvas", {}, {});
+            var dragEvent = i2d.behaviour.drag();
 
-var sourceDestTree = {};
-var nodeToEdgeTree = {};
-var width = 1200, height = 600;
-var renderer_ = i2d.canvasLayer('#myCanvas', {}, {});
-var dragEvent = i2d.behaviour.drag();
+            dragEvent
+                .dragStart(function (d, e) {})
+                .drag(function (d, e) {
+                    var currTranslate = g.getAttr("transform").translate;
+                    g.translate([currTranslate[0] + e.dx, currTranslate[1] + e.dy]);
+                })
+                .dragEnd(function (d, e) {});
 
-dragEvent.dragStart(function (d, e) {
+            var d3cola = new cola.Layout()
+                .handleDisconnected(false)
+                .linkDistance(100)
+                .avoidOverlaps(true)
+                .size([width, height]);
 
-})
-	.drag(function (d, e) {
-		var currTranslate = g.getAttr('transform').translate;
-		g.translate([currTranslate[0] + e.dx, currTranslate[1] + e.dy]);
-	})
-	.dragEnd(function (d, e) {
+            var g = renderer_.createEl({
+                el: "group",
+                attr: {
+                    transform: { translate: [100, 100] },
+                },
+            });
 
-	});
+            var dragRect = g
+                .createEl({
+                    el: "rect",
+                    attr: {
+                        x: 0,
+                        y: 0,
+                        width: 1000,
+                        height: 700,
+                    },
+                    style: {
+                        fillStyle: "rgba(0,0,0,0.2)",
+                    },
+                })
+                .on("drag", dragEvent);
 
-var d3cola = new cola.Layout()
-	.handleDisconnected(false)
-	.linkDistance(100)
-	.avoidOverlaps(true)
-	.size([width, height]);
+            var lineG = g.createEl({ el: "group" });
+            var circleG = g.createEl({ el: "group" });
 
-var g = renderer_.createEl({
-	el: 'group',
-	attr: {
-		transform: { translate: [100, 100] }
-	}
-});
+            var linearGradiant = renderer_.createLinearGradient({
+                id: "linearG",
+                x1: 0,
+                y1: 0,
+                x2: 0,
+                y2: 100,
+                colorStops: [
+                    { color: "black", value: 10 },
+                    { color: "rgb(11, 192, 255)", value: 50 },
+                    { color: "black", value: 90 },
+                ],
+            });
 
-var dragRect = g.createEl({
-	el: 'rect',
-	attr: {
-		x: 0,
-		y: 0,
-		width: 1000,
-		height: 700
-	},
-	style: {
-		fillStyle: 'rgba(0,0,0,0.2)'
-	}
-}).on('drag', dragEvent);
+            var blastGradiant = renderer_.createRadialGradient({
+                innerCircle: { x: 50, y: 50, r: 0 },
+                outerCircle: { x: 50, y: 50, r: 50 },
+                colorStops: [
+                    { color: "#fffdca", value: 0 },
+                    { color: "black", value: 100 },
+                ],
+            });
 
-var lineG = g.createEl({ el: 'group' });
-var circleG = g.createEl({ el: 'group' });
+            var data = fetch("../data/networkGraph.json")
+                .then(function (response) {
+                    response.json().then(function (data) {
+                        data.nodes.forEach(function (d, i) {
+                            d.index = i;
+                            data.links.forEach(function (link) {
+                                if (link.source_ === d.ip || link.target_ === d.ip) {
+                                    if (!nodeToEdgeTree[d.ip]) nodeToEdgeTree[d.ip] = [];
+                                    nodeToEdgeTree[d.ip].push(link);
+                                }
+                            });
+                        });
+                        data.links.forEach(function (d) {
+                            if (!sourceDestTree[d.source_]) sourceDestTree[d.source_] = [];
+                            sourceDestTree[d.source_].push(d);
+                        });
+                        renderChart(data);
+                    });
+                })
+                .catch(function (error) {});
 
-var linearGradiant = renderer_.createLinearGradient({
-	id: 'linearG', x1: 0, y1: 0, x2: 0, y2: 100,
-	colorStops: [{ color: 'black', value: 10 },
-		{ color: 'rgb(11, 192, 255)', value: 50 },
-		{ color: 'black', value: 90 }]
-});
-
-var blastGradiant = renderer_.createRadialGradient({
-	innerCircle: { x: 50, y: 50, r: 0 },
-	outerCircle: { x: 50, y: 50, r: 50 },
-	colorStops: [{ color: '#fffdca', value: 0 },
-		{ color: 'black', value: 100 }]
-});
-
-var data = fetch('../data/networkGraph.json')
-	.then(function (response) {
-		response.json().then(function (data) {
-			data.nodes.forEach(function (d, i) {
-				d.index = i;
-				data.links.forEach(function (link) {
-					if (link.source_ === d.ip || link.target_ === d.ip) {
-						if (!nodeToEdgeTree[d.ip])
-							nodeToEdgeTree[d.ip] = [];
-						nodeToEdgeTree[d.ip].push(link);
-					}
-				});
-			});
-			data.links.forEach(function (d) {
-				if (!sourceDestTree[d.source_])
-					sourceDestTree[d.source_] = [];
-				sourceDestTree[d.source_].push(d);
-			});
-			renderChart(data);
-		});
-	})
-	.catch(function (error) {
-	});
-
-function renderChart (jsonData) {
-	/*
+            function renderChart(jsonData) {
+                /*
 	 Performing edge join with actions. Returns Join handler.
 	 */
-	var EdgeJoinRef = lineG.join([], 'line', {
-		action: {
-			enter: function (data) {
-				if (data.line && data.line.length > 0) {
-					var chainInstance = i2d.chain.parallelChain()
-						.duration(1000)
-						.ease('linear');
+                var EdgeJoinRef = lineG.join([], "line", {
+                    action: {
+                        enter: function (data) {
+                            if (data.line && data.line.length > 0) {
+                                var chainInstance = i2d.chain
+                                    .parallelChain()
+                                    .duration(1000)
+                                    .ease("linear");
 
-					var lineExe = lineG.createEls(data.line, {
-						el: 'line',
-						attr: {
-							x1: function (d) {
-								return d.source.x;
-							},
-							y1: function (d) {
-								return d.source.y;
-							},
-							x2: function (d) {
-								return d.source.x;
-							},
-							y2: function (d) {
-								return d.source.y;
-							}
-						},
-						style: { strokeStyle: linearGradiant }
-					})
-						.animateExe({
-							duration: 600,
-							ease: 'linear',
-							attr: {
-								x2: function (d) {
-									return d.target.x;
-								},
-								y2: function (d) {
-									return d.target.y;
-								}
-							},
-							end: function (d) {
-								if (circles.indexOf(d.target) === -1) {
-									NodeJoinRef.push(d.target);
-								}
-								var subLinks = sourceDestTree[d.target.ip];
-								if (subLinks && subLinks.length > 0) {
-									EdgeJoinRef.push(subLinks);
-									delete sourceDestTree[d.target.ip];
-								}
-							}
-						});
-					chainInstance.add(lineExe);
-					chainInstance.start();
-				}
-			},
-			exit: function (nodes) {
-
-				/*
+                                var lineExe = lineG
+                                    .createEls(data.line, {
+                                        el: "line",
+                                        attr: {
+                                            x1: function (d) {
+                                                return d.source.x;
+                                            },
+                                            y1: function (d) {
+                                                return d.source.y;
+                                            },
+                                            x2: function (d) {
+                                                return d.source.x;
+                                            },
+                                            y2: function (d) {
+                                                return d.source.y;
+                                            },
+                                        },
+                                        style: { strokeStyle: linearGradiant },
+                                    })
+                                    .animateExe({
+                                        duration: 600,
+                                        ease: "linear",
+                                        attr: {
+                                            x2: function (d) {
+                                                return d.target.x;
+                                            },
+                                            y2: function (d) {
+                                                return d.target.y;
+                                            },
+                                        },
+                                        end: function (d) {
+                                            if (circles.indexOf(d.target) === -1) {
+                                                NodeJoinRef.push(d.target);
+                                            }
+                                            var subLinks = sourceDestTree[d.target.ip];
+                                            if (subLinks && subLinks.length > 0) {
+                                                EdgeJoinRef.push(subLinks);
+                                                delete sourceDestTree[d.target.ip];
+                                            }
+                                        },
+                                    });
+                                chainInstance.add(lineExe);
+                                chainInstance.start();
+                            }
+                        },
+                        exit: function (nodes) {
+                            /*
 				 Remove edges in parallel mode
 				 */
-				var chainInstance = i2d.chain.sequenceChain()
-					.duration(1000)
-					.ease('linear');
+                            var chainInstance = i2d.chain
+                                .sequenceChain()
+                                .duration(1000)
+                                .ease("linear");
 
-				var lineExe = nodes.line.animateExe({
-					duration: 600,
-					ease: 'linear',
-					attr: {
-						x2: function (d) {
-							return d.source.x;
-						},
-						y2: function (d) {
-							return d.source.y;
-						}
-					},
-					end: function (d) {
-						this.remove();
-					}
-				});
+                            var lineExe = nodes.line.animateExe({
+                                duration: 600,
+                                ease: "linear",
+                                attr: {
+                                    x2: function (d) {
+                                        return d.source.x;
+                                    },
+                                    y2: function (d) {
+                                        return d.source.y;
+                                    },
+                                },
+                                end: function (d) {
+                                    this.remove();
+                                },
+                            });
 
-				chainInstance.add(lineExe);
-				chainInstance.start();
-			}
-		}
-	});
+                            chainInstance.add(lineExe);
+                            chainInstance.start();
+                        },
+                    },
+                });
 
-	/*
+                /*
 	 Performing Node join with actions. Returns Join handler.
 	 */
-	var NodeJoinRef = circleG.join([], 'circle', {
-		joinOn: function (d) {
-			return d.ip;
-		},
-		action: {
-			enter: function (data) {
-
-				circleG.createEls(data.circle, {
-					el: 'circle',
-					attr: {
-						r: 5,
-						cx: function (d) {
-							return d.x;
-						},
-						cy: function (d) {
-							return d.y;
-						}
-					},
-					style: {
-						fillStyle: function (d) {
-							return d.type === 'HI' ? 'red' : '#fffdca';
-						},
-						shadowColor: function (d) {
-							return d.type === 'HI' ? 'red' : '#fffdca';
-						},
-						shadowOffsetX: 0,
-						shadowOffsetY: 0,
-						shadowBlur: 30
-					}
-				})
-					.on('click', function (d) {
-						/*
+                var NodeJoinRef = circleG.join([], "circle", {
+                    joinOn: function (d) {
+                        return d.ip;
+                    },
+                    action: {
+                        enter: function (data) {
+                            circleG
+                                .createEls(data.circle, {
+                                    el: "circle",
+                                    attr: {
+                                        r: 5,
+                                        cx: function (d) {
+                                            return d.x;
+                                        },
+                                        cy: function (d) {
+                                            return d.y;
+                                        },
+                                    },
+                                    style: {
+                                        fillStyle: function (d) {
+                                            return d.type === "HI" ? "red" : "#fffdca";
+                                        },
+                                        shadowColor: function (d) {
+                                            return d.type === "HI" ? "red" : "#fffdca";
+                                        },
+                                        shadowOffsetX: 0,
+                                        shadowOffsetY: 0,
+                                        shadowBlur: 30,
+                                    },
+                                })
+                                .on("click", function (d) {
+                                    /*
 						 Remove circle
 						 */
-						NodeJoinRef.remove(d);
-					});
+                                    NodeJoinRef.remove(d);
+                                });
 
-				circleG.createEls(data.circle, {
-					el: 'text',
-					attr: {
-						x: function (d) {
-							return d.x;
-						},
-						y: function (d) {
-							return d.y + 20;
-						}
-					},
-					style: { fillStyle: 'yellow', 'textAlign': 'center' }
-				}).text(function (d) {
-					return d.ip;
-				});
+                            circleG
+                                .createEls(data.circle, {
+                                    el: "text",
+                                    attr: {
+                                        x: function (d) {
+                                            return d.x;
+                                        },
+                                        y: function (d) {
+                                            return d.y + 20;
+                                        },
+                                    },
+                                    style: { fillStyle: "yellow", textAlign: "center" },
+                                })
+                                .text(function (d) {
+                                    return d.ip;
+                                });
 
-				circleG.createEls(data.circle, {
-					el: 'circle',
-					attr: {
-						r: 0,
-						cx: function (d) {
-							return d.x;
-						},
-						cy: function (d) {
-							return d.y;
-						}
-					},
-					style: { fillStyle: blastGradiant, 'line-Width': 2 }
-				}).animateTo({
-					duration: 1000,
-					ease: 'easeOutCubic',
-					attr: { r: 50 },
-					style: { globalAlpha: 0 },
-					end: function () {
-						this.remove();
-					}
-				});
-			},
-			exit: function (nodes) {
-				if (data.length === 0) return;
+                            circleG
+                                .createEls(data.circle, {
+                                    el: "circle",
+                                    attr: {
+                                        r: 0,
+                                        cx: function (d) {
+                                            return d.x;
+                                        },
+                                        cy: function (d) {
+                                            return d.y;
+                                        },
+                                    },
+                                    style: { "fillStyle": blastGradiant, "line-Width": 2 },
+                                })
+                                .animateTo({
+                                    duration: 1000,
+                                    ease: "easeOutCubic",
+                                    attr: { r: 50 },
+                                    style: { globalAlpha: 0 },
+                                    end: function () {
+                                        this.remove();
+                                    },
+                                });
+                        },
+                        exit: function (nodes) {
+                            if (data.length === 0) return;
 
-				/*
+                            /*
 				 circle exit with animation
 				 */
-				nodes.circle.animateTo({
-					duration: 500,
-					ease: 'easeOutCubic',
-					attr: { r: 0 },
-					style: { globalAlpha: 0 },
-					end: function (d) {
-						this.remove();
-					}
-				});
-				// /*
-				//     On every circle exit. Remove corresponding linked edges.
-				// */
-				// EdgeJoinRef.remove(nodeToEdgeTree[data[0].ip])
-				// /*
-				//     On every circle exit. Remove corresponding Text.
-				// */
-				// this.fetchEls('text',data).remove();
-			}
-		}
-	});
+                            nodes.circle.animateTo({
+                                duration: 500,
+                                ease: "easeOutCubic",
+                                attr: { r: 0 },
+                                style: { globalAlpha: 0 },
+                                end: function (d) {
+                                    this.remove();
+                                },
+                            });
+                            // /*
+                            //     On every circle exit. Remove corresponding linked edges.
+                            // */
+                            // EdgeJoinRef.remove(nodeToEdgeTree[data[0].ip])
+                            // /*
+                            //     On every circle exit. Remove corresponding Text.
+                            // */
+                            // this.fetchEls('text',data).remove();
+                        },
+                    },
+                });
 
-	d3cola.nodes(jsonData.nodes)
-		.links(jsonData.links)
-		.on(cola.EventType.end, function (d) {
-			NodeJoinRef.push(jsonData.nodes[0]);
-			EdgeJoinRef.push(sourceDestTree[jsonData.nodes[0].ip]);
-		})
-		.start();
+                d3cola
+                    .nodes(jsonData.nodes)
+                    .links(jsonData.links)
+                    .on(cola.EventType.end, function (d) {
+                        NodeJoinRef.push(jsonData.nodes[0]);
+                        EdgeJoinRef.push(sourceDestTree[jsonData.nodes[0].ip]);
+                    })
+                    .start();
 
-	// var ele = document.getElementById('myCanvas')
-	// window.addEventListener('resize',function(){
-	//     var offset = 2/1400
-	//     var width = ele.offsetWidth
-	//     g.scale([width*offset,width*offset])
-	// })
-
-}
-</script>
-
-</body>
+                // var ele = document.getElementById('myCanvas')
+                // window.addEventListener('resize',function(){
+                //     var offset = 2/1400
+                //     var width = ele.offsetWidth
+                //     g.scale([width*offset,width*offset])
+                // })
+            }
+        </script>
+    </body>
 </html>

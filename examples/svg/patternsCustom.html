@@ -1,115 +1,110 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
-<div id="myCanvas" style="height: 100%;width:100%;position: absolute;">
-</div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <div id="myCanvas" style="height: 100%; width: 100%; position: absolute;"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript">
+        <script type="text/javascript">
+            var renderer_ = i2d.svgLayer("#myCanvas", {}, {});
 
-var renderer_ = i2d.svgLayer('#myCanvas', {}, {});
+            var drag1 = i2d.behaviour.drag();
+            var drag2 = i2d.behaviour.drag();
 
-var drag1 = i2d.behaviour.drag();
-var drag2 = i2d.behaviour.drag();
+            drag1
+                .dragStart(function () {})
+                .drag(function (e) {
+                    let x = this.getAttr("cx");
+                    let y = this.getAttr("cy");
+                    this.setAttr("cx", x + e.dx);
+                    this.setAttr("cy", y + e.dy);
+                });
 
+            drag2
+                .dragStart(function () {})
+                .drag(function (e) {
+                    let x = this.getAttr("x");
+                    let y = this.getAttr("y");
+                    this.setAttr("x", x + e.dx);
+                    this.setAttr("y", y + e.dy);
+                });
 
-drag1
-.dragStart(function () {
+            var pattern1 = renderer_.createPattern({
+                viewBox: "0,0,10,10",
+                width: "15%",
+                height: "15%",
+                id: "tempPat2",
+            });
+            pattern1.pattern.createEl({
+                el: "image",
+                attr: {
+                    "xlink:href": "../images/pattern.png",
+                    "width": 250,
+                    "height": 250,
+                },
+            });
 
-})
-.drag(function (e) {
-	let x = this.getAttr('cx');
-	let y = this.getAttr('cy');
-	this.setAttr('cx', x + e.dx);
-	this.setAttr('cy', y + e.dy);
-});
+            var pattern2 = renderer_.createPattern({
+                viewBox: "0,0,10,10",
+                width: "10%",
+                height: "10%",
+                id: "tempPat",
+            });
+            pattern2.pattern.createEl({
+                el: "circle",
+                attr: {
+                    r: 5,
+                    cx: 5,
+                    cy: 5,
+                },
+                style: {
+                    fill: "red",
+                },
+            });
 
-drag2
-.dragStart(function () {
+            var g = renderer_.createEl({
+                el: "group",
+                attr: {
+                    transform: {
+                        translate: [renderer_.width / 2, renderer_.height / 2],
+                    },
+                },
+            });
 
-})
-.drag(function (e) {
-	let x = this.getAttr('x');
-	let y = this.getAttr('y');
-	this.setAttr('x', x + e.dx);
-	this.setAttr('y', y + e.dy);
-});
+            var circle1 = g
+                .createEl({
+                    el: "circle",
+                    attr: {
+                        cx: 200,
+                        cy: 100,
+                        r: 100,
+                    },
+                    style: {
+                        fill: pattern1,
+                        stroke: "grey",
+                    },
+                })
+                .on("drag", drag1);
 
-var pattern1 = renderer_.createPattern({
-	viewBox: "0,0,10,10",
-	width: "15%",
-	height: "15%",
-	id: 'tempPat2'
-});
-pattern1.pattern.createEl({
-	el: 'image',
-	attr:{
-		'xlink:href': '../images/pattern.png',
-		width: 250,
-		height: 250
-	}
-});
-
-var pattern2 = renderer_.createPattern({
-	viewBox: "0,0,10,10",
-	width: "10%",
-	height: "10%",
-	id: 'tempPat'
-});
-pattern2.pattern.createEl({
-	el: 'circle',
-	attr:{
-		r: 5,
-		cx: 5,
-		cy: 5
-	},
-	style: {
-		fill: 'red'
-	}
-});
-
-var g = renderer_.createEl({
-	el: 'group',
-	attr: {
-		transform: {
-			translate: [renderer_.width / 2, renderer_.height / 2]
-		}
-	}
-});
-
-var circle1 = g.createEl({
-	el: 'circle',
-	attr: {
-		cx: 200,
-		cy: 100,
-		r: 100
-	},
-	style: {
-		fill: pattern1,
-		stroke: 'grey'
-	}
-}).on('drag', drag1);
-
-var circle2 = g.createEl({
-	el: 'rect',
-	attr: {
-		width: 200,
-		height: 200,
-		x: -100,
-		y: -100,
-		rx: 20,
-		ry: 20
-	},
-	style: {
-		fill: pattern2,
-		stroke: 'grey'
-	}
-}).on('drag', drag2);
-
-</script>
-
-</body>
+            var circle2 = g
+                .createEl({
+                    el: "rect",
+                    attr: {
+                        width: 200,
+                        height: 200,
+                        x: -100,
+                        y: -100,
+                        rx: 20,
+                        ry: 20,
+                    },
+                    style: {
+                        fill: pattern2,
+                        stroke: "grey",
+                    },
+                })
+                .on("drag", drag2);
+        </script>
+    </body>
 </html>

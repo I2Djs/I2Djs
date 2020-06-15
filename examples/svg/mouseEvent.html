@@ -1,58 +1,53 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <div id="mySvg" style="height: 100%; width: 100%; background: black;"></div>
 
-<div id="mySvg" style="height: 100%;width:100%;background: black">
-</div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script type="text/javascript">
+            var renderer_ = i2d.svgLayer("#mySvg");
 
-<script type="text/javascript">
+            var i = 0;
 
-var renderer_ = i2d.svgLayer('#mySvg');
-
-var i = 0;
-
-window.addEventListener('mousemove', function (e) {
-
-	renderer_.createEls([1, 2, 3, 4, 5], {
-		el: 'rect',
-		attr: {
-			width: 7,
-			height: 7,
-			x: e.offsetX,
-			y: e.offsetY
-		},
-		style: {
-			fill: 'hsl(' + (i = (i + 1) % 360) + ',100%,50%)',
-			opacity: 1
-		}
-	})
-		.animateTo({
-			duration: 1500,
-			ease: 'easeOutCubic',
-			attr: {
-				x: function (d) {
-					return e.offsetX + Math.cos((2 * Math.PI / 5) * d) * 300;
-				},
-				y: function (d) {
-					return e.offsetY + Math.sin((2 * Math.PI / 5) * d) * 300;
-				},
-				width: 100
-			},
-			style: {
-				opacity: 0
-			},
-			end: function () {
-				this.remove();
-			}
-		});
-});
-
-</script>
-
-</body>
+            window.addEventListener("mousemove", function (e) {
+                renderer_
+                    .createEls([1, 2, 3, 4, 5], {
+                        el: "rect",
+                        attr: {
+                            width: 7,
+                            height: 7,
+                            x: e.offsetX,
+                            y: e.offsetY,
+                        },
+                        style: {
+                            fill: "hsl(" + (i = (i + 1) % 360) + ",100%,50%)",
+                            opacity: 1,
+                        },
+                    })
+                    .animateTo({
+                        duration: 1500,
+                        ease: "easeOutCubic",
+                        attr: {
+                            x: function (d) {
+                                return e.offsetX + Math.cos(((2 * Math.PI) / 5) * d) * 300;
+                            },
+                            y: function (d) {
+                                return e.offsetY + Math.sin(((2 * Math.PI) / 5) * d) * 300;
+                            },
+                            width: 100,
+                        },
+                        style: {
+                            opacity: 0,
+                        },
+                        end: function () {
+                            this.remove();
+                        },
+                    });
+            });
+        </script>
+    </body>
 </html>

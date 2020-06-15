@@ -1,203 +1,216 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
-<label style="position: absolute; color: black"> Canvas Example </label>
-<div id="myCanvas" style="height: 100%;width:100%">
-</div>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <label style="position: absolute; color: black;"> Canvas Example </label>
+        <div id="myCanvas" style="height: 100%; width: 100%;"></div>
 
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript">
-var renderer = i2d.canvasLayer('#myCanvas', {}, {});
+        <script type="text/javascript">
+            var renderer = i2d.canvasLayer("#myCanvas", {}, {});
 
-var rect = renderer.createEl({
-	el: 'rect',
-	attr: {
-		x: 50,
-		y: 100,
-		width: 100,
-		height: 100
-	},
-	style: {
-		fillStyle: 'red',
-		shadowColor: '#999',
-		shadowBlur: 20,
-		shadowOffsetX: 15,
-		shadowOffsetY: 15
-	}
-})
-	.on('mouseover', function () {
-		this.setStyle('fillStyle', 'green');
-	})
-	.on('mouseout', function () {
-		this.setStyle('fillStyle', 'red');
-	});
+            var rect = renderer
+                .createEl({
+                    el: "rect",
+                    attr: {
+                        x: 50,
+                        y: 100,
+                        width: 100,
+                        height: 100,
+                    },
+                    style: {
+                        fillStyle: "red",
+                        shadowColor: "#999",
+                        shadowBlur: 20,
+                        shadowOffsetX: 15,
+                        shadowOffsetY: 15,
+                    },
+                })
+                .on("mouseover", function () {
+                    this.setStyle("fillStyle", "green");
+                })
+                .on("mouseout", function () {
+                    this.setStyle("fillStyle", "red");
+                });
 
-var polygon = renderer.createEl({
-	el: 'polygon',
-	attr: {
-		points: [{x:100, y:10},{x:40, y:198}, {x:190, y:78}, {x: 10,y: 78}, {x: 160,y: 198}],
-		transform: {
-			translate: [200, 50]
-		}
-	},
-	style: {
-		// lineWidth:4,
-		fillStyle: 'lime',
-		// strokeStyle:'purple',
-		shadowColor: '#999',
-		shadowBlur: 20,
-		shadowOffsetX: 15,
-		shadowOffsetY: 15
-	}
-});
+            var polygon = renderer.createEl({
+                el: "polygon",
+                attr: {
+                    points: [
+                        { x: 100, y: 10 },
+                        { x: 40, y: 198 },
+                        { x: 190, y: 78 },
+                        { x: 10, y: 78 },
+                        { x: 160, y: 198 },
+                    ],
+                    transform: {
+                        translate: [200, 50],
+                    },
+                },
+                style: {
+                    // lineWidth:4,
+                    fillStyle: "lime",
+                    // strokeStyle:'purple',
+                    shadowColor: "#999",
+                    shadowBlur: 20,
+                    shadowOffsetX: 15,
+                    shadowOffsetY: 15,
+                },
+            });
 
-var circle = renderer.createEl({
-	el: 'circle',
-	attr: {
-		r: 70,
-		cx: 0,
-		cy: 0,
-		transform: {
-			translate: [500, 150]
-		}
-	},
-	style: {
-		lineWidth: 4,
-		strokeStyle: 'red',
-		shadowColor: '#999',
-		shadowBlur: 20,
-		shadowOffsetX: 15,
-		shadowOffsetY: 15
-	}
-});
+            var circle = renderer.createEl({
+                el: "circle",
+                attr: {
+                    r: 70,
+                    cx: 0,
+                    cy: 0,
+                    transform: {
+                        translate: [500, 150],
+                    },
+                },
+                style: {
+                    lineWidth: 4,
+                    strokeStyle: "red",
+                    shadowColor: "#999",
+                    shadowBlur: 20,
+                    shadowOffsetX: 15,
+                    shadowOffsetY: 15,
+                },
+            });
 
-var circle = renderer.createEl({
-	el: 'line',
-	attr: {
-		x1: 0,
-		x2: 100,
-		y1: 0,
-		y2: 100,
-		transform: {
-			translate: [650, 100]
-		}
-	},
-	style: {
-		lineWidth: 4,
-		strokeStyle: 'red',
-		shadowColor: '#999',
-		shadowBlur: 20,
-		shadowOffsetX: 15,
-		shadowOffsetY: 15
-	}
-});
+            var circle = renderer.createEl({
+                el: "line",
+                attr: {
+                    x1: 0,
+                    x2: 100,
+                    y1: 0,
+                    y2: 100,
+                    transform: {
+                        translate: [650, 100],
+                    },
+                },
+                style: {
+                    lineWidth: 4,
+                    strokeStyle: "red",
+                    shadowColor: "#999",
+                    shadowBlur: 20,
+                    shadowOffsetX: 15,
+                    shadowOffsetY: 15,
+                },
+            });
 
-var ellipse = renderer.createEl({
-	el: 'ellipse',
-	attr: {
-		cx: 100,
-		cy: 0,
-		rx: 120,
-		ry: 50,
-		transform: {
-			translate: [800, 150]
-		}
-	},
-	style: {
-		// lineWidth:4,
-		fillStyle: 'lime',
-		// strokeStyle:'purple',
-		shadowColor: '#999',
-		shadowBlur: 20,
-		shadowOffsetX: 15,
-		shadowOffsetY: 15
-	}
-});
+            var ellipse = renderer.createEl({
+                el: "ellipse",
+                attr: {
+                    cx: 100,
+                    cy: 0,
+                    rx: 120,
+                    ry: 50,
+                    transform: {
+                        translate: [800, 150],
+                    },
+                },
+                style: {
+                    // lineWidth:4,
+                    fillStyle: "lime",
+                    // strokeStyle:'purple',
+                    shadowColor: "#999",
+                    shadowBlur: 20,
+                    shadowOffsetX: 15,
+                    shadowOffsetY: 15,
+                },
+            });
 
-var img = renderer.createEl({
-	el: 'image',
-	attr: {
-		src: '../images/boySprite.png',
-		width: 150, height: 150, x: 0,
-		y: 0,
-		transform: {
-			translate: [1000, 100]
-		},
-		clip: {
-			sx: 0, sy: 0, swidth: 108, sheight: 140
-		},
-		pixels: function (pixelData) {
-			var data = pixelData.data;
-			for (var i = 0; i < data.length; i += 4) {
-				data[i] = 255 - data[i];     // red
-				data[i + 1] = 255 - data[i + 1]; // green
-				data[i + 2] = 255 - data[i + 2]; // blue
-			}
-			pixelData.data = data;
-			return pixelData;
-		}
-	},
-	style: {
-		shadowColor: '#999',
-		shadowBlur: 20,
-		shadowOffsetX: 15,
-		shadowOffsetY: 15
-	},
-	onload: function () {
-		
-	}
-});
+            var img = renderer.createEl({
+                el: "image",
+                attr: {
+                    src: "../images/boySprite.png",
+                    width: 150,
+                    height: 150,
+                    x: 0,
+                    y: 0,
+                    transform: {
+                        translate: [1000, 100],
+                    },
+                    clip: {
+                        sx: 0,
+                        sy: 0,
+                        swidth: 108,
+                        sheight: 140,
+                    },
+                    pixels: function (pixelData) {
+                        var data = pixelData.data;
+                        for (var i = 0; i < data.length; i += 4) {
+                            data[i] = 255 - data[i]; // red
+                            data[i + 1] = 255 - data[i + 1]; // green
+                            data[i + 2] = 255 - data[i + 2]; // blue
+                        }
+                        pixelData.data = data;
+                        return pixelData;
+                    },
+                },
+                style: {
+                    shadowColor: "#999",
+                    shadowBlur: 20,
+                    shadowOffsetX: 15,
+                    shadowOffsetY: 15,
+                },
+                onload: function () {},
+            });
 
-var rect2 = renderer.createEl({
-	el: 'rect',
-	attr: {
-		x: 500,
-		y: 350,
-		width: 150,
-		height: 150,
-		rx: 25,
-		ry: 25
-	},
-	style: {
-		fillStyle: 'red',
-		shadowColor: '#999',
-		shadowBlur: 20,
-		shadowOffsetX: 15,
-		shadowOffsetY: 15
-	}
-})
-	.on('mouseover', function () {
-		this.setStyle('fillStyle', 'green');
-	})
-	.on('mouseout', function () {
-		this.setStyle('fillStyle', 'red');
-	});
+            var rect2 = renderer
+                .createEl({
+                    el: "rect",
+                    attr: {
+                        x: 500,
+                        y: 350,
+                        width: 150,
+                        height: 150,
+                        rx: 25,
+                        ry: 25,
+                    },
+                    style: {
+                        fillStyle: "red",
+                        shadowColor: "#999",
+                        shadowBlur: 20,
+                        shadowOffsetX: 15,
+                        shadowOffsetY: 15,
+                    },
+                })
+                .on("mouseover", function () {
+                    this.setStyle("fillStyle", "green");
+                })
+                .on("mouseout", function () {
+                    this.setStyle("fillStyle", "red");
+                });
 
-renderer.createEl({
-	el: 'polyline',
-	attr: {
-		points: [{ x: 100, y: 10 }, { x: 150, y: 100 }, { x: 250, y: 0 }],
-		transform: {
-			translate: [50, 400]
-		}
-	},
-	style: {
-		strokeStyle: 'red',
-		lineWidth: 4
-	}
-})
-	.on('mouseover', function () {
-		this.setStyle('strokeStyle', 'green');
-	})
-	.on('mouseout', function () {
-		this.setStyle('strokeStyle', 'red');
-	});
-
-</script>
-
-</body>
+            renderer
+                .createEl({
+                    el: "polyline",
+                    attr: {
+                        points: [
+                            { x: 100, y: 10 },
+                            { x: 150, y: 100 },
+                            { x: 250, y: 0 },
+                        ],
+                        transform: {
+                            translate: [50, 400],
+                        },
+                    },
+                    style: {
+                        strokeStyle: "red",
+                        lineWidth: 4,
+                    },
+                })
+                .on("mouseover", function () {
+                    this.setStyle("strokeStyle", "green");
+                })
+                .on("mouseout", function () {
+                    this.setStyle("strokeStyle", "red");
+                });
+        </script>
+    </body>
 </html>

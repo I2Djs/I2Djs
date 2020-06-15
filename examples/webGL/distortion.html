@@ -1,97 +1,101 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
-<label style="position: absolute;color: white"> Webgl Example </label>
-<div id="myCanvas" style="height: 100%;width:100%;position: absolute;background: black">
-	<!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
-</div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <label style="position: absolute; color: white;"> Webgl Example </label>
+        <div
+            id="myCanvas"
+            style="height: 100%; width: 100%; position: absolute; background: black;"
+        >
+            <!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
+        </div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript">
+        <script type="text/javascript">
+            var height = 820,
+                width = 1430;
+            var renderer_ = i2d.webglLayer(
+                "#myCanvas",
+                {},
+                {
+                    enableEvents: true,
+                }
+            );
+            var group = renderer_.createEl({
+                el: "group",
+                attr: {
+                    shaderType: "point",
+                },
+                bbox: false,
+            });
+            var queue = i2d.queue;
+            var circlesGrid = [];
+            var gridSize = parseInt(Math.sqrt(100000));
+            var rad = Math.pow(300, 2);
+            var dis, dx, dy, f;
+            var mx, my;
+            var atan2 = Math.atan2;
+            var cos = Math.cos;
+            var sin = Math.sin;
 
-var height = 820, width = 1430;
-var renderer_ = i2d.webglLayer('#myCanvas', {}, {
-	enableEvents:true
-});
-var group = renderer_.createEl({
-	el: 'group',
-	attr: {
-		shaderType: 'point'
-	},
-	bbox: false
-});
-var queue = i2d.queue;
-var circlesGrid = [];
-var gridSize = parseInt(Math.sqrt(100000));
-var rad = Math.pow(300, 2);
-var dis, dx, dy, f;
-var mx, my;
-var atan2 = Math.atan2;
-var cos = Math.cos;
-var sin = Math.sin;
+            for (var i = 0; i < 250; i++) {
+                for (var j = 0; j < 450; j++) {
+                    circlesGrid.push({
+                        x: j * 3,
+                        ox: j * 3,
+                        y: i * 3,
+                        oy: i * 3,
+                        vx: 0,
+                        vy: 0,
+                    });
+                }
+            }
 
-for (var i = 0; i < 250; i++) {
-	for (var j = 0; j < 450; j++) {
-		circlesGrid.push({
-			x: j * 3,
-			ox: j * 3,
-			y: i * 3,
-			oy: i * 3,
-			vx: 0,
-			vy: 0
-		});
-	}
-}
+            var points = group.createEls(circlesGrid, {
+                el: "point",
+                attr: {
+                    size: 1,
+                    x: function (d) {
+                        return d.x;
+                    },
+                    y: function (d) {
+                        return d.y;
+                    },
+                },
+                style: {
+                    fill: i2d.color.rgba(255, 255, 255, 255),
+                },
+            });
 
-var points = group.createEls(circlesGrid, {
-	el: 'point',
-	attr: {
-		size: 1,
-		x: function (d) {
-			return d.x;
-		},
-		y: function (d) {
-			return d.y;
-		}
-	},
-	style: {
-		fill: i2d.color.rgba(255, 255, 255, 255)
-	}
-});
+            renderer_.on("mousemove", function (e) {
+                mx = e.offsetX;
+                my = e.offsetY;
+                e.preventDefault();
+            });
 
-renderer_.on('mousemove', function (e) {
-	mx = e.offsetX;
-	my = e.offsetY;
-	e.preventDefault();
-});
+            i2d.queue.onRequestFrame(function (t) {
+                let d;
+                for (let i = 0, len = points.stack.length; i < len; i++) {
+                    d = points.stack[i].dataObj;
 
-i2d.queue.onRequestFrame(function (t) {
-	let d;
-	for (let i = 0, len = points.stack.length; i < len; i++) {
-		d = points.stack[i].dataObj;
+                    dis = (dx = mx - d.x) * dx + (dy = my - d.y) * dy;
+                    f = -rad / dis;
 
-		dis = (dx = mx - d.x) * dx + (dy = my - d.y) * dy;
-		f = -rad / dis;
+                    if (dis < rad) {
+                        t = atan2(dy, dx);
+                        d.vx += f * cos(t);
+                        d.vy += f * sin(t);
+                    }
 
-		if (dis < rad) {
-			t = atan2(dy, dx);
-			d.vx += f * cos(t);
-			d.vy += f * sin(t);
-		}
-
-		d.x += (d.vx *= 0.8) + (d.ox - d.x) * 0.1;
-		d.y += (d.vy *= 0.8) + (d.oy - d.y) * 0.1;
-		if (d.ox !== d.x || d.oy !== d.y) {
-			points.stack[i].setAttr('x', d.x)
-				.setAttr('y', d.y);
-		}
-	}
-});
-
-</script>
-
-</body>
+                    d.x += (d.vx *= 0.8) + (d.ox - d.x) * 0.1;
+                    d.y += (d.vy *= 0.8) + (d.oy - d.y) * 0.1;
+                    if (d.ox !== d.x || d.oy !== d.y) {
+                        points.stack[i].setAttr("x", d.x).setAttr("y", d.y);
+                    }
+                }
+            });
+        </script>
+    </body>
 </html>

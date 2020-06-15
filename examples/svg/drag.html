@@ -1,62 +1,54 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
-<div id="myCanvas" style="height: 100%;width:100%;position: absolute;">
-</div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <div id="myCanvas" style="height: 100%; width: 100%; position: absolute;"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript">
+        <script type="text/javascript">
+            var renderer_ = i2d.canvasLayer("#myCanvas", {}, {});
+            var drag = i2d.behaviour.drag();
 
-var renderer_ = i2d.canvasLayer('#myCanvas', {}, {});
-var drag = i2d.behaviour.drag();
+            drag.dragStart(function () {}).drag(function (e) {
+                let x = this.getAttr("x");
+                let y = this.getAttr("y");
+                this.setAttr("x", x + e.dx);
+                this.setAttr("y", y + e.dy);
+            });
 
-drag
-.dragStart(function () {
+            var g = renderer_.createEl({
+                el: "group",
+                attr: {
+                    transform: {
+                        translate: [renderer_.width / 2, renderer_.height / 2],
+                    },
+                },
+            });
 
-})
-.drag(function (e) {
-	let x = this.getAttr('x');
-	let y = this.getAttr('y');
-	this.setAttr('x', x + e.dx);
-	this.setAttr('y', y + e.dy);
-});
-
-var g = renderer_.createEl({
-	el: 'group',
-	attr: {
-		transform: {
-			translate: [renderer_.width / 2, renderer_.height / 2]
-		}
-	}
-});
-
-var circle2 = g.createEl({
-	el: 'rect',
-	attr: {
-		width: 200,
-		height: 200,
-		x: -100,
-		y: -100,
-		rx: 20,
-		ry: 20
-	},
-	style: {
-		fillStyle: 'red',
-		strokeStyle: 'grey',
-		shadowBlur: 10,
-		shadowOffsetX: 5,
-		shadowOffsetY: 5,
-		shadowColor: '#333333'
-	}
-})
-.on('drag', drag)
-.on('click', function (argument) {
-});
-
-</script>
-
-</body>
+            var circle2 = g
+                .createEl({
+                    el: "rect",
+                    attr: {
+                        width: 200,
+                        height: 200,
+                        x: -100,
+                        y: -100,
+                        rx: 20,
+                        ry: 20,
+                    },
+                    style: {
+                        fillStyle: "red",
+                        strokeStyle: "grey",
+                        shadowBlur: 10,
+                        shadowOffsetX: 5,
+                        shadowOffsetY: 5,
+                        shadowColor: "#333333",
+                    },
+                })
+                .on("drag", drag)
+                .on("click", function (argument) {});
+        </script>
+    </body>
 </html>
