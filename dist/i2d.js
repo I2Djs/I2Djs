@@ -5137,7 +5137,7 @@
 			}
 		});
 		root.dom.addEventListener('pointermove', e => {
-			// e.preventDefault();
+			e.preventDefault();
 			if (dragNode) {
 				dragNode.drag_(e, 'pointermove');
 			}
@@ -7739,7 +7739,7 @@
 		if (enableEvents) {
 			let eventsInstance = new Events(root);
 			layer.addEventListener('mousemove', e => {
-				// e.preventDefault();
+				e.preventDefault();
 				eventsInstance.mousemoveCheck(e);
 			});
 			// layer.addEventListener('click', e => {
@@ -7775,7 +7775,7 @@
 				eventsInstance.touchendCheck(e);
 			});
 			layer.addEventListener('touchmove', e => {
-				// e.preventDefault();
+				e.preventDefault();
 				eventsInstance.touchmoveCheck(e);
 			});
 			layer.addEventListener('touchcancel', e => {
@@ -7797,7 +7797,7 @@
 				eventsInstance.pointerupCheck(e);
 			});
 			layer.addEventListener('pointermove', e => {
-				// e.preventDefault();
+				e.preventDefault();
 				eventsInstance.pointermoveCheck(e);
 			});
 		}
@@ -11841,7 +11841,7 @@
 		if (enableEvents) {
 			let eventsInstance = new Events(root);
 			layer.addEventListener('mousemove', e => {
-				// e.preventDefault();
+				e.preventDefault();
 				eventsInstance.mousemoveCheck(e);
 			});
 			// layer.addEventListener('click', e => {
@@ -11877,7 +11877,7 @@
 				eventsInstance.touchendCheck(e);
 			});
 			layer.addEventListener('touchmove', e => {
-				// e.preventDefault();
+				e.preventDefault();
 				eventsInstance.touchmoveCheck(e);
 			});
 			layer.addEventListener('touchcancel', e => {
@@ -11901,7 +11901,7 @@
 				// e.preventDefault();
 			});
 			layer.addEventListener('pointermove', e => {
-				// e.preventDefault();
+				e.preventDefault();
 				eventsInstance.pointermoveCheck(e);
 			});
 		}

@@ -846,7 +846,7 @@ function svgLayer (container, layerSettings = {}) {
 		}
 	});
 	root.dom.addEventListener('pointermove', e => {
-		// e.preventDefault();
+		e.preventDefault();
 		if (dragNode) {
 			dragNode.drag_(e, 'pointermove');
 		}

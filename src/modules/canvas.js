@@ -2039,7 +2039,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 	if (enableEvents) {
 		let eventsInstance = new Events(root);
 		layer.addEventListener('mousemove', e => {
-			// e.preventDefault();
+			e.preventDefault();
 			eventsInstance.mousemoveCheck(e);
 		});
 		// layer.addEventListener('click', e => {
@@ -2075,7 +2075,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 			eventsInstance.touchendCheck(e);
 		});
 		layer.addEventListener('touchmove', e => {
-			// e.preventDefault();
+			e.preventDefault();
 			eventsInstance.touchmoveCheck(e);
 		});
 		layer.addEventListener('touchcancel', e => {
@@ -2097,7 +2097,7 @@ function canvasLayer (container, contextConfig = {}, layerSettings = {}) {
 			eventsInstance.pointerupCheck(e);
 		});
 		layer.addEventListener('pointermove', e => {
-			// e.preventDefault();
+			e.preventDefault();
 			eventsInstance.pointermoveCheck(e);
 		});
 	}
