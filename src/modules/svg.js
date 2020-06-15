@@ -830,7 +830,7 @@ function svgLayer (container, layerSettings = {}) {
 
 	let dragNode = null;
 	root.dom.addEventListener('pointerdown', e => {
-		e.preventDefault();
+		// e.preventDefault();
 		eventsInstance.addPointer(e);
 		if (e.target.drag_) {
 			e.target.drag_(e, 'pointerdown');
@@ -838,7 +838,7 @@ function svgLayer (container, layerSettings = {}) {
 		}
 	});
 	root.dom.addEventListener('pointerup', e => {
-		e.preventDefault();
+		// e.preventDefault();
 		eventsInstance.removePointer(e);
 		if (dragNode) {
 			dragNode.drag_(e, 'pointerup');
@@ -846,7 +846,7 @@ function svgLayer (container, layerSettings = {}) {
 		}
 	});
 	root.dom.addEventListener('pointermove', e => {
-		e.preventDefault();
+		// e.preventDefault();
 		if (dragNode) {
 			dragNode.drag_(e, 'pointermove');
 		}

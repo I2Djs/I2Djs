@@ -5131,7 +5131,7 @@
 
 		var dragNode = null;
 		root.dom.addEventListener('pointerdown', function (e) {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.addPointer(e);
 			if (e.target.drag_) {
 				e.target.drag_(e, 'pointerdown');
@@ -5139,7 +5139,7 @@
 			}
 		});
 		root.dom.addEventListener('pointerup', function (e) {
-			e.preventDefault();
+			// e.preventDefault();
 			eventsInstance.removePointer(e);
 			if (dragNode) {
 				dragNode.drag_(e, 'pointerup');
@@ -5147,7 +5147,7 @@
 			}
 		});
 		root.dom.addEventListener('pointermove', function (e) {
-			e.preventDefault();
+			// e.preventDefault();
 			if (dragNode) {
 				dragNode.drag_(e, 'pointermove');
 			}
@@ -5302,6 +5302,9 @@
 				self.onDragEnd(trgt, event);
 			} else if (this.onDrag) {
 				self.onDrag(trgt, event);
+			}
+			if (event.preventDefault) {
+				event.preventDefault();
 			}
 		}
 	};
@@ -5492,6 +5495,9 @@
 		} else {
 			this.onZoom(trgt, event);
 		}
+		if (event.preventDefault) {
+			event.preventDefault();
+		}
 	};
 
 	ZoomClass.prototype.zoomPinch = function (trgt, event, eventsInstance) {
@@ -5517,6 +5523,9 @@
 				this.event.distance = distance;
 				this.onZoom(trgt, pinchEvent);
 			}
+		}
+		if (event.preventDefault) {
+			event.preventDefault();
 		}
 	};
 
@@ -5703,6 +5712,9 @@
 
 			this.event = applyTranslate(this.event, { dx: dx, dy: dy }, this.panExtent_);
 			this.zoomExe.call(trgt, this.event);
+		}
+		if (event.preventDefault) {
+			event.preventDefault();
 		}
 	};
 		
@@ -7708,7 +7720,7 @@
 		if (enableEvents) {
 			var eventsInstance = new Events(root);
 			layer.addEventListener('mousemove', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.mousemoveCheck(e);
 			});
 			// layer.addEventListener('click', e => {
@@ -7720,53 +7732,53 @@
 			// 	eventsInstance.dblclickCheck(e);
 			// });
 			layer.addEventListener('mousedown', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.mousedownCheck(e);
 			});
 			layer.addEventListener('mouseup', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.mouseupCheck(e);
 			});
 			layer.addEventListener('mouseleave', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.mouseleaveCheck(e);
 			});
 			layer.addEventListener('contextmenu', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.contextmenuCheck(e);
 			});
 			layer.addEventListener('touchstart', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.touchstartCheck(e);
 			});
 			layer.addEventListener('touchend', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.touchendCheck(e);
 			});
 			layer.addEventListener('touchmove', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.touchmoveCheck(e);
 			});
 			layer.addEventListener('touchcancel', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.touchcancelCheck(e);
 			});
 			layer.addEventListener('wheel', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.wheelEventCheck(e);
 			});
 			layer.addEventListener('pointerdown', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.addPointer(e);
 				eventsInstance.pointerdownCheck(e);
 			});
 			layer.addEventListener('pointerup', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.removePointer(e);
 				eventsInstance.pointerupCheck(e);
 			});
 			layer.addEventListener('pointermove', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.pointermoveCheck(e);
 			});
 		}
@@ -11440,7 +11452,7 @@
 		var clearColor = colorMap$1.rgba(0, 0, 0, 0);
 		var enableEvents = layerSettings.enableEvents; if ( enableEvents === void 0 ) enableEvents = false;
 		var autoUpdate = layerSettings.autoUpdate; if ( autoUpdate === void 0 ) autoUpdate = true;
-		var enableResize = layerSettings.enableResize; if ( enableResize === void 0 ) enableResize = true;
+		var enableResize = layerSettings.enableResize; if ( enableResize === void 0 ) enableResize = false;
 
 		contextConfig = contextConfig || {
 			premultipliedAlpha: false,
@@ -11553,16 +11565,19 @@
 			width =  res.clientWidth;
 			layer.setAttribute('height', height * ratio);
 			layer.setAttribute('width', width * ratio);
-			layer.style.height = height + "px";
-			layer.style.width = width + "px";
 			root.width = width;
 			root.height = height;
+
+			onClear(root.ctx);
 
 			if (resizeCall) {
 				resizeCall();
 			}
 
 			root.execute();
+
+			layer.style.height = height + "px";
+			layer.style.width = width + "px";
 		};
 
 		root.onResize = function (exec) {
@@ -11637,7 +11652,7 @@
 		if (enableEvents) {
 			var eventsInstance = new Events(root);
 			layer.addEventListener('mousemove', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.mousemoveCheck(e);
 			});
 			// layer.addEventListener('click', e => {
@@ -11649,53 +11664,55 @@
 			// 	eventsInstance.dblclickCheck(e);
 			// });
 			layer.addEventListener('mousedown', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.mousedownCheck(e);
 			});
 			layer.addEventListener('mouseup', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.mouseupCheck(e);
 			});
 			layer.addEventListener('mouseleave', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.mouseleaveCheck(e);
 			});
 			layer.addEventListener('contextmenu', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.contextmenuCheck(e);
 			});
 			layer.addEventListener('touchstart', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.touchstartCheck(e);
 			});
 			layer.addEventListener('touchend', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.touchendCheck(e);
 			});
 			layer.addEventListener('touchmove', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.touchmoveCheck(e);
 			});
 			layer.addEventListener('touchcancel', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.touchcancelCheck(e);
 			});
 			layer.addEventListener('wheel', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.wheelEventCheck(e);
 			});
 			layer.addEventListener('pointerdown', function (e) {
-				e.preventDefault();
+				// console.log('pointerdown');
 				eventsInstance.addPointer(e);
 				eventsInstance.pointerdownCheck(e);
+				// e.preventDefault();
 			});
 			layer.addEventListener('pointerup', function (e) {
-				e.preventDefault();
+				// console.log('pointerup');
 				eventsInstance.removePointer(e);
 				eventsInstance.pointerupCheck(e);
+				// e.preventDefault();
 			});
 			layer.addEventListener('pointermove', function (e) {
-				e.preventDefault();
+				// e.preventDefault();
 				eventsInstance.pointermoveCheck(e);
 			});
 		}
@@ -11722,6 +11739,10 @@
 		};
 
 		return imageIns;
+	}
+
+	function createEmptyArrayBuffer (width, height) {
+		return new Uint8Array(new ArrayBuffer(width * height * 4));
 	}
 
 	function TextureObject (ctx, config, vDomIndex) {
@@ -11758,8 +11779,10 @@
 			self.update();
 			self.updated = true;
 		} else {
-			self.image = new Uint8Array(new ArrayBuffer(this.width * this.height * 4));
-			self.update();
+			if (this.width && this.height) {
+				self.image = createEmptyArrayBuffer(this.width, this.height);
+				self.update();
+			}
 			self.updated = true;
 		}
 		queueInstance$5.vDomChanged(self.vDomIndex);
@@ -11780,6 +11803,9 @@
 						this.image = value.domEl;
 						// this.update();
 					}
+				}
+				if (attr['height'] || attr['width']) {
+					self.image = createEmptyArrayBuffer(this.width, this.height);
 				}
 			}
 		} else {
