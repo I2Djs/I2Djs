@@ -3038,7 +3038,7 @@
 					node.events.zoom.panExecute(node, e, 'pointerup', self);
 				}
 			}
-			if (this.pointerNode.dragCounter === 0) {
+			if (this.pointerNode.dragCounter === 0 || (e.pointerType === 'touch' && this.pointerNode.dragCounter <= 5)) {
 				if (this.pointerNode.clickCounter === 1 && node.events['click']) {
 					clickInterval = setTimeout(function () {
 						self.pointerNode = null;
