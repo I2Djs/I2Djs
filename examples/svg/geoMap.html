@@ -1,70 +1,74 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
-<div id="myCanvas" style="height: 100%;width:100%;position: absolute;">
-</div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
-<script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <div id="myCanvas" style="height: 100%; width: 100%; position: absolute;"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
 
-<script type="text/javascript">
-var width = 960;
-var height = 500;
+        <script type="text/javascript">
+            var width = 960;
+            var height = 500;
 
-// D3 Projection
-var projection = d3.geoMercator()
-				   .translate([width/2, height/2])    // translate to center of screen
-				   .center([-80, 60]);          // scale things down so see entire US
-        
-// Define path generator
-var path = d3.geoPath()               // path generator that will convert GeoJSON to SVG paths
-		  	 .projection(projection); 
+            // D3 Projection
+            var projection = d3
+                .geoMercator()
+                .translate([width / 2, height / 2]) // translate to center of screen
+                .center([-80, 60]); // scale things down so see entire US
 
-var renderer = i2d.svgLayer('#myCanvas', {}, {});
-var zoomInstance = i2d.behaviour.zoom();
+            // Define path generator
+            var path = d3
+                .geoPath() // path generator that will convert GeoJSON to SVG paths
+                .projection(projection);
 
-var worldmap = d3.json("./../data/world.geo.json");
+            var renderer = i2d.svgLayer("#myCanvas", {}, {});
+            var zoomInstance = i2d.behaviour.zoom();
 
-var g = renderer.createEl({
-	el: 'g'
-});
+            var worldmap = d3.json("https://nswamy14.github.io/geoJson/world.geo.json");
 
-zoomInstance.scaleExtent([1, 3]);
-zoomInstance.zoom(function (event) {
-	// let scale = event.transform.scale[0];
-	// let translate = event.transform.translate;
-	g.setAttr('transform', event.transform);
-	// g.setStyle('transform', 'matrix(' + scale + ', 0, 0,' + scale + ', ' + translate[0] + ', ' + translate[1] + ')' );
-});
-zoomInstance.panExtent([[-1000, -1000], [1000, 1000]]);
-zoomInstance.zoomTarget([renderer.width / 2, renderer.height / 2]);
-renderer.on('zoom', zoomInstance);
+            var g = renderer.createEl({
+                el: "g",
+            });
 
-Promise.all([worldmap]).then(function(values) {
-	let path_ = g.createEl({
-		el: 'path',
-		attr: {
-			d: path(values[0])
-		},
-		style: {
-			// 'stroke-width': 0.5,
-			// stroke: '#ff0000',
-			// shadowColor: 'black',
-			fill: 'rgba(150, 0, 0, 0.2)'
-			// lineCap: 'round'
-		}
-	})
-	.on('mouseover', function() {
-		this.setStyle('fill', 'rgba(150, 0, 0, 0.5)');
-	}).on('mouseout', function() {
-		this.setStyle('fill', 'rgba(150, 0, 0, 0.2)');
-	})
-	.on('zoom', zoomInstance);;
-});
+            zoomInstance.scaleExtent([1, 3]);
+            zoomInstance.zoom(function (event) {
+                // let scale = event.transform.scale[0];
+                // let translate = event.transform.translate;
+                g.setAttr("transform", event.transform);
+                // g.setStyle('transform', 'matrix(' + scale + ', 0, 0,' + scale + ', ' + translate[0] + ', ' + translate[1] + ')' );
+            });
+            zoomInstance.panExtent([
+                [-1000, -1000],
+                [1000, 1000],
+            ]);
+            zoomInstance.zoomTarget([renderer.width / 2, renderer.height / 2]);
+            renderer.on("zoom", zoomInstance);
 
-</script>
-
-</body>
+            Promise.all([worldmap]).then(function (values) {
+                let path_ = g
+                    .createEl({
+                        el: "path",
+                        attr: {
+                            d: path(values[0]),
+                        },
+                        style: {
+                            // 'stroke-width': 0.5,
+                            // stroke: '#ff0000',
+                            // shadowColor: 'black',
+                            fill: "rgba(150, 0, 0, 0.2)",
+                            // lineCap: 'round'
+                        },
+                    })
+                    .on("mouseover", function () {
+                        this.setStyle("fill", "rgba(150, 0, 0, 0.5)");
+                    })
+                    .on("mouseout", function () {
+                        this.setStyle("fill", "rgba(150, 0, 0, 0.2)");
+                    })
+                    .on("zoom", zoomInstance);
+            });
+        </script>
+    </body>
 </html>

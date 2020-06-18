@@ -1,75 +1,74 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
-<label style="position: absolute;color: white"> Webgl Example </label>
-<div id="canvas" style="height: 100%;width:100%;background: black">
-</div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <label style="position: absolute; color: white;"> Webgl Example </label>
+        <div id="canvas" style="height: 100%; width: 100%; background: black;"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript">
-var webglRenderer = i2d.webglLayer('#canvas', {}, {});
+        <script type="text/javascript">
+            var webglRenderer = i2d.webglLayer("#canvas", {}, {});
 
-/************** Lines *****************/
+            /************** Lines *****************/
 
-var linesData = [];
-for (let i = 0; i < 100; i++) {
-	let x1 = Math.random() * 200;
-	let y1 = Math.random() * 200;
-	linesData.push({
-		x1: x1,
-		y1: y1,
-		x2: x1 + 100,
-		y2: y1 + 100
-	});
-}
+            var linesData = [];
+            for (let i = 0; i < 100; i++) {
+                let x1 = Math.random() * 200;
+                let y1 = Math.random() * 200;
+                linesData.push({
+                    x1: x1,
+                    y1: y1,
+                    x2: x1 + 100,
+                    y2: y1 + 100,
+                });
+            }
 
-var linesRef = webglRenderer.createEl({
-	el: 'group',
-	attr: {
-		shaderType: 'line'
-	}	
-}).createEls(linesData, {
-	el: 'line',
-	attr: {
-		x1: function (d) {
-			return d.x1;
-		},
-		y1: function (d) {
-			return d.y1;
-		},
-		x2: function (d) {
-			return d.x2;
-		},
-		y2: function (d) {
-			return d.y2;
-		}
-	},
-	style: { stroke: i2d.color.rgba(255, 0, 0, 255) }
-});
+            var linesRef = webglRenderer
+                .createEl({
+                    el: "group",
+                    attr: {
+                        shaderType: "line",
+                    },
+                    bbox: false,
+                })
+                .createEls(linesData, {
+                    el: "line",
+                    attr: {
+                        x1: function (d) {
+                            return d.x1;
+                        },
+                        y1: function (d) {
+                            return d.y1;
+                        },
+                        x2: function (d) {
+                            return d.x2;
+                        },
+                        y2: function (d) {
+                            return d.y2;
+                        },
+                    },
+                    style: { stroke: i2d.color.rgba(255, 0, 0, 255) },
+                });
 
-// linesRef.animateTo({
-// 	duration: 500,
-// 	loop: 100,
-// 	direction: 'alternate',
-// 	attr: {
-// 		x2: function (d) {
-// 			let x2 = this.getAttr('x2');
-// 			return x2 + 20;
-// 		},
-// 		y2: function (d) {
-// 			let y2 = this.getAttr('x2');
-// 			return y2;
-// 		}
-// 	}
-// });
+            // linesRef.animateTo({
+            // 	duration: 500,
+            // 	loop: 100,
+            // 	direction: 'alternate',
+            // 	attr: {
+            // 		x2: function (d) {
+            // 			let x2 = this.getAttr('x2');
+            // 			return x2 + 20;
+            // 		},
+            // 		y2: function (d) {
+            // 			let y2 = this.getAttr('x2');
+            // 			return y2;
+            // 		}
+            // 	}
+            // });
 
-/************** End Lines *****************/
-
-
-</script>
-
-</body>
+            /************** End Lines *****************/
+        </script>
+    </body>
 </html>

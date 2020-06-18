@@ -1,77 +1,75 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
-<label style="position: absolute; color: white"> Canvas Example </label>
-<div id="myCanvas" style="height: 100%;width:100%;position: absolute;">
-</div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <label style="position: absolute; color: white;"> Canvas Example </label>
+        <div id="myCanvas" style="height: 100%; width: 100%; position: absolute;"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript">
+        <script type="text/javascript">
+            var renderer_ = i2d.canvasLayer("#myCanvas", {}, false);
+            var nodes = [];
 
-var renderer_ = i2d.canvasLayer('#myCanvas', {}, false);
-var nodes = [];
+            var linearGradiant = renderer_.createLinearGradient({
+                x1: 0,
+                y1: 0,
+                x2: 0,
+                y2: 100,
+                colorStops: [
+                    { color: "red", value: 0 },
+                    { color: "green", value: 100 },
+                ],
+            });
 
-var linearGradiant = renderer_.createLinearGradient({
-	x1: 0,
-	y1: 0,
-	x2: 0,
-	y2: 100,
-	colorStops: [
-		{ color: 'red', value: 0 },
-		{ color: 'green', value: 100 }
-	]
-});
+            var radialGradiant = renderer_.createRadialGradient({
+                innerCircle: { x: 0, y: 0, r: 0 },
+                outerCircle: { x: 0, y: 0, r: 50 },
+                mode: "absolute",
+                colorStops: [
+                    { color: "red", value: 0 },
+                    { color: "yellow", value: 25 },
+                    { color: "green", value: 50 },
+                    { color: "blue", value: 75 },
+                    { color: "rgba(255,255,255,0)", value: 100 },
+                ],
+            });
 
-var radialGradiant = renderer_.createRadialGradient({
-	innerCircle: { x: 0, y: 0, r: 0 },
-	outerCircle: { x: 0, y: 0, r: 50 },
-	mode: 'absolute',
-	colorStops: [{ color: 'red', value: 0 },
-		{ color: 'yellow', value: 25 },
-		{ color: 'green', value: 50 },
-		{ color: 'blue', value: 75 },
-		{ color: 'rgba(255,255,255,0)', value: 100 }]
-});
+            var g = renderer_.createEl({
+                el: "group",
+                attr: {
+                    transform: {
+                        translate: [100, 100],
+                    },
+                },
+            });
 
-var g = renderer_.createEl({
-	el: 'group',
-	attr: {
-		transform: {
-			translate: [100, 100]
-		}
-	}
-});
+            g.createEl({
+                el: "circle",
+                attr: {
+                    cx: 0,
+                    cy: 0,
+                    r: 50,
+                },
+                style: {
+                    fillStyle: radialGradiant,
+                },
+                bbox: false,
+            });
 
-g.createEl({
-	el: 'circle',
-	attr: {
-		cx: 0,
-		cy: 0,
-		r: 50
-	},
-	style: {
-		fillStyle: radialGradiant
-	},
-	bbox: false
-});
-
-g.createEl({
-	el: 'rect',
-	attr: {
-		x: 100,
-		y: 0,
-		width: 100,
-		height: 100
-	},
-	style: {
-		fillStyle: linearGradiant
-	}
-});
-
-</script>
-
-</body>
+            g.createEl({
+                el: "rect",
+                attr: {
+                    x: 100,
+                    y: 0,
+                    width: 100,
+                    height: 100,
+                },
+                style: {
+                    fillStyle: linearGradiant,
+                },
+            });
+        </script>
+    </body>
 </html>

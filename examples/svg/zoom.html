@@ -1,43 +1,56 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <div
+            id="mySvg"
+            style="
+                height: 50%;
+                width: 50%;
+                position: absolute;
+                left: 25%;
+                top: 25%;
+                background: #000;
+            "
+        ></div>
 
-<div id="mySvg" style="height: 50%;width:50%;position:absolute;left:25%;top:25%;background:#000">
-</div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script type="text/javascript">
+            var renderer = i2d.svgLayer("#mySvg");
+            var zoomInstance = i2d.behaviour.zoom();
+            var circle;
+            zoomInstance.scaleExtent([1, 3]);
+            zoomInstance.zoom(function (event) {
+                circle.setAttr("transform", event.transform);
+            });
+            zoomInstance.panExtent([
+                [-500, -500],
+                [500, 500],
+            ]);
 
-<script type="text/javascript">
-var renderer = i2d.svgLayer('#mySvg');
-var zoomInstance = i2d.behaviour.zoom();
-var circle;
-zoomInstance.scaleExtent([1, 3]);
-zoomInstance.zoom(function (event) {
-	circle.setAttr('transform', event.transform);
-});
-zoomInstance.panExtent([[-500, -500], [500, 500]]);
+            let g = renderer.createEl({
+                el: "g",
+            });
 
-let g = renderer.createEl({
-	el: 'g'
-});
+            // renderer
+            circle = g
+                .createEl({
+                    el: "circle",
+                    attr: {
+                        r: 50,
+                        cx: renderer.width * 0.5,
+                        cy: renderer.height * 0.5,
+                    },
+                    style: {
+                        fill: "#ff0000",
+                    },
+                })
+                .on("zoom", zoomInstance);
 
-// renderer
-circle = g.createEl({
-	el: 'circle',
-	attr: {
-		r: 50,
-		cx: renderer.width * 0.5,
-		cy: renderer.height * 0.5
-	},
-	style: {
-		fill: '#ff0000'
-	}
-}).on('zoom', zoomInstance);
-
-</script>
-
-</body>
+            renderer.on("zoom", zoomInstance);
+        </script>
+    </body>
 </html>

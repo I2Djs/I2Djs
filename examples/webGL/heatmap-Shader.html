@@ -1,56 +1,58 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <div id="canvas" style="height: 100%; width: 100%;"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<div id="canvas" style="height: 100%;width:100%;">
-</div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script type="text/javascript">
+            var webglRenderer = i2d.webglLayer(
+                "#canvas",
+                {
+                    premultipliedAlpha: false,
+                    depth: false,
+                    antialias: true,
+                    alpha: true,
+                    preserveDrawingBuffer: false,
+                },
+                {}
+            );
 
-<script type="text/javascript">
-var webglRenderer = i2d.webglLayer('#canvas', {
-    premultipliedAlpha: false,
-    depth: false,
-    antialias: true,
-    alpha: true,
-    preserveDrawingBuffer: false
-}, {});
+            let ctx = webglRenderer.ctx;
+            ctx.clearColor(0, 0, 0, 0);
+            ctx.enable(ctx.BLEND);
+            ctx.blendEquation(ctx.FUNC_ADD);
+            ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
+            ctx.depthMask(true);
 
-let ctx = webglRenderer.ctx;
-    ctx.clearColor(0, 0, 0, 0);
-    ctx.enable(ctx.BLEND);
-    ctx.blendEquation(ctx.FUNC_ADD);
-    ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
-    ctx.depthMask(true);
+            // webglRenderer.setContext('enable', )
 
-// webglRenderer.setContext('enable', )
-
-var GradfragmentShader = `
+            var GradfragmentShader = `
     precision mediump float;
-    uniform float u_max;
-    uniform float u_blur;
+    // uniform float u_max;
+    // uniform float u_blur;
     varying float v_i;
     void main() {
     float r = 0.0;
     vec2 cxy = 2.0 * gl_PointCoord - 1.0;
     r = dot(cxy, cxy);
     if(r <= 1.0) {
-    gl_FragColor = vec4(0, 0, 0, (v_i/u_max) * u_blur * (1.0 - sqrt(r)));
+    gl_FragColor = vec4(0, 0, 0, (v_i/100.0) * (1.0 - sqrt(r)));
     }
 }`;
 
-var GradvertexShader = `
+            var GradvertexShader = `
     attribute vec2 a_position;
     attribute float a_intensity;
-    uniform float u_size;
+    // uniform float u_size;
     uniform vec2 u_resolution;
-    uniform vec2 u_translate;
-    uniform vec2 u_zoomCenter;
-    uniform float u_zoom;
-    uniform float u_angle;
-    uniform float u_density;
+    // uniform vec2 u_translate;
+    // uniform vec2 u_zoomCenter;
+    // uniform float u_zoom;
+    // uniform float u_angle;
+    // uniform float u_density;
     varying float v_i;
 
     vec2 rotation(vec2 v, float a) {
@@ -59,21 +61,25 @@ var GradvertexShader = `
     }
 
     void main() {
-        vec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);
+        vec2 zeroToOne = (a_position * 2.0) / (u_resolution);
         vec2 zeroToTwo = zeroToOne * 2.0 - 1.0;
-        zeroToTwo = (zeroToTwo + u_zoomCenter) * u_zoom;
-        if (u_angle != 0.0) {
-        zeroToTwo = rotation(zeroToTwo, u_angle);
-        }
+        zeroToTwo = (zeroToTwo);
+        // if (u_angle != 0.0) {
+        // zeroToTwo = rotation(zeroToTwo, u_angle);
+        // }
         gl_Position = vec4(zeroToTwo , 0, 1);
-        gl_PointSize = u_size * u_density;
+        gl_PointSize = 100.0 * 2.0;
         v_i = a_intensity;
     }`;
 
-var ColorfragmentShader = `
+            var ColorfragmentShader = `
     precision mediump float;
     varying vec2 v_texCoord;
-    uniform sampler2D u_framebuffer; uniform vec4 u_colorArr[100]; uniform float u_colorCount; uniform float u_opacity; uniform float u_offset[100];
+    uniform sampler2D u_framebuffer;
+    uniform vec4 u_colorArr[12];
+    // uniform float u_colorCount;
+    // uniform float u_opacity;
+    uniform float u_offset[12];
 
     float remap ( float minval, float maxval, float curval ) {
         return ( curval - minval ) / ( maxval - minval );
@@ -108,7 +114,7 @@ var ColorfragmentShader = `
             } else {
                 color_ = vec4(0.0, 0.0, 0.0, 0.0);
             }
-            color_.a = color_.a - (1.0 - u_opacity);
+            color_.a = color_.a;
             if (color_.a < 0.0) {
                 color_.a = 0.0;
             }
@@ -116,7 +122,7 @@ var ColorfragmentShader = `
         }
     }`;
 
-var ColorvertexShader = `
+            var ColorvertexShader = `
     attribute vec2 a_texCoord;
     varying vec2 v_texCoord;
     void main() {
@@ -125,174 +131,192 @@ var ColorvertexShader = `
         v_texCoord = a_texCoord;
     }`;
 
-let size = 100.0;
-let max = 100;
-let blur = 1.0;
-let zoom = 1.0;
-let angle = 0.0;
-let density = 2.0;
+            let size = 100.0;
+            let max = 100;
+            let blur = 1.0;
+            let zoom = 1.0;
+            let angle = 0.0;
+            let density = 2.0;
 
+            var Texture = webglRenderer.TextureObject({
+                width: webglRenderer.width * webglRenderer.pixelRatio,
+                height: webglRenderer.height * webglRenderer.pixelRatio,
+                border: 0,
+                format: "RGBA",
+                type: "UNSIGNED_BYTE",
+                warpS: "CLAMP_TO_EDGE",
+                warpT: "CLAMP_TO_EDGE",
+                magFilter: "LINEAR",
+                minFilter: "LINEAR",
+                mipMap: false,
+            });
 
-var Texture = webglRenderer.TextureObject({
-    width: webglRenderer.width * webglRenderer.pixelRatio,
-    height: webglRenderer.height * webglRenderer.pixelRatio,
-    border: 0,
-    format: 'RGBA',
-    type: 'UNSIGNED_BYTE',
-    warpS: 'CLAMP_TO_EDGE',
-    warpT: 'CLAMP_TO_EDGE',
-    magFilter: 'LINEAR',
-    minFilter: 'LINEAR',
-    mipMap: false
-});
+            var renderTarget = webglRenderer.RenderTarget({
+                texture: Texture,
+            });
 
-var renderTarget = webglRenderer.RenderTarget({
-    texture: Texture
-})
+            var geome = webglRenderer.PointsGeometry();
 
-var geome = webglRenderer.PointsGeometry();
+            geome.setAttr("a_intensity", {
+                value: new Float32Array([]),
+                size: 1,
+            });
+            geome.setAttr("a_position", {
+                value: new Float32Array([]),
+                size: 2,
+            });
 
-geome.setAttr('a_intensity', {
-    value: new Float32Array([]),
-    size: 1
-});
-geome.setAttr('a_position', {
-    value: new Float32Array([]),
-    size: 2
-});
+            var gradshaderRef = webglRenderer.createShaderEl({
+                fragmentShader: GradfragmentShader,
+                vertexShader: GradvertexShader,
+                uniforms: {
+                    u_resolution: {
+                        value: new Float32Array([
+                            webglRenderer.width * webglRenderer.pixelRatio,
+                            webglRenderer.height * webglRenderer.pixelRatio,
+                        ]),
+                    },
+                    // u_max: {
+                    //     value: max.toFixed(2)
+                    // },
+                    // u_size: {
+                    //     value: size.toFixed(2)
+                    // },
+                    // u_blur: {
+                    //     value: blur.toFixed(2)
+                    // },
+                    // u_translate: {
+                    //     value: new Float32Array([0, 0])
+                    // },
+                    // u_zoom: {
+                    //     value: zoom.toFixed(2)
+                    // },
+                    // u_angle: {
+                    //     value: angle.toFixed(2)
+                    // },
+                    // u_density: {
+                    //     value: density.toFixed(2)
+                    // },
+                    // u_zoomCenter: {
+                    //     value: new Float32Array([0, 0])
+                    // }
+                },
+                geometry: geome,
+                renderTarget: renderTarget,
+            });
 
-var gradshaderRef = webglRenderer.createShaderEl({
-    fragmentShader: GradfragmentShader,
-    vertexShader: GradvertexShader,
-    uniforms: {
-        u_resolution: {
-            value: new Float32Array([webglRenderer.width * webglRenderer.pixelRatio, webglRenderer.height * webglRenderer.pixelRatio])
-        },
-        u_max: {
-            value: max.toFixed(2)
-        },
-        u_size: {
-            value: size.toFixed(2)
-        },
-        u_blur: {
-            value: blur.toFixed(2)
-        },
-        u_translate: {
-            value: new Float32Array([0, 0])
-        },
-        u_zoom: {
-            value: zoom.toFixed(2)
-        },
-        u_angle: {
-            value: angle.toFixed(2)
-        },
-        u_density: {
-            value: density.toFixed(2)
-        },
-        u_zoomCenter: {
-            value: new Float32Array([0, 0])
-        }
-    },
-    geometry: geome
-    ,
-    renderTarget: renderTarget
-});
+            let colorGrad = [
+                {
+                    color: [255, 255, 255, 0.0],
+                    offset: 0,
+                },
+                {
+                    color: [212, 225, 255, 1.0],
+                    offset: 0.2,
+                },
+                {
+                    color: [166, 255, 115, 1.0],
+                    offset: 0.45,
+                },
+                {
+                    color: [255, 255, 0, 0.5],
+                    offset: 0.75,
+                },
+                {
+                    color: [255, 0, 0, 1.0],
+                    offset: 1.0,
+                },
+            ];
+            let colorGradMap = gradientMapper(colorGrad);
 
-let colorGrad = [{
-            color: [255, 255, 255, 0.0],
-            offset: 0
-        }, {
-            color: [212, 225, 255, 1.0],
-            offset: 0.2
-        }, {
-            color: [166, 255, 115, 1.0],
-            offset: 0.45
-        }, {
-            color: [255, 255, 0, 0.5],
-            offset: 0.75
-        }, {
-            color: [255, 0, 0, 1.0],
-            offset: 1.0
-        }];
-let colorGradMap = gradientMapper(colorGrad);
+            var meshgeome = webglRenderer.MeshGeometry();
 
-var meshgeome = webglRenderer.MeshGeometry();
+            meshgeome.setAttr("a_texCoord", {
+                value: new Float32Array([
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    1.0,
+                    1.0,
+                    0.0,
+                    1.0,
+                    1.0,
+                ]),
+                size: 2,
+            });
+            meshgeome.setDrawRange(0, 6);
 
-meshgeome.setAttr('a_texCoord', {
-    value: new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]),
-    size: 2
-});
-meshgeome.setDrawRange(0, 6);
+            var opacity = 1.0;
+            var colorShaderRef = webglRenderer.createShaderEl({
+                fragmentShader: ColorfragmentShader,
+                vertexShader: ColorvertexShader,
+                uniforms: {
+                    u_colorArr: {
+                        value: colorGradMap.value,
+                        size: 4,
+                    },
+                    // u_colorCount: {
+                    //     value: colorGradMap.length.toFixed(2)
+                    // },
+                    u_offset: {
+                        value: colorGradMap.offset,
+                        size: 1,
+                    },
+                    // u_opacity: {
+                    //     value: opacity.toFixed(2)
+                    // }
+                    // ,
+                    u_framebuffer: {
+                        value: Texture,
+                    },
+                },
+                geometry: meshgeome,
+            });
 
-var opacity = 1.0;
-var colorShaderRef = webglRenderer.createShaderEl({
-    fragmentShader: ColorfragmentShader,
-    vertexShader: ColorvertexShader,
-    uniforms: {
-        u_colorArr: {
-            value: colorGradMap.value,
-            size: 4
-        },
-        u_colorCount: {
-            value: colorGradMap.length.toFixed(2)
-        },
-        u_offset: {
-            value: colorGradMap.offset,
-            size: 1
-        },
-        u_opacity: {
-            value: opacity.toFixed(2)
-        }
-        ,
-        u_framebuffer: {
-            value: Texture
-        }
-    },
-    geometry: meshgeome
-});
+            var positionArray = [];
+            var intensityArray = [];
+            var dataPush = true;
+            document.getElementById("canvas").addEventListener("pointermove", function (e) {
+                if (dataPush) {
+                    // positionArray[positionArray.length] = e.x;
+                    // positionArray[positionArray.length] = e.y;
+                    // intensityArray[intensityArray.length] = 20;
+                    gradshaderRef.setAttributeData("a_position", new Float32Array([e.x, e.y]));
+                    gradshaderRef.setAttributeData("a_intensity", new Float32Array([20]));
+                    geome.setDrawRange(0, 1);
+                    // shaderRef.execute();
+                    dataPush = false;
+                    setTimeout(idleFlag, 20);
+                }
+                e.preventDefault();
+            });
 
-var positionArray = [];
-var intensityArray = [];
-var dataPush = true;
-    document.getElementById('canvas').addEventListener("mousemove", function (e) {
-        if (dataPush) {
-            positionArray[positionArray.length] = e.x;
-            positionArray[positionArray.length] = e.y;
-            intensityArray[intensityArray.length] = 20;
-            gradshaderRef.setAttributeData('a_position', new Float32Array(positionArray));
-            gradshaderRef.setAttributeData('a_intensity', new Float32Array(intensityArray));
-            geome.setDrawRange(0, positionArray.length / 2);
-            // shaderRef.execute();
-            dataPush = false;
-            setTimeout(idleFlag, 20);
-        }
-    });
+            function idleFlag() {
+                dataPush = true;
+            }
 
-    function idleFlag () {
-        dataPush = true;
-    }
+            function gradientMapper(grad) {
+                const arr = [];
+                const gradLength = grad.length;
+                const offSetsArray = [];
 
-
-function gradientMapper (grad) {
-        const arr = [];
-        const gradLength = grad.length;
-        const offSetsArray = [];
-
-        grad.forEach(function (d) {
-            arr.push(d.color[0] / 255);
-            arr.push(d.color[1] / 255);
-            arr.push(d.color[2] / 255);
-            arr.push(d.color[3] === undefined ? 1.0 : d.color[3]);
-            offSetsArray.push(d.offset);
-        });
-        return {
-            value: new Float32Array(arr),
-            length: gradLength,
-            offset: new Float32Array(offSetsArray)
-        };
-    }
-
-</script>
-
-</body>
+                grad.forEach(function (d) {
+                    arr.push(d.color[0] / 255);
+                    arr.push(d.color[1] / 255);
+                    arr.push(d.color[2] / 255);
+                    arr.push(d.color[3] === undefined ? 1.0 : d.color[3]);
+                    offSetsArray.push(d.offset);
+                });
+                return {
+                    value: new Float32Array(arr),
+                    length: gradLength,
+                    offset: new Float32Array(offSetsArray),
+                };
+            }
+        </script>
+    </body>
 </html>

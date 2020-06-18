@@ -1,105 +1,105 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
-<script  id="vertexShader" type="x-shader/x-vertex">
-    attribute vec2 a_position;
-    uniform vec2 u_resolution;
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <script id="vertexShader" type="x-shader/x-vertex">
+            attribute vec2 a_position;
+            uniform vec2 u_resolution;
 
-    void main() {
-       vec2 zeroToOne = a_position / u_resolution;
-       vec2 zeroToTwo = zeroToOne * 2.0;
-       vec2 clipSpace = zeroToTwo - 1.0;
+            void main() {
+               vec2 zeroToOne = a_position / u_resolution;
+               vec2 zeroToTwo = zeroToOne * 2.0;
+               vec2 clipSpace = zeroToTwo - 1.0;
 
-       gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-    }
-</script>
-<script  id="fragmentShader" type="x-shader/x-fragment">
-    precision mediump float;
-    uniform vec4 u_color;
+               gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+            }
+        </script>
+        <script id="fragmentShader" type="x-shader/x-fragment">
+            precision mediump float;
+            uniform vec4 u_color;
 
-    void main() {
-       gl_FragColor = u_color;
-    }
-</script>
-<div id="canvas" style="height: 100%;width:100%;">
-</div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+            void main() {
+               gl_FragColor = u_color;
+            }
+        </script>
+        <div id="canvas" style="height: 100%; width: 100%;"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript">
-var webglRenderer = i2d.webglLayer('#canvas', {}, { events: false, selectiveClear: false });
+        <script type="text/javascript">
+            var webglRenderer = i2d.webglLayer(
+                "#canvas",
+                {},
+                { events: false, selectiveClear: false }
+            );
 
-let rectVertex = getRectVertex(100);
-var meshGeo = webglRenderer.MeshGeometry();
-    meshGeo.setDrawType('TRIANGLE_STRIP');
-    meshGeo.setAttr('a_position', {
-        value: new Float32Array(rectVertex.points),
-        size: 2
-    });
-    meshGeo.setIndex({
-        value: new Uint16Array(rectVertex.indexes),
-        offset: 0,
-        count: rectVertex.indexes.length
-    });
+            let rectVertex = getRectVertex(100);
+            var meshGeo = webglRenderer.MeshGeometry();
+            meshGeo.setDrawType("TRIANGLE_STRIP");
+            meshGeo.setAttr("a_position", {
+                value: new Float32Array(rectVertex.points),
+                size: 2,
+            });
+            meshGeo.setIndex({
+                value: new Uint16Array(rectVertex.indexes),
+                offset: 0,
+                count: rectVertex.indexes.length,
+            });
 
-var shaderRef2 = webglRenderer.createShaderEl({
-	fragmentShader: document.getElementById('fragmentShader').textContent,
-    vertexShader: document.getElementById('vertexShader').textContent,
-	uniforms: {
-		u_resolution: {
-			value: new Float32Array([webglRenderer.width, webglRenderer.height])
-		},
-        u_color: {
-            value: new Float32Array([255, 0, 0, 255])
-        }
-	},
-    geometry: meshGeo
-});
+            var shaderRef2 = webglRenderer.createShaderEl({
+                fragmentShader: document.getElementById("fragmentShader").textContent,
+                vertexShader: document.getElementById("vertexShader").textContent,
+                uniforms: {
+                    u_resolution: {
+                        value: new Float32Array([webglRenderer.width, webglRenderer.height]),
+                    },
+                    u_color: {
+                        value: new Float32Array([255, 0, 0, 255]),
+                    },
+                },
+                geometry: meshGeo,
+            });
 
+            function getRectVertex(count) {
+                let indexes = [];
+                let inx = 0;
+                let arr = [];
+                for (var i = 0; i < count; i++) {
+                    var x1 = Math.random() * 1400;
+                    var x2 = x1 + Math.random() * 25;
+                    var y1 = Math.random() * 700;
+                    var y2 = y1 + Math.random() * 25;
+                    let l = arr.length;
+                    arr[l + 0] = x1;
+                    arr[l + 1] = y1;
+                    arr[l + 2] = x2;
+                    arr[l + 3] = y1;
+                    arr[l + 4] = x1;
+                    arr[l + 5] = y2;
+                    arr[l + 6] = x2;
+                    arr[l + 7] = y2;
 
-function getRectVertex (count) {
-    let indexes = [];
-    let inx = 0;
-    let arr = [];
-    for (var i = 0; i < count; i++) {
-        var x1 = Math.random() * 1400;
-        var x2 = x1 + Math.random() * 25;
-        var y1 = Math.random() * 700;
-        var y2 = y1 + Math.random() * 25;
-        let l = arr.length;
-        arr[l + 0] = x1;
-        arr[l + 1] = y1;
-        arr[l + 2] = x2;
-        arr[l + 3] = y1;
-        arr[l + 4] = x1;
-        arr[l + 5] = y2;
-        arr[l + 6] = x2;
-        arr[l + 7] = y2;
+                    if (i !== 0) {
+                        indexes[indexes.length] = inx;
+                        inx = inx + 1;
+                        indexes[indexes.length] = inx;
+                    }
 
-        if (i !== 0) {
-            indexes[indexes.length] = inx;
-            inx = inx + 1;
-            indexes[indexes.length] = inx;
-        }
+                    indexes[indexes.length] = inx + 0;
+                    indexes[indexes.length] = inx + 1;
+                    indexes[indexes.length] = inx + 2;
+                    indexes[indexes.length] = inx + 2;
+                    indexes[indexes.length] = inx + 1;
+                    indexes[indexes.length] = inx + 3;
+                    inx = inx + 3;
+                }
 
-        indexes[indexes.length] = inx+0;
-        indexes[indexes.length] = inx+1;
-        indexes[indexes.length] = inx+2;
-        indexes[indexes.length] = inx+2;
-        indexes[indexes.length] = inx+1;
-        indexes[indexes.length] = inx+3;
-        inx = inx + 3;
-    };
-
-    return {
-        points: arr,
-        indexes: indexes
-    };
-}
-
-</script>
-
-</body>
+                return {
+                    points: arr,
+                    indexes: indexes,
+                };
+            }
+        </script>
+    </body>
 </html>

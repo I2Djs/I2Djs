@@ -1,82 +1,46 @@
 <!DOCTYPE html>
-<html style="height: 100%">
-<head>
-	<title></title>
-</head>
-<body style="height: 100%">
-<div id="myCanvas" style="height: 100%;width:100%;position: absolute;">
-</div>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <div id="myCanvas" style="height: 100%; width: 100%; position: absolute;"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-<script type="text/javascript">
+        <script type="text/javascript">
+            var renderer_ = i2d.canvasLayer("#myCanvas", {}, {});
 
-var renderer_ = i2d.canvasLayer('#myCanvas', {}, {});
+            var clipInstance = renderer_.createClip();
+            clipInstance.clip.createEls([1, 2, 3, 4, 5, 6], {
+                el: "circle",
+                attr: {
+                    cx: function (d) {
+                        console.log(d);
+                        return Math.random() * 566 * 2;
+                    },
+                    cy: function (d) {
+                        return Math.random() * 200 * 2;
+                    },
+                    r: function (d) {
+                        return 50 + Math.random() * 100;
+                    },
+                },
+            });
 
-let g = renderer_.createEl({
-	el: 'group',
-	attr: {
-		transform: {
-			translate: [500, 300],
-			rotate: [0, 100, 100]
-		}
-	},
-	bbox: false
-}).animateTo({
-	duration: 1000,
-	attr: {
-		transform: {
-			rotate: [360, 100, 100]
-		}
-	},
-	loop: 50
-});
-
-var clipInstance = renderer_.createClip();
-clipInstance.clip.createEl({
-	el: 'polygon',
-	attr:{
-		points: [{x: 0, y: 0}, {x: 0, y: 100}, {x: 100, y: 100}, {x: 100, y: 0}, {x: 0, y: 0}]
-	}
-});
-
-g.createEl({
-	el: 'circle',
-	attr: {
-		cx: 100,
-		cy: 100,
-		r: 100
-	},
-	style: {
-		'clip-Path': clipInstance,
-		strokeStyle: 'grey',
-		fillStyle: 'green'
-	}
-});
-
-
-var clipInstance2 = renderer_.createClip();
-clipInstance2.clip.createEl({
-	el: 'polygon',
-	attr:{
-		points: [{x: 100, y: 100}, {x: 100, y: 200}, {x: 200, y: 200}, {x: 200, y: 100}, {x: 100, y: 100}]
-	}
-});
-
-g.createEl({
-	el: 'circle',
-	attr: {
-		cx: 100,
-		cy: 100,
-		r: 100
-	},
-	style: {
-		'clip-Path': clipInstance2,
-		strokeStyle: 'grey',
-		fillStyle: 'red'
-	}
-});
-
-</script>
-
-</body>
+            renderer_.createEl({
+                el: "image",
+                attr: {
+                    src: "./../images/grass.jpeg",
+                    x: 0,
+                    y: 0,
+                    width: 566 * 2,
+                    height: 200 * 2,
+                },
+                style: {
+                    "clip-Path": clipInstance,
+                    "globalAlpha": 0.8,
+                },
+            });
+        </script>
+    </body>
 </html>
