@@ -5,17 +5,17 @@
     </head>
     <body style="height: 100%;">
         <div id="canvas" style="height: 100%; width: 100%;"></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script type="text/javascript">
             var webglRenderer = i2d.webglLayer("#canvas", {}, {});
 
             var rectsData = [];
-            for (let i = 0; i < 1000; i++) {
+            for (let i = 0; i < 100; i++) {
                 rectsData.push({
-                    x: parseInt(Math.random() * 1400),
+                    x: parseInt(Math.random() * 1000),
                     y: parseInt(Math.random() * 1000),
-                    image: "../images/leaves.jpg",
+                    image: "../images/leaves2.jpg",
                 });
             }
 
@@ -31,51 +31,35 @@
                     el: "image",
                     attr: {
                         x: function () {
-                            return Math.random() * 1400;
+                            return Math.random() * 1000;
                         },
                         y: function () {
                             return Math.random() * 900;
                         },
-                        width: 8,
-                        height: 8,
+                        width: 50,
+                        height: 50,
                         src: function (d) {
                             return d.image;
                         },
                     },
                 })
                 .animateTo({
-                    duration: 5000,
+                    duration: 1000,
+                    delay: function () {
+                        return Math.random() * 5000;
+                    },
                     attr: {
                         x: function () {
-                            return Math.random() * 1400;
+                            return Math.random() * 1000;
                         },
                         y: function () {
                             return Math.random() * 900;
                         },
                     },
+                    end: function () {
+                        this.remove();
+                    },
                 });
-
-            // var rectsRef = webglRenderer.createEl({
-            //         el:'group',
-            //         shaderType:'points'
-            //     })
-            //     .createEls(rectsData,{
-            //             el:'point',
-            //             attr:{
-            //                 x: function() { return Math.random()*1400 },
-            //                 y: function() { return Math.random()*900 },
-            //                 size: 4
-            //             },
-            //             style: {
-            //                 fill: i2d.color.rgba(parseInt(Math.random()*255), parseInt(Math.random()*255), parseInt(Math.random()*255), 255)
-            //             }
-            //         }).animateTo({
-            //             duration:5000,
-            //             attr:{
-            //                 x: function() { return Math.random()*1400 },
-            //                 y: function() { return Math.random()*900 },
-            //             }
-            //         })
         </script>
     </body>
 </html>

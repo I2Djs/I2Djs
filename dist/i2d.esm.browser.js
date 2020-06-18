@@ -8038,9 +8038,9 @@ CanvasNodeExe.prototype.updateBBox = function CupdateBBox() {
 
     if (this.bbox) {
         for (let i = 0, len = this.children.length; i < len; i += 1) {
-        	if (this.children[i]) {
+            if (this.children[i]) {
                 status = this.children[i].updateBBox() || status;
-        	}
+            }
         }
         if (this.BBoxUpdate || status) {
             this.dom.updateBBox(this.children);
@@ -10352,6 +10352,8 @@ ImageNode.prototype.setAttr = function (key, value) {
                 this.vDomIndex
             );
             webGLImageTextures[value] = this.textureNode;
+        } else if (value && webGLImageTextures[value]) {
+            this.textureNode = webGLImageTextures[value];
         }
     } else if (key === "src" && value instanceof NodePrototype) {
         this.textureNode = new TextureObject(
@@ -12149,7 +12151,7 @@ RenderWebglImages.prototype.execute = function (stack) {
 
     for (var i = 0, len = stack.length; i < len; i++) {
         let node = stack[i];
-        if (!node.dom.textureNode) {
+        if (!node.dom.textureNode || !node.dom.textureNode.updated) {
             continue;
         }
         if (node.style.display === "none") {
@@ -12169,6 +12171,7 @@ RenderWebglImages.prototype.execute = function (stack) {
                 : this.style.opacity !== undefined
                 ? this.style.opacity
                 : 1.0;
+
         node.dom.textureNode.loadTexture();
         this.shaderInstance.applyUniformData("u_image", node.dom.textureNode);
         this.shaderInstance.applyAttributeData("a_position", this.positionArray[i]);
@@ -12799,8 +12802,8 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
 
 function imageInstance$1(self) {
     let imageIns = new Image();
+    imageIns.crossOrigin = "anonymous";
     imageIns.onload = function onload() {
-        this.crossOrigin = "anonymous";
         self.update();
         self.updated = true;
         queueInstance$5.vDomChanged(self.vDomIndex);
@@ -12881,10 +12884,10 @@ TextureObject.prototype.setAttr = function (attr, value) {
                     value instanceof Uint8Array
                 ) {
                     this.image = value;
-                    // this.update();
+                    this.update();
                 } else if (value instanceof NodePrototype) {
                     this.image = value.domEl;
-                    // this.update();
+                    this.update();
                 }
             }
             if (attr["height"] || attr["width"]) {
@@ -12907,18 +12910,20 @@ TextureObject.prototype.setAttr = function (attr, value) {
                 value instanceof Uint8Array
             ) {
                 this.image = value;
-                // this.update();
+                this.update();
             } else if (value instanceof NodePrototype) {
                 this.image = value.domEl;
-                // this.update();
+                this.update();
             }
         }
     }
-    this.update();
 };
 
 TextureObject.prototype.loadTexture = function () {
-    // this.ctx.activeTexture(this.ctx.TEXTURE0);
+    if (!this.updated) {
+        return;
+    }
+    this.ctx.activeTexture(this.ctx.TEXTURE0);
     this.ctx.bindTexture(this.ctx.TEXTURE_2D, this.texture);
 };
 
@@ -12926,7 +12931,7 @@ TextureObject.prototype.clear = function (argument) {};
 
 TextureObject.prototype.update = function () {
     let ctx = this.ctx;
-
+    ctx.activeTexture(ctx.TEXTURE0);
     ctx.bindTexture(ctx.TEXTURE_2D, this.texture);
     if (this.image && !(this.image instanceof Uint8Array)) {
         ctx.texImage2D(
