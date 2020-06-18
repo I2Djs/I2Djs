@@ -2223,6 +2223,9 @@ Path.prototype.case = function pCase(currCmd) {
         case "Z":
             this.z();
             break;
+
+        default:
+            break;
     }
 };
 
@@ -9969,146 +9972,141 @@ let onClear = function (ctx, width, height, ratio) {
     ctx.clearRect(0, 0, width * ratio, height * ratio);
 };
 
-function buildCanvasTextEl(str, style) {
-    const layer = document.createElement("canvas");
-    const ctx = layer.getContext("2d", {});
-    // let ratio = getPixlRatio(ctx);
-    style = style || {
-        fill: "#fff",
-    };
+function buildCanvasTextEl (str, style) {
+	const layer = document.createElement('canvas');
+	const ctx = layer.getContext('2d', {});
+	style = style || {
+		fill: '#fff',
+		font: '10px Arial'
+	};
 
-    let fontSize = parseFloat(style.font, 10) || 12;
-    let twid = ctx.measureText(str).width;
-    let width = twid * fontSize * 0.1;
-    let height = fontSize;
-    layer.setAttribute("height", height * ratio);
-    layer.setAttribute("width", width * ratio);
-    layer.style.height = height + "px";
-    layer.style.width = width + "px";
+	let fontSize = parseFloat(style.font, 10) || 12;
+	ctx['font'] = style.font;
+	let twid = ctx.measureText(str);
+	let width = twid.width;
+	let height = fontSize;
+	layer.setAttribute('height', height * ratio);
+	layer.setAttribute('width', width * ratio);
 
-    for (let st in style) {
-        ctx[st] = style[st];
-    }
-    ctx.fillText(str, 0, height * 0.75);
+	for (let st in style) {
+		ctx[st] = style[st];
+	}
 
-    return {
-        dom: layer,
-        ctx: ctx,
-        width: width,
-        height: height,
-        ratio: ratio,
-        style: style,
-        str: str,
-        updateText: function () {
-            onClear(this.ctx, this.width, this.height, this.ratio);
-            for (let st in this.style) {
-                this.ctx[st] = this.style[st];
-            }
-            this.ctx.fillText(this.str, 0, this.height * 0.75);
-        },
-    };
+	ctx.fillText(str, 0, height * 0.75);
+
+	return {
+		dom: layer,
+		ctx: ctx,
+		width: width,
+		height: height,
+		ratio: ratio,
+		style: style,
+		str: str,
+		updateText: function () {
+			onClear(this.ctx, this.width, this.height, this.ratio);
+			for (let st in this.style) {
+				this.ctx[st] = this.style[st];
+			}
+			this.ctx.fillText(this.str, 0, (this.height * 0.75));
+		}
+	};
 }
 
-function TextNode(ctx, attr, style, vDomIndex) {
-    let self = this;
-    this.ctx = ctx;
-    this.attr = attr;
-    this.style = style;
-    this.vDomIndex = vDomIndex;
+function TextNode (ctx, attr, style, vDomIndex) {
+	let self = this;
+	this.ctx = ctx;
+	this.attr = attr;
+	this.style = style;
+	this.vDomIndex = vDomIndex;
+	
+	if (self.attr.text && (typeof self.attr.text === 'string')) {
+		this.text = buildCanvasTextEl(self.attr.text, self.style);
+		this.attr.width = this.text.width;
+		this.attr.height = this.text.height;
+	}
 
-    if (self.attr.text && typeof self.attr.text === "string") {
-        this.text = buildCanvasTextEl(self.attr.text, self.style);
-        this.attr.width = this.text.width;
-        this.attr.height = this.text.height;
-    }
-
-    if (this.text) {
-        this.textureNode = new TextureObject(
-            ctx,
-            {
-                src: this.text.dom,
-            },
-            this.vDomIndex
-        );
-    }
+	if (this.text) {
+		this.textureNode = new TextureObject(ctx, {
+			src: this.text.dom
+		}, this.vDomIndex);
+	}
 }
+
 TextNode.prototype = new WebglDom();
+
 TextNode.prototype.constructor = TextNode;
 
 TextNode.prototype.setShader = function (shader) {
-    this.shader = shader;
-    if (this.shader) {
-        this.shader.addVertex(
-            this.attr.x || 0,
-            this.attr.y || 0,
-            this.attr.width || 0,
-            this.attr.height || 0,
-            this.pindex
-        );
-        // this.shader.addOpacity(1, this.pindex);
-    }
+	this.shader = shader;
+	if (this.shader) {
+		this.shader.addVertex(this.attr.x || 0, this.attr.y || 0, this.attr.width || 0, this.attr.height || 0, this.pindex);
+		// this.shader.addOpacity(1, this.pindex);
+	}
 };
 
 TextNode.prototype.setAttr = function (key, value) {
-    this.attr[key] = value;
+	this.attr[key] = value;
 
-    if (value === undefined || value === null) {
-        delete this.attr[key];
-        return;
-    }
+	if (value === undefined || value === null) {
+		delete this.attr[key];
+		return;
+	}
 
-    if (key === "text" && typeof value === "string") {
-        if (this.text) {
-            this.text = buildCanvasTextEl(this.attr.text, this.style);
-            // this.attr.width = this.text.width;
-            // this.attr.height = this.text.height;
-        } else {
-            this.text = buildCanvasTextEl(value, this.style);
-        }
-        this.attr.width = this.text.width;
-        this.attr.height = this.text.height;
-        // this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
-        // this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
-        if (this.textureNode) {
-            this.textureNode.setAttr("src", this.text.dom);
-        } else {
-            this.textureNode = new TextureObject(
-                this.ctx,
-                {
-                    src: this.text.dom,
-                },
-                this.vDomIndex
-            );
-        }
-    }
-
-    if (this.shader && key === "x") {
-        this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
-    }
-    if (this.shader && key === "y") {
-        this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
-    }
+	if (key === 'text' && (typeof value === 'string')) {
+		if (this.text) {
+			this.text = buildCanvasTextEl(this.attr.text, this.style);
+			this.attr.width = this.text.width;
+			this.attr.height = this.text.height;
+		} else {
+			this.text = buildCanvasTextEl(value, this.style);
+		}
+		this.attr.width = this.text.width;
+		this.attr.height = this.text.height;
+		if (this.shader) {
+			this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+			this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
+		}
+		if (this.textureNode) {
+			this.textureNode.setAttr('src', this.text.dom);
+		} else {
+			this.textureNode = new TextureObject(this.ctx, {
+				src: this.text.dom
+			}, this.vDomIndex);
+		}
+	}
+	
+	if (this.shader && (key === 'x')) {
+		this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+	}
+	if (this.shader && (key === 'y')) {
+		this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
+	}
 };
 
 TextNode.prototype.setStyle = function (key, value) {
-    this.style[key] = value;
-    if (this.text) {
-        if (key === "font") {
-            let fontSize = parseFloat(value, 10) || 12;
-            let twid = this.text.ctx.measureText(this.attr.text).width;
-            let width = twid * fontSize * 0.1;
-            let height = fontSize;
-            this.attr.width = width;
-            this.attr.height = height;
-            this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
-            this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
-        } else {
-            this.text.style[key] = value;
-            // this.text.execute();
-            this.text.updateText();
-            this.textureNode.setAttr("src", this.text.dom);
-        }
-    }
+	this.style[key] = value;
+	if (this.text) {
+		this.text.style[key] = value;
+		if (key === 'font') {
+			let fontSize = parseFloat(value, 10) || 12;
+			this.text.ctx['font'] = value;
+			let twid = this.text.ctx.measureText(this.attr.text);
+			let width = twid.width;
+			let height = fontSize;
+			this.text.updateText();
+			this.text.dom.setAttribute('height', height * ratio);
+			this.text.dom.setAttribute('width', width * ratio);
+			this.attr.width = width;
+			this.attr.height = height;
+			this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+			this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
+		} else {
+			this.text.style[key] = value;
+			// this.text.execute();
+			this.text.updateText();
+			this.textureNode.setAttr('src', this.text.dom);
+		}
+	}
 };
 
 TextNode.prototype.getAttr = function (key) {
