@@ -1662,11 +1662,10 @@ CanvasNodeExe.prototype.updateBBox = function CupdateBBox() {
 
     if (this.bbox) {
         for (let i = 0, len = this.children.length; i < len; i += 1) {
-            if (this.bbox) {
+            if (this.children[i]) {
                 status = this.children[i].updateBBox() || status;
             }
         }
-
         if (this.BBoxUpdate || status) {
             this.dom.updateBBox(this.children);
             this.BBoxUpdate = false;

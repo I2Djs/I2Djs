@@ -577,11 +577,13 @@ let onClear = function (ctx, width, height, ratio) {
 
 function buildCanvasTextEl(str, style) {
     const layer = document.createElement("canvas");
-    const ctx = layer.getContext("2d", {});
+    const ctx = layer.getContext("2d", { alpha: false });
     style = style || {
         fill: "#fff",
-        font: "10px Arial",
     };
+    if (!style.font) {
+        style.font = "10px Arial";
+    }
 
     let fontSize = parseFloat(style.font, 10) || 12;
     ctx["font"] = style.font;
@@ -590,12 +592,19 @@ function buildCanvasTextEl(str, style) {
     let height = fontSize;
     layer.setAttribute("height", height * ratio);
     layer.setAttribute("width", width * ratio);
+    layer.style.width = width;
+    layer.style.height = height;
+
+    style.font =
+        fontSize * ratio +
+        (isNaN(parseFloat(style.font, 10))
+            ? style.font
+            : style.font.substring(fontSize.toString().length));
 
     for (let st in style) {
         ctx[st] = style[st];
     }
-
-    ctx.fillText(str, 0, height * 0.75);
+    ctx.fillText(str, 0, height * 0.75 * ratio);
 
     return {
         dom: layer,
@@ -668,8 +677,6 @@ TextNode.prototype.setAttr = function (key, value) {
     if (key === "text" && typeof value === "string") {
         if (this.text) {
             this.text = buildCanvasTextEl(this.attr.text, this.style);
-            this.attr.width = this.text.width;
-            this.attr.height = this.text.height;
         } else {
             this.text = buildCanvasTextEl(value, this.style);
         }
@@ -710,6 +717,11 @@ TextNode.prototype.setStyle = function (key, value) {
             let twid = this.text.ctx.measureText(this.attr.text);
             let width = twid.width;
             let height = fontSize;
+            this.text.style.font =
+                fontSize * ratio +
+                (isNaN(parseFloat(value, 10))
+                    ? this.style.font
+                    : this.style.font.substring(fontSize.toString().length));
             this.text.updateText();
             this.text.dom.setAttribute("height", height * ratio);
             this.text.dom.setAttribute("width", width * ratio);
@@ -2954,7 +2966,7 @@ WebglNodeExe.prototype.updateBBox = function CupdateBBox() {
 
     if (this.bbox) {
         for (let i = 0, len = this.children.length; i < len; i += 1) {
-            if (this.bbox && this.children[i]) {
+            if (this.children[i]) {
                 status = this.children[i].updateBBox() || status;
             }
         }
