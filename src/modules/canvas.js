@@ -41,18 +41,18 @@ function getPixlRatio(ctx) {
 }
 
 function domSetAttribute(attr, value) {
-    if (value !== undefined) {
-        this.attr[attr] = value;
-    } else {
+    if (value == null && this.attr[attr] != null) {
         delete this.attr[attr];
+    } else {
+        this.attr[attr] = value;
     }
 }
 
 function domSetStyle(attr, value) {
-    if (value !== undefined) {
-        this.style[attr] = value;
-    } else {
+    if (value == null && this.style[attr] != null) {
         delete this.style[attr];
+    } else {
+        this.style[attr] = value;
     }
 }
 
@@ -1483,23 +1483,19 @@ CanvasNodeExe.prototype.attributesExe = function CattributesExe() {
 
 CanvasNodeExe.prototype.setStyle = function CsetStyle(attr, value) {
     if (arguments.length === 2) {
-        if (value) {
-            this.style[attr] = valueCheck(value);
+        if (value == null && this.style[attr] != null) {
+            delete this.style[attr];
         } else {
-            if (this.style[attr]) {
-                delete this.style[attr];
-            }
+            this.style[attr] = valueCheck(value);
         }
     } else if (arguments.length === 1 && typeof attr === "object") {
         const styleKeys = Object.keys(attr);
 
         for (let i = 0, len = styleKeys.length; i < len; i += 1) {
-            if (attr[styleKeys[i]]) {
-                this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
+            if (attr[styleKeys[i]] == null && this.style[styleKeys[i]] != null) {
+                delete this.style[styleKeys[i]];
             } else {
-                if (this.style[styleKeys[i]]) {
-                    delete this.style[styleKeys[i]];
-                }
+                this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
             }
         }
     }
@@ -1518,13 +1514,21 @@ function valueCheck(value) {
 
 CanvasNodeExe.prototype.setAttr = function CsetAttr(attr, value) {
     if (arguments.length === 2) {
-        this.attr[attr] = value;
+        if (value == null && this.attr[attr] != null) {
+            delete this.attr[attr];
+        } else {
+            this.attr[attr] = value;
+        }
         this.dom.setAttr(attr, value);
     } else if (arguments.length === 1 && typeof attr === "object") {
         const keys = Object.keys(attr);
 
         for (let i = 0; i < keys.length; i += 1) {
-            this.attr[keys[i]] = attr[keys[i]];
+            if (attr[keys[i]] == null && this.attr[keys[i]] != null) {
+                delete this.attr[keys[i]];
+            } else {
+                this.attr[keys[i]] = attr[keys[i]];
+            }
             this.dom.setAttr(keys[i], attr[keys[i]]);
         }
     }
@@ -1610,6 +1614,9 @@ CanvasNodeExe.prototype.skewY = function CskewY(y) {
 };
 
 CanvasNodeExe.prototype.execute = function Cexecute() {
+    if (this.style.display === "none") {
+        return;
+    }
     this.ctx.save();
     this.stylesExe();
     this.attributesExe();

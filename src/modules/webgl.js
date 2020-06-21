@@ -381,7 +381,7 @@ LineNode.prototype.setShader = function (shader) {
 
 LineNode.prototype.setAttr = function (key, value) {
     this.attr[key] = value;
-    if (value === undefined || value === null) {
+    if (value == null && this.attr[key] != null) {
         delete this.attr[key];
         return;
     }
@@ -472,7 +472,7 @@ PolygonNode.prototype.setShader = function (shader) {
 
 PolygonNode.prototype.setAttr = function (key, value) {
     this.attr[key] = value;
-    if (value === undefined || value === null) {
+    if (value == null) {
         delete this.attr[key];
         return;
     }
@@ -513,7 +513,7 @@ CircleNode.prototype.setShader = function (shader) {
 
 CircleNode.prototype.setAttr = function (prop, value) {
     this.attr[prop] = value;
-    if (value === undefined || value === null) {
+    if (value == null) {
         delete this.attr[prop];
         return;
     }
@@ -669,7 +669,7 @@ TextNode.prototype.setShader = function (shader) {
 TextNode.prototype.setAttr = function (key, value) {
     this.attr[key] = value;
 
-    if (value === undefined || value === null) {
+    if (value == null) {
         delete this.attr[key];
         return;
     }
@@ -941,7 +941,7 @@ ImageNode.prototype.setShader = function (shader) {
 ImageNode.prototype.setAttr = function (key, value) {
     this.attr[key] = value;
 
-    if (value === undefined || value === null) {
+    if (value == null) {
         delete this.attr[key];
         return;
     }
@@ -2916,20 +2916,20 @@ WebglNodeExe.prototype.reIndexChildren = function () {
 
 WebglNodeExe.prototype.setAttr = function WsetAttr(attr, value) {
     if (arguments.length === 2) {
-        if (value === undefined || value === null) {
+        if (value == null && this.attr[attr] != null) {
             delete this.attr[attr];
         } else {
             this.attr[attr] = value;
-            this.dom.setAttr(attr, value);
         }
+        this.dom.setAttr(attr, value);
     } else if (arguments.length === 1 && typeof attr === "object") {
         for (let key in attr) {
-            if (attr[key] === undefined || attr[key] === null) {
+            if (attr[key] == null && this.attr[attr] != null) {
                 delete this.attr[key];
             } else {
                 this.attr[key] = attr[key];
-                this.dom.setAttr(key, attr[key]);
             }
+            this.dom.setAttr(key, attr[key]);
         }
     }
     this.BBoxUpdate = true;
@@ -2939,19 +2939,27 @@ WebglNodeExe.prototype.setAttr = function WsetAttr(attr, value) {
 
 WebglNodeExe.prototype.setStyle = function WsetStyle(attr, value) {
     if (arguments.length === 2) {
-        if (attr === "fill" || attr === "stroke") {
-            value = colorMap.colorToRGB(value);
+        if (value == null && this.style[attr] != null) {
+            delete this.style[attr];
+        } else {
+            if (attr === "fill" || attr === "stroke") {
+                value = colorMap.colorToRGB(value);
+            }
+            this.style[attr] = value;
         }
-        this.style[attr] = value;
+
         this.dom.setStyle(attr, value);
     } else if (arguments.length === 1 && typeof attr === "object") {
         for (let key in attr) {
             value = attr[key];
-
-            if (key === "fill" || key === "stroke") {
-                value = colorMap.colorToRGB(attr[key]);
+            if (value == null && this.style[key] != null) {
+                delete this.style[key];
+            } else {
+                if (key === "fill" || key === "stroke") {
+                    value = colorMap.colorToRGB(value);
+                }
+                this.style[key] = value;
             }
-            this.style[key] = value;
             this.dom.setStyle(key, value);
         }
     }
@@ -2994,7 +3002,7 @@ WebglNodeExe.prototype.on = function Con(eventType, hndlr) {
         this.events = {};
     }
 
-    if (!hndlr && this.events[eventType]) {
+    if (hndlr == null && this.events[eventType] != null) {
         delete this.events[eventType];
     } else if (hndlr) {
         if (typeof hndlr === "function") {

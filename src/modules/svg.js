@@ -476,7 +476,9 @@ DomExe.prototype.rotate = function DMrotate(angle, x, y) {
 
 DomExe.prototype.setStyle = function DMsetStyle(attr, value) {
     if (arguments.length === 2) {
-        if (value) {
+        if (value == null && this.style[attr] != null) {
+            delete this.style[attr];
+        } else {
             if (typeof value === "function") {
                 value = value.call(this, this.dataObj);
             }
@@ -486,15 +488,15 @@ DomExe.prototype.setStyle = function DMsetStyle(attr, value) {
             }
 
             this.style[attr] = value;
-        } else if (this.style[attr]) {
-            delete this.style[attr];
         }
         this.changedStyles[attr] = value;
     } else if (arguments.length === 1 && typeof attr === "object") {
-        let key;
-
-        for (key in attr) {
-            this.style[key] = attr[key];
+        for (let key in attr) {
+            if (attr[key] == null && this.style[attr] != null) {
+                delete this.style[key];
+            } else {
+                this.style[key] = attr[key];
+            }
             this.changedStyles[key] = attr[key];
         }
     }

@@ -1,5 +1,5 @@
 /*!
-      * i2djs v3.1.0
+      * i2djs v3.2.0
       * (c) 2020 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
@@ -5398,7 +5398,9 @@
 
     DomExe.prototype.setStyle = function DMsetStyle(attr, value) {
         if (arguments.length === 2) {
-            if (value) {
+            if (value == null && this.style[attr] != null) {
+            	delete this.style[attr];
+            } else {
                 if (typeof value === "function") {
                     value = value.call(this, this.dataObj);
                 }
@@ -5408,15 +5410,15 @@
                 }
 
                 this.style[attr] = value;
-            } else if (this.style[attr]) {
-                delete this.style[attr];
             }
             this.changedStyles[attr] = value;
         } else if (arguments.length === 1 && typeof attr === "object") {
-            let key;
-
-            for (key in attr) {
-                this.style[key] = attr[key];
+            for (let key in attr) {
+            	if (attr[key] == null && this.style[attr] != null) {
+            		delete this.style[key];
+            	} else {
+            		this.style[key] = attr[key];
+            	}
                 this.changedStyles[key] = attr[key];
             }
         }
@@ -6423,18 +6425,18 @@
     }
 
     function domSetAttribute(attr, value) {
-        if (value !== undefined) {
-            this.attr[attr] = value;
+        if (value == null && this.attr[attr] != null) {
+        	delete this.attr[attr];
         } else {
-            delete this.attr[attr];
+            this.attr[attr] = value;
         }
     }
 
     function domSetStyle(attr, value) {
-        if (value !== undefined) {
-            this.style[attr] = value;
+        if (value == null && this.style[attr] != null) {
+        	delete this.style[attr];
         } else {
-            delete this.style[attr];
+            this.style[attr] = value;
         }
     }
 
@@ -7865,23 +7867,19 @@
 
     CanvasNodeExe.prototype.setStyle = function CsetStyle(attr, value) {
         if (arguments.length === 2) {
-            if (value) {
-                this.style[attr] = valueCheck(value);
+            if (value == null && this.style[attr] != null) {
+            	delete this.style[attr];
             } else {
-                if (this.style[attr]) {
-                    delete this.style[attr];
-                }
+                this.style[attr] = valueCheck(value);
             }
         } else if (arguments.length === 1 && typeof attr === "object") {
             const styleKeys = Object.keys(attr);
 
             for (let i = 0, len = styleKeys.length; i < len; i += 1) {
-                if (attr[styleKeys[i]]) {
-                    this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
+                if (attr[styleKeys[i]] == null && this.style[styleKeys[i]] != null) {
+                	delete this.style[styleKeys[i]];
                 } else {
-                    if (this.style[styleKeys[i]]) {
-                        delete this.style[styleKeys[i]];
-                    }
+                    this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
                 }
             }
         }
@@ -7900,13 +7898,21 @@
 
     CanvasNodeExe.prototype.setAttr = function CsetAttr(attr, value) {
         if (arguments.length === 2) {
-            this.attr[attr] = value;
+        	if (value == null && this.attr[attr] != null) {
+            	delete this.attr[attr];
+            } else {
+                this.attr[attr] = value;
+            }
             this.dom.setAttr(attr, value);
         } else if (arguments.length === 1 && typeof attr === "object") {
             const keys = Object.keys(attr);
 
             for (let i = 0; i < keys.length; i += 1) {
-                this.attr[keys[i]] = attr[keys[i]];
+            	if (attr[keys[i]] == null && this.attr[keys[i]] != null) {
+            		delete this.attr[keys[i]];
+            	} else {
+            		this.attr[keys[i]] = attr[keys[i]];
+            	}
                 this.dom.setAttr(keys[i], attr[keys[i]]);
             }
         }
@@ -7992,6 +7998,9 @@
     };
 
     CanvasNodeExe.prototype.execute = function Cexecute() {
+    	if (this.style.display === "none") {
+            return;
+        }
         this.ctx.save();
         this.stylesExe();
         this.attributesExe();
@@ -9783,7 +9792,7 @@
 
     LineNode.prototype.setAttr = function (key, value) {
         this.attr[key] = value;
-        if (value === undefined || value === null) {
+        if (value == null && this.attr[key] != null) {
             delete this.attr[key];
             return;
         }
@@ -9874,7 +9883,7 @@
 
     PolygonNode.prototype.setAttr = function (key, value) {
         this.attr[key] = value;
-        if (value === undefined || value === null) {
+        if (value == null) {
             delete this.attr[key];
             return;
         }
@@ -9915,7 +9924,7 @@
 
     CircleNode.prototype.setAttr = function (prop, value) {
         this.attr[prop] = value;
-        if (value === undefined || value === null) {
+        if (value == null) {
             delete this.attr[prop];
             return;
         }
@@ -10071,7 +10080,7 @@
     TextNode.prototype.setAttr = function (key, value) {
         this.attr[key] = value;
 
-        if (value === undefined || value === null) {
+        if (value == null) {
             delete this.attr[key];
             return;
         }
@@ -10343,7 +10352,7 @@
     ImageNode.prototype.setAttr = function (key, value) {
         this.attr[key] = value;
 
-        if (value === undefined || value === null) {
+        if (value == null) {
             delete this.attr[key];
             return;
         }
@@ -12318,20 +12327,20 @@
 
     WebglNodeExe.prototype.setAttr = function WsetAttr(attr, value) {
         if (arguments.length === 2) {
-            if (value === undefined || value === null) {
+            if (value == null && this.attr[attr] != null) {
                 delete this.attr[attr];
             } else {
                 this.attr[attr] = value;
-                this.dom.setAttr(attr, value);
             }
+            this.dom.setAttr(attr, value);
         } else if (arguments.length === 1 && typeof attr === "object") {
             for (let key in attr) {
-                if (attr[key] === undefined || attr[key] === null) {
+                if (attr[key] == null && this.attr[attr] != null) {
                     delete this.attr[key];
                 } else {
                     this.attr[key] = attr[key];
-                    this.dom.setAttr(key, attr[key]);
                 }
+                this.dom.setAttr(key, attr[key]);
             }
         }
         this.BBoxUpdate = true;
@@ -12341,19 +12350,27 @@
 
     WebglNodeExe.prototype.setStyle = function WsetStyle(attr, value) {
         if (arguments.length === 2) {
-            if (attr === "fill" || attr === "stroke") {
-                value = colorMap$1.colorToRGB(value);
-            }
-            this.style[attr] = value;
+        	if (value == null && this.style[attr] != null) {
+        		delete this.style[attr];
+        	} else {
+        		if (attr === "fill" || attr === "stroke") {
+    	            value = colorMap$1.colorToRGB(value);
+    	        }
+    	        this.style[attr] = value;
+        	}
+            
             this.dom.setStyle(attr, value);
         } else if (arguments.length === 1 && typeof attr === "object") {
             for (let key in attr) {
                 value = attr[key];
-
-                if (key === "fill" || key === "stroke") {
-                    value = colorMap$1.colorToRGB(attr[key]);
-                }
-                this.style[key] = value;
+                if (value == null && this.style[key] != null) {
+    	    		delete this.style[key];
+    	    	} else {
+    	    		if (key === "fill" || key === "stroke") {
+    		            value = colorMap$1.colorToRGB(value);
+    		        }
+    		        this.style[key] = value;
+    	    	}
                 this.dom.setStyle(key, value);
             }
         }
@@ -12396,7 +12413,7 @@
             this.events = {};
         }
 
-        if (!hndlr && this.events[eventType]) {
+        if (hndlr == null && this.events[eventType] != null) {
             delete this.events[eventType];
         } else if (hndlr) {
             if (typeof hndlr === "function") {
