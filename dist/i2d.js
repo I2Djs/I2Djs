@@ -5399,7 +5399,7 @@
     DomExe.prototype.setStyle = function DMsetStyle(attr, value) {
         if (arguments.length === 2) {
             if (value == null && this.style[attr] != null) {
-            	delete this.style[attr];
+                delete this.style[attr];
             } else {
                 if (typeof value === "function") {
                     value = value.call(this, this.dataObj);
@@ -5414,11 +5414,11 @@
             this.changedStyles[attr] = value;
         } else if (arguments.length === 1 && typeof attr === "object") {
             for (let key in attr) {
-            	if (attr[key] == null && this.style[attr] != null) {
-            		delete this.style[key];
-            	} else {
-            		this.style[key] = attr[key];
-            	}
+                if (attr[key] == null && this.style[attr] != null) {
+                    delete this.style[key];
+                } else {
+                    this.style[key] = attr[key];
+                }
                 this.changedStyles[key] = attr[key];
             }
         }
@@ -5935,13 +5935,9 @@
         execute: function (trgt, event, eventType) {
             let self = this;
             this.event.e = event;
-            // if ((event.type === 'touchstart' || event.type === 'touchmove') && event.touches && event.touches.length > 0) {
-            // 	event.offsetX = event.touches[0].clientX;
-            // 	event.offsetY = event.touches[0].clientY;
-            // } else if (event.type === 'touchend' || event.type === 'touchcancel') {
-            // 	event.offsetX = this.event.x;
-            // 	event.offsetY = this.event.y;
-            // }
+            if (event.preventDefault) {
+                event.preventDefault();
+            }
             if (!this.dragStartFlag && (eventType === "mousedown" || eventType === "pointerdown")) {
                 self.onDragStart(trgt, event);
             } else if (
@@ -5954,9 +5950,6 @@
                 self.onDragEnd(trgt, event);
             } else if (this.onDrag) {
                 self.onDrag(trgt, event);
-            }
-            if (event.preventDefault) {
-                event.preventDefault();
             }
         },
     };
@@ -6136,18 +6129,21 @@
 
     ZoomClass.prototype.zoomExecute = function (trgt, event, eventsInstance) {
         this.eventType = "zoom";
+        if (event.preventDefault) {
+            event.preventDefault();
+        }
         if (!this.zoomStartFlag) {
             this.onZoomStart(trgt, event, eventsInstance);
         } else {
             this.onZoom(trgt, event);
         }
-        if (event.preventDefault) {
-            event.preventDefault();
-        }
     };
 
     ZoomClass.prototype.zoomPinch = function (trgt, event, eventsInstance) {
         let pointers = eventsInstance.pointers;
+        if (event.preventDefault) {
+            event.preventDefault();
+        }
         if (eventsInstance.pointers.length === 2) {
             if (!this.zoomStartFlag) {
                 this.onZoomStart(trgt, event, eventsInstance);
@@ -6172,9 +6168,6 @@
                 this.event.distance = distance;
                 this.onZoom(trgt, pinchEvent);
             }
-        }
-        if (event.preventDefault) {
-            event.preventDefault();
         }
     };
 
@@ -6347,6 +6340,9 @@
         }
         this.event.e = event;
         this.eventType = "pan";
+        if (event.preventDefault) {
+            event.preventDefault();
+        }
         if (
             event.type === "touchstart" ||
             event.type === "touchmove" ||
@@ -6426,7 +6422,7 @@
 
     function domSetAttribute(attr, value) {
         if (value == null && this.attr[attr] != null) {
-        	delete this.attr[attr];
+            delete this.attr[attr];
         } else {
             this.attr[attr] = value;
         }
@@ -6434,7 +6430,7 @@
 
     function domSetStyle(attr, value) {
         if (value == null && this.style[attr] != null) {
-        	delete this.style[attr];
+            delete this.style[attr];
         } else {
             this.style[attr] = value;
         }
@@ -7868,7 +7864,7 @@
     CanvasNodeExe.prototype.setStyle = function CsetStyle(attr, value) {
         if (arguments.length === 2) {
             if (value == null && this.style[attr] != null) {
-            	delete this.style[attr];
+                delete this.style[attr];
             } else {
                 this.style[attr] = valueCheck(value);
             }
@@ -7877,7 +7873,7 @@
 
             for (let i = 0, len = styleKeys.length; i < len; i += 1) {
                 if (attr[styleKeys[i]] == null && this.style[styleKeys[i]] != null) {
-                	delete this.style[styleKeys[i]];
+                    delete this.style[styleKeys[i]];
                 } else {
                     this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
                 }
@@ -7898,8 +7894,8 @@
 
     CanvasNodeExe.prototype.setAttr = function CsetAttr(attr, value) {
         if (arguments.length === 2) {
-        	if (value == null && this.attr[attr] != null) {
-            	delete this.attr[attr];
+            if (value == null && this.attr[attr] != null) {
+                delete this.attr[attr];
             } else {
                 this.attr[attr] = value;
             }
@@ -7908,11 +7904,11 @@
             const keys = Object.keys(attr);
 
             for (let i = 0; i < keys.length; i += 1) {
-            	if (attr[keys[i]] == null && this.attr[keys[i]] != null) {
-            		delete this.attr[keys[i]];
-            	} else {
-            		this.attr[keys[i]] = attr[keys[i]];
-            	}
+                if (attr[keys[i]] == null && this.attr[keys[i]] != null) {
+                    delete this.attr[keys[i]];
+                } else {
+                    this.attr[keys[i]] = attr[keys[i]];
+                }
                 this.dom.setAttr(keys[i], attr[keys[i]]);
             }
         }
@@ -7998,7 +7994,7 @@
     };
 
     CanvasNodeExe.prototype.execute = function Cexecute() {
-    	if (this.style.display === "none") {
+        if (this.style.display === "none") {
             return;
         }
         this.ctx.save();
@@ -12350,27 +12346,27 @@
 
     WebglNodeExe.prototype.setStyle = function WsetStyle(attr, value) {
         if (arguments.length === 2) {
-        	if (value == null && this.style[attr] != null) {
-        		delete this.style[attr];
-        	} else {
-        		if (attr === "fill" || attr === "stroke") {
-    	            value = colorMap$1.colorToRGB(value);
-    	        }
-    	        this.style[attr] = value;
-        	}
-            
+            if (value == null && this.style[attr] != null) {
+                delete this.style[attr];
+            } else {
+                if (attr === "fill" || attr === "stroke") {
+                    value = colorMap$1.colorToRGB(value);
+                }
+                this.style[attr] = value;
+            }
+
             this.dom.setStyle(attr, value);
         } else if (arguments.length === 1 && typeof attr === "object") {
             for (let key in attr) {
                 value = attr[key];
                 if (value == null && this.style[key] != null) {
-    	    		delete this.style[key];
-    	    	} else {
-    	    		if (key === "fill" || key === "stroke") {
-    		            value = colorMap$1.colorToRGB(value);
-    		        }
-    		        this.style[key] = value;
-    	    	}
+                    delete this.style[key];
+                } else {
+                    if (key === "fill" || key === "stroke") {
+                        value = colorMap$1.colorToRGB(value);
+                    }
+                    this.style[key] = value;
+                }
                 this.dom.setStyle(key, value);
             }
         }
