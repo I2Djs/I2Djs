@@ -129,14 +129,14 @@ Events.prototype.pointerupCheck = function (e) {
                     self.pointerNode = null;
                     node.events["click"].call(node, e);
                     clickInterval = null;
-                }, 150);
+                }, 200);
             } else if (this.pointerNode.clickCounter === 2 && node.events["dblclick"]) {
                 if (clickInterval) {
                     clearTimeout(clickInterval);
                 }
                 node.events["dblclick"].call(node, e);
                 self.pointerNode = null;
-            } else {
+            } else if (!node.events["click"] && !node.events["dblclick"]) {
                 this.pointerNode = null;
             }
         } else {

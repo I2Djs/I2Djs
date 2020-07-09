@@ -3616,14 +3616,14 @@
                         self.pointerNode = null;
                         node.events["click"].call(node, e);
                         clickInterval = null;
-                    }, 150);
+                    }, 200);
                 } else if (this.pointerNode.clickCounter === 2 && node.events["dblclick"]) {
                     if (clickInterval) {
                         clearTimeout(clickInterval);
                     }
                     node.events["dblclick"].call(node, e);
                     self.pointerNode = null;
-                } else {
+                } else if (!node.events["click"] && !node.events["dblclick"]) {
                     this.pointerNode = null;
                 }
             } else {
@@ -7073,11 +7073,8 @@
 
     RenderText.prototype.updateBBox = function RTupdateBBox() {
         var self = this;
-        // let translateX = 0;
-        // let translateY = 0;
-        // let scaleX = 1;
-        // let scaleY = 1;
         var height = 1;
+        var width = 0;
         var ref = self.attr;
         var x = ref.x; if ( x === void 0 ) x = 0;
         var y = ref.y; if ( y === void 0 ) y = 0;
@@ -7093,10 +7090,21 @@
             height = parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1;
         }
 
+        width = this.ctx.measureText(this.attr.text).width;
+
+        if (this.style.textAlign === "center") {
+            x -= width / 2;
+        } else if (this.style.textAlign === "right") {
+            x -= width;
+        }
+
+        self.width = width;
+        self.height = height;
+
         self.BBox = {
-            x: translateX + x * scaleX,
-            y: translateY + (y - height + 5) * scaleY,
-            width: this.ctx.measureText(this.attr.text).width * scaleX,
+            x: (translateX + x) * scaleX,
+            y: (translateY + y) * scaleY,
+            width: width * scaleX,
             height: height * scaleY,
         };
 
@@ -7110,11 +7118,11 @@
     RenderText.prototype.execute = function RTexecute() {
         if (this.attr.text !== undefined && this.attr.text !== null) {
             if (this.ctx.fillStyle !== "#000000") {
-                this.ctx.fillText(this.attr.text, this.attr.x, this.attr.y);
+                this.ctx.fillText(this.attr.text, this.attr.x, this.height);
             }
 
             if (this.ctx.strokeStyle !== "#000000") {
-                this.ctx.strokeText(this.attr.text, this.attr.x, this.attr.y);
+                this.ctx.strokeText(this.attr.text, this.attr.x, this.height);
             }
         }
     };
@@ -7122,12 +7130,13 @@
     RenderText.prototype.applyStyles = function RTapplyStyles() {};
 
     RenderText.prototype.in = function RTinfun(co) {
-        return (
-            co.x >= this.BBox.x &&
-            co.x <= this.BBox.x + this.BBox.width &&
-            co.y >= this.BBox.y &&
-            co.y <= this.BBox.y + this.BBox.height
-        );
+        var ref = this.attr;
+        var x = ref.x; if ( x === void 0 ) x = 0;
+        var y = ref.y; if ( y === void 0 ) y = 0;
+        var ref$1 = this;
+        var width = ref$1.width; if ( width === void 0 ) width = 0;
+        var height = ref$1.height; if ( height === void 0 ) height = 0;
+        return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
     };
     /** ***************** Render Circle */
 
