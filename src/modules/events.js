@@ -121,7 +121,7 @@ Events.prototype.pointerupCheck = function (e) {
             }
         }
         if (
-            this.pointerNode.dragCounter === 0 ||
+            this.pointerNode.dragCounter <= 2 ||
             (e.pointerType === "touch" && this.pointerNode.dragCounter <= 5)
         ) {
             if (this.pointerNode.clickCounter === 1 && node.events["click"]) {
@@ -129,20 +129,19 @@ Events.prototype.pointerupCheck = function (e) {
                     self.pointerNode = null;
                     node.events["click"].call(node, e);
                     clickInterval = null;
-                }, 250);
+                }, 200);
             } else if (this.pointerNode.clickCounter === 2 && node.events["dblclick"]) {
                 if (clickInterval) {
                     clearTimeout(clickInterval);
                 }
                 node.events["dblclick"].call(node, e);
                 self.pointerNode = null;
-            } else {
+            } else if (!node.events["click"] && !node.events["dblclick"]) {
                 this.pointerNode = null;
             }
         } else {
             this.pointerNode = null;
         }
-    } else if (node) {
         if (e.pointerType === "touch") {
             node.events["mouseup"].call(node, e);
         }
@@ -344,7 +343,6 @@ Events.prototype.wheelEventCheck = function (e) {
             }
         }, 100);
     }
-    e.preventDefault();
 };
 
 function propogateEvent(nodes, mouseCoor, rawEvent, eventType) {

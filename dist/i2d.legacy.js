@@ -1,5 +1,5 @@
 /*!
-      * i2djs v3.1.0
+      * i2djs v3.2.0
       * (c) 2020 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
@@ -3608,7 +3608,7 @@
                 }
             }
             if (
-                this.pointerNode.dragCounter === 0 ||
+                this.pointerNode.dragCounter <= 2 ||
                 (e.pointerType === "touch" && this.pointerNode.dragCounter <= 5)
             ) {
                 if (this.pointerNode.clickCounter === 1 && node.events["click"]) {
@@ -3616,20 +3616,19 @@
                         self.pointerNode = null;
                         node.events["click"].call(node, e);
                         clickInterval = null;
-                    }, 250);
+                    }, 200);
                 } else if (this.pointerNode.clickCounter === 2 && node.events["dblclick"]) {
                     if (clickInterval) {
                         clearTimeout(clickInterval);
                     }
                     node.events["dblclick"].call(node, e);
                     self.pointerNode = null;
-                } else {
+                } else if (!node.events["click"] && !node.events["dblclick"]) {
                     this.pointerNode = null;
                 }
             } else {
                 this.pointerNode = null;
             }
-        } else if (node) {
             if (e.pointerType === "touch") {
                 node.events["mouseup"].call(node, e);
             }
@@ -3831,7 +3830,6 @@
                 }
             }, 100);
         }
-        e.preventDefault();
     };
 
     function propogateEvent(nodes, mouseCoor, rawEvent, eventType) {
@@ -5419,7 +5417,9 @@
 
     DomExe.prototype.setStyle = function DMsetStyle(attr, value) {
         if (arguments.length === 2) {
-            if (value) {
+            if (value == null && this.style[attr] != null) {
+                delete this.style[attr];
+            } else {
                 if (typeof value === "function") {
                     value = value.call(this, this.dataObj);
                 }
@@ -5429,15 +5429,15 @@
                 }
 
                 this.style[attr] = value;
-            } else if (this.style[attr]) {
-                delete this.style[attr];
             }
             this.changedStyles[attr] = value;
         } else if (arguments.length === 1 && typeof attr === "object") {
-            var key;
-
-            for (key in attr) {
-                this.style[key] = attr[key];
+            for (var key in attr) {
+                if (attr[key] == null && this.style[attr] != null) {
+                    delete this.style[key];
+                } else {
+                    this.style[key] = attr[key];
+                }
                 this.changedStyles[key] = attr[key];
             }
         }
@@ -5965,13 +5965,9 @@
         execute: function (trgt, event, eventType) {
             var self = this;
             this.event.e = event;
-            // if ((event.type === 'touchstart' || event.type === 'touchmove') && event.touches && event.touches.length > 0) {
-            // 	event.offsetX = event.touches[0].clientX;
-            // 	event.offsetY = event.touches[0].clientY;
-            // } else if (event.type === 'touchend' || event.type === 'touchcancel') {
-            // 	event.offsetX = this.event.x;
-            // 	event.offsetY = this.event.y;
-            // }
+            if (event.preventDefault) {
+                event.preventDefault();
+            }
             if (!this.dragStartFlag && (eventType === "mousedown" || eventType === "pointerdown")) {
                 self.onDragStart(trgt, event);
             } else if (
@@ -5984,9 +5980,6 @@
                 self.onDragEnd(trgt, event);
             } else if (this.onDrag) {
                 self.onDrag(trgt, event);
-            }
-            if (event.preventDefault) {
-                event.preventDefault();
             }
         },
     };
@@ -6166,18 +6159,21 @@
 
     ZoomClass.prototype.zoomExecute = function (trgt, event, eventsInstance) {
         this.eventType = "zoom";
+        if (event.preventDefault) {
+            event.preventDefault();
+        }
         if (!this.zoomStartFlag) {
             this.onZoomStart(trgt, event, eventsInstance);
         } else {
             this.onZoom(trgt, event);
         }
-        if (event.preventDefault) {
-            event.preventDefault();
-        }
     };
 
     ZoomClass.prototype.zoomPinch = function (trgt, event, eventsInstance) {
         var pointers = eventsInstance.pointers;
+        if (event.preventDefault) {
+            event.preventDefault();
+        }
         if (eventsInstance.pointers.length === 2) {
             if (!this.zoomStartFlag) {
                 this.onZoomStart(trgt, event, eventsInstance);
@@ -6202,9 +6198,6 @@
                 this.event.distance = distance;
                 this.onZoom(trgt, pinchEvent);
             }
-        }
-        if (event.preventDefault) {
-            event.preventDefault();
         }
     };
 
@@ -6378,6 +6371,9 @@
         }
         this.event.e = event;
         this.eventType = "pan";
+        if (event.preventDefault) {
+            event.preventDefault();
+        }
         if (
             event.type === "touchstart" ||
             event.type === "touchmove" ||
@@ -6456,18 +6452,18 @@
     }
 
     function domSetAttribute(attr, value) {
-        if (value !== undefined) {
-            this.attr[attr] = value;
-        } else {
+        if (value == null && this.attr[attr] != null) {
             delete this.attr[attr];
+        } else {
+            this.attr[attr] = value;
         }
     }
 
     function domSetStyle(attr, value) {
-        if (value !== undefined) {
-            this.style[attr] = value;
-        } else {
+        if (value == null && this.style[attr] != null) {
             delete this.style[attr];
+        } else {
+            this.style[attr] = value;
         }
     }
 
@@ -7077,11 +7073,8 @@
 
     RenderText.prototype.updateBBox = function RTupdateBBox() {
         var self = this;
-        // let translateX = 0;
-        // let translateY = 0;
-        // let scaleX = 1;
-        // let scaleY = 1;
         var height = 1;
+        var width = 0;
         var ref = self.attr;
         var x = ref.x; if ( x === void 0 ) x = 0;
         var y = ref.y; if ( y === void 0 ) y = 0;
@@ -7094,13 +7087,24 @@
 
         if (this.style.font) {
             this.ctx.font = this.style.font;
-            height = parseInt(this.style.font, 10);
+            height = parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1;
         }
 
+        width = this.ctx.measureText(this.attr.text).width;
+
+        if (this.style.textAlign === "center") {
+            x -= width / 2;
+        } else if (this.style.textAlign === "right") {
+            x -= width;
+        }
+
+        self.width = width;
+        self.height = height;
+
         self.BBox = {
-            x: translateX + x * scaleX,
-            y: translateY + (y - height + 5) * scaleY,
-            width: this.ctx.measureText(this.attr.text).width * scaleX,
+            x: (translateX + x) * scaleX,
+            y: (translateY + y) * scaleY,
+            width: width * scaleX,
             height: height * scaleY,
         };
 
@@ -7114,11 +7118,11 @@
     RenderText.prototype.execute = function RTexecute() {
         if (this.attr.text !== undefined && this.attr.text !== null) {
             if (this.ctx.fillStyle !== "#000000") {
-                this.ctx.fillText(this.attr.text, this.attr.x, this.attr.y);
+                this.ctx.fillText(this.attr.text, this.attr.x, this.height);
             }
 
             if (this.ctx.strokeStyle !== "#000000") {
-                this.ctx.strokeText(this.attr.text, this.attr.x, this.attr.y);
+                this.ctx.strokeText(this.attr.text, this.attr.x, this.height);
             }
         }
     };
@@ -7126,12 +7130,13 @@
     RenderText.prototype.applyStyles = function RTapplyStyles() {};
 
     RenderText.prototype.in = function RTinfun(co) {
-        return (
-            co.x >= this.attr.x &&
-            co.x <= this.attr.x + this.attr.width &&
-            co.y >= this.attr.y &&
-            co.y <= this.attr.y + this.attr.height
-        );
+        var ref = this.attr;
+        var x = ref.x; if ( x === void 0 ) x = 0;
+        var y = ref.y; if ( y === void 0 ) y = 0;
+        var ref$1 = this;
+        var width = ref$1.width; if ( width === void 0 ) width = 0;
+        var height = ref$1.height; if ( height === void 0 ) height = 0;
+        return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
     };
     /** ***************** Render Circle */
 
@@ -8037,23 +8042,19 @@
 
     CanvasNodeExe.prototype.setStyle = function CsetStyle(attr, value) {
         if (arguments.length === 2) {
-            if (value) {
-                this.style[attr] = valueCheck(value);
+            if (value == null && this.style[attr] != null) {
+                delete this.style[attr];
             } else {
-                if (this.style[attr]) {
-                    delete this.style[attr];
-                }
+                this.style[attr] = valueCheck(value);
             }
         } else if (arguments.length === 1 && typeof attr === "object") {
             var styleKeys = Object.keys(attr);
 
             for (var i = 0, len = styleKeys.length; i < len; i += 1) {
-                if (attr[styleKeys[i]]) {
-                    this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
+                if (attr[styleKeys[i]] == null && this.style[styleKeys[i]] != null) {
+                    delete this.style[styleKeys[i]];
                 } else {
-                    if (this.style[styleKeys[i]]) {
-                        delete this.style[styleKeys[i]];
-                    }
+                    this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
                 }
             }
         }
@@ -8072,13 +8073,21 @@
 
     CanvasNodeExe.prototype.setAttr = function CsetAttr(attr, value) {
         if (arguments.length === 2) {
-            this.attr[attr] = value;
+            if (value == null && this.attr[attr] != null) {
+                delete this.attr[attr];
+            } else {
+                this.attr[attr] = value;
+            }
             this.dom.setAttr(attr, value);
         } else if (arguments.length === 1 && typeof attr === "object") {
             var keys = Object.keys(attr);
 
             for (var i = 0; i < keys.length; i += 1) {
-                this.attr[keys[i]] = attr[keys[i]];
+                if (attr[keys[i]] == null && this.attr[keys[i]] != null) {
+                    delete this.attr[keys[i]];
+                } else {
+                    this.attr[keys[i]] = attr[keys[i]];
+                }
                 this.dom.setAttr(keys[i], attr[keys[i]]);
             }
         }
@@ -8164,6 +8173,9 @@
     };
 
     CanvasNodeExe.prototype.execute = function Cexecute() {
+        if (this.style.display === "none") {
+            return;
+        }
         this.ctx.save();
         this.stylesExe();
         this.attributesExe();
@@ -9840,7 +9852,7 @@
 
     LineNode.prototype.setAttr = function (key, value) {
         this.attr[key] = value;
-        if (value === undefined || value === null) {
+        if (value == null && this.attr[key] != null) {
             delete this.attr[key];
             return;
         }
@@ -9940,7 +9952,7 @@
 
     PolygonNode.prototype.setAttr = function (key, value) {
         this.attr[key] = value;
-        if (value === undefined || value === null) {
+        if (value == null) {
             delete this.attr[key];
             return;
         }
@@ -9981,7 +9993,7 @@
 
     CircleNode.prototype.setAttr = function (prop, value) {
         this.attr[prop] = value;
-        if (value === undefined || value === null) {
+        if (value == null) {
             delete this.attr[prop];
             return;
         }
@@ -10148,7 +10160,7 @@
     TextNode.prototype.setAttr = function (key, value) {
         this.attr[key] = value;
 
-        if (value === undefined || value === null) {
+        if (value == null) {
             delete this.attr[key];
             return;
         }
@@ -10433,7 +10445,7 @@
     ImageNode.prototype.setAttr = function (key, value) {
         this.attr[key] = value;
 
-        if (value === undefined || value === null) {
+        if (value == null) {
             delete this.attr[key];
             return;
         }
@@ -12428,20 +12440,20 @@
 
     WebglNodeExe.prototype.setAttr = function WsetAttr(attr, value) {
         if (arguments.length === 2) {
-            if (value === undefined || value === null) {
+            if (value == null && this.attr[attr] != null) {
                 delete this.attr[attr];
             } else {
                 this.attr[attr] = value;
-                this.dom.setAttr(attr, value);
             }
+            this.dom.setAttr(attr, value);
         } else if (arguments.length === 1 && typeof attr === "object") {
             for (var key in attr) {
-                if (attr[key] === undefined || attr[key] === null) {
+                if (attr[key] == null && this.attr[attr] != null) {
                     delete this.attr[key];
                 } else {
                     this.attr[key] = attr[key];
-                    this.dom.setAttr(key, attr[key]);
                 }
+                this.dom.setAttr(key, attr[key]);
             }
         }
         this.BBoxUpdate = true;
@@ -12451,19 +12463,27 @@
 
     WebglNodeExe.prototype.setStyle = function WsetStyle(attr, value) {
         if (arguments.length === 2) {
-            if (attr === "fill" || attr === "stroke") {
-                value = colorMap$1.colorToRGB(value);
+            if (value == null && this.style[attr] != null) {
+                delete this.style[attr];
+            } else {
+                if (attr === "fill" || attr === "stroke") {
+                    value = colorMap$1.colorToRGB(value);
+                }
+                this.style[attr] = value;
             }
-            this.style[attr] = value;
+
             this.dom.setStyle(attr, value);
         } else if (arguments.length === 1 && typeof attr === "object") {
             for (var key in attr) {
                 value = attr[key];
-
-                if (key === "fill" || key === "stroke") {
-                    value = colorMap$1.colorToRGB(attr[key]);
+                if (value == null && this.style[key] != null) {
+                    delete this.style[key];
+                } else {
+                    if (key === "fill" || key === "stroke") {
+                        value = colorMap$1.colorToRGB(value);
+                    }
+                    this.style[key] = value;
                 }
-                this.style[key] = value;
                 this.dom.setStyle(key, value);
             }
         }
@@ -12506,7 +12526,7 @@
             this.events = {};
         }
 
-        if (!hndlr && this.events[eventType]) {
+        if (hndlr == null && this.events[eventType] != null) {
             delete this.events[eventType];
         } else if (hndlr) {
             if (typeof hndlr === "function") {

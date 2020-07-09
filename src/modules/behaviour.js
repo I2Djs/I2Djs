@@ -128,13 +128,9 @@ DragClass.prototype = {
     execute: function (trgt, event, eventType) {
         let self = this;
         this.event.e = event;
-        // if ((event.type === 'touchstart' || event.type === 'touchmove') && event.touches && event.touches.length > 0) {
-        // 	event.offsetX = event.touches[0].clientX;
-        // 	event.offsetY = event.touches[0].clientY;
-        // } else if (event.type === 'touchend' || event.type === 'touchcancel') {
-        // 	event.offsetX = this.event.x;
-        // 	event.offsetY = this.event.y;
-        // }
+        if (event.preventDefault) {
+            event.preventDefault();
+        }
         if (!this.dragStartFlag && (eventType === "mousedown" || eventType === "pointerdown")) {
             self.onDragStart(trgt, event);
         } else if (
@@ -147,9 +143,6 @@ DragClass.prototype = {
             self.onDragEnd(trgt, event);
         } else if (this.onDrag) {
             self.onDrag(trgt, event);
-        }
-        if (event.preventDefault) {
-            event.preventDefault();
         }
     },
 };
@@ -329,18 +322,21 @@ ZoomClass.prototype.zoomTransition = function () {};
 
 ZoomClass.prototype.zoomExecute = function (trgt, event, eventsInstance) {
     this.eventType = "zoom";
+    if (event.preventDefault) {
+        event.preventDefault();
+    }
     if (!this.zoomStartFlag) {
         this.onZoomStart(trgt, event, eventsInstance);
     } else {
         this.onZoom(trgt, event);
     }
-    if (event.preventDefault) {
-        event.preventDefault();
-    }
 };
 
 ZoomClass.prototype.zoomPinch = function (trgt, event, eventsInstance) {
     let pointers = eventsInstance.pointers;
+    if (event.preventDefault) {
+        event.preventDefault();
+    }
     if (eventsInstance.pointers.length === 2) {
         if (!this.zoomStartFlag) {
             this.onZoomStart(trgt, event, eventsInstance);
@@ -365,9 +361,6 @@ ZoomClass.prototype.zoomPinch = function (trgt, event, eventsInstance) {
             this.event.distance = distance;
             this.onZoom(trgt, pinchEvent);
         }
-    }
-    if (event.preventDefault) {
-        event.preventDefault();
     }
 };
 
@@ -540,6 +533,9 @@ ZoomClass.prototype.panExecute = function (trgt, event, eventType, eventsInstanc
     }
     this.event.e = event;
     this.eventType = "pan";
+    if (event.preventDefault) {
+        event.preventDefault();
+    }
     if (
         event.type === "touchstart" ||
         event.type === "touchmove" ||

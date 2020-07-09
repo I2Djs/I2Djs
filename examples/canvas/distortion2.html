@@ -19,12 +19,21 @@
             height = document.getElementById("myCanvas").offsetHeight;
             width = document.getElementById("myCanvas").offsetWidth;
 
-            var renderer_ = i2d.canvasLayer("#myCanvas", {}, false);
+            var renderer_ = i2d.canvasLayer(
+                "#myCanvas",
+                {},
+                {
+                    enableEvents: false,
+                }
+            );
             var group = renderer_.createEl({
                 el: "group",
                 bbox: false,
+                style: {
+                    fillStyle: "white",
+                },
             });
-            group.setStyle("fillStyle", "white");
+
             var queue = i2d.queue;
             var circlesGrid = [];
             var rad = Math.pow(500, 2);

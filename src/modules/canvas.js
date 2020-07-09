@@ -41,18 +41,18 @@ function getPixlRatio(ctx) {
 }
 
 function domSetAttribute(attr, value) {
-    if (value !== undefined) {
-        this.attr[attr] = value;
-    } else {
+    if (value == null && this.attr[attr] != null) {
         delete this.attr[attr];
+    } else {
+        this.attr[attr] = value;
     }
 }
 
 function domSetStyle(attr, value) {
-    if (value !== undefined) {
-        this.style[attr] = value;
-    } else {
+    if (value == null && this.style[attr] != null) {
         delete this.style[attr];
+    } else {
+        this.style[attr] = value;
     }
 }
 
@@ -620,23 +620,31 @@ RenderText.prototype.text = function RTtext(value) {
 
 RenderText.prototype.updateBBox = function RTupdateBBox() {
     const self = this;
-    // let translateX = 0;
-    // let translateY = 0;
-    // let scaleX = 1;
-    // let scaleY = 1;
     let height = 1;
-    const { x = 0, y = 0, transform } = self.attr;
+    let width = 0;
+    let { x = 0, y = 0, transform } = self.attr;
     let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     if (this.style.font) {
         this.ctx.font = this.style.font;
-        height = parseInt(this.style.font, 10);
+        height = parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1;
     }
 
+    width = this.ctx.measureText(this.attr.text).width;
+
+    if (this.style.textAlign === "center") {
+        x -= width / 2;
+    } else if (this.style.textAlign === "right") {
+        x -= width;
+    }
+
+    self.width = width;
+    self.height = height;
+
     self.BBox = {
-        x: translateX + x * scaleX,
-        y: translateY + (y - height + 5) * scaleY,
-        width: this.ctx.measureText(this.attr.text).width * scaleX,
+        x: (translateX + x) * scaleX,
+        y: (translateY + y) * scaleY,
+        width: width * scaleX,
         height: height * scaleY,
     };
 
@@ -650,11 +658,11 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
 RenderText.prototype.execute = function RTexecute() {
     if (this.attr.text !== undefined && this.attr.text !== null) {
         if (this.ctx.fillStyle !== "#000000") {
-            this.ctx.fillText(this.attr.text, this.attr.x, this.attr.y);
+            this.ctx.fillText(this.attr.text, this.attr.x, this.height);
         }
 
         if (this.ctx.strokeStyle !== "#000000") {
-            this.ctx.strokeText(this.attr.text, this.attr.x, this.attr.y);
+            this.ctx.strokeText(this.attr.text, this.attr.x, this.height);
         }
     }
 };
@@ -662,12 +670,9 @@ RenderText.prototype.execute = function RTexecute() {
 RenderText.prototype.applyStyles = function RTapplyStyles() {};
 
 RenderText.prototype.in = function RTinfun(co) {
-    return (
-        co.x >= this.attr.x &&
-        co.x <= this.attr.x + this.attr.width &&
-        co.y >= this.attr.y &&
-        co.y <= this.attr.y + this.attr.height
-    );
+    const { x = 0, y = 0 } = this.attr;
+    const { width = 0, height = 0 } = this;
+    return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
 };
 /** ***************** Render Circle */
 
@@ -1483,23 +1488,19 @@ CanvasNodeExe.prototype.attributesExe = function CattributesExe() {
 
 CanvasNodeExe.prototype.setStyle = function CsetStyle(attr, value) {
     if (arguments.length === 2) {
-        if (value) {
-            this.style[attr] = valueCheck(value);
+        if (value == null && this.style[attr] != null) {
+            delete this.style[attr];
         } else {
-            if (this.style[attr]) {
-                delete this.style[attr];
-            }
+            this.style[attr] = valueCheck(value);
         }
     } else if (arguments.length === 1 && typeof attr === "object") {
         const styleKeys = Object.keys(attr);
 
         for (let i = 0, len = styleKeys.length; i < len; i += 1) {
-            if (attr[styleKeys[i]]) {
-                this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
+            if (attr[styleKeys[i]] == null && this.style[styleKeys[i]] != null) {
+                delete this.style[styleKeys[i]];
             } else {
-                if (this.style[styleKeys[i]]) {
-                    delete this.style[styleKeys[i]];
-                }
+                this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
             }
         }
     }
@@ -1518,13 +1519,21 @@ function valueCheck(value) {
 
 CanvasNodeExe.prototype.setAttr = function CsetAttr(attr, value) {
     if (arguments.length === 2) {
-        this.attr[attr] = value;
+        if (value == null && this.attr[attr] != null) {
+            delete this.attr[attr];
+        } else {
+            this.attr[attr] = value;
+        }
         this.dom.setAttr(attr, value);
     } else if (arguments.length === 1 && typeof attr === "object") {
         const keys = Object.keys(attr);
 
         for (let i = 0; i < keys.length; i += 1) {
-            this.attr[keys[i]] = attr[keys[i]];
+            if (attr[keys[i]] == null && this.attr[keys[i]] != null) {
+                delete this.attr[keys[i]];
+            } else {
+                this.attr[keys[i]] = attr[keys[i]];
+            }
             this.dom.setAttr(keys[i], attr[keys[i]]);
         }
     }
@@ -1610,6 +1619,9 @@ CanvasNodeExe.prototype.skewY = function CskewY(y) {
 };
 
 CanvasNodeExe.prototype.execute = function Cexecute() {
+    if (this.style.display === "none") {
+        return;
+    }
     this.ctx.save();
     this.stylesExe();
     this.attributesExe();
