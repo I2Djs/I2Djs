@@ -630,7 +630,7 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
 
     if (this.style.font) {
         this.ctx.font = this.style.font;
-        height = parseInt(this.style.font, 10);
+        height = parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1;
     }
 
     self.BBox = {
@@ -663,10 +663,10 @@ RenderText.prototype.applyStyles = function RTapplyStyles() {};
 
 RenderText.prototype.in = function RTinfun(co) {
     return (
-        co.x >= this.attr.x &&
-        co.x <= this.attr.x + this.attr.width &&
-        co.y >= this.attr.y &&
-        co.y <= this.attr.y + this.attr.height
+        co.x >= this.BBox.x &&
+        co.x <= this.BBox.x + this.BBox.width &&
+        co.y >= this.BBox.y &&
+        co.y <= this.BBox.y + this.BBox.height
     );
 };
 /** ***************** Render Circle */
