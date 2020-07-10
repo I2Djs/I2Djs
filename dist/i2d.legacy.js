@@ -7100,6 +7100,8 @@
 
         self.width = width;
         self.height = height;
+        self.x = x;
+        self.y = y;
 
         self.BBox = {
             x: (translateX + x) * scaleX,
@@ -7118,11 +7120,11 @@
     RenderText.prototype.execute = function RTexecute() {
         if (this.attr.text !== undefined && this.attr.text !== null) {
             if (this.ctx.fillStyle !== "#000000") {
-                this.ctx.fillText(this.attr.text, this.attr.x, this.height);
+                this.ctx.fillText(this.attr.text, this.attr.x, this.attr.y + this.height);
             }
 
             if (this.ctx.strokeStyle !== "#000000") {
-                this.ctx.strokeText(this.attr.text, this.attr.x, this.height);
+                this.ctx.strokeText(this.attr.text, this.attr.x, this.attr.y + this.height);
             }
         }
     };
@@ -7130,12 +7132,11 @@
     RenderText.prototype.applyStyles = function RTapplyStyles() {};
 
     RenderText.prototype.in = function RTinfun(co) {
-        var ref = this.attr;
+        var ref = this;
         var x = ref.x; if ( x === void 0 ) x = 0;
         var y = ref.y; if ( y === void 0 ) y = 0;
-        var ref$1 = this;
-        var width = ref$1.width; if ( width === void 0 ) width = 0;
-        var height = ref$1.height; if ( height === void 0 ) height = 0;
+        var width = ref.width; if ( width === void 0 ) width = 0;
+        var height = ref.height; if ( height === void 0 ) height = 0;
         return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
     };
     /** ***************** Render Circle */
