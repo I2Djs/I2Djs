@@ -12727,7 +12727,7 @@
         root.height = height;
         root.width = width;
         root.type = "WEBGL";
-        root.pixelRatio = ratio;
+        root.ctx.pixelRatio = ratio;
 
         var onClear = function (ctx) {
             ctx.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -12810,6 +12810,12 @@
             if (onChangeExe) {
                 onChangeExe();
             }
+        };
+
+        root.setPixelRatio = function (val) {
+            ratio = val;
+            this.ctx.pixelRatio = ratio;
+            this.setSize(this.width, this.height);
         };
 
         root.setSize = function (width_, height_) {
