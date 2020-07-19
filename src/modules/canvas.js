@@ -354,12 +354,12 @@ function createCanvasClip(patternConfig) {
     return new CanvasClipping(this, patternConfig);
 }
 
-function CanvasPattern(self, config = {}) {
+function CanvasPattern(self, config = {}, width = 0, height = 0) {
     let selfSelf = this;
     let patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
     this.repeatInd = config.repeat ? config.repeat : "repeat";
     if (self.ENV === "NODE") {
-        selfSelf.pattern = canvasNodeLayer({}, 0, 0);
+        selfSelf.pattern = canvasNodeLayer({}, height, width);
     } else {
         selfSelf.pattern = canvasLayer(
             null,
@@ -369,6 +369,7 @@ function CanvasPattern(self, config = {}) {
                 enableResize: false,
             }
         );
+        selfSelf.setSize(width, height);
     }
 
     selfSelf.pattern.setAttr("id", patternId);
@@ -387,8 +388,8 @@ CanvasPattern.prototype.exe = function () {
     return this.patternObj;
 };
 
-function createCanvasPattern(patternConfig) {
-    return new CanvasPattern(this, patternConfig);
+function createCanvasPattern(patternConfig, width = 0, height = 0) {
+    return new CanvasPattern(this, patternConfig, width, height);
 }
 
 function applyStyles() {
