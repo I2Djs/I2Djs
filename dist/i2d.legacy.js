@@ -6786,7 +6786,7 @@
         var selfSelf = this;
         var patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
         this.repeatInd = config.repeat ? config.repeat : "repeat";
-        if (selfSelf.ENV === "NODE") {
+        if (self.ENV === "NODE") {
             selfSelf.pattern = canvasNodeLayer({}, 0, 0);
         } else {
             selfSelf.pattern = canvasLayer(
@@ -8653,7 +8653,7 @@
             console.error('Make "Canvas" "Image" "Path2D" objects global from the above modules');
             return;
         }
-
+        var onChangeExe;
         var layer = new Canvas(width, height);
         var ctx = layer.getContext("2d", config);
         var ratio = getPixlRatio(ctx);
@@ -8683,6 +8683,10 @@
 
         root.setClear = function (exe) {
             onClear = exe;
+        };
+
+        root.onChange = function (exec) {
+            onChangeExe = exec;
         };
 
         root.getPixels = function (x, y, width_, height_) {
@@ -8724,6 +8728,21 @@
             ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
             root.updateBBox();
             execute();
+        };
+
+        root.execute = function executeExe() {
+            onClear(ctx);
+            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+            this.updateBBox();
+            execute();
+            if (onChangeExe && this.stateModified) {
+                onChangeExe();
+            }
+            this.stateModified = false;
+        };
+
+        root.update = function executeUpdate() {
+            this.execute();
         };
 
         root.toDataURL = function () {
