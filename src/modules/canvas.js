@@ -2150,6 +2150,39 @@ function canvasNodeLayer(config, height = 0, width = 0) {
         return this.domEl.toDataURL();
     };
 
+    root.getPixels = function (x, y, width_, height_) {
+        let imageData = this.ctx.getImageData(x, y, width_, height_);
+        let pixelInstance = new PixelObject(imageData, width_, height_);
+
+        return pixelInstance;
+    };
+
+    root.putPixels = function (Pixels, x, y) {
+        if (!(Pixels instanceof PixelObject)) {
+            return;
+        }
+        return this.ctx.putImageData(Pixels.imageData, x, y);
+    };
+
+    root.clear = function () {
+        onClear();
+    };
+
+    root.setContext = function (prop, value) {
+        /** Expecting value to be array if multiple aruments */
+        if (this.ctx[prop] && typeof this.ctx[prop] === "function") {
+            this.ctx[prop].apply(null, value);
+        } else if (this.ctx[prop]) {
+            this.ctx[prop] = value;
+        }
+    };
+
+    root.createPattern = createCanvasPattern;
+
+    root.createClip = createCanvasClip;
+
+    root.createMask = createCanvasMask;
+
     return root;
 }
 
