@@ -6786,14 +6786,19 @@
         var selfSelf = this;
         var patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
         this.repeatInd = config.repeat ? config.repeat : "repeat";
-        selfSelf.pattern = canvasLayer(
-            null,
-            {},
-            {
-                enableEvents: false,
-                enableResize: false,
-            }
-        );
+        if (selfSelf.ENV === "NODE") {
+            selfSelf.pattern = canvasNodeLayer({}, 0, 0);
+        } else {
+            selfSelf.pattern = canvasLayer(
+                null,
+                {},
+                {
+                    enableEvents: false,
+                    enableResize: false,
+                }
+            );
+        }
+
         selfSelf.pattern.setAttr("id", patternId);
         self.prependChild([selfSelf.pattern]);
         selfSelf.pattern.vDomIndex = self.vDomIndex + ":" + patternId;
@@ -8699,6 +8704,19 @@
             } else if (this.ctx[prop]) {
                 this.ctx[prop] = value;
             }
+        };
+
+        root.setSize = function (width_, height_) {
+            // cHeight = height_;
+            // cWidth = width_;
+            width = width_;
+            height = height_;
+            this.domEl = new Canvas(width, height);
+            ctx = this.domEl.getContext("2d", config);
+            this.width = width;
+            this.height = height;
+            this.ctx = ctx;
+            this.execute();
         };
 
         root.execute = function () {

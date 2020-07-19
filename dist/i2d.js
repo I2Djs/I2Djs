@@ -6736,14 +6736,19 @@
         let selfSelf = this;
         let patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
         this.repeatInd = config.repeat ? config.repeat : "repeat";
-        selfSelf.pattern = canvasLayer(
-            null,
-            {},
-            {
-                enableEvents: false,
-                enableResize: false,
-            }
-        );
+        if (selfSelf.ENV === "NODE") {
+            selfSelf.pattern = canvasNodeLayer({}, 0, 0);
+        } else {
+            selfSelf.pattern = canvasLayer(
+                null,
+                {},
+                {
+                    enableEvents: false,
+                    enableResize: false,
+                }
+            );
+        }
+
         selfSelf.pattern.setAttr("id", patternId);
         self.prependChild([selfSelf.pattern]);
         selfSelf.pattern.vDomIndex = self.vDomIndex + ":" + patternId;
@@ -8466,14 +8471,14 @@
         }
 
         let layer = new Canvas(width, height);
-        const ctx = layer.getContext("2d", config);
+        let ctx = layer.getContext("2d", config);
         let ratio = getPixlRatio(ctx);
         let onClear = function (ctx) {
             ctx.clearRect(0, 0, width * ratio, height * ratio);
         };
         const vDomInstance = new VDom();
         const vDomIndex = queueInstance$4.addVdom(vDomInstance);
-        const root = new CanvasNodeExe(
+        let root = new CanvasNodeExe(
             ctx,
             {
                 el: "g",
@@ -8515,6 +8520,19 @@
             } else if (this.ctx[prop]) {
                 this.ctx[prop] = value;
             }
+        };
+
+        root.setSize = function (width_, height_) {
+            // cHeight = height_;
+            // cWidth = width_;
+            width = width_;
+            height = height_;
+            this.domEl = new Canvas(width, height);
+            ctx = this.domEl.getContext("2d", config);
+            this.width = width;
+            this.height = height;
+            this.ctx = ctx;
+            this.execute();
         };
 
         root.execute = function () {
