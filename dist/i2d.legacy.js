@@ -6799,7 +6799,7 @@
                     enableResize: false,
                 }
             );
-            selfSelf.setSize(width, height);
+            selfSelf.pattern.setSize(width, height);
         }
 
         selfSelf.pattern.setAttr("id", patternId);

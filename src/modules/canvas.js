@@ -369,7 +369,7 @@ function CanvasPattern(self, config = {}, width = 0, height = 0) {
                 enableResize: false,
             }
         );
-        selfSelf.setSize(width, height);
+        selfSelf.pattern.setSize(width, height);
     }
 
     selfSelf.pattern.setAttr("id", patternId);
