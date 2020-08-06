@@ -37,23 +37,23 @@ function shaders(el) {
         case "circle":
             res = {
                 vertexShader: `
-        precision highp float;
-          attribute vec2 a_position;
-          attribute vec4 a_color;
-          attribute float a_radius;
-          uniform vec2 u_resolution;
-          uniform vec2 u_translate;
-          uniform vec2 u_scale;
-          varying vec4 v_color;
-          void main() {
-            vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;
-            vec2 zeroToTwo = zeroToOne * 2.0;
-            vec2 clipSpace = zeroToTwo - 1.0;
-            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-            gl_PointSize = a_radius * u_scale.x;
-            v_color = a_color;
-          }
-          `,
+                  precision highp float;
+                    attribute vec2 a_position;
+                    attribute vec4 a_color;
+                    attribute float a_radius;
+                    uniform vec2 u_resolution;
+                    uniform vec2 u_translate;
+                    uniform vec2 u_scale;
+                    varying vec4 v_color;
+                    void main() {
+                      vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;
+                      vec2 zeroToTwo = zeroToOne * 2.0;
+                      vec2 clipSpace = zeroToTwo - 1.0;
+                      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+                      gl_PointSize = a_radius * u_scale.x;
+                      v_color = a_color;
+                    }
+                    `,
                 fragmentShader: `
                     precision mediump float;
                     varying vec4 v_color;
@@ -140,8 +140,13 @@ function shaders(el) {
                     uniform float u_opacity;
                     varying vec2 v_texCoord;
                     void main() {
-                      gl_FragColor = texture2D(u_image, v_texCoord);
-                      gl_FragColor.a *= u_opacity;
+                      vec4 col = texture2D(u_image, v_texCoord);
+                      if (col.a == 0.0) {
+                        discard;
+                      } else {
+                        gl_FragColor = col;
+                        gl_FragColor.a *= u_opacity;
+                      }
                     }
                     `,
             };

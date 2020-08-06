@@ -1,5 +1,5 @@
 /*!
-      * i2djs v3.2.0
+      * i2djs v3.3.0
       * (c) 2020 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
@@ -6732,18 +6732,24 @@
         return new CanvasClipping(this, patternConfig);
     }
 
-    function CanvasPattern(self, config = {}) {
+    function CanvasPattern(self, config = {}, width = 0, height = 0) {
         let selfSelf = this;
         let patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
         this.repeatInd = config.repeat ? config.repeat : "repeat";
-        selfSelf.pattern = canvasLayer(
-            null,
-            {},
-            {
-                enableEvents: false,
-                enableResize: false,
-            }
-        );
+        if (self.ENV === "NODE") {
+            selfSelf.pattern = canvasNodeLayer({}, height, width);
+        } else {
+            selfSelf.pattern = canvasLayer(
+                null,
+                {},
+                {
+                    enableEvents: false,
+                    enableResize: false,
+                }
+            );
+            selfSelf.pattern.setSize(width, height);
+        }
+
         selfSelf.pattern.setAttr("id", patternId);
         self.prependChild([selfSelf.pattern]);
         selfSelf.pattern.vDomIndex = self.vDomIndex + ":" + patternId;
@@ -6760,8 +6766,8 @@
         return this.patternObj;
     };
 
-    function createCanvasPattern(patternConfig) {
-        return new CanvasPattern(this, patternConfig);
+    function createCanvasPattern(patternConfig, width = 0, height = 0) {
+        return new CanvasPattern(this, patternConfig, width, height);
     }
 
     function applyStyles() {
@@ -8464,16 +8470,16 @@
             console.error('Make "Canvas" "Image" "Path2D" objects global from the above modules');
             return;
         }
-
+        let onChangeExe;
         let layer = new Canvas(width, height);
-        const ctx = layer.getContext("2d", config);
+        let ctx = layer.getContext("2d", config);
         let ratio = getPixlRatio(ctx);
         let onClear = function (ctx) {
             ctx.clearRect(0, 0, width * ratio, height * ratio);
         };
         const vDomInstance = new VDom();
         const vDomIndex = queueInstance$4.addVdom(vDomInstance);
-        const root = new CanvasNodeExe(
+        let root = new CanvasNodeExe(
             ctx,
             {
                 el: "g",
@@ -8494,6 +8500,10 @@
 
         root.setClear = function (exe) {
             onClear = exe;
+        };
+
+        root.onChange = function (exec) {
+            onChangeExe = exec;
         };
 
         root.getPixels = function (x, y, width_, height_) {
@@ -8517,6 +8527,19 @@
             }
         };
 
+        root.setSize = function (width_, height_) {
+            // cHeight = height_;
+            // cWidth = width_;
+            width = width_;
+            height = height_;
+            this.domEl = new Canvas(width, height);
+            ctx = this.domEl.getContext("2d", config);
+            this.width = width;
+            this.height = height;
+            this.ctx = ctx;
+            this.execute();
+        };
+
         root.execute = function () {
             onClear(ctx);
             ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -8524,9 +8547,57 @@
             execute();
         };
 
+        root.execute = function executeExe() {
+            onClear(ctx);
+            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+            this.updateBBox();
+            execute();
+            if (onChangeExe && this.stateModified) {
+                onChangeExe();
+            }
+            this.stateModified = false;
+        };
+
+        root.update = function executeUpdate() {
+            this.execute();
+        };
+
         root.toDataURL = function () {
             return this.domEl.toDataURL();
         };
+
+        root.getPixels = function (x, y, width_, height_) {
+            let imageData = this.ctx.getImageData(x, y, width_, height_);
+            let pixelInstance = new PixelObject(imageData, width_, height_);
+
+            return pixelInstance;
+        };
+
+        root.putPixels = function (Pixels, x, y) {
+            if (!(Pixels instanceof PixelObject)) {
+                return;
+            }
+            return this.ctx.putImageData(Pixels.imageData, x, y);
+        };
+
+        root.clear = function () {
+            onClear();
+        };
+
+        root.setContext = function (prop, value) {
+            /** Expecting value to be array if multiple aruments */
+            if (this.ctx[prop] && typeof this.ctx[prop] === "function") {
+                this.ctx[prop].apply(null, value);
+            } else if (this.ctx[prop]) {
+                this.ctx[prop] = value;
+            }
+        };
+
+        root.createPattern = createCanvasPattern;
+
+        root.createClip = createCanvasClip;
+
+        root.createMask = createCanvasMask;
 
         return root;
     }
@@ -8575,23 +8646,23 @@
             case "circle":
                 res = {
                     vertexShader: `
-        precision highp float;
-          attribute vec2 a_position;
-          attribute vec4 a_color;
-          attribute float a_radius;
-          uniform vec2 u_resolution;
-          uniform vec2 u_translate;
-          uniform vec2 u_scale;
-          varying vec4 v_color;
-          void main() {
-            vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;
-            vec2 zeroToTwo = zeroToOne * 2.0;
-            vec2 clipSpace = zeroToTwo - 1.0;
-            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-            gl_PointSize = a_radius * u_scale.x;
-            v_color = a_color;
-          }
-          `,
+                  precision highp float;
+                    attribute vec2 a_position;
+                    attribute vec4 a_color;
+                    attribute float a_radius;
+                    uniform vec2 u_resolution;
+                    uniform vec2 u_translate;
+                    uniform vec2 u_scale;
+                    varying vec4 v_color;
+                    void main() {
+                      vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;
+                      vec2 zeroToTwo = zeroToOne * 2.0;
+                      vec2 clipSpace = zeroToTwo - 1.0;
+                      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+                      gl_PointSize = a_radius * u_scale.x;
+                      v_color = a_color;
+                    }
+                    `,
                     fragmentShader: `
                     precision mediump float;
                     varying vec4 v_color;
@@ -8678,8 +8749,13 @@
                     uniform float u_opacity;
                     varying vec2 v_texCoord;
                     void main() {
-                      gl_FragColor = texture2D(u_image, v_texCoord);
-                      gl_FragColor.a *= u_opacity;
+                      vec4 col = texture2D(u_image, v_texCoord);
+                      if (col.a == 0.0) {
+                        discard;
+                      } else {
+                        gl_FragColor = col;
+                        gl_FragColor.a *= u_opacity;
+                      }
                     }
                     `,
                 };
@@ -9988,7 +10064,7 @@
 
     function buildCanvasTextEl(str, style) {
         const layer = document.createElement("canvas");
-        const ctx = layer.getContext("2d", { alpha: false });
+        const ctx = layer.getContext("2d");
         style = style || {
             fill: "#fff",
         };
@@ -10003,8 +10079,8 @@
         let height = fontSize;
         layer.setAttribute("height", height * ratio);
         layer.setAttribute("width", width * ratio);
-        layer.style.width = width;
-        layer.style.height = height;
+        // layer.style.width = width;
+        // layer.style.height = height;
 
         style.font =
             fontSize * ratio +

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html style="height: 100%; background: #000;">
+<html style="height: 100%;">
     <head>
         <title></title>
     </head>
@@ -8,7 +8,13 @@
         <script type="text/javascript" src="../../dist/i2d.js"></script>
 
         <script type="text/javascript">
-            var webglRenderer = i2d.webglLayer("#canvas", {}, {});
+            var webglRenderer = i2d.webglLayer(
+                "#canvas",
+                {
+                    alpha: true,
+                },
+                {}
+            );
             var data = [
                 "I2Djs",
                 "Graphics",
@@ -1028,6 +1034,7 @@
                 "Graphics",
                 "Visualization",
                 "2D",
+                "I2Djs",
             ];
 
             webglRenderer
@@ -1052,7 +1059,7 @@
                         },
                     },
                     style: {
-                        font: "20px Arial",
+                        font: "10px Arial",
                         fillStyle: function () {
                             return "hsl(" + Math.round(Math.random() * 360) + ",83%, 59%)";
                         },
