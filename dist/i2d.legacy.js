@@ -8810,7 +8810,7 @@
 
             case "circle":
                 res = {
-                    vertexShader: "\n        precision highp float;\n          attribute vec2 a_position;\n          attribute vec4 a_color;\n          attribute float a_radius;\n          uniform vec2 u_resolution;\n          uniform vec2 u_translate;\n          uniform vec2 u_scale;\n          varying vec4 v_color;\n          void main() {\n            vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;\n            vec2 zeroToTwo = zeroToOne * 2.0;\n            vec2 clipSpace = zeroToTwo - 1.0;\n            gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n            gl_PointSize = a_radius * u_scale.x;\n            v_color = a_color;\n          }\n          ",
+                    vertexShader: "\n                  precision highp float;\n                    attribute vec2 a_position;\n                    attribute vec4 a_color;\n                    attribute float a_radius;\n                    uniform vec2 u_resolution;\n                    uniform vec2 u_translate;\n                    uniform vec2 u_scale;\n                    varying vec4 v_color;\n                    void main() {\n                      vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;\n                      vec2 zeroToTwo = zeroToOne * 2.0;\n                      vec2 clipSpace = zeroToTwo - 1.0;\n                      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                      gl_PointSize = a_radius * u_scale.x;\n                      v_color = a_color;\n                    }\n                    ",
                     fragmentShader: "\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                      float r = 0.0, delta = 0.0, alpha = 1.0;\n                      vec2 cxy = 2.0 * gl_PointCoord - 1.0;\n                      r = dot(cxy, cxy);\n                      if(r > 1.0) {\n                        discard;\n                      }\n                      delta = 0.09;\n                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);\n                      gl_FragColor = v_color * alpha;\n                    }\n                    ",
                 };
                 break;
@@ -8825,7 +8825,7 @@
             case "image":
                 res = {
                     vertexShader: "\n                    precision highp float;\n                    attribute vec2 a_position;\n                    attribute vec2 a_texCoord;\n                    uniform vec2 u_resolution;\n                    uniform vec2 u_translate;\n                    uniform vec2 u_scale;\n                    varying vec2 v_texCoord;\n                    void main() {\n                      vec2 zeroToOne = (u_translate + (u_scale * a_position)) / u_resolution;\n                      vec2 clipSpace = zeroToOne * 2.0 - 1.0;\n                      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n                      v_texCoord = a_texCoord;\n                    }\n          ",
-                    fragmentShader: "\n                    precision mediump float;\n                    uniform sampler2D u_image;\n                    uniform float u_opacity;\n                    varying vec2 v_texCoord;\n                    void main() {\n                      gl_FragColor = texture2D(u_image, v_texCoord);\n                      gl_FragColor.a *= u_opacity;\n                    }\n                    ",
+                    fragmentShader: "\n                    precision mediump float;\n                    uniform sampler2D u_image;\n                    uniform float u_opacity;\n                    varying vec2 v_texCoord;\n                    void main() {\n                      vec4 col = texture2D(u_image, v_texCoord);\n                      if (col.a == 0.0) {\n                        discard;\n                      } else {\n                        gl_FragColor = col;\n                        gl_FragColor.a *= u_opacity;\n                      }\n                    }\n                    ",
                 };
                 break;
 
@@ -10145,7 +10145,7 @@
 
     function buildCanvasTextEl(str, style) {
         var layer = document.createElement("canvas");
-        var ctx = layer.getContext("2d", { alpha: false });
+        var ctx = layer.getContext("2d");
         style = style || {
             fill: "#fff",
         };

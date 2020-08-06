@@ -577,7 +577,7 @@ let onClear = function (ctx, width, height, ratio) {
 
 function buildCanvasTextEl(str, style) {
     const layer = document.createElement("canvas");
-    const ctx = layer.getContext("2d", { alpha: false });
+    const ctx = layer.getContext("2d");
     style = style || {
         fill: "#fff",
     };
