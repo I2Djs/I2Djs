@@ -11,10 +11,10 @@
             var webglRenderer = i2d.webglLayer("#canvas", {}, {});
 
             var rectsData = [];
-            for (let i = 0; i < 100; i++) {
+            for (let i = 0; i < 100000; i++) {
                 rectsData.push({
-                    x: parseInt(Math.random() * 1000),
-                    y: parseInt(Math.random() * 1000),
+                    x: parseInt(Math.random() * 500),
+                    y: parseInt(Math.random() * 400),
                     image: "../images/leaves2.jpg",
                 });
             }
@@ -34,10 +34,10 @@
                             return Math.random() * 1000;
                         },
                         y: function () {
-                            return Math.random() * 900;
+                            return Math.random() * 500;
                         },
-                        width: 50,
-                        height: 50,
+                        width: 2,
+                        height: 2,
                         src: function (d) {
                             return d.image;
                         },
@@ -57,7 +57,7 @@
                         },
                     },
                     end: function () {
-                        this.remove();
+                        // this.remove();
                     },
                 });
         </script>

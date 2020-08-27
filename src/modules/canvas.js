@@ -907,9 +907,7 @@ RenderPath.prototype.updateBBox = function RPupdateBBox() {
     // }
 
     self.BBox = self.path
-        ? t2DGeometry.getBBox(
-              self.path.stackGroup.length > 0 ? self.path.stackGroup : [self.path.stack]
-          )
+        ? self.path.BBox
         : {
               x: 0,
               y: 0,
