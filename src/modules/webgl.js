@@ -1889,12 +1889,6 @@ function RenderWebglPoints(ctx, attr, style, vDomIndex) {
             scale: [1.0, 1.0],
         };
     }
-    // if (!this.attr.transform.scale) {
-    //     this.attr.transform.scale = [1.0, 1.0];
-    // }
-    // if (!this.attr.transform.translate) {
-    //     this.attr.transform.translate = [0.0, 0.0];
-    // }
 
     this.geometry = new PointsGeometry();
     this.geometry.setAttr("a_color", {
@@ -1923,12 +1917,6 @@ function RenderWebglPoints(ctx, attr, style, vDomIndex) {
                 u_resolution: {
                     value: new Float32Array([1.0, 1.0]),
                 },
-                // u_translate: {
-                //     value: new Float32Array(this.attr.transform.translate),
-                // },
-                // u_scale: {
-                //     value: new Float32Array(this.attr.transform.scale),
-                // },
             },
             geometry: this.geometry,
         },
@@ -1953,69 +1941,23 @@ RenderWebglPoints.prototype.clear = function (index) {
     clearColor(this, index, 1);
     clearVertex(this, index, 1);
     clearTransform(this, index, 1);
-    // let colorArray = this.colorUpdate ? this.colorArray : this.typedColorArray;
-    // let ti = index * 4;
-
-    // colorArray[ti] = undefined;
-    // colorArray[ti + 1] = undefined;
-    // colorArray[ti + 2] = undefined;
-    // colorArray[ti + 3] = undefined;
-
-    // let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
-    // let len = index * 2;
-    // positionArray[len] = undefined;
-    // positionArray[len + 1] = undefined;
 
     let sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
     sizeArray[index] = undefined;
 
-    // this.filterPositionFlag = true;
-    // this.filterColorFlag = true;
     this.filterSizeFlag = true;
 };
 
 RenderWebglPoints.prototype.addTransform = function (transform, index) {
     addTransform(this, index, 1, transform);
-    // this.transform =
-    //     this.transformTyped && this.transformTyped.length > 0
-    //         ? Array.from(this.transformTyped)
-    //         : this.transform;
-    // this.transformTyped = null;
-    // let len = index * 4;
-    // let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-    // this.transform[len] = translateX
-    // this.transform[len + 1] = translateY
-    // this.transform[len + 2] = scaleX
-    // this.transform[len + 3] = scaleY;
-    // this.transformUpdate = true;
 };
 
 RenderWebglPoints.prototype.updateTransform = function (index, transform) {
     updateTransform(this, index, 1, transform);
-    // let colorArray = this.colorUpdate ? this.colorArray : this.typedColorArray;
-    // let ti = index * 24;
-    // if (isNaN(colorArray[ti])) {
-    //     console.log("overriding Nan");
-    // }
-    // colorArray[ti] = colorArray[ti + 4] = colorArray[ti + 8] = fill.r / 255;
-    // colorArray[ti + 12] = colorArray[ti + 16] = colorArray[ti + 20] = fill.r / 255;
-
-    // colorArray[ti + 1] = colorArray[ti + 5] = colorArray[ti + 9] = fill.g / 255;
-    // colorArray[ti + 13] = colorArray[ti + 17] = colorArray[ti + 21] = fill.g / 255;
-
-    // colorArray[ti + 2] = colorArray[ti + 6] = colorArray[ti + 10] = fill.b / 255;
-    // colorArray[ti + 14] = colorArray[ti + 18] = colorArray[ti + 22] = fill.b / 255;
-
-    // colorArray[ti + 3] = colorArray[ti + 7] = fill.a === undefined ? 1 : fill.a / 255;
-    // colorArray[ti + 11] = colorArray[ti + 15] = colorArray[ti + 19] = colorArray[ti + 23] =
-    //     fill.a === undefined ? 1 : fill.a / 255;
 };
 
 RenderWebglPoints.prototype.updateVertex = function (index, x, y) {
     updateVertex(this, index, 1, [x, y]);
-    // let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
-    // positionArray[index * 2] = x;
-    // positionArray[index * 2 + 1] = y;
 };
 
 RenderWebglPoints.prototype.updateSize = function (index, size) {
@@ -2025,22 +1967,10 @@ RenderWebglPoints.prototype.updateSize = function (index, size) {
 
 RenderWebglPoints.prototype.updateColor = function (index, fill) {
     updateColor(this, index, 1, fill);
-    // let colorArray = this.colorUpdate ? this.colorArray : this.typedColorArray;
-    // colorArray[index * 4] = fill.r / 255;
-    // colorArray[index * 4 + 1] = fill.g / 255;
-    // colorArray[index * 4 + 2] = fill.b / 255;
-    // colorArray[index * 4 + 3] = fill.a === undefined ? 1 : fill.a / 255;
 };
 
 RenderWebglPoints.prototype.addVertex = function (x, y, index) {
     addVertex(this, index, 1, [x, y]);
-    // this.positionArray =
-    //     this.typedPositionArray && this.typedPositionArray.length > 0
-    //         ? Array.from(this.typedPositionArray)
-    //         : this.positionArray;
-    // this.positionArray[index * 2] = x;
-    // this.positionArray[index * 2 + 1] = y;
-    // this.vertexUpdate = true;
 };
 
 RenderWebglPoints.prototype.addSize = function (size, index) {
@@ -2054,15 +1984,6 @@ RenderWebglPoints.prototype.addSize = function (size, index) {
 
 RenderWebglPoints.prototype.addColors = function (fill, index) {
     addColors(this, index, 1, fill);
-    // this.colorArray =
-    //     this.typedColorArray && this.typedColorArray.length > 0
-    //         ? Array.from(this.typedColorArray)
-    //         : this.colorArray;
-    // this.colorArray[index * 4] = fill.r / 255;
-    // this.colorArray[index * 4 + 1] = fill.g / 255;
-    // this.colorArray[index * 4 + 2] = fill.b / 255;
-    // this.colorArray[index * 4 + 3] = fill.a === undefined ? 1 : fill.a / 255;
-    // this.colorUpdate = true;
 };
 
 RenderWebglPoints.prototype.execute = function (stack) {
@@ -2073,28 +1994,6 @@ RenderWebglPoints.prototype.execute = function (stack) {
     vertexExec(this);
     colorExec(this);
     transformExec(this);
-    // if (this.vertexUpdate) {
-    //     if (this.filterPositionFlag) {
-    //         this.positionArray = this.positionArray.filter(function (d) {
-    //             return !isNaN(d);
-    //         });
-    //         this.filterPositionFlag = false;
-    //     }
-    //     this.typedPositionArray = new Float32Array(this.positionArray);
-    //     this.positionArray = [];
-    //     this.vertexUpdate = false;
-    // }
-    // if (this.colorUpdate) {
-    //     if (this.filterColorFlag) {
-    //         this.colorArray = this.colorArray.filter(function (d) {
-    //             return !isNaN(d);
-    //         });
-    //         this.filterColorFlag = false;
-    //     }
-    //     this.typedColorArray = new Float32Array(this.colorArray);
-    //     this.colorArray = [];
-    //     this.colorUpdate = false;
-    // }
     if (this.sizeUpdate) {
         if (this.filterSizeFlag) {
             this.pointsSize = this.pointsSize.filter(function (d) {
@@ -2106,18 +2005,6 @@ RenderWebglPoints.prototype.execute = function (stack) {
         this.pointsSize = [];
         this.sizeUpdate = false;
     }
-    // if (this.filterPositionFlag) {
-    //     this.typedPositionArray = this.typedPositionArray.filter(function (d) {
-    //         return !isNaN(d);
-    //     });
-    //     this.filterPositionFlag = false;
-    // }
-    // if (this.filterColorFlag) {
-    //     this.typedColorArray = this.typedColorArray.filter(function (d) {
-    //         return !isNaN(d);
-    //     });
-    //     this.filterColorFlag = false;
-    // }
     if (this.filterSizeFlag) {
         this.typedSizeArray = this.typedSizeArray.filter(function (d) {
             return !isNaN(d);
@@ -2128,15 +2015,6 @@ RenderWebglPoints.prototype.execute = function (stack) {
         "u_resolution",
         new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio])
     );
-    // this.shaderInstance.setUniformData(
-    //     "u_scale",
-    //     new Float32Array([this.attr.transform.scale[0], this.attr.transform.scale[1]])
-    // );
-    // this.shaderInstance.setUniformData(
-    //     "u_translate",
-    //     new Float32Array([this.attr.transform.translate[0], this.attr.transform.translate[1]])
-    // );
-    // this.shaderInstance.setAttributeData("a_color", this.typedColorArray);
     this.shaderInstance.setAttributeData("a_size", this.typedSizeArray);
     // this.shaderInstance.setAttributeData("a_position", this.typedPositionArray);
     this.geometry.setDrawRange(0, this.typedPositionArray.length / 2);
@@ -2194,12 +2072,6 @@ function RenderWebglRects(ctx, attr, style, renderTarget, vDomIndex) {
                 u_resolution: {
                     value: new Float32Array([1.0, 1.0]),
                 },
-                // u_translate: {
-                //     value: new Float32Array(this.attr.transform.translate),
-                // },
-                // u_scale: {
-                //     value: new Float32Array(this.attr.transform.scale),
-                // },
             },
             geometry: this.geometry,
         },
@@ -2218,152 +2090,34 @@ RenderWebglRects.prototype.clear = function (index) {
     clearColor(this, index, 6);
     clearVertex(this, index, 6);
     clearTransform(this, index, 6);
-    // let colorArray = this.colorUpdate ? this.colorArray : this.typedColorArray;
-    // let ti = index * 24;
-
-    // colorArray[ti] = colorArray[ti + 4] = colorArray[ti + 8] = undefined;
-    // colorArray[ti + 12] = colorArray[ti + 16] = colorArray[ti + 20] = undefined;
-
-    // colorArray[ti + 1] = colorArray[ti + 5] = colorArray[ti + 9] = undefined;
-    // colorArray[ti + 13] = colorArray[ti + 17] = colorArray[ti + 21] = undefined;
-
-    // colorArray[ti + 2] = colorArray[ti + 6] = colorArray[ti + 10] = undefined;
-    // colorArray[ti + 14] = colorArray[ti + 18] = colorArray[ti + 22] = undefined;
-
-    // colorArray[ti + 3] = colorArray[ti + 7] = colorArray[ti + 11] = undefined;
-    // colorArray[ti + 15] = colorArray[ti + 19] = colorArray[ti + 23] = undefined;
-
-    // let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
-    // let len = index * 12;
-    // positionArray[len] = positionArray[len + 4] = positionArray[len + 6] = undefined;
-    // positionArray[len + 2] = positionArray[len + 8] = positionArray[len + 10] = undefined;
-    // positionArray[len + 1] = positionArray[len + 3] = positionArray[len + 9] = undefined;
-    // positionArray[len + 5] = positionArray[len + 7] = positionArray[len + 11] = undefined;
-
-    // let transformArray = this.transformUpdate ? this.transform : this.transformTyped;
-    // let len = index * 4;
-    // transformArray[len] = undefined;
-    // transformArray[len + 1] = undefined;
-    // transformArray[len + 2] = undefined;
-    // transformArray[len + 3] = undefined;
-
-    // this.filterPositionFlag = true;
-    // this.filterColorFlag = true;
-    // this.transformFlag = true;
 };
 
 RenderWebglRects.prototype.updateVertex = function (index, x, y, width, height) {
     let x1 = x + width;
     let y1 = y + height;
     updateVertex(this, index, 6, [x, y, x1, y, x, y1, x, y1, x1, y, x1, y1]);
-
-    // let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
-    // let len = index * 12;
-    // let x1 = x + width;
-    // if (isNaN(positionArray[len])) {
-    //     console.log("overriding Nan");
-    // }
-    // positionArray[len] = positionArray[len + 4] = positionArray[len + 6] = x;
-    // positionArray[len + 2] = positionArray[len + 8] = positionArray[len + 10] = x1;
 };
-
-// RenderWebglRects.prototype.updateVertexY = function (index, y, height) {
-//     let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
-//     let len = index * 12;
-//     let y1 = y + height;
-//     positionArray[len + 1] = positionArray[len + 3] = positionArray[len + 9] = y;
-//     positionArray[len + 5] = positionArray[len + 7] = positionArray[len + 11] = y1;
-// };
 
 RenderWebglRects.prototype.updateTransform = function (index, transform) {
     updateTransform(this, index, 6, transform);
-    // let transform_ = this.transformUpdate ? this.transform : this.transformTyped;
-    // let len = index * 4;
-    // transform_[len + 0] = transform.translate[0];
-    // transform_[len + 1] = transform.translate[1];
-    // transform_[len + 2] = transform.scale[0];
-    // transform_[len + 3] = transform.scale[1];
 };
 
 RenderWebglRects.prototype.addTransform = function (transform, index) {
     addTransform(this, index, 6, transform);
-    // this.transform =
-    //     this.transformTyped && this.transformTyped.length > 0
-    //         ? Array.from(this.transformTyped)
-    //         : this.transform;
-    // this.transformTyped = null;
-    // let len = index * 4;
-    // let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-    // this.transform[len] = translateX
-    // this.transform[len + 1] = translateY
-    // this.transform[len + 2] = scaleX
-    // this.transform[len + 3] = scaleY;
-    // this.transformUpdate = true;
 };
 
 RenderWebglRects.prototype.updateColor = function (index, fill) {
     updateColor(this, index, 6, fill);
-    // let colorArray = this.colorUpdate ? this.colorArray : this.typedColorArray;
-    // let ti = index * 24;
-    // if (isNaN(colorArray[ti])) {
-    //     console.log("overriding Nan");
-    // }
-    // colorArray[ti] = colorArray[ti + 4] = colorArray[ti + 8] = fill.r / 255;
-    // colorArray[ti + 12] = colorArray[ti + 16] = colorArray[ti + 20] = fill.r / 255;
-
-    // colorArray[ti + 1] = colorArray[ti + 5] = colorArray[ti + 9] = fill.g / 255;
-    // colorArray[ti + 13] = colorArray[ti + 17] = colorArray[ti + 21] = fill.g / 255;
-
-    // colorArray[ti + 2] = colorArray[ti + 6] = colorArray[ti + 10] = fill.b / 255;
-    // colorArray[ti + 14] = colorArray[ti + 18] = colorArray[ti + 22] = fill.b / 255;
-
-    // colorArray[ti + 3] = colorArray[ti + 7] = fill.a === undefined ? 1 : fill.a / 255;
-    // colorArray[ti + 11] = colorArray[ti + 15] = colorArray[ti + 19] = colorArray[ti + 23] =
-    //     fill.a === undefined ? 1 : fill.a / 255;
 };
 
 RenderWebglRects.prototype.addVertex = function (x, y, width, height, index) {
     let x1 = x + width;
     let y1 = y + height;
     addVertex(this, index, 6, [x, y, x1, y, x, y1, x, y1, x1, y, x1, y1]);
-    // this.positionArray =
-    //     this.typedPositionArray && this.typedPositionArray.length > 0
-    //         ? Array.from(this.typedPositionArray)
-    //         : this.positionArray;
-    // this.typedPositionArray = null;
-    // let len = index * 12;
-    // let x1 = x + width;
-    // let y1 = y + height;
-
-    // this.positionArray[len] = this.positionArray[len + 4] = this.positionArray[len + 6] = x;
-    // this.positionArray[len + 1] = this.positionArray[len + 3] = this.positionArray[len + 9] = y;
-    // this.positionArray[len + 2] = this.positionArray[len + 8] = this.positionArray[len + 10] = x1;
-    // this.positionArray[len + 5] = this.positionArray[len + 7] = this.positionArray[len + 11] = y1;
-    // this.vertexUpdate = true;
 };
 
 RenderWebglRects.prototype.addColors = function (fill, index) {
     addColors(this, index, 6, fill);
-    // this.colorArray =
-    //     this.typedColorArray && this.typedColorArray.length > 0
-    //         ? Array.from(this.typedColorArray)
-    //         : this.colorArray;
-    // this.typedColorArray = null;
-    // let ti = index * 24;
-    // this.colorArray[ti] = this.colorArray[ti + 4] = this.colorArray[ti + 8] = fill.r / 255;
-    // this.colorArray[ti + 12] = this.colorArray[ti + 16] = this.colorArray[ti + 20] = fill.r / 255;
-
-    // this.colorArray[ti + 1] = this.colorArray[ti + 5] = this.colorArray[ti + 9] = fill.g / 255;
-    // this.colorArray[ti + 13] = this.colorArray[ti + 17] = this.colorArray[ti + 21] = fill.g / 255;
-
-    // this.colorArray[ti + 2] = this.colorArray[ti + 6] = this.colorArray[ti + 10] = fill.b / 255;
-    // this.colorArray[ti + 14] = this.colorArray[ti + 18] = this.colorArray[ti + 22] = fill.b / 255;
-
-    // this.colorArray[ti + 3] = this.colorArray[ti + 7] = fill.a === undefined ? 1 : fill.a / 255;
-    // this.colorArray[ti + 11] = this.colorArray[ti + 15] = fill.a === undefined ? 1 : fill.a / 255;
-    // this.colorArray[ti + 19] = this.colorArray[ti + 23] = fill.a === undefined ? 1 : fill.a / 255;
-
-    // this.colorUpdate = true;
 };
 
 RenderWebglRects.prototype.execute = function (stack) {
@@ -2374,55 +2128,11 @@ RenderWebglRects.prototype.execute = function (stack) {
     colorExec(this);
     transformExec(this);
     vertexExec(this);
-    // if (this.vertexUpdate) {
-    //     if (this.filterPositionFlag) {
-    //         this.positionArray = this.positionArray.filter(function (d) {
-    //             return !isNaN(d);
-    //         });
-    //         this.filterPositionFlag = false;
-    //     }
-    //     this.typedPositionArray = new Float32Array(this.positionArray);
-    //     this.positionArray = [];
-    //     this.vertexUpdate = false;
-    // }
-    // if (this.colorUpdate) {
-    //     if (this.filterColorFlag) {
-    //         this.colorArray = this.colorArray.filter(function (d) {
-    //             return !isNaN(d);
-    //         });
-    //         this.filterColorFlag = false;
-    //     }
-    //     this.typedColorArray = new Float32Array(this.colorArray);
-    //     this.colorArray = [];
-    //     this.colorUpdate = false;
-    // }
-    // if (this.filterPositionFlag) {
-    //     this.typedPositionArray = this.typedPositionArray.filter(function (d) {
-    //         return !isNaN(d);
-    //     });
-    //     this.filterPositionFlag = false;
-    // }
-    // if (this.filterColorFlag) {
-    //     this.typedColorArray = this.typedColorArray.filter(function (d) {
-    //         return !isNaN(d);
-    //     });
-    //     this.filterColorFlag = false;
-    // }
-    // this.shaderInstance.setAttributeData("a_color", this.typedColorArray);
-    // this.shaderInstance.setAttributeData("a_position", this.typedPositionArray);
     this.geometry.setDrawRange(0, this.typedPositionArray.length / 2);
     this.shaderInstance.setUniformData(
         "u_resolution",
         new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio])
     );
-    // this.shaderInstance.setUniformData(
-    //     "u_scale",
-    //     new Float32Array([this.attr.transform.scale[0], this.attr.transform.scale[1]])
-    // );
-    // this.shaderInstance.setUniformData(
-    //     "u_translate",
-    //     new Float32Array([this.attr.transform.translate[0], this.attr.transform.translate[1]])
-    // );
     this.shaderInstance.execute();
     if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
         this.renderTarget.clear();
@@ -2475,12 +2185,6 @@ function RenderWebglLines(ctx, attr, style, renderTarget, vDomIndex) {
                 u_resolution: {
                     value: new Float32Array([1.0, 1.0]),
                 },
-                // u_translate: {
-                //     value: new Float32Array(this.attr.transform.translate),
-                // },
-                // u_scale: {
-                //     value: new Float32Array(this.attr.transform.scale),
-                // },
             },
             geometry: this.geometry,
         },
@@ -2494,109 +2198,30 @@ RenderWebglLines.prototype.constructor = RenderWebglLines;
 RenderWebglLines.prototype.clear = function (index) {
     clearColor(this, index, 2);
     clearVertex(this, index, 2);
-    // let colorArray = this.colorUpdate ? this.colorArray : this.typedColorArray;
-    // let ti = index * 8;
-
-    // colorArray[ti] = undefined;
-    // colorArray[ti + 1] = undefined;
-    // colorArray[ti + 2] = undefined;
-    // colorArray[ti + 3] = undefined;
-    // colorArray[ti + 4] = undefined;
-    // colorArray[ti + 5] = undefined;
-    // colorArray[ti + 6] = undefined;
-    // colorArray[ti + 7] = undefined;
-
-    // let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
-    // let len = index * 4;
-    // positionArray[len] = undefined;
-    // positionArray[len + 1] = undefined;
-    // positionArray[len + 2] = undefined;
-    // positionArray[len + 3] = undefined;
-
-    // colorArray[ti] = undefined;
-    // colorArray[ti + 1] = undefined;
-
-    // this.filterPositionFlag = true;
-    // this.filterColorFlag = true;
 };
 
 RenderWebglLines.prototype.updateTransform = function (index, transform) {
     updateTransform(this, index, 2, transform);
-    // let transform_ = this.transformUpdate ? this.transform : this.transformTyped;
-    // let len = index * 4;
-    // transform_[len + 0] = transform.translate[0];
-    // transform_[len + 1] = transform.translate[1];
-    // transform_[len + 2] = transform.scale[0];
-    // transform_[len + 3] = transform.scale[1];
 };
 
 RenderWebglLines.prototype.addTransform = function (transform, index) {
     addTransform(this, index, 2, transform);
-    // this.transform =
-    //     this.transformTyped && this.transformTyped.length > 0
-    //         ? Array.from(this.transformTyped)
-    //         : this.transform;
-    // this.transformTyped = null;
-    // let len = index * 4;
-    // let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-    // this.transform[len] = translateX
-    // this.transform[len + 1] = translateY
-    // this.transform[len + 2] = scaleX
-    // this.transform[len + 3] = scaleY;
-    // this.transformUpdate = true;
 };
 
 RenderWebglLines.prototype.updateVertex = function (index, x1, y1, x2, y2) {
     updateVertex(this, index, 2, [x1, y1, x2, y2]);
-    // let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
-    // let len = index * 4;
-    // positionArray[len] = x1;
-    // positionArray[len + 1] = y1;
-    // positionArray[len + 2] = x2;
-    // positionArray[len + 3] = y2;
 };
 
 RenderWebglLines.prototype.updateColor = function (index, stroke) {
     updateColor(this, index, 2, stroke);
-    // let colorArray = this.vertexUpdate ? this.colorArray : this.typedColorArray;
-    // colorArray[i * 8] = stroke.r / 255;
-    // colorArray[i * 8 + 1] = stroke.g / 255;
-    // colorArray[i * 8 + 2] = stroke.b / 255;
-    // colorArray[i * 8 + 3] = stroke.a === undefined ? 1 : stroke.a / 255;
-    // colorArray[i * 8 + 4] = stroke.r / 255;
-    // colorArray[i * 8 + 5] = stroke.g / 255;
-    // colorArray[i * 8 + 6] = stroke.b / 255;
-    // colorArray[i * 8 + 7] = stroke.a === undefined ? 1 : stroke.a / 255;
 };
 
 RenderWebglLines.prototype.addVertex = function (x1, y1, x2, y2, index) {
     addVertex(this, index, 2, [x1, y1, x2, y2]);
-    // this.positionArray =
-    //     this.typedPositionArray && this.typedPositionArray.length > 0
-    //         ? Array.from(this.typedPositionArray)
-    //         : this.positionArray;
-    // this.positionArray[index * 4] = x1;
-    // this.positionArray[index * 4 + 1] = y1;
-    // this.positionArray[index * 4 + 2] = x2;
-    // this.positionArray[index * 4 + 3] = y2;
-    // this.vertexUpdate = true;
 };
 
 RenderWebglLines.prototype.addColors = function (stroke, index) {
     addColors(this, index, 2, stroke);
-    // this.colorArray =
-    //     this.typedColorArray && this.typedColorArray.length > 0
-    //         ? Array.from(this.typedColorArray)
-    //         : this.colorArray;
-    // this.colorArray[index * 8] = stroke.r / 255;
-    // this.colorArray[index * 8 + 1] = stroke.g / 255;
-    // this.colorArray[index * 8 + 2] = stroke.b / 255;
-    // this.colorArray[index * 8 + 3] = stroke.a === undefined ? 1 : stroke.a / 255;
-    // this.colorArray[index * 8 + 4] = stroke.r / 255;
-    // this.colorArray[index * 8 + 5] = stroke.g / 255;
-    // this.colorArray[index * 8 + 6] = stroke.b / 255;
-    // this.colorArray[index * 8 + 7] = stroke.a === undefined ? 1 : stroke.a / 255;
-    // this.colorUpdate = true;
 };
 
 RenderWebglLines.prototype.execute = function (stack) {
@@ -2606,56 +2231,11 @@ RenderWebglLines.prototype.execute = function (stack) {
     vertexExec(this);
     colorExec(this);
     transformExec(this);
-    // if (this.vertexUpdate) {
-    //     if (this.filterPositionFlag) {
-    //         this.positionArray = this.positionArray.filter(function (d) {
-    //             return !isNaN(d);
-    //         });
-    //         this.filterPositionFlag = false;
-    //     }
-    //     this.typedPositionArray = new Float32Array(this.positionArray);
-    //     this.positionArray = [];
-    //     this.vertexUpdate = false;
-    // }
-    // if (this.colorUpdate) {
-    //     if (this.filterColorFlag) {
-    //         this.colorArray = this.colorArray.filter(function (d) {
-    //             return !isNaN(d);
-    //         });
-    //         this.filterColorFlag = false;
-    //     }
-    //     this.typedColorArray = new Float32Array(this.colorArray);
-    //     this.colorArray = [];
-    //     this.colorUpdate = false;
-    // }
-    // if (this.filterPositionFlag) {
-    //     this.typedPositionArray = this.typedPositionArray.filter(function (d) {
-    //         return !isNaN(d);
-    //     });
-    //     this.filterPositionFlag = false;
-    // }
-    // if (this.filterColorFlag) {
-    //     this.typedColorArray = this.typedColorArray.filter(function (d) {
-    //         return !isNaN(d);
-    //     });
-    //     this.filterColorFlag = false;
-    // }
-
-    // this.shaderInstance.setAttributeData("a_color", this.typedColorArray);
-    // this.shaderInstance.setAttributeData("a_position", this.typedPositionArray);
     this.geometry.setDrawRange(0, this.typedPositionArray.length / 2);
     this.shaderInstance.setUniformData(
         "u_resolution",
         new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio])
     );
-    // this.shaderInstance.setUniformData(
-    //     "u_scale",
-    //     new Float32Array([this.attr.transform.scale[0], this.attr.transform.scale[1]])
-    // );
-    // this.shaderInstance.setUniformData(
-    //     "u_translate",
-    //     new Float32Array([this.attr.transform.translate[0], this.attr.transform.translate[1]])
-    // );
     this.shaderInstance.execute();
     if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
         this.renderTarget.clear();
@@ -2875,12 +2455,6 @@ function RenderWebglCircles(ctx, attr, style, renderTarget, vDomIndex) {
                 u_resolution: {
                     value: new Float32Array([1.0, 1.0]),
                 },
-                // u_translate: {
-                //     value: new Float32Array(this.attr.transform.translate),
-                // },
-                // u_scale: {
-                //     value: new Float32Array(this.attr.transform.scale),
-                // },
             },
             geometry: this.geometry,
         },
@@ -2900,67 +2474,27 @@ RenderWebglCircles.prototype.clear = function (index) {
     clearColor(this, index, 1);
     clearVertex(this, index, 1);
     clearTransform(this, index, 1);
-    // let colorArray = this.colorUpdate ? this.colorArray : this.typedColorArray;
-    // let ti = index * 4;
-
-    // colorArray[ti] = undefined;
-    // colorArray[ti + 1] = undefined;
-    // colorArray[ti + 2] = undefined;
-    // colorArray[ti + 3] = undefined;
-
-    // let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
-    // let len = index * 2;
-    // positionArray[len] = undefined;
-    // positionArray[len + 1] = undefined;
 
     let sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
     sizeArray[index] = undefined;
 
-    // this.filterPositionFlag = true;
-    // this.filterColorFlag = true;
     this.filterSizeFlag = true;
 };
 
 RenderWebglCircles.prototype.updateTransform = function (index, transform) {
     updateTransform(this, index, 1, transform);
-    // let transform_ = this.transformUpdate ? this.transform : this.transformTyped;
-    // let len = index * 4;
-    // transform_[len + 0] = transform.translate[0];
-    // transform_[len + 1] = transform.translate[1];
-    // transform_[len + 2] = transform.scale[0];
-    // transform_[len + 3] = transform.scale[1];
 };
 
 RenderWebglCircles.prototype.addTransform = function (transform, index) {
     addTransform(this, index, 1, transform);
-    // this.transform =
-    //     this.transformTyped && this.transformTyped.length > 0
-    //         ? Array.from(this.transformTyped)
-    //         : this.transform;
-    // this.transformTyped = null;
-    // let len = index * 4;
-    // let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-    // this.transform[len] = translateX
-    // this.transform[len + 1] = translateY
-    // this.transform[len + 2] = scaleX
-    // this.transform[len + 3] = scaleY;
-    // this.transformUpdate = true;
 };
 
 RenderWebglCircles.prototype.updateVertex = function (index, x, y) {
     updateVertex(this, index, 1, [x, y]);
-    // let positionArray = this.vertexUpdate ? this.positionArray : this.typedPositionArray;
-    // positionArray[index * 2] = x;
-    // positionArray[index * 2 + 1] = y;
 };
 
 RenderWebglCircles.prototype.updateColor = function (index, fill) {
     updateColor(this, index, 1, fill);
-    // let colorArray = this.colorUpdate ? this.colorArray : this.typedColorArray;
-    // colorArray[index * 4] = fill.r / 255;
-    // colorArray[index * 4 + 1] = fill.g / 255;
-    // colorArray[index * 4 + 2] = fill.b / 255;
-    // colorArray[index * 4 + 3] = fill.a === undefined ? 1 : fill.a / 255;
 };
 
 RenderWebglCircles.prototype.updateSize = function (index, value) {
@@ -2970,13 +2504,6 @@ RenderWebglCircles.prototype.updateSize = function (index, value) {
 
 RenderWebglCircles.prototype.addVertex = function (x, y, index) {
     addVertex(this, index, 1, [x, y]);
-    // this.positionArray =
-    //     this.typedPositionArray && this.typedPositionArray.length > 0
-    //         ? Array.from(this.typedPositionArray)
-    //         : this.positionArray;
-    // this.positionArray[index * 2] = x;
-    // this.positionArray[index * 2 + 1] = y;
-    // this.vertexUpdate = true;
 };
 
 RenderWebglCircles.prototype.addSize = function (size, index) {
@@ -2990,15 +2517,6 @@ RenderWebglCircles.prototype.addSize = function (size, index) {
 
 RenderWebglCircles.prototype.addColors = function (fill, index) {
     addColors(this, index, 1, fill);
-    // this.colorArray =
-    //     this.typedColorArray && this.typedColorArray.length > 0
-    //         ? Array.from(this.typedColorArray)
-    //         : this.colorArray;
-    // this.colorArray[index * 4] = fill.r / 255;
-    // this.colorArray[index * 4 + 1] = fill.g / 255;
-    // this.colorArray[index * 4 + 2] = fill.b / 255;
-    // this.colorArray[index * 4 + 3] = fill.a === undefined ? 1 : fill.a / 255;
-    // this.colorUpdate = true;
 };
 
 RenderWebglCircles.prototype.execute = function (stack) {
@@ -3006,39 +2524,9 @@ RenderWebglCircles.prototype.execute = function (stack) {
         this.renderTarget.update();
     }
 
-    // if (!this.attr.transform.scale) {
-    //     this.attr.transform.scale = [1.0, 1.0];
-    // }
-
-    // if (!this.attr.transform.translate) {
-    //     this.attr.transform.translate = [0.0, 0.0];
-    // }
-
     vertexExec(this);
     colorExec(this);
     transformExec(this);
-    // if (this.vertexUpdate) {
-    //     if (this.filterPositionFlag) {
-    //         this.positionArray = this.positionArray.filter(function (d) {
-    //             return !isNaN(d);
-    //         });
-    //         this.filterPositionFlag = false;
-    //     }
-    //     this.typedPositionArray = new Float32Array(this.positionArray);
-    //     this.positionArray = [];
-    //     this.vertexUpdate = false;
-    // }
-    // if (this.colorUpdate) {
-    //     if (this.filterColorFlag) {
-    //         this.colorArray = this.colorArray.filter(function (d) {
-    //             return !isNaN(d);
-    //         });
-    //         this.filterColorFlag = false;
-    //     }
-    //     this.typedColorArray = new Float32Array(this.colorArray);
-    //     this.colorArray = [];
-    //     this.colorUpdate = false;
-    // }
     if (this.sizeUpdate) {
         if (this.filterSizeFlag) {
             this.pointsSize = this.pointsSize.filter(function (d) {
@@ -3050,18 +2538,6 @@ RenderWebglCircles.prototype.execute = function (stack) {
         this.pointsSize = [];
         this.sizeUpdate = false;
     }
-    // if (this.filterPositionFlag) {
-    //     this.typedPositionArray = this.typedPositionArray.filter(function (d) {
-    //         return !isNaN(d);
-    //     });
-    //     this.filterPositionFlag = false;
-    // }
-    // if (this.filterColorFlag) {
-    //     this.typedColorArray = this.typedColorArray.filter(function (d) {
-    //         return !isNaN(d);
-    //     });
-    //     this.filterColorFlag = false;
-    // }
     if (this.filterSizeFlag) {
         this.typedSizeArray = this.typedSizeArray.filter(function (d) {
             return !isNaN(d);
@@ -3073,17 +2549,7 @@ RenderWebglCircles.prototype.execute = function (stack) {
         "u_resolution",
         new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio])
     );
-    // this.shaderInstance.setUniformData(
-    //     "u_scale",
-    //     new Float32Array([this.attr.transform.scale[0], this.attr.transform.scale[1]])
-    // );
-    // this.shaderInstance.setUniformData(
-    //     "u_translate",
-    //     new Float32Array([this.attr.transform.translate[0], this.attr.transform.translate[1]])
-    // );
     this.shaderInstance.setAttributeData("a_radius", this.typedSizeArray);
-    // this.shaderInstance.setAttributeData("a_color", this.typedColorArray);
-    // this.shaderInstance.setAttributeData("a_position", this.typedPositionArray);
 
     this.geometry.setDrawRange(0, this.typedPositionArray.length / 2);
     this.shaderInstance.execute();
