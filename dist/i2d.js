@@ -8536,19 +8536,15 @@
           attribute float a_size;
           
           uniform vec2 u_resolution;
+          uniform vec4 u_transform;
           attribute vec4 a_transform;
-
-          // mat2 scale(vec2 _scale){
-          //     return mat2(_scale.x,0.0,
-          //                 0.0,_scale.y);
-          // }
           
           varying vec4 v_color;
           void main() {
-            vec2 zeroToOne = (a_transform.xy + a_position) / u_resolution;
+            vec2 zeroToOne = ((a_transform.xy + u_transform.xy) + a_position) / u_resolution;
             vec2 clipSpace = (zeroToOne * 2.0 - 1.0);
             gl_Position = vec4((clipSpace * vec2(1.0, -1.0)), 0, 1);
-            gl_PointSize = a_size * a_transform.z;
+            gl_PointSize = a_size * a_transform.z * u_transform.z;
             v_color = a_color;
           }
           `,
@@ -8570,19 +8566,15 @@
                     attribute vec4 a_color;
                     attribute float a_radius;
                     uniform vec2 u_resolution;
+                    uniform vec4 u_transform;
                     attribute vec4 a_transform;
                     varying vec4 v_color;
 
-                    mat2 scale(vec2 _scale){
-                        return mat2(_scale.x,0.0,
-                                    0.0,_scale.y);
-                    }
-
                     void main() {
-                      vec2 zeroToOne = (a_transform.xy + a_position) / u_resolution;
+                      vec2 zeroToOne = (a_transform.xy + u_transform.xy + a_position) / u_resolution;
                       vec2 clipSpace = (zeroToOne * 2.0 - 1.0);
                       gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-                      gl_PointSize = a_radius * a_transform.z;
+                      gl_PointSize = a_radius * a_transform.z * u_transform.z;
                       v_color = a_color;
                     }
                     `,
@@ -8613,20 +8605,17 @@
                       attribute float a_r1;
                       attribute float a_r2;
                       uniform vec2 u_resolution;
+                      uniform vec4 u_transform;
                       attribute vec4 a_transform;
                       varying vec4 v_color;
                       varying float v_r1;
                       varying float v_r2;
 
-                      mat2 scale(vec2 _scale){
-                          return mat2(_scale.x,0.0,
-                                      0.0,_scale.y);
-                      }
                       void main() {
-                        vec2 zeroToOne = (a_transform.xy + a_position) / u_resolution;
-                        vec2 clipSpace = scale(a_transform.zw) * (zeroToOne * 2.0 - 1.0);
+                        vec2 zeroToOne = (a_transform.xy + u_transform.xy + a_position) / u_resolution;
+                        vec2 clipSpace = (zeroToOne * 2.0 - 1.0);
                         gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-                        gl_PointSize = max(a_r1, a_r2);
+                        gl_PointSize = max(a_r1, a_r2) * a_transform.z * u_transform.z;
                         v_color = a_color;
                         v_r1 = a_r1;
                         v_r2 = a_r2;
@@ -8660,6 +8649,7 @@
                     attribute vec2 a_texCoord;
                     uniform vec2 u_resolution;
                     uniform vec4 u_transform;
+                    uniform vec4 uu_transform;
                     varying vec2 v_texCoord;
 
                     mat2 scale(vec2 _scale){
@@ -8668,8 +8658,9 @@
                     }
 
                     void main() {
-                      vec2 zeroToOne = (u_transform.xy + a_position) / u_resolution;
-                      vec2 clipSpace = scale(u_transform.zw) * (zeroToOne * 2.0 - 1.0);
+                      vec2 scale_ = vec2((uu_transform.z * u_transform.z), (uu_transform.w * u_transform.w));
+                      vec2 zeroToOne = (u_transform.xy + uu_transform.xy + a_position) / u_resolution;
+                      vec2 clipSpace = scale(scale_) * (zeroToOne * 2.0 - 1.0);
                       gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
                       v_texCoord = a_texCoord;
                     }
@@ -8699,6 +8690,7 @@
                     precision highp float;
                     attribute vec2 a_position;
                     uniform vec2 u_resolution;
+                    uniform vec4 uu_transform;
                     uniform vec4 u_transform;
 
                     mat2 scale(vec2 _scale){
@@ -8707,7 +8699,8 @@
                     }
 
                     void main() {
-                    vec2 zeroToOne = (u_transform.xy + a_position) / u_resolution;
+                    vec2 scale_ = vec2((uu_transform.z * u_transform.z), (uu_transform.w * u_transform.w));
+                    vec2 zeroToOne = (uu_transform.xy + u_transform.xy + a_position) / u_resolution;
                     vec2 clipSpace = scale(u_transform.zw) * (zeroToOne * 2.0 - 1.0);
                     gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
                     }
@@ -8729,6 +8722,7 @@
                     attribute vec2 a_position;
                     attribute vec4 a_color;
                     uniform vec2 u_resolution;
+                    uniform vec4 u_transform;
                     attribute vec4 a_transform;
                     varying vec4 v_color;
 
@@ -8738,8 +8732,9 @@
                     }
 
                     void main() {
-                    vec2 zeroToOne = (a_transform.xy + a_position) / u_resolution;
-                    vec2 clipSpace = scale(a_transform.zw) * (zeroToOne * 2.0 - 1.0);
+                    vec2 zeroToOne = (a_transform.xy + u_transform.xy + a_position) / u_resolution;
+                    vec2 scale_ = vec2((a_transform.z * u_transform.z), (a_transform.w * u_transform.w));
+                    vec2 clipSpace = scale(scale_) * (zeroToOne * 2.0 - 1.0);
                     gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0, 1);
                     v_color = a_color;
                     }
@@ -9955,6 +9950,12 @@
     function LineNode(attr, style) {
         this.attr = attr || {};
         this.style = style || {};
+        this.transform = [0, 0, 1, 1];
+
+        if (this.attr.transform) {
+            let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+            this.transform = [translateX, translateY, scaleX, scaleY];
+        }
     }
 
     LineNode.prototype = new WebglDom();
@@ -10048,9 +10049,14 @@
         this.style = style;
         this.positionArray = [];
         this.transform = [0, 0, 1, 1];
-
-        if (this.attr["points"]) {
-            this.points = polygonPointsMapper(this.attr["points"]);
+        let subPoints = [];
+        if (this.attr.points) {
+            let points = polygonPointsMapper(this.attr["points"]);
+            for (let j = 0, jlen = points.length; j < jlen; j++) {
+                subPoints[j * 2] = points[j].x;
+                subPoints[j * 2 + 1] = points[j].y;
+            }
+            this.points = new Float32Array(subPoints);
         }
         if (this.style.fill) {
             this.color = new Float32Array([
@@ -10084,10 +10090,28 @@
             return;
         }
         if (key === "points") {
-            this.points = polygonPointsMapper(value);
-            // if (this.shader) {
-            //     this.shader.updateVertex(this.triangulatedPoints || [], this.pindex);
-            // }
+            let subPoints = [];
+            let points = polygonPointsMapper(value);
+            for (let j = 0, jlen = points.length; j < jlen; j++) {
+                subPoints[j * 2] = points[j].x;
+                subPoints[j * 2 + 1] = points[j].y;
+            }
+            this.points = new Float32Array(subPoints);
+        }
+        // if (this.shader) {
+        //     this.shader.updateVertex(this.triangulatedPoints || [], this.pindex);
+        // }
+    };
+
+    PolygonNode.prototype.setStyle = function (key, value) {
+        this.style[key] = value;
+        if (key === "fill") {
+            this.color = new Float32Array([
+                this.style.fill.r / 255,
+                this.style.fill.g / 255,
+                this.style.fill.b / 255,
+                this.style.fill.a === undefined ? 1 : this.style.fill.a / 255,
+            ]);
         }
     };
 
@@ -10239,6 +10263,13 @@
         this.attr = attr;
         this.style = style;
         this.vDomIndex = vDomIndex;
+        this.positionArray = new Float32Array(12);
+        this.transform = [0, 0, 1, 1];
+
+        if (this.attr.transform) {
+            let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+            this.transform = [translateX, translateY, scaleX, scaleY];
+        }
 
         if (self.attr.text && typeof self.attr.text === "string") {
             this.text = buildCanvasTextEl(self.attr.text, self.style);
@@ -10263,16 +10294,16 @@
 
     TextNode.prototype.setShader = function (shader) {
         this.shader = shader;
-        if (this.shader) {
-            this.shader.addVertex(
-                this.attr.x || 0,
-                this.attr.y || 0,
-                this.attr.width || 0,
-                this.attr.height || 0,
-                this.pindex
-            );
-            // this.shader.addOpacity(1, this.pindex);
-        }
+        // if (this.shader) {
+        //     this.shader.addVertex(
+        //         this.attr.x || 0,
+        //         this.attr.y || 0,
+        //         this.attr.width || 0,
+        //         this.attr.height || 0,
+        //         this.pindex
+        //     );
+        //     // this.shader.addOpacity(1, this.pindex);
+        // }
     };
 
     TextNode.prototype.setAttr = function (key, value) {
@@ -10291,10 +10322,10 @@
             }
             this.attr.width = this.text.width;
             this.attr.height = this.text.height;
-            if (this.shader) {
-                this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
-                this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
-            }
+            // if (this.shader) {
+            //     this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+            //     this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
+            // }
             if (this.textureNode) {
                 this.textureNode.setAttr("src", this.text.dom);
             } else {
@@ -10308,12 +10339,31 @@
             }
         }
 
-        if (this.shader && key === "x") {
-            this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+        if (key === "transform") {
+            let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+            this.transform = [translateX, translateY, scaleX, scaleY];
         }
-        if (this.shader && key === "y") {
-            this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
+
+        if (key === "x" || key === "y") {
+            let x = this.attr["x"] || 0;
+            let y = this.attr["y"] || 0;
+            let width = this.attr["width"] || 0;
+            let height = this.attr["height"] || 0;
+            let x1 = x + width;
+            let y1 = y + height;
+
+            this.positionArray[0] = this.positionArray[4] = this.positionArray[6] = x;
+            this.positionArray[1] = this.positionArray[3] = this.positionArray[9] = y;
+            this.positionArray[2] = this.positionArray[8] = this.positionArray[10] = x1;
+            this.positionArray[5] = this.positionArray[7] = this.positionArray[11] = y1;
         }
+
+        // if (this.shader && key === "x") {
+        //     this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+        // }
+        // if (this.shader && key === "y") {
+        //     this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
+        // }
     };
 
     TextNode.prototype.setStyle = function (key, value) {
@@ -10614,6 +10664,11 @@
             this.positionArray[1] = this.positionArray[3] = this.positionArray[9] = y;
             this.positionArray[2] = this.positionArray[8] = this.positionArray[10] = x1;
             this.positionArray[5] = this.positionArray[7] = this.positionArray[11] = y1;
+        }
+
+        if (key === "transform") {
+            let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+            this.transform = [translateX, translateY, scaleX, scaleY];
         }
     };
 
@@ -11087,6 +11142,13 @@
     };
 
     function ShaderNodePrototype() {}
+    ShaderNodePrototype.prototype.setAttr = function (attr, value) {
+        this.attr[attr] = value;
+        if (attr === "transform") {
+            let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+            this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
+        }
+    };
     ShaderNodePrototype.prototype.translate = function (trans) {
         this.attr.transform["translate"] = trans;
     };
@@ -11309,6 +11371,7 @@
         this.vDomIndex = vDomIndex;
         this.indexBased = true;
         this.transform = [];
+        this.selftransform = [0, 0, 1, 1];
 
         if (!this.attr.transform) {
             this.attr.transform = {
@@ -11316,7 +11379,8 @@
                 scale: [1.0, 1.0],
             };
         }
-
+        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+        this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
         this.geometry = new PointsGeometry();
         this.geometry.setAttr("a_color", {
             value: new Float32Array([]),
@@ -11343,6 +11407,10 @@
                 uniforms: {
                     u_resolution: {
                         value: new Float32Array([1.0, 1.0]),
+                    },
+                    u_transform: {
+                        value: this.selftransform,
+                        size: 4,
                     },
                 },
                 geometry: this.geometry,
@@ -11442,6 +11510,7 @@
             "u_resolution",
             new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio])
         );
+        this.shaderInstance.setUniformData("u_transform", this.selftransform);
         this.shaderInstance.setAttributeData("a_size", this.typedSizeArray);
         // this.shaderInstance.setAttributeData("a_position", this.typedPositionArray);
         this.geometry.setDrawRange(0, this.typedPositionArray.length / 2);
@@ -11463,6 +11532,7 @@
         this.vDomIndex = vDomIndex;
         this.renderTarget = renderTarget;
         this.indexBased = true;
+        this.selftransform = [0, 0, 1, 1];
 
         if (!this.attr.transform) {
             this.attr.transform = {
@@ -11470,6 +11540,8 @@
                 scale: [1.0, 1.0],
             };
         }
+        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+        this.selftransform = [translateX, translateY, scaleX, scaleY];
 
         this.geometry = new MeshGeometry();
         this.geometry.setAttr("a_transform", {
@@ -11498,6 +11570,10 @@
                 uniforms: {
                     u_resolution: {
                         value: new Float32Array([1.0, 1.0]),
+                    },
+                    u_transform: {
+                        value: new Float32Array(this.selftransform),
+                        size: 4,
                     },
                 },
                 geometry: this.geometry,
@@ -11560,6 +11636,7 @@
             "u_resolution",
             new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio])
         );
+        this.shaderInstance.setUniformData("u_transform", this.selftransform);
         this.shaderInstance.execute();
         if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
             this.renderTarget.clear();
@@ -11580,12 +11657,16 @@
         this.renderTarget = renderTarget;
         this.indexBased = true;
 
+        this.selftransform = new Float32Array([0, 0, 1, 1]);
+
         if (!this.attr.transform) {
             this.attr.transform = {
                 translate: [0.0, 0.0],
                 scale: [1.0, 1.0],
             };
         }
+        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+        this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new LineGeometry();
         this.geometry.setAttr("a_color", {
@@ -11611,6 +11692,10 @@
                 uniforms: {
                     u_resolution: {
                         value: new Float32Array([1.0, 1.0]),
+                    },
+                    u_transform: {
+                        value: this.selftransform,
+                        size: 4,
                     },
                 },
                 geometry: this.geometry,
@@ -11663,6 +11748,7 @@
             "u_resolution",
             new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio])
         );
+        this.shaderInstance.setUniformData("u_transform", this.selftransform);
         this.shaderInstance.execute();
         if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
             this.renderTarget.clear();
@@ -11688,7 +11774,7 @@
         }
         let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
 
-        this.transform = [translateX, translateY, scaleX, scaleY];
+        this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new LineGeometry();
         this.geometry.drawType = "LINE_STRIP";
@@ -11707,8 +11793,12 @@
                     u_resolution: {
                         value: new Float32Array([1.0, 1.0]),
                     },
-                    u_transform: {
+                    uu_transform: {
                         value: new Float32Array(this.transform),
+                    },
+                    u_transform: {
+                        value: new Float32Array([]),
+                        size: 4,
                     },
                     u_color: {
                         value: new Float32Array(4),
@@ -11732,13 +11822,14 @@
             "u_resolution",
             new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio])
         );
-        let transform = new Float32Array(4);
+        this.shaderInstance.setUniformData("uu_transform", this.transform);
+        // let transform = new Float32Array(4);
         for (let i = 0, len = stack.length; i < len; i++) {
-            transform[0] = this.transform[0] + stack[i].dom.transform[0];
-            transform[1] = this.transform[1] + stack[i].dom.transform[1];
-            transform[2] = this.transform[2] * stack[i].dom.transform[2];
-            transform[3] = this.transform[3] * stack[i].dom.transform[3];
-            this.shaderInstance.setUniformData("u_transform", transform);
+            // transform[0] = this.transform[0] + stack[i].dom.transform[0];
+            // transform[1] = this.transform[1] + stack[i].dom.transform[1];
+            // transform[2] = this.transform[2] * stack[i].dom.transform[2];
+            // transform[3] = this.transform[3] * stack[i].dom.transform[3];
+            this.shaderInstance.setUniformData("u_transform", stack[i].dom.transform);
             this.shaderInstance.setAttributeData("a_position", stack[i].dom.points);
             this.shaderInstance.setUniformData("u_color", stack[i].dom.color);
             this.geometry.setDrawRange(0, stack[i].dom.points.length / 2);
@@ -11791,6 +11882,10 @@
                     u_transform: {
                         value: new Float32Array(this.transform),
                     },
+                    uu_transform: {
+                        value: new Float32Array([]),
+                        size: 4,
+                    },
                     u_color: {
                         value: new Float32Array(4),
                     },
@@ -11814,14 +11909,15 @@
             "u_resolution",
             new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio])
         );
+        this.shaderInstance.setUniformData("uu_transform", this.transform);
 
-        let transform = new Float32Array(4);
+        // let transform = new Float32Array(4);
         for (let i = 0, len = stack.length; i < len; i++) {
-            transform[0] = this.transform[0] + stack[i].dom.transform[0];
-            transform[1] = this.transform[1] + stack[i].dom.transform[1];
-            transform[2] = this.transform[2] * stack[i].dom.transform[2];
-            transform[3] = this.transform[3] * stack[i].dom.transform[3];
-            this.shaderInstance.setUniformData("u_transform", transform);
+            // transform[0] = this.transform[0] + stack[i].dom.transform[0];
+            // transform[1] = this.transform[1] + stack[i].dom.transform[1];
+            // transform[2] = this.transform[2] * stack[i].dom.transform[2];
+            // transform[3] = this.transform[3] * stack[i].dom.transform[3];
+            this.shaderInstance.setUniformData("u_transform", stack[i].dom.transform);
             this.shaderInstance.setAttributeData("a_position", stack[i].dom.points);
             this.shaderInstance.setUniformData("u_color", stack[i].dom.color);
             this.geometry.setDrawRange(0, stack[i].dom.points.length / 2);
@@ -11846,12 +11942,16 @@
         this.renderTarget = renderTarget;
         this.indexBased = true;
 
+        this.selftransform = [0, 0, 1, 1];
+
         if (!this.attr.transform) {
             this.attr.transform = {
                 translate: [0.0, 0.0],
                 scale: [1.0, 1.0],
             };
         }
+        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+        this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new PointsGeometry();
         this.geometry.setAttr("a_transform", {
@@ -11881,6 +11981,10 @@
                 uniforms: {
                     u_resolution: {
                         value: new Float32Array([1.0, 1.0]),
+                    },
+                    u_transform: {
+                        value: this.selftransform,
+                        size: 4,
                     },
                 },
                 geometry: this.geometry,
@@ -11976,6 +12080,7 @@
             "u_resolution",
             new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio])
         );
+        this.shaderInstance.setUniformData("u_transform", this.selftransform);
         this.shaderInstance.setAttributeData("a_radius", this.typedSizeArray);
 
         this.geometry.setDrawRange(0, this.typedPositionArray.length / 2);
@@ -12004,7 +12109,7 @@
 
         let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
 
-        this.transform = [translateX, translateY, scaleX, scaleY];
+        this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new MeshGeometry();
         this.geometry.setAttr("a_texCoord", {
@@ -12027,7 +12132,12 @@
                         value: new Float32Array([1.0, 1.0]),
                     },
                     u_transform: {
-                        value: new Float32Array(this.transform),
+                        value: new Float32Array([]),
+                        size: 4,
+                    },
+                    uu_transform: {
+                        value: this.transform,
+                        size: 4,
                     },
                     u_image: {
                         value: new TextureObject(this.ctx, {}, this.vDomIndex),
@@ -12059,18 +12169,13 @@
             "u_resolution",
             new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio])
         );
+        this.shaderInstance.applyUniformData("uu_transform", this.transform);
         this.shaderInstance.applyAttributeData("a_texCoord", this.textCoor);
 
         let gOp = this.style.opacity !== undefined ? this.style.opacity : 1.0;
-
-        let transform = new Float32Array(4);
         let prevTexture;
         for (let i = 0, len = stack.length; i < len; i++) {
             let node = stack[i];
-            transform[0] = this.transform[0] + node.dom.transform[0];
-            transform[1] = this.transform[1] + node.dom.transform[1];
-            transform[2] = this.transform[2] * node.dom.transform[2];
-            transform[3] = this.transform[3] * node.dom.transform[3];
 
             if (!node.dom.textureNode || !node.dom.textureNode.updated) {
                 continue;
@@ -12078,7 +12183,7 @@
             if (node.style.display === "none") {
                 continue;
             }
-            this.shaderInstance.applyUniformData("u_transform", transform);
+            this.shaderInstance.applyUniformData("u_transform", node.dom.transform);
             if (node.dom.textureNode !== prevTexture) {
                 node.dom.textureNode.loadTexture();
                 prevTexture = node.dom.textureNode;
