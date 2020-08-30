@@ -15,6 +15,119 @@ function animeId() {
     return "morph_" + morphIdentifier;
 }
 
+function pathCmdIsValid(_) {
+    return (
+        [
+            "m",
+            "M",
+            "v",
+            "V",
+            "l",
+            "L",
+            "h",
+            "H",
+            "q",
+            "Q",
+            "c",
+            "C",
+            "s",
+            "S",
+            "a",
+            "A",
+            "z",
+            "Z",
+        ].indexOf(_) !== -1
+    );
+}
+
+function getBBox(gcmxArr) {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity; // const exe = []
+
+    let d;
+    let point;
+
+    for (var j = 0; j < gcmxArr.length; j++) {
+        let cmxArr = gcmxArr[j];
+        for (let i = 0; i < cmxArr.length; i += 1) {
+            d = cmxArr[i];
+
+            if (["V", "H", "L", "v", "h", "l"].indexOf(d.type) !== -1) {
+                [d.p0 ? d.p0 : cmxArr[i - 1].p1, d.p1].forEach(function (point) {
+                    if (point.x < minX) {
+                        minX = point.x;
+                    }
+
+                    if (point.x > maxX) {
+                        maxX = point.x;
+                    }
+
+                    if (point.y < minY) {
+                        minY = point.y;
+                    }
+
+                    if (point.y > maxY) {
+                        maxY = point.y;
+                    }
+                });
+            } else if (["Q", "C", "q", "c"].indexOf(d.type) !== -1) {
+                const co = t2DGeometry.cubicBezierCoefficients(d);
+                let exe = t2DGeometry.cubicBezierTransition.bind(null, d.p0, co);
+                let ii = 0;
+                let point;
+
+                while (ii < 1) {
+                    point = exe(ii);
+                    ii += 0.05;
+
+                    if (point.x < minX) {
+                        minX = point.x;
+                    }
+
+                    if (point.x > maxX) {
+                        maxX = point.x;
+                    }
+
+                    if (point.y < minY) {
+                        minY = point.y;
+                    }
+
+                    if (point.y > maxY) {
+                        maxY = point.y;
+                    }
+                }
+            } else {
+                point = d.p0;
+
+                if (point.x < minX) {
+                    minX = point.x;
+                }
+
+                if (point.x > maxX) {
+                    maxX = point.x;
+                }
+
+                if (point.y < minY) {
+                    minY = point.y;
+                }
+
+                if (point.y > maxY) {
+                    maxY = point.y;
+                }
+            }
+        }
+    }
+
+    return {
+        x: minX,
+        y: minY,
+        width: maxX - minX,
+        height: maxY - minY,
+    };
+}
+
 function pathParser(path) {
     let pathStr = path.replace(/e-/g, "$");
     pathStr = pathStr.replace(/ /g, ",");
@@ -394,6 +507,13 @@ function Path(path) {
     this.length = 0;
     this.stackGroup = [];
 
+    this.BBox = {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+    };
+
     if (path) {
         this.parse(path);
     }
@@ -424,38 +544,9 @@ Path.prototype.parse = function parse(path) {
         this.case(this.pathArr[(this.currPathArr += 1)]);
     }
 
-    return this.stack;
-};
+    this.BBox = getBBox(this.stackGroup);
 
-Path.prototype.execute = function (ctx, clippath) {
-    let c;
-    if (!clippath) {
-        ctx.beginPath();
-    }
-    for (let i = 0; i < this.stack.length; i++) {
-        c = this.stack[i];
-        if (c.type === "M" || c.type === "m") {
-            ctx.moveTo(c.p0.x, c.p0.y);
-        } else if (c.type === "Z" || c.type === "z") {
-            ctx.lineTo(c.p1.x, c.p1.y);
-        } else if (c.type === "C" || c.type === "c" || c.type === "S" || c.type === "s") {
-            ctx.bezierCurveTo(c.cntrl1.x, c.cntrl1.y, c.cntrl2.x, c.cntrl2.y, c.p1.x, c.p1.y);
-        } else if (c.type === "Q" || c.type === "q") {
-            ctx.quadraticCurveTo(c.cntrl1.x, c.cntrl1.y, c.p1.x, c.p1.y);
-        } else if (
-            c.type === "V" ||
-            c.type === "v" ||
-            c.type === "H" ||
-            c.type === "h" ||
-            c.type === "l" ||
-            c.type === "L"
-        ) {
-            ctx.lineTo(c.p1.x, c.p1.y);
-        }
-    }
-    if (!clippath) {
-        ctx.closePath();
-    }
+    return this.stack;
 };
 
 Path.prototype.fetchPathString = function () {
@@ -582,35 +673,104 @@ Path.prototype.getPointAtLength = function getPointAtLength(length) {
     return coOr;
 };
 
-Path.prototype.isValid = function isValid(_) {
-    return (
-        [
-            "m",
-            "M",
-            "v",
-            "V",
-            "l",
-            "L",
-            "h",
-            "H",
-            "q",
-            "Q",
-            "c",
-            "C",
-            "s",
-            "S",
-            "a",
-            "A",
-            "z",
-            "Z",
-        ].indexOf(_) !== -1
-    );
+Path.prototype.execute = function (ctx, clippath) {
+    let c;
+    if (!clippath) {
+        ctx.beginPath();
+    }
+    for (let i = 0; i < this.stack.length; i++) {
+        c = this.stack[i];
+        switch (c.type) {
+            case "M":
+            case "m":
+                ctx.moveTo(c.p0.x, c.p0.y);
+                break;
+            case "Z":
+            case "z":
+                ctx.lineTo(c.p1.x, c.p1.y);
+                break;
+            case "L":
+            case "l":
+            case "V":
+            case "v":
+            case "H":
+            case "h":
+                ctx.lineTo(c.p1.x, c.p1.y);
+                break;
+            case "C":
+            case "c":
+            case "S":
+            case "s":
+                ctx.bezierCurveTo(c.cntrl1.x, c.cntrl1.y, c.cntrl2.x, c.cntrl2.y, c.p1.x, c.p1.y);
+                break;
+            case "Q":
+            case "q":
+                ctx.quadraticCurveTo(c.cntrl1.x, c.cntrl1.y, c.p1.x, c.p1.y);
+                break;
+            default:
+                break;
+        }
+    }
+    if (!clippath) {
+        ctx.closePath();
+    }
+};
+
+Path.prototype.getPoints = function (factor = 0.01) {
+    let points = [];
+    // let tLength = this.length;
+    // let currD = this.stack[0];
+    // let cumLength = 0;
+    // let iLenFact = 0;
+    let d;
+
+    for (let i = 0; i < this.stack.length; i++) {
+        d = this.stack[i];
+        switch (d.type) {
+            case "M":
+            case "m":
+                points[points.length] = d.p0.x;
+                points[points.length] = d.p0.y;
+                break;
+            case "Z":
+            case "z":
+                points[points.length] = d.p1.x;
+                points[points.length] = d.p1.y;
+                break;
+            case "L":
+            case "l":
+            case "V":
+            case "v":
+            case "H":
+            case "h":
+                points[points.length] = d.p1.x;
+                points[points.length] = d.p1.y;
+                break;
+            case "C":
+            case "c":
+            case "S":
+            case "s":
+            case "Q":
+            case "q":
+                let f = 0.05;
+                let tf = 0;
+                while (tf <= 1.0) {
+                    let xy = d.pointAt(tf);
+                    points[points.length] = xy.x;
+                    points[points.length] = xy.y;
+                    tf += f;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    return points;
 };
 
 Path.prototype.case = function pCase(currCmd) {
     let currCmdI = currCmd;
-
-    if (this.isValid(currCmdI)) {
+    if (pathCmdIsValid(currCmdI)) {
         this.PC = currCmdI;
     } else {
         currCmdI = this.PC;

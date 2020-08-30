@@ -18,7 +18,7 @@
             /************** polyLines *****************/
 
             var polylinesData = [];
-            for (let i = 0; i < 20; i++) {
+            for (let i = 0; i < 100; i++) {
                 let x1 = Math.random() * 1400;
                 let y1 = Math.random() * 1400;
                 polylinesData.push({
@@ -42,6 +42,12 @@
             polylinesRef.createEls(polylinesData, {
                 el: "polyline",
                 attr: {
+                    transform: function (d) {
+                        let rand = Math.random();
+                        return {
+                            scale: [rand, rand],
+                        };
+                    },
                     points: function (d) {
                         return d.points;
                     },

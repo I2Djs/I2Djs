@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <label style="position: absolute; color: white;"> Webgl Example </label>
+
+        <div id="canvas" style="height: 100%; width: 100%; background: black;"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script type="text/javascript">
+            // import path from "./../../src/modules/path.js";
+            var webglRenderer = i2d.webglLayer("#canvas", {}, {});
+            var pathRef = webglRenderer.createEl({
+                el: "group",
+                attr: {
+                    transform: {
+                        translate: [0, 0],
+                    },
+                    shaderType: "path",
+                },
+                bbox: false,
+            });
+
+            pathRef.createEl({
+                el: "path",
+                attr: {
+                    transform: {
+                        translate: [0, 0],
+                    },
+                    d: "M350,225 L450,225 L450,475 L570,475",
+                },
+                style: { stroke: i2d.color.rgba(145, 100, 100, 255) },
+            });
+
+            pathRef.createEl({
+                el: "path",
+                attr: {
+                    transform: {
+                        translate: [200, 0],
+                    },
+                    d:
+                        "M286,227 L556.149478,227 L556.149478,352.5 L418.443053,352.5 L418.443053,478 L675.470664,478",
+                },
+                style: { stroke: i2d.color.rgba(0, 203, 255, 255) },
+            });
+            pathRef.createEl({
+                el: "path",
+                attr: {
+                    transform: {
+                        translate: [350, 0],
+                    },
+                    d:
+                        "M461,359.245249 L461,230 L561.860025,230.999803 C561.860025,230.999803 672.401935,230 672.401935,353.481856 C672.401935,486.963711 561.860025,479.591179 561.860025,479.591179",
+                },
+                style: { stroke: i2d.color.rgba(145, 100, 100, 255) },
+            });
+
+            // var path2 = path.instance(
+            //     "M461,359.245249 L461,230 L561.860025,230.999803 C561.860025,230.999803 672.401935,230 672.401935,353.481856 C672.401935,486.963711 561.860025,479.591179 561.860025,479.591179"
+            //     // "M286,227 L556.149478,227 L556.149478,352.5 L418.443053,352.5 L418.443053,478 L675.470664,478"
+            // );
+            // console.log(path2.getPoints());
+
+            // console.log(path2);
+            // console.log(webglRenderer);
+        </script>
+    </body>
+</html>

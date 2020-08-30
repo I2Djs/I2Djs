@@ -109,8 +109,8 @@
             webglRenderer.setClearColor(i2d.color.rgba(0, 0, 0, 0));
 
             var Texture = webglRenderer.TextureObject({
-                width: webglRenderer.width * webglRenderer.pixelRatio,
-                height: webglRenderer.height * webglRenderer.pixelRatio,
+                width: webglRenderer.width * webglRenderer.ctx.pixelRatio,
+                height: webglRenderer.height * webglRenderer.ctx.pixelRatio,
                 border: 0,
                 format: "RGBA",
                 type: "UNSIGNED_BYTE",

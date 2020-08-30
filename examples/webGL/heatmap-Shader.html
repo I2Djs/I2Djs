@@ -17,7 +17,9 @@
                     alpha: true,
                     preserveDrawingBuffer: false,
                 },
-                {}
+                {
+                    // autoUpdate: false
+                }
             );
 
             let ctx = webglRenderer.ctx;
@@ -139,8 +141,8 @@
             let density = 2.0;
 
             var Texture = webglRenderer.TextureObject({
-                width: webglRenderer.width * webglRenderer.pixelRatio,
-                height: webglRenderer.height * webglRenderer.pixelRatio,
+                width: webglRenderer.width * webglRenderer.ctx.pixelRatio,
+                height: webglRenderer.height * webglRenderer.ctx.pixelRatio,
                 border: 0,
                 format: "RGBA",
                 type: "UNSIGNED_BYTE",
@@ -172,8 +174,8 @@
                 uniforms: {
                     u_resolution: {
                         value: new Float32Array([
-                            webglRenderer.width * webglRenderer.pixelRatio,
-                            webglRenderer.height * webglRenderer.pixelRatio,
+                            webglRenderer.width * webglRenderer.ctx.pixelRatio,
+                            webglRenderer.height * webglRenderer.ctx.pixelRatio,
                         ]),
                     },
                     // u_max: {
@@ -282,13 +284,14 @@
             var dataPush = true;
             document.getElementById("canvas").addEventListener("pointermove", function (e) {
                 if (dataPush) {
-                    // positionArray[positionArray.length] = e.x;
-                    // positionArray[positionArray.length] = e.y;
-                    // intensityArray[intensityArray.length] = 20;
-                    gradshaderRef.setAttributeData("a_position", new Float32Array([e.x, e.y]));
-                    gradshaderRef.setAttributeData("a_intensity", new Float32Array([20]));
-                    geome.setDrawRange(0, 1);
+                    positionArray[positionArray.length] = e.x;
+                    positionArray[positionArray.length] = e.y;
+                    intensityArray[intensityArray.length] = 20;
+                    gradshaderRef.setAttributeData("a_position", new Float32Array(positionArray));
+                    gradshaderRef.setAttributeData("a_intensity", new Float32Array(intensityArray));
+                    geome.setDrawRange(0, positionArray.length / 2);
                     // shaderRef.execute();
+                    // webglRenderer.execute();
                     dataPush = false;
                     setTimeout(idleFlag, 20);
                 }
