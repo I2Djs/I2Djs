@@ -10680,7 +10680,7 @@
             var translateY = ref.translateY;
             var scaleX = ref.scaleX;
             var scaleY = ref.scaleY;
-            this.transform = [translateX, translateY, scaleX, scaleY];
+            this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
         }
 
         if (self.attr.src && typeof self.attr.src === "string" && !webGLImageTextures[self.attr.src]) {
@@ -10784,7 +10784,7 @@
             var translateY = ref.translateY;
             var scaleX = ref.scaleX;
             var scaleY = ref.scaleY;
-            this.transform = [translateX, translateY, scaleX, scaleY];
+            this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
         }
     };
 
@@ -11701,7 +11701,7 @@
         var translateY = ref.translateY;
         var scaleX = ref.scaleX;
         var scaleY = ref.scaleY;
-        this.selftransform = [translateX, translateY, scaleX, scaleY];
+        this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new MeshGeometry();
         this.geometry.setAttr("a_transform", {
@@ -11941,7 +11941,6 @@
         var translateY = ref.translateY;
         var scaleX = ref.scaleX;
         var scaleY = ref.scaleY;
-
         this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new LineGeometry();
@@ -12032,7 +12031,6 @@
         var translateY = ref.translateY;
         var scaleX = ref.scaleX;
         var scaleY = ref.scaleY;
-
         this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new MeshGeometry();
@@ -12288,7 +12286,6 @@
         var translateY = ref.translateY;
         var scaleX = ref.scaleX;
         var scaleY = ref.scaleY;
-
         this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new MeshGeometry();
