@@ -10568,7 +10568,7 @@
 
         if (this.attr.transform) {
             let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
-            this.transform = [translateX, translateY, scaleX, scaleY];
+            this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
         }
 
         if (self.attr.src && typeof self.attr.src === "string" && !webGLImageTextures[self.attr.src]) {
@@ -10668,7 +10668,7 @@
 
         if (key === "transform") {
             let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
-            this.transform = [translateX, translateY, scaleX, scaleY];
+            this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
         }
     };
 
@@ -11541,7 +11541,7 @@
             };
         }
         let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
-        this.selftransform = [translateX, translateY, scaleX, scaleY];
+        this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new MeshGeometry();
         this.geometry.setAttr("a_transform", {
@@ -11773,7 +11773,6 @@
             };
         }
         let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
-
         this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new LineGeometry();
@@ -11860,7 +11859,6 @@
         }
 
         let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
-
         this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new MeshGeometry();
@@ -12108,7 +12106,6 @@
         }
 
         let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
-
         this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new MeshGeometry();

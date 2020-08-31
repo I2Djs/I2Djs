@@ -10562,7 +10562,7 @@ function ImageNode(ctx, attr, style, vDomIndex) {
 
     if (this.attr.transform) {
         let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
-        this.transform = [translateX, translateY, scaleX, scaleY];
+        this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
     }
 
     if (self.attr.src && typeof self.attr.src === "string" && !webGLImageTextures[self.attr.src]) {
@@ -10662,7 +10662,7 @@ ImageNode.prototype.setAttr = function (key, value) {
 
     if (key === "transform") {
         let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
-        this.transform = [translateX, translateY, scaleX, scaleY];
+        this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
     }
 };
 
@@ -11535,7 +11535,7 @@ function RenderWebglRects(ctx, attr, style, renderTarget, vDomIndex) {
         };
     }
     let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
-    this.selftransform = [translateX, translateY, scaleX, scaleY];
+    this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
     this.geometry = new MeshGeometry();
     this.geometry.setAttr("a_transform", {
@@ -11767,7 +11767,6 @@ function RenderWebglPolyLines(ctx, attr, style, renderTarget, vDomIndex) {
         };
     }
     let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
-
     this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
     this.geometry = new LineGeometry();
@@ -11854,7 +11853,6 @@ function RenderWebglPolygons(ctx, attr, style, renderTarget, vDomIndex) {
     }
 
     let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
-
     this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
     this.geometry = new MeshGeometry();
@@ -12102,7 +12100,6 @@ function RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex) {
     }
 
     let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
-
     this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
     this.geometry = new MeshGeometry();

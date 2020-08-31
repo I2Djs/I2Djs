@@ -14,11 +14,11 @@
             /************** circles *****************/
 
             var circlesData = [];
-            for (let i = 0; i < 1000; i++) {
+            for (let i = 0; i < 20000; i++) {
                 circlesData.push({
-                    cx: Math.random() * 1200,
+                    cx: Math.random() * 1400,
                     cy: Math.random() * 800,
-                    r: Math.random() * 50,
+                    r: Math.random() * 20,
                 });
             }
 
@@ -65,16 +65,6 @@
                     },
                     cy: function (d) {
                         return parseInt(Math.random() * 1000);
-                    },
-                },
-                style: {
-                    fill: function () {
-                        return i2d.color.rgba(
-                            parseInt(Math.random() * 255),
-                            parseInt(Math.random() * 255),
-                            parseInt(Math.random() * 255),
-                            255
-                        );
                     },
                 },
             });
