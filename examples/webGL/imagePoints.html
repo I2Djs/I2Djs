@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <label style="position: absolute; color: white;"> Webgl Example </label>
+        <div id="canvas" style="height: 100%; width: 100%; background: black;"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script id="vertexShader" type="x-shader/x-vertex">
+            precision highp float;
+            uniform vec2 u_resolution;
+            attribute vec2 a_position;
+            attribute vec4 a_color;
+
+            varying vec4 v_color;
+
+            void main() {
+                vec2 zeroToOne = (a_position) / u_resolution;
+                vec2 clipSpace = (zeroToOne * 2.0 - 1.0);
+                v_color = a_color;
+                gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);
+                gl_PointSize = 2.0;
+            }
+        </script>
+
+        <script id="fragmentShader" type="x-shader/x-fragment">
+            precision highp float;
+            varying vec4 v_color;
+
+            void main() {
+                gl_FragColor = v_color;
+            }
+        </script>
+        <script type="text/javascript">
+            var canvasInstance = i2d.canvasLayer(null, {});
+            canvasInstance.setPixelRatio(1);
+            canvasInstance.setSize(700, 700);
+            canvasInstance.createEl({
+                el: "image",
+                attr: {
+                    x: 0,
+                    y: 0,
+                    width: 700,
+                    height: 700,
+                    src: "../images/tree.png",
+                    onload: function () {
+                        canvasInstance.update();
+                        render(canvasInstance.getPixels(0, 0, 700, 700));
+                    },
+                },
+            });
+            canvasInstance.update();
+
+            function render(textureObj) {
+                let colors = Array.from(textureObj.imageData.data);
+                var webglRenderer = i2d.webglLayer(
+                    "#canvas",
+                    {
+                        depth: false,
+                        antialias: false,
+                    },
+                    {
+                        enableEvents: true,
+                    }
+                );
+                var queue = i2d.queue;
+                var pictureGrid = [];
+                var posArray = new Float32Array(700 * 700 * 2);
+
+                for (var i = 0; i < 700; i++) {
+                    for (var j = 0; j < 700; j++) {
+                        posArray[i * 700 * 2 + j * 2 + 0] = j;
+                        posArray[i * 700 * 2 + j * 2 + 1] = i;
+                        pictureGrid.push({
+                            ox: j * 1,
+                            oy: i * 1,
+                            vx: 0,
+                            vy: 0,
+                        });
+                    }
+                }
+
+                for (var i = 0; i < colors.length; i++) {
+                    colors[i] /= 255;
+                }
+
+                var geometry = webglRenderer.PointsGeometry();
+                geometry.setAttr("a_position", {
+                    value: posArray,
+                    size: 2,
+                });
+                geometry.setAttr("a_color", {
+                    value: new Float32Array(colors),
+                    size: 4,
+                });
+                geometry.setDrawRange(0, 700 * 700);
+
+                var shaderRef = webglRenderer.createShaderEl({
+                    fragmentShader: document.getElementById("fragmentShader").textContent,
+                    vertexShader: document.getElementById("vertexShader").textContent,
+                    uniforms: {
+                        u_resolution: {
+                            value: new Float32Array([webglRenderer.width, webglRenderer.height]),
+                            size: 2,
+                        },
+                    },
+                    geometry: geometry,
+                });
+
+                webglRenderer.on("mousemove", function (e) {
+                    e.preventDefault();
+                    mx = e.offsetX;
+                    my = e.offsetY;
+                });
+
+                var rad = Math.pow(100, 2);
+                var dis, dx, dy, f;
+                var mx, my;
+                var atan2 = Math.atan2;
+                var cos = Math.cos;
+                var sin = Math.sin;
+
+                i2d.queue.onRequestFrame(function (t) {
+                    let d, x, y;
+                    for (let i = 0, len = pictureGrid.length; i < len; i++) {
+                        x = posArray[i * 2];
+                        y = posArray[i * 2 + 1];
+                        d = pictureGrid[i];
+
+                        dis = (dx = mx - x) * dx + (dy = my - y) * dy;
+                        f = -rad / dis;
+
+                        if (dis < rad) {
+                            t = atan2(dy, dx);
+                            d.vx += f * cos(t);
+                            d.vy += f * sin(t);
+                        }
+
+                        x += (d.vx *= 0.8) + (d.ox - x) * 0.1;
+                        y += (d.vy *= 0.8) + (d.oy - y) * 0.1;
+                        if (d.ox !== x || d.oy !== y) {
+                            posArray[i * 2] = x;
+                            posArray[i * 2 + 1] = y;
+                        }
+                    }
+                    shaderRef.setAttributeData("a_position", posArray);
+                });
+            }
+        </script>
+    </body>
+</html>

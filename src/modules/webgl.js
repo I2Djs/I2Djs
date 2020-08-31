@@ -186,6 +186,7 @@ WebglDom.prototype.setStyle = function (key, value) {
         delete this.style[key];
     }
 };
+
 WebglDom.prototype.getAttr = function (key) {
     return this.attr[key];
 };
