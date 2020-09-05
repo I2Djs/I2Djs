@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html style="height: 100%;">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%;">
+        <label style="position: absolute; color: white;"> Webgl Example </label>
+        <div id="canvas" style="height: 50%; width: 100%; background: black;"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
+
+        <script type="text/javascript">
+            let sin = Math.sin;
+            let abs = Math.abs;
+            let i = 0;
+            let width = 0;
+            let height = 0;
+            let webglRenderer, pathRef;
+            function render() {
+                webglRenderer = i2d.webglLayer(
+                    "#canvas",
+                    { depth: false, antialias: true },
+                    { enableEvents: true }
+                );
+                width = webglRenderer.width;
+                height = webglRenderer.height;
+
+                pathRef = webglRenderer.createEl({
+                    el: "group",
+                    attr: {
+                        transform: {
+                            translate: [0, 0],
+                        },
+                        shaderType: "path",
+                    },
+                    bbox: false,
+                });
+                i2d.queue.onRequestFrame(function (t) {
+                    // console.log('sdfsdf');
+                    draw();
+                });
+            }
+
+            var ii = 0;
+            function draw() {
+                var points = [];
+                var amplitud = height * (sin(i) * 0.1);
+                var space = abs(sin(i) * 0.001) * 100 + 150;
+                points[points.length] = { x: -space, y: 0 };
+                for (var x = 0; x < width; x += space) {
+                    var y = height * (sin(i) * 0.01 + 0.5);
+                    y += sin(i - x * 0.01 + i * 0.1 * 0.5 * -50) * amplitud;
+                    y += sin(i + x * 0.02) * amplitud;
+                    y += sin(i - x * 0.03 + i * 0.1 * 0.5 * 50) * amplitud;
+                    points[points.length] = { x, y };
+                }
+                points[points.length] = { x: width, y: y };
+                points[points.length] = { x: width + space, y: y };
+
+                let path = pointsToCurve(points);
+                var rgb = i2d.color.hslToRgb("hsl(" + (ii % 360) + ",100%," + 20 + "%)");
+                rgb.a = 100;
+                pathRef
+                    .createEl({
+                        el: "path",
+                        attr: {
+                            d: path,
+                        },
+                        style: { stroke: rgb },
+                    })
+                    .animateTo({
+                        duration: 3000,
+                        attr: {},
+                        end: function () {
+                            this.remove();
+                        },
+                    });
+                i += 0.005;
+                ii += 1;
+            }
+
+            function gradient(a, b) {
+                return (b.y - a.y) / (b.x - a.x);
+            }
+
+            function pointsToCurve(points, f, t) {
+                if (typeof f == "undefined") f = 0.3;
+                if (typeof t == "undefined") t = 0.6;
+
+                let path = i2d.Path();
+                path.m(true, { x: points[0].x, y: points[0].y });
+
+                var m = 0;
+                var dx1 = 0;
+                var dy1 = 0;
+
+                var preP = points[0];
+
+                for (var i = 1; i < points.length; i++) {
+                    var curP = points[i];
+                    nexP = points[i + 1];
+                    if (nexP) {
+                        m = gradient(preP, nexP);
+                        dx2 = (nexP.x - curP.x) * -f;
+                        dy2 = dx2 * m * t;
+                    } else {
+                        dx2 = 0;
+                        dy2 = 0;
+                    }
+                    path.c(
+                        true,
+                        { x: preP.x - dx1, y: preP.y - dy1 },
+                        { x: curP.x + dx2, y: curP.y + dy2 },
+                        { x: curP.x, y: curP.y }
+                    );
+
+                    dx1 = dx2;
+                    dy1 = dy2;
+                    preP = curP;
+                }
+                return path;
+            }
+
+            render();
+        </script>
+    </body>
+</html>

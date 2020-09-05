@@ -11,7 +11,9 @@
         <script type="text/javascript">
             var webglRenderer = i2d.webglLayer(
                 "#canvas",
-                {},
+                {
+                    antialias: true,
+                },
                 { events: false, selectiveClear: false }
             );
 

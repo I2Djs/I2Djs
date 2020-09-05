@@ -112,6 +112,7 @@
                     e.preventDefault();
                     mx = e.offsetX;
                     my = e.offsetY;
+                    execCount = 500;
                 });
 
                 var rad = Math.pow(100, 2);
@@ -120,9 +121,15 @@
                 var atan2 = Math.atan2;
                 var cos = Math.cos;
                 var sin = Math.sin;
+                let execCount = 500;
 
                 i2d.queue.onRequestFrame(function (t) {
                     let d, x, y;
+                    execCount -= 1;
+                    if (execCount <= 0) {
+                        execCount = 0;
+                        return;
+                    }
                     for (let i = 0, len = pictureGrid.length; i < len; i++) {
                         x = posArray[i * 2];
                         y = posArray[i * 2 + 1];
