@@ -9602,6 +9602,7 @@ WebglDom.prototype.setStyle = function (key, value) {
         delete this.style[key];
     }
 };
+
 WebglDom.prototype.getAttr = function (key) {
     return this.attr[key];
 };
@@ -12649,6 +12650,8 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
     root.execute = function () {
         onClear(this.ctx);
         this.updateBBox();
+        this.ctx.enable(this.ctx.BLEND);
+        this.ctx.blendFunc(this.ctx.SRC_ALPHA, this.ctx.ONE_MINUS_SRC_ALPHA);
         execute();
     };
 
