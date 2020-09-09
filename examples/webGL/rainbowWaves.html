@@ -56,7 +56,8 @@
                 points[points.length] = { x: width, y: y };
                 points[points.length] = { x: width + space, y: y };
 
-                let path = pointsToCurve(points);
+                let path = i2d.Path();
+                path.points(points);
                 var rgb = i2d.color.hslToRgb("hsl(" + (ii % 360) + ",100%," + 20 + "%)");
                 rgb.a = 100;
                 pathRef
@@ -76,48 +77,6 @@
                     });
                 i += 0.005;
                 ii += 1;
-            }
-
-            function gradient(a, b) {
-                return (b.y - a.y) / (b.x - a.x);
-            }
-
-            function pointsToCurve(points, f, t) {
-                if (typeof f == "undefined") f = 0.3;
-                if (typeof t == "undefined") t = 0.6;
-
-                let path = i2d.Path();
-                path.m(true, { x: points[0].x, y: points[0].y });
-
-                var m = 0;
-                var dx1 = 0;
-                var dy1 = 0;
-
-                var preP = points[0];
-
-                for (var i = 1; i < points.length; i++) {
-                    var curP = points[i];
-                    nexP = points[i + 1];
-                    if (nexP) {
-                        m = gradient(preP, nexP);
-                        dx2 = (nexP.x - curP.x) * -f;
-                        dy2 = dx2 * m * t;
-                    } else {
-                        dx2 = 0;
-                        dy2 = 0;
-                    }
-                    path.c(
-                        true,
-                        { x: preP.x - dx1, y: preP.y - dy1 },
-                        { x: curP.x + dx2, y: curP.y + dy2 },
-                        { x: curP.x, y: curP.y }
-                    );
-
-                    dx1 = dx2;
-                    dy1 = dy2;
-                    preP = curP;
-                }
-                return path;
             }
 
             render();

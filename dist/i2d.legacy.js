@@ -1,5 +1,5 @@
 /*!
-      * i2djs v3.3.0
+      * i2djs v3.4.0
       * (c) 2020 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
@@ -1971,6 +1971,50 @@
         c: c,
         a: a,
         fetchXY: fetchXY,
+    };
+
+    Path.prototype.points = function (points) {
+        if (typeof this.f === "undefined") { this.f = 0.3; }
+        if (typeof this.t === "undefined") { this.t = 0.6; }
+        if (points.length === 0) { return; }
+
+        this.m(true, { x: points[0].x, y: points[0].y });
+
+        var m = 0;
+        var dx1 = 0;
+        var dy1 = 0;
+        var dx2 = 0;
+        var dy2 = 0;
+
+        var preP = points[0];
+
+        for (var i = 1; i < points.length; i++) {
+            var curP = points[i];
+            var nexP = points[i + 1];
+            dx2 = 0;
+            dy2 = 0;
+            if (nexP) {
+                m = (nexP.y - preP.y) / (nexP.x - preP.x);
+                dx2 = (nexP.x - curP.x) * -this.f;
+                dy2 = dx2 * m * this.t;
+            }
+            this.c(
+                true,
+                { x: preP.x - dx1, y: preP.y - dy1 },
+                { x: curP.x + dx2, y: curP.y + dy2 },
+                { x: curP.x, y: curP.y }
+            );
+
+            dx1 = dx2;
+            dy1 = dy2;
+            preP = curP;
+        }
+    };
+    Path.prototype.curveFfactor = function (f) {
+        this.f = f;
+    };
+    Path.prototype.curveTfactor = function (t) {
+        this.t = t;
     };
 
     Path.prototype.parse = function parse(path) {
