@@ -3611,6 +3611,16 @@
             e,
             "mousemove"
         );
+
+        if (this.selectedNode && this.selectedNode !== node) {
+            if (this.selectedNode.events["mouseout"]) {
+                this.selectedNode.events["mouseout"].call(this.selectedNode, e);
+            }
+            if (this.selectedNode.events["mouseleave"]) {
+                this.selectedNode.events["mouseleave"].call(this.selectedNode, e);
+            }
+        }
+
         if (node && (node.events["mouseover"] || node.events["mousein"])) {
             if (this.selectedNode !== node) {
                 if (node.events["mouseover"]) {
@@ -3619,15 +3629,6 @@
                 if (node.events["mousein"]) {
                     node.events["mousein"].call(node, e);
                 }
-            }
-        }
-
-        if (this.selectedNode && this.selectedNode !== node) {
-            if (this.selectedNode.events["mouseout"]) {
-                this.selectedNode.events["mouseout"].call(this.selectedNode, e);
-            }
-            if (this.selectedNode.events["mouseleave"]) {
-                this.selectedNode.events["mouseleave"].call(this.selectedNode, e);
             }
         }
 
