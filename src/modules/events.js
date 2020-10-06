@@ -125,11 +125,16 @@ Events.prototype.pointerupCheck = function (e) {
             (e.pointerType === "touch" && this.pointerNode.dragCounter <= 5)
         ) {
             if (this.pointerNode.clickCounter === 1 && node.events["click"]) {
-                clickInterval = setTimeout(function () {
-                    self.pointerNode = null;
+                if (node.events["dblclick"]) {
+                    clickInterval = setTimeout(function () {
+                        self.pointerNode = null;
+                        node.events["click"].call(node, e);
+                        clickInterval = null;
+                    }, 200);
+                } else {
                     node.events["click"].call(node, e);
-                    clickInterval = null;
-                }, 200);
+                    self.pointerNode = null;
+                }
             } else if (this.pointerNode.clickCounter === 2 && node.events["dblclick"]) {
                 if (clickInterval) {
                     clearTimeout(clickInterval);

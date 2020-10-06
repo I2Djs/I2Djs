@@ -4,11 +4,13 @@ import geometry from "./geometry.js";
 import queue from "./queue.js";
 import ease from "./ease.js";
 import colorMap from "./colorMap.js";
+import { ResizeObserver as resizePolyfill } from "@juggle/resize-observer";
 
 let animeIdentifier = 0;
 const t2DGeometry = geometry;
 const easing = ease;
 const queueInstance = queue;
+const ResizeObserver = window.ResizeObserver || resizePolyfill;
 
 function animeId() {
     animeIdentifier += 1;
@@ -1012,4 +1014,28 @@ CollectionPrototype.prototype.wrapper = function wrapper(nodes) {
     return this;
 };
 
-export { NodePrototype, CollectionPrototype };
+let layerResizeHandler = function (entries) {
+    for (let key in entries) {
+        let entry = entries[key];
+        const cr = entry.contentRect;
+        if (entry.target.resizeHandler) {
+            entry.target.resizeHandler(cr);
+        }
+    }
+};
+
+function layerResizeBind(layer, handler) {
+    if (!layer.ro) {
+        layer.ro = new ResizeObserver(layerResizeHandler);
+        layer.ro.observe(layer.container);
+    }
+    layer.container.resizeHandler = handler;
+}
+
+function layerResizeUnBind(layer, handler) {
+    if (layer.ro) {
+        layer.ro.disconnect();
+    }
+}
+
+export { NodePrototype, CollectionPrototype, layerResizeBind, layerResizeUnBind };

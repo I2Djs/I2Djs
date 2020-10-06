@@ -7,7 +7,12 @@ import shaders from "./shaders.js";
 import earcut from "earcut";
 import Events from "./events.js";
 import behaviour from "./behaviour.js";
-import { CollectionPrototype, NodePrototype } from "./coreApi.js";
+import {
+    CollectionPrototype,
+    NodePrototype,
+    layerResizeBind,
+    layerResizeUnBind,
+} from "./coreApi.js";
 
 let t2DGeometry = geometry;
 
@@ -3275,17 +3280,17 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
         onClear = exe;
     };
 
-    let resize = function () {
+    let resize = function (cr) {
         if (!document.querySelector(container)) {
-            window.removeEventListener("resize", resize);
+            layerResizeUnBind(root);
             return;
         }
-        height = cHeight || res.clientHeight;
-        width = cWidth || res.clientWidth;
-        layer.setAttribute("height", height * ratio);
-        layer.setAttribute("width", width * ratio);
+        height = cHeight || cr.height;
+        width = cWidth || cr.width;
         root.width = width;
         root.height = height;
+
+        updateLayerDimension(root.domEl, width, height);
 
         onClear(root.ctx);
 
@@ -3295,6 +3300,13 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
 
         root.execute();
 
+        layer.style.height = `${height}px`;
+        layer.style.width = `${width}px`;
+    };
+
+    let updateLayerDimension = function (layer, width, height) {
+        layer.setAttribute("height", height * ratio);
+        layer.setAttribute("width", width * ratio);
         layer.style.height = `${height}px`;
         layer.style.width = `${width}px`;
     };
@@ -3316,18 +3328,15 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
     root.setPixelRatio = function (val) {
         ratio = val;
         this.ctx.pixelRatio = ratio;
-        this.setSize(this.width, this.height);
+        updateLayerDimension(this.domEl, this.width, this.height);
     };
 
     root.setSize = function (width_, height_) {
-        this.domEl.setAttribute("height", height_ * ratio);
-        this.domEl.setAttribute("width", width_ * ratio);
-        this.domEl.style.height = `${height_}px`;
-        this.domEl.style.width = `${width_}px`;
         this.width = width_;
         this.height = height_;
         height = height_;
         width = width_;
+        updateLayerDimension(this.domEl, this.width, this.height);
         this.execute();
     };
 
@@ -3388,27 +3397,21 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
         // 	eventsInstance.dblclickCheck(e);
         // });
         layer.addEventListener("mousedown", (e) => {
-            // e.preventDefault();
             eventsInstance.mousedownCheck(e);
         });
         layer.addEventListener("mouseup", (e) => {
-            // e.preventDefault();
             eventsInstance.mouseupCheck(e);
         });
         layer.addEventListener("mouseleave", (e) => {
-            // e.preventDefault();
             eventsInstance.mouseleaveCheck(e);
         });
         layer.addEventListener("contextmenu", (e) => {
-            // e.preventDefault();
             eventsInstance.contextmenuCheck(e);
         });
         layer.addEventListener("touchstart", (e) => {
-            // e.preventDefault();
             eventsInstance.touchstartCheck(e);
         });
         layer.addEventListener("touchend", (e) => {
-            // e.preventDefault();
             eventsInstance.touchendCheck(e);
         });
         layer.addEventListener("touchmove", (e) => {
@@ -3416,24 +3419,18 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
             eventsInstance.touchmoveCheck(e);
         });
         layer.addEventListener("touchcancel", (e) => {
-            // e.preventDefault();
             eventsInstance.touchcancelCheck(e);
         });
         layer.addEventListener("wheel", (e) => {
-            // e.preventDefault();
             eventsInstance.wheelEventCheck(e);
         });
         layer.addEventListener("pointerdown", (e) => {
-            // console.log('pointerdown');
             eventsInstance.addPointer(e);
             eventsInstance.pointerdownCheck(e);
-            // e.preventDefault();
         });
         layer.addEventListener("pointerup", (e) => {
-            // console.log('pointerup');
             eventsInstance.removePointer(e);
             eventsInstance.pointerupCheck(e);
-            // e.preventDefault();
         });
         layer.addEventListener("pointermove", (e) => {
             e.preventDefault();
@@ -3443,8 +3440,8 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
 
     queueInstance.execute();
 
-    if (enableResize) {
-        window.addEventListener("resize", resize);
+    if (enableResize && root.container) {
+        layerResizeBind(root, resize);
     }
 
     return root;

@@ -3,7 +3,12 @@ import VDom from "./VDom.js";
 import path from "./path.js";
 import colorMap from "./colorMap.js";
 import Events from "./events.js";
-import { CollectionPrototype, NodePrototype } from "./coreApi.js";
+import {
+    CollectionPrototype,
+    NodePrototype,
+    layerResizeBind,
+    layerResizeUnBind,
+} from "./coreApi.js";
 
 const queueInstance = queue;
 
@@ -774,6 +779,7 @@ function svgLayer(container, layerSettings = {}) {
     root.type = "SVG";
     root.width = width;
     root.height = height;
+    root.domEl = layer;
 
     let eventsInstance = new Events(root);
 
@@ -785,13 +791,13 @@ function svgLayer(container, layerSettings = {}) {
         layer.setAttribute("id", id);
     };
 
-    let resize = function () {
+    let resize = function (cr) {
         if (!document.querySelector(container)) {
-            window.removeEventListener("resize", resize);
+            layerResizeUnBind(root);
             return;
         }
-        height = cHeight || res.clientHeight;
-        width = cWidth || res.clientWidth;
+        height = cHeight || cr.height;
+        width = cWidth || cr.width;
         layer.setAttribute("height", height);
         layer.setAttribute("width", width);
         root.width = width;
@@ -881,7 +887,7 @@ function svgLayer(container, layerSettings = {}) {
     queueInstance.execute();
 
     if (enableResize) {
-        window.addEventListener("resize", resize);
+        layerResizeBind(root, resize);
     }
 
     return root;
