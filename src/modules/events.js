@@ -125,11 +125,16 @@ Events.prototype.pointerupCheck = function (e) {
             (e.pointerType === "touch" && this.pointerNode.dragCounter <= 5)
         ) {
             if (this.pointerNode.clickCounter === 1 && node.events["click"]) {
-                clickInterval = setTimeout(function () {
-                    self.pointerNode = null;
+                if (node.events["dblclick"]) {
+                    clickInterval = setTimeout(function () {
+                        self.pointerNode = null;
+                        node.events["click"].call(node, e);
+                        clickInterval = null;
+                    }, 200);
+                } else {
                     node.events["click"].call(node, e);
-                    clickInterval = null;
-                }, 200);
+                    self.pointerNode = null;
+                }
             } else if (this.pointerNode.clickCounter === 2 && node.events["dblclick"]) {
                 if (clickInterval) {
                     clearTimeout(clickInterval);
@@ -170,6 +175,16 @@ Events.prototype.mousemoveCheck = function (e) {
         e,
         "mousemove"
     );
+
+    if (this.selectedNode && this.selectedNode !== node) {
+        if (this.selectedNode.events["mouseout"]) {
+            this.selectedNode.events["mouseout"].call(this.selectedNode, e);
+        }
+        if (this.selectedNode.events["mouseleave"]) {
+            this.selectedNode.events["mouseleave"].call(this.selectedNode, e);
+        }
+    }
+
     if (node && (node.events["mouseover"] || node.events["mousein"])) {
         if (this.selectedNode !== node) {
             if (node.events["mouseover"]) {
@@ -178,15 +193,6 @@ Events.prototype.mousemoveCheck = function (e) {
             if (node.events["mousein"]) {
                 node.events["mousein"].call(node, e);
             }
-        }
-    }
-
-    if (this.selectedNode && this.selectedNode !== node) {
-        if (this.selectedNode.events["mouseout"]) {
-            this.selectedNode.events["mouseout"].call(this.selectedNode, e);
-        }
-        if (this.selectedNode.events["mouseleave"]) {
-            this.selectedNode.events["mouseleave"].call(this.selectedNode, e);
         }
     }
 

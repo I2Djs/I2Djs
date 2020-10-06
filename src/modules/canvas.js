@@ -5,7 +5,12 @@ import geometry from "./geometry.js";
 import colorMap from "./colorMap.js";
 import Events from "./events.js";
 import behaviour from "./behaviour.js";
-import { NodePrototype, CollectionPrototype } from "./coreApi.js";
+import {
+    NodePrototype,
+    CollectionPrototype,
+    layerResizeBind,
+    layerResizeUnBind,
+} from "./coreApi.js";
 let t2DGeometry = geometry;
 const queueInstance = queue;
 let Id = 0;
@@ -1817,7 +1822,7 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     let width = res ? res.clientWidth : 0;
     const layer = document.createElement("canvas");
     const ctx = layer.getContext("2d", contextConfig);
-    let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
+    let { enableEvents = false, autoUpdate = true, enableResize = true } = layerSettings;
     let ratio = getPixlRatio(ctx);
     ctx.pixelRatio = ratio;
     let onClear = function (ctx) {
@@ -1890,12 +1895,6 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
         this.domEl.style[prop] = value;
     };
 
-    root.setPixelRatio = function (val) {
-        ratio = val;
-        this.ctx.pixelRatio = ratio;
-        this.setSize(this.width, this.height);
-    };
-
     root.addDependentLayer = function (layer) {
         if (!(layer instanceof CanvasNodeExe)) {
             return;
@@ -1906,24 +1905,36 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
         this.prependChild([layer]);
     };
 
-    let resize = function () {
+    let resize = function (cr) {
         if (!document.querySelector(container)) {
-            window.removeEventListener("resize", resize);
+            layerResizeUnBind(root);
             return;
         }
-        height = cHeight || res.clientHeight;
-        width = cWidth || res.clientWidth;
-        layer.setAttribute("height", height * ratio);
-        layer.setAttribute("width", width * ratio);
-        layer.style.height = `${height}px`;
-        layer.style.width = `${width}px`;
+        height = cHeight || cr.height;
+        width = cWidth || cr.width;
+
         root.width = width;
         root.height = height;
+
+        updateLayerDimension(root.domEl, width, height);
 
         if (resizeCall) {
             resizeCall();
         }
         root.execute();
+    };
+
+    let updateLayerDimension = function (layer, width, height) {
+        layer.setAttribute("height", height * ratio);
+        layer.setAttribute("width", width * ratio);
+        layer.style.height = `${height}px`;
+        layer.style.width = `${width}px`;
+    };
+
+    root.setPixelRatio = function (val) {
+        ratio = val;
+        this.ctx.pixelRatio = ratio;
+        updateLayerDimension(this.domEl, this.width, this.height);
     };
 
     root.onResize = function (exec) {
@@ -1941,12 +1952,11 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
         cWidth = width_;
         width = width_;
         height = height_;
-        this.domEl.setAttribute("height", cHeight * ratio);
-        this.domEl.setAttribute("width", cWidth * ratio);
-        this.domEl.style.height = `${cHeight}px`;
-        this.domEl.style.width = `${cWidth}px`;
         this.width = width;
         this.height = height;
+
+        updateLayerDimension(this.domEl, width, height);
+
         this.execute();
     };
 
@@ -2006,6 +2016,7 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
             res.removeChild(layer);
         }
         queueInstance.removeVdom(vDomIndex);
+        layerResizeUnBind(root);
     };
 
     if (enableEvents) {
@@ -2023,27 +2034,21 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
         // 	eventsInstance.dblclickCheck(e);
         // });
         layer.addEventListener("mousedown", (e) => {
-            // e.preventDefault();
             eventsInstance.mousedownCheck(e);
         });
         layer.addEventListener("mouseup", (e) => {
-            // e.preventDefault();
             eventsInstance.mouseupCheck(e);
         });
         layer.addEventListener("mouseleave", (e) => {
-            // e.preventDefault();
             eventsInstance.mouseleaveCheck(e);
         });
         layer.addEventListener("contextmenu", (e) => {
-            // e.preventDefault();
             eventsInstance.contextmenuCheck(e);
         });
         layer.addEventListener("touchstart", (e) => {
-            // e.preventDefault();
             eventsInstance.touchstartCheck(e);
         });
         layer.addEventListener("touchend", (e) => {
-            // e.preventDefault();
             eventsInstance.touchendCheck(e);
         });
         layer.addEventListener("touchmove", (e) => {
@@ -2051,20 +2056,16 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
             eventsInstance.touchmoveCheck(e);
         });
         layer.addEventListener("touchcancel", (e) => {
-            // e.preventDefault();
             eventsInstance.touchcancelCheck(e);
         });
         layer.addEventListener("wheel", (e) => {
-            // e.preventDefault();
             eventsInstance.wheelEventCheck(e);
         });
         layer.addEventListener("pointerdown", (e) => {
-            // e.preventDefault();
             eventsInstance.addPointer(e);
             eventsInstance.pointerdownCheck(e);
         });
         layer.addEventListener("pointerup", (e) => {
-            // e.preventDefault();
             eventsInstance.removePointer(e);
             eventsInstance.pointerupCheck(e);
         });
@@ -2076,8 +2077,9 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
 
     queueInstance.execute();
 
-    if (enableResize) {
-        window.addEventListener("resize", resize);
+    if (enableResize && root.container) {
+        layerResizeBind(root, resize);
+        // window.addEventListener("resize", resize);
     }
 
     return root;
