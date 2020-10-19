@@ -42,7 +42,8 @@ function getPixlRatio(ctx) {
         ctx.oBackingStorePixelRatio ||
         ctx.backingStorePixelRatio ||
         1;
-    return dpr / bsr;
+    const ratio = dpr / bsr;
+    return ratio < 1.0 ? 1.0 : ratio;
 }
 
 function domSetAttribute(attr, value) {
@@ -294,15 +295,6 @@ PixelObject.prototype.put = function (pos, color) {
 // 	return pixHndlr(pixelData);
 // }
 
-function getCanvasImgInstance(width, height) {
-    const canvas = document.createElement("canvas");
-    canvas.setAttribute("height", height);
-    canvas.setAttribute("width", width);
-    canvas.style.height = `${height}px`;
-    canvas.style.width = `${width}px`;
-    return canvas;
-}
-
 function CanvasMask(self, config = {}) {
     let maskId = config.id ? config.id : "mask-" + Math.ceil(Math.random() * 1000);
     this.config = config;
@@ -430,26 +422,27 @@ CanvasDom.prototype = {
     applyStyles,
 };
 
-const imageDataMap = {};
+// const imageDataMap = {};
 
 function imageInstance(self) {
     let imageIns = new Image();
     imageIns.crossOrigin = "anonymous";
+
     imageIns.onload = function onload() {
         self.attr.height = self.attr.height ? self.attr.height : this.height;
         self.attr.width = self.attr.width ? self.attr.width : this.width;
+        self.imageObj = this;
+        // if (imageDataMap[self.attr.src]) {
+        //     self.imageObj = imageDataMap[self.attr.src];
+        // } else {
+        //     const im = getCanvasImgInstance(this.width, this.height);
+        //     const ctxX = im.context;
+        //     ctxX.drawImage(this, 0, 0, this.width, this.height);
+        //     self.imageObj = im.canvas;
+        //     imageDataMap[self.attr.src] = im.canvas;
+        // }
 
-        if (imageDataMap[self.attr.src]) {
-            self.imageObj = imageDataMap[self.attr.src];
-        } else {
-            const im = getCanvasImgInstance(this.width, this.height);
-            const ctxX = im.getContext("2d");
-            ctxX.drawImage(this, 0, 0, this.width, this.height);
-            self.imageObj = im;
-            imageDataMap[self.attr.src] = im;
-        }
-
-        self.postProcess();
+        // self.postProcess();
 
         if (self.nodeExe.attr.onload && typeof self.nodeExe.attr.onload === "function") {
             self.nodeExe.attr.onload.call(self.nodeExe, self.image);
@@ -502,82 +495,82 @@ RenderImage.prototype.setAttr = function RIsetAttr(attr, value) {
             value instanceof HTMLCanvasElement
         ) {
             self.imageObj = value;
-            self.postProcess();
+            // self.postProcess();
             self.attr.height = self.attr.height ? self.attr.height : value.height;
             self.attr.width = self.attr.width ? self.attr.width : value.width;
-        } else if (value instanceof CanvasNodeExe) {
+        } else if (value instanceof CanvasNodeExe || value instanceof RenderTexture) {
             self.imageObj = value.domEl;
-            self.postProcess();
+            // self.postProcess();
             self.attr.height = self.attr.height ? self.attr.height : value.height;
             self.attr.width = self.attr.width ? self.attr.width : value.width;
         }
     }
     this.attr[attr] = value;
 
-    if (attr === "clip") {
-        this.clipImage();
-    }
+    // if (attr === "clip") {
+    //     this.clipImage();
+    // }
 
-    if (attr === "pixels") {
-        this.pixelsUpdate();
-    }
+    // if (attr === "pixels") {
+    //     this.pixelsUpdate();
+    // }
 
     queueInstance.vDomChanged(this.nodeExe.vDomIndex);
 };
 
-RenderImage.prototype.postProcess = function () {
-    let self = this;
-    if (self.attr.clip) {
-        self.clipImage();
-    }
+// RenderImage.prototype.postProcess = function () {
+//     let self = this;
+//     if (self.attr.clip) {
+//         self.clipImage();
+//     }
 
-    if (self.attr.pixels) {
-        self.pixelsUpdate();
-    }
-};
+//     if (self.attr.pixels) {
+//         self.pixelsUpdate();
+//     }
+// };
 
-RenderImage.prototype.clipImage = function () {
-    let self = this;
-    if (!self.imageObj) {
-        return;
-    }
-    if (!self.rImageObj) {
-        self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
-    }
+// RenderImage.prototype.clipImage = function () {
+//     let self = this;
+//     if (!self.imageObj) {
+//         return;
+//     }
+//     if (!self.rImageObj) {
+//         self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
+//     }
 
-    const ctxX = self.rImageObj.getContext("2d");
-    const { clip, width = 0, height = 0 } = self.attr;
-    let { sx = 0, sy = 0, swidth = width, sheight = height } = clip;
+//     const ctxX = self.rImageObj.context;
+//     const { clip, width = 0, height = 0 } = self.attr;
+//     let { sx = 0, sy = 0, swidth = width, sheight = height } = clip;
 
-    ctxX.clearRect(0, 0, width, height);
-    ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
-};
+//     ctxX.clearRect(0, 0, width, height);
+//     ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
+// };
 
-RenderImage.prototype.pixelsUpdate = function () {
-    let self = this;
-    let ctxX;
-    let pixels;
+// RenderImage.prototype.pixelsUpdate = function () {
+//     let self = this;
+//     let ctxX;
+//     let pixels;
 
-    if (!this.imageObj) {
-        return;
-    }
+//     if (!this.imageObj) {
+//         return;
+//     }
 
-    const { width = 0, height = 0 } = self.attr;
+//     const { width = 0, height = 0 } = self.attr;
 
-    if (!self.rImageObj) {
-        self.rImageObj = getCanvasImgInstance(width, height);
-        ctxX = self.rImageObj.getContext("2d");
-        ctxX.drawImage(self.imageObj, 0, 0, width, height);
-    } else {
-        ctxX = self.rImageObj.getContext("2d");
-        // ctxX.drawImage(self.imageObj, 0, 0, width, height);
-    }
-    pixels = ctxX.getImageData(0, 0, width, height);
+//     if (!self.rImageObj) {
+//         self.rImageObj = getCanvasImgInstance(width, height);
+//         ctxX = self.rImageObj.context;
+//         ctxX.drawImage(self.imageObj, 0, 0, width, height);
+//     } else {
+//         ctxX = self.rImageObj.context;
+//         // ctxX.drawImage(self.imageObj, 0, 0, width, height);
+//     }
+//     pixels = ctxX.getImageData(0, 0, width, height);
 
-    // ctxX.clearRect(0, 0, width, height);
-    // ctxX.clearRect(0, 0, width, height);
-    ctxX.putImageData(self.attr.pixels(pixels), 0, 0);
-};
+//     // ctxX.clearRect(0, 0, width, height);
+//     // ctxX.clearRect(0, 0, width, height);
+//     ctxX.putImageData(self.attr.pixels(pixels), 0, 0);
+// };
 
 RenderImage.prototype.updateBBox = function RIupdateBBox() {
     const self = this;
@@ -602,7 +595,8 @@ RenderImage.prototype.execute = function RIexecute() {
     const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
 
     if (this.imageObj) {
-        this.ctx.drawImage(this.rImageObj ? this.rImageObj : this.imageObj, x, y, width, height);
+        // this.ctx.drawImage(this.rImageObj ? this.rImageObj.canvas : this.imageObj, x, y, width, height);
+        this.ctx.drawImage(this.imageObj, x, y, width, height);
     }
 };
 
@@ -1413,6 +1407,17 @@ let CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
             );
             break;
 
+        // case "sprite":
+        //     this.dom = new RenderSprite(
+        //         this.ctx,
+        //         this.attr,
+        //         this.style,
+        //         config.onload,
+        //         config.onerror,
+        //         this
+        //     );
+        //     break;
+
         case "polygon":
             this.dom = new RenderPolygon(this.ctx, this.attr, this.style, this);
             break;
@@ -2010,13 +2015,17 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
         this.execute();
     };
 
+    root.createTexture = function (config) {
+        return new RenderTexture(this, config);
+    };
+
     root.destroy = function () {
         let res = document.querySelector(container);
         if (res && res.contains(layer)) {
             res.removeChild(layer);
         }
         queueInstance.removeVdom(vDomIndex);
-        layerResizeUnBind(root);
+        layerResizeUnBind(root, resize);
     };
 
     if (enableEvents) {
@@ -2084,6 +2093,168 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
 
     return root;
 }
+
+function GetCanvasImgInstance(width, height) {
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute("height", height);
+    canvas.setAttribute("width", width);
+    canvas.style.height = `${height}px`;
+    canvas.style.width = `${width}px`;
+    this.canvas = canvas;
+    this.context = this.canvas.getContext("2d");
+}
+
+GetCanvasImgInstance.prototype.setAttr = function (attr, value) {
+    if (attr === "height") {
+        this.canvas.setAttribute("height", value);
+        this.canvas.style.height = `${value}px`;
+    } else if (attr === "width") {
+        this.canvas.setAttribute("width", value);
+        this.canvas.style.width = `${value}px`;
+    }
+};
+
+function textureImageInstance(self) {
+    let imageIns = new Image();
+    imageIns.crossOrigin = "anonymous";
+
+    imageIns.onload = function onload() {
+        self.attr.height = self.attr.height ? self.attr.height : this.height;
+        self.attr.width = self.attr.width ? self.attr.width : this.width;
+        self.imageObj = this;
+        // if (imageDataMap[self.attr.src]) {
+        //     self.imageObj = imageDataMap[self.attr.src];
+        // } else {
+        //     const im = getCanvasImgInstance(this.width, this.height);
+        //     const ctxX = im.context;
+        // self.rImageObj.context.drawImage(this, 0, 0, this.width, this.height);
+        //     self.imageObj = im.canvas;
+        //     imageDataMap[self.attr.src] = im.canvas;
+        // }
+
+        // self.postProcess();
+
+        if (self.attr.onload && typeof self.attr.onload === "function") {
+            self.attr.onload.call(self, self.image);
+        }
+
+        self.postProcess();
+
+        // self.nodeExe.BBoxUpdate = false;
+        // queueInstance.vDomChanged(self.nodeExe.vDomIndex);
+    };
+
+    imageIns.onerror = function onerror(error) {
+        if (self.nodeExe.attr.onerror && typeof self.nodeExe.attr.onerror === "function") {
+            self.nodeExe.attr.onerror.call(self.nodeExe, error);
+        }
+    };
+    return imageIns;
+}
+
+function RenderTexture(nodeExe, config = {}) {
+    let self = this;
+    self.attr = config.attr || {};
+    self.style = config.style || {};
+    self.rImageObj = new GetCanvasImgInstance(self.attr.width || 1, self.attr.height || 1);
+    self.ctx = self.rImageObj.context;
+    self.domEl = self.rImageObj.canvas;
+    // self.attr = props;
+    self.nodeName = "Sprite";
+    self.nodeExe = nodeExe;
+
+    for (let key in self.attr) {
+        self.setAttr(key, self.attr[key]);
+    }
+
+    queueInstance.vDomChanged(nodeExe.vDomIndex);
+    // self.stack = [self];
+}
+RenderTexture.prototype = new NodePrototype();
+RenderTexture.prototype.constructor = RenderTexture;
+
+RenderTexture.prototype.setAttr = function RSsetAttr(attr, value) {
+    const self = this;
+
+    if (attr === "src") {
+        if (typeof value === "string") {
+            self.image = textureImageInstance(self);
+            if (self.image.src !== value) {
+                self.image.src = value;
+            }
+        } else if (
+            value instanceof HTMLImageElement ||
+            value instanceof SVGImageElement ||
+            value instanceof HTMLCanvasElement
+        ) {
+            self.imageObj = value;
+            self.attr.height = self.attr.height ? self.attr.height : value.height;
+            self.attr.width = self.attr.width ? self.attr.width : value.width;
+            self.postProcess();
+        } else if (value instanceof CanvasNodeExe || value instanceof RenderTexture) {
+            self.imageObj = value.domEl;
+            self.attr.height = self.attr.height ? self.attr.height : value.height;
+            self.attr.width = self.attr.width ? self.attr.width : value.width;
+            self.postProcess();
+        }
+    }
+    this.attr[attr] = value;
+
+    if (attr === "height" || attr === "width") {
+        this.rImageObj.setAttr(attr, value);
+        this.postProcess();
+    }
+
+    if (attr === "clip" || attr === "pixels") {
+        this.postProcess();
+    }
+};
+
+RenderTexture.prototype.postProcess = function () {
+    let self = this;
+    if (!self.imageObj) {
+        return;
+    }
+    if (self.attr.clip) {
+        self.clipImage();
+    } else {
+        self.execute();
+    }
+
+    if (self.attr.pixels) {
+        self.pixelsUpdate();
+    }
+    queueInstance.vDomChanged(self.nodeExe.vDomIndex);
+};
+
+RenderTexture.prototype.clipImage = function () {
+    let self = this;
+    const ctxX = self.ctx;
+    const { clip, width = 0, height = 0 } = self.attr;
+    let { sx = 0, sy = 0, swidth = width, sheight = height } = clip;
+
+    ctxX.clearRect(0, 0, width, height);
+    ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
+};
+
+RenderTexture.prototype.pixelsUpdate = function () {
+    let self = this;
+    let ctxX = self.ctx;
+    let pixels;
+
+    const { width = 0, height = 0 } = self.attr;
+
+    pixels = ctxX.getImageData(0, 0, width, height);
+    ctxX.putImageData(self.attr.pixels(pixels), 0, 0);
+};
+
+RenderTexture.prototype.execute = function RIexecute() {
+    const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
+
+    if (this.imageObj) {
+        this.ctx.drawImage(this.imageObj, x, y, width, height);
+    }
+};
 
 function canvasNodeLayer(config, height = 0, width = 0) {
     if (!Canvas) {
@@ -2205,6 +2376,25 @@ function canvasNodeLayer(config, height = 0, width = 0) {
     root.clear = function () {
         onClear();
     };
+
+    root.createTexture = function (config) {
+        return new RenderTexture(this, config);
+    };
+
+    // function Sprite () {
+
+    // }
+
+    // Sprite.prototype = new NodePrototype();
+    // Sprite.constructor = Sprite;
+
+    // Sprite.prototype.add = function () {
+
+    // }
+
+    // Sprite.prototype.remove = function () {
+
+    // }
 
     root.setContext = function (prop, value) {
         /** Expecting value to be array if multiple aruments */

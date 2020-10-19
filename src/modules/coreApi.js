@@ -1019,7 +1019,9 @@ let layerResizeHandler = function (entries) {
         let entry = entries[key];
         const cr = entry.contentRect;
         if (entry.target.resizeHandler) {
-            entry.target.resizeHandler(cr);
+            entry.target.resizeHandler.forEach(function (exec) {
+                exec(cr);
+            });
         }
     }
 };
@@ -1029,11 +1031,21 @@ function layerResizeBind(layer, handler) {
         layer.ro = new ResizeObserver(layerResizeHandler);
         layer.ro.observe(layer.container);
     }
-    layer.container.resizeHandler = handler;
+    if (!layer.container.resizeHandler) {
+        layer.container.resizeHandler = [];
+    }
+    layer.container.resizeHandler.push(handler);
 }
 
 function layerResizeUnBind(layer, handler) {
-    if (layer.ro) {
+    if (!layer.container.resizeHandler) {
+        return;
+    }
+    let execIndex = layer.container.resizeHandler.indexOf(handler);
+    if (execIndex !== -1) {
+        layer.container.resizeHandler.splice(execIndex, 1);
+    }
+    if (layer.container.resizeHandler.length === 0 && layer.ro) {
         layer.ro.disconnect();
     }
 }

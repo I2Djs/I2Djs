@@ -31,7 +31,8 @@ function getPixlRatio(ctx) {
         ctx.oBackingStorePixelRatio ||
         ctx.backingStorePixelRatio ||
         1;
-    return dpr / bsr;
+    const ratio = dpr / bsr;
+    return ratio < 1.0 ? 1.0 : ratio;
 }
 
 let Id = 0;
