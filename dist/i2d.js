@@ -5405,7 +5405,7 @@
     }
 
     function layerResizeUnBind(layer, handler) {
-        if(!layer.container.resizeHandler) {
+        if (!layer.container.resizeHandler) {
             return;
         }
         let execIndex = layer.container.resizeHandler.indexOf(handler);
@@ -8693,7 +8693,7 @@
         let width = res ? res.clientWidth : 0;
         const layer = document.createElement("canvas");
         const ctx = layer.getContext("2d", contextConfig);
-        let { enableEvents = false, autoUpdate = true, enableResize = true } = layerSettings;
+        let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
         let ratio = getPixlRatio(ctx);
         ctx.pixelRatio = ratio;
         let onClear = function (ctx) {

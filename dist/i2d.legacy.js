@@ -8874,7 +8874,7 @@
         var width = res ? res.clientWidth : 0;
         var layer = document.createElement("canvas");
         var ctx = layer.getContext("2d", contextConfig);
-        var enableEvents = layerSettings.enableEvents; if ( enableEvents === void 0 ) enableEvents = false;
+        var enableEvents = layerSettings.enableEvents; if ( enableEvents === void 0 ) enableEvents = true;
         var autoUpdate = layerSettings.autoUpdate; if ( autoUpdate === void 0 ) autoUpdate = true;
         var enableResize = layerSettings.enableResize; if ( enableResize === void 0 ) enableResize = true;
         var ratio = getPixlRatio(ctx);
