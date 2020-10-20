@@ -19,7 +19,7 @@ function domId() {
     return Id;
 }
 
-let SVGCollection = function () {
+const SVGCollection = function () {
     CollectionPrototype.apply(this, arguments);
 };
 SVGCollection.prototype = new CollectionPrototype();
@@ -43,7 +43,7 @@ SVGCollection.prototype.createNode = function (ctx, config, vDomIndex) {
 
 function SVGMasking(self, config = {}) {
     this.pDom = self;
-    let maskId = config.id ? config.id : "mask-" + Math.ceil(Math.random() * 1000);
+    const maskId = config.id ? config.id : "mask-" + Math.ceil(Math.random() * 1000);
     this.id = config.id || maskId;
     config.id = maskId;
     if (!this.defs) {
@@ -65,7 +65,7 @@ SVGMasking.prototype.exe = function exe() {
 
 function SVGClipping(self, config = {}) {
     this.pDom = self;
-    let clipId = config.id ? config.id : "clip-" + Math.ceil(Math.random() * 1000);
+    const clipId = config.id ? config.id : "clip-" + Math.ceil(Math.random() * 1000);
     this.id = config.id || clipId;
     config.id = clipId;
     if (!this.defs) {
@@ -87,7 +87,7 @@ SVGClipping.prototype.exe = function exe() {
 
 function SVGPattern(self, config = {}) {
     this.pDom = self;
-    let patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
+    const patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
     this.id = config.id || patternId;
     config.id = patternId;
     if (!this.defs) {
@@ -109,7 +109,7 @@ SVGPattern.prototype.exe = function exe() {
 function gradTransformToString(trns) {
     let cmd = "";
 
-    for (let trnX in trns) {
+    for (const trnX in trns) {
         if (trnX === "rotate") {
             cmd += `${trnX}(${
                 trns.rotate[0] + " " + (trns.rotate[1] || 0) + " " + (trns.rotate[2] || 0)
@@ -140,7 +140,7 @@ DomGradients.prototype.linearGradient = function linearGradient() {
     this.linearEl = this.defs.join([1], "linearGradient", {
         action: {
             enter(data) {
-                let gredEl = this.createEls(data.linearGradient, {
+                const gredEl = this.createEls(data.linearGradient, {
                     el: "linearGradient",
                 }).setAttr({
                     id: self.config.id,
@@ -212,7 +212,7 @@ DomGradients.prototype.radialGradient = function radialGradient() {
     this.radialEl = this.defs.join([1], "radialGradient", {
         action: {
             enter(data) {
-                let gredEl = this.createEls(data.radialGradient, {
+                const gredEl = this.createEls(data.radialGradient, {
                     el: "radialGradient",
                 }).setAttr({
                     id: self.config.id,
@@ -354,8 +354,8 @@ DomExe.prototype.node = function node() {
 };
 
 function updateAttrsToDom(self, key) {
-    let ind = key.indexOf(":");
-    let value = self.changedAttribute[key];
+    const ind = key.indexOf(":");
+    const value = self.changedAttribute[key];
 
     if (ind >= 0) {
         self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), value);
@@ -383,7 +383,7 @@ function updateAttrsToDom(self, key) {
 function updateTransAttrsToDom(self) {
     let cmd = "";
     // let trns = ['scale', 'translate', 'rotate'];
-    for (let trnX in self.attr.transform) {
+    for (const trnX in self.attr.transform) {
         if (trnX === "rotate") {
             cmd += `${trnX}(${
                 self.attr.transform.rotate[0] +
@@ -401,9 +401,9 @@ function updateTransAttrsToDom(self) {
 }
 
 DomExe.prototype.transFormAttributes = function transFormAttributes() {
-    let self = this;
+    const self = this;
 
-    for (let key in self.changedAttribute) {
+    for (const key in self.changedAttribute) {
         if (key !== "transform") {
             updateAttrsToDom(self, key);
         } else {
@@ -496,7 +496,7 @@ DomExe.prototype.setStyle = function DMsetStyle(attr, value) {
         }
         this.changedStyles[attr] = value;
     } else if (arguments.length === 1 && typeof attr === "object") {
-        for (let key in attr) {
+        for (const key in attr) {
             if (attr[key] == null && this.style[attr] != null) {
                 delete this.style[key];
             } else {
@@ -530,7 +530,7 @@ DomExe.prototype.setAttr = function DMsetAttr(attr, value) {
         this.attr[attr] = value;
         this.changedAttribute[attr] = value;
     } else if (arguments.length === 1 && typeof attr === "object") {
-        for (let key in attr) {
+        for (const key in attr) {
             if (key === "points") {
                 attr[key] = pointsToString(attr[key]);
             }
@@ -560,7 +560,7 @@ DomExe.prototype.execute = function DMexecute() {
         this.children[i].execute();
     }
 
-    for (let style in this.changedStyles) {
+    for (const style in this.changedStyles) {
         if (typeof this.changedStyles[style] === "object") {
             if (
                 this.changedStyles[style] instanceof DomGradients ||
@@ -706,8 +706,8 @@ DomExe.prototype.text = function DMtext(value) {
         return this.attr.text;
     }
 
-    this.attr["text"] = value;
-    this.changedAttribute["text"] = value;
+    this.attr.text = value;
+    this.changedAttribute.text = value;
     return this;
 };
 
@@ -741,7 +741,7 @@ DomExe.prototype.removeChild = function DMremoveChild(obj) {
     const index = children.indexOf(obj);
 
     if (index !== -1) {
-        let dom = children.splice(index, 1)[0].dom;
+        const dom = children.splice(index, 1)[0].dom;
         if (!this.dom.contains(dom)) {
             return;
         }
@@ -753,7 +753,7 @@ function svgLayer(container, layerSettings = {}) {
     const res = document.querySelector(container);
     let height = res.clientHeight;
     let width = res.clientWidth;
-    let { autoUpdate = true, enableResize = true } = layerSettings;
+    const { autoUpdate = true, enableResize = true } = layerSettings;
     const layer = document.createElementNS(nameSpace.svg, "svg");
     layer.setAttribute("height", height);
     layer.setAttribute("width", width);
@@ -781,7 +781,7 @@ function svgLayer(container, layerSettings = {}) {
     root.height = height;
     root.domEl = layer;
 
-    let eventsInstance = new Events(root);
+    const eventsInstance = new Events(root);
 
     if (vDomInstance) {
         vDomInstance.rootNode(root);
@@ -791,7 +791,7 @@ function svgLayer(container, layerSettings = {}) {
         layer.setAttribute("id", id);
     };
 
-    let resize = function (cr) {
+    const resize = function (cr) {
         if (!document.querySelector(container)) {
             layerResizeUnBind(root);
             return;
@@ -842,7 +842,7 @@ function svgLayer(container, layerSettings = {}) {
     };
 
     root.destroy = function () {
-        let res = document.querySelector(container);
+        const res = document.querySelector(container);
         if (res && res.contains(layer)) {
             res.removeChild(layer);
         }

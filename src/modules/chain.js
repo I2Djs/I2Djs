@@ -274,7 +274,7 @@ ParallelGroup.prototype.execute = function PGexecute() {
     self.currPos = 0;
 
     for (let i = 0, len = self.group.length; i < len; i++) {
-        let currObj = self.group[i];
+        const currObj = self.group[i];
 
         if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
             currObj // .duration(currObj.durationP ? currObj.durationP : self.durationP)
