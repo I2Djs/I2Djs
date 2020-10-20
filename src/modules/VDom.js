@@ -84,10 +84,10 @@ function transformCoOr(d, coOr) {
             x: d.attr.transform.rotate[1],
             y: d.attr.transform.rotate[2],
         };
-        let x = coOrLocal.x;
-        let y = coOrLocal.y;
-        let cx = cen.x;
-        let cy = cen.y;
+        const x = coOrLocal.x;
+        const y = coOrLocal.y;
+        const cx = cen.x;
+        const cy = cen.y;
         var radians = (Math.PI / 180) * rotate;
         var cos = Math.cos(radians);
         var sin = Math.sin(radians);
