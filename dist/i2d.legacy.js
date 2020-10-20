@@ -6,8 +6,8 @@
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
     typeof define === 'function' && define.amd ? define(['exports'], factory) :
-    (global = global || self, factory(global.i2d = {}));
-}(this, function (exports) { 'use strict';
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.i2d = {}));
+}(this, (function (exports) { 'use strict';
 
     /* eslint-disable no-undef */
     var animatorInstance = null;
@@ -2192,8 +2192,6 @@
                 case "q":
                     ctx.quadraticCurveTo(c.cntrl1.x, c.cntrl1.y, c.p1.x, c.p1.y);
                     break;
-                default:
-                    break;
             }
         }
         if (!clippath) {
@@ -2212,6 +2210,8 @@
 
         for (var i = 0; i < this.stack.length; i++) {
             d = this.stack[i];
+            var f = 0.05;
+            var tf = 0;
             switch (d.type) {
                 case "M":
                 case "m":
@@ -2238,16 +2238,12 @@
                 case "s":
                 case "Q":
                 case "q":
-                    var f = 0.05;
-                    var tf = 0;
                     while (tf <= 1.0) {
                         var xy = d.pointAt(tf);
                         points[points.length] = xy.x;
                         points[points.length] = xy.y;
                         tf += f;
                     }
-                    break;
-                default:
                     break;
             }
         }
@@ -2262,6 +2258,12 @@
             currCmdI = this.PC;
             this.currPathArr = this.currPathArr - 1;
         }
+
+        var rx = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        var ry = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        var xRotation = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        var arcLargeFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        var sweepFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
 
         switch (currCmdI) {
             case "m":
@@ -2333,11 +2335,6 @@
                 break;
 
             case "a":
-                var rx = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-                var ry = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-                var xRotation = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-                var arcLargeFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-                var sweepFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
                 this.a(false, rx, ry, xRotation, arcLargeFlag, sweepFlag, this.fetchXY());
                 break;
 
@@ -2353,9 +2350,6 @@
             case "z":
             case "Z":
                 this.z();
-                break;
-
-            default:
                 break;
         }
     };
@@ -2606,7 +2600,7 @@
                     length: 0,
                 });
                 totalLength += 0;
-            }
+            } else ;
         };
 
         for (var i = 0; i < arrExe.length; i += 1) loop$1( i );
@@ -2699,7 +2693,7 @@
                         type: "C",
                         length: _[i].length,
                     });
-                }
+                } else ;
             }
 
             return mappedArr;
@@ -3528,7 +3522,7 @@
             }
         } else if (node) {
             if (e.pointerType === "touch") {
-                node.events["mouseover"].call(node, e);
+                node.events.mouseover.call(node, e);
             }
         }
     };
@@ -3547,12 +3541,12 @@
             if (node.events.drag) {
                 node.events.drag.execute(node, e, "pointermove", self);
             }
-            if (node.events["mousemove"]) {
-                node.events["mousemove"].call(node, e);
+            if (node.events.mousemove) {
+                node.events.mousemove.call(node, e);
             }
         } else if (node) {
             if (e.pointerType === "touch") {
-                node.events["mousemove"].call(node, e);
+                node.events.mousemove.call(node, e);
             }
         }
         e.preventDefault();
@@ -3575,31 +3569,31 @@
                 this.pointerNode.dragCounter <= 2 ||
                 (e.pointerType === "touch" && this.pointerNode.dragCounter <= 5)
             ) {
-                if (this.pointerNode.clickCounter === 1 && node.events["click"]) {
-                    if (node.events["dblclick"]) {
+                if (this.pointerNode.clickCounter === 1 && node.events.click) {
+                    if (node.events.dblclick) {
                         clickInterval = setTimeout(function () {
                             self.pointerNode = null;
-                            node.events["click"].call(node, e);
+                            node.events.click.call(node, e);
                             clickInterval = null;
                         }, 200);
                     } else {
-                        node.events["click"].call(node, e);
+                        node.events.click.call(node, e);
                         self.pointerNode = null;
                     }
-                } else if (this.pointerNode.clickCounter === 2 && node.events["dblclick"]) {
+                } else if (this.pointerNode.clickCounter === 2 && node.events.dblclick) {
                     if (clickInterval) {
                         clearTimeout(clickInterval);
                     }
-                    node.events["dblclick"].call(node, e);
+                    node.events.dblclick.call(node, e);
                     self.pointerNode = null;
-                } else if (!node.events["click"] && !node.events["dblclick"]) {
+                } else if (!node.events.click && !node.events.dblclick) {
                     this.pointerNode = null;
                 }
             } else {
                 this.pointerNode = null;
             }
             if (e.pointerType === "touch") {
-                node.events["mouseup"].call(node, e);
+                node.events.mouseup.call(node, e);
             }
         }
     };
@@ -3628,21 +3622,21 @@
         );
 
         if (this.selectedNode && this.selectedNode !== node) {
-            if (this.selectedNode.events["mouseout"]) {
-                this.selectedNode.events["mouseout"].call(this.selectedNode, e);
+            if (this.selectedNode.events.mouseout) {
+                this.selectedNode.events.mouseout.call(this.selectedNode, e);
             }
-            if (this.selectedNode.events["mouseleave"]) {
-                this.selectedNode.events["mouseleave"].call(this.selectedNode, e);
+            if (this.selectedNode.events.mouseleave) {
+                this.selectedNode.events.mouseleave.call(this.selectedNode, e);
             }
         }
 
-        if (node && (node.events["mouseover"] || node.events["mousein"])) {
+        if (node && (node.events.mouseover || node.events.mousein)) {
             if (this.selectedNode !== node) {
-                if (node.events["mouseover"]) {
-                    node.events["mouseover"].call(node, e);
+                if (node.events.mouseover) {
+                    node.events.mouseover.call(node, e);
                 }
-                if (node.events["mousein"]) {
-                    node.events["mousein"].call(node, e);
+                if (node.events.mousein) {
+                    node.events.mousein.call(node, e);
                 }
             }
         }
@@ -4766,7 +4760,8 @@
             if (nodeSelector.charAt(0) === ".") {
                 var classToken = nodeSelector.substring(1, nodeSelector.length);
                 this.children.every(function (d) {
-                    var check1 = data && d.dataObj && data === d.dataObj && d.attr.class === classToken;
+                    var check1 =
+                        data && d.dataObj && data === d.dataObj && d.attr.class === classToken;
                     var check2 = !data && d.attr.class === classToken;
 
                     if (check1 || check2) {
@@ -4792,7 +4787,8 @@
             } else {
                 nodeSelector = nodeSelector === "group" ? "g" : nodeSelector;
                 this.children.forEach(function (d) {
-                    var check1 = data && d.dataObj && data === d.dataObj && d.nodeName === nodeSelector;
+                    var check1 =
+                        data && d.dataObj && data === d.dataObj && d.nodeName === nodeSelector;
                     var check2 = !data && d.nodeName === nodeSelector;
 
                     if (check1 || check2) {
@@ -5313,12 +5309,11 @@
         var key;
         var attrKeys = config ? (config.attr ? Object.keys(config.attr) : []) : [];
         var styleKeys = config ? (config.style ? Object.keys(config.style) : []) : [];
-        var bbox = config ? (config["bbox"] !== undefined ? config["bbox"] : true) : true;
+        var bbox = config ? (config.bbox !== undefined ? config.bbox : true) : true;
         this.stack = data.map(function (d, i) {
             var assign;
 
-            var node;
-            node = this$1.createNode(
+            var node = this$1.createNode(
                 contextInfo.ctx,
                 {
                     el: config.el,
@@ -6139,8 +6134,8 @@
             return this.attr.text;
         }
 
-        this.attr["text"] = value;
-        this.changedAttribute["text"] = value;
+        this.attr.text = value;
+        this.changedAttribute.text = value;
         return this;
     };
 
@@ -6712,7 +6707,10 @@
         var targetConfig = {
             run: function run(f) {
                 var oScale = transform.scale[0];
-                var nscale = scaleRangeCheck(self.zoomExtent_, origScale + (newScale - origScale) * f);
+                var nscale = scaleRangeCheck(
+                    self.zoomExtent_,
+                    origScale + (newScale - origScale) * f
+                );
 
                 self.event.transform = computeTransform(transform, oScale, nscale, point);
                 self.event.transform.translate[0] += (xdiff * (f - pf)) / nscale;
@@ -6754,7 +6752,10 @@
         var targetConfig = {
             run: function run(f) {
                 var oScale = transform.scale[0];
-                var nscale = scaleRangeCheck(self.zoomExtent_, origScale + (newScale - origScale) * f);
+                var nscale = scaleRangeCheck(
+                    self.zoomExtent_,
+                    origScale + (newScale - origScale) * f
+                );
 
                 self.event.transform = computeTransform(transform, oScale, nscale, point);
                 self.event.transform.translate[0] += (xdiff * (f - pf)) / nscale;
@@ -8407,7 +8408,7 @@
         this.events = {};
         this.ctx = context;
         this.vDomIndex = vDomIndex;
-        this.bbox = config["bbox"] !== undefined ? config["bbox"] : true;
+        this.bbox = config.bbox !== undefined ? config.bbox : true;
 
         switch (config.el) {
             case "circle":
@@ -9283,13 +9284,12 @@
     RenderTexture.prototype.filterUpdate = function () {
         var self = this;
         var ctxX = self.ctx;
-        var pixels;
 
         var ref = self.attr;
         var width = ref.width; if ( width === void 0 ) width = 0;
         var height = ref.height; if ( height === void 0 ) height = 0;
 
-        pixels = ctxX.getImageData(0, 0, width, height);
+        var pixels = ctxX.getImageData(0, 0, width, height);
         ctxX.putImageData(self.attr.filter(pixels), 0, 0);
     };
 
@@ -9523,7 +9523,7 @@
     }
 
     var earcut_1 = earcut;
-    var default_1 = earcut;
+    var _default = earcut;
 
     function earcut(data, holeIndices, dim) {
 
@@ -10199,7 +10199,7 @@
         }
         return result;
     };
-    earcut_1.default = default_1;
+    earcut_1.default = _default;
 
     var t2DGeometry$4 = geometry;
 
@@ -10884,7 +10884,7 @@
         this.transform = [0, 0, 1, 1];
         var subPoints = [];
         if (this.attr.points) {
-            var points = polygonPointsMapper(this.attr["points"]);
+            var points = polygonPointsMapper(this.attr.points);
             for (var j = 0, jlen = points.length; j < jlen; j++) {
                 subPoints[j * 2] = points[j].x;
                 subPoints[j * 2 + 1] = points[j].y;
@@ -11065,7 +11065,7 @@
         }
 
         var fontSize = parseFloat(style.font, 10) || 12;
-        ctx["font"] = style.font;
+        ctx.font = style.font;
         var twid = ctx.measureText(str);
         var width = twid.width;
         var height = fontSize;
@@ -11199,10 +11199,10 @@
         }
 
         if (key === "x" || key === "y") {
-            var x = this.attr["x"] || 0;
-            var y = this.attr["y"] || 0;
-            var width = this.attr["width"] || 0;
-            var height = this.attr["height"] || 0;
+            var x = this.attr.x || 0;
+            var y = this.attr.y || 0;
+            var width = this.attr.width || 0;
+            var height = this.attr.height || 0;
             var x1 = x + width;
             var y1 = y + height;
 
@@ -11226,7 +11226,7 @@
             this.text.style[key] = value;
             if (key === "font") {
                 var fontSize = parseFloat(value, 10) || 12;
-                this.text.ctx["font"] = value;
+                this.text.ctx.font = value;
                 var twid = this.text.ctx.measureText(this.attr.text);
                 var width = twid.width;
                 var height = fontSize;
@@ -11457,10 +11457,10 @@
             this.textureNode = self.attr.src;
         }
         if (this.attr.x || this.attr.y || this.attr.width || this.attr.height) {
-            var x = this.attr["x"] || 0;
-            var y = this.attr["y"] || 0;
-            var width = this.attr["width"] || 0;
-            var height = this.attr["height"] || 0;
+            var x = this.attr.x || 0;
+            var y = this.attr.y || 0;
+            var width = this.attr.width || 0;
+            var height = this.attr.height || 0;
             var x1 = x + width;
             var y1 = y + height;
 
@@ -11524,10 +11524,10 @@
         //     return;
         // }
         if (key === "x" || key === "width" || key === "y" || key === "height") {
-            var x = this.attr["x"] || 0;
-            var y = this.attr["y"] || 0;
-            var width = this.attr["width"] || 0;
-            var height = this.attr["height"] || 0;
+            var x = this.attr.x || 0;
+            var y = this.attr.y || 0;
+            var width = this.attr.width || 0;
+            var height = this.attr.height || 0;
             var x1 = x + width;
             var y1 = y + height;
 
@@ -11621,14 +11621,14 @@
             );
         }
         if (this.shader && this.attr.transform) {
-            if (this.attr.transform["translate"]) {
-                this.shader.translate(this.attr.transform["translate"]);
+            if (this.attr.transform.translate) {
+                this.shader.translate(this.attr.transform.translate);
             }
-            if (this.attr.transform["scale"]) {
-                this.shader.scale(this.attr.transform["scale"]);
+            if (this.attr.transform.scale) {
+                this.shader.scale(this.attr.transform.scale);
             }
-            if (this.attr.transform["rotate"]) {
-                this.shader.rotate(this.attr.transform["rotate"]);
+            if (this.attr.transform.rotate) {
+                this.shader.rotate(this.attr.transform.rotate);
             }
         }
     }
@@ -11649,14 +11649,14 @@
             );
         }
         if (key === "transform" && this.shader) {
-            if (this.attr.transform["translate"]) {
-                this.shader.translate(this.attr.transform["translate"]);
+            if (this.attr.transform.translate) {
+                this.shader.translate(this.attr.transform.translate);
             }
-            if (this.attr.transform["scale"]) {
-                this.shader.scale(this.attr.transform["scale"]);
+            if (this.attr.transform.scale) {
+                this.shader.scale(this.attr.transform.scale);
             }
-            if (this.attr.transform["rotate"]) {
-                this.shader.rotate(this.attr.transform["rotate"]);
+            if (this.attr.transform.rotate) {
+                this.shader.rotate(this.attr.transform.rotate);
             }
         }
     };
@@ -11775,9 +11775,9 @@
         }
 
         return {
-            bufferType: ctx["ARRAY_BUFFER"],
+            bufferType: ctx.ARRAY_BUFFER,
             buffer: ctx.createBuffer(),
-            drawType: ctx["STATIC_DRAW"],
+            drawType: ctx.STATIC_DRAW,
             valueType: ctx[valType],
             size: attrObj.size,
             attributeLocation: ctx.getAttribLocation(program, attr),
@@ -11801,9 +11801,9 @@
         }
 
         return {
-            bufferType: ctx["ELEMENT_ARRAY_BUFFER"],
+            bufferType: ctx.ELEMENT_ARRAY_BUFFER,
             buffer: ctx.createBuffer(),
-            drawType: ctx["STATIC_DRAW"],
+            drawType: ctx.STATIC_DRAW,
             valueType: ctx[valType],
             value: attrObj.value,
             count: attrObj.count,
@@ -12053,13 +12053,13 @@
         }
     };
     ShaderNodePrototype.prototype.translate = function (trans) {
-        this.attr.transform["translate"] = trans;
+        this.attr.transform.translate = trans;
     };
     ShaderNodePrototype.prototype.scale = function (scale) {
-        this.attr.transform["scale"] = scale;
+        this.attr.transform.scale = scale;
     };
     ShaderNodePrototype.prototype.rotate = function (angle) {
-        this.attr.transform["rotate"] = angle;
+        this.attr.transform.rotate = angle;
     };
 
     function addTransform(self, index, length, transform) {
@@ -13199,7 +13199,7 @@
         this.el = config.el;
         this.shaderType = config.shaderType;
         this.exeCtx = config.ctx;
-        this.bbox = config["bbox"] !== undefined ? config["bbox"] : true;
+        this.bbox = config.bbox !== undefined ? config.bbox : true;
         this.events = {};
 
         switch (config.el) {
@@ -13896,7 +13896,7 @@
                         this.update();
                     }
                 }
-                if (attr["height"] || attr["width"]) {
+                if (attr.height || attr.width) {
                     self.image = createEmptyArrayBuffer(this.width, this.height);
                 }
             }
@@ -14064,823 +14064,325 @@
     LineGeometry.prototype = new WebGLGeometry();
     LineGeometry.constructor = LineGeometry;
 
-    /*
+    function _classCallCheck(instance, Constructor) {
+      if (!(instance instanceof Constructor)) {
+        throw new TypeError("Cannot call a class as a function");
+      }
+    }
 
-    StackBlur - a fast almost Gaussian Blur For Canvas
+    /* eslint-disable no-bitwise -- used for calculations */
 
-    Version: 	0.5
-    Author:		Mario Klingemann
-    Contact: 	mario@quasimondo.com
-    Website:	http://www.quasimondo.com/StackBlurForCanvas
-    Twitter:	@quasimondo
+    /* eslint-disable unicorn/prefer-query-selector -- aiming at
+      backward-compatibility */
 
-    In case you find this class useful - especially in commercial projects -
-    I am not totally unhappy for a small donation to my PayPal account
-    mario@quasimondo.de
-
-    Or support me on flattr: 
-    https://flattr.com/thing/72791/StackBlur-a-fast-almost-Gaussian-Blur-Effect-for-CanvasJavascript
-
-    Copyright (c) 2010 Mario Klingemann
-
-    Permission is hereby granted, free of charge, to any person
-    obtaining a copy of this software and associated documentation
-    files (the "Software"), to deal in the Software without
-    restriction, including without limitation the rights to use,
-    copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the
-    Software is furnished to do so, subject to the following
-    conditions:
-
-    The above copyright notice and this permission notice shall be
-    included in all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-    OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-    HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-    WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-    OTHER DEALINGS IN THE SOFTWARE.
+    /**
+    * StackBlur - a fast almost Gaussian Blur For Canvas
+    *
+    * In case you find this class useful - especially in commercial projects -
+    * I am not totally unhappy for a small donation to my PayPal account
+    * mario@quasimondo.de
+    *
+    * Or support me on flattr:
+    * {@link https://flattr.com/thing/72791/StackBlur-a-fast-almost-Gaussian-Blur-Effect-for-CanvasJavascript}.
+    *
+    * @module StackBlur
+    * @author Mario Klingemann
+    * Contact: mario@quasimondo.com
+    * Website: {@link http://www.quasimondo.com/StackBlurForCanvas/StackBlurDemo.html}
+    * Twitter: @quasimondo
+    *
+    * @copyright (c) 2010 Mario Klingemann
+    *
+    * Permission is hereby granted, free of charge, to any person
+    * obtaining a copy of this software and associated documentation
+    * files (the "Software"), to deal in the Software without
+    * restriction, including without limitation the rights to use,
+    * copy, modify, merge, publish, distribute, sublicense, and/or sell
+    * copies of the Software, and to permit persons to whom the
+    * Software is furnished to do so, subject to the following
+    * conditions:
+    *
+    * The above copyright notice and this permission notice shall be
+    * included in all copies or substantial portions of the Software.
+    *
+    * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+    * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+    * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+    * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+    * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+    * OTHER DEALINGS IN THE SOFTWARE.
     */
+    var mulTable = [512, 512, 456, 512, 328, 456, 335, 512, 405, 328, 271, 456, 388, 335, 292, 512, 454, 405, 364, 328, 298, 271, 496, 456, 420, 388, 360, 335, 312, 292, 273, 512, 482, 454, 428, 405, 383, 364, 345, 328, 312, 298, 284, 271, 259, 496, 475, 456, 437, 420, 404, 388, 374, 360, 347, 335, 323, 312, 302, 292, 282, 273, 265, 512, 497, 482, 468, 454, 441, 428, 417, 405, 394, 383, 373, 364, 354, 345, 337, 328, 320, 312, 305, 298, 291, 284, 278, 271, 265, 259, 507, 496, 485, 475, 465, 456, 446, 437, 428, 420, 412, 404, 396, 388, 381, 374, 367, 360, 354, 347, 341, 335, 329, 323, 318, 312, 307, 302, 297, 292, 287, 282, 278, 273, 269, 265, 261, 512, 505, 497, 489, 482, 475, 468, 461, 454, 447, 441, 435, 428, 422, 417, 411, 405, 399, 394, 389, 383, 378, 373, 368, 364, 359, 354, 350, 345, 341, 337, 332, 328, 324, 320, 316, 312, 309, 305, 301, 298, 294, 291, 287, 284, 281, 278, 274, 271, 268, 265, 262, 259, 257, 507, 501, 496, 491, 485, 480, 475, 470, 465, 460, 456, 451, 446, 442, 437, 433, 428, 424, 420, 416, 412, 408, 404, 400, 396, 392, 388, 385, 381, 377, 374, 370, 367, 363, 360, 357, 354, 350, 347, 344, 341, 338, 335, 332, 329, 326, 323, 320, 318, 315, 312, 310, 307, 304, 302, 299, 297, 294, 292, 289, 287, 285, 282, 280, 278, 275, 273, 271, 269, 267, 265, 263, 261, 259];
+    var shgTable = [9, 11, 12, 13, 13, 14, 14, 15, 15, 15, 15, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24];
+    /**
+     * @param {ImageData} imageData
+     * @param {Integer} topX
+     * @param {Integer} topY
+     * @param {Integer} width
+     * @param {Integer} height
+     * @param {Float} radius
+     * @returns {ImageData}
+     */
 
-    var mulTable = [
-        512,
-        512,
-        456,
-        512,
-        328,
-        456,
-        335,
-        512,
-        405,
-        328,
-        271,
-        456,
-        388,
-        335,
-        292,
-        512,
-        454,
-        405,
-        364,
-        328,
-        298,
-        271,
-        496,
-        456,
-        420,
-        388,
-        360,
-        335,
-        312,
-        292,
-        273,
-        512,
-        482,
-        454,
-        428,
-        405,
-        383,
-        364,
-        345,
-        328,
-        312,
-        298,
-        284,
-        271,
-        259,
-        496,
-        475,
-        456,
-        437,
-        420,
-        404,
-        388,
-        374,
-        360,
-        347,
-        335,
-        323,
-        312,
-        302,
-        292,
-        282,
-        273,
-        265,
-        512,
-        497,
-        482,
-        468,
-        454,
-        441,
-        428,
-        417,
-        405,
-        394,
-        383,
-        373,
-        364,
-        354,
-        345,
-        337,
-        328,
-        320,
-        312,
-        305,
-        298,
-        291,
-        284,
-        278,
-        271,
-        265,
-        259,
-        507,
-        496,
-        485,
-        475,
-        465,
-        456,
-        446,
-        437,
-        428,
-        420,
-        412,
-        404,
-        396,
-        388,
-        381,
-        374,
-        367,
-        360,
-        354,
-        347,
-        341,
-        335,
-        329,
-        323,
-        318,
-        312,
-        307,
-        302,
-        297,
-        292,
-        287,
-        282,
-        278,
-        273,
-        269,
-        265,
-        261,
-        512,
-        505,
-        497,
-        489,
-        482,
-        475,
-        468,
-        461,
-        454,
-        447,
-        441,
-        435,
-        428,
-        422,
-        417,
-        411,
-        405,
-        399,
-        394,
-        389,
-        383,
-        378,
-        373,
-        368,
-        364,
-        359,
-        354,
-        350,
-        345,
-        341,
-        337,
-        332,
-        328,
-        324,
-        320,
-        316,
-        312,
-        309,
-        305,
-        301,
-        298,
-        294,
-        291,
-        287,
-        284,
-        281,
-        278,
-        274,
-        271,
-        268,
-        265,
-        262,
-        259,
-        257,
-        507,
-        501,
-        496,
-        491,
-        485,
-        480,
-        475,
-        470,
-        465,
-        460,
-        456,
-        451,
-        446,
-        442,
-        437,
-        433,
-        428,
-        424,
-        420,
-        416,
-        412,
-        408,
-        404,
-        400,
-        396,
-        392,
-        388,
-        385,
-        381,
-        377,
-        374,
-        370,
-        367,
-        363,
-        360,
-        357,
-        354,
-        350,
-        347,
-        344,
-        341,
-        338,
-        335,
-        332,
-        329,
-        326,
-        323,
-        320,
-        318,
-        315,
-        312,
-        310,
-        307,
-        304,
-        302,
-        299,
-        297,
-        294,
-        292,
-        289,
-        287,
-        285,
-        282,
-        280,
-        278,
-        275,
-        273,
-        271,
-        269,
-        267,
-        265,
-        263,
-        261,
-        259 ];
 
-    var shgTable = [
-        9,
-        11,
-        12,
-        13,
-        13,
-        14,
-        14,
-        15,
-        15,
-        15,
-        15,
-        16,
-        16,
-        16,
-        16,
-        17,
-        17,
-        17,
-        17,
-        17,
-        17,
-        17,
-        18,
-        18,
-        18,
-        18,
-        18,
-        18,
-        18,
-        18,
-        18,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24 ];
+    function processImageDataRGBA(imageData, topX, topY, width, height, radius) {
+      var pixels = imageData.data;
+      var div = 2 * radius + 1; // const w4 = width << 2;
 
-    function blur(imageData, width, height, radius) {
-        if (isNaN(radius) || radius < 1) { return; }
-        radius |= 0;
-        var pixels = imageData.data;
+      var widthMinus1 = width - 1;
+      var heightMinus1 = height - 1;
+      var radiusPlus1 = radius + 1;
+      var sumFactor = radiusPlus1 * (radiusPlus1 + 1) / 2;
+      var stackStart = new BlurStack();
+      var stack = stackStart;
+      var stackEnd;
 
-        var div = 2 * radius + 1;
-        // const w4 = width << 2;
-        var widthMinus1 = width - 1;
-        var heightMinus1 = height - 1;
-        var radiusPlus1 = radius + 1;
-        var sumFactor = (radiusPlus1 * (radiusPlus1 + 1)) / 2;
+      for (var i = 1; i < div; i++) {
+        stack = stack.next = new BlurStack();
 
-        var stackStart = new BlurStack();
-        var stack = stackStart;
-        var stackEnd;
-        for (var i = 1; i < div; i++) {
-            stack = stack.next = new BlurStack();
-            if (i === radiusPlus1) {
-                stackEnd = stack;
-            }
+        if (i === radiusPlus1) {
+          stackEnd = stack;
         }
-        stack.next = stackStart;
+      }
 
-        var stackIn = null;
-        var stackOut = null;
-        var yw = 0;
-        var yi = 0;
+      stack.next = stackStart;
+      var stackIn = null,
+          stackOut = null,
+          yw = 0,
+          yi = 0;
+      var mulSum = mulTable[radius];
+      var shgSum = shgTable[radius];
 
-        var mulSum = mulTable[radius];
-        var shgSum = shgTable[radius];
+      for (var y = 0; y < height; y++) {
+        stack = stackStart;
+        var pr = pixels[yi],
+            pg = pixels[yi + 1],
+            pb = pixels[yi + 2],
+            pa = pixels[yi + 3];
 
-        for (var y = 0; y < height; y++) {
-            stack = stackStart;
-
-            var pr = pixels[yi];
-            var pg = pixels[yi + 1];
-            var pb = pixels[yi + 2];
-            var pa = pixels[yi + 3];
-
-            for (var i$1 = 0; i$1 < radiusPlus1; i$1++) {
-                stack.r = pr;
-                stack.g = pg;
-                stack.b = pb;
-                stack.a = pa;
-                stack = stack.next;
-            }
-
-            var rInSum = 0;
-            var gInSum = 0;
-            var bInSum = 0;
-            var aInSum = 0;
-            var rOutSum = radiusPlus1 * pr;
-            var gOutSum = radiusPlus1 * pg;
-            var bOutSum = radiusPlus1 * pb;
-            var aOutSum = radiusPlus1 * pa;
-            var rSum = sumFactor * pr;
-            var gSum = sumFactor * pg;
-            var bSum = sumFactor * pb;
-            var aSum = sumFactor * pa;
-
-            for (var i$2 = 1; i$2 < radiusPlus1; i$2++) {
-                var p = yi + ((widthMinus1 < i$2 ? widthMinus1 : i$2) << 2);
-
-                var r = pixels[p];
-                var g = pixels[p + 1];
-                var b = pixels[p + 2];
-                var a = pixels[p + 3];
-
-                var rbs = radiusPlus1 - i$2;
-                rSum += (stack.r = r) * rbs;
-                gSum += (stack.g = g) * rbs;
-                bSum += (stack.b = b) * rbs;
-                aSum += (stack.a = a) * rbs;
-
-                rInSum += r;
-                gInSum += g;
-                bInSum += b;
-                aInSum += a;
-
-                stack = stack.next;
-            }
-
-            stackIn = stackStart;
-            stackOut = stackEnd;
-            for (var x = 0; x < width; x++) {
-                var paInitial = (aSum * mulSum) >> shgSum;
-                pixels[yi + 3] = paInitial;
-                if (paInitial !== 0) {
-                    var a$1 = 255 / paInitial;
-                    pixels[yi] = ((rSum * mulSum) >> shgSum) * a$1;
-                    pixels[yi + 1] = ((gSum * mulSum) >> shgSum) * a$1;
-                    pixels[yi + 2] = ((bSum * mulSum) >> shgSum) * a$1;
-                } else {
-                    pixels[yi] = pixels[yi + 1] = pixels[yi + 2] = 0;
-                }
-
-                rSum -= rOutSum;
-                gSum -= gOutSum;
-                bSum -= bOutSum;
-                aSum -= aOutSum;
-
-                rOutSum -= stackIn.r;
-                gOutSum -= stackIn.g;
-                bOutSum -= stackIn.b;
-                aOutSum -= stackIn.a;
-
-                var p$1 = x + radius + 1;
-                p$1 = (yw + (p$1 < widthMinus1 ? p$1 : widthMinus1)) << 2;
-
-                rInSum += stackIn.r = pixels[p$1];
-                gInSum += stackIn.g = pixels[p$1 + 1];
-                bInSum += stackIn.b = pixels[p$1 + 2];
-                aInSum += stackIn.a = pixels[p$1 + 3];
-
-                rSum += rInSum;
-                gSum += gInSum;
-                bSum += bInSum;
-                aSum += aInSum;
-
-                stackIn = stackIn.next;
-
-                var r$1 = stackOut.r;
-                var g$1 = stackOut.g;
-                var b$1 = stackOut.b;
-                var a$2 = stackOut.a;
-
-                rOutSum += r$1;
-                gOutSum += g$1;
-                bOutSum += b$1;
-                aOutSum += a$2;
-
-                rInSum -= r$1;
-                gInSum -= g$1;
-                bInSum -= b$1;
-                aInSum -= a$2;
-
-                stackOut = stackOut.next;
-
-                yi += 4;
-            }
-            yw += width;
+        for (var _i = 0; _i < radiusPlus1; _i++) {
+          stack.r = pr;
+          stack.g = pg;
+          stack.b = pb;
+          stack.a = pa;
+          stack = stack.next;
         }
 
-        for (var x$1 = 0; x$1 < width; x$1++) {
-            yi = x$1 << 2;
+        var rInSum = 0,
+            gInSum = 0,
+            bInSum = 0,
+            aInSum = 0,
+            rOutSum = radiusPlus1 * pr,
+            gOutSum = radiusPlus1 * pg,
+            bOutSum = radiusPlus1 * pb,
+            aOutSum = radiusPlus1 * pa,
+            rSum = sumFactor * pr,
+            gSum = sumFactor * pg,
+            bSum = sumFactor * pb,
+            aSum = sumFactor * pa;
 
-            var pr$1 = pixels[yi];
-            var pg$1 = pixels[yi + 1];
-            var pb$1 = pixels[yi + 2];
-            var pa$1 = pixels[yi + 3];
-            var rOutSum$1 = radiusPlus1 * pr$1;
-            var gOutSum$1 = radiusPlus1 * pg$1;
-            var bOutSum$1 = radiusPlus1 * pb$1;
-            var aOutSum$1 = radiusPlus1 * pa$1;
-            var rSum$1 = sumFactor * pr$1;
-            var gSum$1 = sumFactor * pg$1;
-            var bSum$1 = sumFactor * pb$1;
-            var aSum$1 = sumFactor * pa$1;
-
-            stack = stackStart;
-
-            for (var i$3 = 0; i$3 < radiusPlus1; i$3++) {
-                stack.r = pr$1;
-                stack.g = pg$1;
-                stack.b = pb$1;
-                stack.a = pa$1;
-                stack = stack.next;
-            }
-
-            var yp = width;
-
-            var gInSum$1 = 0;
-            var bInSum$1 = 0;
-            var aInSum$1 = 0;
-            var rInSum$1 = 0;
-            for (var i$4 = 1; i$4 <= radius; i$4++) {
-                yi = (yp + x$1) << 2;
-
-                var rbs$1 = radiusPlus1 - i$4;
-                rSum$1 += (stack.r = pr$1 = pixels[yi]) * rbs$1;
-                gSum$1 += (stack.g = pg$1 = pixels[yi + 1]) * rbs$1;
-                bSum$1 += (stack.b = pb$1 = pixels[yi + 2]) * rbs$1;
-                aSum$1 += (stack.a = pa$1 = pixels[yi + 3]) * rbs$1;
-
-                rInSum$1 += pr$1;
-                gInSum$1 += pg$1;
-                bInSum$1 += pb$1;
-                aInSum$1 += pa$1;
-
-                stack = stack.next;
-
-                if (i$4 < heightMinus1) {
-                    yp += width;
-                }
-            }
-
-            yi = x$1;
-            stackIn = stackStart;
-            stackOut = stackEnd;
-            for (var y$1 = 0; y$1 < height; y$1++) {
-                var p$2 = yi << 2;
-                pixels[p$2 + 3] = pa$1 = (aSum$1 * mulSum) >> shgSum;
-                if (pa$1 > 0) {
-                    pa$1 = 255 / pa$1;
-                    pixels[p$2] = ((rSum$1 * mulSum) >> shgSum) * pa$1;
-                    pixels[p$2 + 1] = ((gSum$1 * mulSum) >> shgSum) * pa$1;
-                    pixels[p$2 + 2] = ((bSum$1 * mulSum) >> shgSum) * pa$1;
-                } else {
-                    pixels[p$2] = pixels[p$2 + 1] = pixels[p$2 + 2] = 0;
-                }
-
-                rSum$1 -= rOutSum$1;
-                gSum$1 -= gOutSum$1;
-                bSum$1 -= bOutSum$1;
-                aSum$1 -= aOutSum$1;
-
-                rOutSum$1 -= stackIn.r;
-                gOutSum$1 -= stackIn.g;
-                bOutSum$1 -= stackIn.b;
-                aOutSum$1 -= stackIn.a;
-
-                p$2 = (x$1 + ((p$2 = y$1 + radiusPlus1) < heightMinus1 ? p$2 : heightMinus1) * width) << 2;
-
-                rSum$1 += rInSum$1 += stackIn.r = pixels[p$2];
-                gSum$1 += gInSum$1 += stackIn.g = pixels[p$2 + 1];
-                bSum$1 += bInSum$1 += stackIn.b = pixels[p$2 + 2];
-                aSum$1 += aInSum$1 += stackIn.a = pixels[p$2 + 3];
-
-                stackIn = stackIn.next;
-
-                rOutSum$1 += pr$1 = stackOut.r;
-                gOutSum$1 += pg$1 = stackOut.g;
-                bOutSum$1 += pb$1 = stackOut.b;
-                aOutSum$1 += pa$1 = stackOut.a;
-
-                rInSum$1 -= pr$1;
-                gInSum$1 -= pg$1;
-                bInSum$1 -= pb$1;
-                aInSum$1 -= pa$1;
-
-                stackOut = stackOut.next;
-
-                yi += width;
-            }
+        for (var _i2 = 1; _i2 < radiusPlus1; _i2++) {
+          var p = yi + ((widthMinus1 < _i2 ? widthMinus1 : _i2) << 2);
+          var r = pixels[p],
+              g = pixels[p + 1],
+              b = pixels[p + 2],
+              a = pixels[p + 3];
+          var rbs = radiusPlus1 - _i2;
+          rSum += (stack.r = r) * rbs;
+          gSum += (stack.g = g) * rbs;
+          bSum += (stack.b = b) * rbs;
+          aSum += (stack.a = a) * rbs;
+          rInSum += r;
+          gInSum += g;
+          bInSum += b;
+          aInSum += a;
+          stack = stack.next;
         }
-        return imageData;
+
+        stackIn = stackStart;
+        stackOut = stackEnd;
+
+        for (var x = 0; x < width; x++) {
+          var paInitial = aSum * mulSum >> shgSum;
+          pixels[yi + 3] = paInitial;
+
+          if (paInitial !== 0) {
+            var _a2 = 255 / paInitial;
+
+            pixels[yi] = (rSum * mulSum >> shgSum) * _a2;
+            pixels[yi + 1] = (gSum * mulSum >> shgSum) * _a2;
+            pixels[yi + 2] = (bSum * mulSum >> shgSum) * _a2;
+          } else {
+            pixels[yi] = pixels[yi + 1] = pixels[yi + 2] = 0;
+          }
+
+          rSum -= rOutSum;
+          gSum -= gOutSum;
+          bSum -= bOutSum;
+          aSum -= aOutSum;
+          rOutSum -= stackIn.r;
+          gOutSum -= stackIn.g;
+          bOutSum -= stackIn.b;
+          aOutSum -= stackIn.a;
+
+          var _p = x + radius + 1;
+
+          _p = yw + (_p < widthMinus1 ? _p : widthMinus1) << 2;
+          rInSum += stackIn.r = pixels[_p];
+          gInSum += stackIn.g = pixels[_p + 1];
+          bInSum += stackIn.b = pixels[_p + 2];
+          aInSum += stackIn.a = pixels[_p + 3];
+          rSum += rInSum;
+          gSum += gInSum;
+          bSum += bInSum;
+          aSum += aInSum;
+          stackIn = stackIn.next;
+          var _stackOut = stackOut,
+              _r = _stackOut.r,
+              _g = _stackOut.g,
+              _b = _stackOut.b,
+              _a = _stackOut.a;
+          rOutSum += _r;
+          gOutSum += _g;
+          bOutSum += _b;
+          aOutSum += _a;
+          rInSum -= _r;
+          gInSum -= _g;
+          bInSum -= _b;
+          aInSum -= _a;
+          stackOut = stackOut.next;
+          yi += 4;
+        }
+
+        yw += width;
+      }
+
+      for (var _x = 0; _x < width; _x++) {
+        yi = _x << 2;
+
+        var _pr = pixels[yi],
+            _pg = pixels[yi + 1],
+            _pb = pixels[yi + 2],
+            _pa = pixels[yi + 3],
+            _rOutSum = radiusPlus1 * _pr,
+            _gOutSum = radiusPlus1 * _pg,
+            _bOutSum = radiusPlus1 * _pb,
+            _aOutSum = radiusPlus1 * _pa,
+            _rSum = sumFactor * _pr,
+            _gSum = sumFactor * _pg,
+            _bSum = sumFactor * _pb,
+            _aSum = sumFactor * _pa;
+
+        stack = stackStart;
+
+        for (var _i3 = 0; _i3 < radiusPlus1; _i3++) {
+          stack.r = _pr;
+          stack.g = _pg;
+          stack.b = _pb;
+          stack.a = _pa;
+          stack = stack.next;
+        }
+
+        var yp = width;
+        var _gInSum = 0,
+            _bInSum = 0,
+            _aInSum = 0,
+            _rInSum = 0;
+
+        for (var _i4 = 1; _i4 <= radius; _i4++) {
+          yi = yp + _x << 2;
+
+          var _rbs = radiusPlus1 - _i4;
+
+          _rSum += (stack.r = _pr = pixels[yi]) * _rbs;
+          _gSum += (stack.g = _pg = pixels[yi + 1]) * _rbs;
+          _bSum += (stack.b = _pb = pixels[yi + 2]) * _rbs;
+          _aSum += (stack.a = _pa = pixels[yi + 3]) * _rbs;
+          _rInSum += _pr;
+          _gInSum += _pg;
+          _bInSum += _pb;
+          _aInSum += _pa;
+          stack = stack.next;
+
+          if (_i4 < heightMinus1) {
+            yp += width;
+          }
+        }
+
+        yi = _x;
+        stackIn = stackStart;
+        stackOut = stackEnd;
+
+        for (var _y = 0; _y < height; _y++) {
+          var _p2 = yi << 2;
+
+          pixels[_p2 + 3] = _pa = _aSum * mulSum >> shgSum;
+
+          if (_pa > 0) {
+            _pa = 255 / _pa;
+            pixels[_p2] = (_rSum * mulSum >> shgSum) * _pa;
+            pixels[_p2 + 1] = (_gSum * mulSum >> shgSum) * _pa;
+            pixels[_p2 + 2] = (_bSum * mulSum >> shgSum) * _pa;
+          } else {
+            pixels[_p2] = pixels[_p2 + 1] = pixels[_p2 + 2] = 0;
+          }
+
+          _rSum -= _rOutSum;
+          _gSum -= _gOutSum;
+          _bSum -= _bOutSum;
+          _aSum -= _aOutSum;
+          _rOutSum -= stackIn.r;
+          _gOutSum -= stackIn.g;
+          _bOutSum -= stackIn.b;
+          _aOutSum -= stackIn.a;
+          _p2 = _x + ((_p2 = _y + radiusPlus1) < heightMinus1 ? _p2 : heightMinus1) * width << 2;
+          _rSum += _rInSum += stackIn.r = pixels[_p2];
+          _gSum += _gInSum += stackIn.g = pixels[_p2 + 1];
+          _bSum += _bInSum += stackIn.b = pixels[_p2 + 2];
+          _aSum += _aInSum += stackIn.a = pixels[_p2 + 3];
+          stackIn = stackIn.next;
+          _rOutSum += _pr = stackOut.r;
+          _gOutSum += _pg = stackOut.g;
+          _bOutSum += _pb = stackOut.b;
+          _aOutSum += _pa = stackOut.a;
+          _rInSum -= _pr;
+          _gInSum -= _pg;
+          _bInSum -= _pb;
+          _aInSum -= _pa;
+          stackOut = stackOut.next;
+          yi += width;
+        }
+      }
+
+      return imageData;
     }
+    /**
+     *
+     */
 
+
+    var BlurStack =
+    /**
+     * Set properties.
+     */
     function BlurStack() {
-        this.r = 0;
-        this.g = 0;
-        this.b = 0;
-        this.a = 0;
-        this.next = null;
-    }
+      _classCallCheck(this, BlurStack);
 
-    var utility = {
+      this.r = 0;
+      this.g = 0;
+      this.b = 0;
+      this.a = 0;
+      this.next = null;
+    };
+
+    var utilities = {
         blur: function (radius) {
             if ( radius === void 0 ) radius = 1;
 
             function blurExec(imageData) {
-                return blur(imageData, imageData.width, imageData.height, radius);
+                return processImageDataRGBA(imageData, 0, 0, imageData.width, imageData.height, radius);
             }
             return blurExec;
         },
@@ -14901,9 +14403,9 @@
     exports.geometry = geometry;
     exports.queue = queue;
     exports.svgLayer = svgLayer;
-    exports.utility = utility;
+    exports.utility = utilities;
     exports.webglLayer = webglLayer;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 
-}));
+})));

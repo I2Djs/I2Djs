@@ -1,6 +1,6 @@
-import commonjs from "rollup-plugin-commonjs";
-import resolve from "rollup-plugin-node-resolve";
-import { eslint } from "rollup-plugin-eslint";
+import commonjs from "@rollup/plugin-commonjs";
+import { nodeResolve } from "@rollup/plugin-node-resolve";
+import eslint from '@rbnlffl/rollup-plugin-eslint';
 import { terser } from "rollup-plugin-terser";
 import buble from "@rollup/plugin-buble";
 
@@ -32,7 +32,7 @@ export default [
             },
         ],
         plugins: [
-            resolve(),
+            nodeResolve(),
             commonjs(),
             eslint({
                 fix: true,
@@ -51,7 +51,7 @@ export default [
             },
         ],
         plugins: [
-            resolve(),
+            nodeResolve(),
             commonjs(),
             eslint({
                 fix: true,
@@ -79,7 +79,7 @@ export default [
             },
         ],
         plugins: [
-            resolve(),
+            nodeResolve(),
             commonjs(),
             terser(),
             eslint({
@@ -99,7 +99,7 @@ export default [
             },
         ],
         plugins: [
-            resolve(),
+            nodeResolve(),
             commonjs(),
             eslint({
                 fix: true,

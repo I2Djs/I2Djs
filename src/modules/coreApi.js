@@ -17,13 +17,13 @@ function animeId() {
     return animeIdentifier;
 }
 
-let transitionSetAttr = function transitionSetAttr(self, key, value) {
+const transitionSetAttr = function transitionSetAttr(self, key, value) {
     return function inner(f) {
         self.setAttr(key, value.call(self, f));
     };
 };
 
-let transformTransition = function transformTransition(self, subkey, value) {
+const transformTransition = function transformTransition(self, subkey, value) {
     const exe = [];
     const trans = self.attr.transform;
 
@@ -53,8 +53,8 @@ let transformTransition = function transformTransition(self, subkey, value) {
     };
 };
 
-let attrTransition = function attrTransition(self, key, value) {
-    let srcVal = self.attr[key]; // if (typeof value === 'function') {
+const attrTransition = function attrTransition(self, key, value) {
+    const srcVal = self.attr[key]; // if (typeof value === 'function') {
     //   return function setAttr_ (f) {
     //     self.setAttr(key, value.call(self, f))
     //   }
@@ -65,7 +65,7 @@ let attrTransition = function attrTransition(self, key, value) {
     };
 };
 
-let styleTransition = function styleTransition(self, key, value) {
+const styleTransition = function styleTransition(self, key, value) {
     let srcValue;
     let destUnit;
     let destValue;
@@ -110,9 +110,9 @@ const animate = function animate(self, targetConfig) {
     let value;
 
     if (typeof tattr !== "function") {
-        for (let key in tattr) {
+        for (const key in tattr) {
             if (key !== "transform") {
-                let value = tattr[key];
+                const value = tattr[key];
 
                 if (typeof value === "function") {
                     runStack[runStack.length] = function setAttr_(f) {
@@ -154,7 +154,7 @@ const animate = function animate(self, targetConfig) {
     }
 
     if (typeof tstyles !== "function") {
-        for (let style in tstyles) {
+        for (const style in tstyles) {
             runStack[runStack.length] = styleTransition(self, style, tstyles[style]);
         }
     } else {
@@ -211,7 +211,7 @@ function performJoin(data, nodes, cond) {
     return res;
 }
 
-let CompositeArray = {};
+const CompositeArray = {};
 CompositeArray.push = {
     value: function (data) {
         if (Object.prototype.toString.call(data) !== "[object Array]") {
@@ -223,7 +223,7 @@ CompositeArray.push = {
         }
 
         if (this.config.action.enter) {
-            let nodes = {};
+            const nodes = {};
             this.selector.split(",").forEach(function (d) {
                 nodes[d] = data;
             });
@@ -236,11 +236,11 @@ CompositeArray.push = {
 };
 CompositeArray.pop = {
     value: function () {
-        let self = this;
-        let elData = this.data.pop();
+        const self = this;
+        const elData = this.data.pop();
 
         if (this.config.action.exit) {
-            let nodes = {};
+            const nodes = {};
             this.selector.split(",").forEach(function (d) {
                 nodes[d] = self.fetchEls(d, [elData]);
             });
@@ -257,7 +257,7 @@ CompositeArray.remove = {
             data = [data];
         }
 
-        let self = this;
+        const self = this;
 
         for (let i = 0, len = data.length; i < len; i++) {
             if (this.data.indexOf(data[i]) !== -1) {
@@ -266,7 +266,7 @@ CompositeArray.remove = {
         }
 
         if (this.config.action.exit) {
-            let nodes = {};
+            const nodes = {};
             this.selector.split(",").forEach(function (d) {
                 nodes[d] = self.fetchEls(d, data);
             });
@@ -279,10 +279,10 @@ CompositeArray.remove = {
 };
 CompositeArray.update = {
     value: function () {
-        let self = this;
+        const self = this;
 
         if (this.config.action.update) {
-            let nodes = {};
+            const nodes = {};
             this.selector.split(",").forEach(function (d) {
                 nodes[d] = self.fetchEls(d, self.data);
             });
@@ -330,12 +330,12 @@ NodePrototype.prototype.fetchEls = function (nodeSelector, dataArray) {
         if (nodeSelector.charAt(0) === ".") {
             const classToken = nodeSelector.substring(1, nodeSelector.length);
             this.children.forEach((d) => {
-                let check1 =
+                const check1 =
                     dataArray &&
                     d.dataObj &&
                     dataArray.indexOf(d.dataObj) !== -1 &&
                     d.attr.class === classToken;
-                let check2 = !dataArray && d.attr.class === classToken;
+                const check2 = !dataArray && d.attr.class === classToken;
 
                 if (check1 || check2) {
                     nodes.push(d);
@@ -344,12 +344,12 @@ NodePrototype.prototype.fetchEls = function (nodeSelector, dataArray) {
         } else if (nodeSelector.charAt(0) === "#") {
             const idToken = nodeSelector.substring(1, nodeSelector.length);
             this.children.every((d) => {
-                let check1 =
+                const check1 =
                     dataArray &&
                     d.dataObj &&
                     dataArray.indexOf(d.dataObj) !== -1 &&
                     d.attr.id === idToken;
-                let check2 = !dataArray && d.attr.id === idToken;
+                const check2 = !dataArray && d.attr.id === idToken;
 
                 if (check1 || check2) {
                     nodes.push(d);
@@ -361,12 +361,12 @@ NodePrototype.prototype.fetchEls = function (nodeSelector, dataArray) {
         } else {
             nodeSelector = nodeSelector === "group" ? "g" : nodeSelector;
             this.children.forEach((d) => {
-                let check1 =
+                const check1 =
                     dataArray &&
                     d.dataObj &&
                     dataArray.indexOf(d.dataObj) !== -1 &&
                     d.nodeName === nodeSelector;
-                let check2 = !dataArray && d.nodeName === nodeSelector;
+                const check2 = !dataArray && d.nodeName === nodeSelector;
 
                 if (check1 || check2) {
                     nodes.push(d);
@@ -385,8 +385,9 @@ NodePrototype.prototype.fetchEl = function (nodeSelector, data) {
         if (nodeSelector.charAt(0) === ".") {
             const classToken = nodeSelector.substring(1, nodeSelector.length);
             this.children.every((d) => {
-                let check1 = data && d.dataObj && data === d.dataObj && d.attr.class === classToken;
-                let check2 = !data && d.attr.class === classToken;
+                const check1 =
+                    data && d.dataObj && data === d.dataObj && d.attr.class === classToken;
+                const check2 = !data && d.attr.class === classToken;
 
                 if (check1 || check2) {
                     nodes = d;
@@ -398,8 +399,8 @@ NodePrototype.prototype.fetchEl = function (nodeSelector, data) {
         } else if (nodeSelector.charAt(0) === "#") {
             const idToken = nodeSelector.substring(1, nodeSelector.length);
             this.children.every((d) => {
-                let check1 = data && d.dataObj && data === d.dataObj && d.attr.id === idToken;
-                let check2 = !data && d.attr.id === idToken;
+                const check1 = data && d.dataObj && data === d.dataObj && d.attr.id === idToken;
+                const check2 = !data && d.attr.id === idToken;
 
                 if (check1 || check2) {
                     nodes = d;
@@ -411,8 +412,9 @@ NodePrototype.prototype.fetchEl = function (nodeSelector, data) {
         } else {
             nodeSelector = nodeSelector === "group" ? "g" : nodeSelector;
             this.children.forEach((d) => {
-                let check1 = data && d.dataObj && data === d.dataObj && d.nodeName === nodeSelector;
-                let check2 = !data && d.nodeName === nodeSelector;
+                const check1 =
+                    data && d.dataObj && data === d.dataObj && d.nodeName === nodeSelector;
+                const check2 = !data && d.nodeName === nodeSelector;
 
                 if (check1 || check2) {
                     nodes = d;
@@ -428,7 +430,7 @@ function dataJoin(data, selector, config) {
     const self = this;
     const selectors = selector.split(",");
     let { joinOn } = config;
-    let joinResult = {
+    const joinResult = {
         new: {},
         update: {},
         old: {},
@@ -441,7 +443,7 @@ function dataJoin(data, selector, config) {
     }
 
     for (let i = 0, len = selectors.length; i < len; i++) {
-        let d = selectors[i];
+        const d = selectors[i];
         const nodes = self.fetchEls(d);
         const join = performJoin(data, nodes.stack, joinOn);
         joinResult.new[d] = join.new;
@@ -779,7 +781,7 @@ function interrupt() {
 }
 
 function resolveObject(config, node, i) {
-    let obj = {};
+    const obj = {};
     let key;
 
     for (key in config) {
@@ -829,7 +831,7 @@ const animateArrayTo = function animateArrayTo(config) {
 const animateArrayExe = function animateArrayExe(config) {
     let node;
     let newConfig;
-    let exeArray = [];
+    const exeArray = [];
 
     for (let i = 0; i < this.stack.length; i += 1) {
         newConfig = {};
@@ -860,11 +862,11 @@ const animateArrayExe = function animateArrayExe(config) {
 
 const animatePathArrayTo = function animatePathArrayTo(config) {
     let node;
-    let keys = Object.keys(config);
+    const keys = Object.keys(config);
 
     for (let i = 0, len = this.stack.length; i < len; i += 1) {
         node = this.stack[i];
-        let conf = {};
+        const conf = {};
 
         for (let j = 0; j < keys.length; j++) {
             let value = config[keys[j]];
@@ -926,10 +928,9 @@ function CollectionPrototype(contextInfo, data, config, vDomIndex) {
     let key;
     const attrKeys = config ? (config.attr ? Object.keys(config.attr) : []) : [];
     const styleKeys = config ? (config.style ? Object.keys(config.style) : []) : [];
-    const bbox = config ? (config["bbox"] !== undefined ? config["bbox"] : true) : true;
+    const bbox = config ? (config.bbox !== undefined ? config.bbox : true) : true;
     this.stack = data.map((d, i) => {
-        let node;
-        node = this.createNode(
+        const node = this.createNode(
             contextInfo.ctx,
             {
                 el: config.el,
@@ -1006,7 +1007,7 @@ CollectionPrototype.prototype.wrapper = function wrapper(nodes) {
 
     if (nodes) {
         for (let i = 0, len = nodes.length; i < len; i++) {
-            let node = nodes[i];
+            const node = nodes[i];
             self.stack.push(node);
         }
     }
@@ -1014,9 +1015,9 @@ CollectionPrototype.prototype.wrapper = function wrapper(nodes) {
     return this;
 };
 
-let layerResizeHandler = function (entries) {
-    for (let key in entries) {
-        let entry = entries[key];
+const layerResizeHandler = function (entries) {
+    for (const key in entries) {
+        const entry = entries[key];
         const cr = entry.contentRect;
         if (entry.target.resizeHandler) {
             entry.target.resizeHandler.forEach(function (exec) {
@@ -1041,7 +1042,7 @@ function layerResizeUnBind(layer, handler) {
     if (!layer.container.resizeHandler) {
         return;
     }
-    let execIndex = layer.container.resizeHandler.indexOf(handler);
+    const execIndex = layer.container.resizeHandler.indexOf(handler);
     if (execIndex !== -1) {
         layer.container.resizeHandler.splice(execIndex, 1);
     }

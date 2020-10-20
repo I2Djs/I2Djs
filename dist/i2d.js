@@ -6,8 +6,8 @@
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
     typeof define === 'function' && define.amd ? define(['exports'], factory) :
-    (global = global || self, factory(global.i2d = {}));
-}(this, function (exports) { 'use strict';
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.i2d = {}));
+}(this, (function (exports) { 'use strict';
 
     /* eslint-disable no-undef */
     let animatorInstance = null;
@@ -102,7 +102,7 @@
             throw new Error("Wrong input");
         }
 
-        let index = onFrameExe.indexOf(_);
+        const index = onFrameExe.indexOf(_);
 
         if (index !== -1) {
             onFrameExe.splice(index, 1);
@@ -110,7 +110,7 @@
     }
 
     function add(uId, executable, easying) {
-        let exeObj = new Tween(uId, executable, easying);
+        const exeObj = new Tween(uId, executable, easying);
         exeObj.currTime = performance.now();
         if (executable.target) {
             if (!executable.target.animList) {
@@ -123,7 +123,7 @@
     }
 
     function remove(exeObj) {
-        let index = tweens.indexOf(exeObj);
+        const index = tweens.indexOf(exeObj);
         if (index !== -1) {
             tweens.splice(index, 1);
         }
@@ -160,7 +160,7 @@
     };
 
     ExeQueue.prototype.addVdom = function AaddVdom(_) {
-        let ind = vDomIds.length + 1;
+        const ind = vDomIds.length + 1;
         vDoms[ind] = _;
         vDomIds.push(ind);
         this.startAnimeFrames();
@@ -168,7 +168,7 @@
     };
 
     ExeQueue.prototype.removeVdom = function removeVdom(_) {
-        let index = vDomIds.indexOf(_);
+        const index = vDomIds.indexOf(_);
 
         if (index !== -1) {
             vDomIds.splice(index, 1);
@@ -186,11 +186,11 @@
             vDoms[vDom].stateModified = true;
             vDoms[vDom].root.stateModified = true;
         } else if (typeof vDom === "string") {
-            let ids = vDom.split(":");
+            const ids = vDom.split(":");
             if (vDoms[ids[0]] && vDoms[ids[0]].stateModified !== undefined) {
                 vDoms[ids[0]].stateModified = true;
                 vDoms[ids[0]].root.stateModified = true;
-                let childRootNode = vDoms[ids[0]].root.fetchEl("#" + ids[1]);
+                const childRootNode = vDoms[ids[0]].root.fetchEl("#" + ids[1]);
                 if (childRootNode) {
                     childRootNode.stateModified = true;
                 }
@@ -225,7 +225,7 @@
 
     let d;
     let t;
-    let abs = Math.abs;
+    const abs = Math.abs;
     let counter = 0;
     let tweensN = [];
 
@@ -271,12 +271,12 @@
                 d.end();
             }
             if (d.executable.target) {
-                let animList = d.executable.target.animList;
+                const animList = d.executable.target.animList;
                 if (animList && animList.length > 0) {
                     if (animList.length === 1) {
                         d.executable.target.animList = [];
                     } else if (animList.length > 1) {
-                        let index = animList.indexOf(d);
+                        const index = animList.indexOf(d);
                         if (index !== -1) {
                             animList.splice(index, 1);
                         }
@@ -399,10 +399,10 @@
                 x: d.attr.transform.rotate[1],
                 y: d.attr.transform.rotate[2],
             };
-            let x = coOrLocal.x;
-            let y = coOrLocal.y;
-            let cx = cen.x;
-            let cy = cen.y;
+            const x = coOrLocal.x;
+            const y = coOrLocal.y;
+            const cx = cen.x;
+            const cy = cen.y;
             var radians = (Math.PI / 180) * rotate;
             var cos = Math.cos(radians);
             var sin = Math.sin(radians);
@@ -412,15 +412,15 @@
     }
 
     /* eslint-disable no-undef */
-    let sqrt = Math.sqrt;
-    let sin = Math.sin;
-    let cos = Math.cos;
-    let abs$1 = Math.abs;
-    let atan2 = Math.atan2;
-    let tan = Math.tan;
-    let PI = Math.PI;
-    let ceil = Math.ceil;
-    let max = Math.max;
+    const sqrt = Math.sqrt;
+    const sin = Math.sin;
+    const cos = Math.cos;
+    const abs$1 = Math.abs;
+    const atan2 = Math.atan2;
+    const tan = Math.tan;
+    const PI = Math.PI;
+    const ceil = Math.ceil;
+    const max = Math.max;
 
     function pw(a, x) {
         let val = 1;
@@ -841,10 +841,10 @@
     };
 
     function rotatePoint(point, centre, newAngle, distance) {
-        let x = point.x;
-        let y = point.y;
-        let cx = centre.x;
-        let cy = centre.y;
+        const x = point.x;
+        const y = point.y;
+        const cx = centre.x;
+        const cy = centre.y;
 
         var radians = (PI / 180) * newAngle;
         var c_ = cos(-radians);
@@ -1346,7 +1346,7 @@
         self.currPos = 0;
 
         for (let i = 0, len = self.group.length; i < len; i++) {
-            let currObj = self.group[i];
+            const currObj = self.group[i];
 
             if (currObj instanceof SequenceGroup || currObj instanceof ParallelGroup) {
                 currObj // .duration(currObj.durationP ? currObj.durationP : self.durationP)
@@ -1482,7 +1482,7 @@
         let point;
 
         for (var j = 0; j < gcmxArr.length; j++) {
-            let cmxArr = gcmxArr[j];
+            const cmxArr = gcmxArr[j];
             for (let i = 0; i < cmxArr.length; i += 1) {
                 d = cmxArr[i];
 
@@ -1506,7 +1506,7 @@
                     });
                 } else if (["Q", "C", "q", "c"].indexOf(d.type) !== -1) {
                     const co = t2DGeometry$1.cubicBezierCoefficients(d);
-                    let exe = t2DGeometry$1.cubicBezierTransition.bind(null, d.p0, co);
+                    const exe = t2DGeometry$1.cubicBezierTransition.bind(null, d.p0, co);
                     let ii = 0;
                     let point;
 
@@ -2183,8 +2183,6 @@
                 case "q":
                     ctx.quadraticCurveTo(c.cntrl1.x, c.cntrl1.y, c.p1.x, c.p1.y);
                     break;
-                default:
-                    break;
             }
         }
         if (!clippath) {
@@ -2193,7 +2191,7 @@
     };
 
     Path.prototype.getPoints = function (factor = 0.01) {
-        let points = [];
+        const points = [];
         // let tLength = this.length;
         // let currD = this.stack[0];
         // let cumLength = 0;
@@ -2202,6 +2200,8 @@
 
         for (let i = 0; i < this.stack.length; i++) {
             d = this.stack[i];
+            const f = 0.05;
+            let tf = 0;
             switch (d.type) {
                 case "M":
                 case "m":
@@ -2228,16 +2228,12 @@
                 case "s":
                 case "Q":
                 case "q":
-                    let f = 0.05;
-                    let tf = 0;
                     while (tf <= 1.0) {
-                        let xy = d.pointAt(tf);
+                        const xy = d.pointAt(tf);
                         points[points.length] = xy.x;
                         points[points.length] = xy.y;
                         tf += f;
                     }
-                    break;
-                default:
                     break;
             }
         }
@@ -2252,6 +2248,12 @@
             currCmdI = this.PC;
             this.currPathArr = this.currPathArr - 1;
         }
+
+        let rx = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        let ry = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        let xRotation = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        let arcLargeFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        let sweepFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
 
         switch (currCmdI) {
             case "m":
@@ -2323,11 +2325,6 @@
                 break;
 
             case "a":
-                let rx = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-                let ry = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-                let xRotation = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-                let arcLargeFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-                let sweepFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
                 this.a(false, rx, ry, xRotation, arcLargeFlag, sweepFlag, this.fetchXY());
                 break;
 
@@ -2344,9 +2341,6 @@
             case "Z":
                 this.z();
                 break;
-
-            default:
-                break;
         }
     };
 
@@ -2354,7 +2348,7 @@
         return ["S", "C", "V", "L", "H", "Q"].indexOf(type) > -1;
     }
 
-    let CubicBezierTransition = function CubicBezierTransition(type, p0, c1, c2, co, length) {
+    const CubicBezierTransition = function CubicBezierTransition(type, p0, c1, c2, co, length) {
         this.type = type;
         this.p0 = p0;
         this.c1_src = c1;
@@ -2398,7 +2392,7 @@
         return t2DGeometry$1.cubicBezierTransition(this.p0, this.co, f);
     };
 
-    let BezierTransition = function BezierTransition(type, p0, p1, p2, length, f) {
+    const BezierTransition = function BezierTransition(type, p0, p1, p2, length, f) {
         this.type = type;
         this.p0 = p0;
         this.p1_src = p1;
@@ -2408,9 +2402,9 @@
     };
 
     BezierTransition.prototype.execute = function (f) {
-        let p0 = this.p0;
-        let p1 = this.p1_src;
-        let p2 = this.p2_src;
+        const p0 = this.p0;
+        const p1 = this.p1_src;
+        const p2 = this.p2_src;
         this.length = this.length_src * f;
         this.cntrl1 = {
             x: p0.x + (p1.x - p0.x) * f,
@@ -2432,7 +2426,7 @@
         return t2DGeometry$1.bezierTransition(this.p0, this.cntrl1, this.p1, f);
     };
 
-    let LinearTransitionBetweenPoints = function LinearTransitionBetweenPoints(
+    const LinearTransitionBetweenPoints = function LinearTransitionBetweenPoints(
         type,
         p0,
         p2,
@@ -2448,8 +2442,8 @@
     };
 
     LinearTransitionBetweenPoints.prototype.execute = function (f) {
-        let p0 = this.p0;
-        let p2 = this.p2_src;
+        const p0 = this.p0;
+        const p2 = this.p2_src;
         this.p1 = {
             x: p0.x + (p2.x - p0.x) * f,
             y: p0.y + (p2.y - p0.y) * f,
@@ -2591,7 +2585,7 @@
                     length: 0,
                 });
                 totalLength += 0;
-            }
+            } else ;
         }
 
         mappedArr.forEach(function (d) {
@@ -2684,7 +2678,7 @@
                         type: "C",
                         length: _[i].length,
                     });
-                }
+                } else ;
             }
 
             return mappedArr;
@@ -3105,7 +3099,7 @@
             animeId(),
             {
                 run(f) {
-                    let ppath = new Path();
+                    const ppath = new Path();
 
                     for (let i = 0, len = chainInstance.length; i < len; i++) {
                         chainInstance[i].run(ppath, f);
@@ -3455,8 +3449,8 @@
     };
 
     Events.prototype.removePointer = function (e) {
-        let self = this;
-        let pointers = this.pointers;
+        const self = this;
+        const pointers = this.pointers;
         let index = -1;
         for (var i = 0; i < pointers.length; i++) {
             if (e.pointerId === pointers[i].pointerId) {
@@ -3488,8 +3482,8 @@
     // };
 
     Events.prototype.pointerdownCheck = function (e) {
-        let self = this;
-        let node = propogateEvent(
+        const self = this;
+        const node = propogateEvent(
             [this.vDom],
             {
                 x: e.offsetX,
@@ -3518,14 +3512,14 @@
             }
         } else if (node) {
             if (e.pointerType === "touch") {
-                node.events["mouseover"].call(node, e);
+                node.events.mouseover.call(node, e);
             }
         }
     };
 
     Events.prototype.pointermoveCheck = function (e) {
-        let self = this;
-        let node = this.pointerNode ? this.pointerNode.node : null;
+        const self = this;
+        const node = this.pointerNode ? this.pointerNode.node : null;
         if (node) {
             this.pointerNode.dragCounter += 1;
             if (node.events.zoom) {
@@ -3537,12 +3531,12 @@
             if (node.events.drag) {
                 node.events.drag.execute(node, e, "pointermove", self);
             }
-            if (node.events["mousemove"]) {
-                node.events["mousemove"].call(node, e);
+            if (node.events.mousemove) {
+                node.events.mousemove.call(node, e);
             }
         } else if (node) {
             if (e.pointerType === "touch") {
-                node.events["mousemove"].call(node, e);
+                node.events.mousemove.call(node, e);
             }
         }
         e.preventDefault();
@@ -3550,8 +3544,8 @@
 
     let clickInterval;
     Events.prototype.pointerupCheck = function (e) {
-        let self = this;
-        let node = this.pointerNode ? this.pointerNode.node : null;
+        const self = this;
+        const node = this.pointerNode ? this.pointerNode.node : null;
         if (node) {
             if (node.events.drag) {
                 node.events.drag.execute(node, e, "pointerup", self);
@@ -3565,31 +3559,31 @@
                 this.pointerNode.dragCounter <= 2 ||
                 (e.pointerType === "touch" && this.pointerNode.dragCounter <= 5)
             ) {
-                if (this.pointerNode.clickCounter === 1 && node.events["click"]) {
-                    if (node.events["dblclick"]) {
+                if (this.pointerNode.clickCounter === 1 && node.events.click) {
+                    if (node.events.dblclick) {
                         clickInterval = setTimeout(function () {
                             self.pointerNode = null;
-                            node.events["click"].call(node, e);
+                            node.events.click.call(node, e);
                             clickInterval = null;
                         }, 200);
                     } else {
-                        node.events["click"].call(node, e);
+                        node.events.click.call(node, e);
                         self.pointerNode = null;
                     }
-                } else if (this.pointerNode.clickCounter === 2 && node.events["dblclick"]) {
+                } else if (this.pointerNode.clickCounter === 2 && node.events.dblclick) {
                     if (clickInterval) {
                         clearTimeout(clickInterval);
                     }
-                    node.events["dblclick"].call(node, e);
+                    node.events.dblclick.call(node, e);
                     self.pointerNode = null;
-                } else if (!node.events["click"] && !node.events["dblclick"]) {
+                } else if (!node.events.click && !node.events.dblclick) {
                     this.pointerNode = null;
                 }
             } else {
                 this.pointerNode = null;
             }
             if (e.pointerType === "touch") {
-                node.events["mouseup"].call(node, e);
+                node.events.mouseup.call(node, e);
             }
         }
     };
@@ -3607,7 +3601,7 @@
     };
 
     Events.prototype.mousemoveCheck = function (e) {
-        let node = propogateEvent(
+        const node = propogateEvent(
             [this.vDom],
             {
                 x: e.offsetX,
@@ -3618,21 +3612,21 @@
         );
 
         if (this.selectedNode && this.selectedNode !== node) {
-            if (this.selectedNode.events["mouseout"]) {
-                this.selectedNode.events["mouseout"].call(this.selectedNode, e);
+            if (this.selectedNode.events.mouseout) {
+                this.selectedNode.events.mouseout.call(this.selectedNode, e);
             }
-            if (this.selectedNode.events["mouseleave"]) {
-                this.selectedNode.events["mouseleave"].call(this.selectedNode, e);
+            if (this.selectedNode.events.mouseleave) {
+                this.selectedNode.events.mouseleave.call(this.selectedNode, e);
             }
         }
 
-        if (node && (node.events["mouseover"] || node.events["mousein"])) {
+        if (node && (node.events.mouseover || node.events.mousein)) {
             if (this.selectedNode !== node) {
-                if (node.events["mouseover"]) {
-                    node.events["mouseover"].call(node, e);
+                if (node.events.mouseover) {
+                    node.events.mouseover.call(node, e);
                 }
-                if (node.events["mousein"]) {
-                    node.events["mousein"].call(node, e);
+                if (node.events.mousein) {
+                    node.events.mousein.call(node, e);
                 }
             }
         }
@@ -3701,7 +3695,7 @@
     };
 
     Events.prototype.touchmoveCheck = function (e) {
-        let touches = e.touches;
+        const touches = e.touches;
         if (touches.length === 0) {
             return;
         }
@@ -3753,7 +3747,7 @@
     let wheelCounter = 0;
     let deltaWheel = 0;
     Events.prototype.wheelEventCheck = function (e) {
-        let self = this;
+        const self = this;
         if (!this.wheelNode) {
             let node = propogateEvent(
                 [this.vDom],
@@ -3871,10 +3865,10 @@
                 x: d.attr.transform.rotate[1],
                 y: d.attr.transform.rotate[2],
             };
-            let x = coOrLocal.x;
-            let y = coOrLocal.y;
-            let cx = cen.x;
-            let cy = cen.y;
+            const x = coOrLocal.x;
+            const y = coOrLocal.y;
+            const cx = cen.x;
+            const cy = cen.y;
             var radians = (Math.PI / 180) * rotate;
             var cos = Math.cos(radians);
             var sin = Math.sin(radians);
@@ -4384,13 +4378,13 @@
         return animeIdentifier;
     }
 
-    let transitionSetAttr = function transitionSetAttr(self, key, value) {
+    const transitionSetAttr = function transitionSetAttr(self, key, value) {
         return function inner(f) {
             self.setAttr(key, value.call(self, f));
         };
     };
 
-    let transformTransition = function transformTransition(self, subkey, value) {
+    const transformTransition = function transformTransition(self, subkey, value) {
         const exe = [];
         const trans = self.attr.transform;
 
@@ -4420,8 +4414,8 @@
         };
     };
 
-    let attrTransition = function attrTransition(self, key, value) {
-        let srcVal = self.attr[key]; // if (typeof value === 'function') {
+    const attrTransition = function attrTransition(self, key, value) {
+        const srcVal = self.attr[key]; // if (typeof value === 'function') {
         //   return function setAttr_ (f) {
         //     self.setAttr(key, value.call(self, f))
         //   }
@@ -4432,7 +4426,7 @@
         };
     };
 
-    let styleTransition = function styleTransition(self, key, value) {
+    const styleTransition = function styleTransition(self, key, value) {
         let srcValue;
         let destUnit;
         let destValue;
@@ -4477,9 +4471,9 @@
         let value;
 
         if (typeof tattr !== "function") {
-            for (let key in tattr) {
+            for (const key in tattr) {
                 if (key !== "transform") {
-                    let value = tattr[key];
+                    const value = tattr[key];
 
                     if (typeof value === "function") {
                         runStack[runStack.length] = function setAttr_(f) {
@@ -4521,7 +4515,7 @@
         }
 
         if (typeof tstyles !== "function") {
-            for (let style in tstyles) {
+            for (const style in tstyles) {
                 runStack[runStack.length] = styleTransition(self, style, tstyles[style]);
             }
         } else {
@@ -4578,7 +4572,7 @@
         return res;
     }
 
-    let CompositeArray = {};
+    const CompositeArray = {};
     CompositeArray.push = {
         value: function (data) {
             if (Object.prototype.toString.call(data) !== "[object Array]") {
@@ -4590,7 +4584,7 @@
             }
 
             if (this.config.action.enter) {
-                let nodes = {};
+                const nodes = {};
                 this.selector.split(",").forEach(function (d) {
                     nodes[d] = data;
                 });
@@ -4603,11 +4597,11 @@
     };
     CompositeArray.pop = {
         value: function () {
-            let self = this;
-            let elData = this.data.pop();
+            const self = this;
+            const elData = this.data.pop();
 
             if (this.config.action.exit) {
-                let nodes = {};
+                const nodes = {};
                 this.selector.split(",").forEach(function (d) {
                     nodes[d] = self.fetchEls(d, [elData]);
                 });
@@ -4624,7 +4618,7 @@
                 data = [data];
             }
 
-            let self = this;
+            const self = this;
 
             for (let i = 0, len = data.length; i < len; i++) {
                 if (this.data.indexOf(data[i]) !== -1) {
@@ -4633,7 +4627,7 @@
             }
 
             if (this.config.action.exit) {
-                let nodes = {};
+                const nodes = {};
                 this.selector.split(",").forEach(function (d) {
                     nodes[d] = self.fetchEls(d, data);
                 });
@@ -4646,10 +4640,10 @@
     };
     CompositeArray.update = {
         value: function () {
-            let self = this;
+            const self = this;
 
             if (this.config.action.update) {
-                let nodes = {};
+                const nodes = {};
                 this.selector.split(",").forEach(function (d) {
                     nodes[d] = self.fetchEls(d, self.data);
                 });
@@ -4697,12 +4691,12 @@
             if (nodeSelector.charAt(0) === ".") {
                 const classToken = nodeSelector.substring(1, nodeSelector.length);
                 this.children.forEach((d) => {
-                    let check1 =
+                    const check1 =
                         dataArray &&
                         d.dataObj &&
                         dataArray.indexOf(d.dataObj) !== -1 &&
                         d.attr.class === classToken;
-                    let check2 = !dataArray && d.attr.class === classToken;
+                    const check2 = !dataArray && d.attr.class === classToken;
 
                     if (check1 || check2) {
                         nodes.push(d);
@@ -4711,12 +4705,12 @@
             } else if (nodeSelector.charAt(0) === "#") {
                 const idToken = nodeSelector.substring(1, nodeSelector.length);
                 this.children.every((d) => {
-                    let check1 =
+                    const check1 =
                         dataArray &&
                         d.dataObj &&
                         dataArray.indexOf(d.dataObj) !== -1 &&
                         d.attr.id === idToken;
-                    let check2 = !dataArray && d.attr.id === idToken;
+                    const check2 = !dataArray && d.attr.id === idToken;
 
                     if (check1 || check2) {
                         nodes.push(d);
@@ -4728,12 +4722,12 @@
             } else {
                 nodeSelector = nodeSelector === "group" ? "g" : nodeSelector;
                 this.children.forEach((d) => {
-                    let check1 =
+                    const check1 =
                         dataArray &&
                         d.dataObj &&
                         dataArray.indexOf(d.dataObj) !== -1 &&
                         d.nodeName === nodeSelector;
-                    let check2 = !dataArray && d.nodeName === nodeSelector;
+                    const check2 = !dataArray && d.nodeName === nodeSelector;
 
                     if (check1 || check2) {
                         nodes.push(d);
@@ -4752,8 +4746,9 @@
             if (nodeSelector.charAt(0) === ".") {
                 const classToken = nodeSelector.substring(1, nodeSelector.length);
                 this.children.every((d) => {
-                    let check1 = data && d.dataObj && data === d.dataObj && d.attr.class === classToken;
-                    let check2 = !data && d.attr.class === classToken;
+                    const check1 =
+                        data && d.dataObj && data === d.dataObj && d.attr.class === classToken;
+                    const check2 = !data && d.attr.class === classToken;
 
                     if (check1 || check2) {
                         nodes = d;
@@ -4765,8 +4760,8 @@
             } else if (nodeSelector.charAt(0) === "#") {
                 const idToken = nodeSelector.substring(1, nodeSelector.length);
                 this.children.every((d) => {
-                    let check1 = data && d.dataObj && data === d.dataObj && d.attr.id === idToken;
-                    let check2 = !data && d.attr.id === idToken;
+                    const check1 = data && d.dataObj && data === d.dataObj && d.attr.id === idToken;
+                    const check2 = !data && d.attr.id === idToken;
 
                     if (check1 || check2) {
                         nodes = d;
@@ -4778,8 +4773,9 @@
             } else {
                 nodeSelector = nodeSelector === "group" ? "g" : nodeSelector;
                 this.children.forEach((d) => {
-                    let check1 = data && d.dataObj && data === d.dataObj && d.nodeName === nodeSelector;
-                    let check2 = !data && d.nodeName === nodeSelector;
+                    const check1 =
+                        data && d.dataObj && data === d.dataObj && d.nodeName === nodeSelector;
+                    const check2 = !data && d.nodeName === nodeSelector;
 
                     if (check1 || check2) {
                         nodes = d;
@@ -4795,7 +4791,7 @@
         const self = this;
         const selectors = selector.split(",");
         let { joinOn } = config;
-        let joinResult = {
+        const joinResult = {
             new: {},
             update: {},
             old: {},
@@ -4808,7 +4804,7 @@
         }
 
         for (let i = 0, len = selectors.length; i < len; i++) {
-            let d = selectors[i];
+            const d = selectors[i];
             const nodes = self.fetchEls(d);
             const join = performJoin(data, nodes.stack, joinOn);
             joinResult.new[d] = join.new;
@@ -5146,7 +5142,7 @@
     }
 
     function resolveObject(config, node, i) {
-        let obj = {};
+        const obj = {};
         let key;
 
         for (key in config) {
@@ -5196,7 +5192,7 @@
     const animateArrayExe = function animateArrayExe(config) {
         let node;
         let newConfig;
-        let exeArray = [];
+        const exeArray = [];
 
         for (let i = 0; i < this.stack.length; i += 1) {
             newConfig = {};
@@ -5227,11 +5223,11 @@
 
     const animatePathArrayTo = function animatePathArrayTo(config) {
         let node;
-        let keys = Object.keys(config);
+        const keys = Object.keys(config);
 
         for (let i = 0, len = this.stack.length; i < len; i += 1) {
             node = this.stack[i];
-            let conf = {};
+            const conf = {};
 
             for (let j = 0; j < keys.length; j++) {
                 let value = config[keys[j]];
@@ -5293,10 +5289,9 @@
         let key;
         const attrKeys = config ? (config.attr ? Object.keys(config.attr) : []) : [];
         const styleKeys = config ? (config.style ? Object.keys(config.style) : []) : [];
-        const bbox = config ? (config["bbox"] !== undefined ? config["bbox"] : true) : true;
+        const bbox = config ? (config.bbox !== undefined ? config.bbox : true) : true;
         this.stack = data.map((d, i) => {
-            let node;
-            node = this.createNode(
+            const node = this.createNode(
                 contextInfo.ctx,
                 {
                     el: config.el,
@@ -5373,7 +5368,7 @@
 
         if (nodes) {
             for (let i = 0, len = nodes.length; i < len; i++) {
-                let node = nodes[i];
+                const node = nodes[i];
                 self.stack.push(node);
             }
         }
@@ -5381,9 +5376,9 @@
         return this;
     };
 
-    let layerResizeHandler = function (entries) {
-        for (let key in entries) {
-            let entry = entries[key];
+    const layerResizeHandler = function (entries) {
+        for (const key in entries) {
+            const entry = entries[key];
             const cr = entry.contentRect;
             if (entry.target.resizeHandler) {
                 entry.target.resizeHandler.forEach(function (exec) {
@@ -5408,7 +5403,7 @@
         if (!layer.container.resizeHandler) {
             return;
         }
-        let execIndex = layer.container.resizeHandler.indexOf(handler);
+        const execIndex = layer.container.resizeHandler.indexOf(handler);
         if (execIndex !== -1) {
             layer.container.resizeHandler.splice(execIndex, 1);
         }
@@ -5426,7 +5421,7 @@
         return Id$1;
     }
 
-    let SVGCollection = function () {
+    const SVGCollection = function () {
         CollectionPrototype.apply(this, arguments);
     };
     SVGCollection.prototype = new CollectionPrototype();
@@ -5450,7 +5445,7 @@
 
     function SVGMasking(self, config = {}) {
         this.pDom = self;
-        let maskId = config.id ? config.id : "mask-" + Math.ceil(Math.random() * 1000);
+        const maskId = config.id ? config.id : "mask-" + Math.ceil(Math.random() * 1000);
         this.id = config.id || maskId;
         config.id = maskId;
         if (!this.defs) {
@@ -5472,7 +5467,7 @@
 
     function SVGClipping(self, config = {}) {
         this.pDom = self;
-        let clipId = config.id ? config.id : "clip-" + Math.ceil(Math.random() * 1000);
+        const clipId = config.id ? config.id : "clip-" + Math.ceil(Math.random() * 1000);
         this.id = config.id || clipId;
         config.id = clipId;
         if (!this.defs) {
@@ -5494,7 +5489,7 @@
 
     function SVGPattern(self, config = {}) {
         this.pDom = self;
-        let patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
+        const patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
         this.id = config.id || patternId;
         config.id = patternId;
         if (!this.defs) {
@@ -5516,7 +5511,7 @@
     function gradTransformToString(trns) {
         let cmd = "";
 
-        for (let trnX in trns) {
+        for (const trnX in trns) {
             if (trnX === "rotate") {
                 cmd += `${trnX}(${
                 trns.rotate[0] + " " + (trns.rotate[1] || 0) + " " + (trns.rotate[2] || 0)
@@ -5547,7 +5542,7 @@
         this.linearEl = this.defs.join([1], "linearGradient", {
             action: {
                 enter(data) {
-                    let gredEl = this.createEls(data.linearGradient, {
+                    const gredEl = this.createEls(data.linearGradient, {
                         el: "linearGradient",
                     }).setAttr({
                         id: self.config.id,
@@ -5619,7 +5614,7 @@
         this.radialEl = this.defs.join([1], "radialGradient", {
             action: {
                 enter(data) {
-                    let gredEl = this.createEls(data.radialGradient, {
+                    const gredEl = this.createEls(data.radialGradient, {
                         el: "radialGradient",
                     }).setAttr({
                         id: self.config.id,
@@ -5761,8 +5756,8 @@
     };
 
     function updateAttrsToDom(self, key) {
-        let ind = key.indexOf(":");
-        let value = self.changedAttribute[key];
+        const ind = key.indexOf(":");
+        const value = self.changedAttribute[key];
 
         if (ind >= 0) {
             self.dom.setAttributeNS(nameSpace[key.slice(0, ind)], key.slice(ind + 1), value);
@@ -5790,7 +5785,7 @@
     function updateTransAttrsToDom(self) {
         let cmd = "";
         // let trns = ['scale', 'translate', 'rotate'];
-        for (let trnX in self.attr.transform) {
+        for (const trnX in self.attr.transform) {
             if (trnX === "rotate") {
                 cmd += `${trnX}(${
                 self.attr.transform.rotate[0] +
@@ -5808,9 +5803,9 @@
     }
 
     DomExe.prototype.transFormAttributes = function transFormAttributes() {
-        let self = this;
+        const self = this;
 
-        for (let key in self.changedAttribute) {
+        for (const key in self.changedAttribute) {
             if (key !== "transform") {
                 updateAttrsToDom(self, key);
             } else {
@@ -5903,7 +5898,7 @@
             }
             this.changedStyles[attr] = value;
         } else if (arguments.length === 1 && typeof attr === "object") {
-            for (let key in attr) {
+            for (const key in attr) {
                 if (attr[key] == null && this.style[attr] != null) {
                     delete this.style[key];
                 } else {
@@ -5937,7 +5932,7 @@
             this.attr[attr] = value;
             this.changedAttribute[attr] = value;
         } else if (arguments.length === 1 && typeof attr === "object") {
-            for (let key in attr) {
+            for (const key in attr) {
                 if (key === "points") {
                     attr[key] = pointsToString(attr[key]);
                 }
@@ -5967,7 +5962,7 @@
             this.children[i].execute();
         }
 
-        for (let style in this.changedStyles) {
+        for (const style in this.changedStyles) {
             if (typeof this.changedStyles[style] === "object") {
                 if (
                     this.changedStyles[style] instanceof DomGradients ||
@@ -6113,8 +6108,8 @@
             return this.attr.text;
         }
 
-        this.attr["text"] = value;
-        this.changedAttribute["text"] = value;
+        this.attr.text = value;
+        this.changedAttribute.text = value;
         return this;
     };
 
@@ -6148,7 +6143,7 @@
         const index = children.indexOf(obj);
 
         if (index !== -1) {
-            let dom = children.splice(index, 1)[0].dom;
+            const dom = children.splice(index, 1)[0].dom;
             if (!this.dom.contains(dom)) {
                 return;
             }
@@ -6160,7 +6155,7 @@
         const res = document.querySelector(container);
         let height = res.clientHeight;
         let width = res.clientWidth;
-        let { autoUpdate = true, enableResize = true } = layerSettings;
+        const { autoUpdate = true, enableResize = true } = layerSettings;
         const layer = document.createElementNS(nameSpace.svg, "svg");
         layer.setAttribute("height", height);
         layer.setAttribute("width", width);
@@ -6188,7 +6183,7 @@
         root.height = height;
         root.domEl = layer;
 
-        let eventsInstance = new Events(root);
+        const eventsInstance = new Events(root);
 
         if (vDomInstance) {
             vDomInstance.rootNode(root);
@@ -6198,7 +6193,7 @@
             layer.setAttribute("id", id);
         };
 
-        let resize = function (cr) {
+        const resize = function (cr) {
             if (!document.querySelector(container)) {
                 layerResizeUnBind(root);
                 return;
@@ -6249,7 +6244,7 @@
         };
 
         root.destroy = function () {
-            let res = document.querySelector(container);
+            const res = document.querySelector(container);
             if (res && res.contains(layer)) {
                 res.removeChild(layer);
             }
@@ -6320,8 +6315,8 @@
     }
 
     function applyTranslate(event, { dx = 0, dy = 0 }, extent) {
-        let translate = event.transform.translate;
-        let [scaleX, scaleY = scaleX] = event.transform.scale;
+        const translate = event.transform.translate;
+        const [scaleX, scaleY = scaleX] = event.transform.scale;
         if (checkForTranslateBounds(extent, [scaleX, scaleY], [translate[0] + dx, translate[1] + dy])) {
             dx /= scaleX;
             dy /= scaleY;
@@ -6337,8 +6332,8 @@
         return event;
     }
 
-    let DragClass = function () {
-        let self = this;
+    const DragClass = function () {
+        const self = this;
         this.dragStartFlag = false;
         this.dragExtent = [
             [-Infinity, -Infinity],
@@ -6376,7 +6371,7 @@
             return this;
         },
         dragStart: function (fun) {
-            let self = this;
+            const self = this;
             if (typeof fun === "function") {
                 this.onDragStart = function (trgt, event) {
                     self.event.x = event.offsetX;
@@ -6390,11 +6385,11 @@
             return this;
         },
         drag: function (fun) {
-            let self = this;
+            const self = this;
             if (typeof fun === "function") {
                 this.onDrag = function (trgt, event) {
-                    let dx = event.offsetX - self.event.x;
-                    let dy = event.offsetY - self.event.y;
+                    const dx = event.offsetX - self.event.x;
+                    const dy = event.offsetY - self.event.y;
                     self.event.x = event.offsetX;
                     self.event.y = event.offsetY;
                     self.event = applyTranslate(this.event, { dx, dy }, self.dragExtent);
@@ -6404,7 +6399,7 @@
             return this;
         },
         dragEnd: function (fun) {
-            let self = this;
+            const self = this;
             if (typeof fun === "function") {
                 this.onDragEnd = function (trgt, event) {
                     self.dragStartFlag = false;
@@ -6418,13 +6413,13 @@
             return this;
         },
         bindMethods: function (trgt) {
-            let self = this;
+            const self = this;
             trgt.dragTo = function (k, point) {
                 self.dragTo(trgt, k, point);
             };
         },
         execute: function (trgt, event, eventType) {
-            let self = this;
+            const self = this;
             this.event.e = event;
             if (event.preventDefault) {
                 event.preventDefault();
@@ -6468,8 +6463,8 @@
         return transformObj;
     }
 
-    let ZoomClass = function () {
-        let self = this;
+    const ZoomClass = function () {
+        const self = this;
         this.event = {
             x: 0,
             y: 0,
@@ -6514,12 +6509,12 @@
     };
 
     ZoomClass.prototype.zoomStart = function (fun) {
-        let self = this;
+        const self = this;
         if (typeof fun === "function") {
             this.zoomStartExe = fun;
             this.onZoomStart = function (trgt, event, eventsInstance) {
                 if (eventsInstance.pointers && eventsInstance.pointers.length === 2) {
-                    let pointers = eventsInstance.pointers;
+                    const pointers = eventsInstance.pointers;
                     event = {
                         x: pointers[0].offsetX + (pointers[1].offsetX - pointers[0].offsetX) * 0.5,
                         y: pointers[0].offsetY + (pointers[1].offsetY - pointers[0].offsetY) * 0.5,
@@ -6540,16 +6535,16 @@
     };
 
     ZoomClass.prototype.zoom = function (fun) {
-        let self = this;
+        const self = this;
         if (typeof fun === "function") {
             this.zoomExe = fun;
             this.onZoom = function (trgt, event) {
-                let transform = self.event.transform;
-                let origScale = transform.scale[0];
+                const transform = self.event.transform;
+                const origScale = transform.scale[0];
                 let newScale = origScale;
-                let deltaY = event.deltaY;
-                let x = event.offsetX;
-                let y = event.offsetY;
+                const deltaY = event.deltaY;
+                const x = event.offsetX;
+                const y = event.offsetY;
 
                 newScale = scaleRangeCheck(self.zoomExtent_, newScale + deltaY * -1 * self.zoomBy_);
 
@@ -6563,7 +6558,7 @@
     };
 
     ZoomClass.prototype.zoomEnd = function (fun) {
-        let self = this;
+        const self = this;
         if (typeof fun === "function") {
             this.zoomEndExe = fun;
             this.onZoomEnd = function (trgt, event) {
@@ -6631,7 +6626,7 @@
     };
 
     ZoomClass.prototype.zoomPinch = function (trgt, event, eventsInstance) {
-        let pointers = eventsInstance.pointers;
+        const pointers = eventsInstance.pointers;
         if (event.preventDefault) {
             event.preventDefault();
         }
@@ -6639,18 +6634,18 @@
             if (!this.zoomStartFlag) {
                 this.onZoomStart(trgt, event, eventsInstance);
             } else {
-                let distance_ = this.event.distance;
+                const distance_ = this.event.distance;
                 for (var i = 0; i < pointers.length; i++) {
                     if (event.pointerId === pointers[i].pointerId) {
                         pointers[i] = event;
                         break;
                     }
                 }
-                let distance = geometry.getDistance(
+                const distance = geometry.getDistance(
                     { x: pointers[0].offsetX, y: pointers[0].offsetY },
                     { x: pointers[1].offsetX, y: pointers[1].offsetY }
                 );
-                let pinchEvent = {
+                const pinchEvent = {
                     offsetX: this.event.x, // + ((pointers[1].clientX - pointers[0].clientX) * 0.5),
                     offsetY: this.event.y, // + ((pointers[1].clientY - pointers[0].clientY) * 0.5),
                     deltaY: !distance_ ? 0 : distance_ - distance,
@@ -6663,19 +6658,22 @@
     };
 
     ZoomClass.prototype.scaleBy = function scaleBy(trgt, k, point) {
-        let self = this;
-        let transform = self.event.transform;
-        let newScale = k * transform.scale[0];
-        let origScale = transform.scale[0];
-        let zoomTrgt = this.zoomTarget_ || point;
-        let xdiff = (zoomTrgt[0] - point[0]) * origScale;
-        let ydiff = (zoomTrgt[1] - point[1]) * origScale;
+        const self = this;
+        const transform = self.event.transform;
+        const newScale = k * transform.scale[0];
+        const origScale = transform.scale[0];
+        const zoomTrgt = this.zoomTarget_ || point;
+        const xdiff = (zoomTrgt[0] - point[0]) * origScale;
+        const ydiff = (zoomTrgt[1] - point[1]) * origScale;
         let pf = 0;
 
-        let targetConfig = {
+        const targetConfig = {
             run(f) {
-                let oScale = transform.scale[0];
-                let nscale = scaleRangeCheck(self.zoomExtent_, origScale + (newScale - origScale) * f);
+                const oScale = transform.scale[0];
+                const nscale = scaleRangeCheck(
+                    self.zoomExtent_,
+                    origScale + (newScale - origScale) * f
+                );
 
                 self.event.transform = computeTransform(transform, oScale, nscale, point);
                 self.event.transform.translate[0] += (xdiff * (f - pf)) / nscale;
@@ -6707,17 +6705,20 @@
     };
 
     ZoomClass.prototype.scaleTo = function scaleTo(trgt, newScale, point) {
-        let self = this;
-        let transform = self.event.transform;
-        let origScale = transform.scale[0];
-        let zoomTrgt = this.zoomTarget_ || point;
-        let xdiff = (zoomTrgt[0] - point[0]) * origScale;
-        let ydiff = (zoomTrgt[1] - point[1]) * origScale;
+        const self = this;
+        const transform = self.event.transform;
+        const origScale = transform.scale[0];
+        const zoomTrgt = this.zoomTarget_ || point;
+        const xdiff = (zoomTrgt[0] - point[0]) * origScale;
+        const ydiff = (zoomTrgt[1] - point[1]) * origScale;
         let pf = 0;
-        let targetConfig = {
+        const targetConfig = {
             run(f) {
-                let oScale = transform.scale[0];
-                let nscale = scaleRangeCheck(self.zoomExtent_, origScale + (newScale - origScale) * f);
+                const oScale = transform.scale[0];
+                const nscale = scaleRangeCheck(
+                    self.zoomExtent_,
+                    origScale + (newScale - origScale) * f
+                );
 
                 self.event.transform = computeTransform(transform, oScale, nscale, point);
                 self.event.transform.translate[0] += (xdiff * (f - pf)) / nscale;
@@ -6756,14 +6757,14 @@
     };
 
     ZoomClass.prototype.panTo = function panTo(trgt, point) {
-        let self = this;
-        let transform = self.event.transform;
-        let xdiff = point[0] - self.event.x;
-        let ydiff = point[1] - self.event.y;
+        const self = this;
+        const transform = self.event.transform;
+        const xdiff = point[0] - self.event.x;
+        const ydiff = point[1] - self.event.y;
         let pf = 0;
-        let targetConfig = {
+        const targetConfig = {
             run(f) {
-                let [scale] = transform.scale;
+                const [scale] = transform.scale;
 
                 transform.translate[0] += (xdiff * (f - pf)) / scale;
                 transform.translate[1] += (ydiff * (f - pf)) / scale;
@@ -6790,7 +6791,7 @@
     };
 
     ZoomClass.prototype.bindMethods = function (trgt) {
-        let self = this;
+        const self = this;
         trgt.scaleTo = function (k, point) {
             self.scaleTo(trgt, k, point);
         };
@@ -6854,8 +6855,8 @@
         ) {
             this.onZoomEnd(trgt, event);
         } else if (this.zoomExe) {
-            let dx = event.offsetX - this.event.x;
-            let dy = event.offsetY - this.event.y;
+            const dx = event.offsetX - this.event.x;
+            const dy = event.offsetY - this.event.y;
 
             this.event.x = event.offsetX;
             this.event.y = event.offsetY;
@@ -6877,12 +6878,12 @@
         },
     };
 
-    let t2DGeometry$3 = geometry;
+    const t2DGeometry$3 = geometry;
     const queueInstance$4 = queue;
     let Id$2 = 0;
 
-    let zoomInstance = behaviour.zoom();
-    let dragInstance = behaviour.drag();
+    const zoomInstance = behaviour.zoom();
+    const dragInstance = behaviour.drag();
     // let touchInstance = behaviour.touch();
 
     function domId$1() {
@@ -6890,7 +6891,7 @@
         return Id$2;
     }
 
-    let CanvasCollection = function () {
+    const CanvasCollection = function () {
         CollectionPrototype.apply(this, arguments);
     };
     CanvasCollection.prototype = new CollectionPrototype();
@@ -6960,7 +6961,7 @@
     }
 
     function parseTransform(transform) {
-        let output = {
+        const output = {
             translateX: 0,
             translateY: 0,
             scaleX: 1,
@@ -6985,7 +6986,7 @@
     function RPolyupdateBBox() {
         const self = this;
         const { transform, points = [] } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
         if (points && points.length > 0) {
             let minX = points[0].x;
@@ -7130,8 +7131,8 @@
     }
 
     PixelObject.prototype.get = function (pos) {
-        let pixels = this.imageData ? this.imageData.pixels : [];
-        let rIndex = (pos.y - 1) * (this.width * 4) + (pos.x - 1) * 4;
+        const pixels = this.imageData ? this.imageData.pixels : [];
+        const rIndex = (pos.y - 1) * (this.width * 4) + (pos.x - 1) * 4;
         return (
             "rgba(" +
             pixels[rIndex] +
@@ -7146,7 +7147,7 @@
     };
 
     PixelObject.prototype.put = function (pos, color) {
-        let rIndex = (pos.y - 1) * (this.width * 4) + (pos.x - 1) * 4;
+        const rIndex = (pos.y - 1) * (this.width * 4) + (pos.x - 1) * 4;
         this.imageData.pixels[rIndex] = color[0];
         this.imageData.pixels[rIndex + 1] = color[1];
         this.imageData.pixels[rIndex + 2] = color[2];
@@ -7162,7 +7163,7 @@
     // }
 
     function CanvasMask(self, config = {}) {
-        let maskId = config.id ? config.id : "mask-" + Math.ceil(Math.random() * 1000);
+        const maskId = config.id ? config.id : "mask-" + Math.ceil(Math.random() * 1000);
         this.config = config;
         this.mask = new CanvasNodeExe(
             self.dom.ctx,
@@ -7193,7 +7194,7 @@
     }
 
     function CanvasClipping(self, config = {}) {
-        let clipId = config.id ? config.id : "clip-" + Math.ceil(Math.random() * 1000);
+        const clipId = config.id ? config.id : "clip-" + Math.ceil(Math.random() * 1000);
         this.clip = new CanvasNodeExe(
             self.dom.ctx,
             {
@@ -7218,8 +7219,8 @@
     }
 
     function CanvasPattern(self, config = {}, width = 0, height = 0) {
-        let selfSelf = this;
-        let patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
+        const selfSelf = this;
+        const patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
         this.repeatInd = config.repeat ? config.repeat : "repeat";
         if (self.ENV === "NODE") {
             selfSelf.pattern = canvasNodeLayer({}, height, width);
@@ -7291,7 +7292,7 @@
     // const imageDataMap = {};
 
     function imageInstance(self) {
-        let imageIns = new Image();
+        const imageIns = new Image();
         imageIns.crossOrigin = "anonymous";
 
         imageIns.onload = function onload() {
@@ -7335,7 +7336,7 @@
         self.nodeName = "Image";
         self.nodeExe = nodeExe;
 
-        for (let key in props) {
+        for (const key in props) {
             this.setAttr(key, props[key]);
         }
 
@@ -7441,7 +7442,7 @@
     RenderImage.prototype.updateBBox = function RIupdateBBox() {
         const self = this;
         const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
         self.BBox = {
             x: (translateX + x) * scaleX,
@@ -7494,7 +7495,7 @@
         let height = 1;
         let width = 0;
         let { x = 0, y = 0, transform } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
         if (this.style.font) {
             this.ctx.font = this.style.font;
@@ -7563,7 +7564,7 @@
     RenderCircle.prototype.updateBBox = function RCupdateBBox() {
         const self = this;
         const { transform, r = 0, cx = 0, cy = 0 } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
         self.BBox = {
             x: translateX + (cx - r) * scaleX,
@@ -7589,7 +7590,7 @@
 
     RenderCircle.prototype.in = function RCinfun(co, eventType) {
         const { r = 0, cx = 0, cy = 0 } = this.attr;
-        let tr = Math.sqrt((co.x - cx) * (co.x - cx) + (co.y - cy) * (co.y - cy));
+        const tr = Math.sqrt((co.x - cx) * (co.x - cx) + (co.y - cy) * (co.y - cy));
         return tr <= r;
     };
 
@@ -7608,7 +7609,7 @@
     RenderLine.prototype.updateBBox = function RLupdateBBox() {
         const self = this;
         const { transform, x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
         self.BBox = {
             x: translateX + (x1 < x2 ? x1 : x2) * scaleX,
@@ -7626,7 +7627,7 @@
 
     RenderLine.prototype.execute = function RLexecute() {
         const { ctx } = this;
-        let { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
+        const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
         ctx.beginPath();
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
@@ -7635,7 +7636,7 @@
     };
 
     RenderLine.prototype.in = function RLinfun(co) {
-        let { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
+        const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
         return (
             parseFloat(
                 t2DGeometry$3.getDistance(
@@ -7678,7 +7679,7 @@
     RenderPolyline.constructor = RenderPolyline;
 
     RenderPolyline.prototype.execute = function polylineExe() {
-        let self = this;
+        const self = this;
         let d;
         if (!this.attr.points || this.attr.points.length === 0) return;
         this.ctx.beginPath();
@@ -7697,8 +7698,8 @@
         let flag = false;
 
         for (let i = 0, len = this.attr.points.length; i <= len - 2; i++) {
-            let p1 = this.attr.points[i];
-            let p2 = this.attr.points[i + 1];
+            const p1 = this.attr.points[i];
+            const p2 = this.attr.points[i + 1];
             flag =
                 flag ||
                 parseFloat(
@@ -7761,7 +7762,7 @@
     RenderPath.prototype.updateBBox = function RPupdateBBox() {
         const self = this;
         const { transform } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
         // if (transform && transform.translate) {
         // 	[translateX, translateY] = transform.translate;
@@ -7868,7 +7869,7 @@
             return;
         }
 
-        let polygon = new Path2D();
+        const polygon = new Path2D();
         polygon.moveTo(points[0].x, points[0].y);
         for (let i = 1; i < points.length; i++) {
             polygon.lineTo(points[i].x, points[i].y);
@@ -7880,7 +7881,7 @@
             points: points,
             execute: function (ctx) {
                 ctx.beginPath();
-                let points = this.points;
+                const points = this.points;
                 ctx.moveTo(points[0].x, points[0].y);
                 for (let i = 1; i < points.length; i++) {
                     ctx.lineTo(points[i].x, points[i].y);
@@ -7977,7 +7978,7 @@
         // let scaleX = 1;
         // let scaleY = 1;
         const { transform, cx = 0, cy = 0, rx = 0, ry = 0 } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
         // if (transform && transform.translate) {
         // 	[translateX, translateY] = transform.translate;
@@ -8002,7 +8003,7 @@
     };
 
     RenderEllipse.prototype.execute = function REexecute() {
-        let ctx = this.ctx;
+        const ctx = this.ctx;
         const { cx = 0, cy = 0, rx = 0, ry = 0 } = this.attr;
         ctx.beginPath();
         ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
@@ -8034,7 +8035,7 @@
     RenderRect.prototype.updateBBox = function RRupdateBBox() {
         const self = this;
         const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
         self.BBox = {
             x: translateX + x * scaleX,
@@ -8069,7 +8070,7 @@
     }
 
     RenderRect.prototype.execute = function RRexecute() {
-        let ctx = this.ctx;
+        const ctx = this.ctx;
         const { x = 0, y = 0, width = 0, height = 0, rx = 0, ry = 0 } = this.attr;
 
         if (ctx.fillStyle !== "#000000" || ctx.strokeStyle !== "#000000") {
@@ -8137,7 +8138,7 @@
         let minY;
         let maxY;
         const { transform } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
         self.BBox = {};
 
         if (children && children.length > 0) {
@@ -8207,7 +8208,7 @@
         };
         const { BBox } = this;
         const { transform } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
         return (
             co.x >= (BBox.x - translateX) / scaleX &&
@@ -8219,7 +8220,7 @@
 
     /** ***************** End Render Group */
 
-    let CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
+    const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
         this.style = config.style || {};
         this.setStyle(config.style);
         this.attr = config.attr || {};
@@ -8230,7 +8231,7 @@
         this.events = {};
         this.ctx = context;
         this.vDomIndex = vDomIndex;
-        this.bbox = config["bbox"] !== undefined ? config["bbox"] : true;
+        this.bbox = config.bbox !== undefined ? config.bbox : true;
 
         switch (config.el) {
             case "circle":
@@ -8318,7 +8319,7 @@
     CanvasNodeExe.prototype.stylesExe = function CstylesExe() {
         let value;
         let key;
-        let style = this.style;
+        const style = this.style;
 
         for (key in style) {
             if (typeof style[key] === "string" || typeof style[key] === "number") {
@@ -8574,7 +8575,7 @@
     };
 
     CanvasNodeExe.prototype.on = function Con(eventType, hndlr) {
-        let self = this;
+        const self = this;
         // this.dom.on(eventType, hndlr);
         if (!this.events) {
             this.events = {};
@@ -8668,13 +8669,13 @@
     };
 
     CanvasNodeExe.prototype.getPixels = function () {
-        let imageData = this.ctx.getImageData(
+        const imageData = this.ctx.getImageData(
             this.dom.BBox.x,
             this.dom.BBox.y,
             this.dom.BBox.width,
             this.dom.BBox.height
         );
-        let pixelInstance = new PixelObject(imageData, this.dom.BBox.width, this.dom.BBox.height);
+        const pixelInstance = new PixelObject(imageData, this.dom.BBox.width, this.dom.BBox.height);
 
         return pixelInstance;
         // this.ctx.getImageData(this.dom.BBox.x, this.dom.BBox.y, this.dom.BBox.width, this.dom.BBox.height);
@@ -8770,13 +8771,13 @@
             if (!(layer instanceof CanvasNodeExe)) {
                 return;
             }
-            let depId = layer.attr.id ? layer.attr.id : "dep-" + Math.ceil(Math.random() * 1000);
+            const depId = layer.attr.id ? layer.attr.id : "dep-" + Math.ceil(Math.random() * 1000);
             layer.setAttr("id", depId);
             layer.vDomIndex = this.vDomIndex + ":" + depId;
             this.prependChild([layer]);
         };
 
-        let resize = function (cr) {
+        const resize = function (cr) {
             if (!document.querySelector(container)) {
                 layerResizeUnBind(root);
                 return;
@@ -8795,7 +8796,7 @@
             root.execute();
         };
 
-        let updateLayerDimension = function (layer, width, height) {
+        const updateLayerDimension = function (layer, width, height) {
             layer.setAttribute("height", height * ratio);
             layer.setAttribute("width", width * ratio);
             layer.style.height = `${height}px`;
@@ -8834,8 +8835,8 @@
         root.setViewBox = function (x, y, height, width) {};
 
         root.getPixels = function (x, y, width_, height_) {
-            let imageData = this.ctx.getImageData(x, y, width_, height_);
-            let pixelInstance = new PixelObject(imageData, width_, height_);
+            const imageData = this.ctx.getImageData(x, y, width_, height_);
+            const pixelInstance = new PixelObject(imageData, width_, height_);
 
             return pixelInstance;
         };
@@ -8886,7 +8887,7 @@
         };
 
         root.destroy = function () {
-            let res = document.querySelector(container);
+            const res = document.querySelector(container);
             if (res && res.contains(layer)) {
                 res.removeChild(layer);
             }
@@ -8895,7 +8896,7 @@
         };
 
         if (enableEvents) {
-            let eventsInstance = new Events(root);
+            const eventsInstance = new Events(root);
             layer.addEventListener("mousemove", (e) => {
                 e.preventDefault();
                 eventsInstance.mousemoveCheck(e);
@@ -8981,7 +8982,7 @@
     };
 
     function textureImageInstance(self) {
-        let imageIns = new Image();
+        const imageIns = new Image();
         imageIns.crossOrigin = "anonymous";
 
         imageIns.onload = function onload() {
@@ -9005,7 +9006,7 @@
     }
 
     function RenderTexture(nodeExe, config = {}) {
-        let self = this;
+        const self = this;
         self.attr = config.attr || {};
         self.style = config.style || {};
         self.rImageObj = new GetCanvasImgInstance(self.attr.width || 1, self.attr.height || 1);
@@ -9015,7 +9016,7 @@
         self.nodeName = "Sprite";
         self.nodeExe = nodeExe;
 
-        for (let key in self.attr) {
+        for (const key in self.attr) {
             self.setAttr(key, self.attr[key]);
         }
 
@@ -9063,7 +9064,7 @@
     };
 
     RenderTexture.prototype.postProcess = function () {
-        let self = this;
+        const self = this;
         if (!self.imageObj) {
             return;
         }
@@ -9080,23 +9081,22 @@
     };
 
     RenderTexture.prototype.clipImage = function () {
-        let self = this;
+        const self = this;
         const ctxX = self.ctx;
         const { clip, width = 0, height = 0 } = self.attr;
-        let { sx = 0, sy = 0, swidth = width, sheight = height } = clip;
+        const { sx = 0, sy = 0, swidth = width, sheight = height } = clip;
 
         ctxX.clearRect(0, 0, width, height);
         ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
     };
 
     RenderTexture.prototype.filterUpdate = function () {
-        let self = this;
-        let ctxX = self.ctx;
-        let pixels;
+        const self = this;
+        const ctxX = self.ctx;
 
         const { width = 0, height = 0 } = self.attr;
 
-        pixels = ctxX.getImageData(0, 0, width, height);
+        const pixels = ctxX.getImageData(0, 0, width, height);
         ctxX.putImageData(self.attr.filter(pixels), 0, 0);
     };
 
@@ -9116,15 +9116,15 @@
             return;
         }
         let onChangeExe;
-        let layer = new Canvas(width, height);
+        const layer = new Canvas(width, height);
         let ctx = layer.getContext("2d", config);
-        let ratio = getPixlRatio(ctx);
+        const ratio = getPixlRatio(ctx);
         let onClear = function (ctx) {
             ctx.clearRect(0, 0, width * ratio, height * ratio);
         };
         const vDomInstance = new VDom();
         const vDomIndex = queueInstance$4.addVdom(vDomInstance);
-        let root = new CanvasNodeExe(
+        const root = new CanvasNodeExe(
             ctx,
             {
                 el: "g",
@@ -9212,8 +9212,8 @@
         };
 
         root.getPixels = function (x, y, width_, height_) {
-            let imageData = this.ctx.getImageData(x, y, width_, height_);
-            let pixelInstance = new PixelObject(imageData, width_, height_);
+            const imageData = this.ctx.getImageData(x, y, width_, height_);
+            const pixelInstance = new PixelObject(imageData, width_, height_);
 
             return pixelInstance;
         };
@@ -9502,7 +9502,7 @@
     }
 
     var earcut_1 = earcut;
-    var default_1 = earcut;
+    var _default = earcut;
 
     function earcut(data, holeIndices, dim) {
 
@@ -10178,15 +10178,15 @@
         }
         return result;
     };
-    earcut_1.default = default_1;
+    earcut_1.default = _default;
 
-    let t2DGeometry$4 = geometry;
+    const t2DGeometry$4 = geometry;
 
     let ratio;
     const queueInstance$5 = queue;
 
-    let zoomInstance$1 = behaviour.zoom();
-    let dragInstance$1 = behaviour.drag();
+    const zoomInstance$1 = behaviour.zoom();
+    const dragInstance$1 = behaviour.drag();
 
     function getPixlRatio$1(ctx) {
         const dpr = window.devicePixelRatio || 1;
@@ -10209,7 +10209,7 @@
     }
 
     function parseTransform$1(transform) {
-        let output = {
+        const output = {
             translateX: 0,
             translateY: 0,
             scaleX: 1,
@@ -10234,7 +10234,7 @@
     function RPolyupdateBBox$1() {
         const self = this;
         const { transform, points = [] } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
 
         if (points && points.length > 0) {
             let minX = points[0].x;
@@ -10271,7 +10271,7 @@
         }
     }
 
-    let WebglCollection = function () {
+    const WebglCollection = function () {
         CollectionPrototype.apply(this, arguments);
     };
     WebglCollection.prototype = new CollectionPrototype();
@@ -10409,7 +10409,7 @@
     PointNode.prototype.updateBBox = function RRupdateBBox() {
         const self = this;
         const { transform, x = 0, y = 0, size = 0 } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
 
         self.BBox = {
             x: translateX + x * scaleX,
@@ -10509,7 +10509,7 @@
     RectNode.prototype.updateBBox = function RRupdateBBox() {
         const self = this;
         const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
 
         self.BBox = {
             x: translateX + x * scaleX,
@@ -10526,7 +10526,7 @@
     };
 
     function PathNode(attr, style) {
-        let self = this;
+        const self = this;
         this.attr = attr;
         this.style = style;
         this.pointsGeometry = [];
@@ -10560,7 +10560,7 @@
             ]);
         }
         if (this.attr.transform) {
-            let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+            const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
             this.transform = [translateX, translateY, scaleX, scaleY];
         }
     }
@@ -10593,7 +10593,7 @@
             this.points = new Float32Array(this.path.getPoints());
         }
         if (key === "transform") {
-            let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+            const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
             this.transform = [translateX, translateY, scaleX, scaleY];
         }
     };
@@ -10601,7 +10601,7 @@
     PathNode.prototype.updateBBox = function RCupdateBBox() {
         const self = this;
         const { transform } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
         self.BBox = self.path
             ? self.path.BBox
             : {
@@ -10628,9 +10628,9 @@
         this.style = style || {};
         this.points = [];
         this.transform = [0, 0, 1, 1];
-        let subPoints = [];
+        const subPoints = [];
         if (this.attr.points) {
-            let points = this.attr.points;
+            const points = this.attr.points;
             for (let j = 0, jlen = points.length; j < jlen; j++) {
                 subPoints[j * 2] = points[j].x;
                 subPoints[j * 2 + 1] = points[j].y;
@@ -10646,7 +10646,7 @@
             ]);
         }
         if (this.attr.transform) {
-            let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+            const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
             this.transform = [translateX, translateY, scaleX, scaleY];
         }
     }
@@ -10662,8 +10662,8 @@
     PolyLineNode.prototype.setAttr = function (key, value) {
         this.attr[key] = value;
         if (key === "points") {
-            let points = this.attr.points;
-            let subPoints = [];
+            const points = this.attr.points;
+            const subPoints = [];
             for (let j = 0, jlen = points.length; j < jlen; j++) {
                 subPoints[j * 2] = points[j].x;
                 subPoints[j * 2 + 1] = points[j].y;
@@ -10671,7 +10671,7 @@
             this.points = new Float32Array(subPoints);
         }
         if (key === "transform") {
-            let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+            const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
             this.transform = [translateX, translateY, scaleX, scaleY];
         }
     };
@@ -10704,7 +10704,7 @@
         this.transform = [0, 0, 1, 1];
 
         if (this.attr.transform) {
-            let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+            const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
             this.transform = [translateX, translateY, scaleX, scaleY];
         }
     }
@@ -10714,7 +10714,7 @@
 
     LineNode.prototype.setShader = function (shader) {
         this.shader = shader;
-        let { x1 = 0, y1 = 0, x2 = x1, y2 = y1 } = this.attr;
+        const { x1 = 0, y1 = 0, x2 = x1, y2 = y1 } = this.attr;
 
         if (this.shader) {
             this.shader.addVertex(x1, y1, x2, y2, this.pindex);
@@ -10752,7 +10752,7 @@
     LineNode.prototype.updateBBox = function RLupdateBBox() {
         const self = this;
         const { transform, x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
 
         self.BBox = {
             x: translateX + (x1 < x2 ? x1 : x2) * scaleX,
@@ -10800,9 +10800,9 @@
         this.style = style;
         this.positionArray = [];
         this.transform = [0, 0, 1, 1];
-        let subPoints = [];
+        const subPoints = [];
         if (this.attr.points) {
-            let points = polygonPointsMapper(this.attr["points"]);
+            const points = polygonPointsMapper(this.attr.points);
             for (let j = 0, jlen = points.length; j < jlen; j++) {
                 subPoints[j * 2] = points[j].x;
                 subPoints[j * 2 + 1] = points[j].y;
@@ -10818,7 +10818,7 @@
             ]);
         }
         if (this.attr.transform) {
-            let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+            const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
             this.transform = [translateX, translateY, scaleX, scaleY];
         }
     }
@@ -10841,8 +10841,8 @@
             return;
         }
         if (key === "points") {
-            let subPoints = [];
-            let points = polygonPointsMapper(value);
+            const subPoints = [];
+            const points = polygonPointsMapper(value);
             for (let j = 0, jlen = points.length; j < jlen; j++) {
                 subPoints[j * 2] = points[j].x;
                 subPoints[j * 2 + 1] = points[j].y;
@@ -10926,14 +10926,14 @@
 
     CircleNode.prototype.in = function RCinfun(co, eventType) {
         const { r = 0, cx = 0, cy = 0 } = this.attr;
-        let tr = Math.sqrt((co.x - cx) * (co.x - cx) + (co.y - cy) * (co.y - cy));
+        const tr = Math.sqrt((co.x - cx) * (co.x - cx) + (co.y - cy) * (co.y - cy));
         return tr <= r;
     };
 
     CircleNode.prototype.updateBBox = function RCupdateBBox() {
         const self = this;
         const { transform, r = 0, cx = 0, cy = 0 } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
 
         self.BBox = {
             x: translateX + (cx - r) * scaleX,
@@ -10949,13 +10949,13 @@
         }
     };
 
-    let webGLImageTextures = {};
+    const webGLImageTextures = {};
 
     function isPowerOf2(value) {
         return (value & (value - 1)) === 0;
     }
 
-    let onClear = function (ctx, width, height, ratio) {
+    const onClear = function (ctx, width, height, ratio) {
         ctx.clearRect(0, 0, width * ratio, height * ratio);
     };
 
@@ -10969,11 +10969,11 @@
             style.font = "10px Arial";
         }
 
-        let fontSize = parseFloat(style.font, 10) || 12;
-        ctx["font"] = style.font;
-        let twid = ctx.measureText(str);
-        let width = twid.width;
-        let height = fontSize;
+        const fontSize = parseFloat(style.font, 10) || 12;
+        ctx.font = style.font;
+        const twid = ctx.measureText(str);
+        const width = twid.width;
+        const height = fontSize;
         layer.setAttribute("height", height * ratio);
         layer.setAttribute("width", width * ratio);
         layer.style.width = width;
@@ -10985,7 +10985,7 @@
                 ? style.font
                 : style.font.substring(fontSize.toString().length));
 
-        for (let st in style) {
+        for (const st in style) {
             ctx[st] = style[st];
         }
         ctx.fillText(str, 0, height * 0.75 * ratio);
@@ -11000,7 +11000,7 @@
             str: str,
             updateText: function () {
                 onClear(this.ctx, this.width, this.height, this.ratio);
-                for (let st in this.style) {
+                for (const st in this.style) {
                     this.ctx[st] = this.style[st];
                 }
                 this.ctx.fillText(this.str, 0, this.height * 0.75);
@@ -11009,7 +11009,7 @@
     }
 
     function TextNode(ctx, attr, style, vDomIndex) {
-        let self = this;
+        const self = this;
         this.ctx = ctx;
         this.attr = attr;
         this.style = style;
@@ -11018,7 +11018,7 @@
         this.transform = [0, 0, 1, 1];
 
         if (this.attr.transform) {
-            let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+            const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
             this.transform = [translateX, translateY, scaleX, scaleY];
         }
 
@@ -11091,17 +11091,17 @@
         }
 
         if (key === "transform") {
-            let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+            const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
             this.transform = [translateX, translateY, scaleX, scaleY];
         }
 
         if (key === "x" || key === "y") {
-            let x = this.attr["x"] || 0;
-            let y = this.attr["y"] || 0;
-            let width = this.attr["width"] || 0;
-            let height = this.attr["height"] || 0;
-            let x1 = x + width;
-            let y1 = y + height;
+            const x = this.attr.x || 0;
+            const y = this.attr.y || 0;
+            const width = this.attr.width || 0;
+            const height = this.attr.height || 0;
+            const x1 = x + width;
+            const y1 = y + height;
 
             this.positionArray[0] = this.positionArray[4] = this.positionArray[6] = x;
             this.positionArray[1] = this.positionArray[3] = this.positionArray[9] = y;
@@ -11122,11 +11122,11 @@
         if (this.text) {
             this.text.style[key] = value;
             if (key === "font") {
-                let fontSize = parseFloat(value, 10) || 12;
-                this.text.ctx["font"] = value;
-                let twid = this.text.ctx.measureText(this.attr.text);
-                let width = twid.width;
-                let height = fontSize;
+                const fontSize = parseFloat(value, 10) || 12;
+                this.text.ctx.font = value;
+                const twid = this.text.ctx.measureText(this.attr.text);
+                const width = twid.width;
+                const height = fontSize;
                 this.text.style.font =
                     fontSize * ratio +
                     (isNaN(parseFloat(value, 10))
@@ -11292,7 +11292,7 @@
     TextNode.prototype.updateBBox = function RIupdateBBox() {
         const self = this;
         const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
 
         self.BBox = {
             x: (translateX + x) * scaleX,
@@ -11309,7 +11309,7 @@
     };
 
     function ImageNode(ctx, attr, style, vDomIndex) {
-        let self = this;
+        const self = this;
         this.ctx = ctx;
         this.attr = attr;
         this.style = style;
@@ -11318,7 +11318,7 @@
         this.transform = [0, 0, 1, 1];
 
         if (this.attr.transform) {
-            let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+            const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
             this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
         }
 
@@ -11337,12 +11337,12 @@
             this.textureNode = self.attr.src;
         }
         if (this.attr.x || this.attr.y || this.attr.width || this.attr.height) {
-            let x = this.attr["x"] || 0;
-            let y = this.attr["y"] || 0;
-            let width = this.attr["width"] || 0;
-            let height = this.attr["height"] || 0;
-            let x1 = x + width;
-            let y1 = y + height;
+            const x = this.attr.x || 0;
+            const y = this.attr.y || 0;
+            const width = this.attr.width || 0;
+            const height = this.attr.height || 0;
+            const x1 = x + width;
+            const y1 = y + height;
 
             this.positionArray[0] = this.positionArray[4] = this.positionArray[6] = x;
             this.positionArray[1] = this.positionArray[3] = this.positionArray[9] = y;
@@ -11404,12 +11404,12 @@
         //     return;
         // }
         if (key === "x" || key === "width" || key === "y" || key === "height") {
-            let x = this.attr["x"] || 0;
-            let y = this.attr["y"] || 0;
-            let width = this.attr["width"] || 0;
-            let height = this.attr["height"] || 0;
-            let x1 = x + width;
-            let y1 = y + height;
+            const x = this.attr.x || 0;
+            const y = this.attr.y || 0;
+            const width = this.attr.width || 0;
+            const height = this.attr.height || 0;
+            const x1 = x + width;
+            const y1 = y + height;
 
             this.positionArray[0] = this.positionArray[4] = this.positionArray[6] = x;
             this.positionArray[1] = this.positionArray[3] = this.positionArray[9] = y;
@@ -11418,7 +11418,7 @@
         }
 
         if (key === "transform") {
-            let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+            const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
             this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
         }
     };
@@ -11450,7 +11450,7 @@
     ImageNode.prototype.updateBBox = function RIupdateBBox() {
         const self = this;
         const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
 
         self.BBox = {
             x: (translateX + x) * scaleX,
@@ -11484,14 +11484,14 @@
             );
         }
         if (this.shader && this.attr.transform) {
-            if (this.attr.transform["translate"]) {
-                this.shader.translate(this.attr.transform["translate"]);
+            if (this.attr.transform.translate) {
+                this.shader.translate(this.attr.transform.translate);
             }
-            if (this.attr.transform["scale"]) {
-                this.shader.scale(this.attr.transform["scale"]);
+            if (this.attr.transform.scale) {
+                this.shader.scale(this.attr.transform.scale);
             }
-            if (this.attr.transform["rotate"]) {
-                this.shader.rotate(this.attr.transform["rotate"]);
+            if (this.attr.transform.rotate) {
+                this.shader.rotate(this.attr.transform.rotate);
             }
         }
     }
@@ -11512,14 +11512,14 @@
             );
         }
         if (key === "transform" && this.shader) {
-            if (this.attr.transform["translate"]) {
-                this.shader.translate(this.attr.transform["translate"]);
+            if (this.attr.transform.translate) {
+                this.shader.translate(this.attr.transform.translate);
             }
-            if (this.attr.transform["scale"]) {
-                this.shader.scale(this.attr.transform["scale"]);
+            if (this.attr.transform.scale) {
+                this.shader.scale(this.attr.transform.scale);
             }
-            if (this.attr.transform["rotate"]) {
-                this.shader.rotate(this.attr.transform["rotate"]);
+            if (this.attr.transform.rotate) {
+                this.shader.rotate(this.attr.transform.rotate);
             }
         }
     };
@@ -11542,7 +11542,7 @@
         };
         const { BBox } = this;
         const { transform } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
 
         return (
             co.x >= (BBox.x - translateX) / scaleX &&
@@ -11559,7 +11559,7 @@
         let minY;
         let maxY;
         const { transform } = self.attr;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
         self.BBox = {};
 
         if (children && children.length > 0) {
@@ -11607,7 +11607,7 @@
         }
     };
 
-    let defaultColor$1 = colorMap$1.rgba(0, 0, 0, 255);
+    const defaultColor$1 = colorMap$1.rgba(0, 0, 0, 255);
 
     function webGlAttrMapper(ctx, program, attr, attrObj) {
         let valType = attrObj.type;
@@ -11627,9 +11627,9 @@
         }
 
         return {
-            bufferType: ctx["ARRAY_BUFFER"],
+            bufferType: ctx.ARRAY_BUFFER,
             buffer: ctx.createBuffer(),
-            drawType: ctx["STATIC_DRAW"],
+            drawType: ctx.STATIC_DRAW,
             valueType: ctx[valType],
             size: attrObj.size,
             attributeLocation: ctx.getAttribLocation(program, attr),
@@ -11653,9 +11653,9 @@
         }
 
         return {
-            bufferType: ctx["ELEMENT_ARRAY_BUFFER"],
+            bufferType: ctx.ELEMENT_ARRAY_BUFFER,
             buffer: ctx.createBuffer(),
-            drawType: ctx["STATIC_DRAW"],
+            drawType: ctx.STATIC_DRAW,
             valueType: ctx[valType],
             value: attrObj.value,
             count: attrObj.count,
@@ -11665,7 +11665,7 @@
 
     function webGlUniformMapper(ctx, program, uniform, uniObj) {
         let type;
-        let len = uniObj.size ? uniObj.size : uniObj.value.length;
+        const len = uniObj.size ? uniObj.size : uniObj.value.length;
         if (!uniObj.matrix) {
             if (uniObj.value instanceof TextureObject) {
                 type = "uniform1i";
@@ -11721,7 +11721,7 @@
         this.geometry = shader.geometry;
         this.renderTarget = shader.renderTarget;
 
-        for (let uniform in shader.uniforms) {
+        for (const uniform in shader.uniforms) {
             this.uniforms[uniform] = webGlUniformMapper(
                 ctx,
                 this.program,
@@ -11743,7 +11743,7 @@
             }
         }
 
-        for (let attr in this.attributes) {
+        for (const attr in this.attributes) {
             this.attrObjs[attr] = webGlAttrMapper(ctx, this.program, attr, this.attributes[attr]);
         }
 
@@ -11760,7 +11760,7 @@
     };
 
     RenderWebglShader.prototype.applyUniforms = function () {
-        for (let uniform in this.uniforms) {
+        for (const uniform in this.uniforms) {
             if (this.uniforms[uniform].matrix) {
                 this.ctx[this.uniforms[uniform].type](
                     this.uniforms[uniform].uniformLocation,
@@ -11786,7 +11786,7 @@
 
     RenderWebglShader.prototype.applyAttributes = function () {
         let d;
-        for (let attr in this.attrObjs) {
+        for (const attr in this.attrObjs) {
             d = this.attrObjs[attr];
             this.ctx.bindBuffer(d.bufferType, d.buffer);
             this.ctx.bufferData(d.bufferType, this.attributes[d.attr].value, d.drawType);
@@ -11796,7 +11796,7 @@
     };
 
     RenderWebglShader.prototype.applyIndexes = function () {
-        let d = this.indexesObj;
+        const d = this.indexesObj;
         this.ctx.bindBuffer(d.bufferType, d.buffer);
         this.ctx.bufferData(d.bufferType, d.value, d.drawType);
     };
@@ -11865,7 +11865,7 @@
     RenderWebglShader.prototype.applyAttributeData = function (key, value) {
         this.attributes[key].value = value;
         this.attrObjs[key].value = value;
-        let d = this.attrObjs[key];
+        const d = this.attrObjs[key];
         this.ctx.bindBuffer(d.bufferType, d.buffer);
         this.ctx.bufferData(d.bufferType, this.attributes[d.attr].value, d.drawType);
         this.ctx.enableVertexAttribArray(d.attributeLocation);
@@ -11896,18 +11896,18 @@
     ShaderNodePrototype.prototype.setAttr = function (attr, value) {
         this.attr[attr] = value;
         if (attr === "transform") {
-            let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+            const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
             this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
         }
     };
     ShaderNodePrototype.prototype.translate = function (trans) {
-        this.attr.transform["translate"] = trans;
+        this.attr.transform.translate = trans;
     };
     ShaderNodePrototype.prototype.scale = function (scale) {
-        this.attr.transform["scale"] = scale;
+        this.attr.transform.scale = scale;
     };
     ShaderNodePrototype.prototype.rotate = function (angle) {
-        this.attr.transform["rotate"] = angle;
+        this.attr.transform.rotate = angle;
     };
 
     function addTransform(self, index, length, transform) {
@@ -11916,8 +11916,8 @@
                 ? Array.from(self.transformTyped)
                 : self.transform;
         self.transformTyped = null;
-        let len = index * length * 4;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const len = index * length * 4;
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
         let i = 0;
         while (i < length) {
             self.transform[len + i * 4] = translateX;
@@ -11931,9 +11931,9 @@
     }
 
     function updateTransform(self, index, length, transform) {
-        let transform_ = self.transformUpdate ? self.transform : self.transformTyped;
-        let len = index * length * 4;
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const transform_ = self.transformUpdate ? self.transform : self.transformTyped;
+        const len = index * length * 4;
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
         let i = 0;
         while (i < length) {
             transform_[len + i * 4] = translateX;
@@ -11945,8 +11945,8 @@
     }
 
     function clearTransform(self, index, length) {
-        let transform_ = self.transformUpdate ? self.transform : self.transformTyped;
-        let len = index * length * 4;
+        const transform_ = self.transformUpdate ? self.transform : self.transformTyped;
+        const len = index * length * 4;
         let i = 0;
         while (i < length) {
             transform_[len + i * 4] = undefined;
@@ -11985,7 +11985,7 @@
                 ? Array.from(self.typedPositionArray)
                 : self.positionArray;
         self.typedPositionArray = null;
-        let b = index * length * 2;
+        const b = index * length * 2;
         let i = 0;
         while (i < ver.length) {
             self.positionArray[b + i] = ver[i];
@@ -11995,8 +11995,8 @@
     }
 
     function updateVertex(self, index, length, ver) {
-        let positionArray = self.vertexUpdate ? self.positionArray : self.typedPositionArray;
-        let b = index * length * 2;
+        const positionArray = self.vertexUpdate ? self.positionArray : self.typedPositionArray;
+        const b = index * length * 2;
         let i = 0;
         if (isNaN(positionArray[b])) {
             console.log("overriding Nan");
@@ -12008,8 +12008,8 @@
     }
 
     function clearVertex(self, index, length) {
-        let positionArray = self.vertexUpdate ? self.positionArray : self.typedPositionArray;
-        let b = index * length * 2;
+        const positionArray = self.vertexUpdate ? self.positionArray : self.typedPositionArray;
+        const b = index * length * 2;
         let i = 0;
         while (i < length) {
             positionArray[b + i * 2] = undefined;
@@ -12046,7 +12046,7 @@
                 ? Array.from(self.typedColorArray)
                 : self.colorArray;
         self.typedColorArray = null;
-        let b = index * length * 4;
+        const b = index * length * 4;
         let i = 0;
         while (i < length) {
             self.colorArray[b + i * 4] = fill.r / 255;
@@ -12059,12 +12059,12 @@
     }
 
     function updateColor(self, index, length, fill) {
-        let colorArray = self.colorUpdate ? self.colorArray : self.typedColorArray;
-        let ti = index * length * 4;
+        const colorArray = self.colorUpdate ? self.colorArray : self.typedColorArray;
+        const ti = index * length * 4;
         if (isNaN(colorArray[ti])) {
             console.log("overriding Nan");
         }
-        let b = index * length * 4;
+        const b = index * length * 4;
         let i = 0;
         while (i < length) {
             colorArray[b + i * 4] = fill.r / 255;
@@ -12076,12 +12076,12 @@
     }
 
     function clearColor(self, index, length) {
-        let colorArray = self.colorUpdate ? self.colorArray : self.typedColorArray;
-        let ti = index * length * 4;
+        const colorArray = self.colorUpdate ? self.colorArray : self.typedColorArray;
+        const ti = index * length * 4;
         if (isNaN(colorArray[ti])) {
             console.log("overriding Nan");
         }
-        let b = index * length * 4;
+        const b = index * length * 4;
         let i = 0;
         while (i < length) {
             colorArray[b + i * 4] = undefined;
@@ -12130,7 +12130,7 @@
                 scale: [1.0, 1.0],
             };
         }
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
         this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
         this.geometry = new PointsGeometry();
         this.geometry.setAttr("a_color", {
@@ -12188,7 +12188,7 @@
         clearVertex(this, index, 1);
         clearTransform(this, index, 1);
 
-        let sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
+        const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
         sizeArray[index] = undefined;
 
         this.filterSizeFlag = true;
@@ -12207,7 +12207,7 @@
     };
 
     RenderWebglPoints.prototype.updateSize = function (index, size) {
-        let sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
+        const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
         sizeArray[index] = size;
     };
 
@@ -12291,7 +12291,7 @@
                 scale: [1.0, 1.0],
             };
         }
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
         this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new MeshGeometry();
@@ -12347,8 +12347,8 @@
     };
 
     RenderWebglRects.prototype.updateVertex = function (index, x, y, width, height) {
-        let x1 = x + width;
-        let y1 = y + height;
+        const x1 = x + width;
+        const y1 = y + height;
         updateVertex(this, index, 6, [x, y, x1, y, x, y1, x, y1, x1, y, x1, y1]);
     };
 
@@ -12365,8 +12365,8 @@
     };
 
     RenderWebglRects.prototype.addVertex = function (x, y, width, height, index) {
-        let x1 = x + width;
-        let y1 = y + height;
+        const x1 = x + width;
+        const y1 = y + height;
         addVertex(this, index, 6, [x, y, x1, y, x, y1, x, y1, x1, y, x1, y1]);
     };
 
@@ -12416,7 +12416,7 @@
                 scale: [1.0, 1.0],
             };
         }
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
         this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new LineGeometry();
@@ -12523,7 +12523,7 @@
                 scale: [1.0, 1.0],
             };
         }
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
         this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new LineGeometry();
@@ -12609,7 +12609,7 @@
             };
         }
 
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
         this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new MeshGeometry();
@@ -12699,7 +12699,7 @@
                 scale: [1.0, 1.0],
             };
         }
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
         this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new PointsGeometry();
@@ -12755,7 +12755,7 @@
         clearVertex(this, index, 1);
         clearTransform(this, index, 1);
 
-        let sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
+        const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
         sizeArray[index] = undefined;
 
         this.filterSizeFlag = true;
@@ -12778,7 +12778,7 @@
     };
 
     RenderWebglCircles.prototype.updateSize = function (index, value) {
-        let sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
+        const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
         sizeArray[index] = value;
     };
 
@@ -12856,7 +12856,7 @@
             };
         }
 
-        let { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
         this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
         this.geometry = new MeshGeometry();
@@ -12920,10 +12920,10 @@
         this.shaderInstance.applyUniformData("uu_transform", this.transform);
         this.shaderInstance.applyAttributeData("a_texCoord", this.textCoor);
 
-        let gOp = this.style.opacity !== undefined ? this.style.opacity : 1.0;
+        const gOp = this.style.opacity !== undefined ? this.style.opacity : 1.0;
         let prevTexture;
         for (let i = 0, len = stack.length; i < len; i++) {
-            let node = stack[i];
+            const node = stack[i];
 
             if (!node.dom.textureNode || !node.dom.textureNode.updated) {
                 continue;
@@ -13011,7 +13011,7 @@
         this.el = config.el;
         this.shaderType = config.shaderType;
         this.exeCtx = config.ctx;
-        this.bbox = config["bbox"] !== undefined ? config["bbox"] : true;
+        this.bbox = config.bbox !== undefined ? config.bbox : true;
         this.events = {};
 
         switch (config.el) {
@@ -13093,7 +13093,7 @@
             }
             this.dom.setAttr(attr, value);
         } else if (arguments.length === 1 && typeof attr === "object") {
-            for (let key in attr) {
+            for (const key in attr) {
                 if (attr[key] == null && this.attr[attr] != null) {
                     delete this.attr[key];
                 } else {
@@ -13148,7 +13148,7 @@
 
             this.dom.setStyle(attr, value);
         } else if (arguments.length === 1 && typeof attr === "object") {
-            for (let key in attr) {
+            for (const key in attr) {
                 value = attr[key];
                 if (value == null && this.style[key] != null) {
                     delete this.style[key];
@@ -13194,7 +13194,7 @@
     };
 
     WebglNodeExe.prototype.on = function Con(eventType, hndlr) {
-        let self = this;
+        const self = this;
         // this.dom.on(eventType, hndlr);
         if (!this.events) {
             this.events = {};
@@ -13334,7 +13334,7 @@
         let height = res ? res.clientHeight : 0;
         let width = res ? res.clientWidth : 0;
         let clearColor = colorMap$1.rgba(0, 0, 0, 0);
-        let { enableEvents = false, autoUpdate = true, enableResize = false } = layerSettings;
+        const { enableEvents = false, autoUpdate = true, enableResize = false } = layerSettings;
 
         contextConfig = contextConfig || {
             premultipliedAlpha: false,
@@ -13416,7 +13416,7 @@
         };
 
         root.destroy = function () {
-            let res = document.querySelector(container);
+            const res = document.querySelector(container);
             if (res && res.contains(layer)) {
                 res.removeChild(layer);
             }
@@ -13424,7 +13424,7 @@
         };
 
         root.getPixels = function (x, y, width_, height_) {
-            let pixels = new Uint8Array(width_ * height_ * 4);
+            const pixels = new Uint8Array(width_ * height_ * 4);
             this.ctx.readPixels(x, y, width_, height_, this.ctx.RGBA, this.ctx.UNSIGNED_BYTE, pixels);
             return pixels;
         };
@@ -13445,7 +13445,7 @@
             onClear = exe;
         };
 
-        let resize = function (cr) {
+        const resize = function (cr) {
             if (!document.querySelector(container)) {
                 layerResizeUnBind(root);
                 return;
@@ -13469,7 +13469,7 @@
             layer.style.width = `${width}px`;
         };
 
-        let updateLayerDimension = function (layer, width, height) {
+        const updateLayerDimension = function (layer, width, height) {
             layer.setAttribute("height", height * ratio);
             layer.setAttribute("width", width * ratio);
             layer.style.height = `${height}px`;
@@ -13548,7 +13548,7 @@
         };
 
         if (enableEvents) {
-            let eventsInstance = new Events(root);
+            const eventsInstance = new Events(root);
             layer.addEventListener("mousemove", (e) => {
                 e.preventDefault();
                 eventsInstance.mousemoveCheck(e);
@@ -13613,7 +13613,7 @@
     }
 
     function imageInstance$1(self) {
-        let imageIns = new Image();
+        const imageIns = new Image();
         imageIns.crossOrigin = "anonymous";
         imageIns.onload = function onload() {
             self.update();
@@ -13632,8 +13632,8 @@
     }
 
     function TextureObject(ctx, config, vDomIndex) {
-        let self = this;
-        let maxTextureSize = ctx.getParameter(ctx.MAX_TEXTURE_SIZE);
+        const self = this;
+        const maxTextureSize = ctx.getParameter(ctx.MAX_TEXTURE_SIZE);
         this.ctx = ctx;
         this.texture = ctx.createTexture();
         this.type = "TEXTURE_2D";
@@ -13681,7 +13681,7 @@
     }
     TextureObject.prototype.setAttr = function (attr, value) {
         if (arguments.length === 1) {
-            for (let key in attr) {
+            for (const key in attr) {
                 this[key] = attr[key];
                 if (key === "src") {
                     if (typeof value === "string") {
@@ -13702,7 +13702,7 @@
                         this.update();
                     }
                 }
-                if (attr["height"] || attr["width"]) {
+                if (attr.height || attr.width) {
                     self.image = createEmptyArrayBuffer(this.width, this.height);
                 }
             }
@@ -13742,7 +13742,7 @@
     TextureObject.prototype.clear = function (argument) {};
 
     TextureObject.prototype.update = function () {
-        let ctx = this.ctx;
+        const ctx = this.ctx;
         ctx.activeTexture(ctx.TEXTURE0);
         ctx.bindTexture(ctx.TEXTURE_2D, this.texture);
         if (this.image && !(this.image instanceof Uint8Array)) {
@@ -13870,603 +13870,105 @@
     LineGeometry.prototype = new WebGLGeometry();
     LineGeometry.constructor = LineGeometry;
 
-    /*
+    function _classCallCheck(instance, Constructor) {
+      if (!(instance instanceof Constructor)) {
+        throw new TypeError("Cannot call a class as a function");
+      }
+    }
 
-    StackBlur - a fast almost Gaussian Blur For Canvas
+    /* eslint-disable no-bitwise -- used for calculations */
 
-    Version: 	0.5
-    Author:		Mario Klingemann
-    Contact: 	mario@quasimondo.com
-    Website:	http://www.quasimondo.com/StackBlurForCanvas
-    Twitter:	@quasimondo
+    /* eslint-disable unicorn/prefer-query-selector -- aiming at
+      backward-compatibility */
 
-    In case you find this class useful - especially in commercial projects -
-    I am not totally unhappy for a small donation to my PayPal account
-    mario@quasimondo.de
-
-    Or support me on flattr: 
-    https://flattr.com/thing/72791/StackBlur-a-fast-almost-Gaussian-Blur-Effect-for-CanvasJavascript
-
-    Copyright (c) 2010 Mario Klingemann
-
-    Permission is hereby granted, free of charge, to any person
-    obtaining a copy of this software and associated documentation
-    files (the "Software"), to deal in the Software without
-    restriction, including without limitation the rights to use,
-    copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the
-    Software is furnished to do so, subject to the following
-    conditions:
-
-    The above copyright notice and this permission notice shall be
-    included in all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-    OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-    HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-    WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-    OTHER DEALINGS IN THE SOFTWARE.
+    /**
+    * StackBlur - a fast almost Gaussian Blur For Canvas
+    *
+    * In case you find this class useful - especially in commercial projects -
+    * I am not totally unhappy for a small donation to my PayPal account
+    * mario@quasimondo.de
+    *
+    * Or support me on flattr:
+    * {@link https://flattr.com/thing/72791/StackBlur-a-fast-almost-Gaussian-Blur-Effect-for-CanvasJavascript}.
+    *
+    * @module StackBlur
+    * @author Mario Klingemann
+    * Contact: mario@quasimondo.com
+    * Website: {@link http://www.quasimondo.com/StackBlurForCanvas/StackBlurDemo.html}
+    * Twitter: @quasimondo
+    *
+    * @copyright (c) 2010 Mario Klingemann
+    *
+    * Permission is hereby granted, free of charge, to any person
+    * obtaining a copy of this software and associated documentation
+    * files (the "Software"), to deal in the Software without
+    * restriction, including without limitation the rights to use,
+    * copy, modify, merge, publish, distribute, sublicense, and/or sell
+    * copies of the Software, and to permit persons to whom the
+    * Software is furnished to do so, subject to the following
+    * conditions:
+    *
+    * The above copyright notice and this permission notice shall be
+    * included in all copies or substantial portions of the Software.
+    *
+    * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+    * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+    * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+    * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+    * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+    * OTHER DEALINGS IN THE SOFTWARE.
     */
+    var mulTable = [512, 512, 456, 512, 328, 456, 335, 512, 405, 328, 271, 456, 388, 335, 292, 512, 454, 405, 364, 328, 298, 271, 496, 456, 420, 388, 360, 335, 312, 292, 273, 512, 482, 454, 428, 405, 383, 364, 345, 328, 312, 298, 284, 271, 259, 496, 475, 456, 437, 420, 404, 388, 374, 360, 347, 335, 323, 312, 302, 292, 282, 273, 265, 512, 497, 482, 468, 454, 441, 428, 417, 405, 394, 383, 373, 364, 354, 345, 337, 328, 320, 312, 305, 298, 291, 284, 278, 271, 265, 259, 507, 496, 485, 475, 465, 456, 446, 437, 428, 420, 412, 404, 396, 388, 381, 374, 367, 360, 354, 347, 341, 335, 329, 323, 318, 312, 307, 302, 297, 292, 287, 282, 278, 273, 269, 265, 261, 512, 505, 497, 489, 482, 475, 468, 461, 454, 447, 441, 435, 428, 422, 417, 411, 405, 399, 394, 389, 383, 378, 373, 368, 364, 359, 354, 350, 345, 341, 337, 332, 328, 324, 320, 316, 312, 309, 305, 301, 298, 294, 291, 287, 284, 281, 278, 274, 271, 268, 265, 262, 259, 257, 507, 501, 496, 491, 485, 480, 475, 470, 465, 460, 456, 451, 446, 442, 437, 433, 428, 424, 420, 416, 412, 408, 404, 400, 396, 392, 388, 385, 381, 377, 374, 370, 367, 363, 360, 357, 354, 350, 347, 344, 341, 338, 335, 332, 329, 326, 323, 320, 318, 315, 312, 310, 307, 304, 302, 299, 297, 294, 292, 289, 287, 285, 282, 280, 278, 275, 273, 271, 269, 267, 265, 263, 261, 259];
+    var shgTable = [9, 11, 12, 13, 13, 14, 14, 15, 15, 15, 15, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24];
+    /**
+     * @param {ImageData} imageData
+     * @param {Integer} topX
+     * @param {Integer} topY
+     * @param {Integer} width
+     * @param {Integer} height
+     * @param {Float} radius
+     * @returns {ImageData}
+     */
 
-    var mulTable = [
-        512,
-        512,
-        456,
-        512,
-        328,
-        456,
-        335,
-        512,
-        405,
-        328,
-        271,
-        456,
-        388,
-        335,
-        292,
-        512,
-        454,
-        405,
-        364,
-        328,
-        298,
-        271,
-        496,
-        456,
-        420,
-        388,
-        360,
-        335,
-        312,
-        292,
-        273,
-        512,
-        482,
-        454,
-        428,
-        405,
-        383,
-        364,
-        345,
-        328,
-        312,
-        298,
-        284,
-        271,
-        259,
-        496,
-        475,
-        456,
-        437,
-        420,
-        404,
-        388,
-        374,
-        360,
-        347,
-        335,
-        323,
-        312,
-        302,
-        292,
-        282,
-        273,
-        265,
-        512,
-        497,
-        482,
-        468,
-        454,
-        441,
-        428,
-        417,
-        405,
-        394,
-        383,
-        373,
-        364,
-        354,
-        345,
-        337,
-        328,
-        320,
-        312,
-        305,
-        298,
-        291,
-        284,
-        278,
-        271,
-        265,
-        259,
-        507,
-        496,
-        485,
-        475,
-        465,
-        456,
-        446,
-        437,
-        428,
-        420,
-        412,
-        404,
-        396,
-        388,
-        381,
-        374,
-        367,
-        360,
-        354,
-        347,
-        341,
-        335,
-        329,
-        323,
-        318,
-        312,
-        307,
-        302,
-        297,
-        292,
-        287,
-        282,
-        278,
-        273,
-        269,
-        265,
-        261,
-        512,
-        505,
-        497,
-        489,
-        482,
-        475,
-        468,
-        461,
-        454,
-        447,
-        441,
-        435,
-        428,
-        422,
-        417,
-        411,
-        405,
-        399,
-        394,
-        389,
-        383,
-        378,
-        373,
-        368,
-        364,
-        359,
-        354,
-        350,
-        345,
-        341,
-        337,
-        332,
-        328,
-        324,
-        320,
-        316,
-        312,
-        309,
-        305,
-        301,
-        298,
-        294,
-        291,
-        287,
-        284,
-        281,
-        278,
-        274,
-        271,
-        268,
-        265,
-        262,
-        259,
-        257,
-        507,
-        501,
-        496,
-        491,
-        485,
-        480,
-        475,
-        470,
-        465,
-        460,
-        456,
-        451,
-        446,
-        442,
-        437,
-        433,
-        428,
-        424,
-        420,
-        416,
-        412,
-        408,
-        404,
-        400,
-        396,
-        392,
-        388,
-        385,
-        381,
-        377,
-        374,
-        370,
-        367,
-        363,
-        360,
-        357,
-        354,
-        350,
-        347,
-        344,
-        341,
-        338,
-        335,
-        332,
-        329,
-        326,
-        323,
-        320,
-        318,
-        315,
-        312,
-        310,
-        307,
-        304,
-        302,
-        299,
-        297,
-        294,
-        292,
-        289,
-        287,
-        285,
-        282,
-        280,
-        278,
-        275,
-        273,
-        271,
-        269,
-        267,
-        265,
-        263,
-        261,
-        259,
-    ];
 
-    var shgTable = [
-        9,
-        11,
-        12,
-        13,
-        13,
-        14,
-        14,
-        15,
-        15,
-        15,
-        15,
-        16,
-        16,
-        16,
-        16,
-        17,
-        17,
-        17,
-        17,
-        17,
-        17,
-        17,
-        18,
-        18,
-        18,
-        18,
-        18,
-        18,
-        18,
-        18,
-        18,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        19,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        20,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        21,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        22,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        23,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-    ];
+    function processImageDataRGBA(imageData, topX, topY, width, height, radius) {
+      var pixels = imageData.data;
+      var div = 2 * radius + 1; // const w4 = width << 2;
 
-    function blur(imageData, width, height, radius) {
-        if (isNaN(radius) || radius < 1) return;
-        radius |= 0;
-        const pixels = imageData.data;
+      var widthMinus1 = width - 1;
+      var heightMinus1 = height - 1;
+      var radiusPlus1 = radius + 1;
+      var sumFactor = radiusPlus1 * (radiusPlus1 + 1) / 2;
+      var stackStart = new BlurStack();
+      var stack = stackStart;
+      var stackEnd;
 
-      const div = 2 * radius + 1;
-      // const w4 = width << 2;
-      const widthMinus1 = width - 1;
-      const heightMinus1 = height - 1;
-      const radiusPlus1 = radius + 1;
-      const sumFactor = radiusPlus1 * (radiusPlus1 + 1) / 2;
-
-      const stackStart = new BlurStack();
-      let stack = stackStart;
-      let stackEnd;
-      for (let i = 1; i < div; i++) {
+      for (var i = 1; i < div; i++) {
         stack = stack.next = new BlurStack();
+
         if (i === radiusPlus1) {
           stackEnd = stack;
         }
       }
+
       stack.next = stackStart;
+      var stackIn = null,
+          stackOut = null,
+          yw = 0,
+          yi = 0;
+      var mulSum = mulTable[radius];
+      var shgSum = shgTable[radius];
 
-      let stackIn = null,
-        stackOut = null,
-        yw = 0,
-        yi = 0;
-
-      const mulSum = mulTable[radius];
-      const shgSum = shgTable[radius];
-
-      for (let y = 0; y < height; y++) {
+      for (var y = 0; y < height; y++) {
         stack = stackStart;
+        var pr = pixels[yi],
+            pg = pixels[yi + 1],
+            pb = pixels[yi + 2],
+            pa = pixels[yi + 3];
 
-        const pr = pixels[yi],
-          pg = pixels[yi + 1],
-          pb = pixels[yi + 2],
-          pa = pixels[yi + 3];
-
-        for (let i = 0; i < radiusPlus1; i++) {
+        for (var _i = 0; _i < radiusPlus1; _i++) {
           stack.r = pr;
           stack.g = pg;
           stack.b = pb;
@@ -14474,48 +13976,50 @@
           stack = stack.next;
         }
 
-        let rInSum = 0, gInSum = 0, bInSum = 0, aInSum = 0,
-          rOutSum = radiusPlus1 * pr,
-          gOutSum = radiusPlus1 * pg,
-          bOutSum = radiusPlus1 * pb,
-          aOutSum = radiusPlus1 * pa,
-          rSum = sumFactor * pr,
-          gSum = sumFactor * pg,
-          bSum = sumFactor * pb,
-          aSum = sumFactor * pa;
+        var rInSum = 0,
+            gInSum = 0,
+            bInSum = 0,
+            aInSum = 0,
+            rOutSum = radiusPlus1 * pr,
+            gOutSum = radiusPlus1 * pg,
+            bOutSum = radiusPlus1 * pb,
+            aOutSum = radiusPlus1 * pa,
+            rSum = sumFactor * pr,
+            gSum = sumFactor * pg,
+            bSum = sumFactor * pb,
+            aSum = sumFactor * pa;
 
-        for (let i = 1; i < radiusPlus1; i++) {
-          const p = yi + ((widthMinus1 < i ? widthMinus1 : i) << 2);
-
-          const r = pixels[p],
-            g = pixels[p + 1],
-            b = pixels[p + 2],
-            a = pixels[p + 3];
-
-          const rbs = radiusPlus1 - i;
+        for (var _i2 = 1; _i2 < radiusPlus1; _i2++) {
+          var p = yi + ((widthMinus1 < _i2 ? widthMinus1 : _i2) << 2);
+          var r = pixels[p],
+              g = pixels[p + 1],
+              b = pixels[p + 2],
+              a = pixels[p + 3];
+          var rbs = radiusPlus1 - _i2;
           rSum += (stack.r = r) * rbs;
           gSum += (stack.g = g) * rbs;
           bSum += (stack.b = b) * rbs;
           aSum += (stack.a = a) * rbs;
-
           rInSum += r;
           gInSum += g;
           bInSum += b;
           aInSum += a;
-
           stack = stack.next;
         }
 
         stackIn = stackStart;
         stackOut = stackEnd;
-        for (let x = 0; x < width; x++) {
-          const paInitial = (aSum * mulSum) >> shgSum;
+
+        for (var x = 0; x < width; x++) {
+          var paInitial = aSum * mulSum >> shgSum;
           pixels[yi + 3] = paInitial;
+
           if (paInitial !== 0) {
-            const a = 255 / paInitial;
-            pixels[yi] = ((rSum * mulSum) >> shgSum) * a;
-            pixels[yi + 1] = ((gSum * mulSum) >> shgSum) * a;
-            pixels[yi + 2] = ((bSum * mulSum) >> shgSum) * a;
+            var _a2 = 255 / paInitial;
+
+            pixels[yi] = (rSum * mulSum >> shgSum) * _a2;
+            pixels[yi + 1] = (gSum * mulSum >> shgSum) * _a2;
+            pixels[yi + 2] = (bSum * mulSum >> shgSum) * _a2;
           } else {
             pixels[yi] = pixels[yi + 1] = pixels[yi + 2] = 0;
           }
@@ -14524,174 +14028,174 @@
           gSum -= gOutSum;
           bSum -= bOutSum;
           aSum -= aOutSum;
-
           rOutSum -= stackIn.r;
           gOutSum -= stackIn.g;
           bOutSum -= stackIn.b;
           aOutSum -= stackIn.a;
 
-          let p = x + radius + 1;
-          p = (yw + (p < widthMinus1
-            ? p
-            : widthMinus1)) << 2;
+          var _p = x + radius + 1;
 
-          rInSum += (stackIn.r = pixels[p]);
-          gInSum += (stackIn.g = pixels[p + 1]);
-          bInSum += (stackIn.b = pixels[p + 2]);
-          aInSum += (stackIn.a = pixels[p + 3]);
-
+          _p = yw + (_p < widthMinus1 ? _p : widthMinus1) << 2;
+          rInSum += stackIn.r = pixels[_p];
+          gInSum += stackIn.g = pixels[_p + 1];
+          bInSum += stackIn.b = pixels[_p + 2];
+          aInSum += stackIn.a = pixels[_p + 3];
           rSum += rInSum;
           gSum += gInSum;
           bSum += bInSum;
           aSum += aInSum;
-
           stackIn = stackIn.next;
-
-          const {r, g, b, a} = stackOut;
-
-          rOutSum += r;
-          gOutSum += g;
-          bOutSum += b;
-          aOutSum += a;
-
-          rInSum -= r;
-          gInSum -= g;
-          bInSum -= b;
-          aInSum -= a;
-
+          var _stackOut = stackOut,
+              _r = _stackOut.r,
+              _g = _stackOut.g,
+              _b = _stackOut.b,
+              _a = _stackOut.a;
+          rOutSum += _r;
+          gOutSum += _g;
+          bOutSum += _b;
+          aOutSum += _a;
+          rInSum -= _r;
+          gInSum -= _g;
+          bInSum -= _b;
+          aInSum -= _a;
           stackOut = stackOut.next;
-
           yi += 4;
         }
+
         yw += width;
       }
 
-      for (let x = 0; x < width; x++) {
-        yi = x << 2;
+      for (var _x = 0; _x < width; _x++) {
+        yi = _x << 2;
 
-        let pr = pixels[yi],
-          pg = pixels[yi + 1],
-          pb = pixels[yi + 2],
-          pa = pixels[yi + 3],
-          rOutSum = radiusPlus1 * pr,
-          gOutSum = radiusPlus1 * pg,
-          bOutSum = radiusPlus1 * pb,
-          aOutSum = radiusPlus1 * pa,
-          rSum = sumFactor * pr,
-          gSum = sumFactor * pg,
-          bSum = sumFactor * pb,
-          aSum = sumFactor * pa;
+        var _pr = pixels[yi],
+            _pg = pixels[yi + 1],
+            _pb = pixels[yi + 2],
+            _pa = pixels[yi + 3],
+            _rOutSum = radiusPlus1 * _pr,
+            _gOutSum = radiusPlus1 * _pg,
+            _bOutSum = radiusPlus1 * _pb,
+            _aOutSum = radiusPlus1 * _pa,
+            _rSum = sumFactor * _pr,
+            _gSum = sumFactor * _pg,
+            _bSum = sumFactor * _pb,
+            _aSum = sumFactor * _pa;
 
         stack = stackStart;
 
-        for (let i = 0; i < radiusPlus1; i++) {
-          stack.r = pr;
-          stack.g = pg;
-          stack.b = pb;
-          stack.a = pa;
+        for (var _i3 = 0; _i3 < radiusPlus1; _i3++) {
+          stack.r = _pr;
+          stack.g = _pg;
+          stack.b = _pb;
+          stack.a = _pa;
           stack = stack.next;
         }
 
-        let yp = width;
+        var yp = width;
+        var _gInSum = 0,
+            _bInSum = 0,
+            _aInSum = 0,
+            _rInSum = 0;
 
-        let gInSum = 0, bInSum = 0, aInSum = 0, rInSum = 0;
-        for (let i = 1; i <= radius; i++) {
-          yi = (yp + x) << 2;
+        for (var _i4 = 1; _i4 <= radius; _i4++) {
+          yi = yp + _x << 2;
 
-          const rbs = radiusPlus1 - i;
-          rSum += (stack.r = (pr = pixels[yi])) * rbs;
-          gSum += (stack.g = (pg = pixels[yi + 1])) * rbs;
-          bSum += (stack.b = (pb = pixels[yi + 2])) * rbs;
-          aSum += (stack.a = (pa = pixels[yi + 3])) * rbs;
+          var _rbs = radiusPlus1 - _i4;
 
-          rInSum += pr;
-          gInSum += pg;
-          bInSum += pb;
-          aInSum += pa;
-
+          _rSum += (stack.r = _pr = pixels[yi]) * _rbs;
+          _gSum += (stack.g = _pg = pixels[yi + 1]) * _rbs;
+          _bSum += (stack.b = _pb = pixels[yi + 2]) * _rbs;
+          _aSum += (stack.a = _pa = pixels[yi + 3]) * _rbs;
+          _rInSum += _pr;
+          _gInSum += _pg;
+          _bInSum += _pb;
+          _aInSum += _pa;
           stack = stack.next;
 
-          if (i < heightMinus1) {
+          if (_i4 < heightMinus1) {
             yp += width;
           }
         }
 
-        yi = x;
+        yi = _x;
         stackIn = stackStart;
         stackOut = stackEnd;
-        for (let y = 0; y < height; y++) {
-          let p = yi << 2;
-          pixels[p + 3] = pa = (aSum * mulSum) >> shgSum;
-          if (pa > 0) {
-            pa = 255 / pa;
-            pixels[p] = ((rSum * mulSum) >> shgSum) * pa;
-            pixels[p + 1] = ((gSum * mulSum) >> shgSum) * pa;
-            pixels[p + 2] = ((bSum * mulSum) >> shgSum) * pa;
+
+        for (var _y = 0; _y < height; _y++) {
+          var _p2 = yi << 2;
+
+          pixels[_p2 + 3] = _pa = _aSum * mulSum >> shgSum;
+
+          if (_pa > 0) {
+            _pa = 255 / _pa;
+            pixels[_p2] = (_rSum * mulSum >> shgSum) * _pa;
+            pixels[_p2 + 1] = (_gSum * mulSum >> shgSum) * _pa;
+            pixels[_p2 + 2] = (_bSum * mulSum >> shgSum) * _pa;
           } else {
-            pixels[p] = pixels[p + 1] = pixels[p + 2] = 0;
+            pixels[_p2] = pixels[_p2 + 1] = pixels[_p2 + 2] = 0;
           }
 
-          rSum -= rOutSum;
-          gSum -= gOutSum;
-          bSum -= bOutSum;
-          aSum -= aOutSum;
-
-          rOutSum -= stackIn.r;
-          gOutSum -= stackIn.g;
-          bOutSum -= stackIn.b;
-          aOutSum -= stackIn.a;
-
-          p = (x + (
-            ((p = y + radiusPlus1) < heightMinus1 ? p : heightMinus1) *
-                    width
-          )) << 2;
-
-          rSum += (rInSum += (stackIn.r = pixels[p]));
-          gSum += (gInSum += (stackIn.g = pixels[p + 1]));
-          bSum += (bInSum += (stackIn.b = pixels[p + 2]));
-          aSum += (aInSum += (stackIn.a = pixels[p + 3]));
-
+          _rSum -= _rOutSum;
+          _gSum -= _gOutSum;
+          _bSum -= _bOutSum;
+          _aSum -= _aOutSum;
+          _rOutSum -= stackIn.r;
+          _gOutSum -= stackIn.g;
+          _bOutSum -= stackIn.b;
+          _aOutSum -= stackIn.a;
+          _p2 = _x + ((_p2 = _y + radiusPlus1) < heightMinus1 ? _p2 : heightMinus1) * width << 2;
+          _rSum += _rInSum += stackIn.r = pixels[_p2];
+          _gSum += _gInSum += stackIn.g = pixels[_p2 + 1];
+          _bSum += _bInSum += stackIn.b = pixels[_p2 + 2];
+          _aSum += _aInSum += stackIn.a = pixels[_p2 + 3];
           stackIn = stackIn.next;
-
-          rOutSum += (pr = stackOut.r);
-          gOutSum += (pg = stackOut.g);
-          bOutSum += (pb = stackOut.b);
-          aOutSum += (pa = stackOut.a);
-
-          rInSum -= pr;
-          gInSum -= pg;
-          bInSum -= pb;
-          aInSum -= pa;
-
+          _rOutSum += _pr = stackOut.r;
+          _gOutSum += _pg = stackOut.g;
+          _bOutSum += _pb = stackOut.b;
+          _aOutSum += _pa = stackOut.a;
+          _rInSum -= _pr;
+          _gInSum -= _pg;
+          _bInSum -= _pb;
+          _aInSum -= _pa;
           stackOut = stackOut.next;
-
           yi += width;
         }
       }
+
       return imageData;
     }
+    /**
+     *
+     */
 
+
+    var BlurStack =
+    /**
+     * Set properties.
+     */
     function BlurStack() {
-        this.r = 0;
-        this.g = 0;
-        this.b = 0;
-        this.a = 0;
-        this.next = null;
-    }
+      _classCallCheck(this, BlurStack);
 
-    var utility = {
+      this.r = 0;
+      this.g = 0;
+      this.b = 0;
+      this.a = 0;
+      this.next = null;
+    };
+
+    var utilities = {
         blur: function (radius = 1) {
             function blurExec(imageData) {
-                return blur(imageData, imageData.width, imageData.height, radius);
+                return processImageDataRGBA(imageData, 0, 0, imageData.width, imageData.height, radius);
             }
             return blurExec;
         },
         greyScale: function () {},
     };
 
-    let pathIns = path.instance;
-    let canvasLayer$1 = canvasAPI.canvasLayer;
-    let canvasNodeLayer$1 = canvasAPI.canvasNodeLayer;
+    const pathIns = path.instance;
+    const canvasLayer$1 = canvasAPI.canvasLayer;
+    const canvasNodeLayer$1 = canvasAPI.canvasNodeLayer;
 
     exports.Path = pathIns;
     exports.behaviour = behaviour;
@@ -14703,9 +14207,9 @@
     exports.geometry = geometry;
     exports.queue = queue;
     exports.svgLayer = svgLayer;
-    exports.utility = utility;
+    exports.utility = utilities;
     exports.webglLayer = webglLayer;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 
-}));
+})));

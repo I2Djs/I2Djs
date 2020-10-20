@@ -91,7 +91,7 @@ function removeRequestFrameCall(_) {
         throw new Error("Wrong input");
     }
 
-    let index = onFrameExe.indexOf(_);
+    const index = onFrameExe.indexOf(_);
 
     if (index !== -1) {
         onFrameExe.splice(index, 1);
@@ -99,7 +99,7 @@ function removeRequestFrameCall(_) {
 }
 
 function add(uId, executable, easying) {
-    let exeObj = new Tween(uId, executable, easying);
+    const exeObj = new Tween(uId, executable, easying);
     exeObj.currTime = performance.now();
     if (executable.target) {
         if (!executable.target.animList) {
@@ -112,7 +112,7 @@ function add(uId, executable, easying) {
 }
 
 function remove(exeObj) {
-    let index = tweens.indexOf(exeObj);
+    const index = tweens.indexOf(exeObj);
     if (index !== -1) {
         tweens.splice(index, 1);
     }
@@ -149,7 +149,7 @@ ExeQueue.prototype = {
 };
 
 ExeQueue.prototype.addVdom = function AaddVdom(_) {
-    let ind = vDomIds.length + 1;
+    const ind = vDomIds.length + 1;
     vDoms[ind] = _;
     vDomIds.push(ind);
     this.startAnimeFrames();
@@ -157,7 +157,7 @@ ExeQueue.prototype.addVdom = function AaddVdom(_) {
 };
 
 ExeQueue.prototype.removeVdom = function removeVdom(_) {
-    let index = vDomIds.indexOf(_);
+    const index = vDomIds.indexOf(_);
 
     if (index !== -1) {
         vDomIds.splice(index, 1);
@@ -175,11 +175,11 @@ ExeQueue.prototype.vDomChanged = function AvDomChanged(vDom) {
         vDoms[vDom].stateModified = true;
         vDoms[vDom].root.stateModified = true;
     } else if (typeof vDom === "string") {
-        let ids = vDom.split(":");
+        const ids = vDom.split(":");
         if (vDoms[ids[0]] && vDoms[ids[0]].stateModified !== undefined) {
             vDoms[ids[0]].stateModified = true;
             vDoms[ids[0]].root.stateModified = true;
-            let childRootNode = vDoms[ids[0]].root.fetchEl("#" + ids[1]);
+            const childRootNode = vDoms[ids[0]].root.fetchEl("#" + ids[1]);
             if (childRootNode) {
                 childRootNode.stateModified = true;
             }
@@ -214,7 +214,7 @@ ExeQueue.prototype.vDomUpdates = function () {
 
 let d;
 let t;
-let abs = Math.abs;
+const abs = Math.abs;
 let counter = 0;
 let tweensN = [];
 
@@ -260,12 +260,12 @@ function loopCheck(d) {
             d.end();
         }
         if (d.executable.target) {
-            let animList = d.executable.target.animList;
+            const animList = d.executable.target.animList;
             if (animList && animList.length > 0) {
                 if (animList.length === 1) {
                     d.executable.target.animList = [];
                 } else if (animList.length > 1) {
-                    let index = animList.indexOf(d);
+                    const index = animList.indexOf(d);
                     if (index !== -1) {
                         animList.splice(index, 1);
                     }
