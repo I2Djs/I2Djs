@@ -9171,26 +9171,12 @@
             self.attr.height = self.attr.height ? self.attr.height : this.height;
             self.attr.width = self.attr.width ? self.attr.width : this.width;
             self.imageObj = this;
-            // if (imageDataMap[self.attr.src]) {
-            //     self.imageObj = imageDataMap[self.attr.src];
-            // } else {
-            //     const im = getCanvasImgInstance(this.width, this.height);
-            //     const ctxX = im.context;
-            // self.rImageObj.context.drawImage(this, 0, 0, this.width, this.height);
-            //     self.imageObj = im.canvas;
-            //     imageDataMap[self.attr.src] = im.canvas;
-            // }
-
-            // self.postProcess();
 
             if (self.attr.onload && typeof self.attr.onload === "function") {
                 self.attr.onload.call(self, self.image);
             }
 
             self.postProcess();
-
-            // self.nodeExe.BBoxUpdate = false;
-            // queueInstance.vDomChanged(self.nodeExe.vDomIndex);
         };
 
         imageIns.onerror = function onerror(error) {
@@ -9256,7 +9242,7 @@
             this.postProcess();
         }
 
-        if (attr === "clip" || attr === "pixels") {
+        if (attr === "clip" || attr === "filter") {
             this.postProcess();
         }
     };
@@ -9272,8 +9258,8 @@
             self.execute();
         }
 
-        if (self.attr.pixels) {
-            self.pixelsUpdate();
+        if (self.attr.filter) {
+            self.filterUpdate();
         }
         queueInstance$4.vDomChanged(self.nodeExe.vDomIndex);
     };
@@ -9294,7 +9280,7 @@
         ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
     };
 
-    RenderTexture.prototype.pixelsUpdate = function () {
+    RenderTexture.prototype.filterUpdate = function () {
         var self = this;
         var ctxX = self.ctx;
         var pixels;
@@ -9304,7 +9290,7 @@
         var height = ref.height; if ( height === void 0 ) height = 0;
 
         pixels = ctxX.getImageData(0, 0, width, height);
-        ctxX.putImageData(self.attr.pixels(pixels), 0, 0);
+        ctxX.putImageData(self.attr.filter(pixels), 0, 0);
     };
 
     RenderTexture.prototype.execute = function RIexecute() {
@@ -14078,6 +14064,829 @@
     LineGeometry.prototype = new WebGLGeometry();
     LineGeometry.constructor = LineGeometry;
 
+    /*
+
+    StackBlur - a fast almost Gaussian Blur For Canvas
+
+    Version: 	0.5
+    Author:		Mario Klingemann
+    Contact: 	mario@quasimondo.com
+    Website:	http://www.quasimondo.com/StackBlurForCanvas
+    Twitter:	@quasimondo
+
+    In case you find this class useful - especially in commercial projects -
+    I am not totally unhappy for a small donation to my PayPal account
+    mario@quasimondo.de
+
+    Or support me on flattr: 
+    https://flattr.com/thing/72791/StackBlur-a-fast-almost-Gaussian-Blur-Effect-for-CanvasJavascript
+
+    Copyright (c) 2010 Mario Klingemann
+
+    Permission is hereby granted, free of charge, to any person
+    obtaining a copy of this software and associated documentation
+    files (the "Software"), to deal in the Software without
+    restriction, including without limitation the rights to use,
+    copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following
+    conditions:
+
+    The above copyright notice and this permission notice shall be
+    included in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+    OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+    HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+    WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+    OTHER DEALINGS IN THE SOFTWARE.
+    */
+
+    var mulTable = [
+        512,
+        512,
+        456,
+        512,
+        328,
+        456,
+        335,
+        512,
+        405,
+        328,
+        271,
+        456,
+        388,
+        335,
+        292,
+        512,
+        454,
+        405,
+        364,
+        328,
+        298,
+        271,
+        496,
+        456,
+        420,
+        388,
+        360,
+        335,
+        312,
+        292,
+        273,
+        512,
+        482,
+        454,
+        428,
+        405,
+        383,
+        364,
+        345,
+        328,
+        312,
+        298,
+        284,
+        271,
+        259,
+        496,
+        475,
+        456,
+        437,
+        420,
+        404,
+        388,
+        374,
+        360,
+        347,
+        335,
+        323,
+        312,
+        302,
+        292,
+        282,
+        273,
+        265,
+        512,
+        497,
+        482,
+        468,
+        454,
+        441,
+        428,
+        417,
+        405,
+        394,
+        383,
+        373,
+        364,
+        354,
+        345,
+        337,
+        328,
+        320,
+        312,
+        305,
+        298,
+        291,
+        284,
+        278,
+        271,
+        265,
+        259,
+        507,
+        496,
+        485,
+        475,
+        465,
+        456,
+        446,
+        437,
+        428,
+        420,
+        412,
+        404,
+        396,
+        388,
+        381,
+        374,
+        367,
+        360,
+        354,
+        347,
+        341,
+        335,
+        329,
+        323,
+        318,
+        312,
+        307,
+        302,
+        297,
+        292,
+        287,
+        282,
+        278,
+        273,
+        269,
+        265,
+        261,
+        512,
+        505,
+        497,
+        489,
+        482,
+        475,
+        468,
+        461,
+        454,
+        447,
+        441,
+        435,
+        428,
+        422,
+        417,
+        411,
+        405,
+        399,
+        394,
+        389,
+        383,
+        378,
+        373,
+        368,
+        364,
+        359,
+        354,
+        350,
+        345,
+        341,
+        337,
+        332,
+        328,
+        324,
+        320,
+        316,
+        312,
+        309,
+        305,
+        301,
+        298,
+        294,
+        291,
+        287,
+        284,
+        281,
+        278,
+        274,
+        271,
+        268,
+        265,
+        262,
+        259,
+        257,
+        507,
+        501,
+        496,
+        491,
+        485,
+        480,
+        475,
+        470,
+        465,
+        460,
+        456,
+        451,
+        446,
+        442,
+        437,
+        433,
+        428,
+        424,
+        420,
+        416,
+        412,
+        408,
+        404,
+        400,
+        396,
+        392,
+        388,
+        385,
+        381,
+        377,
+        374,
+        370,
+        367,
+        363,
+        360,
+        357,
+        354,
+        350,
+        347,
+        344,
+        341,
+        338,
+        335,
+        332,
+        329,
+        326,
+        323,
+        320,
+        318,
+        315,
+        312,
+        310,
+        307,
+        304,
+        302,
+        299,
+        297,
+        294,
+        292,
+        289,
+        287,
+        285,
+        282,
+        280,
+        278,
+        275,
+        273,
+        271,
+        269,
+        267,
+        265,
+        263,
+        261,
+        259 ];
+
+    var shgTable = [
+        9,
+        11,
+        12,
+        13,
+        13,
+        14,
+        14,
+        15,
+        15,
+        15,
+        15,
+        16,
+        16,
+        16,
+        16,
+        17,
+        17,
+        17,
+        17,
+        17,
+        17,
+        17,
+        18,
+        18,
+        18,
+        18,
+        18,
+        18,
+        18,
+        18,
+        18,
+        19,
+        19,
+        19,
+        19,
+        19,
+        19,
+        19,
+        19,
+        19,
+        19,
+        19,
+        19,
+        19,
+        19,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        22,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        23,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24 ];
+
+    function blur(imageData, width, height, radius) {
+        if (isNaN(radius) || radius < 1) { return; }
+        radius |= 0;
+        var pixels = imageData.data;
+
+        var div = 2 * radius + 1;
+        // const w4 = width << 2;
+        var widthMinus1 = width - 1;
+        var heightMinus1 = height - 1;
+        var radiusPlus1 = radius + 1;
+        var sumFactor = (radiusPlus1 * (radiusPlus1 + 1)) / 2;
+
+        var stackStart = new BlurStack();
+        var stack = stackStart;
+        var stackEnd;
+        for (var i = 1; i < div; i++) {
+            stack = stack.next = new BlurStack();
+            if (i === radiusPlus1) {
+                stackEnd = stack;
+            }
+        }
+        stack.next = stackStart;
+
+        var stackIn = null;
+        var stackOut = null;
+        var yw = 0;
+        var yi = 0;
+
+        var mulSum = mulTable[radius];
+        var shgSum = shgTable[radius];
+
+        for (var y = 0; y < height; y++) {
+            stack = stackStart;
+
+            var pr = pixels[yi];
+            var pg = pixels[yi + 1];
+            var pb = pixels[yi + 2];
+            var pa = pixels[yi + 3];
+
+            for (var i$1 = 0; i$1 < radiusPlus1; i$1++) {
+                stack.r = pr;
+                stack.g = pg;
+                stack.b = pb;
+                stack.a = pa;
+                stack = stack.next;
+            }
+
+            var rInSum = 0;
+            var gInSum = 0;
+            var bInSum = 0;
+            var aInSum = 0;
+            var rOutSum = radiusPlus1 * pr;
+            var gOutSum = radiusPlus1 * pg;
+            var bOutSum = radiusPlus1 * pb;
+            var aOutSum = radiusPlus1 * pa;
+            var rSum = sumFactor * pr;
+            var gSum = sumFactor * pg;
+            var bSum = sumFactor * pb;
+            var aSum = sumFactor * pa;
+
+            for (var i$2 = 1; i$2 < radiusPlus1; i$2++) {
+                var p = yi + ((widthMinus1 < i$2 ? widthMinus1 : i$2) << 2);
+
+                var r = pixels[p];
+                var g = pixels[p + 1];
+                var b = pixels[p + 2];
+                var a = pixels[p + 3];
+
+                var rbs = radiusPlus1 - i$2;
+                rSum += (stack.r = r) * rbs;
+                gSum += (stack.g = g) * rbs;
+                bSum += (stack.b = b) * rbs;
+                aSum += (stack.a = a) * rbs;
+
+                rInSum += r;
+                gInSum += g;
+                bInSum += b;
+                aInSum += a;
+
+                stack = stack.next;
+            }
+
+            stackIn = stackStart;
+            stackOut = stackEnd;
+            for (var x = 0; x < width; x++) {
+                var paInitial = (aSum * mulSum) >> shgSum;
+                pixels[yi + 3] = paInitial;
+                if (paInitial !== 0) {
+                    var a$1 = 255 / paInitial;
+                    pixels[yi] = ((rSum * mulSum) >> shgSum) * a$1;
+                    pixels[yi + 1] = ((gSum * mulSum) >> shgSum) * a$1;
+                    pixels[yi + 2] = ((bSum * mulSum) >> shgSum) * a$1;
+                } else {
+                    pixels[yi] = pixels[yi + 1] = pixels[yi + 2] = 0;
+                }
+
+                rSum -= rOutSum;
+                gSum -= gOutSum;
+                bSum -= bOutSum;
+                aSum -= aOutSum;
+
+                rOutSum -= stackIn.r;
+                gOutSum -= stackIn.g;
+                bOutSum -= stackIn.b;
+                aOutSum -= stackIn.a;
+
+                var p$1 = x + radius + 1;
+                p$1 = (yw + (p$1 < widthMinus1 ? p$1 : widthMinus1)) << 2;
+
+                rInSum += stackIn.r = pixels[p$1];
+                gInSum += stackIn.g = pixels[p$1 + 1];
+                bInSum += stackIn.b = pixels[p$1 + 2];
+                aInSum += stackIn.a = pixels[p$1 + 3];
+
+                rSum += rInSum;
+                gSum += gInSum;
+                bSum += bInSum;
+                aSum += aInSum;
+
+                stackIn = stackIn.next;
+
+                var r$1 = stackOut.r;
+                var g$1 = stackOut.g;
+                var b$1 = stackOut.b;
+                var a$2 = stackOut.a;
+
+                rOutSum += r$1;
+                gOutSum += g$1;
+                bOutSum += b$1;
+                aOutSum += a$2;
+
+                rInSum -= r$1;
+                gInSum -= g$1;
+                bInSum -= b$1;
+                aInSum -= a$2;
+
+                stackOut = stackOut.next;
+
+                yi += 4;
+            }
+            yw += width;
+        }
+
+        for (var x$1 = 0; x$1 < width; x$1++) {
+            yi = x$1 << 2;
+
+            var pr$1 = pixels[yi];
+            var pg$1 = pixels[yi + 1];
+            var pb$1 = pixels[yi + 2];
+            var pa$1 = pixels[yi + 3];
+            var rOutSum$1 = radiusPlus1 * pr$1;
+            var gOutSum$1 = radiusPlus1 * pg$1;
+            var bOutSum$1 = radiusPlus1 * pb$1;
+            var aOutSum$1 = radiusPlus1 * pa$1;
+            var rSum$1 = sumFactor * pr$1;
+            var gSum$1 = sumFactor * pg$1;
+            var bSum$1 = sumFactor * pb$1;
+            var aSum$1 = sumFactor * pa$1;
+
+            stack = stackStart;
+
+            for (var i$3 = 0; i$3 < radiusPlus1; i$3++) {
+                stack.r = pr$1;
+                stack.g = pg$1;
+                stack.b = pb$1;
+                stack.a = pa$1;
+                stack = stack.next;
+            }
+
+            var yp = width;
+
+            var gInSum$1 = 0;
+            var bInSum$1 = 0;
+            var aInSum$1 = 0;
+            var rInSum$1 = 0;
+            for (var i$4 = 1; i$4 <= radius; i$4++) {
+                yi = (yp + x$1) << 2;
+
+                var rbs$1 = radiusPlus1 - i$4;
+                rSum$1 += (stack.r = pr$1 = pixels[yi]) * rbs$1;
+                gSum$1 += (stack.g = pg$1 = pixels[yi + 1]) * rbs$1;
+                bSum$1 += (stack.b = pb$1 = pixels[yi + 2]) * rbs$1;
+                aSum$1 += (stack.a = pa$1 = pixels[yi + 3]) * rbs$1;
+
+                rInSum$1 += pr$1;
+                gInSum$1 += pg$1;
+                bInSum$1 += pb$1;
+                aInSum$1 += pa$1;
+
+                stack = stack.next;
+
+                if (i$4 < heightMinus1) {
+                    yp += width;
+                }
+            }
+
+            yi = x$1;
+            stackIn = stackStart;
+            stackOut = stackEnd;
+            for (var y$1 = 0; y$1 < height; y$1++) {
+                var p$2 = yi << 2;
+                pixels[p$2 + 3] = pa$1 = (aSum$1 * mulSum) >> shgSum;
+                if (pa$1 > 0) {
+                    pa$1 = 255 / pa$1;
+                    pixels[p$2] = ((rSum$1 * mulSum) >> shgSum) * pa$1;
+                    pixels[p$2 + 1] = ((gSum$1 * mulSum) >> shgSum) * pa$1;
+                    pixels[p$2 + 2] = ((bSum$1 * mulSum) >> shgSum) * pa$1;
+                } else {
+                    pixels[p$2] = pixels[p$2 + 1] = pixels[p$2 + 2] = 0;
+                }
+
+                rSum$1 -= rOutSum$1;
+                gSum$1 -= gOutSum$1;
+                bSum$1 -= bOutSum$1;
+                aSum$1 -= aOutSum$1;
+
+                rOutSum$1 -= stackIn.r;
+                gOutSum$1 -= stackIn.g;
+                bOutSum$1 -= stackIn.b;
+                aOutSum$1 -= stackIn.a;
+
+                p$2 = (x$1 + ((p$2 = y$1 + radiusPlus1) < heightMinus1 ? p$2 : heightMinus1) * width) << 2;
+
+                rSum$1 += rInSum$1 += stackIn.r = pixels[p$2];
+                gSum$1 += gInSum$1 += stackIn.g = pixels[p$2 + 1];
+                bSum$1 += bInSum$1 += stackIn.b = pixels[p$2 + 2];
+                aSum$1 += aInSum$1 += stackIn.a = pixels[p$2 + 3];
+
+                stackIn = stackIn.next;
+
+                rOutSum$1 += pr$1 = stackOut.r;
+                gOutSum$1 += pg$1 = stackOut.g;
+                bOutSum$1 += pb$1 = stackOut.b;
+                aOutSum$1 += pa$1 = stackOut.a;
+
+                rInSum$1 -= pr$1;
+                gInSum$1 -= pg$1;
+                bInSum$1 -= pb$1;
+                aInSum$1 -= pa$1;
+
+                stackOut = stackOut.next;
+
+                yi += width;
+            }
+        }
+        return imageData;
+    }
+
+    function BlurStack() {
+        this.r = 0;
+        this.g = 0;
+        this.b = 0;
+        this.a = 0;
+        this.next = null;
+    }
+
+    var utility = {
+        blur: function (radius) {
+            if ( radius === void 0 ) radius = 1;
+
+            function blurExec(imageData) {
+                return blur(imageData, imageData.width, imageData.height, radius);
+            }
+            return blurExec;
+        },
+        greyScale: function () {},
+    };
+
     var pathIns = path.instance;
     var canvasLayer$1 = canvasAPI.canvasLayer;
     var canvasNodeLayer$1 = canvasAPI.canvasNodeLayer;
@@ -14092,6 +14901,7 @@
     exports.geometry = geometry;
     exports.queue = queue;
     exports.svgLayer = svgLayer;
+    exports.utility = utility;
     exports.webglLayer = webglLayer;
 
     Object.defineProperty(exports, '__esModule', { value: true });

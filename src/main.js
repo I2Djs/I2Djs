@@ -8,6 +8,7 @@ import queue from "./modules/queue.js";
 import ease from "./modules/ease.js";
 import chain from "./modules/chain.js";
 import behaviour from "./modules/behaviour.js";
+import utility from "./modules/utility.js";
 
 let pathIns = path.instance;
 let canvasLayer = canvasAPI.canvasLayer;
@@ -23,3 +24,4 @@ export { queue };
 export { ease };
 export { chain };
 export { behaviour };
+export { utility };

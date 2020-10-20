@@ -5,6 +5,7 @@ import geometry from "./geometry.js";
 import colorMap from "./colorMap.js";
 import Events from "./events.js";
 import behaviour from "./behaviour.js";
+// import { imageDataRGB as blur } from "stackblur-canvas";
 import {
     NodePrototype,
     CollectionPrototype,
@@ -2122,26 +2123,12 @@ function textureImageInstance(self) {
         self.attr.height = self.attr.height ? self.attr.height : this.height;
         self.attr.width = self.attr.width ? self.attr.width : this.width;
         self.imageObj = this;
-        // if (imageDataMap[self.attr.src]) {
-        //     self.imageObj = imageDataMap[self.attr.src];
-        // } else {
-        //     const im = getCanvasImgInstance(this.width, this.height);
-        //     const ctxX = im.context;
-        // self.rImageObj.context.drawImage(this, 0, 0, this.width, this.height);
-        //     self.imageObj = im.canvas;
-        //     imageDataMap[self.attr.src] = im.canvas;
-        // }
-
-        // self.postProcess();
 
         if (self.attr.onload && typeof self.attr.onload === "function") {
             self.attr.onload.call(self, self.image);
         }
 
         self.postProcess();
-
-        // self.nodeExe.BBoxUpdate = false;
-        // queueInstance.vDomChanged(self.nodeExe.vDomIndex);
     };
 
     imageIns.onerror = function onerror(error) {
@@ -2205,7 +2192,7 @@ RenderTexture.prototype.setAttr = function RSsetAttr(attr, value) {
         this.postProcess();
     }
 
-    if (attr === "clip" || attr === "pixels") {
+    if (attr === "clip" || attr === "filter") {
         this.postProcess();
     }
 };
@@ -2221,8 +2208,8 @@ RenderTexture.prototype.postProcess = function () {
         self.execute();
     }
 
-    if (self.attr.pixels) {
-        self.pixelsUpdate();
+    if (self.attr.filter) {
+        self.filterUpdate();
     }
     queueInstance.vDomChanged(self.nodeExe.vDomIndex);
 };
@@ -2237,7 +2224,7 @@ RenderTexture.prototype.clipImage = function () {
     ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
 };
 
-RenderTexture.prototype.pixelsUpdate = function () {
+RenderTexture.prototype.filterUpdate = function () {
     let self = this;
     let ctxX = self.ctx;
     let pixels;
@@ -2245,7 +2232,7 @@ RenderTexture.prototype.pixelsUpdate = function () {
     const { width = 0, height = 0 } = self.attr;
 
     pixels = ctxX.getImageData(0, 0, width, height);
-    ctxX.putImageData(self.attr.pixels(pixels), 0, 0);
+    ctxX.putImageData(self.attr.filter(pixels), 0, 0);
 };
 
 RenderTexture.prototype.execute = function RIexecute() {
