@@ -2242,18 +2242,17 @@
 
     Path.prototype.case = function pCase(currCmd) {
         let currCmdI = currCmd;
+        let rx;
+        let ry;
+        let xRotation;
+        let arcLargeFlag;
+        let sweepFlag;
         if (pathCmdIsValid(currCmdI)) {
             this.PC = currCmdI;
         } else {
             currCmdI = this.PC;
             this.currPathArr = this.currPathArr - 1;
         }
-
-        let rx = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-        let ry = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-        let xRotation = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-        let arcLargeFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-        let sweepFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
 
         switch (currCmdI) {
             case "m":
@@ -2325,6 +2324,11 @@
                 break;
 
             case "a":
+                rx = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+                ry = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+                xRotation = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+                arcLargeFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+                sweepFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
                 this.a(false, rx, ry, xRotation, arcLargeFlag, sweepFlag, this.fetchXY());
                 break;
 
