@@ -4967,7 +4967,7 @@ function propogateEvent (nodes, mouseCoor, rawEvent, eventType) {
 		};
 
 		if (!d.bbox) {
-			return;
+			continue;
 		}
 
 		transformCoOr$1(d, coOr);
