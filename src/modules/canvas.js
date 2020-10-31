@@ -2020,6 +2020,15 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
         return new RenderTexture(this, config);
     };
 
+    root.createAsyncTexture = function (config) {
+        return new Promise((resolve, reject) => {
+            const textureInstance = new RenderTexture(this, config);
+            textureInstance.onLoad(function () {
+                resolve(textureInstance);
+            });
+        });
+    };
+
     root.destroy = function () {
         const res = document.querySelector(container);
         if (res && res.contains(layer)) {
@@ -2115,10 +2124,10 @@ GetCanvasImgInstance.prototype.setAttr = function (attr, value) {
     }
 };
 
-function textureImageInstance(self) {
+function textureImageInstance(self, url) {
     const imageIns = new Image();
     imageIns.crossOrigin = "anonymous";
-
+    imageIns.src = url;
     imageIns.onload = function onload() {
         self.attr.height = self.attr.height ? self.attr.height : this.height;
         self.attr.width = self.attr.width ? self.attr.width : this.width;
@@ -2127,8 +2136,11 @@ function textureImageInstance(self) {
         if (self.attr.onload && typeof self.attr.onload === "function") {
             self.attr.onload.call(self, self.image);
         }
+        if (self.asyncOnLoad && typeof self.asyncOnLoad === "function") {
+            self.asyncOnLoad(self.image);
+        }
 
-        self.postProcess();
+        postProcess(self);
     };
 
     imageIns.onerror = function onerror(error) {
@@ -2139,10 +2151,43 @@ function textureImageInstance(self) {
     return imageIns;
 }
 
+function postProcess(self) {
+    if (!self.imageObj) {
+        return;
+    }
+    if (self.attr.clip) {
+        clipExec(self);
+    } else {
+        self.execute();
+    }
+
+    if (self.attr.filter) {
+        filterExec(self);
+    }
+    queueInstance.vDomChanged(self.nodeExe.vDomIndex);
+}
+
+function clipExec(self) {
+    const ctxX = self.ctx;
+    const { clip, width = 0, height = 0 } = self.attr;
+    const { sx = 0, sy = 0, swidth = width, sheight = height } = clip;
+
+    ctxX.clearRect(0, 0, width, height);
+    ctxX.drawImage(self.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
+}
+
+function filterExec(self) {
+    const ctxX = self.ctx;
+    const { width = 0, height = 0 } = self.attr;
+
+    const pixels = ctxX.getImageData(0, 0, width, height);
+    ctxX.putImageData(self.attr.filter(pixels), 0, 0);
+}
+
 function RenderTexture(nodeExe, config = {}) {
     const self = this;
-    self.attr = config.attr || {};
-    self.style = config.style || {};
+    self.attr = Object.assign({}, config.attr) || {};
+    self.style = Object.assign({}, config.style) || {};
     self.rImageObj = new GetCanvasImgInstance(self.attr.width || 1, self.attr.height || 1);
     self.ctx = self.rImageObj.context;
     self.domEl = self.rImageObj.canvas;
@@ -2165,7 +2210,9 @@ RenderTexture.prototype.setAttr = function RSsetAttr(attr, value) {
 
     if (attr === "src") {
         if (typeof value === "string") {
-            self.image = textureImageInstance(self);
+            if (!self.image) {
+                self.image = textureImageInstance(self, value);
+            }
             if (self.image.src !== value) {
                 self.image.src = value;
             }
@@ -2177,61 +2224,38 @@ RenderTexture.prototype.setAttr = function RSsetAttr(attr, value) {
             self.imageObj = value;
             self.attr.height = self.attr.height ? self.attr.height : value.height;
             self.attr.width = self.attr.width ? self.attr.width : value.width;
-            self.postProcess();
+            postProcess(self);
         } else if (value instanceof CanvasNodeExe || value instanceof RenderTexture) {
             self.imageObj = value.domEl;
             self.attr.height = self.attr.height ? self.attr.height : value.height;
             self.attr.width = self.attr.width ? self.attr.width : value.width;
-            self.postProcess();
+            postProcess(self);
         }
     }
     this.attr[attr] = value;
 
     if (attr === "height" || attr === "width") {
         this.rImageObj.setAttr(attr, value);
-        this.postProcess();
+        postProcess(self);
     }
 
     if (attr === "clip" || attr === "filter") {
-        this.postProcess();
+        postProcess(self);
     }
 };
 
-RenderTexture.prototype.postProcess = function () {
-    const self = this;
-    if (!self.imageObj) {
-        return;
-    }
-    if (self.attr.clip) {
-        self.clipImage();
-    } else {
-        self.execute();
-    }
-
-    if (self.attr.filter) {
-        self.filterUpdate();
-    }
-    queueInstance.vDomChanged(self.nodeExe.vDomIndex);
+RenderTexture.prototype.onLoad = function (exec) {
+    this.asyncOnLoad = exec;
 };
 
-RenderTexture.prototype.clipImage = function () {
-    const self = this;
-    const ctxX = self.ctx;
-    const { clip, width = 0, height = 0 } = self.attr;
-    const { sx = 0, sy = 0, swidth = width, sheight = height } = clip;
-
-    ctxX.clearRect(0, 0, width, height);
-    ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
-};
-
-RenderTexture.prototype.filterUpdate = function () {
-    const self = this;
-    const ctxX = self.ctx;
-
-    const { width = 0, height = 0 } = self.attr;
-
-    const pixels = ctxX.getImageData(0, 0, width, height);
-    ctxX.putImageData(self.attr.filter(pixels), 0, 0);
+RenderTexture.prototype.clone = function () {
+    const attr = Object.assign({}, this.attr);
+    const style = Object.assign({}, this.style);
+    attr.src = this;
+    return new RenderTexture(this.nodeExe, {
+        attr: attr,
+        style: style,
+    });
 };
 
 RenderTexture.prototype.execute = function RIexecute() {
@@ -2365,6 +2389,15 @@ function canvasNodeLayer(config, height = 0, width = 0) {
 
     root.createTexture = function (config) {
         return new RenderTexture(this, config);
+    };
+
+    root.createAsyncTexture = function (config) {
+        return new Promise((resolve, reject) => {
+            const textureInstance = new RenderTexture(this, config);
+            textureInstance.onLoad(function () {
+                resolve(textureInstance);
+            });
+        });
     };
 
     // function Sprite () {

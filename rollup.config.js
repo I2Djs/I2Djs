@@ -57,7 +57,11 @@ export default [
                 fix: true,
                 throwOnError: true,
             }),
-            buble(),
+            buble({
+                transforms: { 
+                    asyncAwait: false 
+                }
+            }),
         ],
     },
     {
@@ -105,7 +109,11 @@ export default [
                 fix: true,
                 throwOnError: true,
             }),
-            buble(),
+            buble({
+                transforms: { 
+                    asyncAwait: false 
+                }
+            }),
             terser(),
         ],
     },

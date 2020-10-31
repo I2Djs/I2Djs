@@ -1,14 +1,18 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
     </head>
-    <body style="height: 100%; background: black;">
-        <div id="myCanvas" style="height: 100%; width: 100%; position: absolute;"></div>
+    <body style="height: 100%; background: black">
+        <div
+            id="myCanvas"
+            style="height: 75%; width: 75%; position: absolute; top: 12.5%; left: 12.5%"
+        ></div>
         <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
 
         <script type="text/javascript">
+            var backrenderer = i2d.canvasLayer("#myCanvas", {}, {});
             var renderer = i2d.canvasLayer("#myCanvas", {}, {});
             var zoomInstance = i2d.behaviour.zoom();
 
@@ -17,26 +21,23 @@
                 .geoMercator()
                 .translate([renderer.width / 2, renderer.height / 2])
                 .center([78.96288, 20.593684])
-                .scale([1200]);
+                .scale([renderer.height * 1.5]);
 
             var path = d3.geoPath().projection(projection);
 
             var indiaMap = d3.json("https://nswamy14.github.io/geoJson/india.geo.json");
             var indiaDist = d3.json("https://nswamy14.github.io/geoJson/india.district.geo.json");
 
-            var pg = renderer.createEl({
+            var pg = backrenderer.createEl({
                 el: "group",
-                // bbox: false
+                bbox: false,
             });
 
-            var g = pg.createEl({
-                el: "group",
-            });
-
-            var gg = pg.createEl({
+            var gg = renderer.createEl({
                 el: "group",
                 style: {
-                    globalAlpha: 1,
+                    // globalAlpha: 1,
+                    fillStyle: "rgba(0, 0, 1, 1)",
                     strokeStyle: "#42baff",
                     lineWidth: 0.2,
                 },
@@ -45,6 +46,7 @@
             zoomInstance.scaleExtent([1, 3]);
             zoomInstance.zoomStart(function (event) {});
             zoomInstance.zoom(function (event) {
+                gg.setAttr("transform", event.transform);
                 pg.setAttr("transform", event.transform);
             });
             zoomInstance.panExtent([
@@ -53,18 +55,22 @@
             ]);
             zoomInstance.zoomTarget([renderer.width / 2, renderer.height / 2]);
             renderer.on("zoom", zoomInstance);
+            backrenderer.on("zoom", zoomInstance);
 
             Promise.all([indiaMap, indiaDist]).then(function (values) {
-                g.createEl({
+                pg.createEl({
                     el: "path",
                     attr: {
                         d: path(values[0]),
                     },
                     style: {
                         shadowBlur: 20,
-                        shadowColor: "#42baff",
+                        lineWidth: 0.2,
                         fillStyle: "rgba(0, 0, 1, 1)",
+                        strokeStyle: "#42baff",
+                        shadowColor: "#42baff",
                     },
+                    bbox: false,
                 });
 
                 values[1].features.forEach(function (state) {
@@ -73,15 +79,12 @@
                         attr: {
                             d: path(state),
                         },
-                        style: {
-                            fillStyle: "rgba(0, 0, 1, 1)",
-                        },
                     })
                         .on("mouseover", function () {
-                            this.setStyle("fillStyle", "rgba(22, 24, 26, 1)");
+                            this.setStyle("fillStyle", "rgba(240, 24, 26, 1)");
                         })
                         .on("mouseout", function () {
-                            this.setStyle("fillStyle", "rgba(0, 0, 1, 1)");
+                            this.setStyle("fillStyle", null);
                         })
                         .on("zoom", zoomInstance);
                 });
