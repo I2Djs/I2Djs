@@ -20,14 +20,12 @@
             var localPixelData;
             var index = 0;
 
-            renderer_
+            let boySprite = renderer_
                 .createAsyncTexture({
                     attr: {
                         src: "../images/boySprite.png",
                         width: 108,
                         height: 140,
-                        x: 0,
-                        y: 0,
                         clip: {
                             sx: 0,
                             sy: 0,
@@ -37,6 +35,22 @@
                     },
                 })
                 .then(function (image) {
+                    renderer_.createEls(Array.from(Array(6000).keys()), {
+                        el: "image",
+                        attr: {
+                            src: image,
+                            width: 108 * 0.25,
+                            height: 140 * 0.25,
+                            x: function (d) {
+                                return Math.random() * renderer_.width - 27;
+                            },
+                            y: function (d) {
+                                return Math.random() * renderer_.height - 35;
+                            },
+                        },
+                        bbox: false,
+                    });
+
                     let image1 = image.clone();
                     let image2 = image.clone();
                     let image3 = image.clone();
@@ -76,38 +90,6 @@
                         },
                     });
                 });
-
-            var SpriteTexture1 = renderer_.createTexture({
-                attr: {
-                    src: "../images/boySprite.png",
-                    width: 108,
-                    height: 140,
-                    x: 0,
-                    y: 0,
-                    clip: {
-                        sx: 0,
-                        sy: 0,
-                        swidth: 108,
-                        sheight: 140,
-                    },
-                },
-            });
-
-            var img = renderer_.createEls(Array.from(Array(6000).keys()), {
-                el: "image",
-                attr: {
-                    src: SpriteTexture1,
-                    width: 108 * 0.25,
-                    height: 140 * 0.25,
-                    x: function (d) {
-                        return Math.random() * renderer_.width - 27;
-                    },
-                    y: function (d) {
-                        return Math.random() * renderer_.height - 35;
-                    },
-                },
-                bbox: false,
-            });
         </script>
     </body>
 </html>
