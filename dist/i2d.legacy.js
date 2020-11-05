@@ -3563,6 +3563,15 @@
         e.preventDefault();
     };
 
+    function eventBubble(node, eventType, event) {
+        if (node.dom.parent) {
+            if (node.dom.parent.events[eventType]) {
+                node.dom.parent.events[eventType](node.dom.parent, event);
+            }
+            return eventBubble(node.dom.parent, eventType, event);
+        }
+    }
+
     var clickInterval;
     Events.prototype.pointerupCheck = function (e) {
         var self = this;
@@ -3585,10 +3594,12 @@
                         clickInterval = setTimeout(function () {
                             self.pointerNode = null;
                             node.events.click.call(node, e);
+                            eventBubble(node, "click", e);
                             clickInterval = null;
                         }, 200);
                     } else {
                         node.events.click.call(node, e);
+                        eventBubble(node, "click", e);
                         self.pointerNode = null;
                     }
                 } else if (this.pointerNode.clickCounter === 2 && node.events.dblclick) {
@@ -3596,6 +3607,7 @@
                         clearTimeout(clickInterval);
                     }
                     node.events.dblclick.call(node, e);
+                    eventBubble(node, "dblclick", e);
                     self.pointerNode = null;
                 } else if (!node.events.click && !node.events.dblclick) {
                     this.pointerNode = null;
@@ -7360,8 +7372,6 @@
         applyStyles: applyStyles,
     };
 
-    // const imageDataMap = {};
-
     function imageInstance(self) {
         var imageIns = new Image();
         imageIns.crossOrigin = "anonymous";
@@ -7370,17 +7380,6 @@
             self.attr.height = self.attr.height ? self.attr.height : this.height;
             self.attr.width = self.attr.width ? self.attr.width : this.width;
             self.imageObj = this;
-            // if (imageDataMap[self.attr.src]) {
-            //     self.imageObj = imageDataMap[self.attr.src];
-            // } else {
-            //     const im = getCanvasImgInstance(this.width, this.height);
-            //     const ctxX = im.context;
-            //     ctxX.drawImage(this, 0, 0, this.width, this.height);
-            //     self.imageObj = im.canvas;
-            //     imageDataMap[self.attr.src] = im.canvas;
-            // }
-
-            // self.postProcess();
 
             if (self.nodeExe.attr.onload && typeof self.nodeExe.attr.onload === "function") {
                 self.nodeExe.attr.onload.call(self.nodeExe, self.image);
@@ -11499,6 +11498,14 @@
                 this.vDomIndex
             );
             webGLImageTextures[self.attr.src] = this.textureNode;
+        } else if (self.attr.src && self.attr.src instanceof NodePrototype) {
+            this.textureNode = new TextureObject(
+                ctx,
+                {
+                    src: this.attr.src,
+                },
+                this.vDomIndex
+            );
         } else if (typeof self.attr.src === "string" && webGLImageTextures[self.attr.src]) {
             this.textureNode = webGLImageTextures[self.attr.src];
         } else if (self.attr.src && self.attr.src instanceof TextureObject) {
@@ -13371,6 +13378,23 @@
         return this;
     };
 
+    WebglNodeExe.prototype.rotate = function Crotate(angle, x, y) {
+        if (!this.attr.transform) {
+            this.attr.transform = {};
+        }
+
+        if (Object.prototype.toString.call(angle) === "[object Array]") {
+            this.attr.transform.rotate = [angle[0] || 0, angle[1] || 0, angle[2] || 0];
+        } else {
+            this.attr.transform.rotate = [angle, x || 0, y || 0];
+        }
+
+        this.dom.setAttr("transform", this.attr.transform);
+        this.BBoxUpdate = true;
+        queueInstance$5.vDomChanged(this.vDomIndex);
+        return this;
+    };
+
     WebglNodeExe.prototype.setStyle = function WsetStyle(attr, value) {
         if (arguments.length === 2) {
             if (value == null && this.style[attr] != null) {
@@ -13781,7 +13805,7 @@
             return new LineGeometry(this.ctx);
         };
 
-        root.TextureObject = function (config) {
+        root.createWebglTexture = function (config) {
             return new TextureObject(this.ctx, config, this.vDomIndex);
         };
 
@@ -14008,8 +14032,6 @@
                 ctx[this.type],
                 this.image
             );
-            // ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], ctx[this.format], ctx[this.type], new Uint8Array(this.width * this.height * 4));
-            // ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], this.width, this.height, 0, ctx[this.format], ctx[this.type], new Uint8Array(this.width * this.height * 4));
         }
 
         if (this.mipMap) {

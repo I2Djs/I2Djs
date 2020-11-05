@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%">
+        <label style="position: absolute; color: white"> Canvas Example </label>
+        <div
+            id="myCanvas1"
+            style="height: 50%; width: 50%; position: absolute; left: 25%; top: 25%"
+        ></div>
+
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
+
+        <script type="text/javascript">
+            var renderer_ = i2d.canvasLayer("#myCanvas1", {}, {});
+
+            let bG = renderer_.createEl({
+                el: "group",
+                bbox: false,
+            });
+
+            let rockTexture = renderer_.createAsyncTexture({
+                attr: {
+                    src: "../images/PNG/game_background_1/layers/rocks_2.png",
+                    width: renderer_.width,
+                    height: renderer_.height,
+                },
+            });
+            let rock2Texture = renderer_.createAsyncTexture({
+                attr: {
+                    src: "../images/PNG/game_background_1/layers/rocks_1.png",
+                    width: renderer_.width,
+                    height: renderer_.height,
+                },
+            });
+
+            let skyTexture = renderer_.createAsyncTexture({
+                attr: {
+                    src: "../images/PNG/game_background_1/layers/sky.png",
+                    width: renderer_.width,
+                    height: renderer_.height,
+                },
+            });
+
+            let clouds_1Texture = renderer_.createAsyncTexture({
+                attr: {
+                    src: "../images/PNG/game_background_1/layers/clouds_1.png",
+                    width: renderer_.width,
+                    height: renderer_.height,
+                },
+            });
+
+            let clouds_2Texture = renderer_.createAsyncTexture({
+                attr: {
+                    src: "../images/PNG/game_background_1/layers/clouds_2.png",
+                    width: renderer_.width,
+                    height: renderer_.height,
+                },
+            });
+
+            let boySprite = renderer_.createAsyncTexture({
+                attr: {
+                    src: "../images/boySprite.png",
+                    width: 108,
+                    height: 140,
+                    clip: {
+                        sx: 0,
+                        sy: 0,
+                        swidth: 108,
+                        sheight: 140,
+                    },
+                },
+            });
+
+            let coinTexture = renderer_.createAsyncTexture({
+                attr: {
+                    src: "../images/coinSprite.png",
+                    width: 45,
+                    height: 45,
+                    clip: {
+                        sx: 0,
+                        sy: 0,
+                        swidth: 44,
+                        sheight: 40,
+                    },
+                },
+            });
+
+            function animateCoins(d) {
+                let yRand = 250 + Math.random() * 50;
+
+                this.setAttr("y", yRand)
+                    .setAttr("x", renderer_.width)
+                    .animateTo({
+                        duration: 5000,
+                        delay: Math.random() * 2000,
+                        attr: {
+                            x: 0,
+                        },
+                        end: function (d, i) {
+                            this.exec(animateCoins);
+                        },
+                    });
+            }
+
+            function addAndAnime(texture, duration) {
+                bG.createEls([0, 1], {
+                    el: "image",
+                    attr: {
+                        src: texture,
+                        width: renderer_.width,
+                        height: renderer_.height,
+                        x: function (d) {
+                            return d * renderer_.width;
+                        },
+                        y: 0,
+                    },
+                }).animateTo({
+                    duration: duration,
+                    attr: {
+                        x: function (d) {
+                            return d * renderer_.width - renderer_.width;
+                        },
+                    },
+                    loop: Infinity,
+                });
+            }
+
+            Promise.all([
+                skyTexture,
+                rockTexture,
+                rock2Texture,
+                clouds_1Texture,
+                clouds_2Texture,
+                boySprite,
+                coinTexture,
+            ]).then((textures) => {
+                bG.createEl({
+                    el: "image",
+                    attr: {
+                        src: textures[0],
+                        width: renderer_.width,
+                        height: renderer_.height,
+                        x: 0,
+                        y: 0,
+                    },
+                });
+
+                addAndAnime(textures[3], 8000);
+                addAndAnime(textures[2], 8000);
+                addAndAnime(textures[4], 6000);
+                addAndAnime(textures[1], 5000);
+
+                bG.createEl({
+                    el: "rect",
+                    attr: {
+                        width: renderer_.width,
+                        height: 15,
+                        x: 0,
+                        y: renderer_.height - 15,
+                    },
+                    style: {
+                        fillStyle: "#3d2f3d",
+                    },
+                });
+
+                let coins = bG
+                    .createEls([1, 2, 3, 4], {
+                        el: "image",
+                        attr: {
+                            src: textures[6],
+                            width: 30,
+                            height: 30,
+                            x: function (d) {
+                                return 800 + 60 * d;
+                            },
+                            y: 250 + 50,
+                        },
+                    })
+                    .forEach(function (d) {
+                        this.exec(animateCoins);
+                    });
+
+                textures[6].animateTo({
+                    duration: 1000,
+                    loop: Infinity,
+                    attr: {
+                        clip: function (f) {
+                            if (f == 1) return { sx: 9 * 44, sy: 0, swidth: 44, sheight: 40 };
+                            else
+                                return {
+                                    sx: parseInt(f / 0.1) * 44,
+                                    sy: 0,
+                                    swidth: 44,
+                                    sheight: 40,
+                                };
+                        },
+                    },
+                });
+
+                let counter = 0;
+                let img = bG.createEl({
+                    el: "image",
+                    attr: {
+                        src: textures[5],
+                        width: 108 * 0.5,
+                        height: 140 * 0.5,
+                        x: renderer_.width * 0.5 - 108 * 0.5 * 0.5,
+                        y: renderer_.height - 140 * 0.5,
+                    },
+                });
+
+                textures[5].animateTo({
+                    duration: 2000,
+                    loop: Infinity,
+                    attr: {
+                        clip: function (f) {
+                            counter += 8;
+                            let x = img.getAttr("x");
+                            // let y = img.getAttr("y");
+                            let index = Math.floor(counter / 40);
+                            index = index % 8;
+
+                            if (this.getAttr("clip").sx !== index * 108) {
+                                let stars = new Array(2).fill(0).map(function (d) {
+                                    return Math.random();
+                                });
+                                bG.createEls(stars, {
+                                    el: "image",
+                                    attr: {
+                                        src: "../images/spark.png",
+                                        width: 0,
+                                        height: 0,
+                                        x: 0,
+                                        y: 0,
+                                        transform: {
+                                            translate: [x + 25, 400],
+                                            rotate: [0, 0, 0],
+                                        },
+                                    },
+                                }).animateTo({
+                                    duration: 800,
+                                    attr: {
+                                        width: function (d) {
+                                            return d * 40;
+                                        },
+                                        height: function (d) {
+                                            return d * 40;
+                                        },
+                                        transform: function (d) {
+                                            return {
+                                                translate: [
+                                                    x - Math.random() * 150 - d * 20,
+                                                    renderer_.height - Math.random() * 100 - d * 20,
+                                                ],
+                                                rotate: [90, 0, 0],
+                                            };
+                                        },
+                                    },
+                                    end: function () {
+                                        this.remove();
+                                    },
+                                });
+                            }
+
+                            return { sx: index * 108, sy: 0, swidth: 108, sheight: 140 };
+                        },
+                    },
+                });
+            });
+        </script>
+    </body>
+</html>

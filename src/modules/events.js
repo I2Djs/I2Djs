@@ -107,6 +107,15 @@ Events.prototype.pointermoveCheck = function (e) {
     e.preventDefault();
 };
 
+function eventBubble(node, eventType, event) {
+    if (node.dom.parent) {
+        if (node.dom.parent.events[eventType]) {
+            node.dom.parent.events[eventType](node.dom.parent, event);
+        }
+        return eventBubble(node.dom.parent, eventType, event);
+    }
+}
+
 let clickInterval;
 Events.prototype.pointerupCheck = function (e) {
     const self = this;
@@ -129,10 +138,12 @@ Events.prototype.pointerupCheck = function (e) {
                     clickInterval = setTimeout(function () {
                         self.pointerNode = null;
                         node.events.click.call(node, e);
+                        eventBubble(node, "click", e);
                         clickInterval = null;
                     }, 200);
                 } else {
                     node.events.click.call(node, e);
+                    eventBubble(node, "click", e);
                     self.pointerNode = null;
                 }
             } else if (this.pointerNode.clickCounter === 2 && node.events.dblclick) {
@@ -140,6 +151,7 @@ Events.prototype.pointerupCheck = function (e) {
                     clearTimeout(clickInterval);
                 }
                 node.events.dblclick.call(node, e);
+                eventBubble(node, "dblclick", e);
                 self.pointerNode = null;
             } else if (!node.events.click && !node.events.dblclick) {
                 this.pointerNode = null;

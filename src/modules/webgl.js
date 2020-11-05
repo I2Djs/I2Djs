@@ -1165,6 +1165,14 @@ function ImageNode(ctx, attr, style, vDomIndex) {
             this.vDomIndex
         );
         webGLImageTextures[self.attr.src] = this.textureNode;
+    } else if (self.attr.src && self.attr.src instanceof NodePrototype) {
+        this.textureNode = new TextureObject(
+            ctx,
+            {
+                src: this.attr.src,
+            },
+            this.vDomIndex
+        );
     } else if (typeof self.attr.src === "string" && webGLImageTextures[self.attr.src]) {
         this.textureNode = webGLImageTextures[self.attr.src];
     } else if (self.attr.src && self.attr.src instanceof TextureObject) {
@@ -2969,6 +2977,23 @@ WebglNodeExe.prototype.translate = function Ctranslate(XY) {
     return this;
 };
 
+WebglNodeExe.prototype.rotate = function Crotate(angle, x, y) {
+    if (!this.attr.transform) {
+        this.attr.transform = {};
+    }
+
+    if (Object.prototype.toString.call(angle) === "[object Array]") {
+        this.attr.transform.rotate = [angle[0] || 0, angle[1] || 0, angle[2] || 0];
+    } else {
+        this.attr.transform.rotate = [angle, x || 0, y || 0];
+    }
+
+    this.dom.setAttr("transform", this.attr.transform);
+    this.BBoxUpdate = true;
+    queueInstance.vDomChanged(this.vDomIndex);
+    return this;
+};
+
 WebglNodeExe.prototype.setStyle = function WsetStyle(attr, value) {
     if (arguments.length === 2) {
         if (value == null && this.style[attr] != null) {
@@ -3375,7 +3400,7 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
         return new LineGeometry(this.ctx);
     };
 
-    root.TextureObject = function (config) {
+    root.createWebglTexture = function (config) {
         return new TextureObject(this.ctx, config, this.vDomIndex);
     };
 
@@ -3605,8 +3630,6 @@ TextureObject.prototype.update = function () {
             ctx[this.type],
             this.image
         );
-        // ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], ctx[this.format], ctx[this.type], new Uint8Array(this.width * this.height * 4));
-        // ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], this.width, this.height, 0, ctx[this.format], ctx[this.type], new Uint8Array(this.width * this.height * 4));
     }
 
     if (this.mipMap) {

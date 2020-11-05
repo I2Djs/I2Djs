@@ -423,8 +423,6 @@ CanvasDom.prototype = {
     applyStyles,
 };
 
-// const imageDataMap = {};
-
 function imageInstance(self) {
     const imageIns = new Image();
     imageIns.crossOrigin = "anonymous";
@@ -433,17 +431,6 @@ function imageInstance(self) {
         self.attr.height = self.attr.height ? self.attr.height : this.height;
         self.attr.width = self.attr.width ? self.attr.width : this.width;
         self.imageObj = this;
-        // if (imageDataMap[self.attr.src]) {
-        //     self.imageObj = imageDataMap[self.attr.src];
-        // } else {
-        //     const im = getCanvasImgInstance(this.width, this.height);
-        //     const ctxX = im.context;
-        //     ctxX.drawImage(this, 0, 0, this.width, this.height);
-        //     self.imageObj = im.canvas;
-        //     imageDataMap[self.attr.src] = im.canvas;
-        // }
-
-        // self.postProcess();
 
         if (self.nodeExe.attr.onload && typeof self.nodeExe.attr.onload === "function") {
             self.nodeExe.attr.onload.call(self.nodeExe, self.image);

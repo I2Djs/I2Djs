@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
     </head>
-    <body style="height: 100%;">
-        <label style="position: absolute; color: white;"> Canvas Example </label>
+    <body style="height: 100%">
+        <label style="position: absolute; color: white"> Canvas Example </label>
         <div
-            style="height: 100%; width: 100%; position: absolute; background: black;"
+            style="height: 100%; width: 100%; position: absolute; background: black"
             id="myCanvas"
         ></div>
         <script type="text/javascript" src="../../dist/i2d.js"></script>
@@ -17,14 +17,18 @@
             var w = renderer_.width;
             var h = renderer_.height;
 
-            var g = renderer_.createEl({
-                el: "group",
-                attr: {
-                    transform: {
-                        translate: [w / 2 - 50, h / 2 - 50],
+            var g = renderer_
+                .createEl({
+                    el: "group",
+                    attr: {
+                        transform: {
+                            translate: [w / 2 - 50, h / 2 - 50],
+                        },
                     },
-                },
-            });
+                })
+                .on("click", function () {
+                    console.log("parent click");
+                });
 
             g.createEl({
                 el: "rect",
