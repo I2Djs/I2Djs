@@ -14,8 +14,8 @@ Events.prototype.addPointer = function (e) {
 };
 
 Events.prototype.removePointer = function (e) {
-    let self = this;
-    let pointers = this.pointers;
+    const self = this;
+    const pointers = this.pointers;
     let index = -1;
     for (var i = 0; i < pointers.length; i++) {
         if (e.pointerId === pointers[i].pointerId) {
@@ -47,8 +47,8 @@ Events.prototype.removePointer = function (e) {
 // };
 
 Events.prototype.pointerdownCheck = function (e) {
-    let self = this;
-    let node = propogateEvent(
+    const self = this;
+    const node = propogateEvent(
         [this.vDom],
         {
             x: e.offsetX,
@@ -77,14 +77,14 @@ Events.prototype.pointerdownCheck = function (e) {
         }
     } else if (node) {
         if (e.pointerType === "touch") {
-            node.events["mouseover"].call(node, e);
+            node.events.mouseover.call(node, e);
         }
     }
 };
 
 Events.prototype.pointermoveCheck = function (e) {
-    let self = this;
-    let node = this.pointerNode ? this.pointerNode.node : null;
+    const self = this;
+    const node = this.pointerNode ? this.pointerNode.node : null;
     if (node) {
         this.pointerNode.dragCounter += 1;
         if (node.events.zoom) {
@@ -96,21 +96,30 @@ Events.prototype.pointermoveCheck = function (e) {
         if (node.events.drag) {
             node.events.drag.execute(node, e, "pointermove", self);
         }
-        if (node.events["mousemove"]) {
-            node.events["mousemove"].call(node, e);
+        if (node.events.mousemove) {
+            node.events.mousemove.call(node, e);
         }
     } else if (node) {
         if (e.pointerType === "touch") {
-            node.events["mousemove"].call(node, e);
+            node.events.mousemove.call(node, e);
         }
     }
     e.preventDefault();
 };
 
+function eventBubble(node, eventType, event) {
+    if (node.dom.parent) {
+        if (node.dom.parent.events[eventType]) {
+            node.dom.parent.events[eventType](node.dom.parent, event);
+        }
+        return eventBubble(node.dom.parent, eventType, event);
+    }
+}
+
 let clickInterval;
 Events.prototype.pointerupCheck = function (e) {
-    let self = this;
-    let node = this.pointerNode ? this.pointerNode.node : null;
+    const self = this;
+    const node = this.pointerNode ? this.pointerNode.node : null;
     if (node) {
         if (node.events.drag) {
             node.events.drag.execute(node, e, "pointerup", self);
@@ -124,31 +133,34 @@ Events.prototype.pointerupCheck = function (e) {
             this.pointerNode.dragCounter <= 2 ||
             (e.pointerType === "touch" && this.pointerNode.dragCounter <= 5)
         ) {
-            if (this.pointerNode.clickCounter === 1 && node.events["click"]) {
-                if (node.events["dblclick"]) {
+            if (this.pointerNode.clickCounter === 1 && node.events.click) {
+                if (node.events.dblclick) {
                     clickInterval = setTimeout(function () {
                         self.pointerNode = null;
-                        node.events["click"].call(node, e);
+                        node.events.click.call(node, e);
+                        eventBubble(node, "click", e);
                         clickInterval = null;
                     }, 200);
                 } else {
-                    node.events["click"].call(node, e);
+                    node.events.click.call(node, e);
+                    eventBubble(node, "click", e);
                     self.pointerNode = null;
                 }
-            } else if (this.pointerNode.clickCounter === 2 && node.events["dblclick"]) {
+            } else if (this.pointerNode.clickCounter === 2 && node.events.dblclick) {
                 if (clickInterval) {
                     clearTimeout(clickInterval);
                 }
-                node.events["dblclick"].call(node, e);
+                node.events.dblclick.call(node, e);
+                eventBubble(node, "dblclick", e);
                 self.pointerNode = null;
-            } else if (!node.events["click"] && !node.events["dblclick"]) {
+            } else if (!node.events.click && !node.events.dblclick) {
                 this.pointerNode = null;
             }
         } else {
             this.pointerNode = null;
         }
         if (e.pointerType === "touch") {
-            node.events["mouseup"].call(node, e);
+            node.events.mouseup.call(node, e);
         }
     }
 };
@@ -166,7 +178,7 @@ Events.prototype.mousedownCheck = function (e) {
 };
 
 Events.prototype.mousemoveCheck = function (e) {
-    let node = propogateEvent(
+    const node = propogateEvent(
         [this.vDom],
         {
             x: e.offsetX,
@@ -177,21 +189,21 @@ Events.prototype.mousemoveCheck = function (e) {
     );
 
     if (this.selectedNode && this.selectedNode !== node) {
-        if (this.selectedNode.events["mouseout"]) {
-            this.selectedNode.events["mouseout"].call(this.selectedNode, e);
+        if (this.selectedNode.events.mouseout) {
+            this.selectedNode.events.mouseout.call(this.selectedNode, e);
         }
-        if (this.selectedNode.events["mouseleave"]) {
-            this.selectedNode.events["mouseleave"].call(this.selectedNode, e);
+        if (this.selectedNode.events.mouseleave) {
+            this.selectedNode.events.mouseleave.call(this.selectedNode, e);
         }
     }
 
-    if (node && (node.events["mouseover"] || node.events["mousein"])) {
+    if (node && (node.events.mouseover || node.events.mousein)) {
         if (this.selectedNode !== node) {
-            if (node.events["mouseover"]) {
-                node.events["mouseover"].call(node, e);
+            if (node.events.mouseover) {
+                node.events.mouseover.call(node, e);
             }
-            if (node.events["mousein"]) {
-                node.events["mousein"].call(node, e);
+            if (node.events.mousein) {
+                node.events.mousein.call(node, e);
             }
         }
     }
@@ -260,7 +272,7 @@ Events.prototype.touchendCheck = function (e) {
 };
 
 Events.prototype.touchmoveCheck = function (e) {
-    let touches = e.touches;
+    const touches = e.touches;
     if (touches.length === 0) {
         return;
     }
@@ -312,7 +324,7 @@ Events.prototype.touchcancelCheck = function (e) {
 let wheelCounter = 0;
 let deltaWheel = 0;
 Events.prototype.wheelEventCheck = function (e) {
-    let self = this;
+    const self = this;
     if (!this.wheelNode) {
         let node = propogateEvent(
             [this.vDom],
@@ -430,10 +442,10 @@ function transformCoOr(d, coOr) {
             x: d.attr.transform.rotate[1],
             y: d.attr.transform.rotate[2],
         };
-        let x = coOrLocal.x;
-        let y = coOrLocal.y;
-        let cx = cen.x;
-        let cy = cen.y;
+        const x = coOrLocal.x;
+        const y = coOrLocal.y;
+        const cx = cen.x;
+        const cy = cen.y;
         var radians = (Math.PI / 180) * rotate;
         var cos = Math.cos(radians);
         var sin = Math.sin(radians);

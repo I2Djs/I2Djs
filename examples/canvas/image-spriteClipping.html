@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
     </head>
-    <body style="height: 100%;">
-        <label style="position: absolute; color: white;"> Canvas Example </label>
-        <div id="myCanvas1" style="height: 100%; width: 100%; position: relative;"></div>
+    <body style="height: 100%">
+        <label style="position: absolute; color: white"> Canvas Example </label>
+        <div id="myCanvas1" style="height: 100%; width: 100%; position: relative"></div>
 
         <script type="text/javascript" src="../../dist/i2d.js"></script>
 
         <script type="text/javascript">
-            var renderer_ = i2d.canvasLayer("#myCanvas1", {}, false);
+            var renderer_ = i2d.canvasLayer("#myCanvas1", {}, {});
             var nodes = [];
             var data = [];
             for (var i = 0; i < 1; i++) {
@@ -18,56 +18,78 @@
             }
 
             var localPixelData;
+            var index = 0;
 
-            var img = renderer_.createEl({
-                el: "image",
-                attr: {
-                    src: "../images/boySprite.png",
-                    width: 500,
-                    height: 700,
-                    x: 400,
-                    y: 0,
-                    clip: {
-                        sx: 0,
-                        sy: 0,
-                        swidth: 108,
-                        sheight: 140,
+            let boySprite = renderer_
+                .createAsyncTexture({
+                    attr: {
+                        src: "../images/boySprite.png",
+                        width: 108,
+                        height: 140,
+                        clip: {
+                            sx: 0,
+                            sy: 0,
+                            swidth: 108,
+                            sheight: 140,
+                        },
                     },
-                    pixels: function (pixelData) {
-                        localPixelData = pixelData.data;
-                        return pixelData;
-                    },
-                },
-                onload: function () {
-                    // this.animateTo({
-                    // 	duration: 5000,
-                    // 	ease: 'easeInOutSin',
-                    // 	attr: {
-                    // 		pixels: function (f) {
-                    // 			return function (pixelData) {
-                    // 				var data = pixelData.data;
-                    // 				var height = pixelData.height;
-                    // 				var width = pixelData.width;
-                    // 				// console.log(pixelData)
-                    // 				for (var i = 0; i < data.length; i += 4) {
-                    // 					if (i < parseInt(f * height) * width * 4) {
-                    // 						data[i] = localPixelData[i];
-                    // 						data[i + 1] = localPixelData[i + 1];
-                    // 						data[i + 2] = localPixelData[i + 2];
-                    // 					} else {
-                    // 						data[i] = 255;
-                    // 						data[i + 1] = 255;
-                    // 						data[i + 2] = 255;
-                    // 					}
-                    // 				}
-                    // 				pixelData.data = data;
-                    // 				return pixelData;
-                    // 			};
-                    // 		}
-                    // 	}
-                    // });
-                },
-            });
+                })
+                .then(function (image) {
+                    renderer_.createEls(Array.from(Array(6000).keys()), {
+                        el: "image",
+                        attr: {
+                            src: image,
+                            width: 108 * 0.25,
+                            height: 140 * 0.25,
+                            x: function (d) {
+                                return Math.random() * renderer_.width - 27;
+                            },
+                            y: function (d) {
+                                return Math.random() * renderer_.height - 35;
+                            },
+                        },
+                        bbox: false,
+                    });
+
+                    let image1 = image.clone();
+                    let image2 = image.clone();
+                    let image3 = image.clone();
+                    image1.setAttr("filter", i2d.utility.blur(2));
+                    image2.setAttr("filter", i2d.utility.blur(1));
+                    image3.setAttr("filter", null);
+                    renderer_.createEl({
+                        el: "image",
+                        attr: {
+                            src: image1,
+                            width: 108 * 3,
+                            height: 140 * 3,
+                            x: 200,
+                            y: 250,
+                        },
+                    });
+
+                    renderer_.createEl({
+                        el: "image",
+                        attr: {
+                            src: image2,
+                            width: 108 * 3,
+                            height: 140 * 3,
+                            x: 250 * 2,
+                            y: 250,
+                        },
+                    });
+
+                    renderer_.createEl({
+                        el: "image",
+                        attr: {
+                            src: image3,
+                            width: 108 * 3,
+                            height: 140 * 3,
+                            x: 250 * 3 + 50,
+                            y: 250,
+                        },
+                    });
+                });
         </script>
     </body>
 </html>

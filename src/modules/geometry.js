@@ -1,13 +1,13 @@
 /* eslint-disable no-undef */
-let sqrt = Math.sqrt;
-let sin = Math.sin;
-let cos = Math.cos;
-let abs = Math.abs;
-let atan2 = Math.atan2;
-let tan = Math.tan;
-let PI = Math.PI;
-let ceil = Math.ceil;
-let max = Math.max;
+const sqrt = Math.sqrt;
+const sin = Math.sin;
+const cos = Math.cos;
+const abs = Math.abs;
+const atan2 = Math.atan2;
+const tan = Math.tan;
+const PI = Math.PI;
+const ceil = Math.ceil;
+const max = Math.max;
 
 function pw(a, x) {
     let val = 1;
@@ -429,10 +429,10 @@ const arcToBezier = function arcToBezier(_ref2) {
 
 function rotatePoint(point, centre, newAngle, distance) {
     const p = {};
-    let x = point.x;
-    let y = point.y;
-    let cx = centre.x;
-    let cy = centre.y;
+    const x = point.x;
+    const y = point.y;
+    const cx = centre.x;
+    const cy = centre.y;
 
     var radians = (PI / 180) * newAngle;
     var c_ = cos(-radians);

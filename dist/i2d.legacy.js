@@ -2212,6 +2212,8 @@
 
         for (var i = 0; i < this.stack.length; i++) {
             d = this.stack[i];
+            var f = 0.05;
+            var tf = 0;
             switch (d.type) {
                 case "M":
                 case "m":
@@ -2238,8 +2240,6 @@
                 case "s":
                 case "Q":
                 case "q":
-                    var f = 0.05;
-                    var tf = 0;
                     while (tf <= 1.0) {
                         var xy = d.pointAt(tf);
                         points[points.length] = xy.x;
@@ -2256,6 +2256,11 @@
 
     Path.prototype.case = function pCase(currCmd) {
         var currCmdI = currCmd;
+        var rx;
+        var ry;
+        var xRotation;
+        var arcLargeFlag;
+        var sweepFlag;
         if (pathCmdIsValid(currCmdI)) {
             this.PC = currCmdI;
         } else {
@@ -2333,11 +2338,11 @@
                 break;
 
             case "a":
-                var rx = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-                var ry = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-                var xRotation = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-                var arcLargeFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-                var sweepFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+                rx = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+                ry = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+                xRotation = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+                arcLargeFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+                sweepFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
                 this.a(false, rx, ry, xRotation, arcLargeFlag, sweepFlag, this.fetchXY());
                 break;
 
@@ -3528,7 +3533,7 @@
             }
         } else if (node) {
             if (e.pointerType === "touch") {
-                node.events["mouseover"].call(node, e);
+                node.events.mouseover.call(node, e);
             }
         }
     };
@@ -3547,16 +3552,25 @@
             if (node.events.drag) {
                 node.events.drag.execute(node, e, "pointermove", self);
             }
-            if (node.events["mousemove"]) {
-                node.events["mousemove"].call(node, e);
+            if (node.events.mousemove) {
+                node.events.mousemove.call(node, e);
             }
         } else if (node) {
             if (e.pointerType === "touch") {
-                node.events["mousemove"].call(node, e);
+                node.events.mousemove.call(node, e);
             }
         }
         e.preventDefault();
     };
+
+    function eventBubble(node, eventType, event) {
+        if (node.dom.parent) {
+            if (node.dom.parent.events[eventType]) {
+                node.dom.parent.events[eventType](node.dom.parent, event);
+            }
+            return eventBubble(node.dom.parent, eventType, event);
+        }
+    }
 
     var clickInterval;
     Events.prototype.pointerupCheck = function (e) {
@@ -3575,31 +3589,34 @@
                 this.pointerNode.dragCounter <= 2 ||
                 (e.pointerType === "touch" && this.pointerNode.dragCounter <= 5)
             ) {
-                if (this.pointerNode.clickCounter === 1 && node.events["click"]) {
-                    if (node.events["dblclick"]) {
+                if (this.pointerNode.clickCounter === 1 && node.events.click) {
+                    if (node.events.dblclick) {
                         clickInterval = setTimeout(function () {
                             self.pointerNode = null;
-                            node.events["click"].call(node, e);
+                            node.events.click.call(node, e);
+                            eventBubble(node, "click", e);
                             clickInterval = null;
                         }, 200);
                     } else {
-                        node.events["click"].call(node, e);
+                        node.events.click.call(node, e);
+                        eventBubble(node, "click", e);
                         self.pointerNode = null;
                     }
-                } else if (this.pointerNode.clickCounter === 2 && node.events["dblclick"]) {
+                } else if (this.pointerNode.clickCounter === 2 && node.events.dblclick) {
                     if (clickInterval) {
                         clearTimeout(clickInterval);
                     }
-                    node.events["dblclick"].call(node, e);
+                    node.events.dblclick.call(node, e);
+                    eventBubble(node, "dblclick", e);
                     self.pointerNode = null;
-                } else if (!node.events["click"] && !node.events["dblclick"]) {
+                } else if (!node.events.click && !node.events.dblclick) {
                     this.pointerNode = null;
                 }
             } else {
                 this.pointerNode = null;
             }
             if (e.pointerType === "touch") {
-                node.events["mouseup"].call(node, e);
+                node.events.mouseup.call(node, e);
             }
         }
     };
@@ -3628,21 +3645,21 @@
         );
 
         if (this.selectedNode && this.selectedNode !== node) {
-            if (this.selectedNode.events["mouseout"]) {
-                this.selectedNode.events["mouseout"].call(this.selectedNode, e);
+            if (this.selectedNode.events.mouseout) {
+                this.selectedNode.events.mouseout.call(this.selectedNode, e);
             }
-            if (this.selectedNode.events["mouseleave"]) {
-                this.selectedNode.events["mouseleave"].call(this.selectedNode, e);
+            if (this.selectedNode.events.mouseleave) {
+                this.selectedNode.events.mouseleave.call(this.selectedNode, e);
             }
         }
 
-        if (node && (node.events["mouseover"] || node.events["mousein"])) {
+        if (node && (node.events.mouseover || node.events.mousein)) {
             if (this.selectedNode !== node) {
-                if (node.events["mouseover"]) {
-                    node.events["mouseover"].call(node, e);
+                if (node.events.mouseover) {
+                    node.events.mouseover.call(node, e);
                 }
-                if (node.events["mousein"]) {
-                    node.events["mousein"].call(node, e);
+                if (node.events.mousein) {
+                    node.events.mousein.call(node, e);
                 }
             }
         }
@@ -4766,7 +4783,8 @@
             if (nodeSelector.charAt(0) === ".") {
                 var classToken = nodeSelector.substring(1, nodeSelector.length);
                 this.children.every(function (d) {
-                    var check1 = data && d.dataObj && data === d.dataObj && d.attr.class === classToken;
+                    var check1 =
+                        data && d.dataObj && data === d.dataObj && d.attr.class === classToken;
                     var check2 = !data && d.attr.class === classToken;
 
                     if (check1 || check2) {
@@ -4792,7 +4810,8 @@
             } else {
                 nodeSelector = nodeSelector === "group" ? "g" : nodeSelector;
                 this.children.forEach(function (d) {
-                    var check1 = data && d.dataObj && data === d.dataObj && d.nodeName === nodeSelector;
+                    var check1 =
+                        data && d.dataObj && data === d.dataObj && d.nodeName === nodeSelector;
                     var check2 = !data && d.nodeName === nodeSelector;
 
                     if (check1 || check2) {
@@ -5313,12 +5332,11 @@
         var key;
         var attrKeys = config ? (config.attr ? Object.keys(config.attr) : []) : [];
         var styleKeys = config ? (config.style ? Object.keys(config.style) : []) : [];
-        var bbox = config ? (config["bbox"] !== undefined ? config["bbox"] : true) : true;
+        var bbox = config ? (config.bbox !== undefined ? config.bbox : true) : true;
         this.stack = data.map(function (d, i) {
             var assign;
 
-            var node;
-            node = this$1.createNode(
+            var node = this$1.createNode(
                 contextInfo.ctx,
                 {
                     el: config.el,
@@ -5404,13 +5422,17 @@
     };
 
     var layerResizeHandler = function (entries) {
-        for (var key in entries) {
+        var loop = function ( key ) {
             var entry = entries[key];
             var cr = entry.contentRect;
             if (entry.target.resizeHandler) {
-                entry.target.resizeHandler(cr);
+                entry.target.resizeHandler.forEach(function (exec) {
+                    exec(cr);
+                });
             }
-        }
+        };
+
+        for (var key in entries) loop( key );
     };
 
     function layerResizeBind(layer, handler) {
@@ -5418,11 +5440,21 @@
             layer.ro = new ResizeObserver$1(layerResizeHandler);
             layer.ro.observe(layer.container);
         }
-        layer.container.resizeHandler = handler;
+        if (!layer.container.resizeHandler) {
+            layer.container.resizeHandler = [];
+        }
+        layer.container.resizeHandler.push(handler);
     }
 
     function layerResizeUnBind(layer, handler) {
-        if (layer.ro) {
+        if (!layer.container.resizeHandler) {
+            return;
+        }
+        var execIndex = layer.container.resizeHandler.indexOf(handler);
+        if (execIndex !== -1) {
+            layer.container.resizeHandler.splice(execIndex, 1);
+        }
+        if (layer.container.resizeHandler.length === 0 && layer.ro) {
             layer.ro.disconnect();
         }
     }
@@ -6125,8 +6157,8 @@
             return this.attr.text;
         }
 
-        this.attr["text"] = value;
-        this.changedAttribute["text"] = value;
+        this.attr.text = value;
+        this.changedAttribute.text = value;
         return this;
     };
 
@@ -6698,7 +6730,10 @@
         var targetConfig = {
             run: function run(f) {
                 var oScale = transform.scale[0];
-                var nscale = scaleRangeCheck(self.zoomExtent_, origScale + (newScale - origScale) * f);
+                var nscale = scaleRangeCheck(
+                    self.zoomExtent_,
+                    origScale + (newScale - origScale) * f
+                );
 
                 self.event.transform = computeTransform(transform, oScale, nscale, point);
                 self.event.transform.translate[0] += (xdiff * (f - pf)) / nscale;
@@ -6740,7 +6775,10 @@
         var targetConfig = {
             run: function run(f) {
                 var oScale = transform.scale[0];
-                var nscale = scaleRangeCheck(self.zoomExtent_, origScale + (newScale - origScale) * f);
+                var nscale = scaleRangeCheck(
+                    self.zoomExtent_,
+                    origScale + (newScale - origScale) * f
+                );
 
                 self.event.transform = computeTransform(transform, oScale, nscale, point);
                 self.event.transform.translate[0] += (xdiff * (f - pf)) / nscale;
@@ -6932,7 +6970,8 @@
             ctx.oBackingStorePixelRatio ||
             ctx.backingStorePixelRatio ||
             1;
-        return dpr / bsr;
+        var ratio = dpr / bsr;
+        return ratio < 1.0 ? 1.0 : ratio;
     }
 
     function domSetAttribute(attr, value) {
@@ -7195,15 +7234,6 @@
     // 	return pixHndlr(pixelData);
     // }
 
-    function getCanvasImgInstance(width, height) {
-        var canvas = document.createElement("canvas");
-        canvas.setAttribute("height", height);
-        canvas.setAttribute("width", width);
-        canvas.style.height = height + "px";
-        canvas.style.width = width + "px";
-        return canvas;
-    }
-
     function CanvasMask(self, config) {
         if ( config === void 0 ) config = {};
 
@@ -7342,26 +7372,14 @@
         applyStyles: applyStyles,
     };
 
-    var imageDataMap = {};
-
     function imageInstance(self) {
         var imageIns = new Image();
         imageIns.crossOrigin = "anonymous";
+
         imageIns.onload = function onload() {
             self.attr.height = self.attr.height ? self.attr.height : this.height;
             self.attr.width = self.attr.width ? self.attr.width : this.width;
-
-            if (imageDataMap[self.attr.src]) {
-                self.imageObj = imageDataMap[self.attr.src];
-            } else {
-                var im = getCanvasImgInstance(this.width, this.height);
-                var ctxX = im.getContext("2d");
-                ctxX.drawImage(this, 0, 0, this.width, this.height);
-                self.imageObj = im;
-                imageDataMap[self.attr.src] = im;
-            }
-
-            self.postProcess();
+            self.imageObj = this;
 
             if (self.nodeExe.attr.onload && typeof self.nodeExe.attr.onload === "function") {
                 self.nodeExe.attr.onload.call(self.nodeExe, self.image);
@@ -7414,90 +7432,82 @@
                 value instanceof HTMLCanvasElement
             ) {
                 self.imageObj = value;
-                self.postProcess();
+                // self.postProcess();
                 self.attr.height = self.attr.height ? self.attr.height : value.height;
                 self.attr.width = self.attr.width ? self.attr.width : value.width;
-            } else if (value instanceof CanvasNodeExe) {
+            } else if (value instanceof CanvasNodeExe || value instanceof RenderTexture) {
                 self.imageObj = value.domEl;
-                self.postProcess();
+                // self.postProcess();
                 self.attr.height = self.attr.height ? self.attr.height : value.height;
                 self.attr.width = self.attr.width ? self.attr.width : value.width;
             }
         }
         this.attr[attr] = value;
 
-        if (attr === "clip") {
-            this.clipImage();
-        }
+        // if (attr === "clip") {
+        //     this.clipImage();
+        // }
 
-        if (attr === "pixels") {
-            this.pixelsUpdate();
-        }
+        // if (attr === "pixels") {
+        //     this.pixelsUpdate();
+        // }
 
         queueInstance$4.vDomChanged(this.nodeExe.vDomIndex);
     };
 
-    RenderImage.prototype.postProcess = function () {
-        var self = this;
-        if (self.attr.clip) {
-            self.clipImage();
-        }
+    // RenderImage.prototype.postProcess = function () {
+    //     let self = this;
+    //     if (self.attr.clip) {
+    //         self.clipImage();
+    //     }
 
-        if (self.attr.pixels) {
-            self.pixelsUpdate();
-        }
-    };
+    //     if (self.attr.pixels) {
+    //         self.pixelsUpdate();
+    //     }
+    // };
 
-    RenderImage.prototype.clipImage = function () {
-        var self = this;
-        if (!self.imageObj) {
-            return;
-        }
-        if (!self.rImageObj) {
-            self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
-        }
+    // RenderImage.prototype.clipImage = function () {
+    //     let self = this;
+    //     if (!self.imageObj) {
+    //         return;
+    //     }
+    //     if (!self.rImageObj) {
+    //         self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
+    //     }
 
-        var ctxX = self.rImageObj.getContext("2d");
-        var ref = self.attr;
-        var clip = ref.clip;
-        var width = ref.width; if ( width === void 0 ) width = 0;
-        var height = ref.height; if ( height === void 0 ) height = 0;
-        var sx = clip.sx; if ( sx === void 0 ) sx = 0;
-        var sy = clip.sy; if ( sy === void 0 ) sy = 0;
-        var swidth = clip.swidth; if ( swidth === void 0 ) swidth = width;
-        var sheight = clip.sheight; if ( sheight === void 0 ) sheight = height;
+    //     const ctxX = self.rImageObj.context;
+    //     const { clip, width = 0, height = 0 } = self.attr;
+    //     let { sx = 0, sy = 0, swidth = width, sheight = height } = clip;
 
-        ctxX.clearRect(0, 0, width, height);
-        ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
-    };
+    //     ctxX.clearRect(0, 0, width, height);
+    //     ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
+    // };
 
-    RenderImage.prototype.pixelsUpdate = function () {
-        var self = this;
-        var ctxX;
-        var pixels;
+    // RenderImage.prototype.pixelsUpdate = function () {
+    //     let self = this;
+    //     let ctxX;
+    //     let pixels;
 
-        if (!this.imageObj) {
-            return;
-        }
+    //     if (!this.imageObj) {
+    //         return;
+    //     }
 
-        var ref = self.attr;
-        var width = ref.width; if ( width === void 0 ) width = 0;
-        var height = ref.height; if ( height === void 0 ) height = 0;
+    //     const { width = 0, height = 0 } = self.attr;
 
-        if (!self.rImageObj) {
-            self.rImageObj = getCanvasImgInstance(width, height);
-            ctxX = self.rImageObj.getContext("2d");
-            ctxX.drawImage(self.imageObj, 0, 0, width, height);
-        } else {
-            ctxX = self.rImageObj.getContext("2d");
-            // ctxX.drawImage(self.imageObj, 0, 0, width, height);
-        }
-        pixels = ctxX.getImageData(0, 0, width, height);
+    //     if (!self.rImageObj) {
+    //         self.rImageObj = getCanvasImgInstance(width, height);
+    //         ctxX = self.rImageObj.context;
+    //         ctxX.drawImage(self.imageObj, 0, 0, width, height);
+    //     } else {
+    //         ctxX = self.rImageObj.context;
+    //         // ctxX.drawImage(self.imageObj, 0, 0, width, height);
+    //     }
+    //     pixels = ctxX.getImageData(0, 0, width, height);
 
-        // ctxX.clearRect(0, 0, width, height);
-        // ctxX.clearRect(0, 0, width, height);
-        ctxX.putImageData(self.attr.pixels(pixels), 0, 0);
-    };
+    //     // ctxX.clearRect(0, 0, width, height);
+    //     // ctxX.clearRect(0, 0, width, height);
+    //     ctxX.putImageData(self.attr.pixels(pixels), 0, 0);
+    // };
 
     RenderImage.prototype.updateBBox = function RIupdateBBox() {
         var self = this;
@@ -7535,7 +7545,8 @@
         var y = ref.y; if ( y === void 0 ) y = 0;
 
         if (this.imageObj) {
-            this.ctx.drawImage(this.rImageObj ? this.rImageObj : this.imageObj, x, y, width, height);
+            // this.ctx.drawImage(this.rImageObj ? this.rImageObj.canvas : this.imageObj, x, y, width, height);
+            this.ctx.drawImage(this.imageObj, x, y, width, height);
         }
     };
 
@@ -8407,7 +8418,7 @@
         this.events = {};
         this.ctx = context;
         this.vDomIndex = vDomIndex;
-        this.bbox = config["bbox"] !== undefined ? config["bbox"] : true;
+        this.bbox = config.bbox !== undefined ? config.bbox : true;
 
         switch (config.el) {
             case "circle":
@@ -8449,6 +8460,17 @@
                     this
                 );
                 break;
+
+            // case "sprite":
+            //     this.dom = new RenderSprite(
+            //         this.ctx,
+            //         this.attr,
+            //         this.style,
+            //         config.onload,
+            //         config.onerror,
+            //         this
+            //     );
+            //     break;
 
             case "polygon":
                 this.dom = new RenderPolygon(this.ctx, this.attr, this.style, this);
@@ -8863,7 +8885,7 @@
         var width = res ? res.clientWidth : 0;
         var layer = document.createElement("canvas");
         var ctx = layer.getContext("2d", contextConfig);
-        var enableEvents = layerSettings.enableEvents; if ( enableEvents === void 0 ) enableEvents = false;
+        var enableEvents = layerSettings.enableEvents; if ( enableEvents === void 0 ) enableEvents = true;
         var autoUpdate = layerSettings.autoUpdate; if ( autoUpdate === void 0 ) autoUpdate = true;
         var enableResize = layerSettings.enableResize; if ( enableResize === void 0 ) enableResize = true;
         var ratio = getPixlRatio(ctx);
@@ -9053,13 +9075,28 @@
             this.execute();
         };
 
+        root.createTexture = function (config) {
+            return new RenderTexture(this, config);
+        };
+
+        root.createAsyncTexture = function (config) {
+            var this$1 = this;
+
+            return new Promise(function (resolve, reject) {
+                var textureInstance = new RenderTexture(this$1, config);
+                textureInstance.onLoad(function () {
+                    resolve(textureInstance);
+                });
+            });
+        };
+
         root.destroy = function () {
             var res = document.querySelector(container);
             if (res && res.contains(layer)) {
                 res.removeChild(layer);
             }
             queueInstance$4.removeVdom(vDomIndex);
-            layerResizeUnBind(root);
+            layerResizeUnBind(root, resize);
         };
 
         if (enableEvents) {
@@ -9127,6 +9164,182 @@
 
         return root;
     }
+
+    function GetCanvasImgInstance(width, height) {
+        var canvas = document.createElement("canvas");
+        canvas.setAttribute("height", height);
+        canvas.setAttribute("width", width);
+        canvas.style.height = height + "px";
+        canvas.style.width = width + "px";
+        this.canvas = canvas;
+        this.context = this.canvas.getContext("2d");
+    }
+
+    GetCanvasImgInstance.prototype.setAttr = function (attr, value) {
+        if (attr === "height") {
+            this.canvas.setAttribute("height", value);
+            this.canvas.style.height = value + "px";
+        } else if (attr === "width") {
+            this.canvas.setAttribute("width", value);
+            this.canvas.style.width = value + "px";
+        }
+    };
+
+    function textureImageInstance(self, url) {
+        var imageIns = new Image();
+        imageIns.crossOrigin = "anonymous";
+        imageIns.src = url;
+        imageIns.onload = function onload() {
+            self.attr.height = self.attr.height ? self.attr.height : this.height;
+            self.attr.width = self.attr.width ? self.attr.width : this.width;
+            self.imageObj = this;
+
+            if (self.attr.onload && typeof self.attr.onload === "function") {
+                self.attr.onload.call(self, self.image);
+            }
+            if (self.asyncOnLoad && typeof self.asyncOnLoad === "function") {
+                self.asyncOnLoad(self.image);
+            }
+
+            postProcess(self);
+        };
+
+        imageIns.onerror = function onerror(error) {
+            if (self.nodeExe.attr.onerror && typeof self.nodeExe.attr.onerror === "function") {
+                self.nodeExe.attr.onerror.call(self.nodeExe, error);
+            }
+        };
+        return imageIns;
+    }
+
+    function postProcess(self) {
+        if (!self.imageObj) {
+            return;
+        }
+        if (self.attr.clip) {
+            clipExec(self);
+        } else {
+            self.execute();
+        }
+
+        if (self.attr.filter) {
+            filterExec(self);
+        }
+        queueInstance$4.vDomChanged(self.nodeExe.vDomIndex);
+    }
+
+    function clipExec(self) {
+        var ctxX = self.ctx;
+        var ref = self.attr;
+        var clip = ref.clip;
+        var width = ref.width; if ( width === void 0 ) width = 0;
+        var height = ref.height; if ( height === void 0 ) height = 0;
+        var sx = clip.sx; if ( sx === void 0 ) sx = 0;
+        var sy = clip.sy; if ( sy === void 0 ) sy = 0;
+        var swidth = clip.swidth; if ( swidth === void 0 ) swidth = width;
+        var sheight = clip.sheight; if ( sheight === void 0 ) sheight = height;
+
+        ctxX.clearRect(0, 0, width, height);
+        ctxX.drawImage(self.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
+    }
+
+    function filterExec(self) {
+        var ctxX = self.ctx;
+        var ref = self.attr;
+        var width = ref.width; if ( width === void 0 ) width = 0;
+        var height = ref.height; if ( height === void 0 ) height = 0;
+
+        var pixels = ctxX.getImageData(0, 0, width, height);
+        ctxX.putImageData(self.attr.filter(pixels), 0, 0);
+    }
+
+    function RenderTexture(nodeExe, config) {
+        if ( config === void 0 ) config = {};
+
+        var self = this;
+        self.attr = Object.assign({}, config.attr) || {};
+        self.style = Object.assign({}, config.style) || {};
+        self.rImageObj = new GetCanvasImgInstance(self.attr.width || 1, self.attr.height || 1);
+        self.ctx = self.rImageObj.context;
+        self.domEl = self.rImageObj.canvas;
+        // self.attr = props;
+        self.nodeName = "Sprite";
+        self.nodeExe = nodeExe;
+
+        for (var key in self.attr) {
+            self.setAttr(key, self.attr[key]);
+        }
+
+        queueInstance$4.vDomChanged(nodeExe.vDomIndex);
+        // self.stack = [self];
+    }
+    RenderTexture.prototype = new NodePrototype();
+    RenderTexture.prototype.constructor = RenderTexture;
+
+    RenderTexture.prototype.setAttr = function RSsetAttr(attr, value) {
+        var self = this;
+
+        if (attr === "src") {
+            if (typeof value === "string") {
+                if (!self.image) {
+                    self.image = textureImageInstance(self, value);
+                }
+                if (self.image.src !== value) {
+                    self.image.src = value;
+                }
+            } else if (
+                value instanceof HTMLImageElement ||
+                value instanceof SVGImageElement ||
+                value instanceof HTMLCanvasElement
+            ) {
+                self.imageObj = value;
+                self.attr.height = self.attr.height ? self.attr.height : value.height;
+                self.attr.width = self.attr.width ? self.attr.width : value.width;
+                postProcess(self);
+            } else if (value instanceof CanvasNodeExe || value instanceof RenderTexture) {
+                self.imageObj = value.domEl;
+                self.attr.height = self.attr.height ? self.attr.height : value.height;
+                self.attr.width = self.attr.width ? self.attr.width : value.width;
+                postProcess(self);
+            }
+        }
+        this.attr[attr] = value;
+
+        if (attr === "height" || attr === "width") {
+            this.rImageObj.setAttr(attr, value);
+            postProcess(self);
+        }
+
+        if (attr === "clip" || attr === "filter") {
+            postProcess(self);
+        }
+    };
+
+    RenderTexture.prototype.onLoad = function (exec) {
+        this.asyncOnLoad = exec;
+    };
+
+    RenderTexture.prototype.clone = function () {
+        var attr = Object.assign({}, this.attr);
+        var style = Object.assign({}, this.style);
+        attr.src = this;
+        return new RenderTexture(this.nodeExe, {
+            attr: attr,
+            style: style,
+        });
+    };
+
+    RenderTexture.prototype.execute = function RIexecute() {
+        var ref = this.attr;
+        var width = ref.width; if ( width === void 0 ) width = 0;
+        var height = ref.height; if ( height === void 0 ) height = 0;
+        var x = ref.x; if ( x === void 0 ) x = 0;
+        var y = ref.y; if ( y === void 0 ) y = 0;
+
+        if (this.imageObj) {
+            this.ctx.drawImage(this.imageObj, x, y, width, height);
+        }
+    };
 
     function canvasNodeLayer(config, height, width) {
         if ( height === void 0 ) height = 0;
@@ -9252,6 +9465,36 @@
             onClear();
         };
 
+        root.createTexture = function (config) {
+            return new RenderTexture(this, config);
+        };
+
+        root.createAsyncTexture = function (config) {
+            var this$1 = this;
+
+            return new Promise(function (resolve, reject) {
+                var textureInstance = new RenderTexture(this$1, config);
+                textureInstance.onLoad(function () {
+                    resolve(textureInstance);
+                });
+            });
+        };
+
+        // function Sprite () {
+
+        // }
+
+        // Sprite.prototype = new NodePrototype();
+        // Sprite.constructor = Sprite;
+
+        // Sprite.prototype.add = function () {
+
+        // }
+
+        // Sprite.prototype.remove = function () {
+
+        // }
+
         root.setContext = function (prop, value) {
             /** Expecting value to be array if multiple aruments */
             if (this.ctx[prop] && typeof this.ctx[prop] === "function") {
@@ -9327,7 +9570,7 @@
     }
 
     var earcut_1 = earcut;
-    var default_1 = earcut;
+    var _default = earcut;
 
     function earcut(data, holeIndices, dim) {
 
@@ -10003,7 +10246,7 @@
         }
         return result;
     };
-    earcut_1.default = default_1;
+    earcut_1.default = _default;
 
     var t2DGeometry$4 = geometry;
 
@@ -10022,7 +10265,8 @@
             ctx.oBackingStorePixelRatio ||
             ctx.backingStorePixelRatio ||
             1;
-        return dpr / bsr;
+        var ratio = dpr / bsr;
+        return ratio < 1.0 ? 1.0 : ratio;
     }
 
     var Id$3 = 0;
@@ -10687,7 +10931,7 @@
         this.transform = [0, 0, 1, 1];
         var subPoints = [];
         if (this.attr.points) {
-            var points = polygonPointsMapper(this.attr["points"]);
+            var points = polygonPointsMapper(this.attr.points);
             for (var j = 0, jlen = points.length; j < jlen; j++) {
                 subPoints[j * 2] = points[j].x;
                 subPoints[j * 2 + 1] = points[j].y;
@@ -10868,7 +11112,7 @@
         }
 
         var fontSize = parseFloat(style.font, 10) || 12;
-        ctx["font"] = style.font;
+        ctx.font = style.font;
         var twid = ctx.measureText(str);
         var width = twid.width;
         var height = fontSize;
@@ -11002,10 +11246,10 @@
         }
 
         if (key === "x" || key === "y") {
-            var x = this.attr["x"] || 0;
-            var y = this.attr["y"] || 0;
-            var width = this.attr["width"] || 0;
-            var height = this.attr["height"] || 0;
+            var x = this.attr.x || 0;
+            var y = this.attr.y || 0;
+            var width = this.attr.width || 0;
+            var height = this.attr.height || 0;
             var x1 = x + width;
             var y1 = y + height;
 
@@ -11029,7 +11273,7 @@
             this.text.style[key] = value;
             if (key === "font") {
                 var fontSize = parseFloat(value, 10) || 12;
-                this.text.ctx["font"] = value;
+                this.text.ctx.font = value;
                 var twid = this.text.ctx.measureText(this.attr.text);
                 var width = twid.width;
                 var height = fontSize;
@@ -11254,16 +11498,24 @@
                 this.vDomIndex
             );
             webGLImageTextures[self.attr.src] = this.textureNode;
+        } else if (self.attr.src && self.attr.src instanceof NodePrototype) {
+            this.textureNode = new TextureObject(
+                ctx,
+                {
+                    src: this.attr.src,
+                },
+                this.vDomIndex
+            );
         } else if (typeof self.attr.src === "string" && webGLImageTextures[self.attr.src]) {
             this.textureNode = webGLImageTextures[self.attr.src];
         } else if (self.attr.src && self.attr.src instanceof TextureObject) {
             this.textureNode = self.attr.src;
         }
         if (this.attr.x || this.attr.y || this.attr.width || this.attr.height) {
-            var x = this.attr["x"] || 0;
-            var y = this.attr["y"] || 0;
-            var width = this.attr["width"] || 0;
-            var height = this.attr["height"] || 0;
+            var x = this.attr.x || 0;
+            var y = this.attr.y || 0;
+            var width = this.attr.width || 0;
+            var height = this.attr.height || 0;
             var x1 = x + width;
             var y1 = y + height;
 
@@ -11327,10 +11579,10 @@
         //     return;
         // }
         if (key === "x" || key === "width" || key === "y" || key === "height") {
-            var x = this.attr["x"] || 0;
-            var y = this.attr["y"] || 0;
-            var width = this.attr["width"] || 0;
-            var height = this.attr["height"] || 0;
+            var x = this.attr.x || 0;
+            var y = this.attr.y || 0;
+            var width = this.attr.width || 0;
+            var height = this.attr.height || 0;
             var x1 = x + width;
             var y1 = y + height;
 
@@ -11424,14 +11676,14 @@
             );
         }
         if (this.shader && this.attr.transform) {
-            if (this.attr.transform["translate"]) {
-                this.shader.translate(this.attr.transform["translate"]);
+            if (this.attr.transform.translate) {
+                this.shader.translate(this.attr.transform.translate);
             }
-            if (this.attr.transform["scale"]) {
-                this.shader.scale(this.attr.transform["scale"]);
+            if (this.attr.transform.scale) {
+                this.shader.scale(this.attr.transform.scale);
             }
-            if (this.attr.transform["rotate"]) {
-                this.shader.rotate(this.attr.transform["rotate"]);
+            if (this.attr.transform.rotate) {
+                this.shader.rotate(this.attr.transform.rotate);
             }
         }
     }
@@ -11452,14 +11704,14 @@
             );
         }
         if (key === "transform" && this.shader) {
-            if (this.attr.transform["translate"]) {
-                this.shader.translate(this.attr.transform["translate"]);
+            if (this.attr.transform.translate) {
+                this.shader.translate(this.attr.transform.translate);
             }
-            if (this.attr.transform["scale"]) {
-                this.shader.scale(this.attr.transform["scale"]);
+            if (this.attr.transform.scale) {
+                this.shader.scale(this.attr.transform.scale);
             }
-            if (this.attr.transform["rotate"]) {
-                this.shader.rotate(this.attr.transform["rotate"]);
+            if (this.attr.transform.rotate) {
+                this.shader.rotate(this.attr.transform.rotate);
             }
         }
     };
@@ -11578,9 +11830,9 @@
         }
 
         return {
-            bufferType: ctx["ARRAY_BUFFER"],
+            bufferType: ctx.ARRAY_BUFFER,
             buffer: ctx.createBuffer(),
-            drawType: ctx["STATIC_DRAW"],
+            drawType: ctx.STATIC_DRAW,
             valueType: ctx[valType],
             size: attrObj.size,
             attributeLocation: ctx.getAttribLocation(program, attr),
@@ -11604,9 +11856,9 @@
         }
 
         return {
-            bufferType: ctx["ELEMENT_ARRAY_BUFFER"],
+            bufferType: ctx.ELEMENT_ARRAY_BUFFER,
             buffer: ctx.createBuffer(),
-            drawType: ctx["STATIC_DRAW"],
+            drawType: ctx.STATIC_DRAW,
             valueType: ctx[valType],
             value: attrObj.value,
             count: attrObj.count,
@@ -11856,13 +12108,13 @@
         }
     };
     ShaderNodePrototype.prototype.translate = function (trans) {
-        this.attr.transform["translate"] = trans;
+        this.attr.transform.translate = trans;
     };
     ShaderNodePrototype.prototype.scale = function (scale) {
-        this.attr.transform["scale"] = scale;
+        this.attr.transform.scale = scale;
     };
     ShaderNodePrototype.prototype.rotate = function (angle) {
-        this.attr.transform["rotate"] = angle;
+        this.attr.transform.rotate = angle;
     };
 
     function addTransform(self, index, length, transform) {
@@ -13002,7 +13254,7 @@
         this.el = config.el;
         this.shaderType = config.shaderType;
         this.exeCtx = config.ctx;
-        this.bbox = config["bbox"] !== undefined ? config["bbox"] : true;
+        this.bbox = config.bbox !== undefined ? config.bbox : true;
         this.events = {};
 
         switch (config.el) {
@@ -13120,6 +13372,23 @@
         }
 
         this.attr.transform.translate = XY;
+        this.dom.setAttr("transform", this.attr.transform);
+        this.BBoxUpdate = true;
+        queueInstance$5.vDomChanged(this.vDomIndex);
+        return this;
+    };
+
+    WebglNodeExe.prototype.rotate = function Crotate(angle, x, y) {
+        if (!this.attr.transform) {
+            this.attr.transform = {};
+        }
+
+        if (Object.prototype.toString.call(angle) === "[object Array]") {
+            this.attr.transform.rotate = [angle[0] || 0, angle[1] || 0, angle[2] || 0];
+        } else {
+            this.attr.transform.rotate = [angle, x || 0, y || 0];
+        }
+
         this.dom.setAttr("transform", this.attr.transform);
         this.BBoxUpdate = true;
         queueInstance$5.vDomChanged(this.vDomIndex);
@@ -13536,7 +13805,7 @@
             return new LineGeometry(this.ctx);
         };
 
-        root.TextureObject = function (config) {
+        root.createWebglTexture = function (config) {
             return new TextureObject(this.ctx, config, this.vDomIndex);
         };
 
@@ -13699,7 +13968,7 @@
                         this.update();
                     }
                 }
-                if (attr["height"] || attr["width"]) {
+                if (attr.height || attr.width) {
                     self.image = createEmptyArrayBuffer(this.width, this.height);
                 }
             }
@@ -13763,8 +14032,6 @@
                 ctx[this.type],
                 this.image
             );
-            // ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], ctx[this.format], ctx[this.type], new Uint8Array(this.width * this.height * 4));
-            // ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], this.width, this.height, 0, ctx[this.format], ctx[this.type], new Uint8Array(this.width * this.height * 4));
         }
 
         if (this.mipMap) {
@@ -13867,6 +14134,331 @@
     LineGeometry.prototype = new WebGLGeometry();
     LineGeometry.constructor = LineGeometry;
 
+    function _classCallCheck(instance, Constructor) {
+      if (!(instance instanceof Constructor)) {
+        throw new TypeError("Cannot call a class as a function");
+      }
+    }
+
+    /* eslint-disable no-bitwise -- used for calculations */
+
+    /* eslint-disable unicorn/prefer-query-selector -- aiming at
+      backward-compatibility */
+
+    /**
+    * StackBlur - a fast almost Gaussian Blur For Canvas
+    *
+    * In case you find this class useful - especially in commercial projects -
+    * I am not totally unhappy for a small donation to my PayPal account
+    * mario@quasimondo.de
+    *
+    * Or support me on flattr:
+    * {@link https://flattr.com/thing/72791/StackBlur-a-fast-almost-Gaussian-Blur-Effect-for-CanvasJavascript}.
+    *
+    * @module StackBlur
+    * @author Mario Klingemann
+    * Contact: mario@quasimondo.com
+    * Website: {@link http://www.quasimondo.com/StackBlurForCanvas/StackBlurDemo.html}
+    * Twitter: @quasimondo
+    *
+    * @copyright (c) 2010 Mario Klingemann
+    *
+    * Permission is hereby granted, free of charge, to any person
+    * obtaining a copy of this software and associated documentation
+    * files (the "Software"), to deal in the Software without
+    * restriction, including without limitation the rights to use,
+    * copy, modify, merge, publish, distribute, sublicense, and/or sell
+    * copies of the Software, and to permit persons to whom the
+    * Software is furnished to do so, subject to the following
+    * conditions:
+    *
+    * The above copyright notice and this permission notice shall be
+    * included in all copies or substantial portions of the Software.
+    *
+    * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+    * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+    * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+    * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+    * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+    * OTHER DEALINGS IN THE SOFTWARE.
+    */
+    var mulTable = [512, 512, 456, 512, 328, 456, 335, 512, 405, 328, 271, 456, 388, 335, 292, 512, 454, 405, 364, 328, 298, 271, 496, 456, 420, 388, 360, 335, 312, 292, 273, 512, 482, 454, 428, 405, 383, 364, 345, 328, 312, 298, 284, 271, 259, 496, 475, 456, 437, 420, 404, 388, 374, 360, 347, 335, 323, 312, 302, 292, 282, 273, 265, 512, 497, 482, 468, 454, 441, 428, 417, 405, 394, 383, 373, 364, 354, 345, 337, 328, 320, 312, 305, 298, 291, 284, 278, 271, 265, 259, 507, 496, 485, 475, 465, 456, 446, 437, 428, 420, 412, 404, 396, 388, 381, 374, 367, 360, 354, 347, 341, 335, 329, 323, 318, 312, 307, 302, 297, 292, 287, 282, 278, 273, 269, 265, 261, 512, 505, 497, 489, 482, 475, 468, 461, 454, 447, 441, 435, 428, 422, 417, 411, 405, 399, 394, 389, 383, 378, 373, 368, 364, 359, 354, 350, 345, 341, 337, 332, 328, 324, 320, 316, 312, 309, 305, 301, 298, 294, 291, 287, 284, 281, 278, 274, 271, 268, 265, 262, 259, 257, 507, 501, 496, 491, 485, 480, 475, 470, 465, 460, 456, 451, 446, 442, 437, 433, 428, 424, 420, 416, 412, 408, 404, 400, 396, 392, 388, 385, 381, 377, 374, 370, 367, 363, 360, 357, 354, 350, 347, 344, 341, 338, 335, 332, 329, 326, 323, 320, 318, 315, 312, 310, 307, 304, 302, 299, 297, 294, 292, 289, 287, 285, 282, 280, 278, 275, 273, 271, 269, 267, 265, 263, 261, 259];
+    var shgTable = [9, 11, 12, 13, 13, 14, 14, 15, 15, 15, 15, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24];
+    /**
+     * @param {ImageData} imageData
+     * @param {Integer} topX
+     * @param {Integer} topY
+     * @param {Integer} width
+     * @param {Integer} height
+     * @param {Float} radius
+     * @returns {ImageData}
+     */
+
+
+    function processImageDataRGBA(imageData, topX, topY, width, height, radius) {
+      var pixels = imageData.data;
+      var div = 2 * radius + 1; // const w4 = width << 2;
+
+      var widthMinus1 = width - 1;
+      var heightMinus1 = height - 1;
+      var radiusPlus1 = radius + 1;
+      var sumFactor = radiusPlus1 * (radiusPlus1 + 1) / 2;
+      var stackStart = new BlurStack();
+      var stack = stackStart;
+      var stackEnd;
+
+      for (var i = 1; i < div; i++) {
+        stack = stack.next = new BlurStack();
+
+        if (i === radiusPlus1) {
+          stackEnd = stack;
+        }
+      }
+
+      stack.next = stackStart;
+      var stackIn = null,
+          stackOut = null,
+          yw = 0,
+          yi = 0;
+      var mulSum = mulTable[radius];
+      var shgSum = shgTable[radius];
+
+      for (var y = 0; y < height; y++) {
+        stack = stackStart;
+        var pr = pixels[yi],
+            pg = pixels[yi + 1],
+            pb = pixels[yi + 2],
+            pa = pixels[yi + 3];
+
+        for (var _i = 0; _i < radiusPlus1; _i++) {
+          stack.r = pr;
+          stack.g = pg;
+          stack.b = pb;
+          stack.a = pa;
+          stack = stack.next;
+        }
+
+        var rInSum = 0,
+            gInSum = 0,
+            bInSum = 0,
+            aInSum = 0,
+            rOutSum = radiusPlus1 * pr,
+            gOutSum = radiusPlus1 * pg,
+            bOutSum = radiusPlus1 * pb,
+            aOutSum = radiusPlus1 * pa,
+            rSum = sumFactor * pr,
+            gSum = sumFactor * pg,
+            bSum = sumFactor * pb,
+            aSum = sumFactor * pa;
+
+        for (var _i2 = 1; _i2 < radiusPlus1; _i2++) {
+          var p = yi + ((widthMinus1 < _i2 ? widthMinus1 : _i2) << 2);
+          var r = pixels[p],
+              g = pixels[p + 1],
+              b = pixels[p + 2],
+              a = pixels[p + 3];
+          var rbs = radiusPlus1 - _i2;
+          rSum += (stack.r = r) * rbs;
+          gSum += (stack.g = g) * rbs;
+          bSum += (stack.b = b) * rbs;
+          aSum += (stack.a = a) * rbs;
+          rInSum += r;
+          gInSum += g;
+          bInSum += b;
+          aInSum += a;
+          stack = stack.next;
+        }
+
+        stackIn = stackStart;
+        stackOut = stackEnd;
+
+        for (var x = 0; x < width; x++) {
+          var paInitial = aSum * mulSum >> shgSum;
+          pixels[yi + 3] = paInitial;
+
+          if (paInitial !== 0) {
+            var _a2 = 255 / paInitial;
+
+            pixels[yi] = (rSum * mulSum >> shgSum) * _a2;
+            pixels[yi + 1] = (gSum * mulSum >> shgSum) * _a2;
+            pixels[yi + 2] = (bSum * mulSum >> shgSum) * _a2;
+          } else {
+            pixels[yi] = pixels[yi + 1] = pixels[yi + 2] = 0;
+          }
+
+          rSum -= rOutSum;
+          gSum -= gOutSum;
+          bSum -= bOutSum;
+          aSum -= aOutSum;
+          rOutSum -= stackIn.r;
+          gOutSum -= stackIn.g;
+          bOutSum -= stackIn.b;
+          aOutSum -= stackIn.a;
+
+          var _p = x + radius + 1;
+
+          _p = yw + (_p < widthMinus1 ? _p : widthMinus1) << 2;
+          rInSum += stackIn.r = pixels[_p];
+          gInSum += stackIn.g = pixels[_p + 1];
+          bInSum += stackIn.b = pixels[_p + 2];
+          aInSum += stackIn.a = pixels[_p + 3];
+          rSum += rInSum;
+          gSum += gInSum;
+          bSum += bInSum;
+          aSum += aInSum;
+          stackIn = stackIn.next;
+          var _stackOut = stackOut,
+              _r = _stackOut.r,
+              _g = _stackOut.g,
+              _b = _stackOut.b,
+              _a = _stackOut.a;
+          rOutSum += _r;
+          gOutSum += _g;
+          bOutSum += _b;
+          aOutSum += _a;
+          rInSum -= _r;
+          gInSum -= _g;
+          bInSum -= _b;
+          aInSum -= _a;
+          stackOut = stackOut.next;
+          yi += 4;
+        }
+
+        yw += width;
+      }
+
+      for (var _x = 0; _x < width; _x++) {
+        yi = _x << 2;
+
+        var _pr = pixels[yi],
+            _pg = pixels[yi + 1],
+            _pb = pixels[yi + 2],
+            _pa = pixels[yi + 3],
+            _rOutSum = radiusPlus1 * _pr,
+            _gOutSum = radiusPlus1 * _pg,
+            _bOutSum = radiusPlus1 * _pb,
+            _aOutSum = radiusPlus1 * _pa,
+            _rSum = sumFactor * _pr,
+            _gSum = sumFactor * _pg,
+            _bSum = sumFactor * _pb,
+            _aSum = sumFactor * _pa;
+
+        stack = stackStart;
+
+        for (var _i3 = 0; _i3 < radiusPlus1; _i3++) {
+          stack.r = _pr;
+          stack.g = _pg;
+          stack.b = _pb;
+          stack.a = _pa;
+          stack = stack.next;
+        }
+
+        var yp = width;
+        var _gInSum = 0,
+            _bInSum = 0,
+            _aInSum = 0,
+            _rInSum = 0;
+
+        for (var _i4 = 1; _i4 <= radius; _i4++) {
+          yi = yp + _x << 2;
+
+          var _rbs = radiusPlus1 - _i4;
+
+          _rSum += (stack.r = _pr = pixels[yi]) * _rbs;
+          _gSum += (stack.g = _pg = pixels[yi + 1]) * _rbs;
+          _bSum += (stack.b = _pb = pixels[yi + 2]) * _rbs;
+          _aSum += (stack.a = _pa = pixels[yi + 3]) * _rbs;
+          _rInSum += _pr;
+          _gInSum += _pg;
+          _bInSum += _pb;
+          _aInSum += _pa;
+          stack = stack.next;
+
+          if (_i4 < heightMinus1) {
+            yp += width;
+          }
+        }
+
+        yi = _x;
+        stackIn = stackStart;
+        stackOut = stackEnd;
+
+        for (var _y = 0; _y < height; _y++) {
+          var _p2 = yi << 2;
+
+          pixels[_p2 + 3] = _pa = _aSum * mulSum >> shgSum;
+
+          if (_pa > 0) {
+            _pa = 255 / _pa;
+            pixels[_p2] = (_rSum * mulSum >> shgSum) * _pa;
+            pixels[_p2 + 1] = (_gSum * mulSum >> shgSum) * _pa;
+            pixels[_p2 + 2] = (_bSum * mulSum >> shgSum) * _pa;
+          } else {
+            pixels[_p2] = pixels[_p2 + 1] = pixels[_p2 + 2] = 0;
+          }
+
+          _rSum -= _rOutSum;
+          _gSum -= _gOutSum;
+          _bSum -= _bOutSum;
+          _aSum -= _aOutSum;
+          _rOutSum -= stackIn.r;
+          _gOutSum -= stackIn.g;
+          _bOutSum -= stackIn.b;
+          _aOutSum -= stackIn.a;
+          _p2 = _x + ((_p2 = _y + radiusPlus1) < heightMinus1 ? _p2 : heightMinus1) * width << 2;
+          _rSum += _rInSum += stackIn.r = pixels[_p2];
+          _gSum += _gInSum += stackIn.g = pixels[_p2 + 1];
+          _bSum += _bInSum += stackIn.b = pixels[_p2 + 2];
+          _aSum += _aInSum += stackIn.a = pixels[_p2 + 3];
+          stackIn = stackIn.next;
+          _rOutSum += _pr = stackOut.r;
+          _gOutSum += _pg = stackOut.g;
+          _bOutSum += _pb = stackOut.b;
+          _aOutSum += _pa = stackOut.a;
+          _rInSum -= _pr;
+          _gInSum -= _pg;
+          _bInSum -= _pb;
+          _aInSum -= _pa;
+          stackOut = stackOut.next;
+          yi += width;
+        }
+      }
+
+      return imageData;
+    }
+    /**
+     *
+     */
+
+
+    var BlurStack =
+    /**
+     * Set properties.
+     */
+    function BlurStack() {
+      _classCallCheck(this, BlurStack);
+
+      this.r = 0;
+      this.g = 0;
+      this.b = 0;
+      this.a = 0;
+      this.next = null;
+    };
+
+    var utilities = {
+        blur: function (radius) {
+            if ( radius === void 0 ) radius = 1;
+
+            function blurExec(imageData) {
+                return processImageDataRGBA(imageData, 0, 0, imageData.width, imageData.height, radius);
+            }
+            return blurExec;
+        },
+        greyScale: function () {},
+    };
+
     var pathIns = path.instance;
     var canvasLayer$1 = canvasAPI.canvasLayer;
     var canvasNodeLayer$1 = canvasAPI.canvasNodeLayer;
@@ -13881,6 +14473,7 @@
     exports.geometry = geometry;
     exports.queue = queue;
     exports.svgLayer = svgLayer;
+    exports.utility = utilities;
     exports.webglLayer = webglLayer;
 
     Object.defineProperty(exports, '__esModule', { value: true });

@@ -28,7 +28,7 @@
                 reader.readAsDataURL(selectedFile);
             }
 
-            var renderer_ = i2d.canvasLayer("#myCanvas", {}, true);
+            var renderer_ = i2d.canvasLayer("#myCanvas", {}, {});
             var height = renderer_.height;
             var width = renderer_.width;
             var wh = Math.min(height, width);

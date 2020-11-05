@@ -5,18 +5,19 @@ import geometry from "./geometry.js";
 import colorMap from "./colorMap.js";
 import Events from "./events.js";
 import behaviour from "./behaviour.js";
+// import { imageDataRGB as blur } from "stackblur-canvas";
 import {
     NodePrototype,
     CollectionPrototype,
     layerResizeBind,
     layerResizeUnBind,
 } from "./coreApi.js";
-let t2DGeometry = geometry;
+const t2DGeometry = geometry;
 const queueInstance = queue;
 let Id = 0;
 
-let zoomInstance = behaviour.zoom();
-let dragInstance = behaviour.drag();
+const zoomInstance = behaviour.zoom();
+const dragInstance = behaviour.drag();
 // let touchInstance = behaviour.touch();
 
 function domId() {
@@ -24,7 +25,7 @@ function domId() {
     return Id;
 }
 
-let CanvasCollection = function () {
+const CanvasCollection = function () {
     CollectionPrototype.apply(this, arguments);
 };
 CanvasCollection.prototype = new CollectionPrototype();
@@ -42,7 +43,8 @@ function getPixlRatio(ctx) {
         ctx.oBackingStorePixelRatio ||
         ctx.backingStorePixelRatio ||
         1;
-    return dpr / bsr;
+    const ratio = dpr / bsr;
+    return ratio < 1.0 ? 1.0 : ratio;
 }
 
 function domSetAttribute(attr, value) {
@@ -93,7 +95,7 @@ function cRender(attr) {
 }
 
 function parseTransform(transform) {
-    let output = {
+    const output = {
         translateX: 0,
         translateY: 0,
         scaleX: 1,
@@ -118,7 +120,7 @@ function parseTransform(transform) {
 function RPolyupdateBBox() {
     const self = this;
     const { transform, points = [] } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     if (points && points.length > 0) {
         let minX = points[0].x;
@@ -263,8 +265,8 @@ function PixelObject(data, width, height) {
 }
 
 PixelObject.prototype.get = function (pos) {
-    let pixels = this.imageData ? this.imageData.pixels : [];
-    let rIndex = (pos.y - 1) * (this.width * 4) + (pos.x - 1) * 4;
+    const pixels = this.imageData ? this.imageData.pixels : [];
+    const rIndex = (pos.y - 1) * (this.width * 4) + (pos.x - 1) * 4;
     return (
         "rgba(" +
         pixels[rIndex] +
@@ -279,7 +281,7 @@ PixelObject.prototype.get = function (pos) {
 };
 
 PixelObject.prototype.put = function (pos, color) {
-    let rIndex = (pos.y - 1) * (this.width * 4) + (pos.x - 1) * 4;
+    const rIndex = (pos.y - 1) * (this.width * 4) + (pos.x - 1) * 4;
     this.imageData.pixels[rIndex] = color[0];
     this.imageData.pixels[rIndex + 1] = color[1];
     this.imageData.pixels[rIndex + 2] = color[2];
@@ -294,17 +296,8 @@ PixelObject.prototype.put = function (pos, color) {
 // 	return pixHndlr(pixelData);
 // }
 
-function getCanvasImgInstance(width, height) {
-    const canvas = document.createElement("canvas");
-    canvas.setAttribute("height", height);
-    canvas.setAttribute("width", width);
-    canvas.style.height = `${height}px`;
-    canvas.style.width = `${width}px`;
-    return canvas;
-}
-
 function CanvasMask(self, config = {}) {
-    let maskId = config.id ? config.id : "mask-" + Math.ceil(Math.random() * 1000);
+    const maskId = config.id ? config.id : "mask-" + Math.ceil(Math.random() * 1000);
     this.config = config;
     this.mask = new CanvasNodeExe(
         self.dom.ctx,
@@ -335,7 +328,7 @@ function createCanvasMask(maskConfig) {
 }
 
 function CanvasClipping(self, config = {}) {
-    let clipId = config.id ? config.id : "clip-" + Math.ceil(Math.random() * 1000);
+    const clipId = config.id ? config.id : "clip-" + Math.ceil(Math.random() * 1000);
     this.clip = new CanvasNodeExe(
         self.dom.ctx,
         {
@@ -360,8 +353,8 @@ function createCanvasClip(patternConfig) {
 }
 
 function CanvasPattern(self, config = {}, width = 0, height = 0) {
-    let selfSelf = this;
-    let patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
+    const selfSelf = this;
+    const patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
     this.repeatInd = config.repeat ? config.repeat : "repeat";
     if (self.ENV === "NODE") {
         selfSelf.pattern = canvasNodeLayer({}, height, width);
@@ -430,26 +423,14 @@ CanvasDom.prototype = {
     applyStyles,
 };
 
-const imageDataMap = {};
-
 function imageInstance(self) {
-    let imageIns = new Image();
+    const imageIns = new Image();
     imageIns.crossOrigin = "anonymous";
+
     imageIns.onload = function onload() {
         self.attr.height = self.attr.height ? self.attr.height : this.height;
         self.attr.width = self.attr.width ? self.attr.width : this.width;
-
-        if (imageDataMap[self.attr.src]) {
-            self.imageObj = imageDataMap[self.attr.src];
-        } else {
-            const im = getCanvasImgInstance(this.width, this.height);
-            const ctxX = im.getContext("2d");
-            ctxX.drawImage(this, 0, 0, this.width, this.height);
-            self.imageObj = im;
-            imageDataMap[self.attr.src] = im;
-        }
-
-        self.postProcess();
+        self.imageObj = this;
 
         if (self.nodeExe.attr.onload && typeof self.nodeExe.attr.onload === "function") {
             self.nodeExe.attr.onload.call(self.nodeExe, self.image);
@@ -476,7 +457,7 @@ function RenderImage(ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
     self.nodeName = "Image";
     self.nodeExe = nodeExe;
 
-    for (let key in props) {
+    for (const key in props) {
         this.setAttr(key, props[key]);
     }
 
@@ -502,87 +483,87 @@ RenderImage.prototype.setAttr = function RIsetAttr(attr, value) {
             value instanceof HTMLCanvasElement
         ) {
             self.imageObj = value;
-            self.postProcess();
+            // self.postProcess();
             self.attr.height = self.attr.height ? self.attr.height : value.height;
             self.attr.width = self.attr.width ? self.attr.width : value.width;
-        } else if (value instanceof CanvasNodeExe) {
+        } else if (value instanceof CanvasNodeExe || value instanceof RenderTexture) {
             self.imageObj = value.domEl;
-            self.postProcess();
+            // self.postProcess();
             self.attr.height = self.attr.height ? self.attr.height : value.height;
             self.attr.width = self.attr.width ? self.attr.width : value.width;
         }
     }
     this.attr[attr] = value;
 
-    if (attr === "clip") {
-        this.clipImage();
-    }
+    // if (attr === "clip") {
+    //     this.clipImage();
+    // }
 
-    if (attr === "pixels") {
-        this.pixelsUpdate();
-    }
+    // if (attr === "pixels") {
+    //     this.pixelsUpdate();
+    // }
 
     queueInstance.vDomChanged(this.nodeExe.vDomIndex);
 };
 
-RenderImage.prototype.postProcess = function () {
-    let self = this;
-    if (self.attr.clip) {
-        self.clipImage();
-    }
+// RenderImage.prototype.postProcess = function () {
+//     let self = this;
+//     if (self.attr.clip) {
+//         self.clipImage();
+//     }
 
-    if (self.attr.pixels) {
-        self.pixelsUpdate();
-    }
-};
+//     if (self.attr.pixels) {
+//         self.pixelsUpdate();
+//     }
+// };
 
-RenderImage.prototype.clipImage = function () {
-    let self = this;
-    if (!self.imageObj) {
-        return;
-    }
-    if (!self.rImageObj) {
-        self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
-    }
+// RenderImage.prototype.clipImage = function () {
+//     let self = this;
+//     if (!self.imageObj) {
+//         return;
+//     }
+//     if (!self.rImageObj) {
+//         self.rImageObj = getCanvasImgInstance(self.attr.width, self.attr.height);
+//     }
 
-    const ctxX = self.rImageObj.getContext("2d");
-    const { clip, width = 0, height = 0 } = self.attr;
-    let { sx = 0, sy = 0, swidth = width, sheight = height } = clip;
+//     const ctxX = self.rImageObj.context;
+//     const { clip, width = 0, height = 0 } = self.attr;
+//     let { sx = 0, sy = 0, swidth = width, sheight = height } = clip;
 
-    ctxX.clearRect(0, 0, width, height);
-    ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
-};
+//     ctxX.clearRect(0, 0, width, height);
+//     ctxX.drawImage(this.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
+// };
 
-RenderImage.prototype.pixelsUpdate = function () {
-    let self = this;
-    let ctxX;
-    let pixels;
+// RenderImage.prototype.pixelsUpdate = function () {
+//     let self = this;
+//     let ctxX;
+//     let pixels;
 
-    if (!this.imageObj) {
-        return;
-    }
+//     if (!this.imageObj) {
+//         return;
+//     }
 
-    const { width = 0, height = 0 } = self.attr;
+//     const { width = 0, height = 0 } = self.attr;
 
-    if (!self.rImageObj) {
-        self.rImageObj = getCanvasImgInstance(width, height);
-        ctxX = self.rImageObj.getContext("2d");
-        ctxX.drawImage(self.imageObj, 0, 0, width, height);
-    } else {
-        ctxX = self.rImageObj.getContext("2d");
-        // ctxX.drawImage(self.imageObj, 0, 0, width, height);
-    }
-    pixels = ctxX.getImageData(0, 0, width, height);
+//     if (!self.rImageObj) {
+//         self.rImageObj = getCanvasImgInstance(width, height);
+//         ctxX = self.rImageObj.context;
+//         ctxX.drawImage(self.imageObj, 0, 0, width, height);
+//     } else {
+//         ctxX = self.rImageObj.context;
+//         // ctxX.drawImage(self.imageObj, 0, 0, width, height);
+//     }
+//     pixels = ctxX.getImageData(0, 0, width, height);
 
-    // ctxX.clearRect(0, 0, width, height);
-    // ctxX.clearRect(0, 0, width, height);
-    ctxX.putImageData(self.attr.pixels(pixels), 0, 0);
-};
+//     // ctxX.clearRect(0, 0, width, height);
+//     // ctxX.clearRect(0, 0, width, height);
+//     ctxX.putImageData(self.attr.pixels(pixels), 0, 0);
+// };
 
 RenderImage.prototype.updateBBox = function RIupdateBBox() {
     const self = this;
     const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     self.BBox = {
         x: (translateX + x) * scaleX,
@@ -602,7 +583,8 @@ RenderImage.prototype.execute = function RIexecute() {
     const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
 
     if (this.imageObj) {
-        this.ctx.drawImage(this.rImageObj ? this.rImageObj : this.imageObj, x, y, width, height);
+        // this.ctx.drawImage(this.rImageObj ? this.rImageObj.canvas : this.imageObj, x, y, width, height);
+        this.ctx.drawImage(this.imageObj, x, y, width, height);
     }
 };
 
@@ -634,7 +616,7 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
     let height = 1;
     let width = 0;
     let { x = 0, y = 0, transform } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     if (this.style.font) {
         this.ctx.font = this.style.font;
@@ -703,7 +685,7 @@ RenderCircle.prototype.constructor = RenderCircle;
 RenderCircle.prototype.updateBBox = function RCupdateBBox() {
     const self = this;
     const { transform, r = 0, cx = 0, cy = 0 } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     self.BBox = {
         x: translateX + (cx - r) * scaleX,
@@ -729,7 +711,7 @@ RenderCircle.prototype.execute = function RCexecute() {
 
 RenderCircle.prototype.in = function RCinfun(co, eventType) {
     const { r = 0, cx = 0, cy = 0 } = this.attr;
-    let tr = Math.sqrt((co.x - cx) * (co.x - cx) + (co.y - cy) * (co.y - cy));
+    const tr = Math.sqrt((co.x - cx) * (co.x - cx) + (co.y - cy) * (co.y - cy));
     return tr <= r;
 };
 
@@ -748,7 +730,7 @@ RenderLine.prototype.constructor = RenderLine;
 RenderLine.prototype.updateBBox = function RLupdateBBox() {
     const self = this;
     const { transform, x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     self.BBox = {
         x: translateX + (x1 < x2 ? x1 : x2) * scaleX,
@@ -766,7 +748,7 @@ RenderLine.prototype.updateBBox = function RLupdateBBox() {
 
 RenderLine.prototype.execute = function RLexecute() {
     const { ctx } = this;
-    let { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
+    const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
@@ -775,7 +757,7 @@ RenderLine.prototype.execute = function RLexecute() {
 };
 
 RenderLine.prototype.in = function RLinfun(co) {
-    let { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
+    const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
     return (
         parseFloat(
             t2DGeometry.getDistance(
@@ -818,7 +800,7 @@ RenderPolyline.prototype = new CanvasDom();
 RenderPolyline.constructor = RenderPolyline;
 
 RenderPolyline.prototype.execute = function polylineExe() {
-    let self = this;
+    const self = this;
     let d;
     if (!this.attr.points || this.attr.points.length === 0) return;
     this.ctx.beginPath();
@@ -837,8 +819,8 @@ RenderPolyline.prototype.in = function RPolyLinfun(co) {
     let flag = false;
 
     for (let i = 0, len = this.attr.points.length; i <= len - 2; i++) {
-        let p1 = this.attr.points[i];
-        let p2 = this.attr.points[i + 1];
+        const p1 = this.attr.points[i];
+        const p2 = this.attr.points[i + 1];
         flag =
             flag ||
             parseFloat(
@@ -901,7 +883,7 @@ RenderPath.prototype.constructor = RenderPath;
 RenderPath.prototype.updateBBox = function RPupdateBBox() {
     const self = this;
     const { transform } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     // if (transform && transform.translate) {
     // 	[translateX, translateY] = transform.translate;
@@ -1008,7 +990,7 @@ function polygonExe(points) {
         return;
     }
 
-    let polygon = new Path2D();
+    const polygon = new Path2D();
     polygon.moveTo(points[0].x, points[0].y);
     for (let i = 1; i < points.length; i++) {
         polygon.lineTo(points[i].x, points[i].y);
@@ -1020,7 +1002,7 @@ function polygonExe(points) {
         points: points,
         execute: function (ctx) {
             ctx.beginPath();
-            let points = this.points;
+            const points = this.points;
             ctx.moveTo(points[0].x, points[0].y);
             for (let i = 1; i < points.length; i++) {
                 ctx.lineTo(points[i].x, points[i].y);
@@ -1117,7 +1099,7 @@ RenderEllipse.prototype.updateBBox = function REupdateBBox() {
     // let scaleX = 1;
     // let scaleY = 1;
     const { transform, cx = 0, cy = 0, rx = 0, ry = 0 } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     // if (transform && transform.translate) {
     // 	[translateX, translateY] = transform.translate;
@@ -1142,7 +1124,7 @@ RenderEllipse.prototype.updateBBox = function REupdateBBox() {
 };
 
 RenderEllipse.prototype.execute = function REexecute() {
-    let ctx = this.ctx;
+    const ctx = this.ctx;
     const { cx = 0, cy = 0, rx = 0, ry = 0 } = this.attr;
     ctx.beginPath();
     ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
@@ -1174,7 +1156,7 @@ RenderRect.prototype.constructor = RenderRect;
 RenderRect.prototype.updateBBox = function RRupdateBBox() {
     const self = this;
     const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     self.BBox = {
         x: translateX + x * scaleX,
@@ -1209,7 +1191,7 @@ function renderRoundRect(ctx, attr) {
 }
 
 RenderRect.prototype.execute = function RRexecute() {
-    let ctx = this.ctx;
+    const ctx = this.ctx;
     const { x = 0, y = 0, width = 0, height = 0, rx = 0, ry = 0 } = this.attr;
 
     if (ctx.fillStyle !== "#000000" || ctx.strokeStyle !== "#000000") {
@@ -1277,7 +1259,7 @@ RenderGroup.prototype.updateBBox = function RGupdateBBox(children) {
     let minY;
     let maxY;
     const { transform } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
     self.BBox = {};
 
     if (children && children.length > 0) {
@@ -1347,7 +1329,7 @@ RenderGroup.prototype.in = function RGinfun(coOr) {
     };
     const { BBox } = this;
     const { transform } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     return (
         co.x >= (BBox.x - translateX) / scaleX &&
@@ -1359,7 +1341,7 @@ RenderGroup.prototype.in = function RGinfun(coOr) {
 
 /** ***************** End Render Group */
 
-let CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
+const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.style = config.style || {};
     this.setStyle(config.style);
     this.attr = config.attr || {};
@@ -1370,7 +1352,7 @@ let CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.events = {};
     this.ctx = context;
     this.vDomIndex = vDomIndex;
-    this.bbox = config["bbox"] !== undefined ? config["bbox"] : true;
+    this.bbox = config.bbox !== undefined ? config.bbox : true;
 
     switch (config.el) {
         case "circle":
@@ -1413,6 +1395,17 @@ let CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
             );
             break;
 
+        // case "sprite":
+        //     this.dom = new RenderSprite(
+        //         this.ctx,
+        //         this.attr,
+        //         this.style,
+        //         config.onload,
+        //         config.onerror,
+        //         this
+        //     );
+        //     break;
+
         case "polygon":
             this.dom = new RenderPolygon(this.ctx, this.attr, this.style, this);
             break;
@@ -1447,7 +1440,7 @@ CanvasNodeExe.prototype.node = function Cnode() {
 CanvasNodeExe.prototype.stylesExe = function CstylesExe() {
     let value;
     let key;
-    let style = this.style;
+    const style = this.style;
 
     for (key in style) {
         if (typeof style[key] === "string" || typeof style[key] === "number") {
@@ -1703,7 +1696,7 @@ CanvasNodeExe.prototype.in = function Cinfun(co) {
 };
 
 CanvasNodeExe.prototype.on = function Con(eventType, hndlr) {
-    let self = this;
+    const self = this;
     // this.dom.on(eventType, hndlr);
     if (!this.events) {
         this.events = {};
@@ -1797,13 +1790,13 @@ CanvasNodeExe.prototype.getBBox = function () {
 };
 
 CanvasNodeExe.prototype.getPixels = function () {
-    let imageData = this.ctx.getImageData(
+    const imageData = this.ctx.getImageData(
         this.dom.BBox.x,
         this.dom.BBox.y,
         this.dom.BBox.width,
         this.dom.BBox.height
     );
-    let pixelInstance = new PixelObject(imageData, this.dom.BBox.width, this.dom.BBox.height);
+    const pixelInstance = new PixelObject(imageData, this.dom.BBox.width, this.dom.BBox.height);
 
     return pixelInstance;
     // this.ctx.getImageData(this.dom.BBox.x, this.dom.BBox.y, this.dom.BBox.width, this.dom.BBox.height);
@@ -1822,7 +1815,7 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     let width = res ? res.clientWidth : 0;
     const layer = document.createElement("canvas");
     const ctx = layer.getContext("2d", contextConfig);
-    let { enableEvents = false, autoUpdate = true, enableResize = true } = layerSettings;
+    let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
     let ratio = getPixlRatio(ctx);
     ctx.pixelRatio = ratio;
     let onClear = function (ctx) {
@@ -1899,13 +1892,13 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
         if (!(layer instanceof CanvasNodeExe)) {
             return;
         }
-        let depId = layer.attr.id ? layer.attr.id : "dep-" + Math.ceil(Math.random() * 1000);
+        const depId = layer.attr.id ? layer.attr.id : "dep-" + Math.ceil(Math.random() * 1000);
         layer.setAttr("id", depId);
         layer.vDomIndex = this.vDomIndex + ":" + depId;
         this.prependChild([layer]);
     };
 
-    let resize = function (cr) {
+    const resize = function (cr) {
         if (!document.querySelector(container)) {
             layerResizeUnBind(root);
             return;
@@ -1924,7 +1917,7 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
         root.execute();
     };
 
-    let updateLayerDimension = function (layer, width, height) {
+    const updateLayerDimension = function (layer, width, height) {
         layer.setAttribute("height", height * ratio);
         layer.setAttribute("width", width * ratio);
         layer.style.height = `${height}px`;
@@ -1963,8 +1956,8 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     root.setViewBox = function (x, y, height, width) {};
 
     root.getPixels = function (x, y, width_, height_) {
-        let imageData = this.ctx.getImageData(x, y, width_, height_);
-        let pixelInstance = new PixelObject(imageData, width_, height_);
+        const imageData = this.ctx.getImageData(x, y, width_, height_);
+        const pixelInstance = new PixelObject(imageData, width_, height_);
 
         return pixelInstance;
     };
@@ -2010,17 +2003,30 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
         this.execute();
     };
 
+    root.createTexture = function (config) {
+        return new RenderTexture(this, config);
+    };
+
+    root.createAsyncTexture = function (config) {
+        return new Promise((resolve, reject) => {
+            const textureInstance = new RenderTexture(this, config);
+            textureInstance.onLoad(function () {
+                resolve(textureInstance);
+            });
+        });
+    };
+
     root.destroy = function () {
-        let res = document.querySelector(container);
+        const res = document.querySelector(container);
         if (res && res.contains(layer)) {
             res.removeChild(layer);
         }
         queueInstance.removeVdom(vDomIndex);
-        layerResizeUnBind(root);
+        layerResizeUnBind(root, resize);
     };
 
     if (enableEvents) {
-        let eventsInstance = new Events(root);
+        const eventsInstance = new Events(root);
         layer.addEventListener("mousemove", (e) => {
             e.preventDefault();
             eventsInstance.mousemoveCheck(e);
@@ -2085,6 +2091,168 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     return root;
 }
 
+function GetCanvasImgInstance(width, height) {
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute("height", height);
+    canvas.setAttribute("width", width);
+    canvas.style.height = `${height}px`;
+    canvas.style.width = `${width}px`;
+    this.canvas = canvas;
+    this.context = this.canvas.getContext("2d");
+}
+
+GetCanvasImgInstance.prototype.setAttr = function (attr, value) {
+    if (attr === "height") {
+        this.canvas.setAttribute("height", value);
+        this.canvas.style.height = `${value}px`;
+    } else if (attr === "width") {
+        this.canvas.setAttribute("width", value);
+        this.canvas.style.width = `${value}px`;
+    }
+};
+
+function textureImageInstance(self, url) {
+    const imageIns = new Image();
+    imageIns.crossOrigin = "anonymous";
+    imageIns.src = url;
+    imageIns.onload = function onload() {
+        self.attr.height = self.attr.height ? self.attr.height : this.height;
+        self.attr.width = self.attr.width ? self.attr.width : this.width;
+        self.imageObj = this;
+
+        if (self.attr.onload && typeof self.attr.onload === "function") {
+            self.attr.onload.call(self, self.image);
+        }
+        if (self.asyncOnLoad && typeof self.asyncOnLoad === "function") {
+            self.asyncOnLoad(self.image);
+        }
+
+        postProcess(self);
+    };
+
+    imageIns.onerror = function onerror(error) {
+        if (self.nodeExe.attr.onerror && typeof self.nodeExe.attr.onerror === "function") {
+            self.nodeExe.attr.onerror.call(self.nodeExe, error);
+        }
+    };
+    return imageIns;
+}
+
+function postProcess(self) {
+    if (!self.imageObj) {
+        return;
+    }
+    if (self.attr.clip) {
+        clipExec(self);
+    } else {
+        self.execute();
+    }
+
+    if (self.attr.filter) {
+        filterExec(self);
+    }
+    queueInstance.vDomChanged(self.nodeExe.vDomIndex);
+}
+
+function clipExec(self) {
+    const ctxX = self.ctx;
+    const { clip, width = 0, height = 0 } = self.attr;
+    const { sx = 0, sy = 0, swidth = width, sheight = height } = clip;
+
+    ctxX.clearRect(0, 0, width, height);
+    ctxX.drawImage(self.imageObj, sx, sy, swidth, sheight, 0, 0, width, height);
+}
+
+function filterExec(self) {
+    const ctxX = self.ctx;
+    const { width = 0, height = 0 } = self.attr;
+
+    const pixels = ctxX.getImageData(0, 0, width, height);
+    ctxX.putImageData(self.attr.filter(pixels), 0, 0);
+}
+
+function RenderTexture(nodeExe, config = {}) {
+    const self = this;
+    self.attr = Object.assign({}, config.attr) || {};
+    self.style = Object.assign({}, config.style) || {};
+    self.rImageObj = new GetCanvasImgInstance(self.attr.width || 1, self.attr.height || 1);
+    self.ctx = self.rImageObj.context;
+    self.domEl = self.rImageObj.canvas;
+    // self.attr = props;
+    self.nodeName = "Sprite";
+    self.nodeExe = nodeExe;
+
+    for (const key in self.attr) {
+        self.setAttr(key, self.attr[key]);
+    }
+
+    queueInstance.vDomChanged(nodeExe.vDomIndex);
+    // self.stack = [self];
+}
+RenderTexture.prototype = new NodePrototype();
+RenderTexture.prototype.constructor = RenderTexture;
+
+RenderTexture.prototype.setAttr = function RSsetAttr(attr, value) {
+    const self = this;
+
+    if (attr === "src") {
+        if (typeof value === "string") {
+            if (!self.image) {
+                self.image = textureImageInstance(self, value);
+            }
+            if (self.image.src !== value) {
+                self.image.src = value;
+            }
+        } else if (
+            value instanceof HTMLImageElement ||
+            value instanceof SVGImageElement ||
+            value instanceof HTMLCanvasElement
+        ) {
+            self.imageObj = value;
+            self.attr.height = self.attr.height ? self.attr.height : value.height;
+            self.attr.width = self.attr.width ? self.attr.width : value.width;
+            postProcess(self);
+        } else if (value instanceof CanvasNodeExe || value instanceof RenderTexture) {
+            self.imageObj = value.domEl;
+            self.attr.height = self.attr.height ? self.attr.height : value.height;
+            self.attr.width = self.attr.width ? self.attr.width : value.width;
+            postProcess(self);
+        }
+    }
+    this.attr[attr] = value;
+
+    if (attr === "height" || attr === "width") {
+        this.rImageObj.setAttr(attr, value);
+        postProcess(self);
+    }
+
+    if (attr === "clip" || attr === "filter") {
+        postProcess(self);
+    }
+};
+
+RenderTexture.prototype.onLoad = function (exec) {
+    this.asyncOnLoad = exec;
+};
+
+RenderTexture.prototype.clone = function () {
+    const attr = Object.assign({}, this.attr);
+    const style = Object.assign({}, this.style);
+    attr.src = this;
+    return new RenderTexture(this.nodeExe, {
+        attr: attr,
+        style: style,
+    });
+};
+
+RenderTexture.prototype.execute = function RIexecute() {
+    const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
+
+    if (this.imageObj) {
+        this.ctx.drawImage(this.imageObj, x, y, width, height);
+    }
+};
+
 function canvasNodeLayer(config, height = 0, width = 0) {
     if (!Canvas) {
         console.error("Canvas missing from node");
@@ -2093,15 +2261,15 @@ function canvasNodeLayer(config, height = 0, width = 0) {
         return;
     }
     let onChangeExe;
-    let layer = new Canvas(width, height);
+    const layer = new Canvas(width, height);
     let ctx = layer.getContext("2d", config);
-    let ratio = getPixlRatio(ctx);
+    const ratio = getPixlRatio(ctx);
     let onClear = function (ctx) {
         ctx.clearRect(0, 0, width * ratio, height * ratio);
     };
     const vDomInstance = new VDom();
     const vDomIndex = queueInstance.addVdom(vDomInstance);
-    let root = new CanvasNodeExe(
+    const root = new CanvasNodeExe(
         ctx,
         {
             el: "g",
@@ -2189,8 +2357,8 @@ function canvasNodeLayer(config, height = 0, width = 0) {
     };
 
     root.getPixels = function (x, y, width_, height_) {
-        let imageData = this.ctx.getImageData(x, y, width_, height_);
-        let pixelInstance = new PixelObject(imageData, width_, height_);
+        const imageData = this.ctx.getImageData(x, y, width_, height_);
+        const pixelInstance = new PixelObject(imageData, width_, height_);
 
         return pixelInstance;
     };
@@ -2205,6 +2373,34 @@ function canvasNodeLayer(config, height = 0, width = 0) {
     root.clear = function () {
         onClear();
     };
+
+    root.createTexture = function (config) {
+        return new RenderTexture(this, config);
+    };
+
+    root.createAsyncTexture = function (config) {
+        return new Promise((resolve, reject) => {
+            const textureInstance = new RenderTexture(this, config);
+            textureInstance.onLoad(function () {
+                resolve(textureInstance);
+            });
+        });
+    };
+
+    // function Sprite () {
+
+    // }
+
+    // Sprite.prototype = new NodePrototype();
+    // Sprite.constructor = Sprite;
+
+    // Sprite.prototype.add = function () {
+
+    // }
+
+    // Sprite.prototype.remove = function () {
+
+    // }
 
     root.setContext = function (prop, value) {
         /** Expecting value to be array if multiple aruments */

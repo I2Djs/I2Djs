@@ -22,8 +22,8 @@ function checkForTranslateBounds(trnsExt, [scaleX, scaleY], newTrns) {
 }
 
 function applyTranslate(event, { dx = 0, dy = 0 }, extent) {
-    let translate = event.transform.translate;
-    let [scaleX, scaleY = scaleX] = event.transform.scale;
+    const translate = event.transform.translate;
+    const [scaleX, scaleY = scaleX] = event.transform.scale;
     if (checkForTranslateBounds(extent, [scaleX, scaleY], [translate[0] + dx, translate[1] + dy])) {
         dx /= scaleX;
         dy /= scaleY;
@@ -39,8 +39,8 @@ function applyTranslate(event, { dx = 0, dy = 0 }, extent) {
     return event;
 }
 
-let DragClass = function () {
-    let self = this;
+const DragClass = function () {
+    const self = this;
     this.dragStartFlag = false;
     this.dragExtent = [
         [-Infinity, -Infinity],
@@ -78,7 +78,7 @@ DragClass.prototype = {
         return this;
     },
     dragStart: function (fun) {
-        let self = this;
+        const self = this;
         if (typeof fun === "function") {
             this.onDragStart = function (trgt, event) {
                 self.event.x = event.offsetX;
@@ -92,11 +92,11 @@ DragClass.prototype = {
         return this;
     },
     drag: function (fun) {
-        let self = this;
+        const self = this;
         if (typeof fun === "function") {
             this.onDrag = function (trgt, event) {
-                let dx = event.offsetX - self.event.x;
-                let dy = event.offsetY - self.event.y;
+                const dx = event.offsetX - self.event.x;
+                const dy = event.offsetY - self.event.y;
                 self.event.x = event.offsetX;
                 self.event.y = event.offsetY;
                 self.event = applyTranslate(this.event, { dx, dy }, self.dragExtent);
@@ -106,7 +106,7 @@ DragClass.prototype = {
         return this;
     },
     dragEnd: function (fun) {
-        let self = this;
+        const self = this;
         if (typeof fun === "function") {
             this.onDragEnd = function (trgt, event) {
                 self.dragStartFlag = false;
@@ -120,13 +120,13 @@ DragClass.prototype = {
         return this;
     },
     bindMethods: function (trgt) {
-        let self = this;
+        const self = this;
         trgt.dragTo = function (k, point) {
             self.dragTo(trgt, k, point);
         };
     },
     execute: function (trgt, event, eventType) {
-        let self = this;
+        const self = this;
         this.event.e = event;
         if (event.preventDefault) {
             event.preventDefault();
@@ -170,8 +170,8 @@ function computeTransform(transformObj, oScale, nScale, point) {
     return transformObj;
 }
 
-let ZoomClass = function () {
-    let self = this;
+const ZoomClass = function () {
+    const self = this;
     this.event = {
         x: 0,
         y: 0,
@@ -216,12 +216,12 @@ let ZoomClass = function () {
 };
 
 ZoomClass.prototype.zoomStart = function (fun) {
-    let self = this;
+    const self = this;
     if (typeof fun === "function") {
         this.zoomStartExe = fun;
         this.onZoomStart = function (trgt, event, eventsInstance) {
             if (eventsInstance.pointers && eventsInstance.pointers.length === 2) {
-                let pointers = eventsInstance.pointers;
+                const pointers = eventsInstance.pointers;
                 event = {
                     x: pointers[0].offsetX + (pointers[1].offsetX - pointers[0].offsetX) * 0.5,
                     y: pointers[0].offsetY + (pointers[1].offsetY - pointers[0].offsetY) * 0.5,
@@ -242,16 +242,16 @@ ZoomClass.prototype.zoomStart = function (fun) {
 };
 
 ZoomClass.prototype.zoom = function (fun) {
-    let self = this;
+    const self = this;
     if (typeof fun === "function") {
         this.zoomExe = fun;
         this.onZoom = function (trgt, event) {
-            let transform = self.event.transform;
-            let origScale = transform.scale[0];
+            const transform = self.event.transform;
+            const origScale = transform.scale[0];
             let newScale = origScale;
-            let deltaY = event.deltaY;
-            let x = event.offsetX;
-            let y = event.offsetY;
+            const deltaY = event.deltaY;
+            const x = event.offsetX;
+            const y = event.offsetY;
 
             newScale = scaleRangeCheck(self.zoomExtent_, newScale + deltaY * -1 * self.zoomBy_);
 
@@ -265,7 +265,7 @@ ZoomClass.prototype.zoom = function (fun) {
 };
 
 ZoomClass.prototype.zoomEnd = function (fun) {
-    let self = this;
+    const self = this;
     if (typeof fun === "function") {
         this.zoomEndExe = fun;
         this.onZoomEnd = function (trgt, event) {
@@ -333,7 +333,7 @@ ZoomClass.prototype.zoomExecute = function (trgt, event, eventsInstance) {
 };
 
 ZoomClass.prototype.zoomPinch = function (trgt, event, eventsInstance) {
-    let pointers = eventsInstance.pointers;
+    const pointers = eventsInstance.pointers;
     if (event.preventDefault) {
         event.preventDefault();
     }
@@ -341,18 +341,18 @@ ZoomClass.prototype.zoomPinch = function (trgt, event, eventsInstance) {
         if (!this.zoomStartFlag) {
             this.onZoomStart(trgt, event, eventsInstance);
         } else {
-            let distance_ = this.event.distance;
+            const distance_ = this.event.distance;
             for (var i = 0; i < pointers.length; i++) {
                 if (event.pointerId === pointers[i].pointerId) {
                     pointers[i] = event;
                     break;
                 }
             }
-            let distance = geometry.getDistance(
+            const distance = geometry.getDistance(
                 { x: pointers[0].offsetX, y: pointers[0].offsetY },
                 { x: pointers[1].offsetX, y: pointers[1].offsetY }
             );
-            let pinchEvent = {
+            const pinchEvent = {
                 offsetX: this.event.x, // + ((pointers[1].clientX - pointers[0].clientX) * 0.5),
                 offsetY: this.event.y, // + ((pointers[1].clientY - pointers[0].clientY) * 0.5),
                 deltaY: !distance_ ? 0 : distance_ - distance,
@@ -365,19 +365,22 @@ ZoomClass.prototype.zoomPinch = function (trgt, event, eventsInstance) {
 };
 
 ZoomClass.prototype.scaleBy = function scaleBy(trgt, k, point) {
-    let self = this;
-    let transform = self.event.transform;
-    let newScale = k * transform.scale[0];
-    let origScale = transform.scale[0];
-    let zoomTrgt = this.zoomTarget_ || point;
-    let xdiff = (zoomTrgt[0] - point[0]) * origScale;
-    let ydiff = (zoomTrgt[1] - point[1]) * origScale;
+    const self = this;
+    const transform = self.event.transform;
+    const newScale = k * transform.scale[0];
+    const origScale = transform.scale[0];
+    const zoomTrgt = this.zoomTarget_ || point;
+    const xdiff = (zoomTrgt[0] - point[0]) * origScale;
+    const ydiff = (zoomTrgt[1] - point[1]) * origScale;
     let pf = 0;
 
-    let targetConfig = {
+    const targetConfig = {
         run(f) {
-            let oScale = transform.scale[0];
-            let nscale = scaleRangeCheck(self.zoomExtent_, origScale + (newScale - origScale) * f);
+            const oScale = transform.scale[0];
+            const nscale = scaleRangeCheck(
+                self.zoomExtent_,
+                origScale + (newScale - origScale) * f
+            );
 
             self.event.transform = computeTransform(transform, oScale, nscale, point);
             self.event.transform.translate[0] += (xdiff * (f - pf)) / nscale;
@@ -409,17 +412,20 @@ ZoomClass.prototype.zoomTarget = function zoomTarget(point) {
 };
 
 ZoomClass.prototype.scaleTo = function scaleTo(trgt, newScale, point) {
-    let self = this;
-    let transform = self.event.transform;
-    let origScale = transform.scale[0];
-    let zoomTrgt = this.zoomTarget_ || point;
-    let xdiff = (zoomTrgt[0] - point[0]) * origScale;
-    let ydiff = (zoomTrgt[1] - point[1]) * origScale;
+    const self = this;
+    const transform = self.event.transform;
+    const origScale = transform.scale[0];
+    const zoomTrgt = this.zoomTarget_ || point;
+    const xdiff = (zoomTrgt[0] - point[0]) * origScale;
+    const ydiff = (zoomTrgt[1] - point[1]) * origScale;
     let pf = 0;
-    let targetConfig = {
+    const targetConfig = {
         run(f) {
-            let oScale = transform.scale[0];
-            let nscale = scaleRangeCheck(self.zoomExtent_, origScale + (newScale - origScale) * f);
+            const oScale = transform.scale[0];
+            const nscale = scaleRangeCheck(
+                self.zoomExtent_,
+                origScale + (newScale - origScale) * f
+            );
 
             self.event.transform = computeTransform(transform, oScale, nscale, point);
             self.event.transform.translate[0] += (xdiff * (f - pf)) / nscale;
@@ -458,14 +464,14 @@ ZoomClass.prototype.scaleTo = function scaleTo(trgt, newScale, point) {
 };
 
 ZoomClass.prototype.panTo = function panTo(trgt, point) {
-    let self = this;
-    let transform = self.event.transform;
-    let xdiff = point[0] - self.event.x;
-    let ydiff = point[1] - self.event.y;
+    const self = this;
+    const transform = self.event.transform;
+    const xdiff = point[0] - self.event.x;
+    const ydiff = point[1] - self.event.y;
     let pf = 0;
-    let targetConfig = {
+    const targetConfig = {
         run(f) {
-            let [scale] = transform.scale;
+            const [scale] = transform.scale;
 
             transform.translate[0] += (xdiff * (f - pf)) / scale;
             transform.translate[1] += (ydiff * (f - pf)) / scale;
@@ -492,7 +498,7 @@ ZoomClass.prototype.panTo = function panTo(trgt, point) {
 };
 
 ZoomClass.prototype.bindMethods = function (trgt) {
-    let self = this;
+    const self = this;
     trgt.scaleTo = function (k, point) {
         self.scaleTo(trgt, k, point);
     };
@@ -556,8 +562,8 @@ ZoomClass.prototype.panExecute = function (trgt, event, eventType, eventsInstanc
     ) {
         this.onZoomEnd(trgt, event);
     } else if (this.zoomExe) {
-        let dx = event.offsetX - this.event.x;
-        let dy = event.offsetY - this.event.y;
+        const dx = event.offsetX - this.event.x;
+        const dy = event.offsetY - this.event.y;
 
         this.event.x = event.offsetX;
         this.event.y = event.offsetY;

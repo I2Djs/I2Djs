@@ -14,13 +14,13 @@ import {
     layerResizeUnBind,
 } from "./coreApi.js";
 
-let t2DGeometry = geometry;
+const t2DGeometry = geometry;
 
 let ratio;
 const queueInstance = queue;
 
-let zoomInstance = behaviour.zoom();
-let dragInstance = behaviour.drag();
+const zoomInstance = behaviour.zoom();
+const dragInstance = behaviour.drag();
 
 function getPixlRatio(ctx) {
     const dpr = window.devicePixelRatio || 1;
@@ -31,7 +31,8 @@ function getPixlRatio(ctx) {
         ctx.oBackingStorePixelRatio ||
         ctx.backingStorePixelRatio ||
         1;
-    return dpr / bsr;
+    const ratio = dpr / bsr;
+    return ratio < 1.0 ? 1.0 : ratio;
 }
 
 let Id = 0;
@@ -42,7 +43,7 @@ function domId() {
 }
 
 function parseTransform(transform) {
-    let output = {
+    const output = {
         translateX: 0,
         translateY: 0,
         scaleX: 1,
@@ -67,7 +68,7 @@ function parseTransform(transform) {
 function RPolyupdateBBox() {
     const self = this;
     const { transform, points = [] } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     if (points && points.length > 0) {
         let minX = points[0].x;
@@ -104,7 +105,7 @@ function RPolyupdateBBox() {
     }
 }
 
-let WebglCollection = function () {
+const WebglCollection = function () {
     CollectionPrototype.apply(this, arguments);
 };
 WebglCollection.prototype = new CollectionPrototype();
@@ -242,7 +243,7 @@ PointNode.prototype.setAttr = function (prop, value) {
 PointNode.prototype.updateBBox = function RRupdateBBox() {
     const self = this;
     const { transform, x = 0, y = 0, size = 0 } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     self.BBox = {
         x: translateX + x * scaleX,
@@ -342,7 +343,7 @@ RectNode.prototype.in = function RRinfun(co) {
 RectNode.prototype.updateBBox = function RRupdateBBox() {
     const self = this;
     const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     self.BBox = {
         x: translateX + x * scaleX,
@@ -359,7 +360,7 @@ RectNode.prototype.updateBBox = function RRupdateBBox() {
 };
 
 function PathNode(attr, style) {
-    let self = this;
+    const self = this;
     this.attr = attr;
     this.style = style;
     this.pointsGeometry = [];
@@ -393,7 +394,7 @@ function PathNode(attr, style) {
         ]);
     }
     if (this.attr.transform) {
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
         this.transform = [translateX, translateY, scaleX, scaleY];
     }
 }
@@ -426,7 +427,7 @@ PathNode.prototype.setAttr = function (key, value) {
         this.points = new Float32Array(this.path.getPoints());
     }
     if (key === "transform") {
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
         this.transform = [translateX, translateY, scaleX, scaleY];
     }
 };
@@ -434,7 +435,7 @@ PathNode.prototype.setAttr = function (key, value) {
 PathNode.prototype.updateBBox = function RCupdateBBox() {
     const self = this;
     const { transform } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
     self.BBox = self.path
         ? self.path.BBox
         : {
@@ -461,9 +462,9 @@ function PolyLineNode(attr, style) {
     this.style = style || {};
     this.points = [];
     this.transform = [0, 0, 1, 1];
-    let subPoints = [];
+    const subPoints = [];
     if (this.attr.points) {
-        let points = this.attr.points;
+        const points = this.attr.points;
         for (let j = 0, jlen = points.length; j < jlen; j++) {
             subPoints[j * 2] = points[j].x;
             subPoints[j * 2 + 1] = points[j].y;
@@ -479,7 +480,7 @@ function PolyLineNode(attr, style) {
         ]);
     }
     if (this.attr.transform) {
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
         this.transform = [translateX, translateY, scaleX, scaleY];
     }
 }
@@ -495,8 +496,8 @@ PolyLineNode.prototype.setShader = function (shader) {
 PolyLineNode.prototype.setAttr = function (key, value) {
     this.attr[key] = value;
     if (key === "points") {
-        let points = this.attr.points;
-        let subPoints = [];
+        const points = this.attr.points;
+        const subPoints = [];
         for (let j = 0, jlen = points.length; j < jlen; j++) {
             subPoints[j * 2] = points[j].x;
             subPoints[j * 2 + 1] = points[j].y;
@@ -504,7 +505,7 @@ PolyLineNode.prototype.setAttr = function (key, value) {
         this.points = new Float32Array(subPoints);
     }
     if (key === "transform") {
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
         this.transform = [translateX, translateY, scaleX, scaleY];
     }
 };
@@ -537,7 +538,7 @@ function LineNode(attr, style) {
     this.transform = [0, 0, 1, 1];
 
     if (this.attr.transform) {
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
         this.transform = [translateX, translateY, scaleX, scaleY];
     }
 }
@@ -547,7 +548,7 @@ LineNode.prototype.constructor = LineNode;
 
 LineNode.prototype.setShader = function (shader) {
     this.shader = shader;
-    let { x1 = 0, y1 = 0, x2 = x1, y2 = y1 } = this.attr;
+    const { x1 = 0, y1 = 0, x2 = x1, y2 = y1 } = this.attr;
 
     if (this.shader) {
         this.shader.addVertex(x1, y1, x2, y2, this.pindex);
@@ -585,7 +586,7 @@ LineNode.prototype.setAttr = function (key, value) {
 LineNode.prototype.updateBBox = function RLupdateBBox() {
     const self = this;
     const { transform, x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     self.BBox = {
         x: translateX + (x1 < x2 ? x1 : x2) * scaleX,
@@ -633,9 +634,9 @@ function PolygonNode(attr, style) {
     this.style = style;
     this.positionArray = [];
     this.transform = [0, 0, 1, 1];
-    let subPoints = [];
+    const subPoints = [];
     if (this.attr.points) {
-        let points = polygonPointsMapper(this.attr["points"]);
+        const points = polygonPointsMapper(this.attr.points);
         for (let j = 0, jlen = points.length; j < jlen; j++) {
             subPoints[j * 2] = points[j].x;
             subPoints[j * 2 + 1] = points[j].y;
@@ -651,7 +652,7 @@ function PolygonNode(attr, style) {
         ]);
     }
     if (this.attr.transform) {
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
         this.transform = [translateX, translateY, scaleX, scaleY];
     }
 }
@@ -674,8 +675,8 @@ PolygonNode.prototype.setAttr = function (key, value) {
         return;
     }
     if (key === "points") {
-        let subPoints = [];
-        let points = polygonPointsMapper(value);
+        const subPoints = [];
+        const points = polygonPointsMapper(value);
         for (let j = 0, jlen = points.length; j < jlen; j++) {
             subPoints[j * 2] = points[j].x;
             subPoints[j * 2 + 1] = points[j].y;
@@ -759,14 +760,14 @@ CircleNode.prototype.setAttr = function (prop, value) {
 
 CircleNode.prototype.in = function RCinfun(co, eventType) {
     const { r = 0, cx = 0, cy = 0 } = this.attr;
-    let tr = Math.sqrt((co.x - cx) * (co.x - cx) + (co.y - cy) * (co.y - cy));
+    const tr = Math.sqrt((co.x - cx) * (co.x - cx) + (co.y - cy) * (co.y - cy));
     return tr <= r;
 };
 
 CircleNode.prototype.updateBBox = function RCupdateBBox() {
     const self = this;
     const { transform, r = 0, cx = 0, cy = 0 } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     self.BBox = {
         x: translateX + (cx - r) * scaleX,
@@ -782,13 +783,13 @@ CircleNode.prototype.updateBBox = function RCupdateBBox() {
     }
 };
 
-let webGLImageTextures = {};
+const webGLImageTextures = {};
 
 function isPowerOf2(value) {
     return (value & (value - 1)) === 0;
 }
 
-let onClear = function (ctx, width, height, ratio) {
+const onClear = function (ctx, width, height, ratio) {
     ctx.clearRect(0, 0, width * ratio, height * ratio);
 };
 
@@ -802,11 +803,11 @@ function buildCanvasTextEl(str, style) {
         style.font = "10px Arial";
     }
 
-    let fontSize = parseFloat(style.font, 10) || 12;
-    ctx["font"] = style.font;
-    let twid = ctx.measureText(str);
-    let width = twid.width;
-    let height = fontSize;
+    const fontSize = parseFloat(style.font, 10) || 12;
+    ctx.font = style.font;
+    const twid = ctx.measureText(str);
+    const width = twid.width;
+    const height = fontSize;
     layer.setAttribute("height", height * ratio);
     layer.setAttribute("width", width * ratio);
     layer.style.width = width;
@@ -818,7 +819,7 @@ function buildCanvasTextEl(str, style) {
             ? style.font
             : style.font.substring(fontSize.toString().length));
 
-    for (let st in style) {
+    for (const st in style) {
         ctx[st] = style[st];
     }
     ctx.fillText(str, 0, height * 0.75 * ratio);
@@ -833,7 +834,7 @@ function buildCanvasTextEl(str, style) {
         str: str,
         updateText: function () {
             onClear(this.ctx, this.width, this.height, this.ratio);
-            for (let st in this.style) {
+            for (const st in this.style) {
                 this.ctx[st] = this.style[st];
             }
             this.ctx.fillText(this.str, 0, this.height * 0.75);
@@ -842,7 +843,7 @@ function buildCanvasTextEl(str, style) {
 }
 
 function TextNode(ctx, attr, style, vDomIndex) {
-    let self = this;
+    const self = this;
     this.ctx = ctx;
     this.attr = attr;
     this.style = style;
@@ -851,7 +852,7 @@ function TextNode(ctx, attr, style, vDomIndex) {
     this.transform = [0, 0, 1, 1];
 
     if (this.attr.transform) {
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
         this.transform = [translateX, translateY, scaleX, scaleY];
     }
 
@@ -924,17 +925,17 @@ TextNode.prototype.setAttr = function (key, value) {
     }
 
     if (key === "transform") {
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
         this.transform = [translateX, translateY, scaleX, scaleY];
     }
 
     if (key === "x" || key === "y") {
-        let x = this.attr["x"] || 0;
-        let y = this.attr["y"] || 0;
-        let width = this.attr["width"] || 0;
-        let height = this.attr["height"] || 0;
-        let x1 = x + width;
-        let y1 = y + height;
+        const x = this.attr.x || 0;
+        const y = this.attr.y || 0;
+        const width = this.attr.width || 0;
+        const height = this.attr.height || 0;
+        const x1 = x + width;
+        const y1 = y + height;
 
         this.positionArray[0] = this.positionArray[4] = this.positionArray[6] = x;
         this.positionArray[1] = this.positionArray[3] = this.positionArray[9] = y;
@@ -955,11 +956,11 @@ TextNode.prototype.setStyle = function (key, value) {
     if (this.text) {
         this.text.style[key] = value;
         if (key === "font") {
-            let fontSize = parseFloat(value, 10) || 12;
-            this.text.ctx["font"] = value;
-            let twid = this.text.ctx.measureText(this.attr.text);
-            let width = twid.width;
-            let height = fontSize;
+            const fontSize = parseFloat(value, 10) || 12;
+            this.text.ctx.font = value;
+            const twid = this.text.ctx.measureText(this.attr.text);
+            const width = twid.width;
+            const height = fontSize;
             this.text.style.font =
                 fontSize * ratio +
                 (isNaN(parseFloat(value, 10))
@@ -1125,7 +1126,7 @@ TextNode.prototype.in = function RIinfun(co) {
 TextNode.prototype.updateBBox = function RIupdateBBox() {
     const self = this;
     const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     self.BBox = {
         x: (translateX + x) * scaleX,
@@ -1142,7 +1143,7 @@ TextNode.prototype.updateBBox = function RIupdateBBox() {
 };
 
 function ImageNode(ctx, attr, style, vDomIndex) {
-    let self = this;
+    const self = this;
     this.ctx = ctx;
     this.attr = attr;
     this.style = style;
@@ -1151,7 +1152,7 @@ function ImageNode(ctx, attr, style, vDomIndex) {
     this.transform = [0, 0, 1, 1];
 
     if (this.attr.transform) {
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
         this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
     }
 
@@ -1164,18 +1165,26 @@ function ImageNode(ctx, attr, style, vDomIndex) {
             this.vDomIndex
         );
         webGLImageTextures[self.attr.src] = this.textureNode;
+    } else if (self.attr.src && self.attr.src instanceof NodePrototype) {
+        this.textureNode = new TextureObject(
+            ctx,
+            {
+                src: this.attr.src,
+            },
+            this.vDomIndex
+        );
     } else if (typeof self.attr.src === "string" && webGLImageTextures[self.attr.src]) {
         this.textureNode = webGLImageTextures[self.attr.src];
     } else if (self.attr.src && self.attr.src instanceof TextureObject) {
         this.textureNode = self.attr.src;
     }
     if (this.attr.x || this.attr.y || this.attr.width || this.attr.height) {
-        let x = this.attr["x"] || 0;
-        let y = this.attr["y"] || 0;
-        let width = this.attr["width"] || 0;
-        let height = this.attr["height"] || 0;
-        let x1 = x + width;
-        let y1 = y + height;
+        const x = this.attr.x || 0;
+        const y = this.attr.y || 0;
+        const width = this.attr.width || 0;
+        const height = this.attr.height || 0;
+        const x1 = x + width;
+        const y1 = y + height;
 
         this.positionArray[0] = this.positionArray[4] = this.positionArray[6] = x;
         this.positionArray[1] = this.positionArray[3] = this.positionArray[9] = y;
@@ -1237,12 +1246,12 @@ ImageNode.prototype.setAttr = function (key, value) {
     //     return;
     // }
     if (key === "x" || key === "width" || key === "y" || key === "height") {
-        let x = this.attr["x"] || 0;
-        let y = this.attr["y"] || 0;
-        let width = this.attr["width"] || 0;
-        let height = this.attr["height"] || 0;
-        let x1 = x + width;
-        let y1 = y + height;
+        const x = this.attr.x || 0;
+        const y = this.attr.y || 0;
+        const width = this.attr.width || 0;
+        const height = this.attr.height || 0;
+        const x1 = x + width;
+        const y1 = y + height;
 
         this.positionArray[0] = this.positionArray[4] = this.positionArray[6] = x;
         this.positionArray[1] = this.positionArray[3] = this.positionArray[9] = y;
@@ -1251,7 +1260,7 @@ ImageNode.prototype.setAttr = function (key, value) {
     }
 
     if (key === "transform") {
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
         this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
     }
 };
@@ -1283,7 +1292,7 @@ ImageNode.prototype.in = function RIinfun(co) {
 ImageNode.prototype.updateBBox = function RIupdateBBox() {
     const self = this;
     const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     self.BBox = {
         x: (translateX + x) * scaleX,
@@ -1317,14 +1326,14 @@ function WebglGroupNode(ctx, attr, style, renderTarget, vDomIndex) {
         );
     }
     if (this.shader && this.attr.transform) {
-        if (this.attr.transform["translate"]) {
-            this.shader.translate(this.attr.transform["translate"]);
+        if (this.attr.transform.translate) {
+            this.shader.translate(this.attr.transform.translate);
         }
-        if (this.attr.transform["scale"]) {
-            this.shader.scale(this.attr.transform["scale"]);
+        if (this.attr.transform.scale) {
+            this.shader.scale(this.attr.transform.scale);
         }
-        if (this.attr.transform["rotate"]) {
-            this.shader.rotate(this.attr.transform["rotate"]);
+        if (this.attr.transform.rotate) {
+            this.shader.rotate(this.attr.transform.rotate);
         }
     }
 }
@@ -1345,14 +1354,14 @@ WebglGroupNode.prototype.setAttr = function (key, value) {
         );
     }
     if (key === "transform" && this.shader) {
-        if (this.attr.transform["translate"]) {
-            this.shader.translate(this.attr.transform["translate"]);
+        if (this.attr.transform.translate) {
+            this.shader.translate(this.attr.transform.translate);
         }
-        if (this.attr.transform["scale"]) {
-            this.shader.scale(this.attr.transform["scale"]);
+        if (this.attr.transform.scale) {
+            this.shader.scale(this.attr.transform.scale);
         }
-        if (this.attr.transform["rotate"]) {
-            this.shader.rotate(this.attr.transform["rotate"]);
+        if (this.attr.transform.rotate) {
+            this.shader.rotate(this.attr.transform.rotate);
         }
     }
 };
@@ -1375,7 +1384,7 @@ WebglGroupNode.prototype.in = function RGinfun(coOr) {
     };
     const { BBox } = this;
     const { transform } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     return (
         co.x >= (BBox.x - translateX) / scaleX &&
@@ -1392,7 +1401,7 @@ WebglGroupNode.prototype.updateBBox = function RGupdateBBox(children) {
     let minY;
     let maxY;
     const { transform } = self.attr;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
     self.BBox = {};
 
     if (children && children.length > 0) {
@@ -1440,7 +1449,7 @@ WebglGroupNode.prototype.updateBBox = function RGupdateBBox(children) {
     }
 };
 
-let defaultColor = colorMap.rgba(0, 0, 0, 255);
+const defaultColor = colorMap.rgba(0, 0, 0, 255);
 
 function webGlAttrMapper(ctx, program, attr, attrObj) {
     let valType = attrObj.type;
@@ -1460,9 +1469,9 @@ function webGlAttrMapper(ctx, program, attr, attrObj) {
     }
 
     return {
-        bufferType: ctx["ARRAY_BUFFER"],
+        bufferType: ctx.ARRAY_BUFFER,
         buffer: ctx.createBuffer(),
-        drawType: ctx["STATIC_DRAW"],
+        drawType: ctx.STATIC_DRAW,
         valueType: ctx[valType],
         size: attrObj.size,
         attributeLocation: ctx.getAttribLocation(program, attr),
@@ -1486,9 +1495,9 @@ function webGlIndexMapper(ctx, program, attrObj) {
     }
 
     return {
-        bufferType: ctx["ELEMENT_ARRAY_BUFFER"],
+        bufferType: ctx.ELEMENT_ARRAY_BUFFER,
         buffer: ctx.createBuffer(),
-        drawType: ctx["STATIC_DRAW"],
+        drawType: ctx.STATIC_DRAW,
         valueType: ctx[valType],
         value: attrObj.value,
         count: attrObj.count,
@@ -1498,7 +1507,7 @@ function webGlIndexMapper(ctx, program, attrObj) {
 
 function webGlUniformMapper(ctx, program, uniform, uniObj) {
     let type;
-    let len = uniObj.size ? uniObj.size : uniObj.value.length;
+    const len = uniObj.size ? uniObj.size : uniObj.value.length;
     if (!uniObj.matrix) {
         if (uniObj.value instanceof TextureObject) {
             type = "uniform1i";
@@ -1554,7 +1563,7 @@ function RenderWebglShader(ctx, shader, vDomIndex) {
     this.geometry = shader.geometry;
     this.renderTarget = shader.renderTarget;
 
-    for (let uniform in shader.uniforms) {
+    for (const uniform in shader.uniforms) {
         this.uniforms[uniform] = webGlUniformMapper(
             ctx,
             this.program,
@@ -1576,7 +1585,7 @@ function RenderWebglShader(ctx, shader, vDomIndex) {
         }
     }
 
-    for (let attr in this.attributes) {
+    for (const attr in this.attributes) {
         this.attrObjs[attr] = webGlAttrMapper(ctx, this.program, attr, this.attributes[attr]);
     }
 
@@ -1593,7 +1602,7 @@ RenderWebglShader.prototype.useProgram = function () {
 };
 
 RenderWebglShader.prototype.applyUniforms = function () {
-    for (let uniform in this.uniforms) {
+    for (const uniform in this.uniforms) {
         if (this.uniforms[uniform].matrix) {
             this.ctx[this.uniforms[uniform].type](
                 this.uniforms[uniform].uniformLocation,
@@ -1619,7 +1628,7 @@ RenderWebglShader.prototype.applyUniforms = function () {
 
 RenderWebglShader.prototype.applyAttributes = function () {
     let d;
-    for (let attr in this.attrObjs) {
+    for (const attr in this.attrObjs) {
         d = this.attrObjs[attr];
         this.ctx.bindBuffer(d.bufferType, d.buffer);
         this.ctx.bufferData(d.bufferType, this.attributes[d.attr].value, d.drawType);
@@ -1629,7 +1638,7 @@ RenderWebglShader.prototype.applyAttributes = function () {
 };
 
 RenderWebglShader.prototype.applyIndexes = function () {
-    let d = this.indexesObj;
+    const d = this.indexesObj;
     this.ctx.bindBuffer(d.bufferType, d.buffer);
     this.ctx.bufferData(d.bufferType, d.value, d.drawType);
 };
@@ -1698,7 +1707,7 @@ RenderWebglShader.prototype.setAttributeData = function (key, value) {
 RenderWebglShader.prototype.applyAttributeData = function (key, value) {
     this.attributes[key].value = value;
     this.attrObjs[key].value = value;
-    let d = this.attrObjs[key];
+    const d = this.attrObjs[key];
     this.ctx.bindBuffer(d.bufferType, d.buffer);
     this.ctx.bufferData(d.bufferType, this.attributes[d.attr].value, d.drawType);
     this.ctx.enableVertexAttribArray(d.attributeLocation);
@@ -1729,18 +1738,18 @@ function ShaderNodePrototype() {}
 ShaderNodePrototype.prototype.setAttr = function (attr, value) {
     this.attr[attr] = value;
     if (attr === "transform") {
-        let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
         this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
     }
 };
 ShaderNodePrototype.prototype.translate = function (trans) {
-    this.attr.transform["translate"] = trans;
+    this.attr.transform.translate = trans;
 };
 ShaderNodePrototype.prototype.scale = function (scale) {
-    this.attr.transform["scale"] = scale;
+    this.attr.transform.scale = scale;
 };
 ShaderNodePrototype.prototype.rotate = function (angle) {
-    this.attr.transform["rotate"] = angle;
+    this.attr.transform.rotate = angle;
 };
 
 function addTransform(self, index, length, transform) {
@@ -1749,8 +1758,8 @@ function addTransform(self, index, length, transform) {
             ? Array.from(self.transformTyped)
             : self.transform;
     self.transformTyped = null;
-    let len = index * length * 4;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const len = index * length * 4;
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
     let i = 0;
     while (i < length) {
         self.transform[len + i * 4] = translateX;
@@ -1764,9 +1773,9 @@ function addTransform(self, index, length, transform) {
 }
 
 function updateTransform(self, index, length, transform) {
-    let transform_ = self.transformUpdate ? self.transform : self.transformTyped;
-    let len = index * length * 4;
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const transform_ = self.transformUpdate ? self.transform : self.transformTyped;
+    const len = index * length * 4;
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
     let i = 0;
     while (i < length) {
         transform_[len + i * 4] = translateX;
@@ -1778,8 +1787,8 @@ function updateTransform(self, index, length, transform) {
 }
 
 function clearTransform(self, index, length) {
-    let transform_ = self.transformUpdate ? self.transform : self.transformTyped;
-    let len = index * length * 4;
+    const transform_ = self.transformUpdate ? self.transform : self.transformTyped;
+    const len = index * length * 4;
     let i = 0;
     while (i < length) {
         transform_[len + i * 4] = undefined;
@@ -1818,7 +1827,7 @@ function addVertex(self, index, length, ver) {
             ? Array.from(self.typedPositionArray)
             : self.positionArray;
     self.typedPositionArray = null;
-    let b = index * length * 2;
+    const b = index * length * 2;
     let i = 0;
     while (i < ver.length) {
         self.positionArray[b + i] = ver[i];
@@ -1828,8 +1837,8 @@ function addVertex(self, index, length, ver) {
 }
 
 function updateVertex(self, index, length, ver) {
-    let positionArray = self.vertexUpdate ? self.positionArray : self.typedPositionArray;
-    let b = index * length * 2;
+    const positionArray = self.vertexUpdate ? self.positionArray : self.typedPositionArray;
+    const b = index * length * 2;
     let i = 0;
     if (isNaN(positionArray[b])) {
         console.log("overriding Nan");
@@ -1841,8 +1850,8 @@ function updateVertex(self, index, length, ver) {
 }
 
 function clearVertex(self, index, length) {
-    let positionArray = self.vertexUpdate ? self.positionArray : self.typedPositionArray;
-    let b = index * length * 2;
+    const positionArray = self.vertexUpdate ? self.positionArray : self.typedPositionArray;
+    const b = index * length * 2;
     let i = 0;
     while (i < length) {
         positionArray[b + i * 2] = undefined;
@@ -1879,7 +1888,7 @@ function addColors(self, index, length, fill) {
             ? Array.from(self.typedColorArray)
             : self.colorArray;
     self.typedColorArray = null;
-    let b = index * length * 4;
+    const b = index * length * 4;
     let i = 0;
     while (i < length) {
         self.colorArray[b + i * 4] = fill.r / 255;
@@ -1892,12 +1901,12 @@ function addColors(self, index, length, fill) {
 }
 
 function updateColor(self, index, length, fill) {
-    let colorArray = self.colorUpdate ? self.colorArray : self.typedColorArray;
-    let ti = index * length * 4;
+    const colorArray = self.colorUpdate ? self.colorArray : self.typedColorArray;
+    const ti = index * length * 4;
     if (isNaN(colorArray[ti])) {
         console.log("overriding Nan");
     }
-    let b = index * length * 4;
+    const b = index * length * 4;
     let i = 0;
     while (i < length) {
         colorArray[b + i * 4] = fill.r / 255;
@@ -1909,12 +1918,12 @@ function updateColor(self, index, length, fill) {
 }
 
 function clearColor(self, index, length) {
-    let colorArray = self.colorUpdate ? self.colorArray : self.typedColorArray;
-    let ti = index * length * 4;
+    const colorArray = self.colorUpdate ? self.colorArray : self.typedColorArray;
+    const ti = index * length * 4;
     if (isNaN(colorArray[ti])) {
         console.log("overriding Nan");
     }
-    let b = index * length * 4;
+    const b = index * length * 4;
     let i = 0;
     while (i < length) {
         colorArray[b + i * 4] = undefined;
@@ -1963,7 +1972,7 @@ function RenderWebglPoints(ctx, attr, style, vDomIndex) {
             scale: [1.0, 1.0],
         };
     }
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
     this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
     this.geometry = new PointsGeometry();
     this.geometry.setAttr("a_color", {
@@ -2021,7 +2030,7 @@ RenderWebglPoints.prototype.clear = function (index) {
     clearVertex(this, index, 1);
     clearTransform(this, index, 1);
 
-    let sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
+    const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
     sizeArray[index] = undefined;
 
     this.filterSizeFlag = true;
@@ -2040,7 +2049,7 @@ RenderWebglPoints.prototype.updateVertex = function (index, x, y) {
 };
 
 RenderWebglPoints.prototype.updateSize = function (index, size) {
-    let sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
+    const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
     sizeArray[index] = size;
 };
 
@@ -2124,7 +2133,7 @@ function RenderWebglRects(ctx, attr, style, renderTarget, vDomIndex) {
             scale: [1.0, 1.0],
         };
     }
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
     this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
     this.geometry = new MeshGeometry();
@@ -2180,8 +2189,8 @@ RenderWebglRects.prototype.clear = function (index) {
 };
 
 RenderWebglRects.prototype.updateVertex = function (index, x, y, width, height) {
-    let x1 = x + width;
-    let y1 = y + height;
+    const x1 = x + width;
+    const y1 = y + height;
     updateVertex(this, index, 6, [x, y, x1, y, x, y1, x, y1, x1, y, x1, y1]);
 };
 
@@ -2198,8 +2207,8 @@ RenderWebglRects.prototype.updateColor = function (index, fill) {
 };
 
 RenderWebglRects.prototype.addVertex = function (x, y, width, height, index) {
-    let x1 = x + width;
-    let y1 = y + height;
+    const x1 = x + width;
+    const y1 = y + height;
     addVertex(this, index, 6, [x, y, x1, y, x, y1, x, y1, x1, y, x1, y1]);
 };
 
@@ -2249,7 +2258,7 @@ function RenderWebglLines(ctx, attr, style, renderTarget, vDomIndex) {
             scale: [1.0, 1.0],
         };
     }
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
     this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
     this.geometry = new LineGeometry();
@@ -2356,7 +2365,7 @@ function RenderWebglPolyLines(ctx, attr, style, renderTarget, vDomIndex) {
             scale: [1.0, 1.0],
         };
     }
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
     this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
     this.geometry = new LineGeometry();
@@ -2442,7 +2451,7 @@ function RenderWebglPolygons(ctx, attr, style, renderTarget, vDomIndex) {
         };
     }
 
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
     this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
     this.geometry = new MeshGeometry();
@@ -2532,7 +2541,7 @@ function RenderWebglCircles(ctx, attr, style, renderTarget, vDomIndex) {
             scale: [1.0, 1.0],
         };
     }
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
     this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
     this.geometry = new PointsGeometry();
@@ -2588,7 +2597,7 @@ RenderWebglCircles.prototype.clear = function (index) {
     clearVertex(this, index, 1);
     clearTransform(this, index, 1);
 
-    let sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
+    const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
     sizeArray[index] = undefined;
 
     this.filterSizeFlag = true;
@@ -2611,7 +2620,7 @@ RenderWebglCircles.prototype.updateColor = function (index, fill) {
 };
 
 RenderWebglCircles.prototype.updateSize = function (index, value) {
-    let sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
+    const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
     sizeArray[index] = value;
 };
 
@@ -2689,7 +2698,7 @@ function RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex) {
         };
     }
 
-    let { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
+    const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
     this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
     this.geometry = new MeshGeometry();
@@ -2753,10 +2762,10 @@ RenderWebglImages.prototype.execute = function (stack) {
     this.shaderInstance.applyUniformData("uu_transform", this.transform);
     this.shaderInstance.applyAttributeData("a_texCoord", this.textCoor);
 
-    let gOp = this.style.opacity !== undefined ? this.style.opacity : 1.0;
+    const gOp = this.style.opacity !== undefined ? this.style.opacity : 1.0;
     let prevTexture;
     for (let i = 0, len = stack.length; i < len; i++) {
-        let node = stack[i];
+        const node = stack[i];
 
         if (!node.dom.textureNode || !node.dom.textureNode.updated) {
             continue;
@@ -2844,7 +2853,7 @@ function WebglNodeExe(ctx, config, id, vDomIndex) {
     this.el = config.el;
     this.shaderType = config.shaderType;
     this.exeCtx = config.ctx;
-    this.bbox = config["bbox"] !== undefined ? config["bbox"] : true;
+    this.bbox = config.bbox !== undefined ? config.bbox : true;
     this.events = {};
 
     switch (config.el) {
@@ -2926,7 +2935,7 @@ WebglNodeExe.prototype.setAttr = function WsetAttr(attr, value) {
         }
         this.dom.setAttr(attr, value);
     } else if (arguments.length === 1 && typeof attr === "object") {
-        for (let key in attr) {
+        for (const key in attr) {
             if (attr[key] == null && this.attr[attr] != null) {
                 delete this.attr[key];
             } else {
@@ -2968,6 +2977,23 @@ WebglNodeExe.prototype.translate = function Ctranslate(XY) {
     return this;
 };
 
+WebglNodeExe.prototype.rotate = function Crotate(angle, x, y) {
+    if (!this.attr.transform) {
+        this.attr.transform = {};
+    }
+
+    if (Object.prototype.toString.call(angle) === "[object Array]") {
+        this.attr.transform.rotate = [angle[0] || 0, angle[1] || 0, angle[2] || 0];
+    } else {
+        this.attr.transform.rotate = [angle, x || 0, y || 0];
+    }
+
+    this.dom.setAttr("transform", this.attr.transform);
+    this.BBoxUpdate = true;
+    queueInstance.vDomChanged(this.vDomIndex);
+    return this;
+};
+
 WebglNodeExe.prototype.setStyle = function WsetStyle(attr, value) {
     if (arguments.length === 2) {
         if (value == null && this.style[attr] != null) {
@@ -2981,7 +3007,7 @@ WebglNodeExe.prototype.setStyle = function WsetStyle(attr, value) {
 
         this.dom.setStyle(attr, value);
     } else if (arguments.length === 1 && typeof attr === "object") {
-        for (let key in attr) {
+        for (const key in attr) {
             value = attr[key];
             if (value == null && this.style[key] != null) {
                 delete this.style[key];
@@ -3027,7 +3053,7 @@ WebglNodeExe.prototype.in = function Cinfun(co) {
 };
 
 WebglNodeExe.prototype.on = function Con(eventType, hndlr) {
-    let self = this;
+    const self = this;
     // this.dom.on(eventType, hndlr);
     if (!this.events) {
         this.events = {};
@@ -3167,7 +3193,7 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
     let height = res ? res.clientHeight : 0;
     let width = res ? res.clientWidth : 0;
     let clearColor = colorMap.rgba(0, 0, 0, 0);
-    let { enableEvents = false, autoUpdate = true, enableResize = false } = layerSettings;
+    const { enableEvents = false, autoUpdate = true, enableResize = false } = layerSettings;
 
     contextConfig = contextConfig || {
         premultipliedAlpha: false,
@@ -3251,7 +3277,7 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
     };
 
     root.destroy = function () {
-        let res = document.querySelector(container);
+        const res = document.querySelector(container);
         if (res && res.contains(layer)) {
             res.removeChild(layer);
         }
@@ -3259,7 +3285,7 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
     };
 
     root.getPixels = function (x, y, width_, height_) {
-        let pixels = new Uint8Array(width_ * height_ * 4);
+        const pixels = new Uint8Array(width_ * height_ * 4);
         this.ctx.readPixels(x, y, width_, height_, this.ctx.RGBA, this.ctx.UNSIGNED_BYTE, pixels);
         return pixels;
     };
@@ -3280,7 +3306,7 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
         onClear = exe;
     };
 
-    let resize = function (cr) {
+    const resize = function (cr) {
         if (!document.querySelector(container)) {
             layerResizeUnBind(root);
             return;
@@ -3304,7 +3330,7 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
         layer.style.width = `${width}px`;
     };
 
-    let updateLayerDimension = function (layer, width, height) {
+    const updateLayerDimension = function (layer, width, height) {
         layer.setAttribute("height", height * ratio);
         layer.setAttribute("width", width * ratio);
         layer.style.height = `${height}px`;
@@ -3374,7 +3400,7 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
         return new LineGeometry(this.ctx);
     };
 
-    root.TextureObject = function (config) {
+    root.createWebglTexture = function (config) {
         return new TextureObject(this.ctx, config, this.vDomIndex);
     };
 
@@ -3383,7 +3409,7 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
     };
 
     if (enableEvents) {
-        let eventsInstance = new Events(root);
+        const eventsInstance = new Events(root);
         layer.addEventListener("mousemove", (e) => {
             e.preventDefault();
             eventsInstance.mousemoveCheck(e);
@@ -3448,7 +3474,7 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
 }
 
 function imageInstance(self) {
-    let imageIns = new Image();
+    const imageIns = new Image();
     imageIns.crossOrigin = "anonymous";
     imageIns.onload = function onload() {
         self.update();
@@ -3470,8 +3496,8 @@ function createEmptyArrayBuffer(width, height) {
 }
 
 function TextureObject(ctx, config, vDomIndex) {
-    let self = this;
-    let maxTextureSize = ctx.getParameter(ctx.MAX_TEXTURE_SIZE);
+    const self = this;
+    const maxTextureSize = ctx.getParameter(ctx.MAX_TEXTURE_SIZE);
     this.ctx = ctx;
     this.texture = ctx.createTexture();
     this.type = "TEXTURE_2D";
@@ -3519,7 +3545,7 @@ function TextureObject(ctx, config, vDomIndex) {
 }
 TextureObject.prototype.setAttr = function (attr, value) {
     if (arguments.length === 1) {
-        for (let key in attr) {
+        for (const key in attr) {
             this[key] = attr[key];
             if (key === "src") {
                 if (typeof value === "string") {
@@ -3540,7 +3566,7 @@ TextureObject.prototype.setAttr = function (attr, value) {
                     this.update();
                 }
             }
-            if (attr["height"] || attr["width"]) {
+            if (attr.height || attr.width) {
                 self.image = createEmptyArrayBuffer(this.width, this.height);
             }
         }
@@ -3580,7 +3606,7 @@ TextureObject.prototype.loadTexture = function () {
 TextureObject.prototype.clear = function (argument) {};
 
 TextureObject.prototype.update = function () {
-    let ctx = this.ctx;
+    const ctx = this.ctx;
     ctx.activeTexture(ctx.TEXTURE0);
     ctx.bindTexture(ctx.TEXTURE_2D, this.texture);
     if (this.image && !(this.image instanceof Uint8Array)) {
@@ -3604,8 +3630,6 @@ TextureObject.prototype.update = function () {
             ctx[this.type],
             this.image
         );
-        // ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], ctx[this.format], ctx[this.type], new Uint8Array(this.width * this.height * 4));
-        // ctx.texImage2D(ctx.TEXTURE_2D, this.border, ctx[this.format], this.width, this.height, 0, ctx[this.format], ctx[this.type], new Uint8Array(this.width * this.height * 4));
     }
 
     if (this.mipMap) {

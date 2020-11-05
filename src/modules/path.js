@@ -50,7 +50,7 @@ function getBBox(gcmxArr) {
     let point;
 
     for (var j = 0; j < gcmxArr.length; j++) {
-        let cmxArr = gcmxArr[j];
+        const cmxArr = gcmxArr[j];
         for (let i = 0; i < cmxArr.length; i += 1) {
             d = cmxArr[i];
 
@@ -74,7 +74,7 @@ function getBBox(gcmxArr) {
                 });
             } else if (["Q", "C", "q", "c"].indexOf(d.type) !== -1) {
                 const co = t2DGeometry.cubicBezierCoefficients(d);
-                let exe = t2DGeometry.cubicBezierTransition.bind(null, d.p0, co);
+                const exe = t2DGeometry.cubicBezierTransition.bind(null, d.p0, co);
                 let ii = 0;
                 let point;
 
@@ -761,7 +761,7 @@ Path.prototype.execute = function (ctx, clippath) {
 };
 
 Path.prototype.getPoints = function (factor = 0.01) {
-    let points = [];
+    const points = [];
     // let tLength = this.length;
     // let currD = this.stack[0];
     // let cumLength = 0;
@@ -770,6 +770,8 @@ Path.prototype.getPoints = function (factor = 0.01) {
 
     for (let i = 0; i < this.stack.length; i++) {
         d = this.stack[i];
+        const f = 0.05;
+        let tf = 0;
         switch (d.type) {
             case "M":
             case "m":
@@ -796,10 +798,8 @@ Path.prototype.getPoints = function (factor = 0.01) {
             case "s":
             case "Q":
             case "q":
-                let f = 0.05;
-                let tf = 0;
                 while (tf <= 1.0) {
-                    let xy = d.pointAt(tf);
+                    const xy = d.pointAt(tf);
                     points[points.length] = xy.x;
                     points[points.length] = xy.y;
                     tf += f;
@@ -814,6 +814,11 @@ Path.prototype.getPoints = function (factor = 0.01) {
 
 Path.prototype.case = function pCase(currCmd) {
     let currCmdI = currCmd;
+    let rx;
+    let ry;
+    let xRotation;
+    let arcLargeFlag;
+    let sweepFlag;
     if (pathCmdIsValid(currCmdI)) {
         this.PC = currCmdI;
     } else {
@@ -891,11 +896,11 @@ Path.prototype.case = function pCase(currCmd) {
             break;
 
         case "a":
-            let rx = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-            let ry = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-            let xRotation = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-            let arcLargeFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-            let sweepFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+            rx = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+            ry = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+            xRotation = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+            arcLargeFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+            sweepFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
             this.a(false, rx, ry, xRotation, arcLargeFlag, sweepFlag, this.fetchXY());
             break;
 
@@ -922,7 +927,7 @@ function relativeCheck(type) {
     return ["S", "C", "V", "L", "H", "Q"].indexOf(type) > -1;
 }
 
-let CubicBezierTransition = function CubicBezierTransition(type, p0, c1, c2, co, length) {
+const CubicBezierTransition = function CubicBezierTransition(type, p0, c1, c2, co, length) {
     this.type = type;
     this.p0 = p0;
     this.c1_src = c1;
@@ -966,7 +971,7 @@ CubicBezierTransition.prototype.pointAt = function (f) {
     return t2DGeometry.cubicBezierTransition(this.p0, this.co, f);
 };
 
-let BezierTransition = function BezierTransition(type, p0, p1, p2, length, f) {
+const BezierTransition = function BezierTransition(type, p0, p1, p2, length, f) {
     this.type = type;
     this.p0 = p0;
     this.p1_src = p1;
@@ -976,9 +981,9 @@ let BezierTransition = function BezierTransition(type, p0, p1, p2, length, f) {
 };
 
 BezierTransition.prototype.execute = function (f) {
-    let p0 = this.p0;
-    let p1 = this.p1_src;
-    let p2 = this.p2_src;
+    const p0 = this.p0;
+    const p1 = this.p1_src;
+    const p2 = this.p2_src;
     this.length = this.length_src * f;
     this.cntrl1 = {
         x: p0.x + (p1.x - p0.x) * f,
@@ -1000,7 +1005,7 @@ BezierTransition.prototype.pointAt = function (f) {
     return t2DGeometry.bezierTransition(this.p0, this.cntrl1, this.p1, f);
 };
 
-let LinearTransitionBetweenPoints = function LinearTransitionBetweenPoints(
+const LinearTransitionBetweenPoints = function LinearTransitionBetweenPoints(
     type,
     p0,
     p2,
@@ -1016,8 +1021,8 @@ let LinearTransitionBetweenPoints = function LinearTransitionBetweenPoints(
 };
 
 LinearTransitionBetweenPoints.prototype.execute = function (f) {
-    let p0 = this.p0;
-    let p2 = this.p2_src;
+    const p0 = this.p0;
+    const p2 = this.p2_src;
     this.p1 = {
         x: p0.x + (p2.x - p0.x) * f,
         y: p0.y + (p2.y - p0.y) * f,
@@ -1677,7 +1682,7 @@ function morphTo(targetConfig) {
         animeId(),
         {
             run(f) {
-                let ppath = new Path();
+                const ppath = new Path();
 
                 for (let i = 0, len = chainInstance.length; i < len; i++) {
                     chainInstance[i].run(ppath, f);
