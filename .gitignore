@@ -3,6 +3,7 @@ server/
 examples/d3ScaleTest/
 examples/svgCanvasWebgl/
 src/renderer/
+examples/snaps/
 src1/
 dist1/
 .DS_Store

@@ -1,5 +1,6 @@
 node_modules/
 server/
+examples/snaps/
 examples/d3ScaleTest/
 examples/svgCanvasWebgl/
 src/renderer/
