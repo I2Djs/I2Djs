@@ -49,6 +49,17 @@ import {canvasLayer} from 'i2djs'
 -   [API reference](https://nswamy14.gitbook.io/i2djs)
 -   [I2Djs Medium Article](https://medium.com/@narayanaswamy14/i2djs-integrated-2d-js-328549ef642)
 
+## Game Example
+
+<table>
+    <tr>
+      <td width="50%"><a href="https://codepen.io/nswamy14/pen/WNvdqJg">
+        <img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/gameloop.gif">
+        </a>
+      </td>
+    </tr>
+</table>
+
 ## Examples (SVG + Canvas + WebGL)
 
 [Codepen Examples](https://codepen.io/search/pens?q=i2djs)
