@@ -14,7 +14,7 @@
 
         <script type="text/javascript">
             var renderer_ = i2d.canvasLayer("#myCanvas1", {}, {});
-
+            let speed = 1;
             let bG = renderer_.createEl({
                 el: "group",
                 bbox: false,
@@ -22,14 +22,16 @@
 
             let rockTexture = renderer_.createAsyncTexture({
                 attr: {
-                    src: "../images/PNG/game_background_1/layers/rocks_2.png",
+                    src:
+                        "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/PNG/game_background_1/layers/rocks_2.png",
                     width: renderer_.width,
                     height: renderer_.height,
                 },
             });
             let rock2Texture = renderer_.createAsyncTexture({
                 attr: {
-                    src: "../images/PNG/game_background_1/layers/rocks_1.png",
+                    src:
+                        "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/PNG/game_background_1/layers/rocks_1.png",
                     width: renderer_.width,
                     height: renderer_.height,
                 },
@@ -37,7 +39,8 @@
 
             let skyTexture = renderer_.createAsyncTexture({
                 attr: {
-                    src: "../images/PNG/game_background_1/layers/sky.png",
+                    src:
+                        "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/PNG/game_background_1/layers/sky.png",
                     width: renderer_.width,
                     height: renderer_.height,
                 },
@@ -45,7 +48,8 @@
 
             let clouds_1Texture = renderer_.createAsyncTexture({
                 attr: {
-                    src: "../images/PNG/game_background_1/layers/clouds_1.png",
+                    src:
+                        "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/PNG/game_background_1/layers/clouds_1.png",
                     width: renderer_.width,
                     height: renderer_.height,
                 },
@@ -53,7 +57,26 @@
 
             let clouds_2Texture = renderer_.createAsyncTexture({
                 attr: {
-                    src: "../images/PNG/game_background_1/layers/clouds_2.png",
+                    src:
+                        "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/PNG/game_background_1/layers/clouds_2.png",
+                    width: renderer_.width,
+                    height: renderer_.height,
+                },
+            });
+
+            let clouds_3Texture = renderer_.createAsyncTexture({
+                attr: {
+                    src:
+                        "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/PNG/game_background_1/layers/clouds_3.png",
+                    width: renderer_.width,
+                    height: renderer_.height,
+                },
+            });
+
+            let clouds_4Texture = renderer_.createAsyncTexture({
+                attr: {
+                    src:
+                        "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/PNG/game_background_1/layers/clouds_4.png",
                     width: renderer_.width,
                     height: renderer_.height,
                 },
@@ -135,6 +158,8 @@
                 clouds_2Texture,
                 boySprite,
                 coinTexture,
+                clouds_3Texture,
+                clouds_4Texture,
             ]).then((textures) => {
                 bG.createEl({
                     el: "image",
@@ -151,6 +176,8 @@
                 addAndAnime(textures[2], 8000);
                 addAndAnime(textures[4], 6000);
                 addAndAnime(textures[1], 5000);
+                addAndAnime(textures[7], 4500);
+                addAndAnime(textures[8], 4500);
 
                 bG.createEl({
                     el: "rect",

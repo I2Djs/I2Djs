@@ -3472,19 +3472,29 @@ Events.prototype.removePointer = function (e) {
     }
 };
 
-// Events.prototype.clickCheck = function (e) {
-// 	propogateEvent([this.vDom], {
-// 		x: e.offsetX,
-// 		y: e.offsetY
-// 	}, e, 'click');
-// };
+Events.prototype.clickCheck = function (e) {
+    propogateEvent(
+        [this.vDom],
+        {
+            x: e.offsetX,
+            y: e.offsetY,
+        },
+        e,
+        "click"
+    );
+};
 
-// Events.prototype.dblclickCheck = function (e) {
-// 	propogateEvent([this.vDom], {
-// 		x: e.offsetX,
-// 		y: e.offsetY
-// 	}, e, 'dblclick');
-// };
+Events.prototype.dblclickCheck = function (e) {
+    propogateEvent(
+        [this.vDom],
+        {
+            x: e.offsetX,
+            y: e.offsetY,
+        },
+        e,
+        "dblclick"
+    );
+};
 
 Events.prototype.pointerdownCheck = function (e) {
     const self = this;
@@ -3573,29 +3583,28 @@ Events.prototype.pointerupCheck = function (e) {
             this.pointerNode.dragCounter <= 2 ||
             (e.pointerType === "touch" && this.pointerNode.dragCounter <= 5)
         ) {
-            if (this.pointerNode.clickCounter === 1 && node.events.click) {
-                if (node.events.dblclick) {
-                    clickInterval = setTimeout(function () {
-                        self.pointerNode = null;
-                        node.events.click.call(node, e);
-                        eventBubble(node, "click", e);
-                        clickInterval = null;
-                    }, 200);
-                } else {
-                    node.events.click.call(node, e);
-                    eventBubble(node, "click", e);
-                    self.pointerNode = null;
-                }
-            } else if (this.pointerNode.clickCounter === 2 && node.events.dblclick) {
-                if (clickInterval) {
-                    clearTimeout(clickInterval);
-                }
-                node.events.dblclick.call(node, e);
-                eventBubble(node, "dblclick", e);
-                self.pointerNode = null;
-            } else if (!node.events.click && !node.events.dblclick) {
-                this.pointerNode = null;
+            // if (this.pointerNode.clickCounter === 1 || this.pointerNode.clickCounter === 2) {
+            if (node.events.click) {
+                node.events.click.call(node, e);
             }
+            eventBubble(node, "click", e);
+
+            if (this.pointerNode.clickCounter === 2) {
+                if (node.events.dblclick) {
+                    node.events.dblclick.call(node, e);
+                }
+                eventBubble(node, "dblclick", e);
+                // self.pointerNode = null;
+            }
+
+            if (clickInterval) {
+                clearTimeout(clickInterval);
+            }
+            clickInterval = setTimeout(function () {
+                self.pointerNode = null;
+                clickInterval = null;
+            }, 200);
+            // }
         } else {
             this.pointerNode = null;
         }
@@ -8914,13 +8923,13 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
             e.preventDefault();
             eventsInstance.mousemoveCheck(e);
         });
-        // layer.addEventListener('click', e => {
-        // 	e.preventDefault();
-        // 	eventsInstance.clickCheck(e);
+        // layer.addEventListener("click", (e) => {
+        //     e.preventDefault();
+        //     eventsInstance.clickCheck(e);
         // });
-        // layer.addEventListener('dblclick', e => {
-        // 	e.preventDefault();
-        // 	eventsInstance.dblclickCheck(e);
+        // layer.addEventListener("dblclick", (e) => {
+        //     e.preventDefault();
+        //     eventsInstance.dblclickCheck(e);
         // });
         layer.addEventListener("mousedown", (e) => {
             eventsInstance.mousedownCheck(e);
@@ -8998,12 +9007,20 @@ function textureImageInstance(self, url) {
     const imageIns = new Image();
     imageIns.crossOrigin = "anonymous";
     imageIns.src = url;
+    if (!self) {
+        return imageIns;
+    }
     imageIns.onload = function onload() {
-        self.attr.height = self.attr.height ? self.attr.height : this.height;
-        self.attr.width = self.attr.width ? self.attr.width : this.width;
+        if (!self) {
+            return;
+        }
+        if (self.attr) {
+            self.attr.height = self.attr.height ? self.attr.height : this.naturalHeight;
+            self.attr.width = self.attr.width ? self.attr.width : this.naturalWidth;
+        }
         self.imageObj = this;
 
-        if (self.attr.onload && typeof self.attr.onload === "function") {
+        if (self.attr && self.attr.onload && typeof self.attr.onload === "function") {
             self.attr.onload.call(self, self.image);
         }
         if (self.asyncOnLoad && typeof self.asyncOnLoad === "function") {
@@ -9025,13 +9042,13 @@ function postProcess(self) {
     if (!self.imageObj) {
         return;
     }
-    if (self.attr.clip) {
+    if (self.attr && self.attr.clip) {
         clipExec(self);
     } else {
         self.execute();
     }
 
-    if (self.attr.filter) {
+    if (self.attr && self.attr.filter) {
         filterExec(self);
     }
     queueInstance$4.vDomChanged(self.nodeExe.vDomIndex);
@@ -9061,6 +9078,8 @@ function RenderTexture(nodeExe, config = {}) {
     self.rImageObj = new GetCanvasImgInstance(self.attr.width || 1, self.attr.height || 1);
     self.ctx = self.rImageObj.context;
     self.domEl = self.rImageObj.canvas;
+    self.imageArray = [];
+    self.seekIndex = 0;
     // self.attr = props;
     self.nodeName = "Sprite";
     self.nodeExe = nodeExe;
@@ -9079,7 +9098,31 @@ RenderTexture.prototype.setAttr = function RSsetAttr(attr, value) {
     const self = this;
 
     if (attr === "src") {
-        if (typeof value === "string") {
+        if (Array.isArray(value)) {
+            const srcPromises = value.map(function (d) {
+                return new Promise((resolve, reject) => {
+                    const imageInstance = textureImageInstance(null, d);
+                    imageInstance.onload = function () {
+                        resolve(this);
+                    };
+                    imageInstance.onerror = function (error) {
+                        reject(error);
+                    };
+                });
+            });
+            Promise.all(srcPromises).then(function (images) {
+                self.image = images;
+                self.imageObj = images[self.seekIndex];
+                if (self.attr && self.attr.onload && typeof self.attr.onload === "function") {
+                    self.attr.onload.call(self, images);
+                }
+                if (self.asyncOnLoad && typeof self.asyncOnLoad === "function") {
+                    self.asyncOnLoad(images);
+                }
+
+                postProcess(self);
+            });
+        } else if (typeof value === "string") {
             if (!self.image) {
                 self.image = textureImageInstance(self, value);
             }
@@ -9131,9 +9174,21 @@ RenderTexture.prototype.clone = function () {
 RenderTexture.prototype.execute = function RIexecute() {
     const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
 
-    if (this.imageObj) {
-        this.ctx.drawImage(this.imageObj, x, y, width, height);
+    this.ctx.clearRect(0, 0, width, height);
+    this.ctx.drawImage(this.imageObj, x, y, width, height);
+};
+
+RenderTexture.prototype.next = function (index) {
+    if (!Array.isArray(this.image)) {
+        return;
     }
+    if (index < this.image.length && index >= 0) {
+        this.seekIndex = index;
+    } else if (this.seekIndex < this.image.length - 1) {
+        this.seekIndex++;
+    }
+    this.imageObj = this.image[this.seekIndex];
+    postProcess(this);
 };
 
 function canvasNodeLayer(config, height = 0, width = 0) {

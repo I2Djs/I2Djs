@@ -32,19 +32,29 @@ Events.prototype.removePointer = function (e) {
     }
 };
 
-// Events.prototype.clickCheck = function (e) {
-// 	propogateEvent([this.vDom], {
-// 		x: e.offsetX,
-// 		y: e.offsetY
-// 	}, e, 'click');
-// };
+Events.prototype.clickCheck = function (e) {
+    propogateEvent(
+        [this.vDom],
+        {
+            x: e.offsetX,
+            y: e.offsetY,
+        },
+        e,
+        "click"
+    );
+};
 
-// Events.prototype.dblclickCheck = function (e) {
-// 	propogateEvent([this.vDom], {
-// 		x: e.offsetX,
-// 		y: e.offsetY
-// 	}, e, 'dblclick');
-// };
+Events.prototype.dblclickCheck = function (e) {
+    propogateEvent(
+        [this.vDom],
+        {
+            x: e.offsetX,
+            y: e.offsetY,
+        },
+        e,
+        "dblclick"
+    );
+};
 
 Events.prototype.pointerdownCheck = function (e) {
     const self = this;
@@ -133,29 +143,28 @@ Events.prototype.pointerupCheck = function (e) {
             this.pointerNode.dragCounter <= 2 ||
             (e.pointerType === "touch" && this.pointerNode.dragCounter <= 5)
         ) {
-            if (this.pointerNode.clickCounter === 1 && node.events.click) {
-                if (node.events.dblclick) {
-                    clickInterval = setTimeout(function () {
-                        self.pointerNode = null;
-                        node.events.click.call(node, e);
-                        eventBubble(node, "click", e);
-                        clickInterval = null;
-                    }, 200);
-                } else {
-                    node.events.click.call(node, e);
-                    eventBubble(node, "click", e);
-                    self.pointerNode = null;
-                }
-            } else if (this.pointerNode.clickCounter === 2 && node.events.dblclick) {
-                if (clickInterval) {
-                    clearTimeout(clickInterval);
-                }
-                node.events.dblclick.call(node, e);
-                eventBubble(node, "dblclick", e);
-                self.pointerNode = null;
-            } else if (!node.events.click && !node.events.dblclick) {
-                this.pointerNode = null;
+            // if (this.pointerNode.clickCounter === 1 || this.pointerNode.clickCounter === 2) {
+            if (node.events.click) {
+                node.events.click.call(node, e);
             }
+            eventBubble(node, "click", e);
+
+            if (this.pointerNode.clickCounter === 2) {
+                if (node.events.dblclick) {
+                    node.events.dblclick.call(node, e);
+                }
+                eventBubble(node, "dblclick", e);
+                // self.pointerNode = null;
+            }
+
+            if (clickInterval) {
+                clearTimeout(clickInterval);
+            }
+            clickInterval = setTimeout(function () {
+                self.pointerNode = null;
+                clickInterval = null;
+            }, 200);
+            // }
         } else {
             this.pointerNode = null;
         }

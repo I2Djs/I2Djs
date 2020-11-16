@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%">
+        <label style="position: absolute; color: white"> Canvas Example </label>
+        <div
+            id="myCanvas1"
+            style="height: 50%; width: 50%; position: absolute; left: 25%; top: 25%"
+        ></div>
+
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
+
+        <script type="text/javascript">
+            var renderer_ = i2d.canvasLayer("#myCanvas1", {}, {});
+            let speed = 1;
+            let bG = renderer_.createEl({
+                el: "group",
+                bbox: false,
+            });
+
+            let rockTexture = renderer_
+                .createAsyncTexture({
+                    attr: {
+                        src: [
+                            "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/zombie/Run1.png",
+                            "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/zombie/Run2.png",
+                            "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/zombie/Run3.png",
+                            "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/zombie/Run4.png",
+                            "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/zombie/Run5.png",
+                            "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/zombie/Run6.png",
+                            "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/zombie/Run7.png",
+                            "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/zombie/Run8.png",
+                            "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/zombie/Run9.png",
+                            "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/zombie/Run10.png",
+                        ],
+                        width: 220,
+                        height: 387,
+                    },
+                })
+                .then(function (texture) {
+                    let counter = 0;
+                    let img = bG.createEl({
+                        el: "image",
+                        attr: {
+                            src: texture,
+                            width: 220,
+                            height: 387,
+                            x: renderer_.width * 0.5,
+                            y: renderer_.height - 387,
+                        },
+                    });
+
+                    let seekIndex = 0;
+                    texture.animateTo({
+                        duration: 2000,
+                        loop: Infinity,
+                        attr: {
+                            x: function (f) {
+                                let newSeekIndex = Math.floor(f * 10);
+                                if (newSeekIndex !== seekIndex) {
+                                    this.next(newSeekIndex);
+                                    console.log(newSeekIndex);
+                                    seekIndex = newSeekIndex;
+                                }
+                                return 0;
+                            },
+                        },
+                    });
+                });
+
+            // console.log(rockTexture);
+        </script>
+    </body>
+</html>
