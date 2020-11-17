@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
         <style>
@@ -13,8 +13,8 @@
             }
         </style>
     </head>
-    <body style="height: 100%;">
-        <div id="myCanvas" style="height: 100%; width: 100%; background: black;"></div>
+    <body style="height: 100%">
+        <div id="myCanvas" style="height: 100%; width: 100%; background: black"></div>
 
         <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.14.2/matter.js"></script>
@@ -25,25 +25,38 @@
                 {},
                 {
                     enableEvents: true,
+                    enableResize: true,
                 }
             );
+            renderer.setPixelRatio(1);
+            renderer.setClear(function (ctx) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+                ctx.fillRect(0, 0, renderer.width, renderer.height);
+            });
             var height = renderer.height;
             var Engine = Matter.Engine,
                 World = Matter.World,
-                Bodies = Matter.Bodies;
+                Bodies = Matter.Bodies,
+                Body = Matter.Body;
 
             var engine = Engine.create();
             engine.enableSleeping = true;
 
             var boxesContainerInstance = new BoxesContainer();
 
-            var ground = Bodies.rectangle(400 * 2, 620, 810, 10, { isStatic: true });
+            var ground = Bodies.rectangle(
+                renderer.width / 4 + renderer.width / 4 - 10,
+                620,
+                renderer.width / 2,
+                10,
+                { isStatic: true }
+            );
             renderer.createEl({
                 el: "rect",
                 attr: {
-                    x: 400,
-                    y: 630,
-                    width: 810,
+                    x: renderer.width / 4,
+                    y: 620,
+                    width: renderer.width / 2,
                     height: 10,
                     class: "ground",
                 },
@@ -57,8 +70,8 @@
 
             let renderCounter = 300;
             let renderFlag = false;
-            renderer.on("mousemove", function (e) {
-                // console.log(e);
+            renderer.on("click", function (e) {
+                console.log(e);
                 renderCounter = 300;
                 if (!renderFlag) {
                     i2d.queue.onRequestFrame(draw);
@@ -84,7 +97,9 @@
             }
 
             BoxesContainer.prototype.add = function (x, y) {
-                this.boxes.push(new renderBox(x, y, 30, 30));
+                for (var i = 0; i < 6; i++) {
+                    this.boxes.push(new renderCircle(x, y, 10, ((Math.PI * 2) / 6) * i));
+                }
             };
 
             BoxesContainer.prototype.update = function () {
@@ -105,37 +120,62 @@
                 });
             };
 
+            var radialGrad = i2d.canvasLayer(null, {}, {});
+            radialGrad.setSize(50, 50);
+
+            var radialGradiant = radialGrad.createRadialGradient({
+                id: "radialG",
+                innerCircle: { x: 50, y: 50, r: 0 },
+                outerCircle: { x: 50, y: 50, r: 50 },
+                mode: "percent",
+                colorStops: [
+                    { color: "red", value: 0 },
+                    { color: "yellow", value: 25 },
+                    { color: "green", value: 50 },
+                    { color: "blue", value: 75 },
+                    { color: "rgba(255,255,255,0)", value: 100 },
+                ],
+            });
+
+            radialGrad.createEl({
+                el: "circle",
+                attr: {
+                    r: 25,
+                    cx: 25,
+                    cy: 25,
+                },
+                style: {
+                    fillStyle: radialGradiant,
+                },
+            });
+
+            radialGrad.execute();
+
             var angFac = 180 / Math.PI;
-            function renderBox(x, y, width, height) {
-                this.physicsBox = Bodies.rectangle(x, y, width, height);
-                this.physicsBox.restitution = 0.98;
+            function renderCircle(x, y, r, angle) {
+                this.physicsBox = Bodies.circle(x, y, r);
+                World.add(engine.world, this.physicsBox);
+                Body.applyForce(
+                    this.physicsBox,
+                    { x, y },
+                    { x: Math.cos(angle) * 0.01, y: Math.sin(angle) * 0.01 }
+                );
                 this.rect = renderer.createEl({
-                    el: "rect",
+                    el: "image",
                     attr: {
-                        x: x,
-                        y: y,
-                        width: width,
-                        height: height,
-                    },
-                    style: {
-                        fillStyle: "#888",
-                        strokeStyle: "white",
+                        x: x - 10,
+                        y: y - 10,
+                        width: 20,
+                        height: 20,
+                        src: radialGrad,
                     },
                     bbox: false,
                 });
-                World.add(engine.world, this.physicsBox);
             }
-            renderBox.prototype.update = function () {
+            renderCircle.prototype.update = function () {
                 this.rect
                     .setAttr("x", this.physicsBox.position.x)
-                    .setAttr("y", this.physicsBox.position.y)
-                    .setAttr("transform", {
-                        rotate: [
-                            this.physicsBox.angle * angFac,
-                            this.rect.getAttr("x") + 15,
-                            this.rect.getAttr("y") + 15,
-                        ],
-                    });
+                    .setAttr("y", this.physicsBox.position.y);
 
                 if (this.rect.getAttr("y") > height) {
                     this.rect.remove();

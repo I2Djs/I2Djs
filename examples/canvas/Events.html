@@ -26,6 +26,9 @@
                         },
                     },
                 })
+                .on("dblclick", function () {
+                    console.log("parent dbclick");
+                })
                 .on("click", function () {
                     console.log("parent click");
                 });
@@ -50,20 +53,21 @@
                     console.log("touchend");
                 })
                 .on("click", function () {
-                    this.setStyle("fillStyle", "hsl(100,50%,50%)");
+                    console.log("leaf click");
+                    this.setStyle("globalAlpha", "0.5");
                 })
                 .on("mousein", function () {
-                    this.setStyle("fillStyle", "#ad5858");
+                    this.setStyle("globalAlpha", "0.5");
                 })
                 .on("mouseout", function () {
-                    this.setStyle("fillStyle", "hsl(100,100%,50%)");
-                })
-                .on("mousedown", function () {
-                    this.setStyle("fillStyle", "hsl(100,80%,30%)");
-                })
-                .on("mouseup", function () {
-                    this.setStyle("fillStyle", "hsl(100,100%,50%)");
+                    this.setStyle("globalAlpha", "1");
                 });
+            // .on("mousedown", function () {
+            //     this.setStyle("fillStyle", "hsl(100,80%,30%)");
+            // })
+            // .on("mouseup", function () {
+            //     this.setStyle("fillStyle", "hsl(100,100%,50%)");
+            // });
 
             var linearGradient = g.createLinearGradient({
                 id: "linearG",

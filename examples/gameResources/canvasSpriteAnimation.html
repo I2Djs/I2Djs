@@ -14,25 +14,24 @@
 
         <script type="text/javascript">
             var renderer_ = i2d.canvasLayer("#myCanvas1", {}, {});
-            var webGLrenderer_ = i2d.webglLayer("#myCanvas1", {}, {});
-            let bG = webGLrenderer_.createEl({
+            let speed = 1;
+            let bG = renderer_.createEl({
                 el: "group",
-                attr: {
-                    shaderType: "image",
-                },
                 bbox: false,
             });
 
             let rockTexture = renderer_.createAsyncTexture({
                 attr: {
-                    src: "../images/PNG/game_background_1/layers/rocks_2.png",
+                    src:
+                        "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/PNG/game_background_1/layers/rocks_2.png",
                     width: renderer_.width,
                     height: renderer_.height,
                 },
             });
             let rock2Texture = renderer_.createAsyncTexture({
                 attr: {
-                    src: "../images/PNG/game_background_1/layers/rocks_1.png",
+                    src:
+                        "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/PNG/game_background_1/layers/rocks_1.png",
                     width: renderer_.width,
                     height: renderer_.height,
                 },
@@ -40,7 +39,8 @@
 
             let skyTexture = renderer_.createAsyncTexture({
                 attr: {
-                    src: "../images/PNG/game_background_1/layers/sky.png",
+                    src:
+                        "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/PNG/game_background_1/layers/sky.png",
                     width: renderer_.width,
                     height: renderer_.height,
                 },
@@ -48,7 +48,8 @@
 
             let clouds_1Texture = renderer_.createAsyncTexture({
                 attr: {
-                    src: "../images/PNG/game_background_1/layers/clouds_1.png",
+                    src:
+                        "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/PNG/game_background_1/layers/clouds_1.png",
                     width: renderer_.width,
                     height: renderer_.height,
                 },
@@ -56,7 +57,26 @@
 
             let clouds_2Texture = renderer_.createAsyncTexture({
                 attr: {
-                    src: "../images/PNG/game_background_1/layers/clouds_2.png",
+                    src:
+                        "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/PNG/game_background_1/layers/clouds_2.png",
+                    width: renderer_.width,
+                    height: renderer_.height,
+                },
+            });
+
+            let clouds_3Texture = renderer_.createAsyncTexture({
+                attr: {
+                    src:
+                        "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/PNG/game_background_1/layers/clouds_3.png",
+                    width: renderer_.width,
+                    height: renderer_.height,
+                },
+            });
+
+            let clouds_4Texture = renderer_.createAsyncTexture({
+                attr: {
+                    src:
+                        "https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/PNG/game_background_1/layers/clouds_4.png",
                     width: renderer_.width,
                     height: renderer_.height,
                 },
@@ -91,7 +111,7 @@
             });
 
             function animateCoins(d) {
-                let yRand = renderer_.height * 0.5 + Math.random() * 50;
+                let yRand = 250 + Math.random() * 50;
 
                 this.setAttr("y", yRand)
                     .setAttr("x", renderer_.width)
@@ -138,6 +158,8 @@
                 clouds_2Texture,
                 boySprite,
                 coinTexture,
+                clouds_3Texture,
+                clouds_4Texture,
             ]).then((textures) => {
                 bG.createEl({
                     el: "image",
@@ -154,64 +176,61 @@
                 addAndAnime(textures[2], 8000);
                 addAndAnime(textures[4], 6000);
                 addAndAnime(textures[1], 5000);
+                addAndAnime(textures[7], 4500);
+                addAndAnime(textures[8], 4500);
 
-                let textures6 = webGLrenderer_.createWebglTexture({
-                    src: textures[6],
+                bG.createEl({
+                    el: "rect",
+                    attr: {
+                        width: renderer_.width,
+                        height: 15,
+                        x: 0,
+                        y: renderer_.height - 15,
+                    },
+                    style: {
+                        fillStyle: "#3d2f3d",
+                    },
                 });
+
                 let coins = bG
                     .createEls([1, 2, 3, 4], {
                         el: "image",
                         attr: {
-                            src: textures6,
+                            src: textures[6],
                             width: 30,
                             height: 30,
                             x: function (d) {
                                 return 800 + 60 * d;
                             },
-                            y: renderer_.height * 0.5,
+                            y: 250 + 50,
                         },
                     })
                     .forEach(function (d) {
                         this.exec(animateCoins);
                     });
+
                 textures[6].animateTo({
                     duration: 1000,
                     loop: Infinity,
                     attr: {
-                        x: function (f) {
-                            let sx = this.getAttr("clip").sx;
-                            if (f == 1) {
-                                this.setAttr("clip", {
-                                    sx: 9 * 44,
-                                    sy: 0,
-                                    swidth: 44,
-                                    sheight: 40,
-                                });
-                            } else if (sx !== parseInt(f / 0.1) * 44) {
-                                this.setAttr("clip", {
+                        clip: function (f) {
+                            if (f == 1) return { sx: 9 * 44, sy: 0, swidth: 44, sheight: 40 };
+                            else
+                                return {
                                     sx: parseInt(f / 0.1) * 44,
                                     sy: 0,
                                     swidth: 44,
                                     sheight: 40,
-                                });
-                                textures6.update();
-                                // coins.forEach(function (d) {
-                                //     this.dom.textureNode.update();
-                                // });
-                            }
-                            return 0;
+                                };
                         },
                     },
                 });
 
-                let textures5 = webGLrenderer_.createWebglTexture({
-                    src: textures[5],
-                });
                 let counter = 0;
                 let img = bG.createEl({
                     el: "image",
                     attr: {
-                        src: textures5,
+                        src: textures[5],
                         width: 108 * 0.5,
                         height: 140 * 0.5,
                         x: renderer_.width * 0.5 - 108 * 0.5 * 0.5,
@@ -223,7 +242,7 @@
                     duration: 2000,
                     loop: Infinity,
                     attr: {
-                        x: function (f) {
+                        clip: function (f) {
                             counter += 8;
                             let x = img.getAttr("x");
                             // let y = img.getAttr("y");
@@ -231,7 +250,7 @@
                             index = index % 8;
 
                             if (this.getAttr("clip").sx !== index * 108) {
-                                let stars = new Array(3).fill(0).map(function (d) {
+                                let stars = new Array(2).fill(0).map(function (d) {
                                     return Math.random();
                                 });
                                 bG.createEls(stars, {
@@ -243,7 +262,7 @@
                                         x: 0,
                                         y: 0,
                                         transform: {
-                                            translate: [x + 25, renderer_.height],
+                                            translate: [x + 25, 400],
                                             rotate: [0, 0, 0],
                                         },
                                     },
@@ -270,15 +289,9 @@
                                         this.remove();
                                     },
                                 });
-                                this.setAttr("clip", {
-                                    sx: index * 108,
-                                    sy: 0,
-                                    swidth: 108,
-                                    sheight: 140,
-                                });
-                                textures5.update();
                             }
-                            return 0;
+
+                            return { sx: index * 108, sy: 0, swidth: 108, sheight: 140 };
                         },
                     },
                 });
