@@ -2280,10 +2280,17 @@ RenderTexture.prototype.clone = function () {
 };
 
 RenderTexture.prototype.execute = function RIexecute() {
-    const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
+    const { width = 0, height = 0 } = this.attr;
+    const draw = this.attr.draw || {};
 
     this.ctx.clearRect(0, 0, width, height);
-    this.ctx.drawImage(this.imageObj, x, y, width, height);
+    this.ctx.drawImage(
+        this.imageObj,
+        draw.x || 0,
+        draw.y || 0,
+        draw.width || width,
+        draw.height || height
+    );
 };
 
 RenderTexture.prototype.next = function (index) {

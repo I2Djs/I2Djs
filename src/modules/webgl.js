@@ -1800,6 +1800,44 @@ function clearTransform(self, index, length) {
     self.filterTransformUpdate = true;
 }
 
+// function addRotation(self, index, length, angle) {
+//     self.rotate =
+//         self.rotateTyped && self.rotateTyped.length > 0
+//             ? Array.from(self.rotateTyped)
+//             : self.rotate;
+//     self.rotateTyped = null;
+//     const len = index * length;
+//     let i = 0;
+//     while (i < length) {
+//         self.rotate[len + i] = angle;
+//         i++;
+//     }
+
+//     self.rotationUpdate = true;
+// }
+
+// function updateRotation(self, index, length, angle) {
+//     const transform_ = self.rotationUpdate ? self.ratate : self.rotateTyped;
+//     const len = index * length;
+//     // const { translateX, translateY, scaleX, scaleY } = parseTransform(angle);
+//     let i = 0;
+//     while (i < length) {
+//         transform_[len + i] = angle;
+//         i++;
+//     }
+// }
+
+// function clearRotation(self, index, length) {
+//     const transform_ = self.rotationUpdate ? self.rotate : self.rotateTyped;
+//     const len = index * length * 4;
+//     let i = 0;
+//     while (i < length) {
+//         transform_[len + i] = undefined;
+//         i++;
+//     }
+//     self.filterRotateUpdate = true;
+// }
+
 function transformExec(self) {
     if (self.transformUpdate) {
         if (self.filterTransformUpdate) {
@@ -1890,6 +1928,7 @@ function addColors(self, index, length, fill) {
     self.typedColorArray = null;
     const b = index * length * 4;
     let i = 0;
+    fill = colorMap.colorToRGB(fill);
     while (i < length) {
         self.colorArray[b + i * 4] = fill.r / 255;
         self.colorArray[b + i * 4 + 1] = fill.g / 255;
@@ -2186,6 +2225,7 @@ RenderWebglRects.prototype.clear = function (index) {
     clearColor(this, index, 6);
     clearVertex(this, index, 6);
     clearTransform(this, index, 6);
+    // clearRotation(this, index, 6);
 };
 
 RenderWebglRects.prototype.updateVertex = function (index, x, y, width, height) {

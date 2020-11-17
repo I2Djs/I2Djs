@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+    <head>
+        <title></title>
+        <style>
+            .edge {
+                stroke: #999;
+                stroke-width: "1px";
+            }
+
+            .node {
+                fill: #1f77b4;
+            }
+        </style>
+    </head>
+    <body style="height: 100%">
+        <div id="myCanvas" style="height: 100%; width: 100%; background: black"></div>
+
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.14.2/matter.js"></script>
+
+        <script type="text/javascript">
+            var webglRenderer = i2d.webglLayer(
+                "#myCanvas",
+                {},
+                {
+                    enableEvents: true,
+                }
+            );
+            var rectsRef = webglRenderer.createEl({
+                el: "group",
+                attr: {
+                    shaderType: "rect",
+                },
+                bbox: false,
+            });
+            var height = webglRenderer.height;
+            var Engine = Matter.Engine,
+                World = Matter.World,
+                Bodies = Matter.Bodies;
+
+            var engine = Engine.create();
+            engine.enableSleeping = true;
+
+            var boxesContainerInstance = new BoxesContainer();
+
+            var ground = Bodies.rectangle(400 * 2, 620, 810, 10, { isStatic: true });
+            rectsRef.createEl({
+                el: "rect",
+                attr: {
+                    x: 400,
+                    y: 630,
+                    width: 810,
+                    height: 10,
+                    class: "ground",
+                },
+                style: {
+                    fill: "#a86f32",
+                },
+                bbox: false,
+            });
+            World.add(engine.world, ground);
+            Engine.run(engine);
+
+            let renderCounter = 300;
+            let renderFlag = false;
+            webglRenderer.on("mousemove", function (e) {
+                // console.log(e);
+                renderCounter = 300;
+                if (!renderFlag) {
+                    i2d.queue.onRequestFrame(draw);
+                }
+                renderFlag = true;
+                boxesContainerInstance.add(e.offsetX, e.offsetY);
+            });
+
+            function draw() {
+                renderCounter -= 1;
+                if (renderCounter < 0) {
+                    boxesContainerInstance.filterBoxes();
+                    console.log(boxesContainerInstance);
+                    console.log(engine.world);
+                    renderFlag = false;
+                    i2d.queue.removeRequestFrameCall(draw);
+                }
+                boxesContainerInstance.update();
+            }
+
+            function BoxesContainer() {
+                this.boxes = [];
+            }
+
+            BoxesContainer.prototype.add = function (x, y) {
+                this.boxes.push(new renderBox(x, y, 30, 30));
+            };
+
+            BoxesContainer.prototype.update = function () {
+                let f;
+                for (var i = 0; i < this.boxes.length; i++) {
+                    if (this.boxes[i]) {
+                        f = this.boxes[i].update();
+                        if (!f) {
+                            this.boxes[i] = undefined;
+                        }
+                    }
+                }
+            };
+
+            BoxesContainer.prototype.filterBoxes = function (x, y) {
+                this.boxes = this.boxes.filter(function (d) {
+                    return d;
+                });
+            };
+
+            var angFac = 180 / Math.PI;
+            function renderBox(x, y, width, height) {
+                this.physicsBox = Bodies.rectangle(x, y, width, height);
+                this.physicsBox.restitution = 0.98;
+                this.rect = rectsRef.createEl({
+                    el: "rect",
+                    attr: {
+                        x: x,
+                        y: y,
+                        width: width,
+                        height: height,
+                    },
+                    style: {
+                        fill: i2d.color.rgba(
+                            Math.random() * 255,
+                            Math.random() * 203,
+                            Math.random() * 255,
+                            255
+                        ),
+                        // stroke: "white",
+                    },
+                    bbox: false,
+                });
+                World.add(engine.world, this.physicsBox);
+            }
+            renderBox.prototype.update = function () {
+                this.rect
+                    .setAttr("x", this.physicsBox.position.x)
+                    .setAttr("y", this.physicsBox.position.y)
+                    .setAttr("transform", {
+                        rotate: [
+                            this.physicsBox.angle * angFac,
+                            this.rect.getAttr("x") + 15,
+                            this.rect.getAttr("y") + 15,
+                        ],
+                    });
+
+                if (this.rect.getAttr("y") > height) {
+                    this.rect.remove();
+                    World.remove(engine.world, this.physicsBox);
+                    return false;
+                } else {
+                    return true;
+                }
+            };
+        </script>
+    </body>
+</html>
