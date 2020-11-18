@@ -1666,6 +1666,7 @@
             },
         });
         this.pp = this.cp;
+        this.BBox = getBBox(this.stackGroup);
         return this;
     }
 
@@ -1689,6 +1690,7 @@
         });
         this.length += this.segmentLength;
         this.pp = this.cp;
+        this.BBox = getBBox(this.stackGroup);
         return this;
     }
 
@@ -1715,6 +1717,7 @@
         });
         this.length += this.segmentLength;
         this.pp = this.cp;
+        this.BBox = getBBox(this.stackGroup);
         return this;
     }
 
@@ -1740,6 +1743,7 @@
         });
         this.length += this.segmentLength;
         this.pp = this.cp;
+        this.BBox = getBBox(this.stackGroup);
         return this;
     }
 
@@ -1757,7 +1761,7 @@
         });
         this.length += this.segmentLength;
         this.pp = this.cp; // this.stackGroup.push(this.stack)
-
+        this.BBox = getBBox(this.stackGroup);
         return this;
     }
 
@@ -1790,6 +1794,7 @@
         this.length += this.segmentLength;
         this.pp = this.cp;
         this.cntrl = cntrl1;
+        this.BBox = getBBox(this.stackGroup);
         return this;
     }
 
@@ -1830,6 +1835,7 @@
         });
         this.length += this.segmentLength;
         this.pp = this.cp;
+        this.BBox = getBBox(this.stackGroup);
         return this;
     }
 
@@ -1873,6 +1879,7 @@
         this.length += this.segmentLength;
         this.pp = this.cp;
         this.cntrl = cntrl2;
+        this.BBox = getBBox(this.stackGroup);
         return this;
     }
 
@@ -1940,6 +1947,7 @@
         });
         this.pp = this.cp;
         this.cntrl = null;
+        this.BBox = getBBox(this.stackGroup);
         return this;
     }
 
@@ -6135,9 +6143,9 @@
             };
 
             self.dom.addEventListener("wheel", self.events[eventType]);
-            self.dom.drag_ = function (event, eventType) {
+            self.dom.drag_ = function (event, eventType, eventsInstance) {
                 if (hndlr.panFlag) {
-                    hndlr.panExecute(self, event, eventType);
+                    hndlr.panExecute(self, event, eventType, eventsInstance);
                 }
             };
         } else {
@@ -6330,22 +6338,22 @@
             // e.preventDefault();
             eventsInstance.addPointer(e);
             if (e.target.drag_) {
-                e.target.drag_(e, "pointerdown");
+                e.target.drag_(e, "pointerdown", eventsInstance);
                 dragNode = e.target;
             }
         });
         root.dom.addEventListener("pointerup", function (e) {
             // e.preventDefault();
-            eventsInstance.removePointer(e);
             if (dragNode) {
-                dragNode.drag_(e, "pointerup");
+                dragNode.drag_(e, "pointerup", eventsInstance);
                 dragNode = null;
             }
+            eventsInstance.removePointer(e);
         });
         root.dom.addEventListener("pointermove", function (e) {
             e.preventDefault();
             if (dragNode) {
-                dragNode.drag_(e, "pointermove");
+                dragNode.drag_(e, "pointermove", eventsInstance);
             }
         });
         queueInstance$2.execute();

@@ -225,6 +225,7 @@ function m(rel, p0) {
         },
     });
     this.pp = this.cp;
+    this.BBox = getBBox(this.stackGroup);
     return this;
 }
 
@@ -248,6 +249,7 @@ function v(rel, p1) {
     });
     this.length += this.segmentLength;
     this.pp = this.cp;
+    this.BBox = getBBox(this.stackGroup);
     return this;
 }
 
@@ -274,6 +276,7 @@ function l(rel, p1) {
     });
     this.length += this.segmentLength;
     this.pp = this.cp;
+    this.BBox = getBBox(this.stackGroup);
     return this;
 }
 
@@ -299,6 +302,7 @@ function h(rel, p1) {
     });
     this.length += this.segmentLength;
     this.pp = this.cp;
+    this.BBox = getBBox(this.stackGroup);
     return this;
 }
 
@@ -316,7 +320,7 @@ function z() {
     });
     this.length += this.segmentLength;
     this.pp = this.cp; // this.stackGroup.push(this.stack)
-
+    this.BBox = getBBox(this.stackGroup);
     return this;
 }
 
@@ -349,6 +353,7 @@ function q(rel, c1, ep) {
     this.length += this.segmentLength;
     this.pp = this.cp;
     this.cntrl = cntrl1;
+    this.BBox = getBBox(this.stackGroup);
     return this;
 }
 
@@ -389,6 +394,7 @@ function c(rel, c1, c2, ep) {
     });
     this.length += this.segmentLength;
     this.pp = this.cp;
+    this.BBox = getBBox(this.stackGroup);
     return this;
 }
 
@@ -432,6 +438,7 @@ function s(rel, c2, ep) {
     this.length += this.segmentLength;
     this.pp = this.cp;
     this.cntrl = cntrl2;
+    this.BBox = getBBox(this.stackGroup);
     return this;
 }
 
@@ -499,6 +506,7 @@ function a(rel, rx, ry, xRotation, arcLargeFlag, sweepFlag, ep) {
     });
     this.pp = this.cp;
     this.cntrl = null;
+    this.BBox = getBBox(this.stackGroup);
     return this;
 }
 
