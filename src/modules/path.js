@@ -40,92 +40,82 @@ function pathCmdIsValid(_) {
     );
 }
 
-function getBBox(gcmxArr) {
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity; // const exe = []
+function updateBBox(d, pd, minMax, bbox) {
+    let { minX, minY, maxX, maxY } = minMax;
 
-    let d;
-    let point;
-
-    for (var j = 0; j < gcmxArr.length; j++) {
-        const cmxArr = gcmxArr[j];
-        for (let i = 0; i < cmxArr.length; i += 1) {
-            d = cmxArr[i];
-
-            if (["V", "H", "L", "v", "h", "l"].indexOf(d.type) !== -1) {
-                [d.p0 ? d.p0 : cmxArr[i - 1].p1, d.p1].forEach(function (point) {
-                    if (point.x < minX) {
-                        minX = point.x;
-                    }
-
-                    if (point.x > maxX) {
-                        maxX = point.x;
-                    }
-
-                    if (point.y < minY) {
-                        minY = point.y;
-                    }
-
-                    if (point.y > maxY) {
-                        maxY = point.y;
-                    }
-                });
-            } else if (["Q", "C", "q", "c"].indexOf(d.type) !== -1) {
-                const co = t2DGeometry.cubicBezierCoefficients(d);
-                const exe = t2DGeometry.cubicBezierTransition.bind(null, d.p0, co);
-                let ii = 0;
-                let point;
-
-                while (ii < 1) {
-                    point = exe(ii);
-                    ii += 0.05;
-
-                    if (point.x < minX) {
-                        minX = point.x;
-                    }
-
-                    if (point.x > maxX) {
-                        maxX = point.x;
-                    }
-
-                    if (point.y < minY) {
-                        minY = point.y;
-                    }
-
-                    if (point.y > maxY) {
-                        maxY = point.y;
-                    }
-                }
-            } else {
-                point = d.p0;
-
-                if (point.x < minX) {
-                    minX = point.x;
-                }
-
-                if (point.x > maxX) {
-                    maxX = point.x;
-                }
-
-                if (point.y < minY) {
-                    minY = point.y;
-                }
-
-                if (point.y > maxY) {
-                    maxY = point.y;
-                }
+    if (["V", "H", "L", "v", "h", "l"].indexOf(d.type) !== -1) {
+        [d.p0 ? d.p0 : pd.p1, d.p1].forEach(function (point) {
+            if (point.x < minX) {
+                minX = point.x;
             }
+
+            if (point.x > maxX) {
+                maxX = point.x;
+            }
+
+            if (point.y < minY) {
+                minY = point.y;
+            }
+
+            if (point.y > maxY) {
+                maxY = point.y;
+            }
+        });
+    } else if (["Q", "C", "q", "c"].indexOf(d.type) !== -1) {
+        const co = t2DGeometry.cubicBezierCoefficients(d);
+        const exe = t2DGeometry.cubicBezierTransition.bind(null, d.p0, co);
+        let ii = 0;
+        let point;
+
+        while (ii < 1) {
+            point = exe(ii);
+            ii += 0.05;
+
+            if (point.x < minX) {
+                minX = point.x;
+            }
+
+            if (point.x > maxX) {
+                maxX = point.x;
+            }
+
+            if (point.y < minY) {
+                minY = point.y;
+            }
+
+            if (point.y > maxY) {
+                maxY = point.y;
+            }
+        }
+    } else {
+        const point = d.p0;
+
+        if (point.x < minX) {
+            minX = point.x;
+        }
+
+        if (point.x > maxX) {
+            maxX = point.x;
+        }
+
+        if (point.y < minY) {
+            minY = point.y;
+        }
+
+        if (point.y > maxY) {
+            maxY = point.y;
         }
     }
 
-    return {
-        x: minX,
-        y: minY,
-        width: maxX - minX,
-        height: maxY - minY,
-    };
+    minMax.minX = minX;
+    minMax.minY = minY;
+    minMax.maxX = maxX;
+    minMax.maxY = maxY;
+
+    bbox.x = minX;
+    bbox.y = minY;
+    bbox.width = maxX - minX;
+    bbox.height = maxY - minY;
 }
 
 function pathParser(path) {
@@ -225,7 +215,12 @@ function m(rel, p0) {
         },
     });
     this.pp = this.cp;
-    this.BBox = getBBox(this.stackGroup);
+    updateBBox(
+        this.stack[this.stack.length - 1],
+        this.stack[this.stack.length - 2],
+        this.minMax,
+        this.BBox
+    );
     return this;
 }
 
@@ -249,7 +244,12 @@ function v(rel, p1) {
     });
     this.length += this.segmentLength;
     this.pp = this.cp;
-    this.BBox = getBBox(this.stackGroup);
+    updateBBox(
+        this.stack[this.stack.length - 1],
+        this.stack[this.stack.length - 2],
+        this.minMax,
+        this.BBox
+    );
     return this;
 }
 
@@ -276,7 +276,12 @@ function l(rel, p1) {
     });
     this.length += this.segmentLength;
     this.pp = this.cp;
-    this.BBox = getBBox(this.stackGroup);
+    updateBBox(
+        this.stack[this.stack.length - 1],
+        this.stack[this.stack.length - 2],
+        this.minMax,
+        this.BBox
+    );
     return this;
 }
 
@@ -302,7 +307,12 @@ function h(rel, p1) {
     });
     this.length += this.segmentLength;
     this.pp = this.cp;
-    this.BBox = getBBox(this.stackGroup);
+    updateBBox(
+        this.stack[this.stack.length - 1],
+        this.stack[this.stack.length - 2],
+        this.minMax,
+        this.BBox
+    );
     return this;
 }
 
@@ -319,8 +329,13 @@ function z() {
         },
     });
     this.length += this.segmentLength;
-    this.pp = this.cp; // this.stackGroup.push(this.stack)
-    this.BBox = getBBox(this.stackGroup);
+    this.pp = this.cp;
+    updateBBox(
+        this.stack[this.stack.length - 1],
+        this.stack[this.stack.length - 2],
+        this.minMax,
+        this.BBox
+    );
     return this;
 }
 
@@ -353,11 +368,17 @@ function q(rel, c1, ep) {
     this.length += this.segmentLength;
     this.pp = this.cp;
     this.cntrl = cntrl1;
-    this.BBox = getBBox(this.stackGroup);
+    updateBBox(
+        this.stack[this.stack.length - 1],
+        this.stack[this.stack.length - 2],
+        this.minMax,
+        this.BBox
+    );
     return this;
 }
 
 function c(rel, c1, c2, ep) {
+    const self = this;
     const temp = relative(rel, this.pp, {
         x: 0,
         y: 0,
@@ -394,7 +415,12 @@ function c(rel, c1, c2, ep) {
     });
     this.length += this.segmentLength;
     this.pp = this.cp;
-    this.BBox = getBBox(this.stackGroup);
+    updateBBox(
+        self.stack[self.stack.length - 1],
+        self.stack[self.stack.length - 2],
+        self.minMax,
+        self.BBox
+    );
     return this;
 }
 
@@ -434,11 +460,15 @@ function s(rel, c2, ep) {
             return t2DGeometry.cubicBezierTransition(this.p0, this.co, f);
         },
     }); // this.stack.segmentLength += this.segmentLength
-
+    updateBBox(
+        this.stack[this.stack.length - 1],
+        this.stack[this.stack.length - 2],
+        this.minMax,
+        this.BBox
+    );
     this.length += this.segmentLength;
     this.pp = this.cp;
     this.cntrl = cntrl2;
-    this.BBox = getBBox(this.stackGroup);
     return this;
 }
 
@@ -503,10 +533,16 @@ function a(rel, rx, ry, xRotation, arcLargeFlag, sweepFlag, ep) {
             },
         });
         self.length += segmentLength;
+        updateBBox(
+            self.stack[self.stack.length - 1],
+            self.stack[self.stack.length - 2],
+            self.minMax,
+            self.BBox
+        );
     });
     this.pp = this.cp;
     this.cntrl = null;
-    this.BBox = getBBox(this.stackGroup);
+
     return this;
 }
 
@@ -520,6 +556,13 @@ function Path(path) {
         y: 0,
         width: 0,
         height: 0,
+    };
+
+    this.minMax = {
+        minX: Infinity,
+        minY: Infinity,
+        maxX: -Infinity,
+        maxY: -Infinity,
     };
 
     if (path) {
@@ -596,7 +639,7 @@ Path.prototype.parse = function parse(path) {
         this.case(this.pathArr[(this.currPathArr += 1)]);
     }
 
-    this.BBox = getBBox(this.stackGroup);
+    // this.BBox = getBBox(this.stackGroup);
 
     return this.stack;
 };
