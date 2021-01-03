@@ -217,31 +217,12 @@ function shaders(el) {
                     precision highp float;
                     attribute vec2 a_position;
                     attribute vec4 a_color;
-                    uniform vec2 u_resolution;
-                    uniform vec4 u_transform;
-                    attribute vec4 a_transform;
-                    attribute float a_rotate;
+                    attribute mat3 a_transformMatrix;
                     varying vec4 v_color;
 
-                    mat2 scale(vec2 _scale){
-                        return mat2(_scale.x,0.0,
-                                    0.0,_scale.y);
-                    }
-
-                    mat2 rotate2d(float _angle) {
-                      return mat2(cos(_angle),-sin(_angle),
-                        sin(_angle),cos(_angle));
-                    }
-
                     void main() {
-                    vec2 zeroToOne = (a_transform.xy + u_transform.xy + a_position) / u_resolution;
-                    zeroToOne -= vec2(0.5);
-                    zeroToOne = rotate2d(a_rotate) * zeroToOne;
-                    zeroToOne += vec2(0.5)
-                    vec2 scale_ = vec2((a_transform.z * u_transform.z), (a_transform.w * u_transform.w));
-                    vec2 clipSpace = scale(scale_) * (zeroToOne * 2.0 - 1.0);
-                    gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0, 1);
-                    v_color = a_color;
+                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);
+                      v_color = a_color;
                     }
                     `,
                 fragmentShader: `
