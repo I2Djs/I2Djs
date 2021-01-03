@@ -284,29 +284,29 @@
                     },
                 });
 
-                textures[7].animateTo({
-                    duration: 2000,
-                    loop: Infinity,
-                    attr: {
-                        x: function (f) {
-                            counter2 += 8;
-                            let index = Math.floor(counter2 / 40);
-                            index = index % 8;
+                // textures[7].animateTo({
+                //     duration: 2000,
+                //     loop: Infinity,
+                //     attr: {
+                //         x: function (f) {
+                //             counter2 += 8;
+                //             let index = Math.floor(counter2 / 40);
+                //             index = index % 8;
 
-                            if (this.getAttr("clip").sx !== (index % 2) * 108 * 5) {
-                                console.log(Math.floor(index / 2));
-                                this.setAttr("clip", {
-                                    sx: (index % 2) * 108 * 5,
-                                    sy: Math.floor(index / 2) * 108 * 5,
-                                    swidth: 108 * 5,
-                                    sheight: 108 * 5,
-                                });
-                                textures7.update();
-                            }
-                            return 0;
-                        },
-                    },
-                });
+                //             if (this.getAttr("clip").sx !== (index % 2) * 108 * 5) {
+                //                 console.log(Math.floor(index / 2));
+                //                 this.setAttr("clip", {
+                //                     sx: (index % 2) * 108 * 5,
+                //                     sy: Math.floor(index / 2) * 108 * 5,
+                //                     swidth: 108 * 5,
+                //                     sheight: 108 * 5,
+                //                 });
+                //                 textures7.update();
+                //             }
+                //             return 0;
+                //         },
+                //     },
+                // });
             });
         </script>
     </body>

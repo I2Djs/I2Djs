@@ -11,7 +11,7 @@ const t2DGeometry = geometry;
 const easing = ease;
 const queueInstance = queue;
 const ResizeObserver = window.ResizeObserver || resizePolyfill;
-
+// const ResizeObserver = function () {};
 function animeId() {
     animeIdentifier += 1;
     return animeIdentifier;

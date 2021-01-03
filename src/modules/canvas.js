@@ -2139,8 +2139,12 @@ function textureImageInstance(self, url) {
     };
 
     imageIns.onerror = function onerror(error) {
+        console.error(error);
         if (self.nodeExe.attr.onerror && typeof self.nodeExe.attr.onerror === "function") {
             self.nodeExe.attr.onerror.call(self.nodeExe, error);
+        }
+        if (self.asyncOnLoad && typeof self.asyncOnLoad === "function") {
+            self.asyncOnLoad(self.image);
         }
     };
     return imageIns;

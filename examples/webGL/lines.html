@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
     </head>
-    <body style="height: 100%;">
-        <label style="position: absolute; color: white;"> Webgl Example </label>
-        <div id="canvas" style="height: 100%; width: 100%; background: black;"></div>
+    <body style="height: 100%">
+        <label style="position: absolute; color: white"> Webgl Example </label>
+        <div id="canvas" style="height: 100%; width: 100%; background: black"></div>
         <script type="text/javascript" src="../../dist/i2d.js"></script>
 
         <script type="text/javascript">
@@ -20,8 +20,8 @@
                 linesData.push({
                     x1: x1,
                     y1: y1,
-                    x2: x1 + 100,
-                    y2: y1 + 100,
+                    x2: x1 + 300,
+                    y2: y1 + 300,
                 });
             }
 
@@ -30,16 +30,16 @@
                     el: "group",
                     attr: {
                         shaderType: "line",
-                        transform: {
-                            translate: [400, 100],
-                            scale: [2, 1],
-                        },
                     },
                     bbox: false,
                 })
                 .createEls(linesData, {
                     el: "line",
                     attr: {
+                        transform: {
+                            translate: [400, 200],
+                            // scale: [2, 1],
+                        },
                         x1: function (d) {
                             return d.x1;
                         },

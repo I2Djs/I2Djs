@@ -13,8 +13,11 @@
             }
         </style>
     </head>
-    <body style="height: 100%">
-        <div id="myCanvas" style="height: 100%; width: 100%; background: black"></div>
+    <body style="height: 100%; background: black; color: white">
+        <div style="position: absolute; top: 50%; left: 50%">
+            <label style="">Move the cursor</label>
+        </div>
+        <div id="myCanvas" style="height: 100%; width: 100%"></div>
 
         <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.14.2/matter.js"></script>
@@ -49,7 +52,7 @@
                 el: "rect",
                 attr: {
                     x: 400,
-                    y: 630,
+                    y: 615,
                     width: 810,
                     height: 10,
                     class: "ground",
@@ -57,7 +60,6 @@
                 style: {
                     fill: "#a86f32",
                 },
-                bbox: false,
             });
             World.add(engine.world, ground);
             Engine.run(engine);
@@ -119,10 +121,13 @@
                 this.rect = rectsRef.createEl({
                     el: "rect",
                     attr: {
-                        x: x,
-                        y: y,
+                        x: 0,
+                        y: 0,
                         width: width,
                         height: height,
+                        transform: {
+                            translate: [x, y],
+                        },
                     },
                     style: {
                         fill: i2d.color.rgba(
@@ -138,18 +143,16 @@
                 World.add(engine.world, this.physicsBox);
             }
             renderBox.prototype.update = function () {
-                this.rect
-                    .setAttr("x", this.physicsBox.position.x)
-                    .setAttr("y", this.physicsBox.position.y)
-                    .setAttr("transform", {
-                        rotate: [
-                            this.physicsBox.angle * angFac,
-                            this.rect.getAttr("x") + 15,
-                            this.rect.getAttr("y") + 15,
-                        ],
-                    });
+                this.rect.setAttr("transform", {
+                    translate: [this.physicsBox.position.x, this.physicsBox.position.y],
+                    rotate: [
+                        this.physicsBox.angle * angFac,
+                        -this.rect.getAttr("width") / 2,
+                        -this.rect.getAttr("height") / 2,
+                    ],
+                });
 
-                if (this.rect.getAttr("y") > height) {
+                if (this.physicsBox.position.y > height) {
                     this.rect.remove();
                     World.remove(engine.world, this.physicsBox);
                     return false;

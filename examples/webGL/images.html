@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
     </head>
-    <body style="height: 100%;">
-        <div id="canvas" style="height: 100%; width: 100%;"></div>
+    <body style="height: 100%">
+        <div id="canvas" style="height: 100%; width: 100%"></div>
 
         <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script type="text/javascript">
             var webglRenderer = i2d.webglLayer("#canvas", {}, {});
 
             var rectsData = [];
-            for (let i = 0; i < 1000; i++) {
+            for (let i = 0; i < 500; i++) {
                 rectsData.push({
-                    x: parseInt(Math.random() * 500),
-                    y: parseInt(Math.random() * 400),
+                    x: parseInt(Math.random() * webglRenderer.width),
+                    y: parseInt(Math.random() * webglRenderer.height),
                     image: "../images/leaves2.jpg",
                 });
             }
@@ -30,12 +30,13 @@
                 .createEls(rectsData, {
                     el: "image",
                     attr: {
-                        x: function () {
-                            return Math.random() * 1200;
+                        transform: function (d) {
+                            return {
+                                translate: [d.x, d.y],
+                            };
                         },
-                        y: function () {
-                            return Math.random() * 700;
-                        },
+                        x: 0,
+                        y: 0,
                         width: 25,
                         height: 25,
                         src: function (d) {
@@ -44,16 +45,18 @@
                     },
                 })
                 .animateTo({
-                    duration: 5000,
+                    duration: 10000,
                     delay: function () {
                         return Math.random() * 5000;
                     },
                     attr: {
-                        x: function () {
-                            return Math.random() * 1000;
-                        },
-                        y: function () {
-                            return Math.random() * 900;
+                        transform: function (d) {
+                            return {
+                                translate: [
+                                    Math.random() * webglRenderer.width,
+                                    Math.random() * webglRenderer.height,
+                                ],
+                            };
                         },
                     },
                     end: function () {

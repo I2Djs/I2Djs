@@ -1,26 +1,26 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
     </head>
-    <body style="height: 100%;">
-        <label style="position: absolute; color: white;"> Canvas Example </label>
-        <div style="height: 100%; width: 100%;" id="myCanvas"></div>
-        <!-- <script type="text/javascript" src="../../dist/i2d.js"></script> -->
+    <body style="height: 100%">
+        <label style="position: absolute; color: white"> Canvas Example </label>
+        <div style="height: 100%; width: 100%" id="myCanvas"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
 
         <script type="module">
-            import canvasAPI from "../../src/modules/canvas.js";
+            // import canvasAPI from "../../src/modules/canvas.js";
 
-            var radialGrad = canvasAPI.canvasLayer(null, {}, { enableResize: false });
+            var radialGrad = i2d.canvasLayer(null, {}, { enableResize: false });
             radialGrad.setPixelRatio(1);
             radialGrad.setSize(100, 100);
-            var LinearGrad = canvasAPI.canvasLayer(null, {}, { enableResize: false });
+            var LinearGrad = i2d.canvasLayer(null, {}, { enableResize: false });
             LinearGrad.setPixelRatio(1);
             LinearGrad.setSize(256, 1);
 
-            var renderer_2 = canvasAPI.canvasLayer("#myCanvas", {}, { enableResize: false });
+            var renderer_2 = i2d.canvasLayer("#myCanvas", {}, { enableResize: false });
             renderer_2.setPixelRatio(1);
-            var renderer_ = canvasAPI.canvasLayer(null, {}, { enableResize: false });
+            var renderer_ = i2d.canvasLayer(null, {}, { enableResize: false });
             renderer_.setPixelRatio(1);
             renderer_.setSize(renderer_2.width, renderer_2.height);
 

@@ -675,9 +675,9 @@ DomExe.prototype.on = function DMon(eventType, hndlr) {
         };
 
         self.dom.addEventListener("wheel", self.events[eventType]);
-        self.dom.drag_ = function (event, eventType) {
+        self.dom.drag_ = function (event, eventType, eventsInstance) {
             if (hndlr.panFlag) {
-                hndlr.panExecute(self, event, eventType);
+                hndlr.panExecute(self, event, eventType, eventsInstance);
             }
         };
     } else {
@@ -866,22 +866,22 @@ function svgLayer(container, layerSettings = {}) {
         // e.preventDefault();
         eventsInstance.addPointer(e);
         if (e.target.drag_) {
-            e.target.drag_(e, "pointerdown");
+            e.target.drag_(e, "pointerdown", eventsInstance);
             dragNode = e.target;
         }
     });
     root.dom.addEventListener("pointerup", (e) => {
         // e.preventDefault();
-        eventsInstance.removePointer(e);
         if (dragNode) {
-            dragNode.drag_(e, "pointerup");
+            dragNode.drag_(e, "pointerup", eventsInstance);
             dragNode = null;
         }
+        eventsInstance.removePointer(e);
     });
     root.dom.addEventListener("pointermove", (e) => {
         e.preventDefault();
         if (dragNode) {
-            dragNode.drag_(e, "pointermove");
+            dragNode.drag_(e, "pointermove", eventsInstance);
         }
     });
     queueInstance.execute();

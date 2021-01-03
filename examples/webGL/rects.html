@@ -1,14 +1,17 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
     </head>
-    <body style="height: 100%;">
-        <label style="position: absolute; color: white;"> Webgl Example </label>
-        <div id="canvas" style="height: 100%; width: 100%; background: black;"></div>
+    <body style="height: 100%">
+        <label style="position: absolute; color: white"> Webgl Example </label>
+        <div id="canvas" style="height: 100%; width: 100%; background: black"></div>
         <script type="text/javascript" src="../../dist/i2d.js"></script>
 
-        <script type="text/javascript">
+        <!-- <script type="text/javascript"> -->
+        <script type="module">
+            // import webglLayer from "../../src/modules/webgl.js";
+            // import color from "../../src/modules/colorMap.js";
             var webglRenderer = i2d.webglLayer(
                 "#canvas",
                 {},
@@ -18,9 +21,9 @@
             /************** Rects *****************/
 
             var rectsData = [];
-            for (let i = 0; i < 200; i++) {
+            for (let i = 0; i < 50000; i++) {
                 rectsData.push({
-                    x: parseInt(Math.random() * 1400),
+                    x: parseInt(Math.random() * 1100),
                     y: parseInt(Math.random() * 1000),
                 });
             }
@@ -36,21 +39,19 @@
                 .createEls(rectsData, {
                     el: "rect",
                     attr: {
-                        x: function (d) {
-                            return d.x;
-                        },
-                        y: function (d) {
-                            return d.y;
-                        },
-                        width: function (d) {
-                            return Math.random() * 200;
-                        },
-                        height: function (d) {
-                            return Math.random() * 200;
+                        x: 0,
+                        y: 0,
+                        width: 2,
+                        height: 2,
+                        transform: function (d) {
+                            return {
+                                translate: [d.x, d.y],
+                                // rotate: [Math.PI * 0, 10 - 20, 10 - 20]
+                            };
                         },
                     },
                     style: {
-                        fill: function () {
+                        fill: function (d) {
                             return i2d.color.rgba(
                                 Math.random() * 255,
                                 Math.random() * 203,
@@ -59,7 +60,57 @@
                             );
                         },
                     },
+                    bbox: false,
+                })
+                .animateTo({
+                    duration: 2000,
+                    loop: 10,
+                    direction: "alternate",
+                    attr: {
+                        x: function () {
+                            return Math.random() * 500;
+                        },
+                        // transform: function (d) {
+                        //     return {
+                        //         translate: [d.x + 100, d.y],
+                        //         // rotate: [Math.PI * 2.0, 10 - 20, 10 - 20]
+                        //     }
+                        // }
+                    },
                 });
+
+            // var rectsRef = webglRenderer
+            //     .createEl({
+            //         el: "rect",
+            //         attr: {
+            //             x: 100,
+            //             y: 100,
+            //             width: 100,
+            //             height: 100,
+            //             transform: {
+            //                 // translate: [100, 100],
+            //                 rotate: [Math.PI * 0.0, 50, 50]
+            //             }
+            //         },
+            //         style: {
+            //             fill: color.rgba(
+            //                     Math.random() * 255,
+            //                     Math.random() * 203,
+            //                     Math.random() * 255,
+            //                     255
+            //                 )
+            //         },
+            //     })
+            //     .animateTo({
+            //         duration: 1000,
+            //         attr: {
+            //             transform: {
+            //                 // translate: [100, 100],
+            //                 // rotate: [Math.PI * 2.0, -150, -150]
+            //                 rotate: [Math.PI * 2, 50, 50]
+            //             }
+            //         }
+            //     });
 
             /************** End Rects *****************/
         </script>

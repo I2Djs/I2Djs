@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
     </head>
-    <body style="height: 100%;">
-        <label style="position: absolute; color: white;"> Webgl Example </label>
-        <div id="canvas" style="height: 100%; width: 100%; background: black;"></div>
+    <body style="height: 100%">
+        <label style="position: absolute; color: white"> Webgl Example </label>
+        <div id="canvas" style="height: 100%; width: 100%; background: black"></div>
         <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script type="text/javascript">
             var webglRenderer = i2d.webglLayer("#canvas", {}, {});
@@ -13,7 +13,7 @@
             /************** Lines *****************/
 
             var linesData = [];
-            for (let i = 0; i < 1; i++) {
+            for (let i = 0; i < 2000; i++) {
                 let x1 = 1400;
                 let y1 = 700;
                 linesData.push({
@@ -60,6 +60,12 @@
                 loop: 100,
                 direction: "alternate",
                 attr: {
+                    x1: function (d) {
+                        return parseInt(Math.random() * 1400);
+                    },
+                    y1: function (d) {
+                        return parseInt(Math.random() * 1000);
+                    },
                     x2: function (d) {
                         return parseInt(Math.random() * 1400);
                     },
