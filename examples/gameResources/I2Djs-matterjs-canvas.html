@@ -13,8 +13,11 @@
             }
         </style>
     </head>
-    <body style="height: 100%">
-        <div id="myCanvas" style="height: 100%; width: 100%; background: black"></div>
+    <body style="height: 100%; background: black; color: white">
+        <div style="position: absolute; top: 50%; left: 50%">
+            <label style="">Move the cursor</label>
+        </div>
+        <div id="myCanvas" style="height: 100%; width: 100%"></div>
 
         <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.14.2/matter.js"></script>
@@ -52,6 +55,7 @@
                 },
                 bbox: false,
             });
+
             World.add(engine.world, ground);
             Engine.run(engine);
 
@@ -118,8 +122,15 @@
                         height: height,
                     },
                     style: {
-                        fillStyle: "#888",
-                        strokeStyle: "white",
+                        fillStyle:
+                            "rgb(" +
+                            Math.random() * 255 +
+                            "," +
+                            Math.random() * 203 +
+                            "," +
+                            Math.random() * 255 +
+                            ")",
+                        // strokeStyle: "white",
                     },
                     bbox: false,
                 });

@@ -13,8 +13,11 @@
             }
         </style>
     </head>
-    <body style="height: 100%">
-        <div id="myCanvas" style="height: 100%; width: 100%; background: black"></div>
+    <body style="height: 100%; background: black; color: white">
+        <div id="myCanvas" style="height: 100%; width: 100%"></div>
+        <div style="position: absolute; top: 50%; left: 50%">
+            <label style="">click here!</label>
+        </div>
 
         <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.14.2/matter.js"></script>
@@ -55,7 +58,7 @@
                 el: "rect",
                 attr: {
                     x: renderer.width / 4,
-                    y: 620,
+                    y: 630,
                     width: renderer.width / 2,
                     height: 10,
                     class: "ground",
@@ -71,7 +74,6 @@
             let renderCounter = 300;
             let renderFlag = false;
             renderer.on("click", function (e) {
-                console.log(e);
                 renderCounter = 300;
                 if (!renderFlag) {
                     i2d.queue.onRequestFrame(draw);
@@ -84,8 +86,6 @@
                 renderCounter -= 1;
                 if (renderCounter < 0) {
                     boxesContainerInstance.filterBoxes();
-                    console.log(boxesContainerInstance);
-                    console.log(engine.world);
                     renderFlag = false;
                     i2d.queue.removeRequestFrameCall(draw);
                 }
@@ -163,10 +163,10 @@
                 this.rect = renderer.createEl({
                     el: "image",
                     attr: {
-                        x: x - 10,
-                        y: y - 10,
-                        width: 20,
-                        height: 20,
+                        x: x - 15,
+                        y: y - 15,
+                        width: 30,
+                        height: 30,
                         src: radialGrad,
                     },
                     bbox: false,

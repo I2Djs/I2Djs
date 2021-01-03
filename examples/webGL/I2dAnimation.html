@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
     </head>
-    <body style="height: 100%;">
-        <label style="position: absolute; color: white;"> Webgl Example </label>
-        <div id="canvas" style="height: 100%; width: 100%; background: black;"></div>
+    <body style="height: 100%">
+        <label style="position: absolute; color: white"> Webgl Example </label>
+        <div id="canvas" style="height: 100%; width: 100%; background: black"></div>
         <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script type="text/javascript">
             var webglRenderer = i2d.webglLayer(
@@ -66,7 +66,6 @@
                         attr: {
                             shaderType: "point",
                             transform: {
-                                scale: [1, 1],
                                 translate: [position.x, position.y],
                             },
                         },
@@ -75,6 +74,9 @@
                     .createEls(pointsData, {
                         el: "point",
                         attr: {
+                            // transform: {
+                            //     translate: [position.x, position.y],
+                            // },
                             x: function (d) {
                                 return d.x + Math.cos(d.angle) * (Math.random() * 300 + 200);
                             },
