@@ -14,10 +14,10 @@
         </style>
     </head>
     <body style="height: 100%; background: black; color: white">
-        <div id="myCanvas" style="height: 100%; width: 100%"></div>
         <div style="position: absolute; top: 50%; left: 50%">
             <label style="">click here!</label>
         </div>
+        <div id="myCanvas" style="height: 100%; width: 100%"></div>
 
         <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.14.2/matter.js"></script>
@@ -49,7 +49,7 @@
 
             var ground = Bodies.rectangle(
                 renderer.width / 4 + renderer.width / 4 - 10,
-                620,
+                renderer.height * 0.75 - 10,
                 renderer.width / 2,
                 10,
                 { isStatic: true }
@@ -58,7 +58,7 @@
                 el: "rect",
                 attr: {
                     x: renderer.width / 4,
-                    y: 630,
+                    y: renderer.height * 0.75,
                     width: renderer.width / 2,
                     height: 10,
                     class: "ground",
