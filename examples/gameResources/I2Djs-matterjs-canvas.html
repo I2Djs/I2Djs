@@ -41,18 +41,18 @@
             var boxesContainerInstance = new BoxesContainer();
 
             var ground = Bodies.rectangle(
-                webglRenderer.width * 0.2 * 2.5,
-                webglRenderer.height * 0.75,
-                webglRenderer.width * 0.6,
+                renderer.width * 0.2 * 2.5,
+                renderer.height * 0.75,
+                renderer.width * 0.6,
                 10,
                 { isStatic: true }
             );
             renderer.createEl({
                 el: "rect",
                 attr: {
-                    x: webglRenderer.width * 0.2,
-                    y: webglRenderer.height * 0.75,
-                    width: webglRenderer.width * 0.6,
+                    x: renderer.width * 0.2,
+                    y: renderer.height * 0.75,
+                    width: renderer.width * 0.6,
                     height: 10,
                     class: "ground",
                 },
