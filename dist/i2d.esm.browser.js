@@ -12567,16 +12567,9 @@ function RenderWebglRects(ctx, attr, style, renderTarget, vDomIndex) {
     this.indexBased = true;
     this.selftransform = [0, 0, 1, 1];
 
-    if (!this.attr.transform) {
-        this.attr.transform = {
-            translate: [0.0, 0.0],
-            scale: [1.0, 1.0],
-        };
-    }
-
     this.geometry = new MeshGeometry();
     this.geometry.setAttr("a_transformMatrix", {
-        value: new Float32Array(this.transform),
+        value: new Float32Array([]),
         size: 3,
     });
     this.geometry.setAttr("a_color", {
@@ -12669,13 +12662,6 @@ function RenderWebglLines(ctx, attr, style, renderTarget, vDomIndex) {
 
     this.selftransform = new Float32Array([0, 0, 1, 1]);
 
-    if (!this.attr.transform) {
-        this.attr.transform = {
-            translate: [0.0, 0.0],
-            scale: [1.0, 1.0],
-        };
-    }
-
     this.geometry = new LineGeometry();
     this.geometry.setAttr("a_color", {
         value: new Float32Array(this.colorArray),
@@ -12761,15 +12747,6 @@ function RenderWebglPolyLines(ctx, attr, style, renderTarget, vDomIndex) {
     this.renderTarget = renderTarget;
     this.indexBased = false;
 
-    if (!this.attr.transform) {
-        this.attr.transform = {
-            translate: [0.0, 0.0],
-            scale: [1.0, 1.0],
-        };
-    }
-    const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
-    this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
-
     this.geometry = new LineGeometry();
     this.geometry.drawType = "LINE_STRIP";
     this.geometry.setAttr("a_position", {
@@ -12829,16 +12806,6 @@ function RenderWebglPolygons(ctx, attr, style, renderTarget, vDomIndex) {
     this.positionArray = [];
     this.renderTarget = renderTarget;
     this.indexBased = false;
-
-    if (!this.attr.transform) {
-        this.attr.transform = {
-            translate: [0.0, 0.0],
-            scale: [1.0, 1.0],
-        };
-    }
-
-    const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
-    this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
 
     this.geometry = new MeshGeometry();
 
@@ -12902,13 +12869,6 @@ function RenderWebglCircles(ctx, attr, style, renderTarget, vDomIndex) {
     this.renderTarget = renderTarget;
     this.indexBased = true;
 
-    if (!this.attr.transform) {
-        this.attr.transform = {
-            translate: [0.0, 0.0],
-            scale: [1.0, 1.0],
-        };
-    }
-
     this.geometry = new PointsGeometry();
     this.geometry.setAttr("a_transformMatrix", {
         value: new Float32Array(this.transform),
@@ -12934,24 +12894,11 @@ function RenderWebglCircles(ctx, attr, style, renderTarget, vDomIndex) {
         {
             fragmentShader: shaders("circle").fragmentShader,
             vertexShader: shaders("circle").vertexShader,
-            uniforms: {
-                // u_resolution: {
-                //     value: new Float32Array([1.0, 1.0]),
-                // },
-                // u_transform: {
-                //     value: this.selftransform,
-                //     size: 4,
-                // },
-            },
+            uniforms: {},
             geometry: this.geometry,
         },
         vDomIndex
     );
-
-    // this.vertexUpdate = true;
-    // this.colorUpdate = true;
-    // this.sizeUpdate = true;
-    // this.transformUpdate = true;
 }
 
 RenderWebglCircles.prototype = new ShaderNodePrototype();
@@ -13032,11 +12979,6 @@ RenderWebglCircles.prototype.execute = function (stack) {
         this.filterSizeFlag = false;
     }
 
-    // this.shaderInstance.setUniformData(
-    //     "u_resolution",
-    //     new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio])
-    // );
-    // this.shaderInstance.setUniformData("u_transform", this.selftransform);
     this.shaderInstance.setAttributeData("a_radius", this.typedSizeArray);
 
     this.geometry.setDrawRange(0, this.typedPositionArray.length / 2);
@@ -13056,16 +12998,6 @@ function RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex) {
     this.renderTarget = renderTarget;
     this.indexBased = false;
 
-    if (!this.attr.transform) {
-        this.attr.transform = {
-            translate: [0.0, 0.0],
-            scale: [1.0, 1.0],
-        };
-    }
-
-    // const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
-    // this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
-
     this.geometry = new MeshGeometry();
     this.geometry.setAttr("a_texCoord", {
         value: this.textCoor,
@@ -13083,17 +13015,6 @@ function RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex) {
             fragmentShader: shaders("image").fragmentShader,
             vertexShader: shaders("image").vertexShader,
             uniforms: {
-                // u_resolution: {
-                //     value: new Float32Array([1.0, 1.0]),
-                // },
-                // u_transform: {
-                //     value: new Float32Array([]),
-                //     size: 4,
-                // },
-                // uu_transform: {
-                //     value: this.transform,
-                //     size: 4,
-                // },
                 u_transformMatrix: {
                     value: new Float32Array(m3.identity()),
                     matrix: true,
@@ -13124,11 +13045,6 @@ RenderWebglImages.prototype.execute = function (stack) {
 
     this.shaderInstance.useProgram();
 
-    // this.shaderInstance.applyUniformData(
-    //     "u_resolution",
-    //     new Float32Array([this.ctx.canvas.width / ratio, this.ctx.canvas.height / ratio])
-    // );
-    // this.shaderInstance.applyUniformData("u_transformMatrix", this.transformMatrix);
     this.shaderInstance.applyAttributeData("a_texCoord", this.textCoor);
 
     const gOp = this.style.opacity !== undefined ? this.style.opacity : 1.0;
