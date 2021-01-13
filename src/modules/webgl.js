@@ -10,8 +10,15 @@ const queueInstance = queue;
 
 function getPixlRatio (ctx) {
 	const dpr = window.devicePixelRatio || 1;
-	const bsr = ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1;
-	return dpr / bsr;
+	const bsr =
+        ctx.webkitBackingStorePixelRatio ||
+        ctx.mozBackingStorePixelRatio ||
+        ctx.msBackingStorePixelRatio ||
+        ctx.oBackingStorePixelRatio ||
+        ctx.backingStorePixelRatio ||
+        1;
+	const ratio = dpr / bsr;
+	return ratio < 1.0 ? 1.0 : ratio;
 }
 
 let Id = 0;

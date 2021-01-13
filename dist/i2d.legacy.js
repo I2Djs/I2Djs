@@ -1,6 +1,6 @@
 /*!
       * i2djs v3.0.0
-      * (c) 2020 Narayana Swamy (narayanaswamy14@gmail.com)
+      * (c) 2021 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
 (function (global, factory) {
@@ -5073,8 +5073,15 @@
 
 	function getPixlRatio (ctx) {
 		var dpr = window.devicePixelRatio || 1;
-		var bsr = ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1;
-		return dpr / bsr;
+		var bsr =
+	        ctx.webkitBackingStorePixelRatio ||
+	        ctx.mozBackingStorePixelRatio ||
+	        ctx.msBackingStorePixelRatio ||
+	        ctx.oBackingStorePixelRatio ||
+	        ctx.backingStorePixelRatio ||
+	        1;
+		var ratio = dpr / bsr;
+		return ratio < 1.0 ? 1.0 : ratio;
 	}
 
 	function domSetAttribute (attr, value) {
@@ -7781,8 +7788,15 @@
 
 	function getPixlRatio$1 (ctx) {
 		var dpr = window.devicePixelRatio || 1;
-		var bsr = ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1;
-		return dpr / bsr;
+		var bsr =
+	        ctx.webkitBackingStorePixelRatio ||
+	        ctx.mozBackingStorePixelRatio ||
+	        ctx.msBackingStorePixelRatio ||
+	        ctx.oBackingStorePixelRatio ||
+	        ctx.backingStorePixelRatio ||
+	        1;
+		var ratio = dpr / bsr;
+		return ratio < 1.0 ? 1.0 : ratio;
 	}
 
 	var Id$3 = 0;
