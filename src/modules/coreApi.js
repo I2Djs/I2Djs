@@ -330,6 +330,9 @@ NodePrototype.prototype.fetchEls = function (nodeSelector, dataArray) {
         if (nodeSelector.charAt(0) === ".") {
             const classToken = nodeSelector.substring(1, nodeSelector.length);
             this.children.forEach((d) => {
+                if (!d) {
+                    return;
+                }
                 const check1 =
                     dataArray &&
                     d.dataObj &&
@@ -344,6 +347,9 @@ NodePrototype.prototype.fetchEls = function (nodeSelector, dataArray) {
         } else if (nodeSelector.charAt(0) === "#") {
             const idToken = nodeSelector.substring(1, nodeSelector.length);
             this.children.every((d) => {
+                if (!d) {
+                    return;
+                }
                 const check1 =
                     dataArray &&
                     d.dataObj &&
@@ -361,6 +367,9 @@ NodePrototype.prototype.fetchEls = function (nodeSelector, dataArray) {
         } else {
             nodeSelector = nodeSelector === "group" ? "g" : nodeSelector;
             this.children.forEach((d) => {
+                if (!d) {
+                    return;
+                }
                 const check1 =
                     dataArray &&
                     d.dataObj &&
@@ -385,6 +394,9 @@ NodePrototype.prototype.fetchEl = function (nodeSelector, data) {
         if (nodeSelector.charAt(0) === ".") {
             const classToken = nodeSelector.substring(1, nodeSelector.length);
             this.children.every((d) => {
+                if (!d) {
+                    return;
+                }
                 const check1 =
                     data && d.dataObj && data === d.dataObj && d.attr.class === classToken;
                 const check2 = !data && d.attr.class === classToken;
@@ -399,6 +411,9 @@ NodePrototype.prototype.fetchEl = function (nodeSelector, data) {
         } else if (nodeSelector.charAt(0) === "#") {
             const idToken = nodeSelector.substring(1, nodeSelector.length);
             this.children.every((d) => {
+                if (!d) {
+                    return;
+                }
                 const check1 = data && d.dataObj && data === d.dataObj && d.attr.id === idToken;
                 const check2 = !data && d.attr.id === idToken;
 
@@ -412,6 +427,9 @@ NodePrototype.prototype.fetchEl = function (nodeSelector, data) {
         } else {
             nodeSelector = nodeSelector === "group" ? "g" : nodeSelector;
             this.children.forEach((d) => {
+                if (!d) {
+                    return;
+                }
                 const check1 =
                     data && d.dataObj && data === d.dataObj && d.nodeName === nodeSelector;
                 const check2 = !data && d.nodeName === nodeSelector;

@@ -1,5 +1,5 @@
 /*!
-      * i2djs v3.5.0
+      * i2djs v3.6.0
       * (c) 2021 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
@@ -4774,6 +4774,9 @@
             if (nodeSelector.charAt(0) === ".") {
                 const classToken = nodeSelector.substring(1, nodeSelector.length);
                 this.children.forEach((d) => {
+                    if (!d) {
+                        return;
+                    }
                     const check1 =
                         dataArray &&
                         d.dataObj &&
@@ -4788,6 +4791,9 @@
             } else if (nodeSelector.charAt(0) === "#") {
                 const idToken = nodeSelector.substring(1, nodeSelector.length);
                 this.children.every((d) => {
+                    if (!d) {
+                        return;
+                    }
                     const check1 =
                         dataArray &&
                         d.dataObj &&
@@ -4805,6 +4811,9 @@
             } else {
                 nodeSelector = nodeSelector === "group" ? "g" : nodeSelector;
                 this.children.forEach((d) => {
+                    if (!d) {
+                        return;
+                    }
                     const check1 =
                         dataArray &&
                         d.dataObj &&
@@ -4829,6 +4838,9 @@
             if (nodeSelector.charAt(0) === ".") {
                 const classToken = nodeSelector.substring(1, nodeSelector.length);
                 this.children.every((d) => {
+                    if (!d) {
+                        return;
+                    }
                     const check1 =
                         data && d.dataObj && data === d.dataObj && d.attr.class === classToken;
                     const check2 = !data && d.attr.class === classToken;
@@ -4843,6 +4855,9 @@
             } else if (nodeSelector.charAt(0) === "#") {
                 const idToken = nodeSelector.substring(1, nodeSelector.length);
                 this.children.every((d) => {
+                    if (!d) {
+                        return;
+                    }
                     const check1 = data && d.dataObj && data === d.dataObj && d.attr.id === idToken;
                     const check2 = !data && d.attr.id === idToken;
 
@@ -4856,6 +4871,9 @@
             } else {
                 nodeSelector = nodeSelector === "group" ? "g" : nodeSelector;
                 this.children.forEach((d) => {
+                    if (!d) {
+                        return;
+                    }
                     const check1 =
                         data && d.dataObj && data === d.dataObj && d.nodeName === nodeSelector;
                     const check2 = !data && d.nodeName === nodeSelector;
@@ -9393,21 +9411,6 @@
             });
         };
 
-        // function Sprite () {
-
-        // }
-
-        // Sprite.prototype = new NodePrototype();
-        // Sprite.constructor = Sprite;
-
-        // Sprite.prototype.add = function () {
-
-        // }
-
-        // Sprite.prototype.remove = function () {
-
-        // }
-
         root.setContext = function (prop, value) {
             /** Expecting value to be array if multiple aruments */
             if (this.ctx[prop] && typeof this.ctx[prop] === "function") {
@@ -12813,7 +12816,7 @@
         }
 
         for (let i = 0, len = stack.length; i < len; i++) {
-            this.shaderInstance.applyUniformData("u_transformMatrix", stack[i].dom.transformMatrix);
+            this.shaderInstance.setUniformData("u_transformMatrix", stack[i].dom.transformMatrix);
             this.shaderInstance.setAttributeData("a_position", stack[i].dom.points);
             this.shaderInstance.setUniformData("u_color", stack[i].dom.color);
             this.geometry.setDrawRange(0, stack[i].dom.points.length / 2);
@@ -12883,7 +12886,7 @@
 
         this.shaderInstance.useProgram();
         for (let i = 0, len = stack.length; i < len; i++) {
-            this.shaderInstance.applyUniformData("u_transformMatrix", stack[i].dom.transformMatrix);
+            this.shaderInstance.setUniformData("u_transformMatrix", stack[i].dom.transformMatrix);
             this.shaderInstance.setAttributeData("a_position", stack[i].dom.points);
             this.shaderInstance.setUniformData("u_color", stack[i].dom.color);
             this.geometry.setDrawRange(0, stack[i].dom.points.length / 2);
@@ -13292,12 +13295,20 @@
 
     WebglNodeExe.prototype = new NodePrototype();
 
-    WebglNodeExe.prototype.reIndexChildren = function () {
-        this.children = this.children.filter(function (d) {
+    WebglNodeExe.prototype.reIndexChildren = function (shader) {
+        let children = shader ? shader.children : this.children;
+
+        children = children.filter(function (d) {
             return d;
         });
-        for (var i = 0, len = this.children.length; i < len; i++) {
-            this.children[i].dom.pindex = i;
+        for (var i = 0, len = children.length; i < len; i++) {
+            children[i].dom.pindex = i;
+        }
+
+        if (shader) {
+            shader.children = children;
+        } else {
+            this.children = children;
         }
     };
 
@@ -13478,7 +13489,7 @@
         if (this.style.display === "none") {
             return;
         }
-        if (!this.dom.shader && this.dom instanceof WebglGroupNode) {
+        if (!this.dom.shader && !this.dom.shaderGroup && this.dom instanceof WebglGroupNode) {
             for (let i = 0, len = this.children.length; i < len; i += 1) {
                 this.children[i].execute();
             }
@@ -13491,6 +13502,18 @@
                 this.exeCtx(this.ctx);
             }
             this.dom.shader.execute(this.children);
+        } else if (this.dom.shaderGroup && this.dom instanceof WebglGroupNode) {
+            if (this.exeCtx) {
+                this.exeCtx(this.ctx);
+            }
+            for (const key in this.dom.shaderGroup) {
+                const shad = this.dom.shaderGroup[key];
+                if (shad.reindex) {
+                    this.reIndexChildren(shad);
+                    shad.reindex = false;
+                }
+                shad.shader.execute(shad.children);
+            }
         }
     };
 
@@ -13503,8 +13526,33 @@
                 node.dom.parent = self;
                 self.children[self.children.length] = node;
                 node.dom.pindex = self.children.length - 1;
-                if (!(node instanceof RenderWebglShader)) {
-                    node.dom.setShader(this.dom.shader);
+                if (!(node instanceof RenderWebglShader) && !(node.dom instanceof WebglGroupNode)) {
+                    if (this.dom.shader) {
+                        node.dom.setShader(this.dom.shader);
+                    } else {
+                        if (!this.dom.shaderGroup) {
+                            this.dom.shaderGroup = {};
+                        }
+
+                        if (!this.dom.shaderGroup[node.el]) {
+                            this.dom.shaderGroup[node.el] = {
+                                children: [],
+                                shader: getTypeShader(
+                                    self.ctx,
+                                    self.attr,
+                                    self.style,
+                                    node.el,
+                                    self.renderTarget,
+                                    self.vDomIndex
+                                ),
+                            };
+                        }
+                        this.dom.shaderGroup[node.el].children[
+                            this.dom.shaderGroup[node.el].children.length
+                        ] = node;
+                        node.dom.pindex = this.dom.shaderGroup[node.el].children.length - 1;
+                        node.dom.setShader(this.dom.shaderGroup[node.el].shader);
+                    }
                 }
                 if (self.dom.attr && self.dom.attr.transform) {
                     node.applyTransformationMatrix(self.dom.transformMatrix);
@@ -13559,6 +13607,18 @@
                 }
                 this.dom.parent.setReIndex();
                 children[this.dom.pindex] = undefined;
+            } else if (this.dom.parent.dom.shaderGroup) {
+                const shaderEl = this.dom.parent.dom.shaderGroup[this.el];
+                if (shaderEl) {
+                    const localIndex = shaderEl.children.indexOf(this);
+                    shaderEl.reindex = true;
+                    if (shaderEl.shader.indexBased) {
+                        shaderEl.shader.clear(this.dom.pindex);
+                        this.dom.parent.setReIndex();
+                    }
+                    shaderEl.children[localIndex] = undefined;
+                }
+                children[index] = undefined;
             } else {
                 children.splice(index, 1);
             }

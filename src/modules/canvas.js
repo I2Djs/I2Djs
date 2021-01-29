@@ -2444,21 +2444,6 @@ function canvasNodeLayer(config, height = 0, width = 0) {
         });
     };
 
-    // function Sprite () {
-
-    // }
-
-    // Sprite.prototype = new NodePrototype();
-    // Sprite.constructor = Sprite;
-
-    // Sprite.prototype.add = function () {
-
-    // }
-
-    // Sprite.prototype.remove = function () {
-
-    // }
-
     root.setContext = function (prop, value) {
         /** Expecting value to be array if multiple aruments */
         if (this.ctx[prop] && typeof this.ctx[prop] === "function") {

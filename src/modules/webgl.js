@@ -2477,7 +2477,7 @@ RenderWebglPolyLines.prototype.execute = function (stack) {
     }
 
     for (let i = 0, len = stack.length; i < len; i++) {
-        this.shaderInstance.applyUniformData("u_transformMatrix", stack[i].dom.transformMatrix);
+        this.shaderInstance.setUniformData("u_transformMatrix", stack[i].dom.transformMatrix);
         this.shaderInstance.setAttributeData("a_position", stack[i].dom.points);
         this.shaderInstance.setUniformData("u_color", stack[i].dom.color);
         this.geometry.setDrawRange(0, stack[i].dom.points.length / 2);
@@ -2547,7 +2547,7 @@ RenderWebglPolygons.prototype.execute = function (stack) {
 
     this.shaderInstance.useProgram();
     for (let i = 0, len = stack.length; i < len; i++) {
-        this.shaderInstance.applyUniformData("u_transformMatrix", stack[i].dom.transformMatrix);
+        this.shaderInstance.setUniformData("u_transformMatrix", stack[i].dom.transformMatrix);
         this.shaderInstance.setAttributeData("a_position", stack[i].dom.points);
         this.shaderInstance.setUniformData("u_color", stack[i].dom.color);
         this.geometry.setDrawRange(0, stack[i].dom.points.length / 2);
@@ -2956,12 +2956,20 @@ function WebglNodeExe(ctx, config, id, vDomIndex) {
 
 WebglNodeExe.prototype = new NodePrototype();
 
-WebglNodeExe.prototype.reIndexChildren = function () {
-    this.children = this.children.filter(function (d) {
+WebglNodeExe.prototype.reIndexChildren = function (shader) {
+    let children = shader ? shader.children : this.children;
+
+    children = children.filter(function (d) {
         return d;
     });
-    for (var i = 0, len = this.children.length; i < len; i++) {
-        this.children[i].dom.pindex = i;
+    for (var i = 0, len = children.length; i < len; i++) {
+        children[i].dom.pindex = i;
+    }
+
+    if (shader) {
+        shader.children = children;
+    } else {
+        this.children = children;
     }
 };
 
@@ -3142,7 +3150,7 @@ WebglNodeExe.prototype.execute = function Cexecute() {
     if (this.style.display === "none") {
         return;
     }
-    if (!this.dom.shader && this.dom instanceof WebglGroupNode) {
+    if (!this.dom.shader && !this.dom.shaderGroup && this.dom instanceof WebglGroupNode) {
         for (let i = 0, len = this.children.length; i < len; i += 1) {
             this.children[i].execute();
         }
@@ -3155,6 +3163,18 @@ WebglNodeExe.prototype.execute = function Cexecute() {
             this.exeCtx(this.ctx);
         }
         this.dom.shader.execute(this.children);
+    } else if (this.dom.shaderGroup && this.dom instanceof WebglGroupNode) {
+        if (this.exeCtx) {
+            this.exeCtx(this.ctx);
+        }
+        for (const key in this.dom.shaderGroup) {
+            const shad = this.dom.shaderGroup[key];
+            if (shad.reindex) {
+                this.reIndexChildren(shad);
+                shad.reindex = false;
+            }
+            shad.shader.execute(shad.children);
+        }
     }
 };
 
@@ -3167,8 +3187,33 @@ WebglNodeExe.prototype.child = function child(childrens) {
             node.dom.parent = self;
             self.children[self.children.length] = node;
             node.dom.pindex = self.children.length - 1;
-            if (!(node instanceof RenderWebglShader)) {
-                node.dom.setShader(this.dom.shader);
+            if (!(node instanceof RenderWebglShader) && !(node.dom instanceof WebglGroupNode)) {
+                if (this.dom.shader) {
+                    node.dom.setShader(this.dom.shader);
+                } else {
+                    if (!this.dom.shaderGroup) {
+                        this.dom.shaderGroup = {};
+                    }
+
+                    if (!this.dom.shaderGroup[node.el]) {
+                        this.dom.shaderGroup[node.el] = {
+                            children: [],
+                            shader: getTypeShader(
+                                self.ctx,
+                                self.attr,
+                                self.style,
+                                node.el,
+                                self.renderTarget,
+                                self.vDomIndex
+                            ),
+                        };
+                    }
+                    this.dom.shaderGroup[node.el].children[
+                        this.dom.shaderGroup[node.el].children.length
+                    ] = node;
+                    node.dom.pindex = this.dom.shaderGroup[node.el].children.length - 1;
+                    node.dom.setShader(this.dom.shaderGroup[node.el].shader);
+                }
             }
             if (self.dom.attr && self.dom.attr.transform) {
                 node.applyTransformationMatrix(self.dom.transformMatrix);
@@ -3223,6 +3268,18 @@ WebglNodeExe.prototype.remove = function Wremove() {
             }
             this.dom.parent.setReIndex();
             children[this.dom.pindex] = undefined;
+        } else if (this.dom.parent.dom.shaderGroup) {
+            const shaderEl = this.dom.parent.dom.shaderGroup[this.el];
+            if (shaderEl) {
+                const localIndex = shaderEl.children.indexOf(this);
+                shaderEl.reindex = true;
+                if (shaderEl.shader.indexBased) {
+                    shaderEl.shader.clear(this.dom.pindex);
+                    this.dom.parent.setReIndex();
+                }
+                shaderEl.children[localIndex] = undefined;
+            }
+            children[index] = undefined;
         } else {
             children.splice(index, 1);
         }
