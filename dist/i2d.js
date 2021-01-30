@@ -13296,7 +13296,8 @@
     WebglNodeExe.prototype = new NodePrototype();
 
     WebglNodeExe.prototype.reIndexChildren = function (shader) {
-        let children = shader ? shader.children : this.children;
+        const childParent = shader || this;
+        let children = childParent.children;
 
         children = children.filter(function (d) {
             return d;
@@ -13305,11 +13306,7 @@
             children[i].dom.pindex = i;
         }
 
-        if (shader) {
-            shader.children = children;
-        } else {
-            this.children = children;
-        }
+        childParent.children = children;
     };
 
     WebglNodeExe.prototype.applyTransformationMatrix = function (matrix) {
