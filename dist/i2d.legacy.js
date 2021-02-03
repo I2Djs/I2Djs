@@ -10756,13 +10756,9 @@
 
         if (prop === "x" || prop === "y") {
             this.shader.updateVertex(this.pindex, this.attr.x, this.attr.y);
-        }
-
-        if (prop === "size") {
+        } else if (prop === "size") {
             this.shader.updateSize(this.pindex, this.attr.size || 0);
-        }
-
-        if (prop === "transform") {
+        } else if (prop === "transform") {
             this.shader.updateTransform(this.pindex, this.transformMatrix);
         }
     };
@@ -10867,8 +10863,7 @@
                 this.attr.width || 0,
                 this.attr.height || 0
             );
-        }
-        if (key === "transform") {
+        } else if (key === "transform") {
             this.shader.updateTransform(this.pindex, this.transformMatrix);
         }
     };
@@ -10962,7 +10957,7 @@
 
     PathNode.prototype.setAttr = function (key, value) {
         this.attr[key] = value;
-        if (value == null) {
+        if (value === null) {
             delete this.attr[key];
             return;
         }
@@ -10975,8 +10970,7 @@
                 this.path = path.instance(this.attr.d);
             }
             this.points = new Float32Array(this.path.getPoints());
-        }
-        if (key === "transform") {
+        } else if (key === "transform") {
             this.exec(updateTransformMatrix, this.p_matrix);
         }
     };
@@ -11068,8 +11062,7 @@
                 subPoints[j * 2 + 1] = points[j].y;
             }
             this.points = new Float32Array(subPoints);
-        }
-        if (key === "transform") {
+        } else if (key === "transform") {
             this.exec(updateTransformMatrix, this.p_matrix);
         }
     };
@@ -11143,7 +11136,7 @@
 
     LineNode.prototype.setAttr = function (key, value) {
         this.attr[key] = value;
-        if (value == null && this.attr[key] != null) {
+        if (value === null && this.attr[key] !== null) {
             delete this.attr[key];
             return;
         }
@@ -11158,8 +11151,7 @@
                 this.attr.x2,
                 this.attr.y2
             );
-        }
-        if (this.shader && key === "transform") {
+        } else if (this.shader && key === "transform") {
             this.shader.updateTransform(this.pindex, this.transformMatrix);
         }
     };
@@ -11253,7 +11245,7 @@
 
     PolygonNode.prototype.setAttr = function (key, value) {
         this.attr[key] = value;
-        if (value == null) {
+        if (value === null) {
             delete this.attr[key];
             return;
         }
@@ -11265,15 +11257,9 @@
                 subPoints[j * 2 + 1] = points[j].y;
             }
             this.points = new Float32Array(subPoints);
-        }
-        if (key === "transform") {
+        } else if (key === "transform") {
             this.exec(updateTransformMatrix, this.p_matrix);
-            // const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
-            // this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
         }
-        // if (this.shader) {
-        //     this.shader.updateVertex(this.triangulatedPoints || [], this.pindex);
-        // }
     };
 
     PolygonNode.prototype.setStyle = function (key, value) {
@@ -11314,13 +11300,6 @@
             this.shader.addColors(this.style.fill || defaultColor$1, this.pindex);
             this.shader.addSize(this.attr.r || 0, this.pindex);
             this.shader.addTransform(this.transformMatrix, this.pindex);
-            // this.shader.addTransform(
-            //     this.attr.transform || {
-            //         translate: [],
-            //         scale: [],
-            //     },
-            //     this.pindex
-            // );
         }
     };
 
@@ -11334,21 +11313,18 @@
 
     CircleNode.prototype.setAttr = function (prop, value) {
         this.attr[prop] = value;
-        if (value == null) {
+        if (value === null) {
             delete this.attr[prop];
             return;
         }
         if (prop === "transform") {
             this.exec(updateTransformMatrix, this.p_matrix);
         }
-        if (this.shader && (prop === "cx" || prop === "cy")) {
+        if ((prop === "cx" || prop === "cy") && this.shader) {
             this.shader.updateVertex(this.pindex, this.attr.cx, this.attr.cy);
-        }
-
-        if (this.shader && prop === "r") {
+        } else if (prop === "r" && this.shader) {
             this.shader.updateSize(this.pindex, this.attr.r || 0);
-        }
-        if (this.shader && prop === "transform") {
+        } else if (prop === "transform" && this.shader) {
             this.shader.updateTransform(this.pindex, this.transformMatrix);
         }
     };
@@ -11526,7 +11502,7 @@
     TextNode.prototype.setAttr = function (key, value) {
         this.attr[key] = value;
 
-        if (value == null) {
+        if (value === null) {
             delete this.attr[key];
             return;
         }
@@ -11554,9 +11530,7 @@
 
         if (key === "transform") {
             this.exec(updateTransformMatrix, this.p_matrix);
-        }
-
-        if (key === "x" || key === "y") {
+        } else if (key === "x" || key === "y") {
             var x = this.attr.x || 0;
             var y = this.attr.y || 0;
             var width = this.attr.width || 0;
@@ -11569,21 +11543,11 @@
             this.positionArray[2] = this.positionArray[8] = this.positionArray[10] = x1;
             this.positionArray[5] = this.positionArray[7] = this.positionArray[11] = y1;
         }
-
-        // if (this.shader && key === "x") {
-        //     this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
-        // }
-        // if (this.shader && key === "y") {
-        //     this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
-        // }
     };
 
     TextNode.prototype.applyTransformationMatrix = function (matrix) {
         this.p_matrix = matrix;
         this.exec(updateTransformMatrix, matrix);
-        // if (this.shader) {
-        //     this.shader.addTransform(this.transformMatrix, this.pindex);
-        // }
     };
 
     TextNode.prototype.setStyle = function (key, value) {
@@ -11745,7 +11709,7 @@
     ImageNode.prototype.setAttr = function (key, value) {
         this.attr[key] = value;
 
-        if (value == null) {
+        if (value === null) {
             delete this.attr[key];
             return;
         }
@@ -11773,11 +11737,7 @@
             );
         } else if (key === "src" && value instanceof TextureObject) {
             this.textureNode = value;
-        }
-        // if (!this.shader) {
-        //     return;
-        // }
-        if (key === "x" || key === "width" || key === "y" || key === "height") {
+        } else if (key === "x" || key === "width" || key === "y" || key === "height") {
             var x = this.attr.x || 0;
             var y = this.attr.y || 0;
             var width = this.attr.width || 0;
@@ -11789,12 +11749,8 @@
             this.positionArray[1] = this.positionArray[3] = this.positionArray[9] = y;
             this.positionArray[2] = this.positionArray[8] = this.positionArray[10] = x1;
             this.positionArray[5] = this.positionArray[7] = this.positionArray[11] = y1;
-        }
-
-        if (key === "transform") {
+        } else if (key === "transform") {
             this.exec(updateTransformMatrix, this.p_matrix);
-            // const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
-            // this.transform = new Float32Array([translateX, translateY, scaleX, scaleY]);
         }
     };
 
@@ -11804,9 +11760,6 @@
         } else if (this.style[key]) {
             delete this.style[key];
         }
-        // if (this.shader && key === 'opacity') {
-        // 	this.shader.updateOpacity(this.pindex, value);
-        // }
     };
 
     ImageNode.prototype.getAttr = function (key) {
@@ -13488,7 +13441,7 @@
     WebglNodeExe.prototype.setAttr = function WsetAttr(attr, value) {
         var self = this;
         if (arguments.length === 2) {
-            if (value == null && this.attr[attr] != null) {
+            if (value === null && this.attr[attr] !== null) {
                 delete this.attr[attr];
             } else {
                 this.attr[attr] = value;
@@ -13501,7 +13454,7 @@
             }
         } else if (arguments.length === 1 && typeof attr === "object") {
             for (var key in attr) {
-                if (attr[key] == null && this.attr[attr] != null) {
+                if (attr[key] === null && this.attr[attr] !== null) {
                     delete this.attr[key];
                 } else {
                     this.attr[key] = attr[key];
@@ -13566,7 +13519,7 @@
 
     WebglNodeExe.prototype.setStyle = function WsetStyle(attr, value) {
         if (arguments.length === 2) {
-            if (value == null && this.style[attr] != null) {
+            if (value === null && this.style[attr] != null) {
                 delete this.style[attr];
             } else {
                 if (attr === "fill" || attr === "stroke") {
@@ -13579,7 +13532,7 @@
         } else if (arguments.length === 1 && typeof attr === "object") {
             for (var key in attr) {
                 value = attr[key];
-                if (value == null && this.style[key] != null) {
+                if (value === null && this.style[key] != null) {
                     delete this.style[key];
                 } else {
                     if (key === "fill" || key === "stroke") {
@@ -13629,7 +13582,7 @@
             this.events = {};
         }
 
-        if (hndlr == null && this.events[eventType] != null) {
+        if (hndlr === null && this.events[eventType] !== null) {
             delete this.events[eventType];
         } else if (hndlr) {
             if (typeof hndlr === "function") {
@@ -13694,7 +13647,18 @@
                 node.dom.pindex = self.children.length - 1;
                 if (!(node instanceof RenderWebglShader) && !(node.dom instanceof WebglGroupNode)) {
                     if (this.dom.shader) {
-                        node.dom.setShader(this.dom.shader);
+                        if (node.el === this.dom.shader.attr.shaderType) {
+                            node.dom.setShader(this.dom.shader);
+                        } else {
+                            console.warn(
+                                "wrong el type '" +
+                                    node.el +
+                                    "' being added to shader group - '" +
+                                    this.dom.shader.attr.shaderType +
+                                    "'"
+                            );
+                            self.children.pop();
+                        }
                     } else {
                         if (!this.dom.shaderGroup) {
                             this.dom.shaderGroup = {};

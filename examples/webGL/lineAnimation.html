@@ -12,10 +12,10 @@
 
             /************** Lines *****************/
 
+            let x1 = webglRenderer.width - 200;
+            let y1 = webglRenderer.height - 200;
             var linesData = [];
             for (let i = 0; i < 2000; i++) {
-                let x1 = 1400;
-                let y1 = 700;
                 linesData.push({
                     x1: Math.random() * x1,
                     y1: Math.random() * y1,
@@ -30,8 +30,8 @@
                     attr: {
                         shaderType: "line",
                         transform: {
-                            translate: [200, 100],
-                            scale: [3, 1.5],
+                            translate: [100, 100],
+                            scale: [1, 1],
                         },
                     },
                     bbox: false,
@@ -61,16 +61,16 @@
                 direction: "alternate",
                 attr: {
                     x1: function (d) {
-                        return parseInt(Math.random() * 1400);
+                        return parseInt(Math.random() * x1);
                     },
                     y1: function (d) {
-                        return parseInt(Math.random() * 1000);
+                        return parseInt(Math.random() * y1);
                     },
                     x2: function (d) {
-                        return parseInt(Math.random() * 1400);
+                        return parseInt(Math.random() * x1);
                     },
                     y2: function (d) {
-                        return parseInt(Math.random() * 1000);
+                        return parseInt(Math.random() * y1);
                     },
                 },
             });

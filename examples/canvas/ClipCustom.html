@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
     </head>
-    <body style="height: 100%;">
-        <div id="myCanvas" style="height: 100%; width: 100%; position: absolute;"></div>
+    <body style="height: 100%">
+        <div id="myCanvas" style="height: 100%; width: 100%; position: absolute"></div>
         <script type="text/javascript" src="../../dist/i2d.js"></script>
 
         <script type="text/javascript">
@@ -15,7 +15,6 @@
                 el: "circle",
                 attr: {
                     cx: function (d) {
-                        console.log(d);
                         return Math.random() * 566 * 2;
                     },
                     cy: function (d) {

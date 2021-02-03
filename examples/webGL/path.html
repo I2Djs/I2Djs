@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
     </head>
-    <body style="height: 100%;">
-        <label style="position: absolute; color: white;"> Webgl Example </label>
+    <body style="height: 100%">
+        <label style="position: absolute; color: white"> Webgl Example </label>
 
-        <div id="canvas" style="height: 100%; width: 100%; background: black;"></div>
+        <div id="canvas" style="height: 100%; width: 100%; background: black"></div>
         <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script type="text/javascript">
             // import path from "./../../src/modules/path.js";
@@ -20,6 +20,20 @@
                     shaderType: "path",
                 },
                 bbox: false,
+            });
+
+            pathRef.createEl({
+                el: "rect",
+                attr: {
+                    transform: {
+                        translate: [0, 0],
+                    },
+                    x: 100,
+                    y: 100,
+                    width: 100,
+                    height: 100,
+                },
+                style: { stroke: i2d.color.rgba(145, 100, 100, 255) },
             });
 
             pathRef.createEl({
