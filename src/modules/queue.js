@@ -275,6 +275,7 @@ function loopCheck(d) {
     } else {
         d.loopTracker += 1;
         d.lastTime = d.lastTime - d.duration;
+        d.lastTime = d.lastTime % d.duration;
 
         if (d.direction === "alternate") {
             d.factor = 1 - d.factor;

@@ -1938,6 +1938,10 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
         onChangeExe = exec;
     };
 
+    root.toDataURL = function (p) {
+        return this.domEl.toDataURL(p);
+    };
+
     root.invokeOnChange = function () {};
 
     root.setSize = function (width_, height_) {
@@ -2409,8 +2413,8 @@ function canvasNodeLayer(config, height = 0, width = 0) {
         this.execute();
     };
 
-    root.toDataURL = function () {
-        return this.domEl.toDataURL();
+    root.toDataURL = function (p) {
+        return this.domEl.toDataURL(p);
     };
 
     root.getPixels = function (x, y, width_, height_) {

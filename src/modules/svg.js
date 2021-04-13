@@ -301,17 +301,26 @@ const buildDom = function buildSVGElement(ele) {
     return document.createElementNS(nameSpace.svg, ele);
 };
 
+const buildNamespaceDom = function buildNamespaceDom(ns, ele) {
+    return document.createElementNS(nameSpace[ns], ele);
+};
+
 function createDomElement(obj, vDomIndex) {
     let dom = null;
+    const ind = obj.el.indexOf(":");
 
-    switch (obj.el) {
-        case "group":
-            dom = buildDom("g");
-            break;
+    if (ind >= 0) {
+        dom = buildNamespaceDom(obj.el.slice(0, ind), obj.el.slice(ind + 1));
+    } else {
+        switch (obj.el) {
+            case "group":
+                dom = buildDom("g");
+                break;
 
-        default:
-            dom = buildDom(obj.el);
-            break;
+            default:
+                dom = buildDom(obj.el);
+                break;
+        }
     }
 
     const node = new DomExe(dom, obj, domId(), vDomIndex);

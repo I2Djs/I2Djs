@@ -286,6 +286,7 @@
         } else {
             d.loopTracker += 1;
             d.lastTime = d.lastTime - d.duration;
+            d.lastTime = d.lastTime % d.duration;
 
             if (d.direction === "alternate") {
                 d.factor = 1 - d.factor;
@@ -5835,17 +5836,26 @@
         return document.createElementNS(nameSpace.svg, ele);
     };
 
+    var buildNamespaceDom = function buildNamespaceDom(ns, ele) {
+        return document.createElementNS(nameSpace[ns], ele);
+    };
+
     function createDomElement(obj, vDomIndex) {
         var dom = null;
+        var ind = obj.el.indexOf(":");
 
-        switch (obj.el) {
-            case "group":
-                dom = buildDom("g");
-                break;
+        if (ind >= 0) {
+            dom = buildNamespaceDom(obj.el.slice(0, ind), obj.el.slice(ind + 1));
+        } else {
+            switch (obj.el) {
+                case "group":
+                    dom = buildDom("g");
+                    break;
 
-            default:
-                dom = buildDom(obj.el);
-                break;
+                default:
+                    dom = buildDom(obj.el);
+                    break;
+            }
         }
 
         var node = new DomExe(dom, obj, domId(), vDomIndex);
@@ -9091,6 +9101,10 @@
             onChangeExe = exec;
         };
 
+        root.toDataURL = function (p) {
+            return this.domEl.toDataURL(p);
+        };
+
         root.invokeOnChange = function () {};
 
         root.setSize = function (width_, height_) {
@@ -9579,8 +9593,8 @@
             this.execute();
         };
 
-        root.toDataURL = function () {
-            return this.domEl.toDataURL();
+        root.toDataURL = function (p) {
+            return this.domEl.toDataURL(p);
         };
 
         root.getPixels = function (x, y, width_, height_) {
