@@ -126,7 +126,7 @@ npm install
 npm run dev
 
 # build dist files
-npm run build
+rollup -c rollup.config.js
 
 #Lint files
 npm run lint
