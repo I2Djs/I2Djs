@@ -7529,8 +7529,8 @@
             } else if (value instanceof CanvasNodeExe || value instanceof RenderTexture) {
                 self.imageObj = value.domEl;
                 // self.postProcess();
-                self.attr.height = self.attr.height ? self.attr.height : value.height;
-                self.attr.width = self.attr.width ? self.attr.width : value.width;
+                self.attr.height = self.attr.height ? self.attr.height : value.attr.height;
+                self.attr.width = self.attr.width ? self.attr.width : value.attr.width;
             }
         }
         this.attr[attr] = value;
@@ -9292,7 +9292,7 @@
                 self.attr.width = self.attr.width ? self.attr.width : this.naturalWidth;
             }
             if (self instanceof RenderTexture) {
-                self.setSize(self.attr.width, self.attr.width);
+                self.setSize(self.attr.width, self.attr.height);
             }
             self.imageObj = this;
 
@@ -9442,7 +9442,7 @@
             } else if (value instanceof CanvasNodeExe || value instanceof RenderTexture) {
                 self.imageObj = value.domEl;
                 self.attr.height = self.attr.height ? self.attr.height : value.attr.height;
-                self.attr.width = self.attr.width ? self.attr.width : value.attributesExe.width;
+                self.attr.width = self.attr.width ? self.attr.width : value.attr.width;
                 postProcess(self);
             }
         }
