@@ -9076,8 +9076,6 @@
         const canvas = document.createElement("canvas");
         canvas.setAttribute("height", height);
         canvas.setAttribute("width", width);
-        canvas.style.height = `${height}px`;
-        canvas.style.width = `${width}px`;
         this.canvas = canvas;
         this.context = this.canvas.getContext("2d");
     }
@@ -9085,10 +9083,8 @@
     GetCanvasImgInstance.prototype.setAttr = function (attr, value) {
         if (attr === "height") {
             this.canvas.setAttribute("height", value);
-            this.canvas.style.height = `${value}px`;
         } else if (attr === "width") {
             this.canvas.setAttribute("width", value);
-            this.canvas.style.width = `${value}px`;
         }
     };
 
@@ -9106,6 +9102,9 @@
             if (self.attr) {
                 self.attr.height = self.attr.height ? self.attr.height : this.naturalHeight;
                 self.attr.width = self.attr.width ? self.attr.width : this.naturalWidth;
+            }
+            if (self instanceof RenderTexture) {
+                self.setSize(self.attr.width, self.attr.width);
             }
             self.imageObj = this;
 
@@ -9168,7 +9167,11 @@
         const self = this;
         self.attr = Object.assign({}, config.attr) || {};
         self.style = Object.assign({}, config.style) || {};
-        self.rImageObj = new GetCanvasImgInstance(self.attr.width || 1, self.attr.height || 1);
+        const scale = self.attr.scale || 1;
+        self.rImageObj = new GetCanvasImgInstance(
+            (self.attr.width || 1) * scale,
+            (self.attr.height || 1) * scale
+        );
         self.ctx = self.rImageObj.context;
         self.domEl = self.rImageObj.canvas;
         self.imageArray = [];
@@ -9186,6 +9189,13 @@
     }
     RenderTexture.prototype = new NodePrototype();
     RenderTexture.prototype.constructor = RenderTexture;
+
+    RenderTexture.prototype.setSize = function (w, h) {
+        const scale = this.attr.scale || 1;
+        this.rImageObj.setAttr("width", w * scale);
+        this.rImageObj.setAttr("height", h * scale);
+        postProcess(this);
+    };
 
     RenderTexture.prototype.setAttr = function RSsetAttr(attr, value) {
         const self = this;
@@ -9233,8 +9243,8 @@
                 postProcess(self);
             } else if (value instanceof CanvasNodeExe || value instanceof RenderTexture) {
                 self.imageObj = value.domEl;
-                self.attr.height = self.attr.height ? self.attr.height : value.height;
-                self.attr.width = self.attr.width ? self.attr.width : value.width;
+                self.attr.height = self.attr.height ? self.attr.height : value.attr.height;
+                self.attr.width = self.attr.width ? self.attr.width : value.attributesExe.width;
                 postProcess(self);
             }
         }
@@ -9267,14 +9277,15 @@
     RenderTexture.prototype.execute = function RIexecute() {
         const { width = 0, height = 0 } = this.attr;
         const draw = this.attr.draw || {};
+        const scale = this.attr.scale || 1;
 
-        this.ctx.clearRect(0, 0, width, height);
+        this.ctx.clearRect(0, 0, width * scale, height * scale);
         this.ctx.drawImage(
             this.imageObj,
             draw.x || 0,
             draw.y || 0,
-            draw.width || width,
-            draw.height || height
+            (draw.width || width) * scale,
+            (draw.height || height) * scale
         );
     };
 
