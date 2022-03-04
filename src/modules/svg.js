@@ -106,7 +106,7 @@ SVGPattern.prototype.exe = function exe() {
     return `url(#${this.id})`;
 };
 
-function gradTransformToString(trns) {
+function transformToString(trns) {
     let cmd = "";
 
     for (const trnX in trns) {
@@ -114,8 +114,19 @@ function gradTransformToString(trns) {
             cmd += `${trnX}(${
                 trns.rotate[0] + " " + (trns.rotate[1] || 0) + " " + (trns.rotate[2] || 0)
             }) `;
+        } else if (trnX === "skew") {
+            if (trns.skew[0]) {
+                cmd += `skewX(${trns[trnX][0]}) `;
+            }
+            if (trns.skew[1]) {
+                cmd += `skewY(${trns[trnX][1]}) `;
+            }
         } else {
-            cmd += `${trnX}(${trns[trnX].join(" ")}) `;
+            if (trns[trnX].length > 1) {
+                cmd += `${trnX}(${trns[trnX].join(" ")}) `;
+            } else {
+                cmd += `${trnX}(${trns[trnX]}) `;
+            }
         }
     }
     return cmd;
@@ -155,7 +166,7 @@ DomGradients.prototype.linearGradient = function linearGradient() {
                 if (self.config.gradientTransform) {
                     gredEl.setAttr(
                         "gradientTransform",
-                        gradTransformToString(self.config.gradientTransform)
+                        transformToString(self.config.gradientTransform)
                     );
                 }
             },
@@ -177,7 +188,7 @@ DomGradients.prototype.linearGradient = function linearGradient() {
                 if (self.config.gradientTransform) {
                     nodes.linearGradient.setAttr(
                         "gradientTransform",
-                        gradTransformToString(self.config.gradientTransform)
+                        transformToString(self.config.gradientTransform)
                     );
                 }
             },
@@ -228,7 +239,7 @@ DomGradients.prototype.radialGradient = function radialGradient() {
                 if (self.config.gradientTransform) {
                     gredEl.setAttr(
                         "gradientTransform",
-                        gradTransformToString(self.config.gradientTransform)
+                        transformToString(self.config.gradientTransform)
                     );
                 }
             },
@@ -252,7 +263,7 @@ DomGradients.prototype.radialGradient = function radialGradient() {
                 if (self.config.gradientTransform) {
                     nodes.radialGradient.setAttr(
                         "gradientTransform",
-                        gradTransformToString(self.config.gradientTransform)
+                        transformToString(self.config.gradientTransform)
                     );
                 }
             },
@@ -390,23 +401,23 @@ function updateAttrsToDom(self, key) {
 }
 
 function updateTransAttrsToDom(self) {
-    let cmd = "";
-    // let trns = ['scale', 'translate', 'rotate'];
-    for (const trnX in self.attr.transform) {
-        if (trnX === "rotate") {
-            cmd += `${trnX}(${
-                self.attr.transform.rotate[0] +
-                " " +
-                (self.attr.transform.rotate[1] || 0) +
-                " " +
-                (self.attr.transform.rotate[2] || 0)
-            }) `;
-        } else {
-            cmd += `${trnX}(${self.attr.transform[trnX].join(" ")}) `;
-        }
-    }
+    // let cmd = "";
+    // // let trns = ['scale', 'translate', 'rotate'];
+    // for (const trnX in self.attr.transform) {
+    //     if (trnX === "rotate") {
+    //         cmd += `${trnX}(${
+    //             self.attr.transform.rotate[0] +
+    //             " " +
+    //             (self.attr.transform.rotate[1] || 0) +
+    //             " " +
+    //             (self.attr.transform.rotate[2] || 0)
+    //         }) `;
+    //     } else {
+    //         cmd += `${trnX}(${self.attr.transform[trnX].join(" ")}) `;
+    //     }
+    // }
 
-    self.dom.setAttribute("transform", cmd);
+    self.dom.setAttribute("transform", transformToString(self.attr.transform));
 }
 
 DomExe.prototype.transFormAttributes = function transFormAttributes() {
