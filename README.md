@@ -53,8 +53,16 @@ import {canvasLayer} from 'i2djs'
 
 <table>
     <tr>
-      <td width="50%"><a href="https://codepen.io/nswamy14/pen/WNvdqJg">
+      <td width="33%"><a href="https://codepen.io/nswamy14/pen/WNvdqJg">
         <img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/gameloop.gif">
+        </a>
+      </td>
+      <td width="33%"><a href="https://i2djs.github.io/I2Djs/examples/gameResources/I2Djs-matterjs-webgl.html">
+        <img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/anime-2.gif">
+        </a>
+      </td>
+      <td width="33%"><a href="https://i2djs.github.io/I2Djs/examples/gameResources/I2Djs-matterjs2-canvas.html">
+        <img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/anim-1.gif">
         </a>
       </td>
     </tr>
@@ -76,7 +84,7 @@ import {canvasLayer} from 'i2djs'
   <tr>
     <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathAnimator.html"><img  src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/PathAnimation.gif"></a></td>
     <td width="15%"><a href="https://codepen.io/nswamy14/pen/BVxjog"><img src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/attributeAnimation.gif"></a></td>
-    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathMorph.html"><img  src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/PathMorphAnimation.gif"></a></td>
+    <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/pathMorph.html"><img  src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/anime-3.gif"></a></td>
     <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/distortion.html"><img  src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/distortion.gif"></a></td>
     <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/radarAnimation.html"><img  src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/radarScanner.gif"></a></td>
     <td width="15%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/sparklesAnimation.html"><img  src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/sparkles.gif"></a></td>
