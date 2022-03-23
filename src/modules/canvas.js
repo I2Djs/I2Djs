@@ -489,8 +489,8 @@ RenderImage.prototype.setAttr = function RIsetAttr(attr, value) {
         } else if (value instanceof CanvasNodeExe || value instanceof RenderTexture) {
             self.imageObj = value.domEl;
             // self.postProcess();
-            self.attr.height = self.attr.height ? self.attr.height : value.height;
-            self.attr.width = self.attr.width ? self.attr.width : value.width;
+            self.attr.height = self.attr.height ? self.attr.height : value.attr.height;
+            self.attr.width = self.attr.width ? self.attr.width : value.attr.width;
         }
     }
     this.attr[attr] = value;
@@ -1938,6 +1938,10 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
         onChangeExe = exec;
     };
 
+    root.toDataURL = function (p) {
+        return this.domEl.toDataURL(p);
+    };
+
     root.invokeOnChange = function () {};
 
     root.setSize = function (width_, height_) {
@@ -2095,8 +2099,6 @@ function GetCanvasImgInstance(width, height) {
     const canvas = document.createElement("canvas");
     canvas.setAttribute("height", height);
     canvas.setAttribute("width", width);
-    canvas.style.height = `${height}px`;
-    canvas.style.width = `${width}px`;
     this.canvas = canvas;
     this.context = this.canvas.getContext("2d");
 }
@@ -2104,10 +2106,8 @@ function GetCanvasImgInstance(width, height) {
 GetCanvasImgInstance.prototype.setAttr = function (attr, value) {
     if (attr === "height") {
         this.canvas.setAttribute("height", value);
-        this.canvas.style.height = `${value}px`;
     } else if (attr === "width") {
         this.canvas.setAttribute("width", value);
-        this.canvas.style.width = `${value}px`;
     }
 };
 
@@ -2125,6 +2125,9 @@ function textureImageInstance(self, url) {
         if (self.attr) {
             self.attr.height = self.attr.height ? self.attr.height : this.naturalHeight;
             self.attr.width = self.attr.width ? self.attr.width : this.naturalWidth;
+        }
+        if (self instanceof RenderTexture) {
+            self.setSize(self.attr.width, self.attr.height);
         }
         self.imageObj = this;
 
@@ -2187,7 +2190,11 @@ function RenderTexture(nodeExe, config = {}) {
     const self = this;
     self.attr = Object.assign({}, config.attr) || {};
     self.style = Object.assign({}, config.style) || {};
-    self.rImageObj = new GetCanvasImgInstance(self.attr.width || 1, self.attr.height || 1);
+    const scale = self.attr.scale || 1;
+    self.rImageObj = new GetCanvasImgInstance(
+        (self.attr.width || 1) * scale,
+        (self.attr.height || 1) * scale
+    );
     self.ctx = self.rImageObj.context;
     self.domEl = self.rImageObj.canvas;
     self.imageArray = [];
@@ -2205,6 +2212,13 @@ function RenderTexture(nodeExe, config = {}) {
 }
 RenderTexture.prototype = new NodePrototype();
 RenderTexture.prototype.constructor = RenderTexture;
+
+RenderTexture.prototype.setSize = function (w, h) {
+    const scale = this.attr.scale || 1;
+    this.rImageObj.setAttr("width", w * scale);
+    this.rImageObj.setAttr("height", h * scale);
+    postProcess(this);
+};
 
 RenderTexture.prototype.setAttr = function RSsetAttr(attr, value) {
     const self = this;
@@ -2252,8 +2266,8 @@ RenderTexture.prototype.setAttr = function RSsetAttr(attr, value) {
             postProcess(self);
         } else if (value instanceof CanvasNodeExe || value instanceof RenderTexture) {
             self.imageObj = value.domEl;
-            self.attr.height = self.attr.height ? self.attr.height : value.height;
-            self.attr.width = self.attr.width ? self.attr.width : value.width;
+            self.attr.height = self.attr.height ? self.attr.height : value.attr.height;
+            self.attr.width = self.attr.width ? self.attr.width : value.attr.width;
             postProcess(self);
         }
     }
@@ -2286,14 +2300,15 @@ RenderTexture.prototype.clone = function () {
 RenderTexture.prototype.execute = function RIexecute() {
     const { width = 0, height = 0 } = this.attr;
     const draw = this.attr.draw || {};
+    const scale = this.attr.scale || 1;
 
-    this.ctx.clearRect(0, 0, width, height);
+    this.ctx.clearRect(0, 0, width * scale, height * scale);
     this.ctx.drawImage(
         this.imageObj,
         draw.x || 0,
         draw.y || 0,
-        draw.width || width,
-        draw.height || height
+        (draw.width || width) * scale,
+        (draw.height || height) * scale
     );
 };
 
@@ -2409,8 +2424,8 @@ function canvasNodeLayer(config, height = 0, width = 0) {
         this.execute();
     };
 
-    root.toDataURL = function () {
-        return this.domEl.toDataURL();
+    root.toDataURL = function (p) {
+        return this.domEl.toDataURL(p);
     };
 
     root.getPixels = function (x, y, width_, height_) {
@@ -2443,21 +2458,6 @@ function canvasNodeLayer(config, height = 0, width = 0) {
             });
         });
     };
-
-    // function Sprite () {
-
-    // }
-
-    // Sprite.prototype = new NodePrototype();
-    // Sprite.constructor = Sprite;
-
-    // Sprite.prototype.add = function () {
-
-    // }
-
-    // Sprite.prototype.remove = function () {
-
-    // }
 
     root.setContext = function (prop, value) {
         /** Expecting value to be array if multiple aruments */

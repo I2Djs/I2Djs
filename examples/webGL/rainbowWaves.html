@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
     </head>
-    <body style="height: 100%;">
-        <label style="position: absolute; color: white;"> Webgl Example </label>
-        <div id="canvas" style="height: 50%; width: 100%; background: black;"></div>
+    <body style="height: 100%; background: black">
+        <label style="position: absolute; color: white"> Webgl Example </label>
+        <div id="canvas" style="height: 50%; width: 100%"></div>
         <script type="text/javascript" src="../../dist/i2d.js"></script>
 
         <script type="text/javascript">
@@ -19,7 +19,7 @@
                 webglRenderer = i2d.webglLayer(
                     "#canvas",
                     { depth: false, antialias: true },
-                    { enableEvents: true }
+                    { enableEvents: false }
                 );
                 width = webglRenderer.width;
                 height = webglRenderer.height;
@@ -57,7 +57,7 @@
 
                 let path = i2d.Path();
                 path.points(points);
-                var rgb = i2d.color.hslToRgb("hsl(" + (ii % 360) + ",100%," + 20 + "%)");
+                var rgb = i2d.color.hslToRgb("hsl(" + (ii % 360) + ",100%," + 40 + "%)");
                 rgb.a = 100;
                 pathRef
                     .createEl({
@@ -68,13 +68,13 @@
                         style: { stroke: rgb },
                     })
                     .animateTo({
-                        duration: 3000,
+                        duration: 4000,
                         attr: {},
                         end: function () {
                             this.remove();
                         },
                     });
-                i += 0.005;
+                i += 0.01;
                 ii += 1;
             }
 

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%">
+        <label style="position: absolute; color: black"> Canvas Example </label>
+        <div id="myCanvas" style="height: 100%; width: 100%"></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
+
+        <script type="text/javascript">
+            var renderer = i2d.canvasLayer("#myCanvas", {}, { enableEvents: false });
+            var nodes = [];
+            var chat =
+                "M340.944 262.146C327.774 253.427 298.192 214.221 285.886 184.417 310.111 151.62 323.784 110.901 322.295 63.192 317.924-76.87 208.397-186.864 67.78-180.758-70.132-174.771-204.902-100.596-208.911 39.459-212.92 179.513-80.905 274.556 59.804 278.836 115.722 280.538 169.331 268.932 213.374 245.554 247.155 256.682 292.726 266.965 340.482 263.898 341.364 263.841 341.687 262.637 340.944 262.146";
+
+            var path = renderer.createEl({
+                el: "path",
+                attr: {
+                    d: chat,
+                },
+                style: {
+                    fillStyle: "#000000",
+                },
+                bbox: false,
+            });
+
+            let xInd = 0;
+            let animeloop = i2d.queue.onRequestFrame(function () {
+                path.setAttr("transform", {
+                    translate: [250, 250],
+                    skew: [0.03 * Math.cos(xInd * 1.45 + 90), 0.03 * Math.sin(xInd * 2 + 10)],
+                });
+                xInd += 0.04;
+            });
+        </script>
+    </body>
+</html>

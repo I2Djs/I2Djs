@@ -135,13 +135,14 @@ DragClass.prototype = {
             self.onDragStart(trgt, event);
         } else if (
             this.onDragEnd &&
+            this.dragStartFlag &&
             (eventType === "mouseup" ||
                 eventType === "mouseleave" ||
                 eventType === "pointerleave" ||
                 eventType === "pointerup")
         ) {
             self.onDragEnd(trgt, event);
-        } else if (this.onDrag) {
+        } else if (this.dragStartFlag && this.onDrag) {
             self.onDrag(trgt, event);
         }
     },

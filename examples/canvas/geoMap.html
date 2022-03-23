@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
     </head>
-    <body style="height: 100%; background: black;">
-        <div id="myCanvas" style="height: 100%; width: 100%; position: absolute;"></div>
+    <body style="height: 100%; background: black">
+        <div id="myCanvas" style="height: 100%; width: 100%; position: absolute"></div>
         <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
 
@@ -55,18 +55,6 @@
                                 translate: xy,
                                 scale: [1 / scale],
                             });
-
-                            // this.createEl({
-                            // 	el: 'circle',
-                            // 	attr: {
-                            // 		cx: 0,
-                            // 		cy: 0,
-                            // 		r: 10
-                            // 	},
-                            // 	style: {
-                            // 		fillStyle: 'green'
-                            // 	}
-                            // });
 
                             this.createEl({
                                 el: "text",
@@ -121,17 +109,18 @@
                         d: path(values[0]),
                     },
                     style: {
-                        shadowBlur: 15,
-                        shadowColor: "#42baff",
-                        fillStyle: "rgba(0, 0, 1, 1)",
+                        // shadowBlur: 15,
+                        // shadowColor: "#42baff",
+                        // strokeStyle: "#42baff",
+                        fillStyle: "rgba(35, 35, 35, 1)",
                     },
                 })
-                    .on("mouseover", function () {
-                        this.setStyle("fillStyle", "rgba(22, 24, 26, 1)");
-                    })
-                    .on("mouseout", function () {
-                        this.setStyle("fillStyle", "rgba(0, 0, 1, 1)");
-                    })
+                    // .on("mouseover", function () {
+                    //     this.setStyle("fillStyle", "rgba(22, 24, 26, 1)");
+                    // })
+                    // .on("mouseout", function () {
+                    //     this.setStyle("fillStyle", "rgba(0, 0, 1, 1)");
+                    // })
                     .on("zoom", zoomInstance);
                 let clist = [
                     "India",

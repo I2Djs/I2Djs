@@ -18,6 +18,7 @@
                 let x1 = Math.random() * 200;
                 let y1 = Math.random() * 200;
                 linesData.push({
+                    id: "id_" + i,
                     x1: x1,
                     y1: y1,
                     x2: x1 + 300,
@@ -36,6 +37,9 @@
                 .createEls(linesData, {
                     el: "line",
                     attr: {
+                        id: function (d) {
+                            return d.id;
+                        },
                         transform: {
                             translate: [400, 200],
                             // scale: [2, 1],

@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
     </head>
-    <body style="height: 100%;">
-        <label style="position: absolute; color: white;"> Webgl Example </label>
-        <div id="canvas" style="height: 100%; width: 100%; background: black;"></div>
+    <body style="height: 100%">
+        <label style="position: absolute; color: white"> Webgl Example </label>
+        <div id="canvas" style="height: 100%; width: 100%; background: black"></div>
         <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script src="https://d3js.org/d3-collection.v1.min.js"></script>
         <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
@@ -47,13 +47,15 @@
                 attr: {
                     shaderType: "line",
                 },
+                bbox: false,
             });
 
             var rectsRef = webglRenderer.createEl({
                 el: "group",
                 attr: {
-                    shaderType: "circle",
+                    shaderType: "point",
                 },
+                bbox: false,
             });
 
             function renderChart(graph) {
@@ -65,8 +67,8 @@
                 });
 
                 circles = rectsRef.createEls(graph.nodes, {
-                    el: "circle",
-                    attr: { r: 5.0, cx: 0, cy: 0 },
+                    el: "point",
+                    attr: { size: 5.0, x: 0, y: 0 },
                     style: {
                         fill: function () {
                             return i2d.color.rgba(
@@ -85,10 +87,10 @@
 
                 function ticked() {
                     circles
-                        .setAttr("cy", function (d) {
+                        .setAttr("y", function (d) {
                             return 400 + d.y * 0.2;
                         })
-                        .setAttr("cx", function (d) {
+                        .setAttr("x", function (d) {
                             return 600 + d.x * 0.2;
                         });
 
