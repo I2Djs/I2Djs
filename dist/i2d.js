@@ -10477,13 +10477,54 @@ Example valid ways of supplying a shape would be:
         self.style = stylesProps;
         self.nodeName = "text";
         self.stack = [self];
+        if (self.attr.width) {
+            this.fitWidth();
+        }
     }
 
     RenderText.prototype = new CanvasDom();
     RenderText.prototype.constructor = RenderText;
+    RenderText.prototype.fitWidth = function () {
+        if (this.style.font) {
+            this.ctx.font = this.style.font;
+        }
+        const width = this.attr.width;
+        const textListByLine = this.attr.text.split("\n");
+        const textSubStrs = [];
+        let strLit = "";
+        let i = 0;
+        const textList = textListByLine.reduce(function (p, c) {
+            p = p.concat(c.split(" "));
+            p.push("\n");
+            return p;
+        }, []);
+        while (i < textList.length) {
+            if (i !== 0) {
+                strLit += " ";
+            }
+            if (textList[i] === "\n") {
+                textSubStrs.push(strLit);
+                strLit = " ";
+            } else {
+                if (this.ctx.measureText(strLit + textList[i]).width < width) {
+                    strLit = strLit + textList[i];
+                } else {
+                    textSubStrs.push(strLit);
+                    strLit = textList[i];
+                }
+            }
+            i++;
+        }
+        textSubStrs.push(strLit);
+
+        this.textList = textSubStrs;
+    };
 
     RenderText.prototype.text = function RTtext(value) {
         this.attr.text = value;
+        if (this.attr.width) {
+            this.fitWidth();
+        }
     };
 
     RenderText.prototype.updateBBox = function RTupdateBBox() {
@@ -10496,9 +10537,14 @@ Example valid ways of supplying a shape would be:
         if (this.style.font) {
             this.ctx.font = this.style.font;
             height = parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1;
+            self.textHeight = height + 3;
         }
-
-        width = this.ctx.measureText(this.attr.text).width;
+        if (this.attr.width && this.textList && this.textList.length > 0) {
+            width = this.attr.width;
+            height = height * this.textList.length;
+        } else {
+            width = this.ctx.measureText(this.attr.text).width;
+        }
 
         if (this.style.textAlign === "center") {
             x -= width / 2;
@@ -10527,12 +10573,32 @@ Example valid ways of supplying a shape would be:
 
     RenderText.prototype.execute = function RTexecute() {
         if (this.attr.text !== undefined && this.attr.text !== null) {
-            if (this.ctx.fillStyle !== "#000000") {
-                this.ctx.fillText(this.attr.text, this.attr.x, this.attr.y + this.height);
-            }
+            if (this.textList && this.textList.length > 0) {
+                for (var i = 0; i < this.textList.length; i++) {
+                    if (this.ctx.fillStyle !== "#000000") {
+                        this.ctx.fillText(
+                            this.textList[i],
+                            this.attr.x,
+                            this.attr.y + this.textHeight * (i + 1)
+                        );
+                    }
 
-            if (this.ctx.strokeStyle !== "#000000") {
-                this.ctx.strokeText(this.attr.text, this.attr.x, this.attr.y + this.height);
+                    if (this.ctx.strokeStyle !== "#000000") {
+                        this.ctx.strokeText(
+                            this.textList[i],
+                            this.attr.x,
+                            this.attr.y + this.textHeight * (i + 1)
+                        );
+                    }
+                }
+            } else {
+                if (this.ctx.fillStyle !== "#000000") {
+                    this.ctx.fillText(this.attr.text, this.attr.x, this.attr.y + this.height);
+                }
+
+                if (this.ctx.strokeStyle !== "#000000") {
+                    this.ctx.strokeText(this.attr.text, this.attr.x, this.attr.y + this.height);
+                }
             }
         }
     };
