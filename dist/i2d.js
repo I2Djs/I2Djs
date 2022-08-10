@@ -10509,7 +10509,9 @@ Example valid ways of supplying a shape would be:
                 if (this.ctx.measureText(strLit + textList[i]).width < width) {
                     strLit = strLit + textList[i];
                 } else {
-                    textSubStrs.push(strLit);
+                    if (strLit) {
+                        textSubStrs.push(strLit);
+                    }
                     strLit = textList[i];
                 }
             }
