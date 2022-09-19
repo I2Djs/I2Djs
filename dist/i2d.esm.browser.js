@@ -10503,7 +10503,7 @@ RenderText.prototype.fitWidth = function () {
             if (this.ctx.measureText(strLit + textList[i]).width < width) {
                 strLit = strLit + textList[i];
             } else {
-                if (strLit) {
+                if (strLit && strLit.length > 0) {
                     textSubStrs.push(strLit);
                 }
                 strLit = textList[i];
