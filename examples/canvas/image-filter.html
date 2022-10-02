@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%">
+        <label style="position: absolute; color: white"> Canvas Example </label>
+        <div id="myCanvas1" style="height: 100%; width: 100%; position: relative"></div>
+
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
+
+        <script type="text/javascript">
+            var renderer_ = i2d.canvasLayer("#myCanvas1", {}, {});
+            var nodes = [];
+            var data = [];
+            for (var i = 0; i < 1; i++) {
+                data.push(i);
+            }
+
+            var localPixelData;
+            var index = 0;
+
+            let treeTexture = renderer_
+                .createAsyncTexture({
+                    attr: {
+                        src: "../images/tree.png",
+                        width: 650,
+                    },
+                })
+                .then(function (image) {
+                    renderer_.createEl({
+                        el: "image",
+                        attr: {
+                            src: image,
+                            width: image.attr.width * 0.5,
+                            height: image.attr.height * 0.5,
+                            x: 0,
+                            y: 0,
+                        },
+                    });
+
+                    let imageWithFilter = image.clone();
+                    imageWithFilter.setAttr("filter", i2d.utility.greyScale());
+
+                    renderer_.createEl({
+                        el: "image",
+                        attr: {
+                            src: imageWithFilter,
+                            width: image.attr.width * 0.5,
+                            height: image.attr.height * 0.5,
+                            x: image.attr.width * 0.5,
+                            y: 0,
+                        },
+                    });
+
+                    let imageWithBlur = image.clone();
+                    imageWithBlur.setAttr("filter", i2d.utility.blur(9));
+
+                    renderer_.createEl({
+                        el: "image",
+                        attr: {
+                            src: imageWithBlur,
+                            width: image.attr.width * 0.5,
+                            height: image.attr.height * 0.5,
+                            x: image.attr.width,
+                            y: 0,
+                        },
+                    });
+                });
+        </script>
+    </body>
+</html>

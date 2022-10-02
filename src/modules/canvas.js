@@ -2349,6 +2349,7 @@ RenderTexture.prototype.setAttr = function RSsetAttr(attr, value) {
     if (attr === "clip" || attr === "filter") {
         postProcess(self);
     }
+    return self;
 };
 
 RenderTexture.prototype.onLoad = function (exec) {
@@ -2378,6 +2379,13 @@ RenderTexture.prototype.execute = function RIexecute() {
         (draw.width || width) * scale,
         (draw.height || height) * scale
     );
+};
+
+RenderTexture.prototype.exportAsDataUrl = function (type = "image/png", encoderOptions = 1) {
+    if (this.rImageObj) {
+        return this.rImageObj.toDataURL(type, encoderOptions);
+    }
+    return this;
 };
 
 RenderTexture.prototype.next = function (index) {

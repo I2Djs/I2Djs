@@ -12,7 +12,8 @@
     "dev": "rollup -wm -c rollup.config.js",
     "build": "rm -rf ./dist/ && rollup -c rollup.config.js",
     "lint": "eslint src/**",
-    "lint-fix": "eslint --cache --fix src/**"
+    "lint-fix": "eslint --cache --fix src/**",
+    "preinstall": "npx npm-force-resolutions"
   },
   "repository": {
     "type": "git",
@@ -52,25 +53,26 @@
   "devDependencies": {
     "@rbnlffl/rollup-plugin-eslint": "^1.1.4",
     "@rollup/plugin-buble": "^0.21.3",
-    "@rollup/plugin-commonjs": "^21.0.2",
-    "@rollup/plugin-node-resolve": "^13.1.3",
+    "@rollup/plugin-commonjs": "^22.0.2",
+    "@rollup/plugin-node-resolve": "^13.3.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^6.15.0",
     "eslint-config-standard": "^14.1.1",
-    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.4.1",
     "eslint-plugin-promise": "^4.3.1",
     "eslint-plugin-standard": "^4.1.0",
     "husky": "^4.3.8",
     "lint-staged": "^10.5.4",
+    "minimist": "^1.2.6",
     "prettier": "2.1.2",
-    "rollup": "^2.62.0",
+    "rollup": "^2.79.1",
     "rollup-plugin-terser": "^7.0.0"
   },
   "dependencies": {
-    "@juggle/resize-observer": "^3.3.1",
-    "earcut": "^2.2.3",
+    "@juggle/resize-observer": "^3.4.0",
+    "earcut": "^2.2.4",
     "flubber": "^0.4.2",
     "stackblur-canvas": "^2.5.0"
   },
@@ -87,5 +89,9 @@
     "*.{html,css,md}": [
       "prettier --write"
     ]
+  },
+  "resolutions": {
+    "minimist": "^1.2.6",
+    "terser": "^5.14.2"
   }
 }
