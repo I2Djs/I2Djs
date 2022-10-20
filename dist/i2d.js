@@ -12446,26 +12446,25 @@ Example valid ways of supplying a shape would be:
         switch (el) {
             case "point":
                 res = {
-                    vertexShader: `
-          precision highp float;
-          attribute vec2 a_position;
-          attribute vec4 a_color;
-          attribute float a_size;
-          
-          attribute mat3 a_transformMatrix;
-          
-          varying vec4 v_color;
-          void main() {
-            gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);
-            gl_PointSize = a_size;
-            v_color = a_color;
-          }
-          `,
-                    fragmentShader: `
-                    precision mediump float;
-                    varying vec4 v_color;
+                    vertexShader: `#version 300 es
+                    precision highp float;
+                    in vec2 a_position;
+                    in vec4 a_color;
+                    in float a_size;
+                    in mat3 a_transformMatrix;
+                    out vec4 v_color;
                     void main() {
-                        gl_FragColor = v_color;
+                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);
+                      gl_PointSize = a_size;
+                      v_color = a_color;
+                    }
+                    `,
+                    fragmentShader: `#version 300 es
+                    precision mediump float;
+                    in vec4 v_color;
+                    out vec4 fragColor;
+                    void main() {
+                        fragColor = v_color;
                     }
                     `,
                 };
@@ -12473,13 +12472,13 @@ Example valid ways of supplying a shape would be:
 
             case "circle":
                 res = {
-                    vertexShader: `
-                  precision highp float;
-                    attribute vec2 a_position;
-                    attribute vec4 a_color;
-                    attribute float a_radius;
-                    attribute mat3 a_transformMatrix;
-                    varying vec4 v_color;
+                    vertexShader: `#version 300 es
+                    precision highp float;
+                    in vec2 a_position;
+                    in vec4 a_color;
+                    in float a_radius;
+                    in mat3 a_transformMatrix;
+                    out vec4 v_color;
 
                     void main() {
                       gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);
@@ -12487,9 +12486,10 @@ Example valid ways of supplying a shape would be:
                       v_color = a_color;
                     }
                     `,
-                    fragmentShader: `
+                    fragmentShader: `#version 300 es
                     precision mediump float;
-                    varying vec4 v_color;
+                    in vec4 v_color;
+                    out vec4 fragColor;
                     void main() {
                       float r = 0.0, delta = 0.0, alpha = 1.0;
                       vec2 cxy = 2.0 * gl_PointCoord - 1.0;
@@ -12499,7 +12499,7 @@ Example valid ways of supplying a shape would be:
                       }
                       delta = 0.09;
                       alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);
-                      gl_FragColor = v_color * alpha;
+                      fragColor = v_color * alpha;
                     }
                     `,
                 };
@@ -12552,30 +12552,31 @@ Example valid ways of supplying a shape would be:
 
             case "image":
                 res = {
-                    vertexShader: `
+                    vertexShader: `#version 300 es
                     precision highp float;
-                    attribute vec2 a_position;
-                    attribute vec2 a_texCoord;
+                    in vec2 a_position;
+                    in vec2 a_texCoord;
                     uniform mat3 u_transformMatrix;
-                    varying vec2 v_texCoord;
+                    out vec2 v_texCoord;
 
                     void main() {
                       gl_Position = vec4(u_transformMatrix * vec3(a_position, 1), 1);
                       v_texCoord = a_texCoord;
                     }
           `,
-                    fragmentShader: `
+                    fragmentShader: `#version 300 es
                     precision mediump float;
                     uniform sampler2D u_image;
                     uniform float u_opacity;
-                    varying vec2 v_texCoord;
+                    in vec2 v_texCoord;
+                    out vec4 fragColor;
                     void main() {
-                      vec4 col = texture2D(u_image, v_texCoord);
+                      vec4 col = texture(u_image, v_texCoord);
                       if (col.a == 0.0) {
                         discard;
                       } else {
-                        gl_FragColor = col;
-                        gl_FragColor.a *= u_opacity;
+                        fragColor = col;
+                        fragColor.a *= u_opacity;
                       }
                     }
                     `,
@@ -12585,20 +12586,21 @@ Example valid ways of supplying a shape would be:
             case "polyline":
             case "polygon":
                 res = {
-                    vertexShader: `
+                    vertexShader: `#version 300 es
                     precision highp float;
-                    attribute vec2 a_position;
+                    in vec2 a_position;
                     uniform mat3 u_transformMatrix;
 
                     void main() {
                       gl_Position = vec4(u_transformMatrix * vec3(a_position, 1), 1);
                     }
                     `,
-                    fragmentShader: `
+                    fragmentShader: `#version 300 es
                     precision mediump float;
                     uniform vec4 u_color;
+                    out vec4 fragColor;
                     void main() {
-                        gl_FragColor = u_color;
+                        fragColor = u_color;
                     }
                     `,
                 };
@@ -12606,23 +12608,24 @@ Example valid ways of supplying a shape would be:
 
             case "rect":
                 res = {
-                    vertexShader: `
+                    vertexShader: `#version 300 es
                     precision highp float;
-                    attribute vec2 a_position;
-                    attribute vec4 a_color;
-                    attribute mat3 a_transformMatrix;
-                    varying vec4 v_color;
+                    in vec2 a_position;
+                    in vec4 a_color;
+                    in mat3 a_transformMatrix;
+                    out vec4 v_color;
 
                     void main() {
                       gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);
                       v_color = a_color;
                     }
                     `,
-                    fragmentShader: `
+                    fragmentShader: `#version 300 es
                     precision mediump float;
-                    varying vec4 v_color;
+                    in vec4 v_color;
+                    out vec4 fragColor;
                     void main() {
-                        gl_FragColor = v_color;
+                      fragColor = v_color;
                     }
                     `,
                 };
@@ -12630,23 +12633,24 @@ Example valid ways of supplying a shape would be:
 
             case "line":
                 res = {
-                    vertexShader: `
+                    vertexShader: `#version 300 es
                     precision highp float;
-                    attribute vec2 a_position;
-                    attribute vec4 a_color;
-                    attribute mat3 a_transformMatrix;
-                    varying vec4 v_color;
+                    in vec2 a_position;
+                    in vec4 a_color;
+                    in mat3 a_transformMatrix;
+                    out vec4 v_color;
 
                     void main() {
                       gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);
                       v_color = a_color;
                     }
                     `,
-                    fragmentShader: `
+                    fragmentShader: `#version 300 es
                     precision mediump float;
-                    varying vec4 v_color;
+                    in vec4 v_color;
+                    out vec4 fragColor;
                     void main() {
-                        gl_FragColor = v_color;
+                        fragColor = v_color;
                     }
                     `,
                 };
@@ -12654,23 +12658,24 @@ Example valid ways of supplying a shape would be:
 
             default:
                 res = {
-                    vertexShader: `
+                    vertexShader: `#version 300 es
                     precision highp float;
-                    attribute vec2 a_position;
-                    attribute vec4 a_color;
-                    attribute mat3 a_transformMatrix;
-                    varying vec4 v_color;
+                    in vec2 a_position;
+                    in vec4 a_color;
+                    in mat3 a_transformMatrix;
+                    out vec4 v_color;
 
                     void main() {
                       gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);
                       v_color = a_color;
                     }
                     `,
-                    fragmentShader: `
+                    fragmentShader: `#version 300 es
                     precision mediump float;
-                    varying vec4 v_color;
+                    in vec4 v_color;
+                    out vec4 fragColor;
                     void main() {
-                        gl_FragColor = v_color;
+                      fragColor = v_color;
                     }
                     `,
                 };
@@ -14148,8 +14153,8 @@ Example valid ways of supplying a shape would be:
             attr: attr,
         };
 
-        ctx.bindBuffer(newAttrObj.bufferType, newAttrObj.buffer);
-        ctx.bufferData(newAttrObj.bufferType, newAttrObj.value, newAttrObj.drawType);
+        // ctx.bindBuffer(newAttrObj.bufferType, newAttrObj.buffer);
+        // ctx.bufferData(newAttrObj.bufferType, newAttrObj.value, newAttrObj.drawType);
 
         return newAttrObj;
     }
@@ -14236,6 +14241,7 @@ Example valid ways of supplying a shape would be:
         this.postDraw = shader.postDraw;
         this.geometry = shader.geometry;
         this.renderTarget = shader.renderTarget;
+        this.vao = ctx.createVertexArray();
 
         for (const uniform in shader.uniforms) {
             this.uniforms[uniform] = webGlUniformMapper(
@@ -14261,6 +14267,7 @@ Example valid ways of supplying a shape would be:
 
         for (const attr in this.attributes) {
             this.attrObjs[attr] = webGlAttrMapper(ctx, this.program, attr, this.attributes[attr]);
+            this.applyAttributeToVao(attr, this.attrObjs[attr]);
         }
 
         if (this.indexes) {
@@ -14270,6 +14277,46 @@ Example valid ways of supplying a shape would be:
 
     RenderWebglShader.prototype = new ShaderNodePrototype();
     RenderWebglShader.prototype.constructor = RenderWebglShader;
+
+    RenderWebglShader.prototype.applyAttributeToVao = function (attr, d) {
+        this.ctx.bindVertexArray(this.vao);
+        if (attr === "a_transformMatrix") {
+            this.ctx.enableVertexAttribArray(d.attributeLocation + 0);
+            this.ctx.enableVertexAttribArray(d.attributeLocation + 1);
+            this.ctx.enableVertexAttribArray(d.attributeLocation + 2);
+            this.ctx.bindBuffer(d.bufferType, d.buffer);
+            this.ctx.bufferData(d.bufferType, d.value, d.drawType);
+            this.ctx.vertexAttribPointer(
+                d.attributeLocation + 0,
+                d.size,
+                d.valueType,
+                false,
+                d.size * 4 * 3,
+                3 * 4 * 0
+            );
+            this.ctx.vertexAttribPointer(
+                d.attributeLocation + 1,
+                d.size,
+                d.valueType,
+                false,
+                d.size * 4 * 3,
+                3 * 4 * 1
+            );
+            this.ctx.vertexAttribPointer(
+                d.attributeLocation + 2,
+                d.size,
+                d.valueType,
+                false,
+                d.size * 4 * 3,
+                3 * 4 * 2
+            );
+        } else {
+            this.ctx.enableVertexAttribArray(d.attributeLocation);
+            this.ctx.bindBuffer(d.bufferType, d.buffer);
+            this.ctx.bufferData(d.bufferType, d.value, d.drawType);
+            this.ctx.vertexAttribPointer(d.attributeLocation, d.size, d.valueType, false, 0, 0);
+        }
+    };
 
     RenderWebglShader.prototype.useProgram = function () {
         this.ctx.useProgram(this.program);
@@ -14300,46 +14347,47 @@ Example valid ways of supplying a shape would be:
         }
     };
 
-    RenderWebglShader.prototype.applyAttributes = function () {
-        let d;
-        for (const attr in this.attrObjs) {
-            d = this.attrObjs[attr];
-            if (attr === "a_transformMatrix") {
-                this.ctx.enableVertexAttribArray(d.attributeLocation + 0);
-                this.ctx.enableVertexAttribArray(d.attributeLocation + 1);
-                this.ctx.enableVertexAttribArray(d.attributeLocation + 2);
-                this.ctx.bindBuffer(d.bufferType, d.buffer);
-                this.ctx.vertexAttribPointer(
-                    d.attributeLocation + 0,
-                    d.size,
-                    d.valueType,
-                    false,
-                    d.size * 4 * 3,
-                    3 * 4 * 0
-                );
-                this.ctx.vertexAttribPointer(
-                    d.attributeLocation + 1,
-                    d.size,
-                    d.valueType,
-                    false,
-                    d.size * 4 * 3,
-                    3 * 4 * 1
-                );
-                this.ctx.vertexAttribPointer(
-                    d.attributeLocation + 2,
-                    d.size,
-                    d.valueType,
-                    false,
-                    d.size * 4 * 3,
-                    3 * 4 * 2
-                );
-            } else {
-                this.ctx.enableVertexAttribArray(d.attributeLocation);
-                this.ctx.bindBuffer(d.bufferType, d.buffer);
-                this.ctx.vertexAttribPointer(d.attributeLocation, d.size, d.valueType, false, 0, 0);
-            }
-        }
-    };
+    // RenderWebglShader.prototype.applyAttributes = function () {
+    //     let d;
+
+    //     for (const attr in this.attrObjs) {
+    //         d = this.attrObjs[attr];
+    //         if (attr === "a_transformMatrix") {
+    //             this.ctx.enableVertexAttribArray(d.attributeLocation + 0);
+    //             this.ctx.enableVertexAttribArray(d.attributeLocation + 1);
+    //             this.ctx.enableVertexAttribArray(d.attributeLocation + 2);
+    //             this.ctx.bindBuffer(d.bufferType, d.buffer);
+    //             this.ctx.vertexAttribPointer(
+    //                 d.attributeLocation + 0,
+    //                 d.size,
+    //                 d.valueType,
+    //                 false,
+    //                 d.size * 4 * 3,
+    //                 3 * 4 * 0
+    //             );
+    //             this.ctx.vertexAttribPointer(
+    //                 d.attributeLocation + 1,
+    //                 d.size,
+    //                 d.valueType,
+    //                 false,
+    //                 d.size * 4 * 3,
+    //                 3 * 4 * 1
+    //             );
+    //             this.ctx.vertexAttribPointer(
+    //                 d.attributeLocation + 2,
+    //                 d.size,
+    //                 d.valueType,
+    //                 false,
+    //                 d.size * 4 * 3,
+    //                 3 * 4 * 2
+    //             );
+    //         } else {
+    //             this.ctx.enableVertexAttribArray(d.attributeLocation);
+    //             this.ctx.bindBuffer(d.bufferType, d.buffer);
+    //             this.ctx.vertexAttribPointer(d.attributeLocation, d.size, d.valueType, false, 0, 0);
+    //         }
+    //     }
+    // };
 
     RenderWebglShader.prototype.applyIndexes = function () {
         const d = this.indexesObj;
@@ -14371,7 +14419,7 @@ Example valid ways of supplying a shape would be:
     RenderWebglShader.prototype.execute = function () {
         this.ctx.useProgram(this.program);
         this.applyUniforms();
-        this.applyAttributes();
+        this.ctx.bindVertexArray(this.vao);
         if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
             this.renderTarget.update();
         }
@@ -14394,6 +14442,7 @@ Example valid ways of supplying a shape would be:
     RenderWebglShader.prototype.addAttribute = function (key, obj) {
         this.attributes[key] = obj;
         this.attrObjs[key] = webGlAttrMapper(this.ctx, this.program, key, obj);
+        this.applyAttributeToVao(key, this.attrObjs[key]);
         queueInstance.vDomChanged(this.vDomIndex);
     };
 
@@ -15953,7 +16002,7 @@ Example valid ways of supplying a shape would be:
         contextConfig.alpha = contextConfig.alpha === undefined ? true : contextConfig.alpha;
 
         const layer = document.createElement("canvas");
-        const ctx = layer.getContext("webgl", contextConfig);
+        const ctx = layer.getContext("webgl2", contextConfig);
 
         const actualPixel = getPixlRatio(ctx);
 

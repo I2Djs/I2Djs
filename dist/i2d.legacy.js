@@ -12670,15 +12670,15 @@
         switch (el) {
             case "point":
                 res = {
-                    vertexShader: "\n          precision highp float;\n          attribute vec2 a_position;\n          attribute vec4 a_color;\n          attribute float a_size;\n          \n          attribute mat3 a_transformMatrix;\n          \n          varying vec4 v_color;\n          void main() {\n            gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);\n            gl_PointSize = a_size;\n            v_color = a_color;\n          }\n          ",
-                    fragmentShader: "\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                        gl_FragColor = v_color;\n                    }\n                    ",
+                    vertexShader: "#version 300 es\n                    precision highp float;\n                    in vec2 a_position;\n                    in vec4 a_color;\n                    in float a_size;\n                    in mat3 a_transformMatrix;\n                    out vec4 v_color;\n                    void main() {\n                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);\n                      gl_PointSize = a_size;\n                      v_color = a_color;\n                    }\n                    ",
+                    fragmentShader: "#version 300 es\n                    precision mediump float;\n                    in vec4 v_color;\n                    out vec4 fragColor;\n                    void main() {\n                        fragColor = v_color;\n                    }\n                    ",
                 };
                 break;
 
             case "circle":
                 res = {
-                    vertexShader: "\n                  precision highp float;\n                    attribute vec2 a_position;\n                    attribute vec4 a_color;\n                    attribute float a_radius;\n                    attribute mat3 a_transformMatrix;\n                    varying vec4 v_color;\n\n                    void main() {\n                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);\n                      gl_PointSize = a_radius; // * a_transform.z * u_transform.z;\n                      v_color = a_color;\n                    }\n                    ",
-                    fragmentShader: "\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                      float r = 0.0, delta = 0.0, alpha = 1.0;\n                      vec2 cxy = 2.0 * gl_PointCoord - 1.0;\n                      r = dot(cxy, cxy);\n                      if(r > 1.0) {\n                        discard;\n                      }\n                      delta = 0.09;\n                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);\n                      gl_FragColor = v_color * alpha;\n                    }\n                    ",
+                    vertexShader: "#version 300 es\n                    precision highp float;\n                    in vec2 a_position;\n                    in vec4 a_color;\n                    in float a_radius;\n                    in mat3 a_transformMatrix;\n                    out vec4 v_color;\n\n                    void main() {\n                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);\n                      gl_PointSize = a_radius; // * a_transform.z * u_transform.z;\n                      v_color = a_color;\n                    }\n                    ",
+                    fragmentShader: "#version 300 es\n                    precision mediump float;\n                    in vec4 v_color;\n                    out vec4 fragColor;\n                    void main() {\n                      float r = 0.0, delta = 0.0, alpha = 1.0;\n                      vec2 cxy = 2.0 * gl_PointCoord - 1.0;\n                      r = dot(cxy, cxy);\n                      if(r > 1.0) {\n                        discard;\n                      }\n                      delta = 0.09;\n                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);\n                      fragColor = v_color * alpha;\n                    }\n                    ",
                 };
                 break;
 
@@ -12729,37 +12729,37 @@
 
             case "image":
                 res = {
-                    vertexShader: "\n                    precision highp float;\n                    attribute vec2 a_position;\n                    attribute vec2 a_texCoord;\n                    uniform mat3 u_transformMatrix;\n                    varying vec2 v_texCoord;\n\n                    void main() {\n                      gl_Position = vec4(u_transformMatrix * vec3(a_position, 1), 1);\n                      v_texCoord = a_texCoord;\n                    }\n          ",
-                    fragmentShader: "\n                    precision mediump float;\n                    uniform sampler2D u_image;\n                    uniform float u_opacity;\n                    varying vec2 v_texCoord;\n                    void main() {\n                      vec4 col = texture2D(u_image, v_texCoord);\n                      if (col.a == 0.0) {\n                        discard;\n                      } else {\n                        gl_FragColor = col;\n                        gl_FragColor.a *= u_opacity;\n                      }\n                    }\n                    ",
+                    vertexShader: "#version 300 es\n                    precision highp float;\n                    in vec2 a_position;\n                    in vec2 a_texCoord;\n                    uniform mat3 u_transformMatrix;\n                    out vec2 v_texCoord;\n\n                    void main() {\n                      gl_Position = vec4(u_transformMatrix * vec3(a_position, 1), 1);\n                      v_texCoord = a_texCoord;\n                    }\n          ",
+                    fragmentShader: "#version 300 es\n                    precision mediump float;\n                    uniform sampler2D u_image;\n                    uniform float u_opacity;\n                    in vec2 v_texCoord;\n                    out vec4 fragColor;\n                    void main() {\n                      vec4 col = texture(u_image, v_texCoord);\n                      if (col.a == 0.0) {\n                        discard;\n                      } else {\n                        fragColor = col;\n                        fragColor.a *= u_opacity;\n                      }\n                    }\n                    ",
                 };
                 break;
 
             case "polyline":
             case "polygon":
                 res = {
-                    vertexShader: "\n                    precision highp float;\n                    attribute vec2 a_position;\n                    uniform mat3 u_transformMatrix;\n\n                    void main() {\n                      gl_Position = vec4(u_transformMatrix * vec3(a_position, 1), 1);\n                    }\n                    ",
-                    fragmentShader: "\n                    precision mediump float;\n                    uniform vec4 u_color;\n                    void main() {\n                        gl_FragColor = u_color;\n                    }\n                    ",
+                    vertexShader: "#version 300 es\n                    precision highp float;\n                    in vec2 a_position;\n                    uniform mat3 u_transformMatrix;\n\n                    void main() {\n                      gl_Position = vec4(u_transformMatrix * vec3(a_position, 1), 1);\n                    }\n                    ",
+                    fragmentShader: "#version 300 es\n                    precision mediump float;\n                    uniform vec4 u_color;\n                    out vec4 fragColor;\n                    void main() {\n                        fragColor = u_color;\n                    }\n                    ",
                 };
                 break;
 
             case "rect":
                 res = {
-                    vertexShader: "\n                    precision highp float;\n                    attribute vec2 a_position;\n                    attribute vec4 a_color;\n                    attribute mat3 a_transformMatrix;\n                    varying vec4 v_color;\n\n                    void main() {\n                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);\n                      v_color = a_color;\n                    }\n                    ",
-                    fragmentShader: "\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                        gl_FragColor = v_color;\n                    }\n                    ",
+                    vertexShader: "#version 300 es\n                    precision highp float;\n                    in vec2 a_position;\n                    in vec4 a_color;\n                    in mat3 a_transformMatrix;\n                    out vec4 v_color;\n\n                    void main() {\n                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);\n                      v_color = a_color;\n                    }\n                    ",
+                    fragmentShader: "#version 300 es\n                    precision mediump float;\n                    in vec4 v_color;\n                    out vec4 fragColor;\n                    void main() {\n                      fragColor = v_color;\n                    }\n                    ",
                 };
                 break;
 
             case "line":
                 res = {
-                    vertexShader: "\n                    precision highp float;\n                    attribute vec2 a_position;\n                    attribute vec4 a_color;\n                    attribute mat3 a_transformMatrix;\n                    varying vec4 v_color;\n\n                    void main() {\n                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);\n                      v_color = a_color;\n                    }\n                    ",
-                    fragmentShader: "\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                        gl_FragColor = v_color;\n                    }\n                    ",
+                    vertexShader: "#version 300 es\n                    precision highp float;\n                    in vec2 a_position;\n                    in vec4 a_color;\n                    in mat3 a_transformMatrix;\n                    out vec4 v_color;\n\n                    void main() {\n                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);\n                      v_color = a_color;\n                    }\n                    ",
+                    fragmentShader: "#version 300 es\n                    precision mediump float;\n                    in vec4 v_color;\n                    out vec4 fragColor;\n                    void main() {\n                        fragColor = v_color;\n                    }\n                    ",
                 };
                 break;
 
             default:
                 res = {
-                    vertexShader: "\n                    precision highp float;\n                    attribute vec2 a_position;\n                    attribute vec4 a_color;\n                    attribute mat3 a_transformMatrix;\n                    varying vec4 v_color;\n\n                    void main() {\n                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);\n                      v_color = a_color;\n                    }\n                    ",
-                    fragmentShader: "\n                    precision mediump float;\n                    varying vec4 v_color;\n                    void main() {\n                        gl_FragColor = v_color;\n                    }\n                    ",
+                    vertexShader: "#version 300 es\n                    precision highp float;\n                    in vec2 a_position;\n                    in vec4 a_color;\n                    in mat3 a_transformMatrix;\n                    out vec4 v_color;\n\n                    void main() {\n                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);\n                      v_color = a_color;\n                    }\n                    ",
+                    fragmentShader: "#version 300 es\n                    precision mediump float;\n                    in vec4 v_color;\n                    out vec4 fragColor;\n                    void main() {\n                      fragColor = v_color;\n                    }\n                    ",
                 };
         }
 
@@ -14324,8 +14324,8 @@
             attr: attr,
         };
 
-        ctx.bindBuffer(newAttrObj.bufferType, newAttrObj.buffer);
-        ctx.bufferData(newAttrObj.bufferType, newAttrObj.value, newAttrObj.drawType);
+        // ctx.bindBuffer(newAttrObj.bufferType, newAttrObj.buffer);
+        // ctx.bufferData(newAttrObj.bufferType, newAttrObj.value, newAttrObj.drawType);
 
         return newAttrObj;
     }
@@ -14412,6 +14412,7 @@
         this.postDraw = shader.postDraw;
         this.geometry = shader.geometry;
         this.renderTarget = shader.renderTarget;
+        this.vao = ctx.createVertexArray();
 
         for (var uniform in shader.uniforms) {
             this.uniforms[uniform] = webGlUniformMapper(
@@ -14437,6 +14438,7 @@
 
         for (var attr in this.attributes) {
             this.attrObjs[attr] = webGlAttrMapper(ctx, this.program, attr, this.attributes[attr]);
+            this.applyAttributeToVao(attr, this.attrObjs[attr]);
         }
 
         if (this.indexes) {
@@ -14446,6 +14448,46 @@
 
     RenderWebglShader.prototype = new ShaderNodePrototype();
     RenderWebglShader.prototype.constructor = RenderWebglShader;
+
+    RenderWebglShader.prototype.applyAttributeToVao = function (attr, d) {
+        this.ctx.bindVertexArray(this.vao);
+        if (attr === "a_transformMatrix") {
+            this.ctx.enableVertexAttribArray(d.attributeLocation + 0);
+            this.ctx.enableVertexAttribArray(d.attributeLocation + 1);
+            this.ctx.enableVertexAttribArray(d.attributeLocation + 2);
+            this.ctx.bindBuffer(d.bufferType, d.buffer);
+            this.ctx.bufferData(d.bufferType, d.value, d.drawType);
+            this.ctx.vertexAttribPointer(
+                d.attributeLocation + 0,
+                d.size,
+                d.valueType,
+                false,
+                d.size * 4 * 3,
+                3 * 4 * 0
+            );
+            this.ctx.vertexAttribPointer(
+                d.attributeLocation + 1,
+                d.size,
+                d.valueType,
+                false,
+                d.size * 4 * 3,
+                3 * 4 * 1
+            );
+            this.ctx.vertexAttribPointer(
+                d.attributeLocation + 2,
+                d.size,
+                d.valueType,
+                false,
+                d.size * 4 * 3,
+                3 * 4 * 2
+            );
+        } else {
+            this.ctx.enableVertexAttribArray(d.attributeLocation);
+            this.ctx.bindBuffer(d.bufferType, d.buffer);
+            this.ctx.bufferData(d.bufferType, d.value, d.drawType);
+            this.ctx.vertexAttribPointer(d.attributeLocation, d.size, d.valueType, false, 0, 0);
+        }
+    };
 
     RenderWebglShader.prototype.useProgram = function () {
         this.ctx.useProgram(this.program);
@@ -14476,46 +14518,47 @@
         }
     };
 
-    RenderWebglShader.prototype.applyAttributes = function () {
-        var d;
-        for (var attr in this.attrObjs) {
-            d = this.attrObjs[attr];
-            if (attr === "a_transformMatrix") {
-                this.ctx.enableVertexAttribArray(d.attributeLocation + 0);
-                this.ctx.enableVertexAttribArray(d.attributeLocation + 1);
-                this.ctx.enableVertexAttribArray(d.attributeLocation + 2);
-                this.ctx.bindBuffer(d.bufferType, d.buffer);
-                this.ctx.vertexAttribPointer(
-                    d.attributeLocation + 0,
-                    d.size,
-                    d.valueType,
-                    false,
-                    d.size * 4 * 3,
-                    3 * 4 * 0
-                );
-                this.ctx.vertexAttribPointer(
-                    d.attributeLocation + 1,
-                    d.size,
-                    d.valueType,
-                    false,
-                    d.size * 4 * 3,
-                    3 * 4 * 1
-                );
-                this.ctx.vertexAttribPointer(
-                    d.attributeLocation + 2,
-                    d.size,
-                    d.valueType,
-                    false,
-                    d.size * 4 * 3,
-                    3 * 4 * 2
-                );
-            } else {
-                this.ctx.enableVertexAttribArray(d.attributeLocation);
-                this.ctx.bindBuffer(d.bufferType, d.buffer);
-                this.ctx.vertexAttribPointer(d.attributeLocation, d.size, d.valueType, false, 0, 0);
-            }
-        }
-    };
+    // RenderWebglShader.prototype.applyAttributes = function () {
+    //     let d;
+
+    //     for (const attr in this.attrObjs) {
+    //         d = this.attrObjs[attr];
+    //         if (attr === "a_transformMatrix") {
+    //             this.ctx.enableVertexAttribArray(d.attributeLocation + 0);
+    //             this.ctx.enableVertexAttribArray(d.attributeLocation + 1);
+    //             this.ctx.enableVertexAttribArray(d.attributeLocation + 2);
+    //             this.ctx.bindBuffer(d.bufferType, d.buffer);
+    //             this.ctx.vertexAttribPointer(
+    //                 d.attributeLocation + 0,
+    //                 d.size,
+    //                 d.valueType,
+    //                 false,
+    //                 d.size * 4 * 3,
+    //                 3 * 4 * 0
+    //             );
+    //             this.ctx.vertexAttribPointer(
+    //                 d.attributeLocation + 1,
+    //                 d.size,
+    //                 d.valueType,
+    //                 false,
+    //                 d.size * 4 * 3,
+    //                 3 * 4 * 1
+    //             );
+    //             this.ctx.vertexAttribPointer(
+    //                 d.attributeLocation + 2,
+    //                 d.size,
+    //                 d.valueType,
+    //                 false,
+    //                 d.size * 4 * 3,
+    //                 3 * 4 * 2
+    //             );
+    //         } else {
+    //             this.ctx.enableVertexAttribArray(d.attributeLocation);
+    //             this.ctx.bindBuffer(d.bufferType, d.buffer);
+    //             this.ctx.vertexAttribPointer(d.attributeLocation, d.size, d.valueType, false, 0, 0);
+    //         }
+    //     }
+    // };
 
     RenderWebglShader.prototype.applyIndexes = function () {
         var d = this.indexesObj;
@@ -14547,7 +14590,7 @@
     RenderWebglShader.prototype.execute = function () {
         this.ctx.useProgram(this.program);
         this.applyUniforms();
-        this.applyAttributes();
+        this.ctx.bindVertexArray(this.vao);
         if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
             this.renderTarget.update();
         }
@@ -14570,6 +14613,7 @@
     RenderWebglShader.prototype.addAttribute = function (key, obj) {
         this.attributes[key] = obj;
         this.attrObjs[key] = webGlAttrMapper(this.ctx, this.program, key, obj);
+        this.applyAttributeToVao(key, this.attrObjs[key]);
         queueInstance.vDomChanged(this.vDomIndex);
     };
 
@@ -16147,7 +16191,7 @@
         contextConfig.alpha = contextConfig.alpha === undefined ? true : contextConfig.alpha;
 
         var layer = document.createElement("canvas");
-        var ctx = layer.getContext("webgl", contextConfig);
+        var ctx = layer.getContext("webgl2", contextConfig);
 
         var actualPixel = getPixlRatio(ctx);
 
