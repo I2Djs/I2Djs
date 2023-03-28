@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Using Module of I2Djs</title>
+    </head>
+    <body>
+        <div class="main-container">
+            <div id="lineLoaderContainer" class="i2d-canvas"></div>
+            <div id="pdfContainer" class="i2d-canvas">
+                <iframe class="iframeCanvas" id="i2dPdfContainer"></iframe>
+            </div>
+        </div>
+    </body>
+</html>
+<!-- <script type="text/javascript" src="../../dist/i2d.js"></script> -->
+<script type="module">
+    import { canvasLayer } from "../../dist/i2d.esm.browser.js";
+
+    // import * as i2djs from "../../src/main.js";
+
+    // console.log(i2djs);
+
+    let renderer = canvasLayer("#lineLoaderContainer", {}, { autoUpdate: false });
+
+    renderer.createEl({
+        el: "circle",
+        attr: {
+            cx: 200,
+            cy: 200,
+            r: 100,
+        },
+        style: {
+            fillStyle: "#ff0000",
+            strokeStyle: "#0000ff",
+        },
+    });
+
+    renderer.update();
+
+    renderer.exportPdf(function (url) {
+        console.log(url);
+        document.getElementById("i2dPdfContainer").setAttribute("src", url);
+    });
+</script>
+<style>
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+        font-size: 14px;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    .main-container {
+        height: 100%;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 50% 50%;
+    }
+
+    .i2d-canvas {
+        width: 100%;
+        height: 100%;
+    }
+
+    .iframeCanvas {
+        width: 100%;
+        height: 100%;
+    }
+</style>

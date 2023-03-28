@@ -17,6 +17,7 @@ const banner = `/*!
 export default [
     {
         input: "src/main.js",
+        // external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream"],
         output: [
             {
                 banner,
@@ -42,6 +43,7 @@ export default [
     },
     {
         input: "src/main.js",
+        external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream"],
         output: [
             {
                 banner,
@@ -59,13 +61,19 @@ export default [
             }),
             buble({
                 transforms: { 
-                    asyncAwait: false 
+                    dangerousForOf: true,
+                    asyncAwait: false,
+                    // forOf: false,
+                    generator: false,
+                    arrow: true,
+                    modules: false
                 }
             }),
         ],
     },
     {
         input: "src/main.js",
+        external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream"],
         output: [
             {
                 file: "dist/i2d.min.js",
@@ -84,7 +92,9 @@ export default [
         ],
         plugins: [
             nodeResolve(),
-            commonjs(),
+            commonjs({
+                transforms: { forOf: false }
+            }),
             terser(),
             eslint({
                 fix: true,
@@ -94,6 +104,7 @@ export default [
     },
     {
         input: "src/main.js",
+        external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream"],
         output: [
             {
                 banner,
@@ -111,7 +122,12 @@ export default [
             }),
             buble({
                 transforms: { 
-                    asyncAwait: false 
+                    asyncAwait: false,
+                    // forOf: false,
+                    dangerousForOf: true,
+                    generator: false,
+                    arrow: true,
+                    modules: false
                 }
             }),
             terser(),

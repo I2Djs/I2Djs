@@ -6,12 +6,24 @@ import colorMap from "./colorMap.js";
 import Events from "./events.js";
 import behaviour from "./behaviour.js";
 // import { imageDataRGB as blur } from "stackblur-canvas";
+import blobStream from "blob-stream/blob-stream.js";
+import PDFDocument from "pdfkit/js/pdfkit.standalone.js";
+
 import {
     NodePrototype,
     CollectionPrototype,
     layerResizeBind,
     layerResizeUnBind,
 } from "./coreApi.js";
+
+const pdfStyleMapper = {
+    fillStyle: "fillColor",
+    strokeStyle: "strokeColor",
+    globalAlpha: "opacity",
+};
+
+// console.log(PDFDocument);
+
 const t2DGeometry = geometry;
 const queueInstance = queue;
 let Id = 0;
@@ -60,6 +72,30 @@ function domSetStyle(attr, value) {
         delete this.style[attr];
     } else {
         this.style[attr] = value;
+    }
+}
+
+function cRenderPdf(attr, pdfCtx) {
+    const self = this;
+
+    if (attr.transform) {
+        const { transform } = attr;
+        const { scale = [1, 1], skew = [0, 0], translate = [0, 0] } = transform;
+        const [hozScale = 1, verScale = hozScale] = scale;
+        const [hozSkew = 0, verSkew = hozSkew] = skew;
+        const [hozMove = 0, verMove = hozMove] = translate;
+
+        pdfCtx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove);
+
+        if (transform.rotate && transform.rotate.length > 0) {
+            pdfCtx.translate(transform.rotate[1] || 0, transform.rotate[2] || 0);
+            pdfCtx.rotate(transform.rotate[0] * (Math.PI / 180));
+            pdfCtx.translate(-transform.rotate[1] || 0, -transform.rotate[2] || 0);
+        }
+    }
+
+    for (let i = 0; i < self.stack.length; i += 1) {
+        self.stack[i].executePdf(pdfCtx);
     }
 }
 
@@ -357,7 +393,7 @@ function CanvasPattern(self, config = {}, width = 0, height = 0) {
     const patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
     this.repeatInd = config.repeat ? config.repeat : "repeat";
     if (self.ENV === "NODE") {
-        selfSelf.pattern = canvasNodeLayer({}, height, width);
+        // selfSelf.pattern = canvasNodeLayer({}, height, width);
     } else {
         selfSelf.pattern = canvasLayer(
             null,
@@ -400,6 +436,16 @@ function applyStyles() {
     }
 }
 
+function applyStylesPdf(pdfCtx) {
+    if (this.style.fillStyle && this.style.strokeStyle) {
+        pdfCtx.fillAndStroke(this.style.fillStyle, this.style.strokeStyle);
+    } else if (this.style.fillStyle) {
+        pdfCtx.fill(this.style.fillStyle);
+    } else if (this.style.strokeStyle) {
+        pdfCtx.stroke(this.style.strokeStyle);
+    }
+}
+
 function CanvasDom() {
     this.BBox = {
         x: 0,
@@ -417,10 +463,12 @@ function CanvasDom() {
 
 CanvasDom.prototype = {
     render: cRender,
+    renderPdf: cRenderPdf,
     // on: addListener,
     setAttr: domSetAttribute,
     setStyle: domSetStyle,
     applyStyles,
+    applyStylesPdf,
 };
 
 function imageInstance(self) {
@@ -730,6 +778,40 @@ RenderText.prototype.execute = function RTexecute() {
     }
 };
 
+RenderText.prototype.executePdf = function RTexecute(pdfCtx) {
+    if (this.attr.text !== undefined && this.attr.text !== null) {
+        if (this.textList && this.textList.length > 0) {
+            for (var i = 0; i < this.textList.length; i++) {
+                if (this.style.fillStyle) {
+                    pdfCtx.text(
+                        this.textList[i],
+                        this.attr.x,
+                        this.attr.y + this.textHeight * (i + 1)
+                    );
+                    pdfCtx.fill();
+                }
+
+                if (this.ctx.strokeStyle) {
+                    pdfCtx.text(
+                        this.textList[i],
+                        this.attr.x,
+                        this.attr.y + this.textHeight * (i + 1)
+                    );
+                    pdfCtx.stroke();
+                }
+            }
+        } else {
+            if (this.style.fillStyle) {
+                pdfCtx.text(this.attr.text, this.attr.x, this.attr.y + this.height);
+            }
+
+            if (this.style.strokeStyle) {
+                pdfCtx.strokeText(this.attr.text, this.attr.x, this.attr.y + this.height);
+            }
+        }
+    }
+};
+
 RenderText.prototype.applyStyles = function RTapplyStyles() {};
 
 RenderText.prototype.in = function RTinfun(co) {
@@ -777,6 +859,12 @@ RenderCircle.prototype.execute = function RCexecute() {
     this.ctx.closePath();
 };
 
+RenderCircle.prototype.executePdf = function RCexecute(pdfCtx) {
+    const { r = 0, cx = 0, cy = 0 } = this.attr;
+    pdfCtx.circle(parseInt(cx), parseInt(cy), parseInt(r));
+    this.applyStylesPdf(pdfCtx);
+};
+
 RenderCircle.prototype.in = function RCinfun(co, eventType) {
     const { r = 0, cx = 0, cy = 0 } = this.attr;
     const tr = Math.sqrt((co.x - cx) * (co.x - cx) + (co.y - cy) * (co.y - cy));
@@ -822,6 +910,13 @@ RenderLine.prototype.execute = function RLexecute() {
     ctx.lineTo(x2, y2);
     this.applyStyles();
     ctx.closePath();
+};
+
+RenderLine.prototype.executePdf = function RLexecute(pdfCtx) {
+    const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
+    pdfCtx.moveTo(x1, y1);
+    pdfCtx.lineTo(x2, y2);
+    this.applyStylesPdf(pdfCtx);
 };
 
 RenderLine.prototype.in = function RLinfun(co) {
@@ -879,6 +974,18 @@ RenderPolyline.prototype.execute = function polylineExe() {
     }
     this.applyStyles();
     this.ctx.closePath();
+};
+
+RenderPolyline.prototype.executePdf = function polylineExe(pdfCtx) {
+    let d;
+    if (!this.attr.points || this.attr.points.length === 0) return;
+
+    pdfCtx.moveTo(this.attr.points[0].x, this.attr.points[0].y);
+    for (var i = 1; i < this.attr.points.length; i++) {
+        d = this.attr.points[i];
+        pdfCtx.lineTo(d.x, d.y);
+    }
+    this.applyStylesPdf(pdfCtx);
 };
 
 RenderPolyline.prototype.updateBBox = RPolyupdateBBox;
@@ -1029,6 +1136,24 @@ RenderPath.prototype.execute = function RPexecute() {
     }
 };
 
+RenderPath.prototype.executePdf = function RPexecute(pdfCtx) {
+    if (this.attr.d) {
+        pdfCtx.path(this.attr.d);
+        // if (this.ctx.fillStyle !== "#000000" || this.ctx.strokeStyle !== "#000000") {
+        //     if (this.ctx.fillStyle !== "#000000") {
+        //         this.ctx.fill(this.pathNode);
+        //     }
+
+        //     if (this.ctx.strokeStyle !== "#000000") {
+        //         this.ctx.stroke(this.pathNode);
+        //     }
+        // } else {
+        //     this.path.execute(this.ctx);
+        // }
+    }
+    this.applyStylesPdf(pdfCtx);
+};
+
 RenderPath.prototype.applyStyles = function RPapplyStyles() {};
 
 RenderPath.prototype.in = function RPinfun(co) {
@@ -1068,6 +1193,9 @@ function polygonExe(points) {
     return {
         path: polygon,
         points: points,
+        rawPoints: points.map((d) => {
+            return [d.x, d.y];
+        }),
         execute: function (ctx) {
             ctx.beginPath();
             const points = this.points;
@@ -1128,6 +1256,25 @@ RenderPolygon.prototype.execute = function RPolyexecute() {
     }
 };
 
+RenderPolygon.prototype.executePdf = function RPolyexecute(pdfCtx) {
+    if (!this.polygon) {
+        return;
+    }
+    if (this.style.fillStyle || this.style.strokeStyle) {
+        pdfCtx.polygon(...this.polygon.rawPoints);
+        // if (this.style.fillStyle) {
+        //     pdfCtx.fill();
+        // }
+
+        // if (this.ctx.strokeStyle) {
+        //     pdfCtx.stroke();
+        // }
+    } else {
+        // this.polygon.execute(this.ctx);
+    }
+    this.applyStylesPdf(pdfCtx);
+};
+
 RenderPolygon.prototype.applyStyles = function RPolyapplyStyles() {};
 
 RenderPolygon.prototype.in = function RPolyinfun(co) {
@@ -1162,20 +1309,8 @@ RenderEllipse.prototype.constructor = RenderEllipse;
 
 RenderEllipse.prototype.updateBBox = function REupdateBBox() {
     const self = this;
-    // let translateX = 0;
-    // let translateY = 0;
-    // let scaleX = 1;
-    // let scaleY = 1;
     const { transform, cx = 0, cy = 0, rx = 0, ry = 0 } = self.attr;
     const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-
-    // if (transform && transform.translate) {
-    // 	[translateX, translateY] = transform.translate;
-    // }
-
-    // if (transform && transform.scale) {
-    // 	[scaleX = 1, scaleY = scaleX] = transform.scale;
-    // }
 
     self.BBox = {
         x: translateX + (cx - rx) * scaleX,
@@ -1198,6 +1333,12 @@ RenderEllipse.prototype.execute = function REexecute() {
     ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
     this.applyStyles();
     ctx.closePath();
+};
+
+RenderEllipse.prototype.executePdf = function REexecute(pdfCtx) {
+    const { cx = 0, cy = 0, rx = 0, ry = 0 } = this.attr;
+    pdfCtx.ellipse(cx, cy, rx, ry);
+    this.applyStylesPdf(pdfCtx);
 };
 
 RenderEllipse.prototype.in = function REinfun(co) {
@@ -1245,7 +1386,7 @@ RenderRect.prototype.applyStyles = function rStyles() {};
 function renderRoundRect(ctx, attr) {
     const { x = 0, y = 0, width = 0, height = 0, rx = 0, ry = 0 } = attr;
 
-    ctx.beginPath();
+    if (ctx.beginPath) ctx.beginPath();
     ctx.moveTo(x + rx, y);
     ctx.lineTo(x + width - rx, y);
     ctx.quadraticCurveTo(x + width, y, x + width, y + ry);
@@ -1255,8 +1396,50 @@ function renderRoundRect(ctx, attr) {
     ctx.quadraticCurveTo(x, y + height, x, y + height - ry);
     ctx.lineTo(x, y + ry);
     ctx.quadraticCurveTo(x, y, x + rx, y);
-    ctx.closePath();
+    if (ctx.closePath) ctx.closePath();
 }
+
+RenderRect.prototype.executePdf = function RRexecute(pdfCtx) {
+    const { x = 0, y = 0, width = 0, height = 0, rx = 0, ry = 0 } = this.attr;
+    const { fillStyle, strokeStyle } = this.style;
+
+    if (fillStyle || strokeStyle) {
+        if (fillStyle) {
+            if (!rx && !ry) {
+                pdfCtx.rect(x, y, width, height);
+            } else {
+                renderRoundRect(pdfCtx, {
+                    x,
+                    y,
+                    width,
+                    height,
+                    rx,
+                    ry,
+                });
+            }
+            // pdfCtx.fill();
+        }
+
+        if (strokeStyle) {
+            if (!rx && !ry) {
+                pdfCtx.rect(x, y, width, height);
+            } else {
+                renderRoundRect(pdfCtx, {
+                    x,
+                    y,
+                    width,
+                    height,
+                    rx,
+                    ry,
+                });
+            }
+            // pdfCtx.stroke();
+        }
+    } else {
+        pdfCtx.rect(x, y, width, height);
+    }
+    this.applyStylesPdf(pdfCtx);
+};
 
 RenderRect.prototype.execute = function RRexecute() {
     const ctx = this.ctx;
@@ -1510,6 +1693,8 @@ CanvasNodeExe.prototype.stylesExe = function CstylesExe() {
     let key;
     const style = this.style;
 
+    this.resolvedStyle = {};
+
     for (key in style) {
         if (typeof style[key] === "string" || typeof style[key] === "number") {
             value = style[key];
@@ -1538,6 +1723,20 @@ CanvasNodeExe.prototype.stylesExe = function CstylesExe() {
         } else {
             console.log("junk comp");
         }
+        this.resolvedStyle[key] = value;
+    }
+};
+
+CanvasNodeExe.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
+    if (!pdfCtx) return;
+    for (const key in this.resolvedStyle) {
+        if (typeof pdfCtx[pdfStyleMapper[key]] !== "function") {
+            pdfCtx[pdfStyleMapper[key]] = this.resolvedStyle[key];
+        } else if (typeof pdfCtx[pdfStyleMapper[key]] === "function") {
+            pdfCtx[pdfStyleMapper[key]](this.resolvedStyle[key]);
+        } else {
+            console.log("junk comp");
+        }
     }
 };
 
@@ -1555,6 +1754,10 @@ CanvasNodeExe.prototype.remove = function Cremove() {
 
 CanvasNodeExe.prototype.attributesExe = function CattributesExe() {
     this.dom.render(this.attr);
+};
+
+CanvasNodeExe.prototype.attributesExePdf = function CattributesExe(pdfCtx) {
+    this.dom.renderPdf(this.attr, pdfCtx);
 };
 
 CanvasNodeExe.prototype.setStyle = function CsetStyle(attr, value) {
@@ -1702,6 +1905,21 @@ CanvasNodeExe.prototype.execute = function Cexecute() {
         }
     }
     this.ctx.restore();
+};
+
+CanvasNodeExe.prototype.executePdf = function Cexecute(pdfCtx) {
+    if (this.style.display === "none") {
+        return;
+    }
+    pdfCtx.save();
+    this.stylesExePdf(pdfCtx);
+    this.attributesExePdf(pdfCtx);
+    if (this.dom instanceof RenderGroup) {
+        for (let i = 0, len = this.children.length; i < len; i += 1) {
+            this.children[i].executePdf(pdfCtx);
+        }
+    }
+    pdfCtx.restore();
 };
 
 CanvasNodeExe.prototype.prependChild = function child(childrens) {
@@ -1876,292 +2094,6 @@ CanvasNodeExe.prototype.putPixels = function (pixels) {
     }
     return this.ctx.putImageData(pixels.imageData, this.dom.BBox.x, this.dom.BBox.y);
 };
-
-function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
-    const res = container ? document.querySelector(container) : null;
-    let height = res ? res.clientHeight : 0;
-    let width = res ? res.clientWidth : 0;
-    const layer = document.createElement("canvas");
-    const ctx = layer.getContext("2d", contextConfig);
-    let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
-    let ratio = getPixlRatio(ctx);
-    ctx.pixelRatio = ratio;
-    let onClear = function (ctx) {
-        ctx.clearRect(0, 0, width * ratio, height * ratio);
-    };
-    layer.setAttribute("height", height * ratio);
-    layer.setAttribute("width", width * ratio);
-    layer.style.height = `${height}px`;
-    layer.style.width = `${width}px`;
-    layer.style.position = "absolute";
-
-    let vDomInstance;
-    let vDomIndex = 999999;
-    let cHeight;
-    let cWidth;
-    let resizeCall;
-    let onChangeExe;
-
-    if (res) {
-        res.appendChild(layer);
-        vDomInstance = new VDom();
-        if (autoUpdate) {
-            vDomIndex = queueInstance.addVdom(vDomInstance);
-        }
-    } else {
-        enableEvents = false;
-    }
-
-    const root = new CanvasNodeExe(
-        ctx,
-        {
-            el: "g",
-            attr: {
-                id: "rootNode",
-            },
-        },
-        domId(),
-        vDomIndex
-    );
-
-    if (vDomInstance) {
-        vDomInstance.rootNode(root);
-    }
-
-    const execute = root.execute.bind(root);
-    root.container = res;
-    root.domEl = layer;
-    root.height = height;
-    root.width = width;
-    root.type = "CANVAS";
-    root.ctx = ctx;
-
-    root.setClear = function (exe) {
-        onClear = exe;
-    };
-
-    root.setAttr = function (prop, value) {
-        if (prop === "viewBox") {
-            this.setViewBox.apply(this, value.split(","));
-        }
-        layer.setAttribute(prop, value);
-        this.attr[prop] = value;
-    };
-
-    root.enableEvents = function (flag) {
-        enableEvents = flag;
-    };
-
-    root.setStyle = function (prop, value) {
-        this.domEl.style[prop] = value;
-    };
-
-    root.addDependentLayer = function (layer) {
-        if (!(layer instanceof CanvasNodeExe)) {
-            return;
-        }
-        const depId = layer.attr.id ? layer.attr.id : "dep-" + Math.ceil(Math.random() * 1000);
-        layer.setAttr("id", depId);
-        layer.vDomIndex = this.vDomIndex + ":" + depId;
-        this.prependChild([layer]);
-    };
-
-    const resize = function (cr) {
-        if (!document.querySelector(container)) {
-            layerResizeUnBind(root);
-            return;
-        }
-        height = cHeight || cr.height;
-        width = cWidth || cr.width;
-
-        root.width = width;
-        root.height = height;
-
-        updateLayerDimension(root.domEl, width, height);
-
-        if (resizeCall) {
-            resizeCall();
-        }
-        root.execute();
-    };
-
-    const updateLayerDimension = function (layer, width, height) {
-        layer.setAttribute("height", height * ratio);
-        layer.setAttribute("width", width * ratio);
-        layer.style.height = `${height}px`;
-        layer.style.width = `${width}px`;
-    };
-
-    root.setPixelRatio = function (val) {
-        ratio = val;
-        this.ctx.pixelRatio = ratio;
-        updateLayerDimension(this.domEl, this.width, this.height);
-    };
-
-    root.onResize = function (exec) {
-        resizeCall = exec;
-    };
-
-    root.onChange = function (exec) {
-        onChangeExe = exec;
-    };
-
-    root.toDataURL = function (p) {
-        return this.domEl.toDataURL(p);
-    };
-
-    root.invokeOnChange = function () {};
-
-    root.setSize = function (width_, height_) {
-        cHeight = height_;
-        cWidth = width_;
-        width = width_;
-        height = height_;
-        this.width = width;
-        this.height = height;
-
-        updateLayerDimension(this.domEl, width, height);
-
-        this.execute();
-    };
-
-    root.setViewBox = function (x, y, height, width) {};
-
-    root.getPixels = function (x, y, width_, height_) {
-        const imageData = this.ctx.getImageData(x, y, width_, height_);
-        const pixelInstance = new PixelObject(imageData, width_, height_);
-
-        return pixelInstance;
-    };
-
-    root.putPixels = function (Pixels, x, y) {
-        if (!(Pixels instanceof PixelObject)) {
-            return;
-        }
-        return this.ctx.putImageData(Pixels.imageData, x, y);
-    };
-
-    root.clear = function () {
-        onClear();
-    };
-
-    root.setContext = function (prop, value) {
-        /** Expecting value to be array if multiple aruments */
-        if (this.ctx[prop] && typeof this.ctx[prop] === "function") {
-            this.ctx[prop].apply(null, value);
-        } else if (this.ctx[prop]) {
-            this.ctx[prop] = value;
-        }
-    };
-
-    root.createPattern = createCanvasPattern;
-
-    root.createClip = createCanvasClip;
-
-    root.createMask = createCanvasMask;
-
-    root.execute = function executeExe() {
-        onClear(ctx);
-        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-        this.updateBBox();
-        execute();
-        if (onChangeExe && this.stateModified) {
-            onChangeExe();
-        }
-        this.stateModified = false;
-    };
-
-    root.update = function executeUpdate() {
-        this.execute();
-    };
-
-    root.createTexture = function (config) {
-        return new RenderTexture(this, config);
-    };
-
-    root.createAsyncTexture = function (config) {
-        return new Promise((resolve, reject) => {
-            const textureInstance = new RenderTexture(this, config);
-            textureInstance.onLoad(function () {
-                resolve(textureInstance);
-            });
-        });
-    };
-
-    root.destroy = function () {
-        const res = document.querySelector(container);
-        if (res && res.contains(layer)) {
-            res.removeChild(layer);
-        }
-        queueInstance.removeVdom(vDomIndex);
-        layerResizeUnBind(root, resize);
-    };
-
-    if (enableEvents) {
-        const eventsInstance = new Events(root);
-        layer.addEventListener("mousemove", (e) => {
-            e.preventDefault();
-            eventsInstance.mousemoveCheck(e);
-        });
-        // layer.addEventListener("click", (e) => {
-        //     e.preventDefault();
-        //     eventsInstance.clickCheck(e);
-        // });
-        // layer.addEventListener("dblclick", (e) => {
-        //     e.preventDefault();
-        //     eventsInstance.dblclickCheck(e);
-        // });
-        layer.addEventListener("mousedown", (e) => {
-            eventsInstance.mousedownCheck(e);
-        });
-        layer.addEventListener("mouseup", (e) => {
-            eventsInstance.mouseupCheck(e);
-        });
-        layer.addEventListener("mouseleave", (e) => {
-            eventsInstance.mouseleaveCheck(e);
-        });
-        layer.addEventListener("contextmenu", (e) => {
-            eventsInstance.contextmenuCheck(e);
-        });
-        layer.addEventListener("touchstart", (e) => {
-            eventsInstance.touchstartCheck(e);
-        });
-        layer.addEventListener("touchend", (e) => {
-            eventsInstance.touchendCheck(e);
-        });
-        layer.addEventListener("touchmove", (e) => {
-            e.preventDefault();
-            eventsInstance.touchmoveCheck(e);
-        });
-        layer.addEventListener("touchcancel", (e) => {
-            eventsInstance.touchcancelCheck(e);
-        });
-        layer.addEventListener("wheel", (e) => {
-            eventsInstance.wheelEventCheck(e);
-        });
-        layer.addEventListener("pointerdown", (e) => {
-            eventsInstance.addPointer(e);
-            eventsInstance.pointerdownCheck(e);
-        });
-        layer.addEventListener("pointerup", (e) => {
-            eventsInstance.removePointer(e);
-            eventsInstance.pointerupCheck(e);
-        });
-        layer.addEventListener("pointermove", (e) => {
-            e.preventDefault();
-            eventsInstance.pointermoveCheck(e);
-        });
-    }
-
-    queueInstance.execute();
-
-    if (enableResize && root.container) {
-        layerResizeBind(root, resize);
-        // window.addEventListener("resize", resize);
-    }
-
-    return root;
-}
 
 function GetCanvasImgInstance(width, height) {
     const canvas = document.createElement("canvas");
@@ -2401,22 +2333,41 @@ RenderTexture.prototype.next = function (index) {
     postProcess(this);
 };
 
-function canvasNodeLayer(config, height = 0, width = 0) {
-    if (!Canvas) {
-        console.error("Canvas missing from node");
-        console.error('Install "Canvas" "canvas-5-polyfill" node modules');
-        console.error('Make "Canvas" "Image" "Path2D" objects global from the above modules');
-        return;
-    }
-    let onChangeExe;
-    const layer = new Canvas(width, height);
-    let ctx = layer.getContext("2d", config);
-    const ratio = getPixlRatio(ctx);
+function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
+    const res = container ? document.querySelector(container) : null;
+    let height = res ? res.clientHeight : 0;
+    let width = res ? res.clientWidth : 0;
+    const layer = document.createElement("canvas");
+    const ctx = layer.getContext("2d", contextConfig);
+    let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
+    let ratio = getPixlRatio(ctx);
+    ctx.pixelRatio = ratio;
     let onClear = function (ctx) {
         ctx.clearRect(0, 0, width * ratio, height * ratio);
     };
-    const vDomInstance = new VDom();
-    const vDomIndex = queueInstance.addVdom(vDomInstance);
+    layer.setAttribute("height", height * ratio);
+    layer.setAttribute("width", width * ratio);
+    layer.style.height = `${height}px`;
+    layer.style.width = `${width}px`;
+    layer.style.position = "absolute";
+
+    let vDomInstance;
+    let vDomIndex = 999999;
+    let cHeight;
+    let cWidth;
+    let resizeCall;
+    let onChangeExe;
+
+    if (res) {
+        res.appendChild(layer);
+        vDomInstance = new VDom();
+        if (autoUpdate) {
+            vDomIndex = queueInstance.addVdom(vDomInstance);
+        }
+    } else {
+        enableEvents = false;
+    }
+
     const root = new CanvasNodeExe(
         ctx,
         {
@@ -2428,81 +2379,126 @@ function canvasNodeLayer(config, height = 0, width = 0) {
         domId(),
         vDomIndex
     );
-    vDomInstance.rootNode(root);
+
+    if (vDomInstance) {
+        vDomInstance.rootNode(root);
+    }
+
     const execute = root.execute.bind(root);
+    const executePdf = root.executePdf.bind(root);
+    root.container = res;
     root.domEl = layer;
     root.height = height;
     root.width = width;
     root.type = "CANVAS";
-    root.ENV = "NODE";
+    root.ctx = ctx;
 
     root.setClear = function (exe) {
         onClear = exe;
+    };
+
+    root.setAttr = function (prop, value) {
+        if (prop === "viewBox") {
+            this.setViewBox.apply(this, value.split(","));
+        }
+        layer.setAttribute(prop, value);
+        this.attr[prop] = value;
+    };
+
+    root.enableEvents = function (flag) {
+        enableEvents = flag;
+    };
+
+    root.setStyle = function (prop, value) {
+        this.domEl.style[prop] = value;
+    };
+
+    root.addDependentLayer = function (layer) {
+        if (!(layer instanceof CanvasNodeExe)) {
+            return;
+        }
+        const depId = layer.attr.id ? layer.attr.id : "dep-" + Math.ceil(Math.random() * 1000);
+        layer.setAttr("id", depId);
+        layer.vDomIndex = this.vDomIndex + ":" + depId;
+        this.prependChild([layer]);
+    };
+
+    const resize = function (cr) {
+        if (!document.querySelector(container)) {
+            layerResizeUnBind(root);
+            return;
+        }
+        height = cHeight || cr.height;
+        width = cWidth || cr.width;
+
+        root.width = width;
+        root.height = height;
+
+        updateLayerDimension(root.domEl, width, height);
+
+        if (resizeCall) {
+            resizeCall();
+        }
+        root.execute();
+    };
+
+    const updateLayerDimension = function (layer, width, height) {
+        layer.setAttribute("height", height * ratio);
+        layer.setAttribute("width", width * ratio);
+        layer.style.height = `${height}px`;
+        layer.style.width = `${width}px`;
+    };
+
+    root.setPixelRatio = function (val) {
+        ratio = val;
+        this.ctx.pixelRatio = ratio;
+        updateLayerDimension(this.domEl, this.width, this.height);
+    };
+
+    root.onResize = function (exec) {
+        resizeCall = exec;
     };
 
     root.onChange = function (exec) {
         onChangeExe = exec;
     };
 
-    root.getPixels = function (x, y, width_, height_) {
-        return this.ctx.getImageData(x, y, width_, height_);
-    };
+    root.exportPdf = function (callback) {
+        const doc = new PDFDocument({
+            size: [this.width, this.height],
+        });
+        const stream_ = doc.pipe(blobStream());
 
-    root.putPixels = function (imageData, x, y) {
-        return this.ctx.putImageData(imageData, x, y);
-    };
+        executePdf(doc);
 
-    root.clear = function () {
-        onClear();
-    };
+        doc.end();
 
-    root.setContext = function (prop, value) {
-        /** Expecting value to be array if multiple aruments */
-        if (this.ctx[prop] && typeof this.ctx[prop] === "function") {
-            this.ctx[prop].apply(null, value);
-        } else if (this.ctx[prop]) {
-            this.ctx[prop] = value;
-        }
-    };
-
-    root.setSize = function (width_, height_) {
-        // cHeight = height_;
-        // cWidth = width_;
-        width = width_;
-        height = height_;
-        this.domEl = new Canvas(width, height);
-        ctx = this.domEl.getContext("2d", config);
-        this.width = width;
-        this.height = height;
-        this.ctx = ctx;
-        this.execute();
-    };
-
-    root.execute = function () {
-        onClear(ctx);
-        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-        root.updateBBox();
-        execute();
-    };
-
-    root.execute = function executeExe() {
-        onClear(ctx);
-        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-        this.updateBBox();
-        execute();
-        if (onChangeExe && this.stateModified) {
-            onChangeExe();
-        }
-        this.stateModified = false;
-    };
-
-    root.update = function executeUpdate() {
-        this.execute();
+        stream_.on("finish", function () {
+            // get a blob
+            callback(stream_.toBlobURL("application/pdf"));
+        });
     };
 
     root.toDataURL = function (p) {
         return this.domEl.toDataURL(p);
     };
+
+    root.invokeOnChange = function () {};
+
+    root.setSize = function (width_, height_) {
+        cHeight = height_;
+        cWidth = width_;
+        width = width_;
+        height = height_;
+        this.width = width;
+        this.height = height;
+
+        updateLayerDimension(this.domEl, width, height);
+
+        this.execute();
+    };
+
+    root.setViewBox = function (x, y, height, width) {};
 
     root.getPixels = function (x, y, width_, height_) {
         const imageData = this.ctx.getImageData(x, y, width_, height_);
@@ -2522,19 +2518,6 @@ function canvasNodeLayer(config, height = 0, width = 0) {
         onClear();
     };
 
-    root.createTexture = function (config) {
-        return new RenderTexture(this, config);
-    };
-
-    root.createAsyncTexture = function (config) {
-        return new Promise((resolve, reject) => {
-            const textureInstance = new RenderTexture(this, config);
-            textureInstance.onLoad(function () {
-                resolve(textureInstance);
-            });
-        });
-    };
-
     root.setContext = function (prop, value) {
         /** Expecting value to be array if multiple aruments */
         if (this.ctx[prop] && typeof this.ctx[prop] === "function") {
@@ -2550,10 +2533,264 @@ function canvasNodeLayer(config, height = 0, width = 0) {
 
     root.createMask = createCanvasMask;
 
+    root.execute = function executeExe() {
+        onClear(ctx);
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        this.updateBBox();
+        execute();
+        if (onChangeExe && this.stateModified) {
+            onChangeExe();
+        }
+        this.stateModified = false;
+    };
+
+    root.update = function executeUpdate() {
+        this.execute();
+    };
+
+    root.createTexture = function (config) {
+        return new RenderTexture(this, config);
+    };
+
+    root.createAsyncTexture = function (config) {
+        return new Promise((resolve, reject) => {
+            const textureInstance = new RenderTexture(this, config);
+            textureInstance.onLoad(function () {
+                resolve(textureInstance);
+            });
+        });
+    };
+
+    root.destroy = function () {
+        const res = document.querySelector(container);
+        if (res && res.contains(layer)) {
+            res.removeChild(layer);
+        }
+        queueInstance.removeVdom(vDomIndex);
+        layerResizeUnBind(root, resize);
+    };
+
+    if (enableEvents) {
+        const eventsInstance = new Events(root);
+        layer.addEventListener("mousemove", (e) => {
+            e.preventDefault();
+            eventsInstance.mousemoveCheck(e);
+        });
+        // layer.addEventListener("click", (e) => {
+        //     e.preventDefault();
+        //     eventsInstance.clickCheck(e);
+        // });
+        // layer.addEventListener("dblclick", (e) => {
+        //     e.preventDefault();
+        //     eventsInstance.dblclickCheck(e);
+        // });
+        layer.addEventListener("mousedown", (e) => {
+            eventsInstance.mousedownCheck(e);
+        });
+        layer.addEventListener("mouseup", (e) => {
+            eventsInstance.mouseupCheck(e);
+        });
+        layer.addEventListener("mouseleave", (e) => {
+            eventsInstance.mouseleaveCheck(e);
+        });
+        layer.addEventListener("contextmenu", (e) => {
+            eventsInstance.contextmenuCheck(e);
+        });
+        layer.addEventListener("touchstart", (e) => {
+            eventsInstance.touchstartCheck(e);
+        });
+        layer.addEventListener("touchend", (e) => {
+            eventsInstance.touchendCheck(e);
+        });
+        layer.addEventListener("touchmove", (e) => {
+            e.preventDefault();
+            eventsInstance.touchmoveCheck(e);
+        });
+        layer.addEventListener("touchcancel", (e) => {
+            eventsInstance.touchcancelCheck(e);
+        });
+        layer.addEventListener("wheel", (e) => {
+            eventsInstance.wheelEventCheck(e);
+        });
+        layer.addEventListener("pointerdown", (e) => {
+            eventsInstance.addPointer(e);
+            eventsInstance.pointerdownCheck(e);
+        });
+        layer.addEventListener("pointerup", (e) => {
+            eventsInstance.removePointer(e);
+            eventsInstance.pointerupCheck(e);
+        });
+        layer.addEventListener("pointermove", (e) => {
+            e.preventDefault();
+            eventsInstance.pointermoveCheck(e);
+        });
+    }
+
+    queueInstance.execute();
+
+    if (enableResize && root.container) {
+        layerResizeBind(root, resize);
+        // window.addEventListener("resize", resize);
+    }
+
     return root;
 }
 
+function pdfLayer(config, height = 0, width = 0) {}
+
+// function canvasNodeLayer(config, height = 0, width = 0) {
+//     if (!Canvas) {
+//         console.error("Canvas missing from node");
+//         console.error('Install "Canvas" "canvas-5-polyfill" node modules');
+//         console.error('Make "Canvas" "Image" "Path2D" objects global from the above modules');
+//         return;
+//     }
+//     let onChangeExe;
+//     const layer = new Canvas(width, height);
+//     let ctx = layer.getContext("2d", config);
+//     const ratio = getPixlRatio(ctx);
+//     let onClear = function (ctx) {
+//         ctx.clearRect(0, 0, width * ratio, height * ratio);
+//     };
+//     const vDomInstance = new VDom();
+//     const vDomIndex = queueInstance.addVdom(vDomInstance);
+//     const root = new CanvasNodeExe(
+//         ctx,
+//         {
+//             el: "g",
+//             attr: {
+//                 id: "rootNode",
+//             },
+//         },
+//         domId(),
+//         vDomIndex
+//     );
+//     vDomInstance.rootNode(root);
+//     const execute = root.execute.bind(root);
+//     root.domEl = layer;
+//     root.height = height;
+//     root.width = width;
+//     root.type = "CANVAS";
+//     root.ENV = "NODE";
+
+//     root.setClear = function (exe) {
+//         onClear = exe;
+//     };
+
+//     root.onChange = function (exec) {
+//         onChangeExe = exec;
+//     };
+
+//     // root.getPixels = function (x, y, width_, height_) {
+//     //     return this.ctx.getImageData(x, y, width_, height_);
+//     // };
+
+//     // root.putPixels = function (imageData, x, y) {
+//     //     return this.ctx.putImageData(imageData, x, y);
+//     // };
+
+//     root.clear = function () {
+//         onClear();
+//     };
+
+//     root.setContext = function (prop, value) {
+//         /** Expecting value to be array if multiple aruments */
+//         if (this.ctx[prop] && typeof this.ctx[prop] === "function") {
+//             this.ctx[prop].apply(null, value);
+//         } else if (this.ctx[prop]) {
+//             this.ctx[prop] = value;
+//         }
+//     };
+
+//     root.setSize = function (width_, height_) {
+//         // cHeight = height_;
+//         // cWidth = width_;
+//         width = width_;
+//         height = height_;
+//         this.domEl = new Canvas(width, height);
+//         ctx = this.domEl.getContext("2d", config);
+//         this.width = width;
+//         this.height = height;
+//         this.ctx = ctx;
+//         this.execute();
+//     };
+
+//     // root.execute = function () {
+//     //     onClear(ctx);
+//     //     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+//     //     root.updateBBox();
+//     //     execute();
+//     // };
+
+//     root.execute = function executeExe() {
+//         onClear(ctx);
+//         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+//         this.updateBBox();
+//         execute();
+//         if (onChangeExe && this.stateModified) {
+//             onChangeExe();
+//         }
+//         this.stateModified = false;
+//     };
+
+//     root.update = function executeUpdate() {
+//         this.execute();
+//     };
+
+//     root.toDataURL = function (p) {
+//         return this.domEl.toDataURL(p);
+//     };
+
+//     root.getPixels = function (x, y, width_, height_) {
+//         const imageData = this.ctx.getImageData(x, y, width_, height_);
+//         const pixelInstance = new PixelObject(imageData, width_, height_);
+
+//         return pixelInstance;
+//     };
+
+//     root.putPixels = function (Pixels, x, y) {
+//         if (!(Pixels instanceof PixelObject)) {
+//             return;
+//         }
+//         return this.ctx.putImageData(Pixels.imageData, x, y);
+//     };
+
+//     root.clear = function () {
+//         onClear();
+//     };
+
+//     root.createTexture = function (config) {
+//         return new RenderTexture(this, config);
+//     };
+
+//     root.createAsyncTexture = function (config) {
+//         return new Promise((resolve, reject) => {
+//             const textureInstance = new RenderTexture(this, config);
+//             textureInstance.onLoad(function () {
+//                 resolve(textureInstance);
+//             });
+//         });
+//     };
+
+//     root.setContext = function (prop, value) {
+//         /** Expecting value to be array if multiple aruments */
+//         if (this.ctx[prop] && typeof this.ctx[prop] === "function") {
+//             this.ctx[prop].apply(null, value);
+//         } else if (this.ctx[prop]) {
+//             this.ctx[prop] = value;
+//         }
+//     };
+
+//     root.createPattern = createCanvasPattern;
+
+//     root.createClip = createCanvasClip;
+
+//     root.createMask = createCanvasMask;
+
+//     return root;
+// }
+
 export default {
     canvasLayer,
-    canvasNodeLayer,
+    pdfLayer,
 };

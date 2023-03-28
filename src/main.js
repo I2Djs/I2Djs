@@ -8,7 +8,7 @@ import queue from "./modules/queue.js";
 import ease from "./modules/ease.js";
 import chain from "./modules/chain.js";
 import behaviour from "./modules/behaviour.js";
-import utility from "./modules/utilities";
+import utility from "./modules/utilities.js";
 
 const pathIns = path.instance;
 const canvasLayer = canvasAPI.canvasLayer;
