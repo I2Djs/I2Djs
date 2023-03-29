@@ -17,7 +17,7 @@ const banner = `/*!
 export default [
     {
         input: "src/main.js",
-        // external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream"],
+        external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream/blob-stream.js"],
         output: [
             {
                 banner,
@@ -25,12 +25,12 @@ export default [
                 format: "esm",
                 name: "i2d",
             },
-            {
-                banner,
-                file: "dist/i2d.js",
-                format: "umd",
-                name: "i2d",
-            },
+            // {
+            //     banner,
+            //     file: "dist/i2d.js",
+            //     format: "umd",
+            //     name: "i2d",
+            // },
         ],
         plugins: [
             nodeResolve(),
@@ -43,7 +43,7 @@ export default [
     },
     {
         input: "src/main.js",
-        external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream"],
+        // external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream"],
         output: [
             {
                 banner,
@@ -59,29 +59,29 @@ export default [
                 fix: true,
                 throwOnError: true,
             }),
-            buble({
-                transforms: { 
-                    dangerousForOf: true,
-                    asyncAwait: false,
-                    // forOf: false,
-                    generator: false,
-                    arrow: true,
-                    modules: false
-                }
-            }),
+            // buble({
+            //     transforms: { 
+            //         dangerousForOf: true,
+            //         asyncAwait: false,
+            //         // forOf: false,
+            //         generator: false,
+            //         arrow: true,
+            //         modules: false
+            //     }
+            // }),
         ],
     },
     {
         input: "src/main.js",
-        external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream"],
+        external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream/blob-stream.js"],
         output: [
-            {
-                file: "dist/i2d.min.js",
-                banner,
-                format: "umd",
-                name: "i2d",
-                compact: true,
-            },
+            // {
+            //     file: "dist/i2d.min.js",
+            //     banner,
+            //     format: "umd",
+            //     name: "i2d",
+            //     compact: true,
+            // },
             {
                 file: "dist/i2d.esm.browser.min.js",
                 banner,
@@ -104,7 +104,7 @@ export default [
     },
     {
         input: "src/main.js",
-        external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream"],
+        // external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream"],
         output: [
             {
                 banner,
@@ -120,16 +120,16 @@ export default [
                 fix: true,
                 throwOnError: true,
             }),
-            buble({
-                transforms: { 
-                    asyncAwait: false,
-                    // forOf: false,
-                    dangerousForOf: true,
-                    generator: false,
-                    arrow: true,
-                    modules: false
-                }
-            }),
+            // buble({
+            //     transforms: { 
+            //         asyncAwait: false,
+            //         // forOf: false,
+            //         dangerousForOf: true,
+            //         generator: false,
+            //         arrow: true,
+            //         modules: false
+            //     }
+            // }),
             terser(),
         ],
     },
