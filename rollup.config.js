@@ -92,9 +92,7 @@ export default [
         ],
         plugins: [
             nodeResolve(),
-            commonjs({
-                transforms: { forOf: false }
-            }),
+            commonjs(),
             terser(),
             eslint({
                 fix: true,
@@ -116,6 +114,7 @@ export default [
         plugins: [
             nodeResolve(),
             commonjs(),
+            terser(),
             eslint({
                 fix: true,
                 throwOnError: true,
@@ -130,7 +129,6 @@ export default [
             //         modules: false
             //     }
             // }),
-            terser(),
         ],
     },
 ];

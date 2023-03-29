@@ -12,15 +12,15 @@
         </div>
     </body>
 </html>
-<!-- <script type="text/javascript" src="../../dist/i2d.js"></script> -->
+<script type="text/javascript" src="../../dist/i2d.legacy.js"></script>
 <script type="module">
-    import { canvasLayer } from "../../dist/i2d.esm.browser.js";
+    // import { canvasLayer } from "../../dist/i2d.esm.browser.js";
 
     // import * as i2djs from "../../src/main.js";
 
     // console.log(i2djs);
 
-    let renderer = canvasLayer("#lineLoaderContainer", {}, { autoUpdate: false });
+    let renderer = i2d.canvasLayer("#lineLoaderContainer", {}, { autoUpdate: false });
 
     renderer.createEl({
         el: "circle",
