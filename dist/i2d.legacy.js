@@ -81639,10 +81639,10 @@ Please pipe the document into a Node stream.\
     };
 
     // function pixels (pixHndlr) {
-    // 	const tObj = this.rImageObj ? this.rImageObj : this.imageObj;
-    // 	const tCxt = tObj.getContext('2d');
-    // 	const pixelData = tCxt.getImageData(0, 0, this.attr.width, this.attr.height);
-    // 	return pixHndlr(pixelData);
+    //  const tObj = this.rImageObj ? this.rImageObj : this.imageObj;
+    //  const tCxt = tObj.getContext('2d');
+    //  const pixelData = tCxt.getImageData(0, 0, this.attr.width, this.attr.height);
+    //  return pixHndlr(pixelData);
     // }
 
     function CanvasMask(self, config = {}) {
@@ -81751,9 +81751,9 @@ Please pipe the document into a Node stream.\
         if (this.style.fillStyle && this.style.strokeStyle) {
             pdfCtx.fillAndStroke(this.style.fillStyle, this.style.strokeStyle);
         } else if (this.style.fillStyle) {
-            pdfCtx.fill(this.style.fillStyle);
+            pdfCtx.fillColor(this.style.fillStyle);
         } else if (this.style.strokeStyle) {
-            pdfCtx.stroke(this.style.strokeStyle);
+            pdfCtx.strokeColor(this.style.strokeStyle);
         }
     }
 
@@ -81787,8 +81787,14 @@ Please pipe the document into a Node stream.\
         imageIns.crossOrigin = "anonymous";
 
         imageIns.onload = function onload() {
-            self.attr.height = self.attr.height ? self.attr.height : this.height;
-            self.attr.width = self.attr.width ? self.attr.width : this.width;
+            // self.attr.height = self.attr.height ? self.attr.height : this.height;
+            // self.attr.width = self.attr.width ? self.attr.width : this.width;
+            self.attr.height = self.attr.height
+                ? self.attr.height
+                : (self.attr.width / this.naturalWidth) * this.naturalHeight;
+            self.attr.width = self.attr.width
+                ? self.attr.width
+                : (self.attr.height / this.naturalHeight) * this.naturalWidth;
             self.imageObj = this;
 
             if (self.nodeExe.attr.onload && typeof self.nodeExe.attr.onload === "function") {
@@ -81947,6 +81953,15 @@ Please pipe the document into a Node stream.\
         }
     };
 
+    RenderImage.prototype.executePdf = function RIexecute(pdfCtx) {
+        const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
+        console.log(this.rImageObj);
+        if (this.attr.src) {
+            // this.ctx.drawImage(this.rImageObj ? this.rImageObj.canvas : this.imageObj, x, y, width, height);
+            pdfCtx.image(this.attr.src, x, y, { width, height });
+        }
+    };
+
     RenderImage.prototype.applyStyles = function RIapplyStyles() {};
 
     RenderImage.prototype.in = function RIinfun(co) {
@@ -81961,6 +81976,8 @@ Please pipe the document into a Node stream.\
         self.style = stylesProps;
         self.nodeName = "text";
         self.stack = [self];
+        self.textHeight = 0;
+        self.height = 1;
         if (self.attr.width) {
             this.fitWidth();
         }
@@ -81973,7 +81990,7 @@ Please pipe the document into a Node stream.\
             this.ctx.font = this.style.font;
         }
         const width = this.attr.width;
-        const textListByLine = this.attr.text.split("\n");
+        const textListByLine = this.attr.text.toString().split("\n");
         const textSubStrs = [];
         let strLit = "";
         let i = 0;
@@ -82024,6 +82041,9 @@ Please pipe the document into a Node stream.\
             this.ctx.font = this.style.font;
             height = parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1;
             self.textHeight = height + 3;
+        } else {
+            self.textHeight = this.ctx.measureText("I2Djs").fontBoundingBoxAscent;
+            height = self.textHeight;
         }
         if (this.attr.width && this.textList && this.textList.length > 0) {
             width = this.attr.width;
@@ -82091,39 +82111,29 @@ Please pipe the document into a Node stream.\
 
     RenderText.prototype.executePdf = function RTexecute(pdfCtx) {
         if (this.attr.text !== undefined && this.attr.text !== null) {
-            if (this.textList && this.textList.length > 0) {
-                for (var i = 0; i < this.textList.length; i++) {
-                    if (this.style.fillStyle) {
-                        pdfCtx.text(
-                            this.textList[i],
-                            this.attr.x,
-                            this.attr.y + this.textHeight * (i + 1)
-                        );
-                        pdfCtx.fill();
-                    }
-
-                    if (this.ctx.strokeStyle) {
-                        pdfCtx.text(
-                            this.textList[i],
-                            this.attr.x,
-                            this.attr.y + this.textHeight * (i + 1)
-                        );
-                        pdfCtx.stroke();
-                    }
-                }
-            } else {
-                if (this.style.fillStyle) {
-                    pdfCtx.text(this.attr.text, this.attr.x, this.attr.y + this.height);
-                }
-
-                if (this.style.strokeStyle) {
-                    pdfCtx.strokeText(this.attr.text, this.attr.x, this.attr.y + this.height);
-                }
+            if (this.style.font) {
+                // parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1
+                pdfCtx.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
             }
+            const styleObect = {
+                ...(this.attr.width && { width: this.attr.width }),
+                ...(this.style.lineGap && { lineGap: this.style.lineGap }),
+                ...(this.style.textBaseline && { textBaseline: this.style.textBaseline }),
+                ...(this.style.align && { align: this.style.align }),
+            };
+            if (this.style.fillStyle) {
+                pdfCtx.text(this.attr.text, this.attr.x, this.attr.y, styleObect);
+            }
+
+            if (this.style.strokeStyle) {
+                pdfCtx.text(this.attr.text, this.attr.x, this.attr.y, styleObect);
+            }
+
+            this.applyStylesPdf(pdfCtx);
         }
     };
 
-    RenderText.prototype.applyStyles = function RTapplyStyles() {};
+    // RenderText.prototype.applyStyles = function RTapplyStyles() {};
 
     RenderText.prototype.in = function RTinfun(co) {
         const { x = 0, y = 0, width = 0, height = 0 } = this;
@@ -82372,11 +82382,11 @@ Please pipe the document into a Node stream.\
         const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
 
         // if (transform && transform.translate) {
-        // 	[translateX, translateY] = transform.translate;
+        //  [translateX, translateY] = transform.translate;
         // }
 
         // if (transform && transform.scale) {
-        // 	[scaleX = 1, scaleY = scaleX] = transform.scale;
+        //  [scaleX = 1, scaleY = scaleX] = transform.scale;
         // }
 
         self.BBox = self.path
@@ -82690,12 +82700,12 @@ Please pipe the document into a Node stream.\
         }
     };
 
-    RenderRect.prototype.applyStyles = function rStyles() {};
+    // RenderRect.prototype.applyStyles = function rStyles() {};
 
     function renderRoundRect(ctx, attr) {
         const { x = 0, y = 0, width = 0, height = 0, rx = 0, ry = 0 } = attr;
 
-        if (ctx.beginPath) ctx.beginPath();
+        ctx.beginPath();
         ctx.moveTo(x + rx, y);
         ctx.lineTo(x + width - rx, y);
         ctx.quadraticCurveTo(x + width, y, x + width, y + ry);
@@ -82705,7 +82715,21 @@ Please pipe the document into a Node stream.\
         ctx.quadraticCurveTo(x, y + height, x, y + height - ry);
         ctx.lineTo(x, y + ry);
         ctx.quadraticCurveTo(x, y, x + rx, y);
-        if (ctx.closePath) ctx.closePath();
+        ctx.closePath();
+    }
+
+    function renderRoundRectPdf(ctx, attr) {
+        const { x = 0, y = 0, width = 0, height = 0, rx = 0, ry = 0 } = attr;
+
+        ctx.moveTo(x + rx, y);
+        ctx.lineTo(x + width - rx, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + ry);
+        ctx.lineTo(x + width, y + height - ry);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - rx, y + height);
+        ctx.lineTo(x + rx, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - ry);
+        ctx.lineTo(x, y + ry);
+        ctx.quadraticCurveTo(x, y, x + rx, y);
     }
 
     RenderRect.prototype.executePdf = function RRexecute(pdfCtx) {
@@ -82717,7 +82741,8 @@ Please pipe the document into a Node stream.\
                 if (!rx && !ry) {
                     pdfCtx.rect(x, y, width, height);
                 } else {
-                    renderRoundRect(pdfCtx, {
+                    // pdfCtx.roundedRect(x, y, width, height, rx);
+                    renderRoundRectPdf(pdfCtx, {
                         x,
                         y,
                         width,
@@ -82726,14 +82751,15 @@ Please pipe the document into a Node stream.\
                         ry,
                     });
                 }
-                // pdfCtx.fill();
+                pdfCtx.fill();
             }
 
             if (strokeStyle) {
                 if (!rx && !ry) {
                     pdfCtx.rect(x, y, width, height);
                 } else {
-                    renderRoundRect(pdfCtx, {
+                    // pdfCtx.roundedRect(x, y, width, height, rx);
+                    renderRoundRectPdf(pdfCtx, {
                         x,
                         y,
                         width,
@@ -82742,7 +82768,7 @@ Please pipe the document into a Node stream.\
                         ry,
                     });
                 }
-                // pdfCtx.stroke();
+                pdfCtx.stroke();
             }
         } else {
             pdfCtx.rect(x, y, width, height);
@@ -82786,8 +82812,6 @@ Please pipe the document into a Node stream.\
                     ctx.stroke();
                 }
             }
-        } else {
-            ctx.rect(x, y, width, height);
         }
     };
 
@@ -82982,11 +83006,11 @@ Please pipe the document into a Node stream.\
         this.dom.nodeExe = this;
         this.BBoxUpdate = true;
         // if (config.style) {
-        // 	this.setStyle(config.style);
+        //  this.setStyle(config.style);
         // }
 
         // if (config.attr) {
-        // 	this.setAttr(config.attr);
+        //  this.setAttr(config.attr);
         // }
     };
 
@@ -83097,7 +83121,7 @@ Please pipe the document into a Node stream.\
             value = value.rgba;
         }
 
-        return value === "#000" || value === "#000000" || value === "black" ? "rgb(1, 1, 1)" : value;
+        return value === "#000" || value === "#000000" || value === "black" ? "#010101" : value;
     }
 
     CanvasNodeExe.prototype.setAttr = function CsetAttr(attr, value) {
@@ -83432,8 +83456,12 @@ Please pipe the document into a Node stream.\
                 return;
             }
             if (self.attr) {
-                self.attr.height = self.attr.height ? self.attr.height : this.naturalHeight;
-                self.attr.width = self.attr.width ? self.attr.width : this.naturalWidth;
+                self.attr.height = self.attr.height
+                    ? self.attr.height
+                    : (self.attr.width / this.naturalWidth) * this.naturalHeight;
+                self.attr.width = self.attr.width
+                    ? self.attr.width
+                    : (self.attr.height / this.naturalHeight) * this.naturalWidth;
             }
             if (self instanceof RenderTexture) {
                 self.setSize(self.attr.width, self.attr.height);
@@ -83624,7 +83652,7 @@ Please pipe the document into a Node stream.\
 
     RenderTexture.prototype.exportAsDataUrl = function (type = "image/png", encoderOptions = 1) {
         if (this.rImageObj) {
-            return this.rImageObj.toDataURL(type, encoderOptions);
+            return this.rImageObj.canvas.toDataURL(type, encoderOptions);
         }
         return this;
     };
