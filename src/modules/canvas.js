@@ -78,19 +78,19 @@ function domSetStyle(attr, value) {
 function cRenderPdf(attr, pdfCtx) {
     const self = this;
 
-    if (attr.transform) {
-        const { transform } = attr;
-        const { scale = [1, 1], skew = [0, 0], translate = [0, 0] } = transform;
+    if (self.abTranslate && this.nodeName !== "g") {
+        const abTranslate = self.abTranslate || {};
+        const { scale = [1, 1], skew = [0, 0], translate = [0, 0] } = abTranslate;
         const [hozScale = 1, verScale = hozScale] = scale;
         const [hozSkew = 0, verSkew = hozSkew] = skew;
         const [hozMove = 0, verMove = hozMove] = translate;
 
         pdfCtx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove);
 
-        if (transform.rotate && transform.rotate.length > 0) {
-            pdfCtx.translate(transform.rotate[1] || 0, transform.rotate[2] || 0);
-            pdfCtx.rotate(transform.rotate[0] * (Math.PI / 180));
-            pdfCtx.translate(-transform.rotate[1] || 0, -transform.rotate[2] || 0);
+        if (abTranslate.rotate && abTranslate.rotate.length > 0) {
+            pdfCtx.translate(abTranslate.rotate[1] || 0, abTranslate.rotate[2] || 0);
+            pdfCtx.rotate(abTranslate.rotate[0] * (Math.PI / 180));
+            pdfCtx.translate(-abTranslate.rotate[1] || 0, -abTranslate.rotate[2] || 0);
         }
     }
 
@@ -924,9 +924,10 @@ RenderLine.prototype.execute = function RLexecute() {
 
 RenderLine.prototype.executePdf = function RLexecute(pdfCtx) {
     const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
+    this.applyStylesPdf(pdfCtx);
     pdfCtx.moveTo(x1, y1);
     pdfCtx.lineTo(x2, y2);
-    this.applyStylesPdf(pdfCtx);
+    pdfCtx.stroke();
 };
 
 RenderLine.prototype.in = function RLinfun(co) {
@@ -990,12 +991,14 @@ RenderPolyline.prototype.executePdf = function polylineExe(pdfCtx) {
     let d;
     if (!this.attr.points || this.attr.points.length === 0) return;
 
+    this.applyStylesPdf(pdfCtx);
+
     pdfCtx.moveTo(this.attr.points[0].x, this.attr.points[0].y);
     for (var i = 1; i < this.attr.points.length; i++) {
         d = this.attr.points[i];
         pdfCtx.lineTo(d.x, d.y);
     }
-    this.applyStylesPdf(pdfCtx);
+    pdfCtx.stroke();
 };
 
 RenderPolyline.prototype.updateBBox = RPolyupdateBBox;
@@ -1148,7 +1151,16 @@ RenderPath.prototype.execute = function RPexecute() {
 
 RenderPath.prototype.executePdf = function RPexecute(pdfCtx) {
     if (this.attr.d) {
+        this.applyStylesPdf(pdfCtx);
         pdfCtx.path(this.attr.d);
+
+        if (this.style.fillStyle) {
+            pdfCtx.fill();
+        }
+        if (this.style.strokeStyle) {
+            pdfCtx.stroke();
+        }
+
         // if (this.ctx.fillStyle !== "#000000" || this.ctx.strokeStyle !== "#000000") {
         //     if (this.ctx.fillStyle !== "#000000") {
         //         this.ctx.fill(this.pathNode);
@@ -1161,7 +1173,6 @@ RenderPath.prototype.executePdf = function RPexecute(pdfCtx) {
         //     this.path.execute(this.ctx);
         // }
     }
-    this.applyStylesPdf(pdfCtx);
 };
 
 RenderPath.prototype.applyStyles = function RPapplyStyles() {};
@@ -2003,6 +2014,23 @@ CanvasNodeExe.prototype.updateBBox = function CupdateBBox() {
     return false;
 };
 
+CanvasNodeExe.prototype.updateABBox = function updateABBox(transform = { translate: [0, 0] }) {
+    const localTransform = this.attr.transform || { translate: [0, 0] };
+    const abTranslate = {
+        translate: [
+            transform.translate[0] + localTransform.translate[0],
+            transform.translate[1] + localTransform.translate[1],
+        ],
+    };
+    this.dom.abTranslate = abTranslate;
+
+    // this.setAttr("abTranslate", this.abTranslate);
+
+    for (let i = 0, len = this.children.length; i < len && this.children[i]; i += 1) {
+        this.children[i].updateABBox(abTranslate);
+    }
+};
+
 CanvasNodeExe.prototype.in = function Cinfun(co) {
     return this.dom.in(co);
 };
@@ -2415,7 +2443,6 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     }
 
     const execute = root.execute.bind(root);
-    const executePdf = root.executePdf.bind(root);
     root.container = res;
     root.domEl = layer;
     root.height = height;
@@ -2493,18 +2520,65 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
         onChangeExe = exec;
     };
 
+    function getAllLeafs(node) {
+        const leaves = [];
+        let queue = [node];
+
+        while (queue.length !== 0) {
+            const node = queue.shift();
+            if (
+                node.children &&
+                node.children.length === 0 &&
+                node.nodeName !== "g" &&
+                node.nodeName !== "group"
+            ) {
+                leaves.push(node);
+            } else {
+                if (node.children && node.children.length !== 0) {
+                    queue = queue.concat(node.children);
+                }
+            }
+        }
+
+        return leaves;
+    }
+
     root.exportPdf = function (callback) {
+        const pageHeight = this.height;
         const doc = new PDFDocument({
             size: [this.width, this.height],
+            margin: 10,
         });
         const stream_ = doc.pipe(blobStream());
 
-        executePdf(doc);
+        root.updateABBox();
+
+        let leafNodes = getAllLeafs(root);
+        // sort leafs based on absolute pos
+        leafNodes = leafNodes.sort((a, b) => {
+            return (
+                (a.dom?.abTranslate?.translate[1] ?? 0) - (b.dom?.abTranslate?.translate[1] ?? 0)
+            );
+        });
+        let runningY = 0;
+        leafNodes.forEach((node) => {
+            const abTranslate = node.dom.abTranslate;
+            let posY = (abTranslate.translate[1] || 0) - runningY;
+            const elHight = node.dom.BBox.height || 0;
+            if (!(posY < pageHeight && posY + elHight < pageHeight)) {
+                runningY += pageHeight - 40;
+                posY = (abTranslate.translate[1] || 0) - runningY;
+                doc.addPage();
+            }
+            node.dom.abTranslate = {
+                translate: [abTranslate.translate[0], posY],
+            };
+            node.executePdf(doc);
+        });
 
         doc.end();
 
         stream_.on("finish", function () {
-            // get a blob
             callback(stream_.toBlobURL("application/pdf"));
         });
     };
