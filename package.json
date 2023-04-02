@@ -71,7 +71,7 @@
   },
   "dependencies": {
     "@juggle/resize-observer": "^3.4.0",
-    "blob-stream": "^0.1.3",
+    "blob-stream": "github:nswamy14/blob-stream",
     "earcut": "^2.2.4",
     "flubber": "^0.4.2",
     "pdfkit": "^0.13.0",
