@@ -2548,6 +2548,7 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
         const doc = new PDFDocument({
             size: [this.width, this.height],
             margin: 10,
+            bufferPages: true,
         });
         const stream_ = doc.pipe(blobStream());
 
@@ -2556,11 +2557,14 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
         let leafNodes = getAllLeafs(root);
         // sort leafs based on absolute pos
         leafNodes = leafNodes.sort((a, b) => {
-            return (
-                (a.dom?.abTranslate?.translate[1] ?? 0) - (b.dom?.abTranslate?.translate[1] ?? 0)
-            );
+            const aTrans = a.dom?.abTranslate ?? { translate: [0, 0] };
+            const aBox = a.dom.BBox;
+            const bTrans = b.dom?.abTranslate ?? { translate: [0, 0] };
+            const bBox = b.dom.BBox;
+            return aTrans.translate[1] + aBox.height - (bTrans.translate[1] + bBox.height);
         });
         let runningY = 0;
+        let pageNumber = 0;
         leafNodes.forEach((node) => {
             const abTranslate = node.dom.abTranslate;
             let posY = (abTranslate.translate[1] || 0) - runningY;
@@ -2569,12 +2573,23 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
                 runningY += pageHeight - 40;
                 posY = (abTranslate.translate[1] || 0) - runningY;
                 doc.addPage();
+                pageNumber += 1;
             }
             node.dom.abTranslate = {
                 translate: [abTranslate.translate[0], posY],
             };
-            node.executePdf(doc);
+            const executePdf = node.executePdf.bind(node);
+
+            // Redefining pdf call with page mapping
+            node.executePdf = (function (pNumber) {
+                return function (pdfCtx) {
+                    pdfCtx.switchToPage(pNumber);
+                    executePdf(pdfCtx);
+                };
+            })(pageNumber);
         });
+
+        root.executePdf(doc);
 
         doc.end();
 
