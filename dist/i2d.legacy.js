@@ -83941,7 +83941,7 @@ Please pipe the document into a Node stream.\
         };
 
         root.clear = function () {
-            onClear();
+            onClear(ctx);
         };
 
         root.setContext = function (prop, value) {

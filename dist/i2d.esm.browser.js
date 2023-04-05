@@ -12502,7 +12502,7 @@ function canvasLayer$1(container, contextConfig = {}, layerSettings = {}) {
     };
 
     root.clear = function () {
-        onClear();
+        onClear(ctx);
     };
 
     root.setContext = function (prop, value) {
