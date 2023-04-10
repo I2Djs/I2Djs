@@ -82111,6 +82111,7 @@ Please pipe the document into a Node stream.\
 
     RenderText.prototype.executePdf = function RTexecute(pdfCtx) {
         if (this.attr.text !== undefined && this.attr.text !== null) {
+            this.applyStylesPdf(pdfCtx);
             if (this.style.font) {
                 // parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1
                 pdfCtx.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
@@ -82128,8 +82129,6 @@ Please pipe the document into a Node stream.\
             if (this.style.strokeStyle) {
                 pdfCtx.text(this.attr.text, this.attr.x, this.attr.y, styleObect);
             }
-
-            this.applyStylesPdf(pdfCtx);
         }
     };
 
@@ -82182,8 +82181,15 @@ Please pipe the document into a Node stream.\
 
     RenderCircle.prototype.executePdf = function RCexecute(pdfCtx) {
         const { r = 0, cx = 0, cy = 0 } = this.attr;
-        pdfCtx.circle(parseInt(cx), parseInt(cy), parseInt(r));
         this.applyStylesPdf(pdfCtx);
+        pdfCtx.circle(parseInt(cx), parseInt(cy), parseInt(r));
+        if (this.style.fillStyle) {
+            pdfCtx.fill();
+        }
+
+        if (this.style.strokeStyle) {
+            pdfCtx.stroke();
+        }
     };
 
     RenderCircle.prototype.in = function RCinfun(co, eventType) {
@@ -82471,18 +82477,6 @@ Please pipe the document into a Node stream.\
             if (this.style.strokeStyle) {
                 pdfCtx.stroke();
             }
-
-            // if (this.ctx.fillStyle !== "#000000" || this.ctx.strokeStyle !== "#000000") {
-            //     if (this.ctx.fillStyle !== "#000000") {
-            //         this.ctx.fill(this.pathNode);
-            //     }
-
-            //     if (this.ctx.strokeStyle !== "#000000") {
-            //         this.ctx.stroke(this.pathNode);
-            //     }
-            // } else {
-            //     this.path.execute(this.ctx);
-            // }
         }
     };
 
@@ -82592,17 +82586,15 @@ Please pipe the document into a Node stream.\
         if (!this.polygon) {
             return;
         }
-        if (this.style.fillStyle || this.style.strokeStyle) {
-            pdfCtx.polygon(...this.polygon.rawPoints);
-            // if (this.style.fillStyle) {
-            //     pdfCtx.fill();
-            // }
-
-            // if (this.ctx.strokeStyle) {
-            //     pdfCtx.stroke();
-            // }
-        }
         this.applyStylesPdf(pdfCtx);
+        pdfCtx.polygon(...this.polygon.rawPoints);
+        if (this.style.fillStyle) {
+            pdfCtx.fill();
+        }
+
+        if (this.ctx.strokeStyle) {
+            pdfCtx.stroke();
+        }
     };
 
     RenderPolygon.prototype.applyStyles = function RPolyapplyStyles() {};
@@ -82667,8 +82659,15 @@ Please pipe the document into a Node stream.\
 
     RenderEllipse.prototype.executePdf = function REexecute(pdfCtx) {
         const { cx = 0, cy = 0, rx = 0, ry = 0 } = this.attr;
-        pdfCtx.ellipse(cx, cy, rx, ry);
         this.applyStylesPdf(pdfCtx);
+        pdfCtx.ellipse(cx, cy, rx, ry);
+        if (this.style.fillStyle) {
+            pdfCtx.fill();
+        }
+
+        if (this.ctx.strokeStyle) {
+            pdfCtx.stroke();
+        }
     };
 
     RenderEllipse.prototype.in = function REinfun(co) {
@@ -82747,44 +82746,28 @@ Please pipe the document into a Node stream.\
         const { x = 0, y = 0, width = 0, height = 0, rx = 0, ry = 0 } = this.attr;
         const { fillStyle, strokeStyle } = this.style;
 
-        if (fillStyle || strokeStyle) {
-            if (fillStyle) {
-                if (!rx && !ry) {
-                    pdfCtx.rect(x, y, width, height);
-                } else {
-                    // pdfCtx.roundedRect(x, y, width, height, rx);
-                    renderRoundRectPdf(pdfCtx, {
-                        x,
-                        y,
-                        width,
-                        height,
-                        rx,
-                        ry,
-                    });
-                }
-                pdfCtx.fill();
-            }
-
-            if (strokeStyle) {
-                if (!rx && !ry) {
-                    pdfCtx.rect(x, y, width, height);
-                } else {
-                    // pdfCtx.roundedRect(x, y, width, height, rx);
-                    renderRoundRectPdf(pdfCtx, {
-                        x,
-                        y,
-                        width,
-                        height,
-                        rx,
-                        ry,
-                    });
-                }
-                pdfCtx.stroke();
-            }
-        } else {
-            pdfCtx.rect(x, y, width, height);
-        }
         this.applyStylesPdf(pdfCtx);
+
+        if (!rx && !ry) {
+            pdfCtx.rect(x, y, width, height);
+        } else {
+            renderRoundRectPdf(pdfCtx, {
+                x,
+                y,
+                width,
+                height,
+                rx,
+                ry,
+            });
+        }
+
+        if (fillStyle) {
+            pdfCtx.fill();
+        }
+
+        if (strokeStyle) {
+            pdfCtx.stroke();
+        }
     };
 
     RenderRect.prototype.execute = function RRexecute() {
@@ -83698,6 +83681,156 @@ Please pipe the document into a Node stream.\
         postProcess(this);
     };
 
+    function createPage(ctx, vDomIndex) {
+        const root = new CanvasNodeExe(
+            ctx,
+            {
+                el: "g",
+                attr: {
+                    id: "rootNode",
+                },
+            },
+            domId$1(),
+            vDomIndex
+        );
+
+        root.setStyle = function (prop, value) {
+            this.domEl.style[prop] = value;
+        };
+
+        root.addDependentLayer = function (layer) {
+            if (!(layer instanceof CanvasNodeExe)) {
+                return;
+            }
+            const depId = layer.attr.id ? layer.attr.id : "dep-" + Math.ceil(Math.random() * 1000);
+            layer.setAttr("id", depId);
+            layer.vDomIndex = this.vDomIndex + ":" + depId;
+            this.prependChild([layer]);
+        };
+
+        function getAllLeafs(node) {
+            const leaves = [];
+            let queue = [node];
+
+            while (queue.length !== 0) {
+                const node = queue.shift();
+                if (
+                    node.children &&
+                    node.children.length === 0 &&
+                    node.nodeName !== "g" &&
+                    node.nodeName !== "group"
+                ) {
+                    leaves.push(node);
+                } else {
+                    if (node.children && node.children.length !== 0) {
+                        queue = queue.concat(node.children);
+                    }
+                }
+            }
+
+            return leaves;
+        }
+
+        root.toDataURL = function (p) {
+            return this.domEl.toDataURL(p);
+        };
+
+        root.invokeOnChange = function () {};
+
+        root.setViewBox = function (x, y, height, width) {};
+
+        root.setContext = function (prop, value) {
+            /** Expecting value to be array if multiple aruments */
+            if (this.ctx[prop] && typeof this.ctx[prop] === "function") {
+                this.ctx[prop].apply(null, value);
+            } else if (this.ctx[prop]) {
+                this.ctx[prop] = value;
+            }
+        };
+
+        root.createPattern = createCanvasPattern;
+
+        root.createClip = createCanvasClip;
+
+        root.createMask = createCanvasMask;
+
+        root.clear = function () {};
+
+        root.execute = function executeExe() {
+            // onClear(ctx);
+            // ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+            // this.updateBBox();
+            // execute();
+            // if (onChangeExe && this.stateModified) {
+            //     onChangeExe();
+            // }
+            // this.stateModified = false;
+        };
+
+        root.update = function executeUpdate() {
+            this.execute();
+        };
+
+        root.exportPdf = function (doc) {
+            const pageHeight = this.height;
+
+            root.updateABBox();
+
+            let leafNodes = getAllLeafs(root);
+            // sort leafs based on absolute pos
+            leafNodes = leafNodes.sort((a, b) => {
+                const aTrans = a.dom?.abTranslate ?? { translate: [0, 0] };
+                const aBox = a.dom.BBox;
+                const bTrans = b.dom?.abTranslate ?? { translate: [0, 0] };
+                const bBox = b.dom.BBox;
+                return aTrans.translate[1] + aBox.height - (bTrans.translate[1] + bBox.height);
+            });
+            let runningY = 0;
+            const pageRage = doc.bufferedPageRange();
+            let pageNumber = pageRage.count - 1;
+            leafNodes.forEach((node) => {
+                const abTranslate = node.dom.abTranslate;
+                let posY = (abTranslate.translate[1] || 0) - runningY;
+                const elHight = node.dom.BBox.height || 0;
+                if (!(posY < pageHeight && posY + elHight < pageHeight)) {
+                    runningY += pageHeight - 40;
+                    posY = (abTranslate.translate[1] || 0) - runningY;
+                    doc.addPage();
+                    pageNumber += 1;
+                }
+                node.dom.abTranslate = {
+                    translate: [abTranslate.translate[0], posY],
+                };
+                const executePdf = node.executePdf.bind(node);
+
+                // Redefining pdf call with page mapping
+                node.executePdf = (function (pNumber) {
+                    return function (pdfCtx) {
+                        pdfCtx.switchToPage(pNumber);
+                        executePdf(pdfCtx);
+                    };
+                })(pageNumber);
+            });
+
+            root.executePdf(doc);
+        };
+
+        root.createTexture = function (config) {
+            return new RenderTexture(this, config);
+        };
+
+        root.createAsyncTexture = function (config) {
+            return new Promise((resolve, reject) => {
+                const textureInstance = new RenderTexture(this, config);
+                textureInstance.onLoad(function () {
+                    resolve(textureInstance);
+                });
+            });
+        };
+
+        return root;
+    }
+
     function canvasLayer$1(container, contextConfig = {}, layerSettings = {}) {
         const res = container ? document.querySelector(container) : null;
         let height = res ? res.clientHeight : 0;
@@ -83733,59 +83866,7 @@ Please pipe the document into a Node stream.\
             enableEvents = false;
         }
 
-        const root = new CanvasNodeExe(
-            ctx,
-            {
-                el: "g",
-                attr: {
-                    id: "rootNode",
-                },
-            },
-            domId$1(),
-            vDomIndex
-        );
-
-        if (vDomInstance) {
-            vDomInstance.rootNode(root);
-        }
-
-        const execute = root.execute.bind(root);
-        root.container = res;
-        root.domEl = layer;
-        root.height = height;
-        root.width = width;
-        root.type = "CANVAS";
-        root.ctx = ctx;
-
-        root.setClear = function (exe) {
-            onClear = exe;
-        };
-
-        root.setAttr = function (prop, value) {
-            if (prop === "viewBox") {
-                this.setViewBox.apply(this, value.split(","));
-            }
-            layer.setAttribute(prop, value);
-            this.attr[prop] = value;
-        };
-
-        root.enableEvents = function (flag) {
-            enableEvents = flag;
-        };
-
-        root.setStyle = function (prop, value) {
-            this.domEl.style[prop] = value;
-        };
-
-        root.addDependentLayer = function (layer) {
-            if (!(layer instanceof CanvasNodeExe)) {
-                return;
-            }
-            const depId = layer.attr.id ? layer.attr.id : "dep-" + Math.ceil(Math.random() * 1000);
-            layer.setAttr("id", depId);
-            layer.vDomIndex = this.vDomIndex + ":" + depId;
-            this.prependChild([layer]);
-        };
+        const root = createPage(ctx, vDomIndex);
 
         const resize = function (cr) {
             if (!document.querySelector(container)) {
@@ -83806,110 +83887,34 @@ Please pipe the document into a Node stream.\
             root.execute();
         };
 
-        const updateLayerDimension = function (layer, width, height) {
-            layer.setAttribute("height", height * ratio);
-            layer.setAttribute("width", width * ratio);
-            layer.style.height = `${height}px`;
-            layer.style.width = `${width}px`;
-        };
-
-        root.setPixelRatio = function (val) {
-            ratio = val;
-            this.ctx.pixelRatio = ratio;
-            updateLayerDimension(this.domEl, this.width, this.height);
-        };
-
-        root.onResize = function (exec) {
-            resizeCall = exec;
-        };
-
-        root.onChange = function (exec) {
-            onChangeExe = exec;
-        };
-
-        function getAllLeafs(node) {
-            const leaves = [];
-            let queue = [node];
-
-            while (queue.length !== 0) {
-                const node = queue.shift();
-                if (
-                    node.children &&
-                    node.children.length === 0 &&
-                    node.nodeName !== "g" &&
-                    node.nodeName !== "group"
-                ) {
-                    leaves.push(node);
-                } else {
-                    if (node.children && node.children.length !== 0) {
-                        queue = queue.concat(node.children);
-                    }
-                }
-            }
-
-            return leaves;
+        if (vDomInstance) {
+            vDomInstance.rootNode(root);
         }
 
-        root.exportPdf = function (callback) {
-            const pageHeight = this.height;
-            const doc = new PDFDocument({
-                size: [this.width, this.height],
-                margin: 10,
-                bufferPages: true,
-            });
-            const stream_ = doc.pipe(blobStream());
+        const execute = root.execute.bind(root);
+        const exportPdf = root.exportPdf.bind(root);
+        root.container = res;
+        root.domEl = layer;
+        root.height = height;
+        root.width = width;
+        root.type = "CANVAS";
+        root.ctx = ctx;
 
-            root.updateABBox();
-
-            let leafNodes = getAllLeafs(root);
-            // sort leafs based on absolute pos
-            leafNodes = leafNodes.sort((a, b) => {
-                const aTrans = a.dom?.abTranslate ?? { translate: [0, 0] };
-                const aBox = a.dom.BBox;
-                const bTrans = b.dom?.abTranslate ?? { translate: [0, 0] };
-                const bBox = b.dom.BBox;
-                return aTrans.translate[1] + aBox.height - (bTrans.translate[1] + bBox.height);
-            });
-            let runningY = 0;
-            let pageNumber = 0;
-            leafNodes.forEach((node) => {
-                const abTranslate = node.dom.abTranslate;
-                let posY = (abTranslate.translate[1] || 0) - runningY;
-                const elHight = node.dom.BBox.height || 0;
-                if (!(posY < pageHeight && posY + elHight < pageHeight)) {
-                    runningY += pageHeight - 40;
-                    posY = (abTranslate.translate[1] || 0) - runningY;
-                    doc.addPage();
-                    pageNumber += 1;
-                }
-                node.dom.abTranslate = {
-                    translate: [abTranslate.translate[0], posY],
-                };
-                const executePdf = node.executePdf.bind(node);
-
-                // Redefining pdf call with page mapping
-                node.executePdf = (function (pNumber) {
-                    return function (pdfCtx) {
-                        pdfCtx.switchToPage(pNumber);
-                        executePdf(pdfCtx);
-                    };
-                })(pageNumber);
-            });
-
-            root.executePdf(doc);
-
-            doc.end();
-
-            stream_.on("finish", function () {
-                callback(stream_.toBlobURL("application/pdf"));
-            });
+        root.clear = function () {
+            onClear(ctx);
         };
 
-        root.toDataURL = function (p) {
-            return this.domEl.toDataURL(p);
+        root.setAttr = function (prop, value) {
+            if (prop === "viewBox") {
+                this.setViewBox.apply(this, value.split(","));
+            }
+            layer.setAttribute(prop, value);
+            this.attr[prop] = value;
         };
 
-        root.invokeOnChange = function () {};
+        root.setClear = function (exe) {
+            onClear = exe;
+        };
 
         root.setSize = function (width_, height_) {
             cHeight = height_;
@@ -83924,7 +83929,9 @@ Please pipe the document into a Node stream.\
             this.execute();
         };
 
-        root.setViewBox = function (x, y, height, width) {};
+        root.onResize = function (exec) {
+            resizeCall = exec;
+        };
 
         root.getPixels = function (x, y, width_, height_) {
             const imageData = this.ctx.getImageData(x, y, width_, height_);
@@ -83940,25 +83947,6 @@ Please pipe the document into a Node stream.\
             return this.ctx.putImageData(Pixels.imageData, x, y);
         };
 
-        root.clear = function () {
-            onClear(ctx);
-        };
-
-        root.setContext = function (prop, value) {
-            /** Expecting value to be array if multiple aruments */
-            if (this.ctx[prop] && typeof this.ctx[prop] === "function") {
-                this.ctx[prop].apply(null, value);
-            } else if (this.ctx[prop]) {
-                this.ctx[prop] = value;
-            }
-        };
-
-        root.createPattern = createCanvasPattern;
-
-        root.createClip = createCanvasClip;
-
-        root.createMask = createCanvasMask;
-
         root.execute = function executeExe() {
             onClear(ctx);
             ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -83970,21 +83958,40 @@ Please pipe the document into a Node stream.\
             this.stateModified = false;
         };
 
-        root.update = function executeUpdate() {
-            this.execute();
+        root.onChange = function (exec) {
+            onChangeExe = exec;
         };
 
-        root.createTexture = function (config) {
-            return new RenderTexture(this, config);
-        };
-
-        root.createAsyncTexture = function (config) {
-            return new Promise((resolve, reject) => {
-                const textureInstance = new RenderTexture(this, config);
-                textureInstance.onLoad(function () {
-                    resolve(textureInstance);
-                });
+        root.exportPdf = function (callback) {
+            const doc = new PDFDocument({
+                size: [this.width, this.height],
+                margin: 10,
+                bufferPages: true,
             });
+            const stream_ = doc.pipe(blobStream());
+
+            root.updateABBox();
+
+            exportPdf(doc);
+
+            doc.end();
+
+            stream_.on("finish", function () {
+                callback(stream_.toBlobURL("application/pdf"));
+            });
+        };
+
+        const updateLayerDimension = function (layer, width, height) {
+            layer.setAttribute("height", height * ratio);
+            layer.setAttribute("width", width * ratio);
+            layer.style.height = `${height}px`;
+            layer.style.width = `${width}px`;
+        };
+
+        root.setPixelRatio = function (val) {
+            ratio = val;
+            this.ctx.pixelRatio = ratio;
+            updateLayerDimension(this.domEl, this.width, this.height);
         };
 
         root.destroy = function () {
@@ -84062,11 +84069,95 @@ Please pipe the document into a Node stream.\
         return root;
     }
 
-    function pdfLayer(config, height = 0, width = 0) {}
+    function pdfLayer$1(config, height = 0, width = 0) {
+        const layer = document.createElement("canvas");
+        const ctx = layer.getContext("2d", config);
+        ctx.type_ = "pdf";
+
+        layer.setAttribute("height", height * 1);
+        layer.setAttribute("width", width * 1);
+
+        function PDFCreator() {
+            this.pages = [];
+            this.ctx = ctx;
+            this.domEl = layer;
+        }
+        PDFCreator.prototype.clear = function () {
+            this.pages.forEach(function (page) {
+                page.clear();
+            });
+        };
+
+        PDFCreator.prototype.setSize = function (width, height) {
+            this.width = width;
+            this.height = height;
+        };
+        PDFCreator.prototype.execute = function () {
+            // const self = this;
+            // this.pages.forEach(function (page, i) {
+            //     self.ctx.save();
+            //     if (i !== 0) {
+            //         page.addPage();
+            //     }
+            //     page.execute();
+            //     self.ctx.restore();
+            // })
+        };
+        PDFCreator.prototype.addPage = function () {
+            const newpage = createPage(ctx);
+            newpage.domEl = layer;
+            newpage.height = this.height;
+            newpage.width = this.width;
+            newpage.type = "CANVAS";
+            newpage.EXEType = "pdf";
+            newpage.ctx = ctx;
+
+            this.pages.push(newpage);
+            return newpage;
+        };
+        PDFCreator.prototype.removePage = function (page) {
+            const pageIndex = this.pages.indexOf(page);
+            if (pageIndex !== -1) {
+                this.pages.splice(pageIndex, 1);
+            }
+        };
+        PDFCreator.prototype.exportPdf = function (callback) {
+            const doc = new PDFDocument({
+                size: [width, height],
+                margin: 10,
+                bufferPages: true,
+            });
+            const stream_ = doc.pipe(blobStream());
+
+            this.pages.forEach(function (page, i) {
+                if (i !== 0) doc.addPage();
+                page.exportPdf(doc);
+            });
+
+            doc.end();
+
+            stream_.on("finish", function () {
+                callback(stream_.toBlobURL("application/pdf"));
+            });
+        };
+        PDFCreator.prototype.exec = function (exe) {
+            exe.call(this, this.dataObj);
+        };
+        PDFCreator.prototype.data = function (data) {
+            if (!data) {
+                return this.dataObj;
+            } else {
+                this.dataObj = data;
+            }
+            return this;
+        };
+
+        return new PDFCreator();
+    }
 
     var canvasAPI = {
         canvasLayer: canvasLayer$1,
-        pdfLayer,
+        pdfLayer: pdfLayer$1,
     };
 
     /* eslint-disable no-undef */
@@ -88535,16 +88626,16 @@ Please pipe the document into a Node stream.\
 
     const pathIns = path.instance;
     const canvasLayer = canvasAPI.canvasLayer;
-    const canvasNodeLayer = canvasAPI.canvasNodeLayer;
+    const pdfLayer = canvasAPI.pdfLayer;
 
     exports.Path = pathIns;
     exports.behaviour = behaviour;
     exports.canvasLayer = canvasLayer;
-    exports.canvasNodeLayer = canvasNodeLayer;
     exports.chain = chain;
     exports.color = colorMap$1;
     exports.ease = fetchTransitionType;
     exports.geometry = geometry;
+    exports.pdfLayer = pdfLayer;
     exports.queue = queue;
     exports.svgLayer = svgLayer;
     exports.utility = utilities;

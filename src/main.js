@@ -12,10 +12,10 @@ import utility from "./modules/utilities.js";
 
 const pathIns = path.instance;
 const canvasLayer = canvasAPI.canvasLayer;
-const canvasNodeLayer = canvasAPI.canvasNodeLayer;
+const pdfLayer = canvasAPI.pdfLayer;
 export { svgLayer };
 export { canvasLayer };
-export { canvasNodeLayer };
+export { pdfLayer };
 export { webglLayer };
 export { geometry };
 export { color };
