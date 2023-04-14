@@ -12269,29 +12269,6 @@ function createPage(ctx, vDomIndex) {
         this.prependChild([layer]);
     };
 
-    function getAllLeafs(node) {
-        const leaves = [];
-        let queue = [node];
-
-        while (queue.length !== 0) {
-            const node = queue.shift();
-            if (
-                node.children &&
-                node.children.length === 0 &&
-                node.nodeName !== "g" &&
-                node.nodeName !== "group"
-            ) {
-                leaves.push(node);
-            } else {
-                if (node.children && node.children.length !== 0) {
-                    queue = queue.concat(node.children);
-                }
-            }
-        }
-
-        return leaves;
-    }
-
     root.toDataURL = function (p) {
         return this.domEl.toDataURL(p);
     };
@@ -12331,6 +12308,29 @@ function createPage(ctx, vDomIndex) {
     root.update = function executeUpdate() {
         this.execute();
     };
+
+    function getAllLeafs(node) {
+        const leaves = [];
+        let queue = [node];
+
+        while (queue.length !== 0) {
+            const node = queue.shift();
+            if (
+                node.children &&
+                node.children.length === 0 &&
+                node.nodeName !== "g" &&
+                node.nodeName !== "group"
+            ) {
+                leaves.push(node);
+            } else {
+                if (node.children && node.children.length !== 0) {
+                    queue = queue.concat(node.children);
+                }
+            }
+        }
+
+        return leaves;
+    }
 
     root.exportPdf = function (doc) {
         const pageHeight = this.height;
@@ -12633,6 +12633,7 @@ function canvasLayer$1(container, contextConfig = {}, layerSettings = {}) {
 function pdfLayer$1(config, height = 0, width = 0) {
     const layer = document.createElement("canvas");
     const ctx = layer.getContext("2d", config);
+    const fallBackPage = createPage(ctx);
     ctx.type_ = "pdf";
 
     layer.setAttribute("height", height * 1);
@@ -12711,6 +12712,13 @@ function pdfLayer$1(config, height = 0, width = 0) {
             this.dataObj = data;
         }
         return this;
+    };
+    PDFCreator.prototype.createTexture = function (config) {
+        return fallBackPage.createTexture(config);
+    };
+
+    PDFCreator.prototype.createAsyncTexture = function (config) {
+        return fallBackPage.createAsyncTexture(config);
     };
 
     return new PDFCreator();
