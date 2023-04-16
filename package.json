@@ -12,7 +12,8 @@
     "dev": "rollup -wm -c rollup.config.js",
     "build": "rm -rf ./dist/ && rollup -c rollup.config.js",
     "lint": "eslint src/**",
-    "lint-fix": "eslint --cache --fix src/**"
+    "lint-fix": "eslint --cache --fix src/**",
+    "commit": "cz"
   },
   "repository": {
     "type": "git",
@@ -54,6 +55,7 @@
     "@rollup/plugin-buble": "^0.21.3",
     "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-node-resolve": "^13.3.0",
+    "commitizen": "^4.3.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^6.15.0",
     "eslint-config-standard": "^14.1.1",

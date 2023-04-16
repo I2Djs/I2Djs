@@ -2424,6 +2424,11 @@ function createPage(ctx, vDomIndex) {
 
     root.clear = function () {};
 
+    root.flush = function () {
+        this.children = [];
+        queueInstance.vDomChanged(this.vDomIndex);
+    };
+
     root.execute = function executeExe() {
         // onClear(ctx);
         // ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -2463,7 +2468,7 @@ function createPage(ctx, vDomIndex) {
     }
 
     root.exportPdf = function (doc) {
-        const pageHeight = this.height;
+        const pageHeight = this.height - 50;
 
         root.updateABBox();
 
@@ -2486,7 +2491,9 @@ function createPage(ctx, vDomIndex) {
             if (!(posY < pageHeight && posY + elHight < pageHeight)) {
                 runningY += pageHeight - 40;
                 posY = (abTranslate.translate[1] || 0) - runningY;
-                doc.addPage();
+                doc.addPage({
+                    margin: 50,
+                });
                 pageNumber += 1;
             }
             node.dom.abTranslate = {
@@ -2774,10 +2781,16 @@ function pdfLayer(config, height = 0, width = 0) {
         this.ctx = ctx;
         this.domEl = layer;
     }
-    PDFCreator.prototype.clear = function () {
+    PDFCreator.prototype.flush = function () {
         this.pages.forEach(function (page) {
-            page.clear();
+            page.flush();
         });
+
+        this.pages = [];
+
+        if (this.doc) {
+            this.doc.flushPages();
+        }
     };
 
     PDFCreator.prototype.setSize = function (width, height) {
@@ -2815,14 +2828,19 @@ function pdfLayer(config, height = 0, width = 0) {
     };
     PDFCreator.prototype.exportPdf = function (callback) {
         const doc = new PDFDocument({
+            autoFirstPage: false,
             size: [width, height],
-            margin: 10,
+            margin: 50,
             bufferPages: true,
         });
         const stream_ = doc.pipe(blobStream());
 
+        this.doc = doc;
+
         this.pages.forEach(function (page, i) {
-            if (i !== 0) doc.addPage();
+            doc.addPage({
+                margin: 50,
+            });
             page.exportPdf(doc);
         });
 

@@ -83733,6 +83733,11 @@ Please pipe the document into a Node stream.\
 
         root.clear = function () {};
 
+        root.flush = function () {
+            this.children = [];
+            queueInstance$1.vDomChanged(this.vDomIndex);
+        };
+
         root.execute = function executeExe() {
             // onClear(ctx);
             // ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -83772,7 +83777,7 @@ Please pipe the document into a Node stream.\
         }
 
         root.exportPdf = function (doc) {
-            const pageHeight = this.height;
+            const pageHeight = this.height - 50;
 
             root.updateABBox();
 
@@ -83795,7 +83800,9 @@ Please pipe the document into a Node stream.\
                 if (!(posY < pageHeight && posY + elHight < pageHeight)) {
                     runningY += pageHeight - 40;
                     posY = (abTranslate.translate[1] || 0) - runningY;
-                    doc.addPage();
+                    doc.addPage({
+                        margin: 50,
+                    });
                     pageNumber += 1;
                 }
                 node.dom.abTranslate = {
@@ -84083,10 +84090,16 @@ Please pipe the document into a Node stream.\
             this.ctx = ctx;
             this.domEl = layer;
         }
-        PDFCreator.prototype.clear = function () {
+        PDFCreator.prototype.flush = function () {
             this.pages.forEach(function (page) {
-                page.clear();
+                page.flush();
             });
+
+            this.pages = [];
+
+            if (this.doc) {
+                this.doc.flushPages();
+            }
         };
 
         PDFCreator.prototype.setSize = function (width, height) {
@@ -84124,14 +84137,19 @@ Please pipe the document into a Node stream.\
         };
         PDFCreator.prototype.exportPdf = function (callback) {
             const doc = new PDFDocument({
+                autoFirstPage: false,
                 size: [width, height],
-                margin: 10,
+                margin: 50,
                 bufferPages: true,
             });
             const stream_ = doc.pipe(blobStream());
 
+            this.doc = doc;
+
             this.pages.forEach(function (page, i) {
-                if (i !== 0) doc.addPage();
+                doc.addPage({
+                    margin: 50,
+                });
                 page.exportPdf(doc);
             });
 
