@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
     </head>
-    <body style="height: 100%;">
-        <div id="mySvg" style="height: 100%; width: 100%;"></div>
+    <body style="height: 100%">
+        <div id="mySvg" style="height: 100%; width: 100%"></div>
         <script type="text/javascript" src="../../dist/i2d.js"></script>
 
         <script type="text/javascript">
@@ -26,8 +26,12 @@
             var radialGradiant = renderer_.createRadialGradient({
                 id: "radialG",
                 mode: "absolute",
-                innerCircle: { x: 50, y: 50, r: 0 },
-                outerCircle: { x: 50, y: 50, r: 50 },
+                x1: 50,
+                y1: 50,
+                r1: 0,
+                x2: 50,
+                y2: 50,
+                r2: 50,
                 colorStops: [
                     { color: "red", value: 0 },
                     { color: "yellow", value: 25 },

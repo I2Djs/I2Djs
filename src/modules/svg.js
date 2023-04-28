@@ -227,11 +227,11 @@ DomGradients.prototype.radialGradient = function radialGradient() {
                     el: "radialGradient",
                 }).setAttr({
                     id: self.config.id,
-                    cx: `${self.config.innerCircle.x}%`,
-                    cy: `${self.config.innerCircle.y}%`,
-                    r: `${self.config.outerCircle.r}%`,
-                    fx: `${self.config.outerCircle.x}%`,
-                    fy: `${self.config.outerCircle.y}%`,
+                    cx: `${self.config.x1}%`,
+                    cy: `${self.config.y1}%`,
+                    r: `${self.config.r1}%`,
+                    fx: `${self.config.x2}%`,
+                    fy: `${self.config.y2}%`,
                     spreadMethod: self.config.spreadMethod || "pad",
                     gradientUnits: self.config.gradientUnits || "objectBoundingBox",
                 });
@@ -251,11 +251,11 @@ DomGradients.prototype.radialGradient = function radialGradient() {
             update(nodes) {
                 nodes.radialGradient.setAttr({
                     id: self.config.id,
-                    cx: `${self.config.innerCircle.x}%`,
-                    cy: `${self.config.innerCircle.y}%`,
-                    r: `${self.config.outerCircle.r}%`,
-                    fx: `${self.config.outerCircle.x}%`,
-                    fy: `${self.config.outerCircle.y}%`,
+                    cx: `${self.config.x1}%`,
+                    cy: `${self.config.y1}%`,
+                    r: `${self.config.r1}%`,
+                    fx: `${self.config.x2}%`,
+                    fy: `${self.config.y2}%`,
                     spreadMethod: self.config.spreadMethod || "pad",
                     gradientUnits: self.config.gradientUnits || "objectBoundingBox",
                 });
