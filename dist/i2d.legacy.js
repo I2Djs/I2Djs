@@ -83831,17 +83831,6 @@ Please pipe the document into a Node stream.\
             queueInstance$1.vDomChanged(this.vDomIndex);
         };
 
-        root.execute = function executeExe() {
-            // onClear(ctx);
-            // ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-            // this.updateBBox();
-            // execute();
-            // if (onChangeExe && this.stateModified) {
-            //     onChangeExe();
-            // }
-            // this.stateModified = false;
-        };
-
         root.update = function executeUpdate() {
             this.execute();
         };
