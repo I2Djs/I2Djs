@@ -83859,7 +83859,7 @@ Please pipe the document into a Node stream.\
         }
 
         root.exportPdf = function (doc) {
-            const pageHeight = this.height - 50;
+            const pageHeight = this.height - this.margin * 2;
 
             root.updateABBox();
 
@@ -83880,11 +83880,15 @@ Please pipe the document into a Node stream.\
                 let posY = (abTranslate.translate[1] || 0) - runningY;
                 const elHight = node.dom.BBox.height || 0;
                 if (!(posY < pageHeight && posY + elHight < pageHeight)) {
-                    runningY += pageHeight - 40;
+                    runningY += pageHeight - this.margin * 2 * 2;
                     posY = (abTranslate.translate[1] || 0) - runningY;
                     doc.addPage({
-                        margin: 50,
+                        margin: this.margin,
+                        size: [this.width, this.height],
                     });
+                    if (this.pageTemplate) {
+                        this.pageTemplate.executePdf(doc);
+                    }
                     pageNumber += 1;
                 }
                 node.dom.abTranslate = {
@@ -83902,6 +83906,11 @@ Please pipe the document into a Node stream.\
             });
 
             root.executePdf(doc);
+        };
+
+        root.addTemplate = function (template) {
+            this.pageTemplate = template;
+            this.pageTemplate.updateABBox();
         };
 
         root.createTexture = function (config) {
@@ -84054,7 +84063,7 @@ Please pipe the document into a Node stream.\
         root.exportPdf = function (callback) {
             const doc = new PDFDocument({
                 size: [this.width, this.height],
-                margin: 10,
+                margin: this.margin,
                 bufferPages: true,
             });
             const stream_ = doc.pipe(blobStream());
@@ -84158,11 +84167,15 @@ Please pipe the document into a Node stream.\
         return root;
     }
 
-    function pdfLayer$1(config, height = 0, width = 0) {
+    function pdfLayer$1(config) {
+        const { height = 0, width = 0, margin = 10 } = config;
         const layer = document.createElement("canvas");
         const ctx = layer.getContext("2d", config);
         const fallBackPage = createPage(ctx);
+        let pageDefaultTemplate = null;
         ctx.type_ = "pdf";
+
+        console.log(margin);
 
         layer.setAttribute("height", height * 1);
         layer.setAttribute("width", width * 1);
@@ -84184,6 +84197,10 @@ Please pipe the document into a Node stream.\
             }
         };
 
+        PDFCreator.prototype.setPageTemplate = function (exec) {
+            pageDefaultTemplate = exec;
+        };
+
         PDFCreator.prototype.setSize = function (width, height) {
             this.width = width;
             this.height = height;
@@ -84202,11 +84219,16 @@ Please pipe the document into a Node stream.\
         PDFCreator.prototype.addPage = function () {
             const newpage = createPage(ctx);
             newpage.domEl = layer;
-            newpage.height = this.height;
-            newpage.width = this.width;
+            newpage.height = height;
+            newpage.width = width;
+            newpage.margin = margin;
             newpage.type = "CANVAS";
             newpage.EXEType = "pdf";
             newpage.ctx = ctx;
+
+            if (pageDefaultTemplate) {
+                newpage.pageTemplate = pageDefaultTemplate;
+            }
 
             this.pages.push(newpage);
             return newpage;
@@ -84217,22 +84239,30 @@ Please pipe the document into a Node stream.\
                 this.pages.splice(pageIndex, 1);
             }
         };
+        PDFCreator.prototype.createTemplate = function () {
+            return createPage(ctx);
+        };
         PDFCreator.prototype.exportPdf = function (callback) {
             const doc = new PDFDocument({
                 autoFirstPage: false,
-                size: [width, height],
-                margin: 50,
+                margin: margin,
                 bufferPages: true,
             });
             const stream_ = doc.pipe(blobStream());
+
+            console.log([width, height]);
 
             this.doc = doc;
 
             this.pages.forEach(function (page, i) {
                 page.updateBBox();
                 doc.addPage({
-                    margin: 50,
+                    margin: margin,
+                    size: [width, height],
                 });
+                if (page.pageTemplate) {
+                    page.pageTemplate.executePdf(doc);
+                }
                 page.exportPdf(doc);
             });
 
