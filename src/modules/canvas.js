@@ -754,15 +754,28 @@ RenderText.prototype.fitWidth = function () {
     const textSubStrs = [];
     let strLit = "";
     let i = 0;
-    const textList = textListByLine.reduce(function (p, c) {
-        p = p.concat(c.split(" "));
+    const textList = textListByLine.reduce((p, c) => {
+        const sstr = c.split(/( )/g);
+        // p = p.concat(c.split(" "));
+        // if (sstr.length === 1) {
+        //     let wordSp = Math.ceil(width / this.ctx.measureText("o").width);
+        //     p = p.concat(c.match(new RegExp('.{1,'+wordSp+'}','g')));
+        // }
+
+        sstr.forEach((d) => {
+            if (this.ctx.measureText(d).width < width) {
+                p.push(d);
+            } else {
+                p = p.concat(d.match(new RegExp(".{1,1}", "g")));
+            }
+        });
         p.push("\n");
         return p;
     }, []);
     while (i < textList.length) {
-        if (i !== 0) {
-            strLit += " ";
-        }
+        // if (i !== 0) {
+        //     strLit += " ";
+        // }
         if (textList[i] === "\n") {
             textSubStrs.push(strLit);
             strLit = " ";
@@ -778,7 +791,11 @@ RenderText.prototype.fitWidth = function () {
         }
         i++;
     }
-    textSubStrs.push(strLit);
+    if (strLit) {
+        textSubStrs.push(strLit);
+    }
+
+    console.log(textSubStrs);
 
     this.textList = textSubStrs;
 };
