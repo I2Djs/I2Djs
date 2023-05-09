@@ -10628,11 +10628,6 @@ RenderText.prototype.fitWidth = function () {
     let i = 0;
     const textList = textListByLine.reduce((p, c) => {
         const sstr = c.split(/( )/g);
-        // p = p.concat(c.split(" "));
-        // if (sstr.length === 1) {
-        //     let wordSp = Math.ceil(width / this.ctx.measureText("o").width);
-        //     p = p.concat(c.match(new RegExp('.{1,'+wordSp+'}','g')));
-        // }
 
         sstr.forEach((d) => {
             if (this.ctx.measureText(d).width < width) {
@@ -10645,9 +10640,6 @@ RenderText.prototype.fitWidth = function () {
         return p;
     }, []);
     while (i < textList.length) {
-        // if (i !== 0) {
-        //     strLit += " ";
-        // }
         if (textList[i] === "\n") {
             textSubStrs.push(strLit);
             strLit = " ";
