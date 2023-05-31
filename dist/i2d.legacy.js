@@ -81335,15 +81335,12 @@ Please pipe the document into a Node stream.\
         globalAlpha: "opacity",
     };
 
-    // console.log(PDFDocument);
-
     const t2DGeometry$1 = geometry;
     const queueInstance$1 = queue;
     let Id$1 = 0;
 
     const zoomInstance$1 = behaviour.zoom();
     const dragInstance$1 = behaviour.drag();
-    // let touchInstance = behaviour.touch();
 
     function domId$1() {
         Id$1 += 1;
@@ -84069,11 +84066,12 @@ Please pipe the document into a Node stream.\
             onChangeExe = exec;
         };
 
-        root.exportPdf = function (callback) {
+        root.exportPdf = function (callback, options = {}) {
             const doc = new PDFDocument({
                 size: [this.width, this.height],
                 margin: this.margin,
                 bufferPages: true,
+                ...options,
             });
             const stream_ = doc.pipe(blobStream());
 

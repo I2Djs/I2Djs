@@ -22,15 +22,12 @@ const pdfStyleMapper = {
     globalAlpha: "opacity",
 };
 
-// console.log(PDFDocument);
-
 const t2DGeometry = geometry;
 const queueInstance = queue;
 let Id = 0;
 
 const zoomInstance = behaviour.zoom();
 const dragInstance = behaviour.drag();
-// let touchInstance = behaviour.touch();
 
 function domId() {
     Id += 1;
@@ -2760,11 +2757,12 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
         onChangeExe = exec;
     };
 
-    root.exportPdf = function (callback) {
+    root.exportPdf = function (callback, options = {}) {
         const doc = new PDFDocument({
             size: [this.width, this.height],
             margin: this.margin,
             bufferPages: true,
+            ...options,
         });
         const stream_ = doc.pipe(blobStream());
 
