@@ -11898,7 +11898,10 @@ CanvasNodeExe.prototype.executePdf = function Cexecute(pdfCtx) {
     if (this.style.display === "none") {
         return;
     }
-    pdfCtx.save();
+    if (!(this.dom instanceof RenderGroup)) {
+        pdfCtx.save();
+    }
+
     this.stylesExePdf(pdfCtx);
     this.attributesExePdf(pdfCtx);
     if (this.dom instanceof RenderGroup) {
@@ -11906,7 +11909,10 @@ CanvasNodeExe.prototype.executePdf = function Cexecute(pdfCtx) {
             this.children[i].executePdf(pdfCtx);
         }
     }
-    pdfCtx.restore();
+
+    if (!(this.dom instanceof RenderGroup)) {
+        pdfCtx.restore();
+    }
 };
 
 CanvasNodeExe.prototype.prependChild = function child(childrens) {
