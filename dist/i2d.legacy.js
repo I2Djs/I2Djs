@@ -7458,6 +7458,8 @@ Example valid ways of supplying a shape would be:
                     } else {
                         if (key === "d") {
                             self.morphTo(targetConfig);
+                        } else if (key === "points") {
+                            console.log("write points mapper");
                         } else {
                             runStack[runStack.length] = attrTransition(self, key, tattr[key]);
                         }
@@ -82023,7 +82025,6 @@ Please pipe the document into a Node stream.\
 
     RenderImage.prototype.executePdf = function RIexecute(pdfCtx) {
         const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
-        console.log(this.rImageObj);
         if (this.attr.src) {
             // this.ctx.drawImage(this.rImageObj ? this.rImageObj.canvas : this.imageObj, x, y, width, height);
             pdfCtx.image(this.attr.src, x, y, { width, height });
@@ -82094,8 +82095,6 @@ Please pipe the document into a Node stream.\
         if (strLit) {
             textSubStrs.push(strLit);
         }
-
-        console.log(textSubStrs);
 
         this.textList = textSubStrs;
     };
@@ -84188,8 +84187,6 @@ Please pipe the document into a Node stream.\
         let pageDefaultTemplate = null;
         ctx.type_ = "pdf";
 
-        console.log(margin);
-
         layer.setAttribute("height", height * 1);
         layer.setAttribute("width", width * 1);
 
@@ -84255,15 +84252,14 @@ Please pipe the document into a Node stream.\
         PDFCreator.prototype.createTemplate = function () {
             return createPage(ctx);
         };
-        PDFCreator.prototype.exportPdf = function (callback) {
+        PDFCreator.prototype.exportPdf = function (callback, options = {}) {
             const doc = new PDFDocument({
                 autoFirstPage: false,
                 margin: margin,
                 bufferPages: true,
+                ...options,
             });
             const stream_ = doc.pipe(blobStream());
-
-            console.log([width, height]);
 
             this.doc = doc;
 

@@ -712,7 +712,6 @@ RenderImage.prototype.execute = function RIexecute() {
 
 RenderImage.prototype.executePdf = function RIexecute(pdfCtx) {
     const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
-    console.log(this.rImageObj);
     if (this.attr.src) {
         // this.ctx.drawImage(this.rImageObj ? this.rImageObj.canvas : this.imageObj, x, y, width, height);
         pdfCtx.image(this.attr.src, x, y, { width, height });
@@ -783,8 +782,6 @@ RenderText.prototype.fitWidth = function () {
     if (strLit) {
         textSubStrs.push(strLit);
     }
-
-    console.log(textSubStrs);
 
     this.textList = textSubStrs;
 };
@@ -2879,8 +2876,6 @@ function pdfLayer(config) {
     let pageDefaultTemplate = null;
     ctx.type_ = "pdf";
 
-    console.log(margin);
-
     layer.setAttribute("height", height * 1);
     layer.setAttribute("width", width * 1);
 
@@ -2946,15 +2941,14 @@ function pdfLayer(config) {
     PDFCreator.prototype.createTemplate = function () {
         return createPage(ctx);
     };
-    PDFCreator.prototype.exportPdf = function (callback) {
+    PDFCreator.prototype.exportPdf = function (callback, options = {}) {
         const doc = new PDFDocument({
             autoFirstPage: false,
             margin: margin,
             bufferPages: true,
+            ...options,
         });
         const stream_ = doc.pipe(blobStream());
-
-        console.log([width, height]);
 
         this.doc = doc;
 
