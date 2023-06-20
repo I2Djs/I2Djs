@@ -8595,7 +8595,7 @@ DomGradients.prototype.linearGradient = function linearGradient() {
         el: "stop",
         attr: {
             "offset"(d, i) {
-                return `${d.value}%`;
+                return `${d.offset}%`;
             },
 
             "stop-color": function stopColor(d, i) {
@@ -8608,7 +8608,7 @@ DomGradients.prototype.linearGradient = function linearGradient() {
 
 DomGradients.prototype.radialGradient = function radialGradient() {
     const self = this;
-
+    const { innerCircle = {}, outerCircle = {} } = this.config;
     if (!this.defs) {
         this.defs = this.pDom.createEl({
             el: "defs",
@@ -8622,11 +8622,11 @@ DomGradients.prototype.radialGradient = function radialGradient() {
                     el: "radialGradient",
                 }).setAttr({
                     id: self.config.id,
-                    cx: `${self.config.x1}%`,
-                    cy: `${self.config.y1}%`,
-                    r: `${self.config.r1}%`,
-                    fx: `${self.config.x2}%`,
-                    fy: `${self.config.y2}%`,
+                    cx: `${innerCircle.x}%`,
+                    cy: `${innerCircle.y}%`,
+                    r: `${innerCircle.r}%`,
+                    fx: `${outerCircle.x}%`,
+                    fy: `${outerCircle.y}%`,
                     spreadMethod: self.config.spreadMethod || "pad",
                     gradientUnits: self.config.gradientUnits || "objectBoundingBox",
                 });
@@ -8646,11 +8646,11 @@ DomGradients.prototype.radialGradient = function radialGradient() {
             update(nodes) {
                 nodes.radialGradient.setAttr({
                     id: self.config.id,
-                    cx: `${self.config.x1}%`,
-                    cy: `${self.config.y1}%`,
-                    r: `${self.config.r1}%`,
-                    fx: `${self.config.x2}%`,
-                    fy: `${self.config.y2}%`,
+                    cx: `${innerCircle.x}%`,
+                    cy: `${innerCircle.y}%`,
+                    r: `${innerCircle.r}%`,
+                    fx: `${outerCircle.x}%`,
+                    fy: `${outerCircle.y}%`,
                     spreadMethod: self.config.spreadMethod || "pad",
                     gradientUnits: self.config.gradientUnits || "objectBoundingBox",
                 });
@@ -8670,7 +8670,7 @@ DomGradients.prototype.radialGradient = function radialGradient() {
         el: "stop",
         attr: {
             "offset"(d, i) {
-                return `${d.value}%`;
+                return `${d.offset}%`;
             },
 
             "stop-color": function stopColor(d, i) {
@@ -9916,7 +9916,7 @@ const CanvasCollection = function () {
 CanvasCollection.prototype = new CollectionPrototype();
 CanvasCollection.prototype.constructor = CanvasCollection;
 CanvasCollection.prototype.createNode = function (ctx, config, vDomIndex) {
-    return new CanvasNodeExe(ctx, config, domId$1(), vDomIndex);
+    return new CanvasNodeExe$1(ctx, config, domId$1(), vDomIndex);
 };
 
 function getPixlRatio$1(ctx) {
@@ -10066,13 +10066,16 @@ function RPolyupdateBBox$1() {
     }
 }
 
-function CanvasGradients(config, type) {
+function CanvasGradient$1(config = {}, type = "linear") {
     this.config = config;
-    this.type = type || "linear";
+    this.type = type;
+    this.dom = {};
     this.mode = !this.config.mode || this.config.mode === "percent" ? "percent" : "absolute";
 }
 
-CanvasGradients.prototype.exe = function GRAexe(ctx, BBox) {
+CanvasGradient$1.prototype = new NodePrototype();
+
+CanvasGradient$1.prototype.exe = function GRAexe(ctx, BBox) {
     if (this.type === "linear" && this.mode === "percent") {
         return this.linearGradient(ctx, BBox);
     } else if (this.type === "linear" && this.mode === "absolute") {
@@ -10086,7 +10089,11 @@ CanvasGradients.prototype.exe = function GRAexe(ctx, BBox) {
     console.error("wrong Gradiant type");
 };
 
-CanvasGradients.prototype.exePdf = function GRAexe(ctx, BBox, AABox) {
+CanvasGradient$1.prototype.setAttr = function (attr, value) {
+    this.config[attr] = value;
+};
+
+CanvasGradient$1.prototype.exePdf = function GRAexe(ctx, BBox, AABox) {
     if (this.type === "linear" && this.mode === "percent") {
         return this.linearGradientPdf(ctx, BBox, AABox);
     } else if (this.type === "linear" && this.mode === "absolute") {
@@ -10100,7 +10107,7 @@ CanvasGradients.prototype.exePdf = function GRAexe(ctx, BBox, AABox) {
     console.error("wrong Gradiant type");
 };
 
-CanvasGradients.prototype.linearGradientPdf = function GralinearGradient(ctx, BBox) {
+CanvasGradient$1.prototype.linearGradientPdf = function GralinearGradient(ctx, BBox) {
     const lGradient = ctx.linearGradient(
         BBox.x + BBox.width * (this.config.x1 / 100),
         BBox.y + BBox.height * (this.config.y1 / 100),
@@ -10108,12 +10115,12 @@ CanvasGradients.prototype.linearGradientPdf = function GralinearGradient(ctx, BB
         BBox.y + BBox.height * (this.config.y2 / 100)
     );
     this.config.colorStops.forEach((d) => {
-        lGradient.stop(d.value / 100, d.color, d.opacity);
+        lGradient.stop(d.offset / 100, d.color, d.opacity);
     });
     return lGradient;
 };
 
-CanvasGradients.prototype.linearGradient = function GralinearGradient(ctx, BBox) {
+CanvasGradient$1.prototype.linearGradient = function GralinearGradient(ctx, BBox) {
     const lGradient = ctx.createLinearGradient(
         BBox.x + BBox.width * (this.config.x1 / 100),
         BBox.y + BBox.height * (this.config.y1 / 100),
@@ -10121,12 +10128,12 @@ CanvasGradients.prototype.linearGradient = function GralinearGradient(ctx, BBox)
         BBox.y + BBox.height * (this.config.y2 / 100)
     );
     this.config.colorStops.forEach((d) => {
-        lGradient.addColorStop(d.value / 100, d.color);
+        lGradient.addColorStop(d.offset / 100, d.color);
     });
     return lGradient;
 };
 
-CanvasGradients.prototype.absoluteLinearGradient = function absoluteGralinearGradient(ctx) {
+CanvasGradient$1.prototype.absoluteLinearGradient = function absoluteGralinearGradient(ctx) {
     const lGradient = ctx.createLinearGradient(
         this.config.x1,
         this.config.y1,
@@ -10134,12 +10141,12 @@ CanvasGradients.prototype.absoluteLinearGradient = function absoluteGralinearGra
         this.config.y2
     );
     this.config.colorStops.forEach((d) => {
-        lGradient.addColorStop(d.value, d.color);
+        lGradient.addColorStop(d.offset, d.color);
     });
     return lGradient;
 };
 
-CanvasGradients.prototype.absoluteLinearGradientPdf = function absoluteGralinearGradient(ctx) {
+CanvasGradient$1.prototype.absoluteLinearGradientPdf = function absoluteGralinearGradient(ctx) {
     const lGradient = ctx.linearGradient(
         this.config.x1,
         this.config.y1,
@@ -10147,79 +10154,80 @@ CanvasGradients.prototype.absoluteLinearGradientPdf = function absoluteGralinear
         this.config.y2
     );
     this.config.colorStops.forEach((d) => {
-        lGradient.stop(d.value, d.color, d.opacity);
+        lGradient.stop(d.offset, d.color, d.opacity);
     });
     return lGradient;
 };
 
-CanvasGradients.prototype.radialGradient = function GRAradialGradient(ctx, BBox) {
+CanvasGradient$1.prototype.radialGradient = function GRAradialGradient(ctx, BBox) {
+    const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.createRadialGradient(
-        BBox.x + BBox.width * (this.config.x1 / 100),
-        BBox.y + BBox.height * (this.config.y1 / 100),
+        BBox.x + BBox.width * (innerCircle.x / 100),
+        BBox.y + BBox.height * (innerCircle.y / 100),
         BBox.width > BBox.height
-            ? (BBox.width * this.config.r1) / 100
-            : (BBox.height * this.config.r1) / 100,
-        BBox.x + BBox.width * (this.config.x2 / 100),
-        BBox.y + BBox.height * (this.config.y2 / 100),
+            ? (BBox.width * innerCircle.r) / 100
+            : (BBox.height * innerCircle.r) / 100,
+        BBox.x + BBox.width * (outerCircle.x / 100),
+        BBox.y + BBox.height * (outerCircle.y / 100),
         BBox.width > BBox.height
-            ? (BBox.width * this.config.r2) / 100
-            : (BBox.height * this.config.r2) / 100
+            ? (BBox.width * outerCircle.r) / 100
+            : (BBox.height * outerCircle.r) / 100
     );
     this.config.colorStops.forEach((d) => {
-        cGradient.addColorStop(d.value / 100, d.color);
+        cGradient.addColorStop(d.offset / 100, d.color);
     });
     return cGradient;
 };
 
-CanvasGradients.prototype.radialGradientPdf = function GRAradialGradient(ctx, BBox, AABox) {
+CanvasGradient$1.prototype.radialGradientPdf = function GRAradialGradient(ctx, BBox, AABox) {
+    const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.radialGradient(
-        AABox.translate[0] + BBox.width * (this.config.x1 / 100),
-        AABox.translate[1] + BBox.height * (this.config.y1 / 100),
-        this.config.r1,
-        AABox.translate[0] + BBox.width * (this.config.x2 / 100),
-        AABox.translate[1] + BBox.height * (this.config.y2 / 100),
-        this.config.r2
+        AABox.translate[0] + BBox.width * (innerCircle.x / 100),
+        AABox.translate[1] + BBox.height * (innerCircle.y / 100),
+        innerCircle.r,
+        AABox.translate[0] + BBox.width * (outerCircle.x / 100),
+        AABox.translate[1] + BBox.height * (outerCircle.y / 100),
+        outerCircle.r2
     );
     this.config.colorStops.forEach((d) => {
-        cGradient.stop(d.value / 100, d.color, d.opacity);
+        cGradient.stop(d.offset / 100, d.color, d.opacity);
     });
     return cGradient;
 };
 
-CanvasGradients.prototype.absoluteRadialGradient = function absoluteGraradialGradient(ctx, BBox) {
+CanvasGradient$1.prototype.absoluteRadialGradient = function absoluteGraradialGradient(ctx, BBox) {
+    const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.createRadialGradient(
-        this.config.x1,
-        this.config.y1,
-        this.config.r1,
-        this.config.x2,
-        this.config.y2,
-        this.config.r2
+        innerCircle.x,
+        innerCircle.y,
+        innerCircle.r,
+        outerCircle.x,
+        outerCircle.y,
+        outerCircle.r
     );
     this.config.colorStops.forEach((d) => {
-        cGradient.addColorStop(d.value / 100, d.color);
+        cGradient.addColorStop(d.offset / 100, d.color);
     });
     return cGradient;
 };
 
-CanvasGradients.prototype.absoluteRadialGradientPdf = function absoluteGraradialGradient(
-    ctx,
-    BBox
-) {
+CanvasGradient$1.prototype.absoluteRadialGradientPdf = function absoluteGraradialGradient(ctx, BBox) {
+    const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.radialGradient(
-        this.config.x1,
-        this.config.y1,
-        this.config.r1,
-        this.config.x2,
-        this.config.y2,
-        this.config.r2
+        innerCircle.x,
+        innerCircle.y,
+        innerCircle.r,
+        outerCircle.x,
+        outerCircle.y,
+        outerCircle.r
     );
     this.config.colorStops.forEach((d) => {
-        cGradient.stop(d.value / 100, d.color);
+        cGradient.stop(d.offset / 100, d.color);
     });
     return cGradient;
 };
 
-CanvasGradients.prototype.colorStops = function GRAcolorStops(colorStopValues) {
+CanvasGradient$1.prototype.colorStops = function GRAcolorStops(colorStopValues) {
     if (Object.prototype.toString.call(colorStopValues) !== "[object Array]") {
         return false;
     }
@@ -10228,12 +10236,12 @@ CanvasGradients.prototype.colorStops = function GRAcolorStops(colorStopValues) {
     return this;
 };
 
-function createLinearGradient(config) {
-    return new CanvasGradients(config, "linear");
+function createLinearGradient$1(config) {
+    return new CanvasGradient$1(config, "linear");
 }
 
-function createRadialGradient(config) {
-    return new CanvasGradients(config, "radial");
+function createRadialGradient$1(config) {
+    return new CanvasGradient$1(config, "radial");
 }
 
 function PixelObject(data, width, height) {
@@ -10279,7 +10287,7 @@ PixelObject.prototype.put = function (pos, color) {
 function CanvasMask(self, config = {}) {
     const maskId = config.id ? config.id : "mask-" + Math.ceil(Math.random() * 1000);
     this.config = config;
-    this.mask = new CanvasNodeExe(
+    this.mask = new CanvasNodeExe$1(
         self.dom.ctx,
         {
             el: "g",
@@ -10309,7 +10317,7 @@ function createCanvasMask(maskConfig) {
 
 function CanvasClipping(self, config = {}) {
     const clipId = config.id ? config.id : "clip-" + Math.ceil(Math.random() * 1000);
-    this.clip = new CanvasNodeExe(
+    this.clip = new CanvasNodeExe$1(
         self.dom.ctx,
         {
             el: "g",
@@ -10336,17 +10344,15 @@ function CanvasPattern(self, config = {}, width = 0, height = 0) {
     const selfSelf = this;
     const patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
     this.repeatInd = config.repeat ? config.repeat : "repeat";
-    if (self.ENV === "NODE") ; else {
-        selfSelf.pattern = canvasLayer$1(
-            null,
-            {},
-            {
-                enableEvents: false,
-                enableResize: false,
-            }
-        );
-        selfSelf.pattern.setSize(width, height);
-    }
+    selfSelf.pattern = canvasLayer$1(
+        null,
+        {},
+        {
+            enableEvents: false,
+            enableResize: false,
+        }
+    );
+    selfSelf.pattern.setSize(width, height);
 
     selfSelf.pattern.setAttr("id", patternId);
     self.prependChild([selfSelf.pattern]);
@@ -10388,6 +10394,10 @@ function applyStylesPdf(pdfCtx) {
     }
 }
 
+function executePdf() {
+    // body...
+}
+
 function CanvasDom() {
     this.BBox = {
         x: 0,
@@ -10411,6 +10421,7 @@ CanvasDom.prototype = {
     setStyle: domSetStyle,
     applyStyles,
     applyStylesPdf,
+    executePdf,
 };
 
 function imageInstance$1(self) {
@@ -10444,6 +10455,19 @@ function imageInstance$1(self) {
 
     return imageIns;
 }
+
+function DummyDom(ctx, props, styleProps) {
+    const self = this;
+    self.ctx = ctx;
+    self.nodeName = "dummy";
+    self.attr = props;
+    self.style = styleProps;
+    self.stack = [self];
+    return this;
+}
+
+DummyDom.prototype = new CanvasDom();
+DummyDom.prototype.constructor = DummyDom;
 
 function RenderImage(ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
     const self = this;
@@ -10482,7 +10506,7 @@ RenderImage.prototype.setAttr = function RIsetAttr(attr, value) {
             // self.postProcess();
             self.attr.height = self.attr.height ? self.attr.height : value.height;
             self.attr.width = self.attr.width ? self.attr.width : value.width;
-        } else if (value instanceof CanvasNodeExe || value instanceof RenderTexture) {
+        } else if (value instanceof CanvasNodeExe$1 || value instanceof RenderTexture) {
             self.imageObj = value.domEl;
             // self.postProcess();
             self.attr.height = self.attr.height ? self.attr.height : value.attr.height;
@@ -11523,7 +11547,7 @@ RenderGroup.prototype.child = function RGchild(obj) {
     const self = this;
     const objLocal = obj;
 
-    if (objLocal instanceof CanvasNodeExe) {
+    if (objLocal instanceof CanvasNodeExe$1) {
         objLocal.dom.parent = self;
         self.stack[self.stack.length] = objLocal;
     } else if (objLocal instanceof CanvasCollection) {
@@ -11556,7 +11580,7 @@ RenderGroup.prototype.in = function RGinfun(coOr) {
 
 /** ***************** End Render Group */
 
-const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
+const CanvasNodeExe$1 = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.style = config.style || {};
     this.setStyle(config.style);
     this.attr = config.attr || {};
@@ -11568,6 +11592,7 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.ctx = context;
     this.vDomIndex = vDomIndex;
     this.bbox = config.bbox !== undefined ? config.bbox : true;
+    this.BBoxUpdate = true;
 
     switch (config.el) {
         case "circle":
@@ -11630,12 +11655,14 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
             break;
 
         default:
-            this.dom = null;
+            this.dom = new DummyDom(this.ctx, this.attr, this.style);
+            this.bbox = false;
+            this.BBoxUpdate = false;
             break;
     }
 
     this.dom.nodeExe = this;
-    this.BBoxUpdate = true;
+
     // if (config.style) {
     //  this.setStyle(config.style);
     // }
@@ -11645,14 +11672,14 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
     // }
 };
 
-CanvasNodeExe.prototype = new NodePrototype();
+CanvasNodeExe$1.prototype = new NodePrototype();
 
-CanvasNodeExe.prototype.node = function Cnode() {
+CanvasNodeExe$1.prototype.node = function Cnode() {
     this.updateBBox();
     return this.dom;
 };
 
-CanvasNodeExe.prototype.stylesExe = function CstylesExe() {
+CanvasNodeExe$1.prototype.stylesExe = function CstylesExe() {
     let value;
     let key;
     const style = this.style;
@@ -11664,7 +11691,7 @@ CanvasNodeExe.prototype.stylesExe = function CstylesExe() {
             value = style[key];
         } else if (typeof style[key] === "object") {
             if (
-                style[key] instanceof CanvasGradients ||
+                style[key] instanceof CanvasGradient$1 ||
                 style[key] instanceof CanvasPattern ||
                 style[key] instanceof CanvasClipping ||
                 style[key] instanceof CanvasMask
@@ -11691,7 +11718,7 @@ CanvasNodeExe.prototype.stylesExe = function CstylesExe() {
     }
 };
 
-CanvasNodeExe.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
+CanvasNodeExe$1.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
     if (!pdfCtx) return;
     const style = this.style;
     let value;
@@ -11700,7 +11727,7 @@ CanvasNodeExe.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
             value = style[key];
         } else if (typeof style[key] === "object") {
             if (
-                style[key] instanceof CanvasGradients ||
+                style[key] instanceof CanvasGradient$1 ||
                 style[key] instanceof CanvasPattern ||
                 style[key] instanceof CanvasClipping ||
                 style[key] instanceof CanvasMask
@@ -11726,7 +11753,7 @@ CanvasNodeExe.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
     }
 };
 
-CanvasNodeExe.prototype.remove = function Cremove() {
+CanvasNodeExe$1.prototype.remove = function Cremove() {
     const { children } = this.dom.parent;
     const index = children.indexOf(this);
 
@@ -11738,15 +11765,15 @@ CanvasNodeExe.prototype.remove = function Cremove() {
     queueInstance$1.vDomChanged(this.vDomIndex);
 };
 
-CanvasNodeExe.prototype.attributesExe = function CattributesExe() {
+CanvasNodeExe$1.prototype.attributesExe = function CattributesExe() {
     this.dom.render(this.attr);
 };
 
-CanvasNodeExe.prototype.attributesExePdf = function CattributesExe(pdfCtx) {
+CanvasNodeExe$1.prototype.attributesExePdf = function CattributesExe(pdfCtx) {
     this.dom.renderPdf(this.attr, pdfCtx);
 };
 
-CanvasNodeExe.prototype.setStyle = function CsetStyle(attr, value) {
+CanvasNodeExe$1.prototype.setStyle = function CsetStyle(attr, value) {
     if (arguments.length === 2) {
         if (value == null && this.style[attr] != null) {
             delete this.style[attr];
@@ -11777,7 +11804,7 @@ function valueCheck(value) {
     return value === "#000" || value === "#000000" || value === "black" ? "#010101" : value;
 }
 
-CanvasNodeExe.prototype.setAttr = function CsetAttr(attr, value) {
+CanvasNodeExe$1.prototype.setAttr = function CsetAttr(attr, value) {
     if (arguments.length === 2) {
         if (value == null && this.attr[attr] != null) {
             delete this.attr[attr];
@@ -11803,7 +11830,7 @@ CanvasNodeExe.prototype.setAttr = function CsetAttr(attr, value) {
     return this;
 };
 
-CanvasNodeExe.prototype.rotate = function Crotate(angle, x, y) {
+CanvasNodeExe$1.prototype.rotate = function Crotate(angle, x, y) {
     if (!this.attr.transform) {
         this.attr.transform = {};
     }
@@ -11820,7 +11847,7 @@ CanvasNodeExe.prototype.rotate = function Crotate(angle, x, y) {
     return this;
 };
 
-CanvasNodeExe.prototype.scale = function Cscale(XY) {
+CanvasNodeExe$1.prototype.scale = function Cscale(XY) {
     if (!this.attr.transform) {
         this.attr.transform = {};
     }
@@ -11836,7 +11863,7 @@ CanvasNodeExe.prototype.scale = function Cscale(XY) {
     return this;
 };
 
-CanvasNodeExe.prototype.translate = function Ctranslate(XY) {
+CanvasNodeExe$1.prototype.translate = function Ctranslate(XY) {
     if (!this.attr.transform) {
         this.attr.transform = {};
     }
@@ -11848,7 +11875,7 @@ CanvasNodeExe.prototype.translate = function Ctranslate(XY) {
     return this;
 };
 
-CanvasNodeExe.prototype.skewX = function CskewX(x) {
+CanvasNodeExe$1.prototype.skewX = function CskewX(x) {
     if (!this.attr.transform) {
         this.attr.transform = {};
     }
@@ -11863,7 +11890,7 @@ CanvasNodeExe.prototype.skewX = function CskewX(x) {
     return this;
 };
 
-CanvasNodeExe.prototype.skewY = function CskewY(y) {
+CanvasNodeExe$1.prototype.skewY = function CskewY(y) {
     if (!this.attr.transform) {
         this.attr.transform = {};
     }
@@ -11878,7 +11905,7 @@ CanvasNodeExe.prototype.skewY = function CskewY(y) {
     return this;
 };
 
-CanvasNodeExe.prototype.execute = function Cexecute() {
+CanvasNodeExe$1.prototype.execute = function Cexecute() {
     if (this.style.display === "none") {
         return;
     }
@@ -11893,7 +11920,7 @@ CanvasNodeExe.prototype.execute = function Cexecute() {
     this.ctx.restore();
 };
 
-CanvasNodeExe.prototype.executePdf = function Cexecute(pdfCtx) {
+CanvasNodeExe$1.prototype.executePdf = function Cexecute(pdfCtx) {
     if (this.style.display === "none") {
         return;
     }
@@ -11914,7 +11941,7 @@ CanvasNodeExe.prototype.executePdf = function Cexecute(pdfCtx) {
     }
 };
 
-CanvasNodeExe.prototype.prependChild = function child(childrens) {
+CanvasNodeExe$1.prototype.prependChild = function child(childrens) {
     const self = this;
     const childrensLocal = childrens;
 
@@ -11932,7 +11959,7 @@ CanvasNodeExe.prototype.prependChild = function child(childrens) {
     return self;
 };
 
-CanvasNodeExe.prototype.child = function child(childrens) {
+CanvasNodeExe$1.prototype.child = function child(childrens) {
     const self = this;
     const childrensLocal = childrens;
 
@@ -11950,12 +11977,12 @@ CanvasNodeExe.prototype.child = function child(childrens) {
     return self;
 };
 
-CanvasNodeExe.prototype.updateBBox = function CupdateBBox() {
+CanvasNodeExe$1.prototype.updateBBox = function CupdateBBox() {
     let status;
 
     if (this.bbox) {
         for (let i = 0, len = this.children.length; i < len; i += 1) {
-            if (this.children[i]) {
+            if (this.children[i] && this.children[i].updateBBox) {
                 status = this.children[i].updateBBox() || status;
             }
         }
@@ -11969,7 +11996,7 @@ CanvasNodeExe.prototype.updateBBox = function CupdateBBox() {
     return false;
 };
 
-CanvasNodeExe.prototype.updateABBox = function updateABBox(transform = { translate: [0, 0] }) {
+CanvasNodeExe$1.prototype.updateABBox = function updateABBox(transform = { translate: [0, 0] }) {
     const localTransform = this.attr.transform || { translate: [0, 0] };
     const abTranslate = {
         translate: [
@@ -11980,17 +12007,18 @@ CanvasNodeExe.prototype.updateABBox = function updateABBox(transform = { transla
     this.dom.abTranslate = abTranslate;
 
     // this.setAttr("abTranslate", this.abTranslate);
-
-    for (let i = 0, len = this.children.length; i < len && this.children[i]; i += 1) {
-        this.children[i].updateABBox(abTranslate);
+    if (this.dom instanceof RenderGroup) {
+        for (let i = 0, len = this.children.length; i < len && this.children[i]; i += 1) {
+            this.children[i].updateABBox(abTranslate);
+        }
     }
 };
 
-CanvasNodeExe.prototype.in = function Cinfun(co) {
+CanvasNodeExe$1.prototype.in = function Cinfun(co) {
     return this.dom.in(co);
 };
 
-CanvasNodeExe.prototype.on = function Con(eventType, hndlr) {
+CanvasNodeExe$1.prototype.on = function Con(eventType, hndlr) {
     const self = this;
     // this.dom.on(eventType, hndlr);
     if (!this.events) {
@@ -12019,15 +12047,15 @@ CanvasNodeExe.prototype.on = function Con(eventType, hndlr) {
     return this;
 };
 
-CanvasNodeExe.prototype.animatePathTo = path.animatePathTo;
-CanvasNodeExe.prototype.morphTo = path.morphTo;
-CanvasNodeExe.prototype.vDomIndex = null;
+CanvasNodeExe$1.prototype.animatePathTo = path.animatePathTo;
+CanvasNodeExe$1.prototype.morphTo = path.morphTo;
+CanvasNodeExe$1.prototype.vDomIndex = null;
 
-CanvasNodeExe.prototype.createRadialGradient = createRadialGradient;
-CanvasNodeExe.prototype.createLinearGradient = createLinearGradient;
+CanvasNodeExe$1.prototype.createRadialGradient = createRadialGradient$1;
+CanvasNodeExe$1.prototype.createLinearGradient = createLinearGradient$1;
 // CanvasNodeExe.prototype
 
-CanvasNodeExe.prototype.createEls = function CcreateEls(data, config) {
+CanvasNodeExe$1.prototype.createEls = function CcreateEls(data, config) {
     const e = new CanvasCollection(
         {
             type: "CANVAS",
@@ -12042,7 +12070,7 @@ CanvasNodeExe.prototype.createEls = function CcreateEls(data, config) {
     return e;
 };
 
-CanvasNodeExe.prototype.text = function Ctext(value) {
+CanvasNodeExe$1.prototype.text = function Ctext(value) {
     if (this.dom instanceof RenderText) {
         this.dom.text(value);
     }
@@ -12051,14 +12079,14 @@ CanvasNodeExe.prototype.text = function Ctext(value) {
     return this;
 };
 
-CanvasNodeExe.prototype.createEl = function CcreateEl(config) {
-    const e = new CanvasNodeExe(this.dom.ctx, config, domId$1(), this.vDomIndex);
+CanvasNodeExe$1.prototype.createEl = function CcreateEl(config) {
+    const e = new CanvasNodeExe$1(this.dom.ctx, config, domId$1(), this.vDomIndex);
     this.child([e]);
     queueInstance$1.vDomChanged(this.vDomIndex);
     return e;
 };
 
-CanvasNodeExe.prototype.removeChild = function CremoveChild(obj) {
+CanvasNodeExe$1.prototype.removeChild = function CremoveChild(obj) {
     let index = -1;
     this.children.forEach((d, i) => {
         if (d === obj) {
@@ -12075,7 +12103,7 @@ CanvasNodeExe.prototype.removeChild = function CremoveChild(obj) {
     queueInstance$1.vDomChanged(this.vDomIndex);
 };
 
-CanvasNodeExe.prototype.getBBox = function () {
+CanvasNodeExe$1.prototype.getBBox = function () {
     return {
         x: this.dom.BBox.x,
         y: this.dom.BBox.y,
@@ -12084,7 +12112,7 @@ CanvasNodeExe.prototype.getBBox = function () {
     };
 };
 
-CanvasNodeExe.prototype.getPixels = function () {
+CanvasNodeExe$1.prototype.getPixels = function () {
     const imageData = this.ctx.getImageData(
         this.dom.BBox.x,
         this.dom.BBox.y,
@@ -12097,7 +12125,7 @@ CanvasNodeExe.prototype.getPixels = function () {
     // this.ctx.getImageData(this.dom.BBox.x, this.dom.BBox.y, this.dom.BBox.width, this.dom.BBox.height);
 };
 
-CanvasNodeExe.prototype.putPixels = function (pixels) {
+CanvasNodeExe$1.prototype.putPixels = function (pixels) {
     if (!(pixels instanceof PixelObject)) {
         return;
     }
@@ -12132,12 +12160,21 @@ function textureImageInstance(self, url) {
             return;
         }
         if (self.attr) {
-            self.attr.height = self.attr.height
-                ? self.attr.height
-                : (self.attr.width / this.naturalWidth) * this.naturalHeight;
-            self.attr.width = self.attr.width
-                ? self.attr.width
-                : (self.attr.height / this.naturalHeight) * this.naturalWidth;
+            const width =
+                !self.attr.width && !self.attr.height
+                    ? this.naturalWidth
+                    : self.attr.width
+                    ? self.attr.width
+                    : (self.attr.height / this.naturalHeight) * this.naturalWidth;
+            const height =
+                !self.attr.width && !self.attr.height
+                    ? this.naturalHeight
+                    : self.attr.height
+                    ? self.attr.height
+                    : (self.attr.width / this.naturalWidth) * this.naturalHeight;
+
+            self.attr.height = height;
+            self.attr.width = width;
         }
         if (self instanceof RenderTexture) {
             self.setSize(self.attr.width, self.attr.height);
@@ -12277,7 +12314,7 @@ RenderTexture.prototype.setAttr = function RSsetAttr(attr, value) {
             self.attr.height = self.attr.height ? self.attr.height : value.height;
             self.attr.width = self.attr.width ? self.attr.width : value.width;
             postProcess(self);
-        } else if (value instanceof CanvasNodeExe || value instanceof RenderTexture) {
+        } else if (value instanceof CanvasNodeExe$1 || value instanceof RenderTexture) {
             self.imageObj = value.domEl;
             self.attr.height = self.attr.height ? self.attr.height : value.attr.height;
             self.attr.width = self.attr.width ? self.attr.width : value.attr.width;
@@ -12347,7 +12384,7 @@ RenderTexture.prototype.next = function (index) {
 };
 
 function createPage(ctx, vDomIndex) {
-    const root = new CanvasNodeExe(
+    const root = new CanvasNodeExe$1(
         ctx,
         {
             el: "g",
@@ -12364,7 +12401,7 @@ function createPage(ctx, vDomIndex) {
     };
 
     root.addDependentLayer = function (layer) {
-        if (!(layer instanceof CanvasNodeExe)) {
+        if (!(layer instanceof CanvasNodeExe$1)) {
             return;
         }
         const depId = layer.attr.id ? layer.attr.id : "dep-" + Math.ceil(Math.random() * 1000);
@@ -12740,21 +12777,33 @@ function canvasLayer$1(container, contextConfig = {}, layerSettings = {}) {
     return root;
 }
 
-function pdfLayer$1(config) {
-    const { height = 0, width = 0, margin = 10 } = config;
+function pdfLayer$1(config, layerSettings) {
+    const { height = 0, width = 0, margin = 10, el } = config;
+    const { autoUpdate = true, onUpdate } = layerSettings;
     const layer = document.createElement("canvas");
     const ctx = layer.getContext("2d", config);
-    const fallBackPage = createPage(ctx);
+
+    let vDomIndex = 999999;
     let pageDefaultTemplate = null;
     ctx.type_ = "pdf";
 
     layer.setAttribute("height", height * 1);
     layer.setAttribute("width", width * 1);
 
+    const vDomInstance = new VDom();
+
+    if (autoUpdate) {
+        vDomIndex = queueInstance$1.addVdom(vDomInstance);
+    }
+
+    const fallBackPage = createPage(ctx, vDomIndex);
+
     function PDFCreator() {
         this.pages = [];
         this.ctx = ctx;
         this.domEl = layer;
+        this.vDomIndex = vDomIndex;
+        this.container = el;
     }
     PDFCreator.prototype.flush = function () {
         this.pages.forEach(function (page) {
@@ -12777,6 +12826,8 @@ function pdfLayer$1(config) {
         this.height = height;
     };
     PDFCreator.prototype.execute = function () {
+        console.log("export invoked");
+        this.exportPdf(onUpdate);
         // const self = this;
         // this.pages.forEach(function (page, i) {
         //     self.ctx.save();
@@ -12788,7 +12839,7 @@ function pdfLayer$1(config) {
         // })
     };
     PDFCreator.prototype.addPage = function () {
-        const newpage = createPage(ctx);
+        const newpage = createPage(ctx, this.vDomIndex);
         newpage.domEl = layer;
         newpage.height = height;
         newpage.width = width;
@@ -12811,7 +12862,7 @@ function pdfLayer$1(config) {
         }
     };
     PDFCreator.prototype.createTemplate = function () {
-        return createPage(ctx);
+        return createPage(ctx, this.vDomIndex);
     };
     PDFCreator.prototype.exportPdf = function (callback, options = {}) {
         const doc = new PDFDocument({
@@ -12861,12 +12912,22 @@ function pdfLayer$1(config) {
         return fallBackPage.createAsyncTexture(config);
     };
 
-    return new PDFCreator();
+    const pdfInstance = new PDFCreator();
+
+    if (vDomInstance) {
+        vDomInstance.rootNode(pdfInstance);
+    }
+
+    return pdfInstance;
 }
 
 var canvasAPI = {
     canvasLayer: canvasLayer$1,
     pdfLayer: pdfLayer$1,
+    CanvasNodeExe: CanvasNodeExe$1,
+    CanvasGradient: CanvasGradient$1,
+    createRadialGradient: createRadialGradient$1,
+    createLinearGradient: createLinearGradient$1,
 };
 
 /* eslint-disable no-undef */
@@ -17336,5 +17397,9 @@ var utilities = {
 const pathIns = path.instance;
 const canvasLayer = canvasAPI.canvasLayer;
 const pdfLayer = canvasAPI.pdfLayer;
+const CanvasNodeExe = canvasAPI.CanvasNodeExe;
+const CanvasGradient = canvasAPI.CanvasGradient;
+const createRadialGradient = canvasAPI.createRadialGradient;
+const createLinearGradient = canvasAPI.createLinearGradient;
 
-export { pathIns as Path, behaviour, canvasLayer, chain, colorMap$1 as color, fetchTransitionType as ease, geometry, pdfLayer, queue, svgLayer, utilities as utility, webglLayer };
+export { CanvasGradient, CanvasNodeExe, pathIns as Path, behaviour, canvasLayer, chain, colorMap$1 as color, createLinearGradient, createRadialGradient, fetchTransitionType as ease, geometry, pdfLayer, queue, svgLayer, utilities as utility, webglLayer };

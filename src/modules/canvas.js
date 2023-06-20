@@ -190,13 +190,16 @@ function RPolyupdateBBox() {
     }
 }
 
-function CanvasGradients(config, type) {
+function CanvasGradient(config = {}, type = "linear") {
     this.config = config;
-    this.type = type || "linear";
+    this.type = type;
+    this.dom = {};
     this.mode = !this.config.mode || this.config.mode === "percent" ? "percent" : "absolute";
 }
 
-CanvasGradients.prototype.exe = function GRAexe(ctx, BBox) {
+CanvasGradient.prototype = new NodePrototype();
+
+CanvasGradient.prototype.exe = function GRAexe(ctx, BBox) {
     if (this.type === "linear" && this.mode === "percent") {
         return this.linearGradient(ctx, BBox);
     } else if (this.type === "linear" && this.mode === "absolute") {
@@ -210,7 +213,11 @@ CanvasGradients.prototype.exe = function GRAexe(ctx, BBox) {
     console.error("wrong Gradiant type");
 };
 
-CanvasGradients.prototype.exePdf = function GRAexe(ctx, BBox, AABox) {
+CanvasGradient.prototype.setAttr = function (attr, value) {
+    this.config[attr] = value;
+};
+
+CanvasGradient.prototype.exePdf = function GRAexe(ctx, BBox, AABox) {
     if (this.type === "linear" && this.mode === "percent") {
         return this.linearGradientPdf(ctx, BBox, AABox);
     } else if (this.type === "linear" && this.mode === "absolute") {
@@ -224,7 +231,7 @@ CanvasGradients.prototype.exePdf = function GRAexe(ctx, BBox, AABox) {
     console.error("wrong Gradiant type");
 };
 
-CanvasGradients.prototype.linearGradientPdf = function GralinearGradient(ctx, BBox) {
+CanvasGradient.prototype.linearGradientPdf = function GralinearGradient(ctx, BBox) {
     const lGradient = ctx.linearGradient(
         BBox.x + BBox.width * (this.config.x1 / 100),
         BBox.y + BBox.height * (this.config.y1 / 100),
@@ -232,12 +239,12 @@ CanvasGradients.prototype.linearGradientPdf = function GralinearGradient(ctx, BB
         BBox.y + BBox.height * (this.config.y2 / 100)
     );
     this.config.colorStops.forEach((d) => {
-        lGradient.stop(d.value / 100, d.color, d.opacity);
+        lGradient.stop(d.offset / 100, d.color, d.opacity);
     });
     return lGradient;
 };
 
-CanvasGradients.prototype.linearGradient = function GralinearGradient(ctx, BBox) {
+CanvasGradient.prototype.linearGradient = function GralinearGradient(ctx, BBox) {
     const lGradient = ctx.createLinearGradient(
         BBox.x + BBox.width * (this.config.x1 / 100),
         BBox.y + BBox.height * (this.config.y1 / 100),
@@ -245,12 +252,12 @@ CanvasGradients.prototype.linearGradient = function GralinearGradient(ctx, BBox)
         BBox.y + BBox.height * (this.config.y2 / 100)
     );
     this.config.colorStops.forEach((d) => {
-        lGradient.addColorStop(d.value / 100, d.color);
+        lGradient.addColorStop(d.offset / 100, d.color);
     });
     return lGradient;
 };
 
-CanvasGradients.prototype.absoluteLinearGradient = function absoluteGralinearGradient(ctx) {
+CanvasGradient.prototype.absoluteLinearGradient = function absoluteGralinearGradient(ctx) {
     const lGradient = ctx.createLinearGradient(
         this.config.x1,
         this.config.y1,
@@ -258,12 +265,12 @@ CanvasGradients.prototype.absoluteLinearGradient = function absoluteGralinearGra
         this.config.y2
     );
     this.config.colorStops.forEach((d) => {
-        lGradient.addColorStop(d.value, d.color);
+        lGradient.addColorStop(d.offset, d.color);
     });
     return lGradient;
 };
 
-CanvasGradients.prototype.absoluteLinearGradientPdf = function absoluteGralinearGradient(ctx) {
+CanvasGradient.prototype.absoluteLinearGradientPdf = function absoluteGralinearGradient(ctx) {
     const lGradient = ctx.linearGradient(
         this.config.x1,
         this.config.y1,
@@ -271,79 +278,80 @@ CanvasGradients.prototype.absoluteLinearGradientPdf = function absoluteGralinear
         this.config.y2
     );
     this.config.colorStops.forEach((d) => {
-        lGradient.stop(d.value, d.color, d.opacity);
+        lGradient.stop(d.offset, d.color, d.opacity);
     });
     return lGradient;
 };
 
-CanvasGradients.prototype.radialGradient = function GRAradialGradient(ctx, BBox) {
+CanvasGradient.prototype.radialGradient = function GRAradialGradient(ctx, BBox) {
+    const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.createRadialGradient(
-        BBox.x + BBox.width * (this.config.x1 / 100),
-        BBox.y + BBox.height * (this.config.y1 / 100),
+        BBox.x + BBox.width * (innerCircle.x / 100),
+        BBox.y + BBox.height * (innerCircle.y / 100),
         BBox.width > BBox.height
-            ? (BBox.width * this.config.r1) / 100
-            : (BBox.height * this.config.r1) / 100,
-        BBox.x + BBox.width * (this.config.x2 / 100),
-        BBox.y + BBox.height * (this.config.y2 / 100),
+            ? (BBox.width * innerCircle.r) / 100
+            : (BBox.height * innerCircle.r) / 100,
+        BBox.x + BBox.width * (outerCircle.x / 100),
+        BBox.y + BBox.height * (outerCircle.y / 100),
         BBox.width > BBox.height
-            ? (BBox.width * this.config.r2) / 100
-            : (BBox.height * this.config.r2) / 100
+            ? (BBox.width * outerCircle.r) / 100
+            : (BBox.height * outerCircle.r) / 100
     );
     this.config.colorStops.forEach((d) => {
-        cGradient.addColorStop(d.value / 100, d.color);
+        cGradient.addColorStop(d.offset / 100, d.color);
     });
     return cGradient;
 };
 
-CanvasGradients.prototype.radialGradientPdf = function GRAradialGradient(ctx, BBox, AABox) {
+CanvasGradient.prototype.radialGradientPdf = function GRAradialGradient(ctx, BBox, AABox) {
+    const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.radialGradient(
-        AABox.translate[0] + BBox.width * (this.config.x1 / 100),
-        AABox.translate[1] + BBox.height * (this.config.y1 / 100),
-        this.config.r1,
-        AABox.translate[0] + BBox.width * (this.config.x2 / 100),
-        AABox.translate[1] + BBox.height * (this.config.y2 / 100),
-        this.config.r2
+        AABox.translate[0] + BBox.width * (innerCircle.x / 100),
+        AABox.translate[1] + BBox.height * (innerCircle.y / 100),
+        innerCircle.r,
+        AABox.translate[0] + BBox.width * (outerCircle.x / 100),
+        AABox.translate[1] + BBox.height * (outerCircle.y / 100),
+        outerCircle.r2
     );
     this.config.colorStops.forEach((d) => {
-        cGradient.stop(d.value / 100, d.color, d.opacity);
+        cGradient.stop(d.offset / 100, d.color, d.opacity);
     });
     return cGradient;
 };
 
-CanvasGradients.prototype.absoluteRadialGradient = function absoluteGraradialGradient(ctx, BBox) {
+CanvasGradient.prototype.absoluteRadialGradient = function absoluteGraradialGradient(ctx, BBox) {
+    const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.createRadialGradient(
-        this.config.x1,
-        this.config.y1,
-        this.config.r1,
-        this.config.x2,
-        this.config.y2,
-        this.config.r2
+        innerCircle.x,
+        innerCircle.y,
+        innerCircle.r,
+        outerCircle.x,
+        outerCircle.y,
+        outerCircle.r
     );
     this.config.colorStops.forEach((d) => {
-        cGradient.addColorStop(d.value / 100, d.color);
+        cGradient.addColorStop(d.offset / 100, d.color);
     });
     return cGradient;
 };
 
-CanvasGradients.prototype.absoluteRadialGradientPdf = function absoluteGraradialGradient(
-    ctx,
-    BBox
-) {
+CanvasGradient.prototype.absoluteRadialGradientPdf = function absoluteGraradialGradient(ctx, BBox) {
+    const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.radialGradient(
-        this.config.x1,
-        this.config.y1,
-        this.config.r1,
-        this.config.x2,
-        this.config.y2,
-        this.config.r2
+        innerCircle.x,
+        innerCircle.y,
+        innerCircle.r,
+        outerCircle.x,
+        outerCircle.y,
+        outerCircle.r
     );
     this.config.colorStops.forEach((d) => {
-        cGradient.stop(d.value / 100, d.color);
+        cGradient.stop(d.offset / 100, d.color);
     });
     return cGradient;
 };
 
-CanvasGradients.prototype.colorStops = function GRAcolorStops(colorStopValues) {
+CanvasGradient.prototype.colorStops = function GRAcolorStops(colorStopValues) {
     if (Object.prototype.toString.call(colorStopValues) !== "[object Array]") {
         return false;
     }
@@ -353,11 +361,11 @@ CanvasGradients.prototype.colorStops = function GRAcolorStops(colorStopValues) {
 };
 
 function createLinearGradient(config) {
-    return new CanvasGradients(config, "linear");
+    return new CanvasGradient(config, "linear");
 }
 
 function createRadialGradient(config) {
-    return new CanvasGradients(config, "radial");
+    return new CanvasGradient(config, "radial");
 }
 
 function PixelObject(data, width, height) {
@@ -460,19 +468,15 @@ function CanvasPattern(self, config = {}, width = 0, height = 0) {
     const selfSelf = this;
     const patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
     this.repeatInd = config.repeat ? config.repeat : "repeat";
-    if (self.ENV === "NODE") {
-        // selfSelf.pattern = canvasNodeLayer({}, height, width);
-    } else {
-        selfSelf.pattern = canvasLayer(
-            null,
-            {},
-            {
-                enableEvents: false,
-                enableResize: false,
-            }
-        );
-        selfSelf.pattern.setSize(width, height);
-    }
+    selfSelf.pattern = canvasLayer(
+        null,
+        {},
+        {
+            enableEvents: false,
+            enableResize: false,
+        }
+    );
+    selfSelf.pattern.setSize(width, height);
 
     selfSelf.pattern.setAttr("id", patternId);
     self.prependChild([selfSelf.pattern]);
@@ -514,6 +518,10 @@ function applyStylesPdf(pdfCtx) {
     }
 }
 
+function executePdf() {
+    // body...
+}
+
 function CanvasDom() {
     this.BBox = {
         x: 0,
@@ -537,6 +545,7 @@ CanvasDom.prototype = {
     setStyle: domSetStyle,
     applyStyles,
     applyStylesPdf,
+    executePdf,
 };
 
 function imageInstance(self) {
@@ -570,6 +579,19 @@ function imageInstance(self) {
 
     return imageIns;
 }
+
+function DummyDom(ctx, props, styleProps) {
+    const self = this;
+    self.ctx = ctx;
+    self.nodeName = "dummy";
+    self.attr = props;
+    self.style = styleProps;
+    self.stack = [self];
+    return this;
+}
+
+DummyDom.prototype = new CanvasDom();
+DummyDom.prototype.constructor = DummyDom;
 
 function RenderImage(ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
     const self = this;
@@ -1696,6 +1718,7 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.ctx = context;
     this.vDomIndex = vDomIndex;
     this.bbox = config.bbox !== undefined ? config.bbox : true;
+    this.BBoxUpdate = true;
 
     switch (config.el) {
         case "circle":
@@ -1758,12 +1781,14 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
             break;
 
         default:
-            this.dom = null;
+            this.dom = new DummyDom(this.ctx, this.attr, this.style);
+            this.bbox = false;
+            this.BBoxUpdate = false;
             break;
     }
 
     this.dom.nodeExe = this;
-    this.BBoxUpdate = true;
+
     // if (config.style) {
     //  this.setStyle(config.style);
     // }
@@ -1792,7 +1817,7 @@ CanvasNodeExe.prototype.stylesExe = function CstylesExe() {
             value = style[key];
         } else if (typeof style[key] === "object") {
             if (
-                style[key] instanceof CanvasGradients ||
+                style[key] instanceof CanvasGradient ||
                 style[key] instanceof CanvasPattern ||
                 style[key] instanceof CanvasClipping ||
                 style[key] instanceof CanvasMask
@@ -1828,7 +1853,7 @@ CanvasNodeExe.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
             value = style[key];
         } else if (typeof style[key] === "object") {
             if (
-                style[key] instanceof CanvasGradients ||
+                style[key] instanceof CanvasGradient ||
                 style[key] instanceof CanvasPattern ||
                 style[key] instanceof CanvasClipping ||
                 style[key] instanceof CanvasMask
@@ -2083,7 +2108,7 @@ CanvasNodeExe.prototype.updateBBox = function CupdateBBox() {
 
     if (this.bbox) {
         for (let i = 0, len = this.children.length; i < len; i += 1) {
-            if (this.children[i]) {
+            if (this.children[i] && this.children[i].updateBBox) {
                 status = this.children[i].updateBBox() || status;
             }
         }
@@ -2108,9 +2133,10 @@ CanvasNodeExe.prototype.updateABBox = function updateABBox(transform = { transla
     this.dom.abTranslate = abTranslate;
 
     // this.setAttr("abTranslate", this.abTranslate);
-
-    for (let i = 0, len = this.children.length; i < len && this.children[i]; i += 1) {
-        this.children[i].updateABBox(abTranslate);
+    if (this.dom instanceof RenderGroup) {
+        for (let i = 0, len = this.children.length; i < len && this.children[i]; i += 1) {
+            this.children[i].updateABBox(abTranslate);
+        }
     }
 };
 
@@ -2260,12 +2286,21 @@ function textureImageInstance(self, url) {
             return;
         }
         if (self.attr) {
-            self.attr.height = self.attr.height
-                ? self.attr.height
-                : (self.attr.width / this.naturalWidth) * this.naturalHeight;
-            self.attr.width = self.attr.width
-                ? self.attr.width
-                : (self.attr.height / this.naturalHeight) * this.naturalWidth;
+            const width =
+                !self.attr.width && !self.attr.height
+                    ? this.naturalWidth
+                    : self.attr.width
+                    ? self.attr.width
+                    : (self.attr.height / this.naturalHeight) * this.naturalWidth;
+            const height =
+                !self.attr.width && !self.attr.height
+                    ? this.naturalHeight
+                    : self.attr.height
+                    ? self.attr.height
+                    : (self.attr.width / this.naturalWidth) * this.naturalHeight;
+
+            self.attr.height = height;
+            self.attr.width = width;
         }
         if (self instanceof RenderTexture) {
             self.setSize(self.attr.width, self.attr.height);
@@ -2868,21 +2903,33 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     return root;
 }
 
-function pdfLayer(config) {
-    const { height = 0, width = 0, margin = 10 } = config;
+function pdfLayer(config, layerSettings) {
+    const { height = 0, width = 0, margin = 10, el } = config;
+    const { autoUpdate = true, onUpdate } = layerSettings;
     const layer = document.createElement("canvas");
     const ctx = layer.getContext("2d", config);
-    const fallBackPage = createPage(ctx);
+
+    let vDomIndex = 999999;
     let pageDefaultTemplate = null;
     ctx.type_ = "pdf";
 
     layer.setAttribute("height", height * 1);
     layer.setAttribute("width", width * 1);
 
+    const vDomInstance = new VDom();
+
+    if (autoUpdate) {
+        vDomIndex = queueInstance.addVdom(vDomInstance);
+    }
+
+    const fallBackPage = createPage(ctx, vDomIndex);
+
     function PDFCreator() {
         this.pages = [];
         this.ctx = ctx;
         this.domEl = layer;
+        this.vDomIndex = vDomIndex;
+        this.container = el;
     }
     PDFCreator.prototype.flush = function () {
         this.pages.forEach(function (page) {
@@ -2905,6 +2952,8 @@ function pdfLayer(config) {
         this.height = height;
     };
     PDFCreator.prototype.execute = function () {
+        console.log("export invoked");
+        this.exportPdf(onUpdate);
         // const self = this;
         // this.pages.forEach(function (page, i) {
         //     self.ctx.save();
@@ -2916,7 +2965,7 @@ function pdfLayer(config) {
         // })
     };
     PDFCreator.prototype.addPage = function () {
-        const newpage = createPage(ctx);
+        const newpage = createPage(ctx, this.vDomIndex);
         newpage.domEl = layer;
         newpage.height = height;
         newpage.width = width;
@@ -2939,7 +2988,7 @@ function pdfLayer(config) {
         }
     };
     PDFCreator.prototype.createTemplate = function () {
-        return createPage(ctx);
+        return createPage(ctx, this.vDomIndex);
     };
     PDFCreator.prototype.exportPdf = function (callback, options = {}) {
         const doc = new PDFDocument({
@@ -2989,10 +3038,20 @@ function pdfLayer(config) {
         return fallBackPage.createAsyncTexture(config);
     };
 
-    return new PDFCreator(ctx);
+    const pdfInstance = new PDFCreator();
+
+    if (vDomInstance) {
+        vDomInstance.rootNode(pdfInstance);
+    }
+
+    return pdfInstance;
 }
 
 export default {
     canvasLayer,
     pdfLayer,
+    CanvasNodeExe,
+    CanvasGradient,
+    createRadialGradient,
+    createLinearGradient,
 };

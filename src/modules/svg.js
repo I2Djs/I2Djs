@@ -200,7 +200,7 @@ DomGradients.prototype.linearGradient = function linearGradient() {
         el: "stop",
         attr: {
             "offset"(d, i) {
-                return `${d.value}%`;
+                return `${d.offset}%`;
             },
 
             "stop-color": function stopColor(d, i) {
@@ -213,7 +213,7 @@ DomGradients.prototype.linearGradient = function linearGradient() {
 
 DomGradients.prototype.radialGradient = function radialGradient() {
     const self = this;
-
+    const { innerCircle = {}, outerCircle = {} } = this.config;
     if (!this.defs) {
         this.defs = this.pDom.createEl({
             el: "defs",
@@ -227,11 +227,11 @@ DomGradients.prototype.radialGradient = function radialGradient() {
                     el: "radialGradient",
                 }).setAttr({
                     id: self.config.id,
-                    cx: `${self.config.x1}%`,
-                    cy: `${self.config.y1}%`,
-                    r: `${self.config.r1}%`,
-                    fx: `${self.config.x2}%`,
-                    fy: `${self.config.y2}%`,
+                    cx: `${innerCircle.x}%`,
+                    cy: `${innerCircle.y}%`,
+                    r: `${innerCircle.r}%`,
+                    fx: `${outerCircle.x}%`,
+                    fy: `${outerCircle.y}%`,
                     spreadMethod: self.config.spreadMethod || "pad",
                     gradientUnits: self.config.gradientUnits || "objectBoundingBox",
                 });
@@ -251,11 +251,11 @@ DomGradients.prototype.radialGradient = function radialGradient() {
             update(nodes) {
                 nodes.radialGradient.setAttr({
                     id: self.config.id,
-                    cx: `${self.config.x1}%`,
-                    cy: `${self.config.y1}%`,
-                    r: `${self.config.r1}%`,
-                    fx: `${self.config.x2}%`,
-                    fy: `${self.config.y2}%`,
+                    cx: `${innerCircle.x}%`,
+                    cy: `${innerCircle.y}%`,
+                    r: `${innerCircle.r}%`,
+                    fx: `${outerCircle.x}%`,
+                    fy: `${outerCircle.y}%`,
                     spreadMethod: self.config.spreadMethod || "pad",
                     gradientUnits: self.config.gradientUnits || "objectBoundingBox",
                 });
@@ -275,7 +275,7 @@ DomGradients.prototype.radialGradient = function radialGradient() {
         el: "stop",
         attr: {
             "offset"(d, i) {
-                return `${d.value}%`;
+                return `${d.offset}%`;
             },
 
             "stop-color": function stopColor(d, i) {
