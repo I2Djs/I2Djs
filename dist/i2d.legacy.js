@@ -81523,9 +81523,9 @@ Please pipe the document into a Node stream.\
             return this.radialGradient(ctx, BBox);
         } else if (this.type === "radial" && this.mode === "absolute") {
             return this.absoluteRadialGradient(ctx);
+        } else {
+            console.error("wrong Gradiant type");
         }
-
-        console.error("wrong Gradiant type");
     };
 
     CanvasGradient$1.prototype.setAttr = function (attr, value) {
@@ -81536,22 +81536,23 @@ Please pipe the document into a Node stream.\
         if (this.type === "linear" && this.mode === "percent") {
             return this.linearGradientPdf(ctx, BBox, AABox);
         } else if (this.type === "linear" && this.mode === "absolute") {
-            return this.absoluteLinearGradientPdf(ctx);
+            return this.absoluteLinearGradientPdf(ctx, AABox);
         } else if (this.type === "radial" && this.mode === "percent") {
             return this.radialGradientPdf(ctx, BBox, AABox);
         } else if (this.type === "radial" && this.mode === "absolute") {
-            return this.absoluteRadialGradientPdf(ctx);
+            return this.absoluteRadialGradientPdf(ctx, AABox);
+        } else {
+            console.error("wrong Gradiant type");
         }
-
-        console.error("wrong Gradiant type");
     };
 
-    CanvasGradient$1.prototype.linearGradientPdf = function GralinearGradient(ctx, BBox) {
+    CanvasGradient$1.prototype.linearGradientPdf = function GralinearGradient(ctx, BBox, AABox) {
+        const { translate = [0, 0] } = AABox;
         const lGradient = ctx.linearGradient(
-            BBox.x + BBox.width * (this.config.x1 / 100),
-            BBox.y + BBox.height * (this.config.y1 / 100),
-            BBox.x + BBox.width * (this.config.x2 / 100),
-            BBox.y + BBox.height * (this.config.y2 / 100)
+            translate[0] + BBox.x + BBox.width * (this.config.x1 / 100),
+            translate[1] + BBox.y + BBox.height * (this.config.y1 / 100),
+            translate[0] + BBox.x + BBox.width * (this.config.x2 / 100),
+            translate[1] + BBox.y + BBox.height * (this.config.y2 / 100)
         );
         this.config.colorStops.forEach((d) => {
             lGradient.stop(d.offset / 100, d.color, d.opacity);
@@ -81585,12 +81586,16 @@ Please pipe the document into a Node stream.\
         return lGradient;
     };
 
-    CanvasGradient$1.prototype.absoluteLinearGradientPdf = function absoluteGralinearGradient(ctx) {
+    CanvasGradient$1.prototype.absoluteLinearGradientPdf = function absoluteGralinearGradient(
+        ctx,
+        AABox
+    ) {
+        const { translate = [0, 0] } = AABox;
         const lGradient = ctx.linearGradient(
-            this.config.x1,
-            this.config.y1,
-            this.config.x2,
-            this.config.y2
+            translate[0] + this.config.x1,
+            translate[1] + this.config.y1,
+            translate[0] + this.config.x2,
+            translate[1] + this.config.y2
         );
         this.config.colorStops.forEach((d) => {
             lGradient.stop(d.offset, d.color, d.opacity);
@@ -81619,13 +81624,14 @@ Please pipe the document into a Node stream.\
     };
 
     CanvasGradient$1.prototype.radialGradientPdf = function GRAradialGradient(ctx, BBox, AABox) {
+        const { translate = [0, 0] } = AABox;
         const { innerCircle = {}, outerCircle = {} } = this.config;
         const cGradient = ctx.radialGradient(
-            AABox.translate[0] + BBox.width * (innerCircle.x / 100),
-            AABox.translate[1] + BBox.height * (innerCircle.y / 100),
+            translate[0] + BBox.width * (innerCircle.x / 100),
+            translate[1] + BBox.height * (innerCircle.y / 100),
             innerCircle.r,
-            AABox.translate[0] + BBox.width * (outerCircle.x / 100),
-            AABox.translate[1] + BBox.height * (outerCircle.y / 100),
+            translate[0] + BBox.width * (outerCircle.x / 100),
+            translate[1] + BBox.height * (outerCircle.y / 100),
             outerCircle.r2
         );
         this.config.colorStops.forEach((d) => {
@@ -81650,14 +81656,19 @@ Please pipe the document into a Node stream.\
         return cGradient;
     };
 
-    CanvasGradient$1.prototype.absoluteRadialGradientPdf = function absoluteGraradialGradient(ctx, BBox) {
+    CanvasGradient$1.prototype.absoluteRadialGradientPdf = function absoluteGraradialGradient(
+        ctx,
+        BBox,
+        AABox
+    ) {
+        const { translate = [0, 0] } = AABox;
         const { innerCircle = {}, outerCircle = {} } = this.config;
         const cGradient = ctx.radialGradient(
-            innerCircle.x,
-            innerCircle.y,
+            translate[0] + innerCircle.x,
+            translate[1] + innerCircle.y,
             innerCircle.r,
-            outerCircle.x,
-            outerCircle.y,
+            translate[0] + outerCircle.x,
+            translate[1] + outerCircle.y,
             outerCircle.r
         );
         this.config.colorStops.forEach((d) => {
