@@ -774,6 +774,18 @@ function RenderText(ctx, props, stylesProps) {
 
 RenderText.prototype = new CanvasDom();
 RenderText.prototype.constructor = RenderText;
+
+RenderText.prototype.setAttr = function (attr, value) {
+    if (value == null && this.attr[attr] != null) {
+        delete this.attr[attr];
+    } else {
+        this.attr[attr] = value;
+        if (attr === "width" && value) {
+            this.fitWidth();
+        }
+    }
+};
+
 RenderText.prototype.fitWidth = function () {
     if (this.style.font) {
         this.ctx.font = this.style.font;
@@ -2963,7 +2975,6 @@ function pdfLayer(config, layerSettings) {
         this.height = height;
     };
     PDFCreator.prototype.execute = function () {
-        console.log("export invoked");
         this.exportPdf(onUpdate);
         // const self = this;
         // this.pages.forEach(function (page, i) {
