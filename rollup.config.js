@@ -21,16 +21,10 @@ export default [
         output: [
             {
                 banner,
-                file: "dist/i2d.esm.browser.js",
+                file: "dist/i2d.esm.js",
                 format: "esm",
                 name: "i2d",
             },
-            // {
-            //     banner,
-            //     file: "dist/i2d.js",
-            //     format: "umd",
-            //     name: "i2d",
-            // },
         ],
         plugins: [
             nodeResolve(),
@@ -47,7 +41,7 @@ export default [
         output: [
             {
                 banner,
-                file: "dist/i2d.legacy.js",
+                file: "dist/i2d.js",
                 format: "umd",
                 name: "i2d",
             },
@@ -59,31 +53,14 @@ export default [
                 fix: true,
                 throwOnError: true,
             }),
-            // buble({
-            //     transforms: { 
-            //         dangerousForOf: true,
-            //         asyncAwait: false,
-            //         // forOf: false,
-            //         generator: false,
-            //         arrow: true,
-            //         modules: false
-            //     }
-            // }),
         ],
     },
     {
         input: "src/main.js",
         external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream/blob-stream.js"],
         output: [
-            // {
-            //     file: "dist/i2d.min.js",
-            //     banner,
-            //     format: "umd",
-            //     name: "i2d",
-            //     compact: true,
-            // },
             {
-                file: "dist/i2d.esm.browser.min.js",
+                file: "dist/i2d.esm.min.js",
                 banner,
                 format: "esm",
                 name: "i2d",
@@ -106,7 +83,7 @@ export default [
         output: [
             {
                 banner,
-                file: "dist/i2d.legacy.min.js",
+                file: "dist/i2d.min.js",
                 format: "umd",
                 name: "i2d",
             },
@@ -119,16 +96,6 @@ export default [
                 fix: true,
                 throwOnError: true,
             }),
-            // buble({
-            //     transforms: { 
-            //         asyncAwait: false,
-            //         // forOf: false,
-            //         dangerousForOf: true,
-            //         generator: false,
-            //         arrow: true,
-            //         modules: false
-            //     }
-            // }),
         ],
     },
 ];
