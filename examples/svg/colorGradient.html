@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
     </head>
-    <body style="height: 100%;">
-        <div id="mySvg" style="height: 100%; width: 100%;"></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
+    <body style="height: 100%">
+        <div id="mySvg" style="height: 100%; width: 100%"></div>
+        <script type="text/javascript" src="../../dist/i2d.legacy.js"></script>
 
         <script type="text/javascript">
             var renderer_ = i2d.svgLayer("#mySvg");
@@ -19,21 +19,29 @@
                 y2: 100,
                 spreadMethod: "repeat",
                 colorStops: [
-                    { color: "red", value: 0 },
-                    { color: "green", value: 100 },
+                    { color: "red", offset: 0 },
+                    { color: "green", offset: 100 },
                 ],
             });
             var radialGradiant = renderer_.createRadialGradient({
                 id: "radialG",
                 mode: "absolute",
-                innerCircle: { x: 50, y: 50, r: 0 },
-                outerCircle: { x: 50, y: 50, r: 50 },
+                innerCircle: {
+                    x: 0,
+                    y: 0,
+                    r: 0,
+                },
+                outerCircle: {
+                    x: 0,
+                    y: 0,
+                    r: 0,
+                },
                 colorStops: [
-                    { color: "red", value: 0 },
-                    { color: "yellow", value: 25 },
-                    { color: "green", value: 50 },
-                    { color: "blue", value: 75 },
-                    { color: "rgba(255,255,255,0)", value: 100 },
+                    { color: "red", offset: 0 },
+                    { color: "yellow", offset: 25 },
+                    { color: "green", offset: 50 },
+                    { color: "blue", offset: 75 },
+                    { color: "rgba(255,255,255,0)", offset: 100 },
                 ],
             });
 

@@ -3,7 +3,7 @@
   "version": "3.8.0",
   "description": "Integrated-2d, framework for 2D graphics rendering for SVG/Canvas/WebGl context",
   "module": "./src/main.js",
-  "main": "./dist/i2d.js",
+  "main": "./dist/i2d.esm.browser.js",
   "sideEffects": false,
   "directories": {
     "example": "examples"
@@ -13,7 +13,7 @@
     "build": "rm -rf ./dist/ && rollup -c rollup.config.js",
     "lint": "eslint src/**",
     "lint-fix": "eslint --cache --fix src/**",
-    "preinstall": "npx npm-force-resolutions"
+    "commit": "cz"
   },
   "repository": {
     "type": "git",
@@ -55,6 +55,7 @@
     "@rollup/plugin-buble": "^0.21.3",
     "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-node-resolve": "^13.3.0",
+    "commitizen": "^4.3.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^6.15.0",
     "eslint-config-standard": "^14.1.1",
@@ -72,8 +73,10 @@
   },
   "dependencies": {
     "@juggle/resize-observer": "^3.4.0",
+    "blob-stream": "github:nswamy14/blob-stream",
     "earcut": "^2.2.4",
     "flubber": "^0.4.2",
+    "pdfkit": "^0.13.0",
     "stackblur-canvas": "^2.5.0"
   },
   "husky": {

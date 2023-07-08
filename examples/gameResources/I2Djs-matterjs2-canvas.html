@@ -19,7 +19,7 @@
             <label style="">click here!</label>
         </div>
 
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script type="text/javascript" src="../../dist/i2d.legacy.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.14.2/matter.js"></script>
 
         <script type="text/javascript">
@@ -129,11 +129,11 @@
                 outerCircle: { x: 50, y: 50, r: 50 },
                 mode: "percent",
                 colorStops: [
-                    { color: "red", value: 0 },
-                    { color: "yellow", value: 25 },
-                    { color: "green", value: 50 },
-                    { color: "blue", value: 75 },
-                    { color: "rgba(255,255,255,0)", value: 100 },
+                    { color: "red", offset: 0 },
+                    { color: "yellow", offset: 25 },
+                    { color: "green", offset: 50 },
+                    { color: "blue", offset: 75 },
+                    { color: "rgba(255,255,255,0)", offset: 100 },
                 ],
             });
 
