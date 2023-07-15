@@ -14,7 +14,7 @@ I2D also provides a unique data-driven approach, **join-actions**, for DOM manip
 
 ## Documentation
 
-<a href="https://nswamy14.gitbook.io/i2djs/"><img width='150' src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/gitbookIcon.png"></a>
+<a href="https://nswamy14.gitbook.io/i2djs-v4/"><img width='150' src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/gitbookIcon.png"></a>
 
 ## Installing
 
