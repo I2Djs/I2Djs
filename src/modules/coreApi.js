@@ -121,6 +121,8 @@ const animate = function animate(self, targetConfig) {
                 } else {
                     if (key === "d") {
                         self.morphTo(targetConfig);
+                    } else if (key === "points") {
+                        console.log("write points mapper");
                     } else {
                         runStack[runStack.length] = attrTransition(self, key, tattr[key]);
                     }

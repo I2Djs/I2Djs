@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html style="height: 100%;">
+<html style="height: 100%">
     <head>
         <title></title>
     </head>
-    <body style="height: 100%; background: black;">
-        <label style="position: absolute; color: white;"> Canvas Example </label>
-        <div id="myCanvas" style="height: 100%; width: 100%; position: absolute;">
-            <div style="position: relative; z-index: 1; color: white; text-align: center;">
+    <body style="height: 100%; background: black">
+        <label style="position: absolute; color: white"> Canvas Example </label>
+        <div id="myCanvas" style="height: 100%; width: 100%; position: absolute">
+            <div style="position: relative; z-index: 1; color: white; text-align: center">
                 Click on nodes to remove
             </div>
             <!--<canvas width="1200" height="1000" id="myCanvas"></canvas>-->
@@ -74,9 +74,9 @@
                 x2: 0,
                 y2: 100,
                 colorStops: [
-                    { color: "black", value: 10 },
-                    { color: "rgb(11, 192, 255)", value: 50 },
-                    { color: "black", value: 90 },
+                    { color: "black", offset: 10 },
+                    { color: "rgb(11, 192, 255)", offset: 50 },
+                    { color: "black", offset: 90 },
                 ],
             });
 
@@ -84,8 +84,8 @@
                 innerCircle: { x: 50, y: 50, r: 0 },
                 outerCircle: { x: 50, y: 50, r: 50 },
                 colorStops: [
-                    { color: "#fffdca", value: 0 },
-                    { color: "black", value: 100 },
+                    { color: "#fffdca", offset: 0 },
+                    { color: "black", offset: 100 },
                 ],
             });
 
