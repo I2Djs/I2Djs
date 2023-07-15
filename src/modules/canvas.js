@@ -5,7 +5,6 @@ import geometry from "./geometry.js";
 import colorMap from "./colorMap.js";
 import Events from "./events.js";
 import behaviour from "./behaviour.js";
-// import { imageDataRGB as blur } from "stackblur-canvas";
 import blobStream from "blob-stream/blob-stream.js";
 import PDFDocument from "pdfkit/js/pdfkit.standalone.js";
 
