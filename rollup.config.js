@@ -17,7 +17,7 @@ const banner = `/*!
 export default [
     {
         input: "src/main.js",
-        external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream/blob-stream.js"],
+        external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream-i2d/blob-stream.js"],
         output: [
             {
                 banner,
@@ -57,7 +57,7 @@ export default [
     },
     {
         input: "src/main.js",
-        external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream/blob-stream.js"],
+        external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream-i2d/blob-stream.js"],
         output: [
             {
                 file: "dist/i2d.esm.min.js",

@@ -73,10 +73,11 @@
   },
   "dependencies": {
     "@juggle/resize-observer": "^3.4.0",
-    "blob-stream": "github:nswamy14/blob-stream",
+    "blob-stream-i2d": "^1.0.0",
     "earcut": "^2.2.4",
     "flubber": "^0.4.2",
-    "pdfkit": "^0.13.0"
+    "pdfkit": "^0.13.0",
+    "stackblur-canvas": "^2.6.0"
   },
   "husky": {
     "hooks": {

@@ -5,7 +5,7 @@ import geometry from "./geometry.js";
 import colorMap from "./colorMap.js";
 import Events from "./events.js";
 import behaviour from "./behaviour.js";
-import blobStream from "blob-stream/blob-stream.js";
+import blobStream from "blob-stream-i2d/blob-stream.js";
 import PDFDocument from "pdfkit/js/pdfkit.standalone.js";
 
 import {
@@ -766,7 +766,7 @@ function RenderText(ctx, props, stylesProps) {
     self.stack = [self];
     self.textHeight = 0;
     self.height = 1;
-    if (self.attr.width) {
+    if (self.attr.width && self.attr.text) {
         this.fitWidth();
     }
 }
@@ -779,7 +779,7 @@ RenderText.prototype.setAttr = function (attr, value) {
         delete this.attr[attr];
     } else {
         this.attr[attr] = value;
-        if (attr === "width" && value) {
+        if ((attr === "width" || attr === "text") && this.attr.width && this.attr.text) {
             this.fitWidth();
         }
     }
