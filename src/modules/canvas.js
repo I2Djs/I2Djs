@@ -2114,6 +2114,7 @@ CanvasNodeExe.prototype.child = function child(childrens) {
     if (self.dom instanceof RenderGroup) {
         for (let i = 0; i < childrensLocal.length; i += 1) {
             childrensLocal[i].dom.parent = self;
+            childrensLocal[i].vDomIndex = self.vDomIndex;
             self.children[self.children.length] = childrensLocal[i];
         }
     } else {
