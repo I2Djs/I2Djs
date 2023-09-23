@@ -16,9 +16,37 @@ import {
 } from "./coreApi.js";
 
 const pdfStyleMapper = {
-    fillStyle: "fillColor",
-    strokeStyle: "strokeColor",
-    globalAlpha: "opacity",
+    fillStyle: {
+        prop: "fillColor",
+        getValue: (val) => {
+            return val;
+        },
+    },
+    strokeStyle: {
+        prop: "strokeColor",
+        getValue: (val) => {
+            return val;
+        },
+    },
+    globalAlpha: {
+        prop: "opacity",
+        getValue: (val) => {
+            return val;
+        },
+    },
+    lineDash: {
+        prop: "dash",
+        getValue: (val) => {
+            return val[0];
+        },
+    },
+};
+
+const canvasCssMapper = {
+    fill: "fillStyle",
+    stroke: "strokeColor",
+    lineDash: "setLineDash",
+    opacity: "globalAlpha",
 };
 
 const t2DGeometry = geometry;
@@ -1855,6 +1883,10 @@ CanvasNodeExe.prototype.stylesExe = function CstylesExe() {
             console.log("unkonwn Style");
         }
 
+        if (canvasCssMapper[key]) {
+            key = canvasCssMapper[key];
+        }
+
         if (typeof this.ctx[key] !== "function") {
             this.ctx[key] = value;
         } else if (typeof this.ctx[key] === "function") {
@@ -1892,7 +1924,8 @@ CanvasNodeExe.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
         }
 
         if (!pdfCtx[key] && pdfStyleMapper[key]) {
-            key = pdfStyleMapper[key];
+            value = pdfStyleMapper[key].getValue(value);
+            key = pdfStyleMapper[key].prop;
         }
 
         if (typeof pdfCtx[key] !== "function") {

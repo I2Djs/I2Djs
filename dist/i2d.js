@@ -81332,9 +81332,37 @@ Please pipe the document into a Node stream.\
     var PDFDocument = /*@__PURE__*/getDefaultExportFromCjs(pdfkit_standalone.exports);
 
     const pdfStyleMapper = {
-        fillStyle: "fillColor",
-        strokeStyle: "strokeColor",
-        globalAlpha: "opacity",
+        fillStyle: {
+            prop: "fillColor",
+            getValue: (val) => {
+                return val;
+            },
+        },
+        strokeStyle: {
+            prop: "strokeColor",
+            getValue: (val) => {
+                return val;
+            },
+        },
+        globalAlpha: {
+            prop: "opacity",
+            getValue: (val) => {
+                return val;
+            },
+        },
+        lineDash: {
+            prop: "dash",
+            getValue: (val) => {
+                return val[0];
+            },
+        },
+    };
+
+    const canvasCssMapper = {
+        fill: "fillStyle",
+        stroke: "strokeColor",
+        lineDash: "setLineDash",
+        opacity: "globalAlpha",
     };
 
     const t2DGeometry$1 = geometry;
@@ -83169,6 +83197,10 @@ Please pipe the document into a Node stream.\
                 console.log("unkonwn Style");
             }
 
+            if (canvasCssMapper[key]) {
+                key = canvasCssMapper[key];
+            }
+
             if (typeof this.ctx[key] !== "function") {
                 this.ctx[key] = value;
             } else if (typeof this.ctx[key] === "function") {
@@ -83206,7 +83238,8 @@ Please pipe the document into a Node stream.\
             }
 
             if (!pdfCtx[key] && pdfStyleMapper[key]) {
-                key = pdfStyleMapper[key];
+                value = pdfStyleMapper[key].getValue(value);
+                key = pdfStyleMapper[key].prop;
             }
 
             if (typeof pdfCtx[key] !== "function") {
