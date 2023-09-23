@@ -2671,6 +2671,7 @@ function createPage(ctx, vDomIndex) {
 
     root.addTemplate = function (template) {
         this.pageTemplate = template;
+        this.pageTemplate.updateBBox();
         this.pageTemplate.updateABBox();
     };
 

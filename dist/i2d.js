@@ -83985,6 +83985,7 @@ Please pipe the document into a Node stream.\
 
         root.addTemplate = function (template) {
             this.pageTemplate = template;
+            this.pageTemplate.updateBBox();
             this.pageTemplate.updateABBox();
         };
 
