@@ -1,5 +1,5 @@
 /*!
-      * i2djs v4.0.1
+      * i2djs v4.0.2
       * (c) 2023 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
@@ -83184,7 +83184,7 @@ Please pipe the document into a Node stream.\
         if (!pdfCtx) return;
         const style = this.style;
         let value;
-        for (const key in style) {
+        for (let key in style) {
             if (typeof style[key] === "string" || typeof style[key] === "number") {
                 value = style[key];
             } else if (typeof style[key] === "object") {
@@ -83205,10 +83205,14 @@ Please pipe the document into a Node stream.\
                 console.log("unkonwn Style");
             }
 
-            if (typeof pdfCtx[pdfStyleMapper[key]] !== "function") {
-                pdfCtx[pdfStyleMapper[key]] = value;
-            } else if (typeof pdfCtx[pdfStyleMapper[key]] === "function") {
-                pdfCtx[pdfStyleMapper[key]](value);
+            if (!pdfCtx[key] && pdfStyleMapper[key]) {
+                key = pdfStyleMapper[key];
+            }
+
+            if (typeof pdfCtx[key] !== "function") {
+                pdfCtx[key] = value;
+            } else if (typeof pdfCtx[key] === "function") {
+                pdfCtx[key](value);
             } else {
                 console.log("junk comp");
             }
@@ -88883,4 +88887,3 @@ Please pipe the document into a Node stream.\
     Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
-//# sourceMappingURL=i2d.js.map

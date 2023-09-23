@@ -1,5 +1,5 @@
 /*!
-      * i2djs v4.0.1
+      * i2djs v4.0.2
       * (c) 2023 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
@@ -11745,7 +11745,7 @@ CanvasNodeExe$1.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
     if (!pdfCtx) return;
     const style = this.style;
     let value;
-    for (const key in style) {
+    for (let key in style) {
         if (typeof style[key] === "string" || typeof style[key] === "number") {
             value = style[key];
         } else if (typeof style[key] === "object") {
@@ -11766,10 +11766,14 @@ CanvasNodeExe$1.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
             console.log("unkonwn Style");
         }
 
-        if (typeof pdfCtx[pdfStyleMapper[key]] !== "function") {
-            pdfCtx[pdfStyleMapper[key]] = value;
-        } else if (typeof pdfCtx[pdfStyleMapper[key]] === "function") {
-            pdfCtx[pdfStyleMapper[key]](value);
+        if (!pdfCtx[key] && pdfStyleMapper[key]) {
+            key = pdfStyleMapper[key];
+        }
+
+        if (typeof pdfCtx[key] !== "function") {
+            pdfCtx[key] = value;
+        } else if (typeof pdfCtx[key] === "function") {
+            pdfCtx[key](value);
         } else {
             console.log("junk comp");
         }
@@ -17425,4 +17429,3 @@ const createRadialGradient = canvasAPI.createRadialGradient;
 const createLinearGradient = canvasAPI.createLinearGradient;
 
 export { CanvasGradient, CanvasNodeExe, pathIns as Path, behaviour, canvasLayer, chain, colorMap$1 as color, createLinearGradient, createRadialGradient, fetchTransitionType as ease, geometry, pdfLayer, queue, svgLayer, utilities as utility, webglLayer };
-//# sourceMappingURL=i2d.esm.js.map

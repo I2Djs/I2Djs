@@ -1870,7 +1870,7 @@ CanvasNodeExe.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
     if (!pdfCtx) return;
     const style = this.style;
     let value;
-    for (const key in style) {
+    for (let key in style) {
         if (typeof style[key] === "string" || typeof style[key] === "number") {
             value = style[key];
         } else if (typeof style[key] === "object") {
@@ -1891,10 +1891,14 @@ CanvasNodeExe.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
             console.log("unkonwn Style");
         }
 
-        if (typeof pdfCtx[pdfStyleMapper[key]] !== "function") {
-            pdfCtx[pdfStyleMapper[key]] = value;
-        } else if (typeof pdfCtx[pdfStyleMapper[key]] === "function") {
-            pdfCtx[pdfStyleMapper[key]](value);
+        if (!pdfCtx[key] && pdfStyleMapper[key]) {
+            key = pdfStyleMapper[key];
+        }
+
+        if (typeof pdfCtx[key] !== "function") {
+            pdfCtx[key] = value;
+        } else if (typeof pdfCtx[key] === "function") {
+            pdfCtx[key](value);
         } else {
             console.log("junk comp");
         }
