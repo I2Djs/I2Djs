@@ -1,14 +1,14 @@
-import queue from "./queue.js";
-import VDom from "./VDom.js";
-import path from "./path.js";
-import colorMap from "./colorMap.js";
-import Events from "./events.js";
+import queue from "./../queue.js";
+import VDom from "./../VDom.js";
+import path from "./../path.js";
+import colorMap from "./../colorMap.js";
+import Events from "./../events.js";
 import {
     CollectionPrototype,
     NodePrototype,
     layerResizeBind,
     layerResizeUnBind,
-} from "./coreApi.js";
+} from "./../coreApi.js";
 
 const queueInstance = queue;
 

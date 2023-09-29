@@ -1,10 +1,10 @@
-import queue from "./queue.js";
-import VDom from "./VDom.js";
-import path from "./path.js";
-import geometry from "./geometry.js";
-import colorMap from "./colorMap.js";
-import Events from "./events.js";
-import behaviour from "./behaviour.js";
+import queue from "./../queue.js";
+import VDom from "./../VDom.js";
+import path from "./../path.js";
+import geometry from "./../geometry.js";
+import colorMap from "./../colorMap.js";
+import Events from "./../events.js";
+import behaviour from "./../behaviour.js";
 import blobStream from "blob-stream-i2d/blob-stream.js";
 import PDFDocument from "pdfkit/js/pdfkit.standalone.js";
 
@@ -13,7 +13,7 @@ import {
     CollectionPrototype,
     layerResizeBind,
     layerResizeUnBind,
-} from "./coreApi.js";
+} from "./../coreApi.js";
 
 const pdfStyleMapper = {
     fillStyle: {
@@ -132,13 +132,6 @@ function cRender(attr) {
         const [hozScale = 1, verScale = hozScale] = scale;
         const [hozSkew = 0, verSkew = hozSkew] = skew;
         const [hozMove = 0, verMove = hozMove] = translate;
-
-        // const hozScale = scale && scale.length > 0 ? scale[0] : 1;
-        // const verScale = scale && scale.length > 1 ? scale[1] : hozScale || 1;
-        // const hozSkew = transform.skew && transform.skew.length > 0 ? transform.skew[0] : 0;
-        // const verSkew = transform.skew && transform.skew.length > 1 ? transform.skew[1] : 0;
-        // const hozMove = transform.translate && transform.translate.length > 0 ? transform.translate[0] : 0;
-        // const verMove = transform.translate && transform.translate.length > 1 ? transform.translate[1] : 0;
 
         self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove);
 
@@ -546,13 +539,22 @@ function applyStyles() {
     }
 }
 
+function setStylesPdf(pdfCtx) {
+    if (this.style.fillStyle) {
+        pdfCtx.fillColor(this.style.fillStyle);
+    }
+    if (this.style.strokeStyle) {
+        pdfCtx.strokeColor(this.style.strokeStyle);
+    }
+}
+
 function applyStylesPdf(pdfCtx) {
     if (this.style.fillStyle && this.style.strokeStyle) {
         pdfCtx.fillAndStroke(this.style.fillStyle, this.style.strokeStyle);
     } else if (this.style.fillStyle) {
-        pdfCtx.fillColor(this.style.fillStyle);
+        pdfCtx.fill();
     } else if (this.style.strokeStyle) {
-        pdfCtx.strokeColor(this.style.strokeStyle);
+        pdfCtx.stroke();
     }
 }
 
@@ -583,6 +585,7 @@ CanvasDom.prototype = {
     setStyle: domSetStyle,
     applyStyles,
     applyStylesPdf,
+    setStylesPdf,
     executePdf,
 };
 
@@ -946,7 +949,7 @@ RenderText.prototype.execute = function RTexecute() {
 
 RenderText.prototype.executePdf = function RTexecute(pdfCtx) {
     if (this.attr.text !== undefined && this.attr.text !== null) {
-        this.applyStylesPdf(pdfCtx);
+        this.setStylesPdf(pdfCtx);
         if (this.style.font) {
             // parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1
             pdfCtx.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
@@ -1016,15 +1019,9 @@ RenderCircle.prototype.execute = function RCexecute() {
 
 RenderCircle.prototype.executePdf = function RCexecute(pdfCtx) {
     const { r = 0, cx = 0, cy = 0 } = this.attr;
-    this.applyStylesPdf(pdfCtx);
+    this.setStylesPdf(pdfCtx);
     pdfCtx.circle(parseInt(cx), parseInt(cy), parseInt(r));
-    if (this.style.fillStyle) {
-        pdfCtx.fill();
-    }
-
-    if (this.style.strokeStyle) {
-        pdfCtx.stroke();
-    }
+    this.applyStylesPdf(pdfCtx);
 };
 
 RenderCircle.prototype.in = function RCinfun(co, eventType) {
@@ -1076,7 +1073,7 @@ RenderLine.prototype.execute = function RLexecute() {
 
 RenderLine.prototype.executePdf = function RLexecute(pdfCtx) {
     const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
-    this.applyStylesPdf(pdfCtx);
+    this.setStylesPdf(pdfCtx);
     pdfCtx.moveTo(x1, y1);
     pdfCtx.lineTo(x2, y2);
     pdfCtx.stroke();
@@ -1143,7 +1140,7 @@ RenderPolyline.prototype.executePdf = function polylineExe(pdfCtx) {
     let d;
     if (!this.attr.points || this.attr.points.length === 0) return;
 
-    this.applyStylesPdf(pdfCtx);
+    this.setStylesPdf(pdfCtx);
 
     pdfCtx.moveTo(this.attr.points[0].x, this.attr.points[0].y);
     for (var i = 1; i < this.attr.points.length; i++) {
@@ -1303,15 +1300,9 @@ RenderPath.prototype.execute = function RPexecute() {
 
 RenderPath.prototype.executePdf = function RPexecute(pdfCtx) {
     if (this.attr.d) {
-        this.applyStylesPdf(pdfCtx);
+        this.setStylesPdf(pdfCtx);
         pdfCtx.path(this.attr.d);
-
-        if (this.style.fillStyle) {
-            pdfCtx.fill();
-        }
-        if (this.style.strokeStyle) {
-            pdfCtx.stroke();
-        }
+        this.applyStylesPdf(pdfCtx);
     }
 };
 
@@ -1421,15 +1412,9 @@ RenderPolygon.prototype.executePdf = function RPolyexecute(pdfCtx) {
     if (!this.polygon) {
         return;
     }
-    this.applyStylesPdf(pdfCtx);
+    this.setStylesPdf(pdfCtx);
     pdfCtx.polygon(...this.polygon.rawPoints);
-    if (this.style.fillStyle) {
-        pdfCtx.fill();
-    }
-
-    if (this.ctx.strokeStyle) {
-        pdfCtx.stroke();
-    }
+    this.applyStylesPdf(pdfCtx);
 };
 
 RenderPolygon.prototype.applyStyles = function RPolyapplyStyles() {};
@@ -1494,15 +1479,9 @@ RenderEllipse.prototype.execute = function REexecute() {
 
 RenderEllipse.prototype.executePdf = function REexecute(pdfCtx) {
     const { cx = 0, cy = 0, rx = 0, ry = 0 } = this.attr;
-    this.applyStylesPdf(pdfCtx);
+    this.setStylesPdf(pdfCtx);
     pdfCtx.ellipse(cx, cy, rx, ry);
-    if (this.style.fillStyle) {
-        pdfCtx.fill();
-    }
-
-    if (this.ctx.strokeStyle) {
-        pdfCtx.stroke();
-    }
+    this.applyStylesPdf(pdfCtx);
 };
 
 RenderEllipse.prototype.in = function REinfun(co) {
@@ -1579,9 +1558,8 @@ function renderRoundRectPdf(ctx, attr) {
 
 RenderRect.prototype.executePdf = function RRexecute(pdfCtx) {
     const { x = 0, y = 0, width = 0, height = 0, rx = 0, ry = 0 } = this.attr;
-    const { fillStyle, strokeStyle } = this.style;
 
-    this.applyStylesPdf(pdfCtx);
+    this.setStylesPdf(pdfCtx);
 
     if (!rx && !ry) {
         pdfCtx.rect(x, y, width, height);
@@ -1596,13 +1574,7 @@ RenderRect.prototype.executePdf = function RRexecute(pdfCtx) {
         });
     }
 
-    if (fillStyle) {
-        pdfCtx.fill();
-    }
-
-    if (strokeStyle) {
-        pdfCtx.stroke();
-    }
+    this.applyStylesPdf(pdfCtx);
 };
 
 RenderRect.prototype.execute = function RRexecute() {
@@ -2653,8 +2625,9 @@ function createPage(ctx, vDomIndex) {
     }
 
     root.exportPdf = function (doc) {
-        const pageHeight = this.height - this.margin * 2;
+        const pageHeight = this.height - (this.margin || 0) * 2;
 
+        root.updateBBox();
         root.updateABBox();
 
         let leafNodes = getAllLeafs(root);
@@ -2963,8 +2936,9 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     return root;
 }
 
-function pdfLayer(config, layerSettings) {
-    const { height = 0, width = 0, margin = 10, el } = config;
+function pdfLayer(container, config, layerSettings) {
+    const res = container ? document.querySelector(container) : null;
+    const { height = 0, width = 0, margin = 10 } = config;
     const { autoUpdate = true, onUpdate } = layerSettings;
     const layer = document.createElement("canvas");
     const ctx = layer.getContext("2d", config);
@@ -2989,7 +2963,7 @@ function pdfLayer(config, layerSettings) {
         this.ctx = ctx;
         this.domEl = layer;
         this.vDomIndex = vDomIndex;
-        this.container = el;
+        this.container = res;
     }
     PDFCreator.prototype.flush = function () {
         this.pages.forEach(function (page) {
@@ -3012,7 +2986,12 @@ function pdfLayer(config, layerSettings) {
         this.height = height;
     };
     PDFCreator.prototype.execute = function () {
-        this.exportPdf(onUpdate);
+        this.exportPdf(
+            onUpdate ||
+                function (url) {
+                    res.setAttribute("src", url);
+                }
+        );
         // const self = this;
         // this.pages.forEach(function (page, i) {
         //     self.ctx.save();

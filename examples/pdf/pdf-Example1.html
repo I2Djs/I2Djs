@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Using Module of I2Djs</title>
+    </head>
+    <body>
+        <div class="main-container">
+            <iframe class="iframeCanvas" id="i2dPdfContainer"></iframe>
+        </div>
+    </body>
+</html>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
+<script type="module">
+    let pdfInstance = i2d.pdfLayer("#i2dPdfContainer", { height: 600, width: 600 }, {});
+
+    let page1 = pdfInstance.addPage();
+    var linearGradiant = page1.createLinearGradient({
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 100,
+        colorStops: [
+            { color: "red", offset: 0 },
+            { color: "green", offset: 100 },
+        ],
+    });
+
+    page1.createEl({
+        el: "circle",
+        attr: {
+            cx: 150,
+            cy: 150,
+            r: 50,
+        },
+        style: {
+            fillStyle: "#ff0000",
+            strokeStyle: "#0000ff",
+        },
+    });
+    page1.createEl({
+        el: "rect",
+        attr: {
+            x: 350,
+            y: 100,
+            width: 100,
+            height: 100,
+        },
+        style: {
+            fillStyle: linearGradiant,
+        },
+    });
+
+    let page2 = pdfInstance.addPage();
+    page2.createEl({
+        el: "rect",
+        attr: {
+            x: 350,
+            y: 250,
+            width: 100,
+            height: 100,
+            rx: 20,
+            ry: 20,
+        },
+        style: {
+            fillStyle: "pink",
+            strokeStyle: "green",
+            lineWidth: 5,
+        },
+    });
+
+    page2.createEl({
+        el: "path",
+        attr: {
+            d:
+                "M342.5 394.413C337.759 391.274 327.109 377.16 322.679 366.43 331.4 354.623 336.322 339.964 335.786 322.789 334.213 272.367 294.783 232.769 244.161 234.967 194.512 237.122 145.995 263.825 144.552 314.245 143.109 364.665 190.634 398.88 241.289 400.421 261.42 401.034 280.719 396.856 296.575 388.439 308.736 392.446 325.141 396.147 342.334 395.043 342.651 395.023 342.767 394.589 342.5 394.413",
+        },
+        style: {
+            fillStyle: "#000000",
+        },
+        bbox: false,
+    });
+</script>
+<style>
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+        font-size: 14px;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    .main-container {
+        height: 100%;
+        width: 100%;
+    }
+
+    .iframeCanvas {
+        width: 100%;
+        height: 100%;
+    }
+</style>

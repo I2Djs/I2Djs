@@ -1,18 +1,18 @@
-import queue from "./queue.js";
-import VDom from "./VDom.js";
-import path from "./path.js";
-import colorMap from "./colorMap.js";
-import geometry from "./geometry.js";
-import shaders from "./shaders.js";
+import queue from "./../queue.js";
+import VDom from "./../VDom.js";
+import path from "./../path.js";
+import colorMap from "./../colorMap.js";
+import geometry from "./../geometry.js";
+import shaders from "./../shaders.js";
 import earcut from "earcut";
-import Events from "./events.js";
-import behaviour from "./behaviour.js";
+import Events from "./../events.js";
+import behaviour from "./../behaviour.js";
 import {
     CollectionPrototype,
     NodePrototype,
     layerResizeBind,
     layerResizeUnBind,
-} from "./coreApi.js";
+} from "./../coreApi.js";
 
 const t2DGeometry = geometry;
 
