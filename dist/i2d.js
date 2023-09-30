@@ -6335,6 +6335,25 @@ Example valid ways of supplying a shape would be:
               };
     }
 
+    function colorToRGBPdf(val) {
+        const rgbColor =
+            val instanceof RGBA
+                ? val
+                : val.startsWith("#")
+                ? hexToRgb(val)
+                : val.startsWith("rgb")
+                ? rgbParse(val)
+                : val.startsWith("hsl")
+                ? hslParse(val)
+                : {
+                      r: 0,
+                      g: 0,
+                      b: 0,
+                      a: 255,
+                  };
+        return [rgbColor.r, rgbColor.g, rgbColor.b];
+    }
+
     function colorRGBtransition(src, dest) {
         src = src || defaultColor$1;
         dest = dest || defaultColor$1;
@@ -6375,6 +6394,7 @@ Example valid ways of supplying a shape would be:
         RGBAInstanceCheck: function (_) {
             return _ instanceof RGBA;
         },
+        colorToRGBPdf: colorToRGBPdf,
     };
 
     function Events(vDom) {
@@ -9168,7 +9188,12 @@ Example valid ways of supplying a shape would be:
     };
 
     function svgLayer(container, layerSettings = {}) {
-        const res = document.querySelector(container);
+        const res =
+            container instanceof HTMLElement
+                ? container
+                : container instanceof String
+                ? document.querySelector(container)
+                : null;
         let height = res.clientHeight;
         let width = res.clientWidth;
         const { autoUpdate = true, enableResize = true } = layerSettings;
@@ -81335,6 +81360,7 @@ Please pipe the document into a Node stream.\
         fillStyle: {
             prop: "fillColor",
             getValue: (val) => {
+                console.log(val);
                 return val;
             },
         },
@@ -81855,15 +81881,6 @@ Please pipe the document into a Node stream.\
         }
     }
 
-    function setStylesPdf(pdfCtx) {
-        if (this.style.fillStyle) {
-            pdfCtx.fillColor(this.style.fillStyle);
-        }
-        if (this.style.strokeStyle) {
-            pdfCtx.strokeColor(this.style.strokeStyle);
-        }
-    }
-
     function applyStylesPdf(pdfCtx) {
         if (this.style.fillStyle && this.style.strokeStyle) {
             pdfCtx.fillAndStroke(this.style.fillStyle, this.style.strokeStyle);
@@ -81901,7 +81918,6 @@ Please pipe the document into a Node stream.\
         setStyle: domSetStyle,
         applyStyles,
         applyStylesPdf,
-        setStylesPdf,
         executePdf,
     };
 
@@ -82265,7 +82281,6 @@ Please pipe the document into a Node stream.\
 
     RenderText.prototype.executePdf = function RTexecute(pdfCtx) {
         if (this.attr.text !== undefined && this.attr.text !== null) {
-            this.setStylesPdf(pdfCtx);
             if (this.style.font) {
                 // parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1
                 pdfCtx.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
@@ -82335,7 +82350,6 @@ Please pipe the document into a Node stream.\
 
     RenderCircle.prototype.executePdf = function RCexecute(pdfCtx) {
         const { r = 0, cx = 0, cy = 0 } = this.attr;
-        this.setStylesPdf(pdfCtx);
         pdfCtx.circle(parseInt(cx), parseInt(cy), parseInt(r));
         this.applyStylesPdf(pdfCtx);
     };
@@ -82389,7 +82403,6 @@ Please pipe the document into a Node stream.\
 
     RenderLine.prototype.executePdf = function RLexecute(pdfCtx) {
         const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
-        this.setStylesPdf(pdfCtx);
         pdfCtx.moveTo(x1, y1);
         pdfCtx.lineTo(x2, y2);
         pdfCtx.stroke();
@@ -82455,8 +82468,6 @@ Please pipe the document into a Node stream.\
     RenderPolyline.prototype.executePdf = function polylineExe(pdfCtx) {
         let d;
         if (!this.attr.points || this.attr.points.length === 0) return;
-
-        this.setStylesPdf(pdfCtx);
 
         pdfCtx.moveTo(this.attr.points[0].x, this.attr.points[0].y);
         for (var i = 1; i < this.attr.points.length; i++) {
@@ -82616,7 +82627,6 @@ Please pipe the document into a Node stream.\
 
     RenderPath.prototype.executePdf = function RPexecute(pdfCtx) {
         if (this.attr.d) {
-            this.setStylesPdf(pdfCtx);
             pdfCtx.path(this.attr.d);
             this.applyStylesPdf(pdfCtx);
         }
@@ -82728,7 +82738,6 @@ Please pipe the document into a Node stream.\
         if (!this.polygon) {
             return;
         }
-        this.setStylesPdf(pdfCtx);
         pdfCtx.polygon(...this.polygon.rawPoints);
         this.applyStylesPdf(pdfCtx);
     };
@@ -82795,7 +82804,6 @@ Please pipe the document into a Node stream.\
 
     RenderEllipse.prototype.executePdf = function REexecute(pdfCtx) {
         const { cx = 0, cy = 0, rx = 0, ry = 0 } = this.attr;
-        this.setStylesPdf(pdfCtx);
         pdfCtx.ellipse(cx, cy, rx, ry);
         this.applyStylesPdf(pdfCtx);
     };
@@ -82874,8 +82882,6 @@ Please pipe the document into a Node stream.\
 
     RenderRect.prototype.executePdf = function RRexecute(pdfCtx) {
         const { x = 0, y = 0, width = 0, height = 0, rx = 0, ry = 0 } = this.attr;
-
-        this.setStylesPdf(pdfCtx);
 
         if (!rx && !ry) {
             pdfCtx.rect(x, y, width, height);
@@ -83212,6 +83218,10 @@ Please pipe the document into a Node stream.\
             if (!pdfCtx[key] && pdfStyleMapper[key]) {
                 value = pdfStyleMapper[key].getValue(value);
                 key = pdfStyleMapper[key].prop;
+            }
+
+            if ((key === "fillColor" || key === "strokeColor") && typeof value === "string") {
+                value = colorMap$1.colorToRGBPdf(value);
             }
 
             if (typeof pdfCtx[key] !== "function") {
@@ -84012,7 +84022,12 @@ Please pipe the document into a Node stream.\
     }
 
     function canvasLayer$1(container, contextConfig = {}, layerSettings = {}) {
-        const res = container ? document.querySelector(container) : null;
+        const res =
+            container instanceof HTMLElement
+                ? container
+                : container instanceof String
+                ? document.querySelector(container)
+                : null;
         let height = res ? res.clientHeight : 0;
         let width = res ? res.clientWidth : 0;
         const layer = document.createElement("canvas");
@@ -84251,7 +84266,12 @@ Please pipe the document into a Node stream.\
     }
 
     function pdfLayer$1(container, config, layerSettings) {
-        const res = container ? document.querySelector(container) : null;
+        const res =
+            container instanceof HTMLElement
+                ? container
+                : container instanceof String
+                ? document.querySelector(container)
+                : null;
         const { height = 0, width = 0, margin = 10 } = config;
         const { autoUpdate = true, onUpdate } = layerSettings;
         const layer = document.createElement("canvas");
@@ -87950,7 +87970,12 @@ Please pipe the document into a Node stream.\
     };
 
     function webglLayer(container, contextConfig = {}, layerSettings = {}) {
-        const res = container ? document.querySelector(container) : null;
+        const res =
+            container instanceof HTMLElement
+                ? container
+                : container instanceof String
+                ? document.querySelector(container)
+                : null;
         let height = res ? res.clientHeight : 0;
         let width = res ? res.clientWidth : 0;
         let clearColor = colorMap$1.rgba(0, 0, 0, 0);

@@ -770,7 +770,12 @@ DomExe.prototype.removeChild = function DMremoveChild(obj) {
 };
 
 function svgLayer(container, layerSettings = {}) {
-    const res = document.querySelector(container);
+    const res =
+        container instanceof HTMLElement
+            ? container
+            : container instanceof String
+            ? document.querySelector(container)
+            : null;
     let height = res.clientHeight;
     let width = res.clientWidth;
     const { autoUpdate = true, enableResize = true } = layerSettings;

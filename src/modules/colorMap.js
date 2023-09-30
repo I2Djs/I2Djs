@@ -263,6 +263,25 @@ function colorToRGB(val) {
           };
 }
 
+function colorToRGBPdf(val) {
+    const rgbColor =
+        val instanceof RGBA
+            ? val
+            : val.startsWith("#")
+            ? hexToRgb(val)
+            : val.startsWith("rgb")
+            ? rgbParse(val)
+            : val.startsWith("hsl")
+            ? hslParse(val)
+            : {
+                  r: 0,
+                  g: 0,
+                  b: 0,
+                  a: 255,
+              };
+    return [rgbColor.r, rgbColor.g, rgbColor.b];
+}
+
 function colorRGBtransition(src, dest) {
     src = src || defaultColor;
     dest = dest || defaultColor;
@@ -303,4 +322,5 @@ export default {
     RGBAInstanceCheck: function (_) {
         return _ instanceof RGBA;
     },
+    colorToRGBPdf: colorToRGBPdf,
 };

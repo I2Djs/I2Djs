@@ -3311,7 +3311,12 @@ WebglNodeExe.prototype.removeChild = function WremoveChild(obj) {
 };
 
 function webglLayer(container, contextConfig = {}, layerSettings = {}) {
-    const res = container ? document.querySelector(container) : null;
+    const res =
+        container instanceof HTMLElement
+            ? container
+            : container instanceof String
+            ? document.querySelector(container)
+            : null;
     let height = res ? res.clientHeight : 0;
     let width = res ? res.clientWidth : 0;
     let clearColor = colorMap.rgba(0, 0, 0, 0);
