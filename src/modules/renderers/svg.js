@@ -817,8 +817,12 @@ function svgLayer(container, layerSettings = {}) {
     };
 
     const resize = function (cr) {
-        if (!document.querySelector(container)) {
+        if (
+            (container instanceof HTMLElement && !document.body.contains(container)) ||
+            (container instanceof String && !document.querySelector(container))
+        ) {
             layerResizeUnBind(root);
+            root.destroy();
             return;
         }
         height = cHeight || cr.height;
@@ -867,11 +871,12 @@ function svgLayer(container, layerSettings = {}) {
     };
 
     root.destroy = function () {
-        const res = document.querySelector(container);
-        if (res && res.contains(layer)) {
-            res.removeChild(layer);
+        const res = document.body.contains(this.container);
+        if (res && this.container.contains(this.domEl)) {
+            this.container.removeChild(this.domEl);
         }
         queueInstance.removeVdom(vDomIndex);
+        layerResizeUnBind(root, resize);
     };
 
     root.createPattern = function (config) {

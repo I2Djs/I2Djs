@@ -9232,8 +9232,12 @@ function svgLayer(container, layerSettings = {}) {
     };
 
     const resize = function (cr) {
-        if (!document.querySelector(container)) {
+        if (
+            (container instanceof HTMLElement && !document.body.contains(container)) ||
+            (container instanceof String && !document.querySelector(container))
+        ) {
             layerResizeUnBind(root);
+            root.destroy();
             return;
         }
         height = cHeight || cr.height;
@@ -9282,11 +9286,12 @@ function svgLayer(container, layerSettings = {}) {
     };
 
     root.destroy = function () {
-        const res = document.querySelector(container);
-        if (res && res.contains(layer)) {
-            res.removeChild(layer);
+        const res = document.body.contains(this.container);
+        if (res && this.container.contains(this.domEl)) {
+            this.container.removeChild(this.domEl);
         }
         queueInstance$3.removeVdom(vDomIndex);
+        layerResizeUnBind(root, resize);
     };
 
     root.createPattern = function (config) {
@@ -12625,8 +12630,12 @@ function canvasLayer$1(container, contextConfig = {}, layerSettings = {}) {
     const root = createPage(ctx, vDomIndex);
 
     const resize = function (cr) {
-        if (!document.querySelector(container)) {
+        if (
+            (container instanceof HTMLElement && !document.body.contains(container)) ||
+            (container instanceof String && !document.querySelector(container))
+        ) {
             layerResizeUnBind(root);
+            root.destroy();
             return;
         }
         height = cHeight || cr.height;
@@ -12752,9 +12761,9 @@ function canvasLayer$1(container, contextConfig = {}, layerSettings = {}) {
     };
 
     root.destroy = function () {
-        const res = document.querySelector(container);
-        if (res && res.contains(layer)) {
-            res.removeChild(layer);
+        const res = document.body.contains(this.container);
+        if (res && this.container.contains(this.domEl)) {
+            this.container.removeChild(this.domEl);
         }
         queueInstance$1.removeVdom(vDomIndex);
         layerResizeUnBind(root, resize);
@@ -16629,13 +16638,13 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
         this.execute();
     };
 
-    root.destroy = function () {
-        const res = document.querySelector(container);
-        if (res && res.contains(layer)) {
-            res.removeChild(layer);
-        }
-        queueInstance.removeVdom(vDomIndex);
-    };
+    // root.destroy = function () {
+    //     const res = document.querySelector(container);
+    //     if (res && res.contains(layer)) {
+    //         res.removeChild(layer);
+    //     }
+    //     queueInstance.removeVdom(vDomIndex);
+    // };
 
     root.getPixels = function (x, y, width_, height_) {
         const pixels = new Uint8Array(width_ * height_ * 4);
@@ -16660,8 +16669,12 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
     };
 
     const resize = function (cr) {
-        if (!document.querySelector(container)) {
+        if (
+            (container instanceof HTMLElement && !document.body.contains(container)) ||
+            (container instanceof String && !document.querySelector(container))
+        ) {
             layerResizeUnBind(root);
+            root.destroy();
             return;
         }
         height = cr.height;
@@ -16694,6 +16707,15 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
 
     root.onResize = function (exec) {
         resizeCall = exec;
+    };
+
+    root.destroy = function () {
+        const res = document.body.contains(this.container);
+        if (res && this.container.contains(this.domEl)) {
+            this.container.removeChild(this.domEl);
+        }
+        queueInstance.removeVdom(vDomIndex);
+        layerResizeUnBind(root, resize);
     };
 
     root.onChange = function (exec) {
