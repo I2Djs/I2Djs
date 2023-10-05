@@ -3181,6 +3181,7 @@ WebglNodeExe.prototype.child = function child(childrens) {
             node.dom.parent = self;
             self.children[self.children.length] = node;
             node.dom.pindex = self.children.length - 1;
+            node.vDomIndex = self.vDomIndex;
             if (!(node instanceof RenderWebglShader) && !(node.dom instanceof WebglGroupNode)) {
                 if (this.dom.shader) {
                     if (node.el === this.dom.shader.attr.shaderType) {

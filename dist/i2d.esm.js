@@ -9023,6 +9023,7 @@ DomExe.prototype.child = function DMchild(nodes) {
         for (let i = 0, len = nodes.stack.length; i < len; i++) {
             fragment.appendChild(nodes.stack[i].dom);
             nodes.stack[i].parentNode = self;
+            nodes.stack[i].vDomIndex = self.vDomIndex;
             this.children[this.children.length] = nodes.stack[i];
         }
 
@@ -9922,6 +9923,23 @@ var behaviour = {
     },
 };
 
+const pdfSupportedFontFamily = [
+    "Courier",
+    "Courier-Bold",
+    "Courier-Oblique",
+    "Courier-BoldOblique",
+    "Helvetica",
+    "Helvetica-Bold",
+    "Helvetica-Oblique",
+    "Helvetica-BoldOblique",
+    "Symbol",
+    "Times-Roman",
+    "Times-Bold",
+    "Times-Italic",
+    "Times-BoldItalic",
+    "ZapfDingbats",
+];
+
 const pdfStyleMapper = {
     fillStyle: {
         prop: "fillColor",
@@ -9946,6 +9964,17 @@ const pdfStyleMapper = {
         prop: "dash",
         getValue: (val) => {
             return val[0];
+        },
+    },
+    font: {
+        prop: "font",
+        getValue: (val) => {
+            const familyName = val.match(/\b[A-Za-z]+[0-9]*[A-Za-z0-9]*\b/gm);
+            return familyName &&
+                familyName.length > 0 &&
+                pdfSupportedFontFamily.indexOf(familyName[0]) !== -1
+                ? familyName[0]
+                : "Helvetica";
         },
     },
 };
@@ -11583,10 +11612,12 @@ RenderGroup.prototype.child = function RGchild(obj) {
 
     if (objLocal instanceof CanvasNodeExe$1) {
         objLocal.dom.parent = self;
+        objLocal.vDomIndex = self.vDomIndex;
         self.stack[self.stack.length] = objLocal;
     } else if (objLocal instanceof CanvasCollection) {
         objLocal.stack.forEach((d) => {
             d.dom.parent = self;
+            d.vDomIndex = self.vDomIndex;
             self.stack[self.stack.length] = d;
         });
     } else {
@@ -11781,7 +11812,7 @@ CanvasNodeExe$1.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
             console.log("unkonwn Style");
         }
 
-        if (!pdfCtx[key] && pdfStyleMapper[key]) {
+        if (pdfStyleMapper[key]) {
             value = pdfStyleMapper[key].getValue(value);
             key = pdfStyleMapper[key].prop;
         }
@@ -11995,6 +12026,7 @@ CanvasNodeExe$1.prototype.prependChild = function child(childrens) {
     if (self.dom instanceof RenderGroup) {
         for (let i = 0; i < childrensLocal.length; i += 1) {
             childrensLocal[i].dom.parent = self;
+            childrensLocal[i].vDomIndex = self.vDomIndex;
             self.children.unshift(childrensLocal[i]);
         }
     } else {
@@ -12013,6 +12045,7 @@ CanvasNodeExe$1.prototype.child = function child(childrens) {
     if (self.dom instanceof RenderGroup) {
         for (let i = 0; i < childrensLocal.length; i += 1) {
             childrensLocal[i].dom.parent = self;
+            childrensLocal[i].vDomIndex = self.vDomIndex;
             self.children[self.children.length] = childrensLocal[i];
         }
     } else {
@@ -16410,6 +16443,7 @@ WebglNodeExe.prototype.child = function child(childrens) {
             node.dom.parent = self;
             self.children[self.children.length] = node;
             node.dom.pindex = self.children.length - 1;
+            node.vDomIndex = self.vDomIndex;
             if (!(node instanceof RenderWebglShader) && !(node.dom instanceof WebglGroupNode)) {
                 if (this.dom.shader) {
                     if (node.el === this.dom.shader.attr.shaderType) {

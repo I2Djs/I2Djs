@@ -608,6 +608,7 @@ DomExe.prototype.child = function DMchild(nodes) {
         for (let i = 0, len = nodes.stack.length; i < len; i++) {
             fragment.appendChild(nodes.stack[i].dom);
             nodes.stack[i].parentNode = self;
+            nodes.stack[i].vDomIndex = self.vDomIndex;
             this.children[this.children.length] = nodes.stack[i];
         }
 
