@@ -2718,7 +2718,7 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     const res =
         container instanceof HTMLElement
             ? container
-            : container instanceof String
+            : typeof container === "string" || container instanceof String
             ? document.querySelector(container)
             : null;
     let height = res ? res.clientHeight : 0;
@@ -2966,7 +2966,7 @@ function pdfLayer(container, config, layerSettings) {
     const res =
         container instanceof HTMLElement
             ? container
-            : container instanceof String
+            : typeof container === "string" || container instanceof String
             ? document.querySelector(container)
             : null;
     const { height = 0, width = 0, margin = 10 } = config;

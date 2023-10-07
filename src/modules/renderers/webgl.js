@@ -3315,7 +3315,7 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
     const res =
         container instanceof HTMLElement
             ? container
-            : container instanceof String
+            : typeof container === "string" || container instanceof String
             ? document.querySelector(container)
             : null;
     let height = res ? res.clientHeight : 0;

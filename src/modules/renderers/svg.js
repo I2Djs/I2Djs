@@ -774,7 +774,7 @@ function svgLayer(container, layerSettings = {}) {
     const res =
         container instanceof HTMLElement
             ? container
-            : container instanceof String
+            : typeof container === "string" || container instanceof String
             ? document.querySelector(container)
             : null;
     let height = res.clientHeight;

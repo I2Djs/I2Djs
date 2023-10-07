@@ -5,8 +5,11 @@
     </head>
     <body>
         <div class="main-container">
-            <div id="lineLoaderContainer" class="i2d-canvas"></div>
+            <div id="lineLoaderContainer" class="i2d-canvas">
+                <span class="title">Canvas Output</span>
+            </div>
             <div id="pdfContainer" class="i2d-canvas">
+                <span class="title">PDF Output</span>
                 <iframe class="iframeCanvas" id="i2dPdfContainer"></iframe>
             </div>
         </div>
@@ -107,5 +110,12 @@
     .iframeCanvas {
         width: 100%;
         height: 100%;
+    }
+
+    .title {
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        font-size: 24px;
     }
 </style>

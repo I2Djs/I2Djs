@@ -9192,7 +9192,7 @@ Example valid ways of supplying a shape would be:
         const res =
             container instanceof HTMLElement
                 ? container
-                : container instanceof String
+                : typeof container === "string" || container instanceof String
                 ? document.querySelector(container)
                 : null;
         let height = res.clientHeight;
@@ -84063,7 +84063,7 @@ Please pipe the document into a Node stream.\
         const res =
             container instanceof HTMLElement
                 ? container
-                : container instanceof String
+                : typeof container === "string" || container instanceof String
                 ? document.querySelector(container)
                 : null;
         let height = res ? res.clientHeight : 0;
@@ -84311,7 +84311,7 @@ Please pipe the document into a Node stream.\
         const res =
             container instanceof HTMLElement
                 ? container
-                : container instanceof String
+                : typeof container === "string" || container instanceof String
                 ? document.querySelector(container)
                 : null;
         const { height = 0, width = 0, margin = 10 } = config;
@@ -88016,7 +88016,7 @@ Please pipe the document into a Node stream.\
         const res =
             container instanceof HTMLElement
                 ? container
-                : container instanceof String
+                : typeof container === "string" || container instanceof String
                 ? document.querySelector(container)
                 : null;
         let height = res ? res.clientHeight : 0;

@@ -9189,7 +9189,7 @@ function svgLayer(container, layerSettings = {}) {
     const res =
         container instanceof HTMLElement
             ? container
-            : container instanceof String
+            : typeof container === "string" || container instanceof String
             ? document.querySelector(container)
             : null;
     let height = res.clientHeight;
@@ -12624,7 +12624,7 @@ function canvasLayer$1(container, contextConfig = {}, layerSettings = {}) {
     const res =
         container instanceof HTMLElement
             ? container
-            : container instanceof String
+            : typeof container === "string" || container instanceof String
             ? document.querySelector(container)
             : null;
     let height = res ? res.clientHeight : 0;
@@ -12872,7 +12872,7 @@ function pdfLayer$1(container, config, layerSettings) {
     const res =
         container instanceof HTMLElement
             ? container
-            : container instanceof String
+            : typeof container === "string" || container instanceof String
             ? document.querySelector(container)
             : null;
     const { height = 0, width = 0, margin = 10 } = config;
@@ -16577,7 +16577,7 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
     const res =
         container instanceof HTMLElement
             ? container
-            : container instanceof String
+            : typeof container === "string" || container instanceof String
             ? document.querySelector(container)
             : null;
     let height = res ? res.clientHeight : 0;
