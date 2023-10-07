@@ -1,5 +1,5 @@
 /*!
-      * i2djs v4.0.2
+      * i2djs
       * (c) 2023 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */

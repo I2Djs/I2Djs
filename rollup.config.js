@@ -9,7 +9,7 @@ const author = require("./package.json").author;
 const license = require("./package.json").license;
 
 const banner = `/*!
-      * i2djs v${version}
+      * i2djs
       * (c) ${new Date().getFullYear()} ${author} (narayanaswamy14@gmail.com)
       * @license ${license}
       */`;
