@@ -9944,7 +9944,6 @@ const pdfStyleMapper = {
     fillStyle: {
         prop: "fillColor",
         getValue: (val) => {
-            console.log(val);
             return val;
         },
     },

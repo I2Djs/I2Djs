@@ -81383,7 +81383,6 @@ Please pipe the document into a Node stream.\
         fillStyle: {
             prop: "fillColor",
             getValue: (val) => {
-                console.log(val);
                 return val;
             },
         },
