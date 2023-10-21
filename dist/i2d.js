@@ -84207,7 +84207,7 @@ Please pipe the document into a Node stream.\
             const stream_ = doc.pipe(blobStream());
 
             const fontRegister = options.fontRegister || {};
-            const pdfInfo = options.info || { Creator: "PDF-Frame", Producer: "PDFKit" };
+            const pdfInfo = options.info || { title: "I2Djs-PDF" };
 
             if (fontRegister) {
                 for (const key in fontRegister) {
@@ -84216,7 +84216,11 @@ Please pipe the document into a Node stream.\
             }
 
             if (pdfInfo) {
-                doc.info = pdfInfo;
+                doc.info.Title = pdfInfo.title || "";
+                doc.info.Author = pdfInfo.author || "";
+                doc.info.Subject = pdfInfo.subject || "";
+                doc.info.Keywords = pdfInfo.keywords || "";
+                doc.info.CreationDate = pdfInfo.creationDate || "";
             }
 
             root.updateABBox();
@@ -84342,7 +84346,7 @@ Please pipe the document into a Node stream.\
         const layer = document.createElement("canvas");
         const ctx = layer.getContext("2d", {});
         const fontRegister = config.fontRegister || {};
-        const pdfInfo = config.info || { Creator: "PDF-Frame", Producer: "PDFKit" };
+        const pdfInfo = config.info || { title: "I2Djs-PDF" };
 
         let vDomIndex = 999999;
         let pageDefaultTemplate = null;
@@ -84443,7 +84447,11 @@ Please pipe the document into a Node stream.\
             }
 
             if (pdfInfo) {
-                doc.info = pdfInfo;
+                doc.info.Title = pdfInfo.title || "";
+                doc.info.Author = pdfInfo.author || "";
+                doc.info.Subject = pdfInfo.subject || "";
+                doc.info.Keywords = pdfInfo.keywords || "";
+                doc.info.CreationDate = pdfInfo.creationDate || "";
             }
 
             this.doc = doc;
