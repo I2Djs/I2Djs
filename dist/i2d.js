@@ -84199,13 +84199,25 @@ Please pipe the document into a Node stream.\
         };
 
         root.exportPdf = function (callback, options = {}) {
+            const pdfConfig = parsePdfConfig(options);
             const doc = new PDFDocument({
                 size: [this.width, this.height],
-                margin: this.margin,
-                bufferPages: true,
-                ...options,
+                ...pdfConfig,
             });
             const stream_ = doc.pipe(blobStream());
+
+            const fontRegister = options.fontRegister || {};
+            const pdfInfo = options.info || { Creator: "PDF-Frame", Producer: "PDFKit" };
+
+            if (fontRegister) {
+                for (const key in fontRegister) {
+                    doc.registerFont(key, fontRegister[key]);
+                }
+            }
+
+            if (pdfInfo) {
+                doc.info = pdfInfo;
+            }
 
             root.updateABBox();
 
@@ -84306,6 +84318,17 @@ Please pipe the document into a Node stream.\
         return root;
     }
 
+    function parsePdfConfig(config) {
+        return {
+            autoFirstPage: false,
+            bufferPages: true,
+            ...(config.margin && { margin: config.margin }),
+            ...(config.margins && { margins: config.margins }),
+            ...(config.defaultFont && { font: config.defaultFont }),
+            ...(config.encryption && { ...config.encryption }),
+        };
+    }
+
     function pdfLayer$1(container, config, layerSettings) {
         const res =
             container instanceof HTMLElement
@@ -84313,10 +84336,13 @@ Please pipe the document into a Node stream.\
                 : typeof container === "string" || container instanceof String
                 ? document.querySelector(container)
                 : null;
-        const { height = 0, width = 0, margin = 10 } = config;
+        const { height = 0, width = 0 } = config;
+        const pdfConfig = parsePdfConfig(config);
         const { autoUpdate = true, onUpdate } = layerSettings;
         const layer = document.createElement("canvas");
-        const ctx = layer.getContext("2d", config);
+        const ctx = layer.getContext("2d", {});
+        const fontRegister = config.fontRegister || {};
+        const pdfInfo = config.info || { Creator: "PDF-Frame", Producer: "PDFKit" };
 
         let vDomIndex = 999999;
         let pageDefaultTemplate = null;
@@ -84365,7 +84391,8 @@ Please pipe the document into a Node stream.\
                 onUpdate ||
                     function (url) {
                         res.setAttribute("src", url);
-                    }
+                    },
+                pdfConfig
             );
             // const self = this;
             // this.pages.forEach(function (page, i) {
@@ -84382,7 +84409,7 @@ Please pipe the document into a Node stream.\
             newpage.domEl = layer;
             newpage.height = height;
             newpage.width = width;
-            newpage.margin = margin;
+            newpage.margin = pdfConfig.margin || 0;
             newpage.type = "CANVAS";
             newpage.EXEType = "pdf";
             newpage.ctx = ctx;
@@ -84405,19 +84432,26 @@ Please pipe the document into a Node stream.\
         };
         PDFCreator.prototype.exportPdf = function (callback, options = {}) {
             const doc = new PDFDocument({
-                autoFirstPage: false,
-                margin: margin,
-                bufferPages: true,
                 ...options,
             });
             const stream_ = doc.pipe(blobStream());
+
+            if (fontRegister) {
+                for (const key in fontRegister) {
+                    doc.registerFont(key, fontRegister[key]);
+                }
+            }
+
+            if (pdfInfo) {
+                doc.info = pdfInfo;
+            }
 
             this.doc = doc;
 
             this.pages.forEach(function (page, i) {
                 page.updateBBox();
                 doc.addPage({
-                    margin: margin,
+                    margin: pdfConfig.margin || 0,
                     size: [width, height],
                 });
                 if (page.pageTemplate) {
