@@ -84042,7 +84042,7 @@ Please pipe the document into a Node stream.\
             this.pageTemplate.updateABBox();
         };
 
-        root.createTexture = function (config) {
+        root.createTexture = function (config = {}) {
             return new RenderTexture(this, config);
         };
 
@@ -84333,7 +84333,7 @@ Please pipe the document into a Node stream.\
         };
     }
 
-    function pdfLayer$1(container, config, layerSettings) {
+    function pdfLayer$1(container, config = {}, layerSettings = {}) {
         const res =
             container instanceof HTMLElement
                 ? container
@@ -84386,7 +84386,7 @@ Please pipe the document into a Node stream.\
             pageDefaultTemplate = exec;
         };
 
-        PDFCreator.prototype.setSize = function (width, height) {
+        PDFCreator.prototype.setSize = function (width = 0, height = 0) {
             this.width = width;
             this.height = height;
         };
@@ -84485,11 +84485,11 @@ Please pipe the document into a Node stream.\
             }
             return this;
         };
-        PDFCreator.prototype.createTexture = function (config) {
+        PDFCreator.prototype.createTexture = function (config = {}) {
             return fallBackPage.createTexture(config);
         };
 
-        PDFCreator.prototype.createAsyncTexture = function (config) {
+        PDFCreator.prototype.createAsyncTexture = function (config = {}) {
             return fallBackPage.createAsyncTexture(config);
         };
 

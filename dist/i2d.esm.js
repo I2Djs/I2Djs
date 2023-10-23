@@ -12603,7 +12603,7 @@ function createPage(ctx, vDomIndex) {
         this.pageTemplate.updateABBox();
     };
 
-    root.createTexture = function (config) {
+    root.createTexture = function (config = {}) {
         return new RenderTexture(this, config);
     };
 
@@ -12894,7 +12894,7 @@ function parsePdfConfig(config) {
     };
 }
 
-function pdfLayer$1(container, config, layerSettings) {
+function pdfLayer$1(container, config = {}, layerSettings = {}) {
     const res =
         container instanceof HTMLElement
             ? container
@@ -12947,7 +12947,7 @@ function pdfLayer$1(container, config, layerSettings) {
         pageDefaultTemplate = exec;
     };
 
-    PDFCreator.prototype.setSize = function (width, height) {
+    PDFCreator.prototype.setSize = function (width = 0, height = 0) {
         this.width = width;
         this.height = height;
     };
@@ -13046,11 +13046,11 @@ function pdfLayer$1(container, config, layerSettings) {
         }
         return this;
     };
-    PDFCreator.prototype.createTexture = function (config) {
+    PDFCreator.prototype.createTexture = function (config = {}) {
         return fallBackPage.createTexture(config);
     };
 
-    PDFCreator.prototype.createAsyncTexture = function (config) {
+    PDFCreator.prototype.createAsyncTexture = function (config = {}) {
         return fallBackPage.createAsyncTexture(config);
     };
 
