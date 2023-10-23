@@ -13035,6 +13035,10 @@ function pdfLayer$1(container, config = {}, layerSettings = {}) {
             callback(stream_.toBlobURL("application/pdf"));
         });
     };
+
+    PDFCreator.prototype.destroy = function () {
+        this.flush();
+    };
     PDFCreator.prototype.exec = function (exe) {
         exe.call(this, this.dataObj);
     };

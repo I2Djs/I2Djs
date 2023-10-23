@@ -84474,6 +84474,10 @@ Please pipe the document into a Node stream.\
                 callback(stream_.toBlobURL("application/pdf"));
             });
         };
+
+        PDFCreator.prototype.destroy = function () {
+            this.flush();
+        };
         PDFCreator.prototype.exec = function (exe) {
             exe.call(this, this.dataObj);
         };

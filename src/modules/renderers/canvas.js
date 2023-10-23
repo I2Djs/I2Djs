@@ -3131,8 +3131,8 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
     };
 
     PDFCreator.prototype.destroy = function () {
-        
-    }
+        this.flush();
+    };
     PDFCreator.prototype.exec = function (exe) {
         exe.call(this, this.dataObj);
     };
