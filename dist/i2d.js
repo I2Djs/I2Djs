@@ -83994,9 +83994,9 @@ Please pipe the document into a Node stream.\
             let leafNodes = getAllLeafs(root);
             // sort leafs based on absolute pos
             leafNodes = leafNodes.sort((a, b) => {
-                const aTrans = a.dom?.abTranslate ?? { translate: [0, 0] };
+                const aTrans = a.dom && a.dom.abTranslate ? a.dom.abTranslate : { translate: [0, 0] };
                 const aBox = a.dom.BBox;
-                const bTrans = b.dom?.abTranslate ?? { translate: [0, 0] };
+                const bTrans = b.dom && b.dom.abTranslate ? b.dom.abTranslate : { translate: [0, 0] };
                 const bBox = b.dom.BBox;
                 return aTrans.translate[1] + aBox.height - (bTrans.translate[1] + bBox.height);
             });
