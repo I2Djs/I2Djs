@@ -99,8 +99,15 @@ import {canvasLayer} from 'i2djs'
   </tr>
 </table>
 
-### Basic Shapes
+### PDF Example
+<table>
+  <tr>
+      <td width="10%"><a href="https://xxsmny.csb.app/"><img width="45" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/square.png"></a></td>
+  </tr>
+</table>
 
+
+### Basic Shapes
 <table>
     <tr>
         <td width="10%"><a href="https://i2djs.github.io/I2Djs/examples/canvas/shapes.html"><img width="45" src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/square.png"></a></td>
