@@ -3063,18 +3063,18 @@ function pdfLayer(container, config, layerSettings) {
         //     self.ctx.restore();
         // })
     };
-    PDFCreator.prototype.addPage = function () {
+    PDFCreator.prototype.addPage = function (config = {}) {
         const newpage = createPage(ctx, this.vDomIndex);
         newpage.domEl = layer;
         newpage.height = height;
         newpage.width = width;
-        newpage.margin = pdfConfig.margin || 0;
+        newpage.margin = config.margin || pdfConfig.margin || 0;
         newpage.type = "CANVAS";
         newpage.EXEType = "pdf";
         newpage.ctx = ctx;
 
-        if (pageDefaultTemplate) {
-            newpage.pageTemplate = pageDefaultTemplate;
+        if (config.pageTemplate || pageDefaultTemplate) {
+            newpage.addTemplate(config.pageTemplate || pageDefaultTemplate);
         }
 
         this.pages.push(newpage);
