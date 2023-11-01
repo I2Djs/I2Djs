@@ -84322,14 +84322,15 @@ Please pipe the document into a Node stream.\
         return root;
     }
 
-    function parsePdfConfig(config) {
+    function parsePdfConfig(config, oldConfig = {}) {
         return {
+            ...oldConfig,
             autoFirstPage: false,
             bufferPages: true,
-            ...(config.margin && { margin: config.margin }),
-            ...(config.margins && { margins: config.margins }),
-            ...(config.defaultFont && { font: config.defaultFont }),
-            ...(config.encryption && { ...config.encryption }),
+            ...(config.margin !== undefined && { margin: config.margin }),
+            ...(config.margins !== undefined && { margins: config.margins }),
+            ...(config.defaultFont !== undefined && { font: config.defaultFont }),
+            ...(config.encryption !== undefined && { ...config.encryption }),
         };
     }
 
@@ -84340,13 +84341,13 @@ Please pipe the document into a Node stream.\
                 : typeof container === "string" || container instanceof String
                 ? document.querySelector(container)
                 : null;
-        const { height = 0, width = 0 } = config;
-        const pdfConfig = parsePdfConfig(config);
+        let { height = 0, width = 0 } = config;
+        let pdfConfig = parsePdfConfig(config, {});
         const { autoUpdate = true, onUpdate } = layerSettings;
         const layer = document.createElement("canvas");
         const ctx = layer.getContext("2d", {});
-        const fontRegister = config.fontRegister || {};
-        const pdfInfo = config.info || { title: "I2Djs-PDF" };
+        let fontRegister = config.fontRegister || {};
+        let pdfInfo = config.info || { title: "I2Djs-PDF" };
 
         let vDomIndex = 999999;
         let pageDefaultTemplate = null;
@@ -84382,6 +84383,35 @@ Please pipe the document into a Node stream.\
             }
         };
 
+        PDFCreator.prototype.setConfig = function (config = {}) {
+            const tPdfConfig = parsePdfConfig(config, pdfConfig);
+
+            if (config.fontRegister) {
+                fontRegister = {
+                    ...(config.fontRegister || {}),
+                };
+            }
+
+            if (config.info) {
+                pdfInfo = config.info || { title: "I2Djs-PDF" };
+            }
+
+            height = config.height || height;
+            width = config.width || width;
+
+            layer.setAttribute("height", height * 1);
+            layer.setAttribute("width", width * 1);
+
+            this.width = width;
+            this.height = height;
+
+            pdfConfig = tPdfConfig;
+
+            this.execute();
+
+            return this;
+        };
+
         PDFCreator.prototype.setPageTemplate = function (exec) {
             pageDefaultTemplate = exec;
         };
@@ -84389,6 +84419,8 @@ Please pipe the document into a Node stream.\
         PDFCreator.prototype.setSize = function (width = 0, height = 0) {
             this.width = width;
             this.height = height;
+
+            return this;
         };
         PDFCreator.prototype.execute = function () {
             this.exportPdf(
@@ -84411,8 +84443,8 @@ Please pipe the document into a Node stream.\
         PDFCreator.prototype.addPage = function (config = {}) {
             const newpage = createPage(ctx, this.vDomIndex);
             newpage.domEl = layer;
-            newpage.height = height;
-            newpage.width = width;
+            newpage.height = config.height || height;
+            newpage.width = config.width || width;
             newpage.margin = config.margin || pdfConfig.margin || 0;
             newpage.type = "CANVAS";
             newpage.EXEType = "pdf";
@@ -84427,16 +84459,19 @@ Please pipe the document into a Node stream.\
         };
         PDFCreator.prototype.removePage = function (page) {
             const pageIndex = this.pages.indexOf(page);
+            let removedPage = null;
             if (pageIndex !== -1) {
-                this.pages.splice(pageIndex, 1);
+                removedPage = this.pages.splice(pageIndex, 1);
             }
+
+            return removedPage;
         };
         PDFCreator.prototype.createTemplate = function () {
             return createPage(ctx, this.vDomIndex);
         };
-        PDFCreator.prototype.exportPdf = function (callback, options = {}) {
+        PDFCreator.prototype.exportPdf = function (callback, pdfConfig = {}) {
             const doc = new PDFDocument({
-                ...options,
+                ...pdfConfig,
             });
             const stream_ = doc.pipe(blobStream());
 
@@ -84459,8 +84494,8 @@ Please pipe the document into a Node stream.\
             this.pages.forEach(function (page, i) {
                 page.updateBBox();
                 doc.addPage({
-                    margin: pdfConfig.margin || 0,
-                    size: [width, height],
+                    margin: page.margin || 0,
+                    size: [page.width, page.height],
                 });
                 if (page.pageTemplate) {
                     page.pageTemplate.executePdf(doc);
