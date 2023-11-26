@@ -39,7 +39,19 @@ const pdfStyleMapper = {
             return val;
         },
     },
+    fill: {
+        prop: "fillColor",
+        getValue: (val) => {
+            return val;
+        },
+    },
     strokeStyle: {
+        prop: "strokeColor",
+        getValue: (val) => {
+            return val;
+        },
+    },
+    stroke: {
         prop: "strokeColor",
         getValue: (val) => {
             return val;
@@ -57,6 +69,12 @@ const pdfStyleMapper = {
             return val[0];
         },
     },
+    textAlign: {
+        prop: "align",
+        getValue: (val) => {
+            return val;
+        },
+    },
     font: {
         prop: "font",
         getValue: (val) => {
@@ -71,10 +89,12 @@ const pdfStyleMapper = {
 };
 
 const canvasCssMapper = {
-    fill: "fillStyle",
-    stroke: "strokeColor",
-    lineDash: "setLineDash",
-    opacity: "globalAlpha",
+    "fill": "fillStyle",
+    "stroke": "strokeColor",
+    "lineDash": "setLineDash",
+    "opacity": "globalAlpha",
+    "stroke-width": "lineWidth",
+    "stroke-dasharray": "setLineDash",
 };
 
 const t2DGeometry = geometry;
@@ -202,6 +222,7 @@ function RPolyupdateBBox() {
     const self = this;
     const { transform, points = [] } = self.attr;
     const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    let abYposition = 0;
 
     if (points && points.length > 0) {
         let minX = points[0].x;
@@ -222,6 +243,7 @@ function RPolyupdateBBox() {
             width: (maxX - minX) * scaleX,
             height: (maxY - minY) * scaleY,
         };
+        abYposition = minY;
     } else {
         self.BBox = {
             x: 0,
@@ -236,6 +258,8 @@ function RPolyupdateBBox() {
     } else {
         self.BBoxHit = this.BBox;
     }
+
+    self.abYposition = abYposition;
 }
 
 function CanvasGradient(config = {}, type = "linear") {
@@ -283,11 +307,11 @@ CanvasGradient.prototype.linearGradientPdf = function GralinearGradient(ctx, BBo
     const { translate = [0, 0] } = AABox;
     const lGradient = ctx.linearGradient(
         translate[0] + BBox.x + BBox.width * (this.config.x1 / 100),
-        translate[1] + BBox.y + BBox.height * (this.config.y1 / 100),
+        translate[1] + 0 + BBox.height * (this.config.y1 / 100),
         translate[0] + BBox.x + BBox.width * (this.config.x2 / 100),
-        translate[1] + BBox.y + BBox.height * (this.config.y2 / 100)
+        translate[1] + 0 + BBox.height * (this.config.y2 / 100)
     );
-    this.config.colorStops.forEach((d) => {
+    (this.config.colorStops ?? []).forEach((d) => {
         lGradient.stop(d.offset / 100, d.color, d.opacity);
     });
     return lGradient;
@@ -300,7 +324,7 @@ CanvasGradient.prototype.linearGradient = function GralinearGradient(ctx, BBox) 
         BBox.x + BBox.width * (this.config.x2 / 100),
         BBox.y + BBox.height * (this.config.y2 / 100)
     );
-    this.config.colorStops.forEach((d) => {
+    (this.config.colorStops ?? []).forEach((d) => {
         lGradient.addColorStop(d.offset / 100, d.color);
     });
     return lGradient;
@@ -313,7 +337,7 @@ CanvasGradient.prototype.absoluteLinearGradient = function absoluteGralinearGrad
         this.config.x2,
         this.config.y2
     );
-    this.config.colorStops.forEach((d) => {
+    (this.config.colorStops ?? []).forEach((d) => {
         lGradient.addColorStop(d.offset, d.color);
     });
     return lGradient;
@@ -330,7 +354,7 @@ CanvasGradient.prototype.absoluteLinearGradientPdf = function absoluteGralinearG
         translate[0] + this.config.x2,
         translate[1] + this.config.y2
     );
-    this.config.colorStops.forEach((d) => {
+    (this.config.colorStops ?? []).forEach((d) => {
         lGradient.stop(d.offset, d.color, d.opacity);
     });
     return lGradient;
@@ -350,7 +374,7 @@ CanvasGradient.prototype.radialGradient = function GRAradialGradient(ctx, BBox) 
             ? (BBox.width * outerCircle.r) / 100
             : (BBox.height * outerCircle.r) / 100
     );
-    this.config.colorStops.forEach((d) => {
+    (this.config.colorStops ?? []).forEach((d) => {
         cGradient.addColorStop(d.offset / 100, d.color);
     });
     return cGradient;
@@ -367,7 +391,7 @@ CanvasGradient.prototype.radialGradientPdf = function GRAradialGradient(ctx, BBo
         translate[1] + BBox.height * (outerCircle.y / 100),
         outerCircle.r2
     );
-    this.config.colorStops.forEach((d) => {
+    (this.config.colorStops ?? []).forEach((d) => {
         cGradient.stop(d.offset / 100, d.color, d.opacity);
     });
     return cGradient;
@@ -383,7 +407,7 @@ CanvasGradient.prototype.absoluteRadialGradient = function absoluteGraradialGrad
         outerCircle.y,
         outerCircle.r
     );
-    this.config.colorStops.forEach((d) => {
+    (this.config.colorStops ?? []).forEach((d) => {
         cGradient.addColorStop(d.offset / 100, d.color);
     });
     return cGradient;
@@ -404,7 +428,7 @@ CanvasGradient.prototype.absoluteRadialGradientPdf = function absoluteGraradialG
         translate[1] + outerCircle.y,
         outerCircle.r
     );
-    this.config.colorStops.forEach((d) => {
+    (this.config.colorStops ?? []).forEach((d) => {
         cGradient.stop(d.offset / 100, d.color);
     });
     return cGradient;
@@ -568,11 +592,13 @@ function applyStyles() {
 }
 
 function applyStylesPdf(pdfCtx) {
-    if (this.style.fillStyle && this.style.strokeStyle) {
-        pdfCtx.fillAndStroke(this.style.fillStyle, this.style.strokeStyle);
-    } else if (this.style.fillStyle) {
+    const fillColor = this.style.fillStyle ?? this.style.fill ?? this.style.fillColor;
+    const strokeColor = this.style.stroke ?? this.style.strokeStyle ?? this.style.strokeColor;
+    if (fillColor && strokeColor) {
+        pdfCtx.fillAndStroke(fillColor, strokeColor);
+    } else if (fillColor) {
         pdfCtx.fill();
-    } else if (this.style.strokeStyle) {
+    } else if (strokeColor) {
         pdfCtx.stroke();
     }
 }
@@ -780,6 +806,8 @@ RenderImage.prototype.updateBBox = function RIupdateBBox() {
     } else {
         self.BBoxHit = this.BBox;
     }
+
+    self.abYposition = y;
 };
 
 RenderImage.prototype.execute = function RIexecute() {
@@ -792,10 +820,10 @@ RenderImage.prototype.execute = function RIexecute() {
 };
 
 RenderImage.prototype.executePdf = function RIexecute(pdfCtx) {
-    const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
+    const { width = 0, height = 0, x = 0 } = this.attr;
     if (this.attr.src) {
         // this.ctx.drawImage(this.rImageObj ? this.rImageObj.canvas : this.imageObj, x, y, width, height);
-        pdfCtx.image(this.attr.src, x, y, { width, height });
+        pdfCtx.image(this.attr.src, x, 0, { width, height });
     }
 };
 
@@ -864,7 +892,7 @@ RenderText.prototype.fitWidth = function () {
             if (this.ctx.measureText(strLit + textList[i]).width < width) {
                 strLit = strLit + textList[i];
             } else {
-                if (strLit && strLit.length > 0) {
+                if (strLit && strLit.length > 0 && strLit !== " ") {
                     textSubStrs.push(strLit);
                 }
                 strLit = textList[i];
@@ -872,7 +900,7 @@ RenderText.prototype.fitWidth = function () {
         }
         i++;
     }
-    if (strLit) {
+    if (strLit && strLit !== " ") {
         textSubStrs.push(strLit);
     }
 
@@ -899,7 +927,7 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
         self.textHeight = height + 3;
     } else {
         self.textHeight = this.ctx.measureText("I2Djs").fontBoundingBoxAscent;
-        height = self.textHeight;
+        height = self.textHeight + 7;
     }
     if (this.attr.width && this.textList && this.textList.length > 0) {
         width = this.attr.width;
@@ -925,6 +953,8 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
         width: width * scaleX,
         height: height * scaleY,
     };
+
+    self.abYposition = y;
 
     if (transform && transform.rotate) {
         self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
@@ -971,18 +1001,20 @@ RenderText.prototype.executePdf = function RTexecute(pdfCtx) {
             // parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1
             pdfCtx.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
         }
+        const alignVlaue = this.style.align ?? this.style.textAlign;
+
         const styleObect = {
             ...(this.attr.width && { width: this.attr.width }),
             ...(this.style.lineGap && { lineGap: this.style.lineGap }),
             ...(this.style.textBaseline && { textBaseline: this.style.textBaseline }),
-            ...(this.style.align && { align: this.style.align }),
+            ...(alignVlaue && { align: alignVlaue }),
         };
-        if (this.style.fillStyle) {
-            pdfCtx.text(this.attr.text, this.attr.x, this.attr.y, styleObect);
+        if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
+            pdfCtx.text(this.attr.text, this.attr.x, 0, styleObect);
         }
 
-        if (this.style.strokeStyle) {
-            pdfCtx.text(this.attr.text, this.attr.x, this.attr.y, styleObect);
+        if (this.style.strokeStyle || this.style.stroke || this.style.strokeColor) {
+            pdfCtx.text(this.attr.text, this.attr.x, 0, styleObect);
         }
     }
 };
@@ -1024,6 +1056,8 @@ RenderCircle.prototype.updateBBox = function RCupdateBBox() {
     } else {
         self.BBoxHit = this.BBox;
     }
+
+    self.abYposition = cy;
 };
 
 RenderCircle.prototype.execute = function RCexecute() {
@@ -1035,8 +1069,8 @@ RenderCircle.prototype.execute = function RCexecute() {
 };
 
 RenderCircle.prototype.executePdf = function RCexecute(pdfCtx) {
-    const { r = 0, cx = 0, cy = 0 } = this.attr;
-    pdfCtx.circle(parseInt(cx), parseInt(cy), parseInt(r));
+    const { r = 0, cx = 0 } = this.attr;
+    pdfCtx.circle(parseInt(cx), parseInt(0), parseInt(r));
     this.applyStylesPdf(pdfCtx);
 };
 
@@ -1075,6 +1109,7 @@ RenderLine.prototype.updateBBox = function RLupdateBBox() {
     } else {
         self.BBoxHit = this.BBox;
     }
+    self.abYposition = y1 < y2 ? y1 : y2;
 };
 
 RenderLine.prototype.execute = function RLexecute() {
@@ -1158,7 +1193,7 @@ RenderPolyline.prototype.executePdf = function polylineExe(pdfCtx) {
     pdfCtx.moveTo(this.attr.points[0].x, this.attr.points[0].y);
     for (var i = 1; i < this.attr.points.length; i++) {
         d = this.attr.points[i];
-        pdfCtx.lineTo(d.x, d.y);
+        pdfCtx.lineTo(d.x, d.y - this.abYposition);
     }
     pdfCtx.stroke();
 };
@@ -1532,6 +1567,8 @@ RenderRect.prototype.updateBBox = function RRupdateBBox() {
     } else {
         self.BBoxHit = this.BBox;
     }
+
+    self.abYposition = y;
 };
 
 // RenderRect.prototype.applyStyles = function rStyles() {};
@@ -1567,14 +1604,14 @@ function renderRoundRectPdf(ctx, attr) {
 }
 
 RenderRect.prototype.executePdf = function RRexecute(pdfCtx) {
-    const { x = 0, y = 0, width = 0, height = 0, rx = 0, ry = 0 } = this.attr;
+    const { x = 0, width = 0, height = 0, rx = 0, ry = 0 } = this.attr;
 
     if (!rx && !ry) {
-        pdfCtx.rect(x, y, width, height);
+        pdfCtx.rect(x, 0, width, height);
     } else {
         renderRoundRectPdf(pdfCtx, {
             x,
-            y,
+            y: 0,
             width,
             height,
             rx,
@@ -2184,6 +2221,8 @@ CanvasNodeExe.prototype.updateABBox = function updateABBox(transform = { transla
         for (let i = 0, len = this.children.length; i < len && this.children[i]; i += 1) {
             this.children[i].updateABBox(abTranslate);
         }
+    } else {
+        // this.dom.updateABBox(abTranslate);
     }
 };
 
@@ -2660,11 +2699,13 @@ function createPage(ctx, vDomIndex) {
         let pageNumber = pageRage.count - 1;
         leafNodes.forEach((node) => {
             const abTranslate = node.dom.abTranslate;
-            let posY = (abTranslate.translate[1] || 0) - runningY;
             const elHight = node.dom.BBox.height || 0;
+            const elY = node.dom.abYposition || 0;
+            let posY = (abTranslate.translate[1] + elY || 0) - runningY;
+
             if (!(posY < pageHeight && posY + elHight < pageHeight)) {
                 runningY += pageHeight - this.margin * 2 * 2;
-                posY = (abTranslate.translate[1] || 0) - runningY;
+                posY = (abTranslate.translate[1] + elY || 0) - runningY;
                 doc.addPage({
                     margin: this.margin,
                     size: [this.width, this.height],
