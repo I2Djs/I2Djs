@@ -10292,11 +10292,11 @@ CanvasGradient$1.prototype.radialGradientPdf = function GRAradialGradient(ctx, B
     const { translate = [0, 0] } = AABox;
     const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.radialGradient(
-        translate[0] + BBox.width * (innerCircle.x / 100),
-        translate[1] + BBox.height * (innerCircle.y / 100),
+        translate[0] + BBox.x + BBox.width * (innerCircle.x / 100),
+        translate[1] + 0 + BBox.height * (innerCircle.y / 100),
         innerCircle.r,
-        translate[0] + BBox.width * (outerCircle.x / 100),
-        translate[1] + BBox.height * (outerCircle.y / 100),
+        translate[0] + BBox.x + BBox.width * (outerCircle.x / 100),
+        translate[1] + 0 + BBox.height * (outerCircle.y / 100),
         outerCircle.r2
     );
     (this.config.colorStops ?? []).forEach((d) => {
