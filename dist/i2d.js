@@ -82166,11 +82166,19 @@ Please pipe the document into a Node stream.\
         }
     };
 
+    RenderImage.prototype.updateABBox = function updateABBox(ab) {
+        const { x = 0, y = 0 } = this.attr;
+        this.abTranslate = {
+            translate: [ab.translate[0] + x, ab.translate[1] + y],
+        };
+    };
+
     RenderImage.prototype.executePdf = function RIexecute(pdfCtx) {
-        const { width = 0, height = 0, x = 0 } = this.attr;
+        const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
         if (this.attr.src) {
+            pdfCtx.translate(0, -this.abYposition);
             // this.ctx.drawImage(this.rImageObj ? this.rImageObj.canvas : this.imageObj, x, y, width, height);
-            pdfCtx.image(this.attr.src, x, 0, { width, height });
+            pdfCtx.image(this.attr.src, x, y, { width, height });
         }
     };
 
@@ -82259,6 +82267,13 @@ Please pipe the document into a Node stream.\
         if (this.attr.width) {
             this.fitWidth();
         }
+    };
+
+    RenderText.prototype.updateABBox = function updateABBox(ab) {
+        const { x = 0, y = 0 } = this.attr;
+        this.abTranslate = {
+            translate: [ab.translate[0] + x, ab.translate[1] + y],
+        };
     };
 
     RenderText.prototype.updateBBox = function RTupdateBBox() {
@@ -82350,6 +82365,8 @@ Please pipe the document into a Node stream.\
             }
             const alignVlaue = this.style.align ?? this.style.textAlign;
 
+            pdfCtx.translate(0, -this.abYposition);
+
             const styleObect = {
                 ...(this.attr.width && { width: this.attr.width }),
                 ...(this.style.lineGap && { lineGap: this.style.lineGap }),
@@ -82357,11 +82374,11 @@ Please pipe the document into a Node stream.\
                 ...(alignVlaue && { align: alignVlaue }),
             };
             if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
-                pdfCtx.text(this.attr.text, this.attr.x, 0, styleObect);
+                pdfCtx.text(this.attr.text, this.attr.x, this.attr.y, styleObect);
             }
 
             if (this.style.strokeStyle || this.style.stroke || this.style.strokeColor) {
-                pdfCtx.text(this.attr.text, this.attr.x, 0, styleObect);
+                pdfCtx.text(this.attr.text, this.attr.x, this.attr.y, styleObect);
             }
         }
     };
@@ -82406,6 +82423,12 @@ Please pipe the document into a Node stream.\
 
         self.abYposition = cy;
     };
+    RenderCircle.prototype.updateABBox = function updateABBox(ab) {
+        const { cx = 0, cy = 0 } = this.attr;
+        this.abTranslate = {
+            translate: [ab.translate[0] + cx, ab.translate[1] + cy],
+        };
+    };
 
     RenderCircle.prototype.execute = function RCexecute() {
         const { r = 0, cx = 0, cy = 0 } = this.attr;
@@ -82416,8 +82439,9 @@ Please pipe the document into a Node stream.\
     };
 
     RenderCircle.prototype.executePdf = function RCexecute(pdfCtx) {
-        const { r = 0, cx = 0 } = this.attr;
-        pdfCtx.circle(parseInt(cx), parseInt(0), parseInt(r));
+        const { r = 0, cx = 0, cy = 0 } = this.attr;
+        pdfCtx.translate(0, -this.abYposition);
+        pdfCtx.circle(parseInt(cx), parseInt(cy), parseInt(r));
         this.applyStylesPdf(pdfCtx);
     };
 
@@ -82459,6 +82483,13 @@ Please pipe the document into a Node stream.\
         self.abYposition = y1 < y2 ? y1 : y2;
     };
 
+    RenderLine.prototype.updateABBox = function updateABBox(ab) {
+        // let { cx = 0, cy = 0 } = this.attr;
+        // this.abTranslate = {
+        //     translate: [ab.translate[0] + cx, ab.translate[1] + cy]
+        // }
+    };
+
     RenderLine.prototype.execute = function RLexecute() {
         const { ctx } = this;
         const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
@@ -82471,6 +82502,7 @@ Please pipe the document into a Node stream.\
 
     RenderLine.prototype.executePdf = function RLexecute(pdfCtx) {
         const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
+        pdfCtx.translate(0, -this.abYposition);
         pdfCtx.moveTo(x1, y1);
         pdfCtx.lineTo(x2, y2);
         pdfCtx.stroke();
@@ -82536,6 +82568,8 @@ Please pipe the document into a Node stream.\
     RenderPolyline.prototype.executePdf = function polylineExe(pdfCtx) {
         let d;
         if (!this.attr.points || this.attr.points.length === 0) return;
+
+        pdfCtx.translate(0, -this.abYposition);
 
         pdfCtx.moveTo(this.attr.points[0].x, this.attr.points[0].y);
         for (var i = 1; i < this.attr.points.length; i++) {
@@ -82633,6 +82667,7 @@ Please pipe the document into a Node stream.\
                   width: 0,
                   height: 0,
               };
+        self.abYposition = self.BBox.y;
         self.BBox.x = translateX + self.BBox.x * scaleX;
         self.BBox.y = translateY + self.BBox.y * scaleY;
         self.BBox.width *= scaleX;
@@ -82695,6 +82730,7 @@ Please pipe the document into a Node stream.\
 
     RenderPath.prototype.executePdf = function RPexecute(pdfCtx) {
         if (this.attr.d) {
+            pdfCtx.translate(0, -this.abYposition);
             pdfCtx.path(this.attr.d);
             this.applyStylesPdf(pdfCtx);
         }
@@ -82806,6 +82842,7 @@ Please pipe the document into a Node stream.\
         if (!this.polygon) {
             return;
         }
+        pdfCtx.translate(0, -this.abYposition);
         pdfCtx.polygon(...this.polygon.rawPoints);
         this.applyStylesPdf(pdfCtx);
     };
@@ -82859,6 +82896,8 @@ Please pipe the document into a Node stream.\
         } else {
             self.BBoxHit = this.BBox;
         }
+
+        this.abYposition = cy - ry;
     };
 
     RenderEllipse.prototype.execute = function REexecute() {
@@ -82872,6 +82911,7 @@ Please pipe the document into a Node stream.\
 
     RenderEllipse.prototype.executePdf = function REexecute(pdfCtx) {
         const { cx = 0, cy = 0, rx = 0, ry = 0 } = this.attr;
+        pdfCtx.translate(0, -this.abYposition);
         pdfCtx.ellipse(cx, cy, rx, ry);
         this.applyStylesPdf(pdfCtx);
     };
@@ -82896,6 +82936,13 @@ Please pipe the document into a Node stream.\
 
     RenderRect.prototype = new CanvasDom();
     RenderRect.prototype.constructor = RenderRect;
+
+    RenderRect.prototype.updateABBox = function updateABBox(ab) {
+        const { x = 0, y = 0 } = this.attr;
+        this.abTranslate = {
+            translate: [ab.translate[0] + x, ab.translate[1] + y],
+        };
+    };
 
     RenderRect.prototype.updateBBox = function RRupdateBBox() {
         const self = this;
@@ -82951,14 +82998,14 @@ Please pipe the document into a Node stream.\
     }
 
     RenderRect.prototype.executePdf = function RRexecute(pdfCtx) {
-        const { x = 0, width = 0, height = 0, rx = 0, ry = 0 } = this.attr;
-
+        const { x = 0, y = 0, width = 0, height = 0, rx = 0, ry = 0 } = this.attr;
+        pdfCtx.translate(0, -this.abYposition);
         if (!rx && !ry) {
-            pdfCtx.rect(x, 0, width, height);
+            pdfCtx.rect(x, y, width, height);
         } else {
             renderRoundRectPdf(pdfCtx, {
                 x,
-                y: 0,
+                y,
                 width,
                 height,
                 rx,

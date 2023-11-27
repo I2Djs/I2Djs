@@ -819,11 +819,19 @@ RenderImage.prototype.execute = function RIexecute() {
     }
 };
 
+RenderImage.prototype.updateABBox = function updateABBox(ab) {
+    const { x = 0, y = 0 } = this.attr;
+    this.abTranslate = {
+        translate: [ab.translate[0] + x, ab.translate[1] + y],
+    };
+};
+
 RenderImage.prototype.executePdf = function RIexecute(pdfCtx) {
-    const { width = 0, height = 0, x = 0 } = this.attr;
+    const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
     if (this.attr.src) {
+        pdfCtx.translate(0, -this.abYposition);
         // this.ctx.drawImage(this.rImageObj ? this.rImageObj.canvas : this.imageObj, x, y, width, height);
-        pdfCtx.image(this.attr.src, x, 0, { width, height });
+        pdfCtx.image(this.attr.src, x, y, { width, height });
     }
 };
 
@@ -912,6 +920,13 @@ RenderText.prototype.text = function RTtext(value) {
     if (this.attr.width) {
         this.fitWidth();
     }
+};
+
+RenderText.prototype.updateABBox = function updateABBox(ab) {
+    const { x = 0, y = 0 } = this.attr;
+    this.abTranslate = {
+        translate: [ab.translate[0] + x, ab.translate[1] + y],
+    };
 };
 
 RenderText.prototype.updateBBox = function RTupdateBBox() {
@@ -1003,6 +1018,8 @@ RenderText.prototype.executePdf = function RTexecute(pdfCtx) {
         }
         const alignVlaue = this.style.align ?? this.style.textAlign;
 
+        pdfCtx.translate(0, -this.abYposition);
+
         const styleObect = {
             ...(this.attr.width && { width: this.attr.width }),
             ...(this.style.lineGap && { lineGap: this.style.lineGap }),
@@ -1010,11 +1027,11 @@ RenderText.prototype.executePdf = function RTexecute(pdfCtx) {
             ...(alignVlaue && { align: alignVlaue }),
         };
         if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
-            pdfCtx.text(this.attr.text, this.attr.x, 0, styleObect);
+            pdfCtx.text(this.attr.text, this.attr.x, this.attr.y, styleObect);
         }
 
         if (this.style.strokeStyle || this.style.stroke || this.style.strokeColor) {
-            pdfCtx.text(this.attr.text, this.attr.x, 0, styleObect);
+            pdfCtx.text(this.attr.text, this.attr.x, this.attr.y, styleObect);
         }
     }
 };
@@ -1059,6 +1076,12 @@ RenderCircle.prototype.updateBBox = function RCupdateBBox() {
 
     self.abYposition = cy;
 };
+RenderCircle.prototype.updateABBox = function updateABBox(ab) {
+    const { cx = 0, cy = 0 } = this.attr;
+    this.abTranslate = {
+        translate: [ab.translate[0] + cx, ab.translate[1] + cy],
+    };
+};
 
 RenderCircle.prototype.execute = function RCexecute() {
     const { r = 0, cx = 0, cy = 0 } = this.attr;
@@ -1069,8 +1092,9 @@ RenderCircle.prototype.execute = function RCexecute() {
 };
 
 RenderCircle.prototype.executePdf = function RCexecute(pdfCtx) {
-    const { r = 0, cx = 0 } = this.attr;
-    pdfCtx.circle(parseInt(cx), parseInt(0), parseInt(r));
+    const { r = 0, cx = 0, cy = 0 } = this.attr;
+    pdfCtx.translate(0, -this.abYposition);
+    pdfCtx.circle(parseInt(cx), parseInt(cy), parseInt(r));
     this.applyStylesPdf(pdfCtx);
 };
 
@@ -1112,6 +1136,13 @@ RenderLine.prototype.updateBBox = function RLupdateBBox() {
     self.abYposition = y1 < y2 ? y1 : y2;
 };
 
+RenderLine.prototype.updateABBox = function updateABBox(ab) {
+    // let { cx = 0, cy = 0 } = this.attr;
+    // this.abTranslate = {
+    //     translate: [ab.translate[0] + cx, ab.translate[1] + cy]
+    // }
+};
+
 RenderLine.prototype.execute = function RLexecute() {
     const { ctx } = this;
     const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
@@ -1124,6 +1155,7 @@ RenderLine.prototype.execute = function RLexecute() {
 
 RenderLine.prototype.executePdf = function RLexecute(pdfCtx) {
     const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
+    pdfCtx.translate(0, -this.abYposition);
     pdfCtx.moveTo(x1, y1);
     pdfCtx.lineTo(x2, y2);
     pdfCtx.stroke();
@@ -1189,6 +1221,8 @@ RenderPolyline.prototype.execute = function polylineExe() {
 RenderPolyline.prototype.executePdf = function polylineExe(pdfCtx) {
     let d;
     if (!this.attr.points || this.attr.points.length === 0) return;
+
+    pdfCtx.translate(0, -this.abYposition);
 
     pdfCtx.moveTo(this.attr.points[0].x, this.attr.points[0].y);
     for (var i = 1; i < this.attr.points.length; i++) {
@@ -1286,6 +1320,7 @@ RenderPath.prototype.updateBBox = function RPupdateBBox() {
               width: 0,
               height: 0,
           };
+    self.abYposition = self.BBox.y;
     self.BBox.x = translateX + self.BBox.x * scaleX;
     self.BBox.y = translateY + self.BBox.y * scaleY;
     self.BBox.width *= scaleX;
@@ -1348,6 +1383,7 @@ RenderPath.prototype.execute = function RPexecute() {
 
 RenderPath.prototype.executePdf = function RPexecute(pdfCtx) {
     if (this.attr.d) {
+        pdfCtx.translate(0, -this.abYposition);
         pdfCtx.path(this.attr.d);
         this.applyStylesPdf(pdfCtx);
     }
@@ -1459,6 +1495,7 @@ RenderPolygon.prototype.executePdf = function RPolyexecute(pdfCtx) {
     if (!this.polygon) {
         return;
     }
+    pdfCtx.translate(0, -this.abYposition);
     pdfCtx.polygon(...this.polygon.rawPoints);
     this.applyStylesPdf(pdfCtx);
 };
@@ -1512,6 +1549,8 @@ RenderEllipse.prototype.updateBBox = function REupdateBBox() {
     } else {
         self.BBoxHit = this.BBox;
     }
+
+    this.abYposition = cy - ry;
 };
 
 RenderEllipse.prototype.execute = function REexecute() {
@@ -1525,6 +1564,7 @@ RenderEllipse.prototype.execute = function REexecute() {
 
 RenderEllipse.prototype.executePdf = function REexecute(pdfCtx) {
     const { cx = 0, cy = 0, rx = 0, ry = 0 } = this.attr;
+    pdfCtx.translate(0, -this.abYposition);
     pdfCtx.ellipse(cx, cy, rx, ry);
     this.applyStylesPdf(pdfCtx);
 };
@@ -1549,6 +1589,13 @@ const RenderRect = function RenderRect(ctx, props, styleProps) {
 
 RenderRect.prototype = new CanvasDom();
 RenderRect.prototype.constructor = RenderRect;
+
+RenderRect.prototype.updateABBox = function updateABBox(ab) {
+    const { x = 0, y = 0 } = this.attr;
+    this.abTranslate = {
+        translate: [ab.translate[0] + x, ab.translate[1] + y],
+    };
+};
 
 RenderRect.prototype.updateBBox = function RRupdateBBox() {
     const self = this;
@@ -1604,14 +1651,14 @@ function renderRoundRectPdf(ctx, attr) {
 }
 
 RenderRect.prototype.executePdf = function RRexecute(pdfCtx) {
-    const { x = 0, width = 0, height = 0, rx = 0, ry = 0 } = this.attr;
-
+    const { x = 0, y = 0, width = 0, height = 0, rx = 0, ry = 0 } = this.attr;
+    pdfCtx.translate(0, -this.abYposition);
     if (!rx && !ry) {
-        pdfCtx.rect(x, 0, width, height);
+        pdfCtx.rect(x, y, width, height);
     } else {
         renderRoundRectPdf(pdfCtx, {
             x,
-            y: 0,
+            y,
             width,
             height,
             rx,
