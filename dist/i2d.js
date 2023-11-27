@@ -82365,8 +82365,6 @@ Please pipe the document into a Node stream.\
             }
             const alignVlaue = this.style.align ?? this.style.textAlign;
 
-            pdfCtx.translate(0, -this.abYposition);
-
             const styleObect = {
                 ...(this.attr.width && { width: this.attr.width }),
                 ...(this.style.lineGap && { lineGap: this.style.lineGap }),
@@ -82374,11 +82372,11 @@ Please pipe the document into a Node stream.\
                 ...(alignVlaue && { align: alignVlaue }),
             };
             if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
-                pdfCtx.text(this.attr.text, this.attr.x, this.attr.y, styleObect);
+                pdfCtx.text(this.attr.text, this.attr.x, 0, styleObect);
             }
 
             if (this.style.strokeStyle || this.style.stroke || this.style.strokeColor) {
-                pdfCtx.text(this.attr.text, this.attr.x, this.attr.y, styleObect);
+                pdfCtx.text(this.attr.text, this.attr.x, 0, styleObect);
             }
         }
     };
@@ -82574,7 +82572,7 @@ Please pipe the document into a Node stream.\
         pdfCtx.moveTo(this.attr.points[0].x, this.attr.points[0].y);
         for (var i = 1; i < this.attr.points.length; i++) {
             d = this.attr.points[i];
-            pdfCtx.lineTo(d.x, d.y - this.abYposition);
+            pdfCtx.lineTo(d.x, d.y);
         }
         pdfCtx.stroke();
     };
@@ -84070,7 +84068,12 @@ Please pipe the document into a Node stream.\
         }
 
         root.exportPdf = function (doc) {
-            const pageHeight = this.height - (this.margin || 0) * 2;
+            const margin = this.margin || 0;
+            const { top = margin, bottom = margin } = this.margins || {
+                top: margin,
+                bottom: margin,
+            };
+            const pageHeight = this.height;
 
             root.updateBBox();
             root.updateABBox();
@@ -84084,7 +84087,7 @@ Please pipe the document into a Node stream.\
                 const bBox = b.dom.BBox;
                 return aTrans.translate[1] + aBox.height - (bTrans.translate[1] + bBox.height);
             });
-            let runningY = 0;
+            let runningY = -top;
             const pageRage = doc.bufferedPageRange();
             let pageNumber = pageRage.count - 1;
             leafNodes.forEach((node) => {
@@ -84093,11 +84096,12 @@ Please pipe the document into a Node stream.\
                 const elY = node.dom.abYposition || 0;
                 let posY = (abTranslate.translate[1] + elY || 0) - runningY;
 
-                if (!(posY < pageHeight && posY + elHight < pageHeight)) {
-                    runningY += pageHeight - this.margin * 2 * 2;
+                if (!(posY < pageHeight - bottom && posY + elHight < pageHeight - bottom)) {
+                    runningY += pageHeight - top;
                     posY = (abTranslate.translate[1] + elY || 0) - runningY;
                     doc.addPage({
                         margin: this.margin,
+                        margins: this.margins,
                         size: [this.width, this.height],
                     });
                     if (this.pageTemplate) {
@@ -84532,6 +84536,8 @@ Please pipe the document into a Node stream.\
             newpage.height = config.height || height;
             newpage.width = config.width || width;
             newpage.margin = config.margin || pdfConfig.margin || 0;
+            newpage.margins = config.margins ||
+                pdfConfig.margins || { top: 0, bottom: 0, left: 0, right: 0 };
             newpage.type = "CANVAS";
             newpage.EXEType = "pdf";
             newpage.ctx = ctx;
