@@ -12605,29 +12605,6 @@ function createPage(ctx, vDomIndex) {
         this.execute();
     };
 
-    function getAllLeafs(node) {
-        const leaves = [];
-        let queue = [node];
-
-        while (queue.length !== 0) {
-            const node = queue.shift();
-            if (
-                node.children &&
-                node.children.length === 0 &&
-                node.nodeName !== "g" &&
-                node.nodeName !== "group"
-            ) {
-                leaves.push(node);
-            } else {
-                if (node.children && node.children.length !== 0) {
-                    queue = queue.concat(node.children);
-                }
-            }
-        }
-
-        return leaves;
-    }
-
     root.exportPdf = function (doc) {
         const margin = this.margin || 0;
         const { top = margin, bottom = margin } = this.margins || {
@@ -12646,7 +12623,12 @@ function createPage(ctx, vDomIndex) {
             const aBox = a.dom.BBox;
             const bTrans = b.dom && b.dom.abTranslate ? b.dom.abTranslate : { translate: [0, 0] };
             const bBox = b.dom.BBox;
-            return aTrans.translate[1] + aBox.height - (bTrans.translate[1] + bBox.height);
+            return (
+                aTrans.translate[1] +
+                aBox.height +
+                aBox.y -
+                (bTrans.translate[1] + bBox.height + bBox.y)
+            );
         });
         let runningY = -top;
         const pageRage = doc.bufferedPageRange();
@@ -12658,7 +12640,7 @@ function createPage(ctx, vDomIndex) {
             let posY = (abTranslate.translate[1] + elY || 0) - runningY;
 
             if (!(posY < pageHeight - bottom && posY + elHight < pageHeight - bottom)) {
-                runningY += pageHeight - top;
+                runningY += pageHeight - top - bottom;
                 posY = (abTranslate.translate[1] + elY || 0) - runningY;
                 doc.addPage({
                     margin: this.margin,
@@ -12691,6 +12673,7 @@ function createPage(ctx, vDomIndex) {
         this.pageTemplate = template;
         this.pageTemplate.updateBBox();
         this.pageTemplate.updateABBox();
+        updateABBoxOfPdfTemplate(this.pageTemplate);
     };
 
     root.createTexture = function (config = {}) {
@@ -12707,6 +12690,41 @@ function createPage(ctx, vDomIndex) {
     };
 
     return root;
+}
+
+function getAllLeafs(node) {
+    const leaves = [];
+    let queue = [node];
+
+    while (queue.length !== 0) {
+        const node = queue.shift();
+        if (
+            node.children &&
+            node.children.length === 0 &&
+            node.nodeName !== "g" &&
+            node.nodeName !== "group"
+        ) {
+            leaves.push(node);
+        } else {
+            if (node.children && node.children.length !== 0) {
+                queue = queue.concat(node.children);
+            }
+        }
+    }
+
+    return leaves;
+}
+
+function updateABBoxOfPdfTemplate(root) {
+    const leafNodes = getAllLeafs(root);
+    leafNodes.forEach((node) => {
+        const abTranslate = node.dom.abTranslate;
+        const elY = node.dom.abYposition || 0;
+        const posY = abTranslate.translate[1] + elY || 0;
+        node.dom.abTranslate = {
+            translate: [abTranslate.translate[0], posY],
+        };
+    });
 }
 
 function canvasLayer$1(container, contextConfig = {}, layerSettings = {}) {
