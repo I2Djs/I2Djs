@@ -10727,13 +10727,6 @@ RenderImage.prototype.execute = function RIexecute() {
     }
 };
 
-RenderImage.prototype.updateABBox = function updateABBox(ab) {
-    const { x = 0, y = 0 } = this.attr;
-    this.abTranslate = {
-        translate: [ab.translate[0] + x, ab.translate[1] + y],
-    };
-};
-
 RenderImage.prototype.executePdf = function RIexecute(pdfCtx) {
     const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
     if (this.attr.src) {
@@ -10828,13 +10821,6 @@ RenderText.prototype.text = function RTtext(value) {
     if (this.attr.width) {
         this.fitWidth();
     }
-};
-
-RenderText.prototype.updateABBox = function updateABBox(ab) {
-    const { x = 0, y = 0 } = this.attr;
-    this.abTranslate = {
-        translate: [ab.translate[0] + x, ab.translate[1] + y],
-    };
 };
 
 RenderText.prototype.updateBBox = function RTupdateBBox() {
@@ -10982,12 +10968,6 @@ RenderCircle.prototype.updateBBox = function RCupdateBBox() {
 
     self.abYposition = cy;
 };
-RenderCircle.prototype.updateABBox = function updateABBox(ab) {
-    const { cx = 0, cy = 0 } = this.attr;
-    this.abTranslate = {
-        translate: [ab.translate[0] + cx, ab.translate[1] + cy],
-    };
-};
 
 RenderCircle.prototype.execute = function RCexecute() {
     const { r = 0, cx = 0, cy = 0 } = this.attr;
@@ -11040,13 +11020,6 @@ RenderLine.prototype.updateBBox = function RLupdateBBox() {
         self.BBoxHit = this.BBox;
     }
     self.abYposition = y1 < y2 ? y1 : y2;
-};
-
-RenderLine.prototype.updateABBox = function updateABBox(ab) {
-    // let { cx = 0, cy = 0 } = this.attr;
-    // this.abTranslate = {
-    //     translate: [ab.translate[0] + cx, ab.translate[1] + cy]
-    // }
 };
 
 RenderLine.prototype.execute = function RLexecute() {
@@ -11495,13 +11468,6 @@ const RenderRect = function RenderRect(ctx, props, styleProps) {
 
 RenderRect.prototype = new CanvasDom();
 RenderRect.prototype.constructor = RenderRect;
-
-RenderRect.prototype.updateABBox = function updateABBox(ab) {
-    const { x = 0, y = 0 } = this.attr;
-    this.abTranslate = {
-        translate: [ab.translate[0] + x, ab.translate[1] + y],
-    };
-};
 
 RenderRect.prototype.updateBBox = function RRupdateBBox() {
     const self = this;
@@ -12626,11 +12592,11 @@ function createPage(ctx, vDomIndex) {
             return (
                 aTrans.translate[1] +
                 aBox.height +
-                aBox.y -
-                (bTrans.translate[1] + bBox.height + bBox.y)
+                a.dom.abYposition -
+                (bTrans.translate[1] + bBox.height + b.dom.abYposition)
             );
         });
-        let runningY = -top;
+        let runningY = 0;
         const pageRage = doc.bufferedPageRange();
         let pageNumber = pageRage.count - 1;
         leafNodes.forEach((node) => {
@@ -12639,9 +12605,11 @@ function createPage(ctx, vDomIndex) {
             const elY = node.dom.abYposition || 0;
             let posY = (abTranslate.translate[1] + elY || 0) - runningY;
 
-            if (!(posY < pageHeight - bottom && posY + elHight < pageHeight - bottom)) {
+            if (!(posY < pageHeight - bottom - top && posY + elHight < pageHeight - bottom - top)) {
                 runningY += pageHeight - top - bottom;
                 posY = (abTranslate.translate[1] + elY || 0) - runningY;
+                runningY += posY;
+                posY = 0;
                 doc.addPage({
                     margin: this.margin,
                     margins: this.margins,
@@ -12653,8 +12621,9 @@ function createPage(ctx, vDomIndex) {
                 pageNumber += 1;
             }
             node.dom.abTranslate = {
-                translate: [abTranslate.translate[0], posY],
+                translate: [abTranslate.translate[0], posY + top],
             };
+
             const executePdf = node.executePdf.bind(node);
 
             // Redefining pdf call with page mapping
