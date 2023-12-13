@@ -23,9 +23,8 @@ const transitionSetAttr = function transitionSetAttr(self, key, value) {
     };
 };
 
-const transformTransition = function transformTransition(self, subkey, value) {
+const transformTransition = function transformTransition(self, subkey, srcVal, value) {
     const exe = [];
-    const trans = self.attr.transform;
 
     if (typeof value === "function") {
         return function inner(f) {
@@ -36,9 +35,9 @@ const transformTransition = function transformTransition(self, subkey, value) {
     value.forEach((tV, i) => {
         let val;
 
-        if (trans[subkey]) {
-            if (trans[subkey][i] !== undefined) {
-                val = trans[subkey][i];
+        if (srcVal) {
+            if (srcVal[i] !== undefined) {
+                val = srcVal[i];
             } else {
                 val = subkey === "scale" ? 1 : 0;
             }
@@ -53,19 +52,19 @@ const transformTransition = function transformTransition(self, subkey, value) {
     };
 };
 
-const attrTransition = function attrTransition(self, key, value) {
-    const srcVal = self.attr[key]; // if (typeof value === 'function') {
+const attrTransition = function attrTransition(self, key, srcVal, tgtVal) {
+    // const srcVal = self.attr[key]; // if (typeof value === 'function') {
     //   return function setAttr_ (f) {
     //     self.setAttr(key, value.call(self, f))
     //   }
     // }
 
     return function setAttr_(f) {
-        self.setAttr(key, t2DGeometry.intermediateValue(srcVal, value, f));
+        self.setAttr(key, t2DGeometry.intermediateValue(srcVal, tgtVal, f));
     };
 };
 
-const styleTransition = function styleTransition(self, key, value) {
+const styleTransition = function styleTransition(self, key, sVal, value) {
     let srcValue;
     let destUnit;
     let destValue;
@@ -75,7 +74,7 @@ const styleTransition = function styleTransition(self, key, value) {
             self.setStyle(key, value.call(self, self.dataObj, f));
         };
     } else {
-        srcValue = self.style[key];
+        srcValue = sVal;
 
         if (isNaN(value)) {
             if (colorMap.isTypeColor(value)) {
@@ -92,7 +91,7 @@ const styleTransition = function styleTransition(self, key, value) {
             destValue = parseInt(destValue.length > 0 ? destValue[0] : 0, 10);
             destUnit = destUnit.length > 0 ? destUnit[0] : "px";
         } else {
-            srcValue = self.style[key] !== undefined ? self.style[key] : 1;
+            srcValue = sVal !== undefined ? sVal : 1;
             destValue = value;
             destUnit = 0;
         }
@@ -103,11 +102,12 @@ const styleTransition = function styleTransition(self, key, value) {
     }
 };
 
-const animate = function animate(self, targetConfig) {
+const animate = function animate(self, fromConfig, targetConfig) {
     const tattr = targetConfig.attr ? targetConfig.attr : {};
     const tstyles = targetConfig.style ? targetConfig.style : {};
+    const sattr = fromConfig.attr ? fromConfig.attr : {};
+    const sstyles = fromConfig.style ? fromConfig.style : {};
     const runStack = [];
-    let value;
 
     if (typeof tattr !== "function") {
         for (const key in tattr) {
@@ -124,19 +124,23 @@ const animate = function animate(self, targetConfig) {
                     } else if (key === "points") {
                         console.log("write points mapper");
                     } else {
-                        runStack[runStack.length] = attrTransition(self, key, tattr[key]);
+                        runStack[runStack.length] = attrTransition(
+                            self,
+                            key,
+                            sattr[key],
+                            tattr[key]
+                        );
                     }
                 }
             } else {
-                value = tattr[key];
-
-                if (typeof value === "function") {
-                    runStack[runStack.length] = transitionSetAttr(self, key, value);
+                if (typeof tattr[key] === "function") {
+                    runStack[runStack.length] = transitionSetAttr(self, key, tattr[key]);
                 } else {
-                    const trans = self.attr.transform;
+                    let trans = sattr.transform;
 
                     if (!trans) {
-                        self.attr.transform = {};
+                        self.setAttr("transform", {});
+                        trans = {};
                     }
 
                     const subTrnsKeys = Object.keys(tattr.transform);
@@ -145,6 +149,7 @@ const animate = function animate(self, targetConfig) {
                         runStack[runStack.length] = transformTransition(
                             self,
                             subTrnsKeys[j],
+                            trans[subTrnsKeys[j]],
                             tattr.transform[subTrnsKeys[j]]
                         );
                     }
@@ -157,7 +162,12 @@ const animate = function animate(self, targetConfig) {
 
     if (typeof tstyles !== "function") {
         for (const style in tstyles) {
-            runStack[runStack.length] = styleTransition(self, style, tstyles[style]);
+            runStack[runStack.length] = styleTransition(
+                self,
+                style,
+                sstyles[style],
+                tstyles[style]
+            );
         }
     } else {
         runStack[runStack.length] = tstyles.bind(self);
@@ -527,13 +537,17 @@ NodePrototype.prototype.interrupt = function () {
     return this;
 };
 
-NodePrototype.prototype.animateTo = function (targetConfig) {
-    queueInstance.add(animeId(), animate(this, targetConfig), easing(targetConfig.ease));
+NodePrototype.prototype.animateTo = function (toConfig, fromConfig) {
+    queueInstance.add(
+        animeId(),
+        animate(this, fromConfig || this, toConfig),
+        easing(toConfig.ease)
+    );
     return this;
 };
 
-NodePrototype.prototype.animateExe = function (targetConfig) {
-    return animate(this, targetConfig);
+NodePrototype.prototype.animateExe = function (targetConfig, fromConfig) {
+    return animate(this, fromConfig || this, targetConfig);
 };
 
 function fetchEls(nodeSelector, dataArray) {

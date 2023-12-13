@@ -7380,9 +7380,8 @@ Example valid ways of supplying a shape would be:
         };
     };
 
-    const transformTransition = function transformTransition(self, subkey, value) {
+    const transformTransition = function transformTransition(self, subkey, srcVal, value) {
         const exe = [];
-        const trans = self.attr.transform;
 
         if (typeof value === "function") {
             return function inner(f) {
@@ -7393,9 +7392,9 @@ Example valid ways of supplying a shape would be:
         value.forEach((tV, i) => {
             let val;
 
-            if (trans[subkey]) {
-                if (trans[subkey][i] !== undefined) {
-                    val = trans[subkey][i];
+            if (srcVal) {
+                if (srcVal[i] !== undefined) {
+                    val = srcVal[i];
                 } else {
                     val = subkey === "scale" ? 1 : 0;
                 }
@@ -7410,19 +7409,19 @@ Example valid ways of supplying a shape would be:
         };
     };
 
-    const attrTransition = function attrTransition(self, key, value) {
-        const srcVal = self.attr[key]; // if (typeof value === 'function') {
+    const attrTransition = function attrTransition(self, key, srcVal, tgtVal) {
+        // const srcVal = self.attr[key]; // if (typeof value === 'function') {
         //   return function setAttr_ (f) {
         //     self.setAttr(key, value.call(self, f))
         //   }
         // }
 
         return function setAttr_(f) {
-            self.setAttr(key, t2DGeometry$2.intermediateValue(srcVal, value, f));
+            self.setAttr(key, t2DGeometry$2.intermediateValue(srcVal, tgtVal, f));
         };
     };
 
-    const styleTransition = function styleTransition(self, key, value) {
+    const styleTransition = function styleTransition(self, key, sVal, value) {
         let srcValue;
         let destUnit;
         let destValue;
@@ -7432,7 +7431,7 @@ Example valid ways of supplying a shape would be:
                 self.setStyle(key, value.call(self, self.dataObj, f));
             };
         } else {
-            srcValue = self.style[key];
+            srcValue = sVal;
 
             if (isNaN(value)) {
                 if (colorMap$1.isTypeColor(value)) {
@@ -7449,7 +7448,7 @@ Example valid ways of supplying a shape would be:
                 destValue = parseInt(destValue.length > 0 ? destValue[0] : 0, 10);
                 destUnit = destUnit.length > 0 ? destUnit[0] : "px";
             } else {
-                srcValue = self.style[key] !== undefined ? self.style[key] : 1;
+                srcValue = sVal !== undefined ? sVal : 1;
                 destValue = value;
                 destUnit = 0;
             }
@@ -7460,11 +7459,12 @@ Example valid ways of supplying a shape would be:
         }
     };
 
-    const animate = function animate(self, targetConfig) {
+    const animate = function animate(self, fromConfig, targetConfig) {
         const tattr = targetConfig.attr ? targetConfig.attr : {};
         const tstyles = targetConfig.style ? targetConfig.style : {};
+        const sattr = fromConfig.attr ? fromConfig.attr : {};
+        const sstyles = fromConfig.style ? fromConfig.style : {};
         const runStack = [];
-        let value;
 
         if (typeof tattr !== "function") {
             for (const key in tattr) {
@@ -7481,19 +7481,23 @@ Example valid ways of supplying a shape would be:
                         } else if (key === "points") {
                             console.log("write points mapper");
                         } else {
-                            runStack[runStack.length] = attrTransition(self, key, tattr[key]);
+                            runStack[runStack.length] = attrTransition(
+                                self,
+                                key,
+                                sattr[key],
+                                tattr[key]
+                            );
                         }
                     }
                 } else {
-                    value = tattr[key];
-
-                    if (typeof value === "function") {
-                        runStack[runStack.length] = transitionSetAttr(self, key, value);
+                    if (typeof tattr[key] === "function") {
+                        runStack[runStack.length] = transitionSetAttr(self, key, tattr[key]);
                     } else {
-                        const trans = self.attr.transform;
+                        let trans = sattr.transform;
 
                         if (!trans) {
-                            self.attr.transform = {};
+                            self.setAttr("transform", {});
+                            trans = {};
                         }
 
                         const subTrnsKeys = Object.keys(tattr.transform);
@@ -7502,6 +7506,7 @@ Example valid ways of supplying a shape would be:
                             runStack[runStack.length] = transformTransition(
                                 self,
                                 subTrnsKeys[j],
+                                trans[subTrnsKeys[j]],
                                 tattr.transform[subTrnsKeys[j]]
                             );
                         }
@@ -7514,7 +7519,12 @@ Example valid ways of supplying a shape would be:
 
         if (typeof tstyles !== "function") {
             for (const style in tstyles) {
-                runStack[runStack.length] = styleTransition(self, style, tstyles[style]);
+                runStack[runStack.length] = styleTransition(
+                    self,
+                    style,
+                    sstyles[style],
+                    tstyles[style]
+                );
             }
         } else {
             runStack[runStack.length] = tstyles.bind(self);
@@ -7884,13 +7894,17 @@ Example valid ways of supplying a shape would be:
         return this;
     };
 
-    NodePrototype.prototype.animateTo = function (targetConfig) {
-        queueInstance$4.add(animeId$1(), animate(this, targetConfig), easing$1(targetConfig.ease));
+    NodePrototype.prototype.animateTo = function (toConfig, fromConfig) {
+        queueInstance$4.add(
+            animeId$1(),
+            animate(this, fromConfig || this, toConfig),
+            easing$1(toConfig.ease)
+        );
         return this;
     };
 
-    NodePrototype.prototype.animateExe = function (targetConfig) {
-        return animate(this, targetConfig);
+    NodePrototype.prototype.animateExe = function (targetConfig, fromConfig) {
+        return animate(this, fromConfig || this, targetConfig);
     };
 
     function fetchEls(nodeSelector, dataArray) {
@@ -81494,27 +81508,29 @@ Please pipe the document into a Node stream.\
         }
     }
 
-    function cRenderPdf(attr, pdfCtx) {
+    function cRenderPdf(attr, pdfCtx, block) {
         const self = this;
 
-        if (self.abTranslate && this.nodeName !== "g") {
-            const abTranslate = self.abTranslate || {};
-            const { scale = [1, 1], skew = [0, 0], translate = [0, 0] } = abTranslate;
-            const [hozScale = 1, verScale = hozScale] = scale;
-            const [hozSkew = 0, verSkew = hozSkew] = skew;
-            const [hozMove = 0, verMove = hozMove] = translate;
+        if (self.attr.class === "cell") {
+            console.log("cell");
+        }
 
-            pdfCtx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove);
+        const transform = block ? self.attr.transform || {} : self.abTransform || {};
+        const { scale = [1, 1], skew = [0, 0], translate = [0, 0] } = transform;
+        const [hozScale = 1, verScale = hozScale] = scale;
+        const [hozSkew = 0, verSkew = hozSkew] = skew;
+        const [hozMove = 0, verMove = hozMove] = translate;
 
-            if (abTranslate.rotate && abTranslate.rotate.length > 0) {
-                pdfCtx.translate(abTranslate.rotate[1] || 0, abTranslate.rotate[2] || 0);
-                pdfCtx.rotate(abTranslate.rotate[0] * (Math.PI / 180));
-                pdfCtx.translate(-abTranslate.rotate[1] || 0, -abTranslate.rotate[2] || 0);
-            }
+        pdfCtx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove);
+
+        if (transform.rotate && transform.rotate.length > 0) {
+            pdfCtx.translate(transform.rotate[1] || 0, transform.rotate[2] || 0);
+            pdfCtx.rotate(transform.rotate[0] * (Math.PI / 180));
+            pdfCtx.translate(-transform.rotate[1] || 0, -transform.rotate[2] || 0);
         }
 
         for (let i = 0; i < self.stack.length; i += 1) {
-            self.stack[i].executePdf(pdfCtx);
+            self.stack[i].executePdf(pdfCtx, block);
         }
     }
 
@@ -81950,10 +81966,6 @@ Please pipe the document into a Node stream.\
         }
     }
 
-    function executePdf() {
-        // body...
-    }
-
     function CanvasDom() {
         this.BBox = {
             x: 0,
@@ -81977,7 +81989,6 @@ Please pipe the document into a Node stream.\
         setStyle: domSetStyle,
         applyStyles,
         applyStylesPdf,
-        executePdf,
     };
 
     function imageInstance$1(self) {
@@ -82274,7 +82285,7 @@ Please pipe the document into a Node stream.\
             height = parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1;
             self.textHeight = height + 3;
         } else {
-            self.textHeight = this.ctx.measureText("I2Djs").fontBoundingBoxAscent;
+            self.textHeight = this.ctx.measureText("I2DJS-Z").fontBoundingBoxAscent;
             height = self.textHeight + 7;
         }
         if (this.attr.width && this.textList && this.textList.length > 0) {
@@ -82343,7 +82354,7 @@ Please pipe the document into a Node stream.\
         }
     };
 
-    RenderText.prototype.executePdf = function RTexecute(pdfCtx) {
+    RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
         if (this.attr.text !== undefined && this.attr.text !== null) {
             if (this.style.font) {
                 // parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1
@@ -82358,11 +82369,11 @@ Please pipe the document into a Node stream.\
                 ...(alignVlaue && { align: alignVlaue }),
             };
             if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
-                pdfCtx.text(this.attr.text, this.attr.x, 0, styleObect);
+                pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
             }
 
             if (this.style.strokeStyle || this.style.stroke || this.style.strokeColor) {
-                pdfCtx.text(this.attr.text, this.attr.x, 0, styleObect);
+                pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
             }
         }
     };
@@ -82416,9 +82427,11 @@ Please pipe the document into a Node stream.\
         this.ctx.closePath();
     };
 
-    RenderCircle.prototype.executePdf = function RCexecute(pdfCtx) {
+    RenderCircle.prototype.executePdf = function RCexecute(pdfCtx, block) {
         const { r = 0, cx = 0, cy = 0 } = this.attr;
-        pdfCtx.translate(0, -this.abYposition);
+        if (!block) {
+            pdfCtx.translate(0, -this.abYposition);
+        }
         pdfCtx.circle(parseInt(cx), parseInt(cy), parseInt(r));
         this.applyStylesPdf(pdfCtx);
     };
@@ -82471,9 +82484,11 @@ Please pipe the document into a Node stream.\
         ctx.closePath();
     };
 
-    RenderLine.prototype.executePdf = function RLexecute(pdfCtx) {
+    RenderLine.prototype.executePdf = function RLexecute(pdfCtx, block) {
         const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
-        pdfCtx.translate(0, -this.abYposition);
+        if (!block) {
+            pdfCtx.translate(0, -this.abYposition);
+        }
         pdfCtx.moveTo(x1, y1);
         pdfCtx.lineTo(x2, y2);
         pdfCtx.stroke();
@@ -82536,11 +82551,13 @@ Please pipe the document into a Node stream.\
         this.ctx.closePath();
     };
 
-    RenderPolyline.prototype.executePdf = function polylineExe(pdfCtx) {
+    RenderPolyline.prototype.executePdf = function polylineExe(pdfCtx, block) {
         let d;
         if (!this.attr.points || this.attr.points.length === 0) return;
 
-        pdfCtx.translate(0, -this.abYposition);
+        if (!block) {
+            pdfCtx.translate(0, -this.abYposition);
+        }
 
         pdfCtx.moveTo(this.attr.points[0].x, this.attr.points[0].y);
         for (var i = 1; i < this.attr.points.length; i++) {
@@ -82699,9 +82716,11 @@ Please pipe the document into a Node stream.\
         }
     };
 
-    RenderPath.prototype.executePdf = function RPexecute(pdfCtx) {
+    RenderPath.prototype.executePdf = function RPexecute(pdfCtx, block) {
         if (this.attr.d) {
-            pdfCtx.translate(0, -this.abYposition);
+            if (!block) {
+                pdfCtx.translate(0, -this.abYposition);
+            }
             pdfCtx.path(this.attr.d);
             this.applyStylesPdf(pdfCtx);
         }
@@ -82809,11 +82828,13 @@ Please pipe the document into a Node stream.\
         }
     };
 
-    RenderPolygon.prototype.executePdf = function RPolyexecute(pdfCtx) {
+    RenderPolygon.prototype.executePdf = function RPolyexecute(pdfCtx, block) {
         if (!this.polygon) {
             return;
         }
-        pdfCtx.translate(0, -this.abYposition);
+        if (!block) {
+            pdfCtx.translate(0, -this.abYposition);
+        }
         pdfCtx.polygon(...this.polygon.rawPoints);
         this.applyStylesPdf(pdfCtx);
     };
@@ -82880,9 +82901,11 @@ Please pipe the document into a Node stream.\
         ctx.closePath();
     };
 
-    RenderEllipse.prototype.executePdf = function REexecute(pdfCtx) {
+    RenderEllipse.prototype.executePdf = function REexecute(pdfCtx, block) {
         const { cx = 0, cy = 0, rx = 0, ry = 0 } = this.attr;
-        pdfCtx.translate(0, -this.abYposition);
+        if (!block) {
+            pdfCtx.translate(0, -this.abYposition);
+        }
         pdfCtx.ellipse(cx, cy, rx, ry);
         this.applyStylesPdf(pdfCtx);
     };
@@ -82961,9 +82984,11 @@ Please pipe the document into a Node stream.\
         ctx.quadraticCurveTo(x, y, x + rx, y);
     }
 
-    RenderRect.prototype.executePdf = function RRexecute(pdfCtx) {
+    RenderRect.prototype.executePdf = function RRexecute(pdfCtx, block) {
         const { x = 0, y = 0, width = 0, height = 0, rx = 0, ry = 0 } = this.attr;
-        pdfCtx.translate(0, -this.abYposition);
+        if (!block) {
+            pdfCtx.translate(0, -this.abYposition);
+        }
         if (!rx && !ry) {
             pdfCtx.rect(x, y, width, height);
         } else {
@@ -83144,6 +83169,7 @@ Please pipe the document into a Node stream.\
         this.vDomIndex = vDomIndex;
         this.bbox = config.bbox !== undefined ? config.bbox : true;
         this.BBoxUpdate = true;
+        this.block = config.block || false;
 
         switch (config.el) {
             case "circle":
@@ -83333,8 +83359,8 @@ Please pipe the document into a Node stream.\
         this.dom.render(this.attr);
     };
 
-    CanvasNodeExe$1.prototype.attributesExePdf = function CattributesExe(pdfCtx) {
-        this.dom.renderPdf(this.attr, pdfCtx);
+    CanvasNodeExe$1.prototype.attributesExePdf = function CattributesExe(pdfCtx, block) {
+        this.dom.renderPdf(this.attr, pdfCtx, block);
     };
 
     CanvasNodeExe$1.prototype.setStyle = function CsetStyle(attr, value) {
@@ -83484,23 +83510,23 @@ Please pipe the document into a Node stream.\
         this.ctx.restore();
     };
 
-    CanvasNodeExe$1.prototype.executePdf = function Cexecute(pdfCtx) {
+    CanvasNodeExe$1.prototype.executePdf = function Cexecute(pdfCtx, block) {
         if (this.style.display === "none") {
             return;
         }
-        if (!(this.dom instanceof RenderGroup)) {
+        if (!(this.dom instanceof RenderGroup) || block || this.block) {
             pdfCtx.save();
         }
 
         this.stylesExePdf(pdfCtx);
-        this.attributesExePdf(pdfCtx);
+        this.attributesExePdf(pdfCtx, block);
         if (this.dom instanceof RenderGroup) {
             for (let i = 0, len = this.children.length; i < len; i += 1) {
-                this.children[i].executePdf(pdfCtx);
+                this.children[i].executePdf(pdfCtx, block || this.block);
             }
         }
 
-        if (!(this.dom instanceof RenderGroup)) {
+        if (!(this.dom instanceof RenderGroup) || block || this.block) {
             pdfCtx.restore();
         }
     };
@@ -83531,7 +83557,7 @@ Please pipe the document into a Node stream.\
         if (self.dom instanceof RenderGroup) {
             for (let i = 0; i < childrensLocal.length; i += 1) {
                 childrensLocal[i].dom.parent = self;
-                childrensLocal[i].vDomIndex = self.vDomIndex;
+                childrensLocal[i].setVDomIndex(self.vDomIndex);
                 self.children[self.children.length] = childrensLocal[i];
             }
         } else {
@@ -83541,6 +83567,15 @@ Please pipe the document into a Node stream.\
         this.BBoxUpdate = true;
         queueInstance$1.vDomChanged(this.vDomIndex);
         return self;
+    };
+
+    CanvasNodeExe$1.prototype.setVDomIndex = function (vDomIndex) {
+        this.vDomIndex = vDomIndex;
+        for (let i = 0, len = this.children.length; i < len; i += 1) {
+            if (this.children[i] && this.children[i].setVDomIndex) {
+                this.children[i].setVDomIndex(vDomIndex);
+            }
+        }
     };
 
     CanvasNodeExe$1.prototype.updateBBox = function CupdateBBox() {
@@ -83563,19 +83598,25 @@ Please pipe the document into a Node stream.\
     };
 
     CanvasNodeExe$1.prototype.updateABBox = function updateABBox(transform = { translate: [0, 0] }) {
+        if (this.attr.class === "0-header") {
+            console.log("0-header");
+        }
         const localTransform = this.attr.transform || { translate: [0, 0] };
-        const abTranslate = {
+        const abTransform = {
             translate: [
                 transform.translate[0] + localTransform.translate[0],
                 transform.translate[1] + localTransform.translate[1],
             ],
         };
-        this.dom.abTranslate = abTranslate;
+        this.dom.abTransform = abTransform;
+        if (this.attr.class === "0-header") {
+            console.log(abTransform);
+        }
 
         // this.setAttr("abTranslate", this.abTranslate);
         if (this.dom instanceof RenderGroup) {
             for (let i = 0, len = this.children.length; i < len && this.children[i]; i += 1) {
-                this.children[i].updateABBox(abTranslate);
+                this.children[i].updateABBox(abTransform);
             }
         }
     };
@@ -84024,9 +84065,9 @@ Please pipe the document into a Node stream.\
             let leafNodes = getAllLeafs(root);
             // sort leafs based on absolute pos
             leafNodes = leafNodes.sort((a, b) => {
-                const aTrans = a.dom && a.dom.abTranslate ? a.dom.abTranslate : { translate: [0, 0] };
+                const aTrans = a.dom && a.dom.abTransform ? a.dom.abTransform : { translate: [0, 0] };
                 const aBox = a.dom.BBox;
-                const bTrans = b.dom && b.dom.abTranslate ? b.dom.abTranslate : { translate: [0, 0] };
+                const bTrans = b.dom && b.dom.abTransform ? b.dom.abTransform : { translate: [0, 0] };
                 const bBox = b.dom.BBox;
                 return (
                     aTrans.translate[1] +
@@ -84039,14 +84080,20 @@ Please pipe the document into a Node stream.\
             const pageRage = doc.bufferedPageRange();
             let pageNumber = pageRage.count - 1;
             leafNodes.forEach((node) => {
-                const abTranslate = node.dom.abTranslate;
+                const abTransform = node.dom.abTransform;
                 const elHight = node.dom.BBox.height || 0;
                 const elY = node.dom.abYposition || 0;
-                let posY = (abTranslate.translate[1] + elY || 0) - runningY;
+                let posY = (abTransform.translate[1] + elY || 0) - runningY;
 
-                if (!(posY < pageHeight - bottom - top && posY + elHight < pageHeight - bottom - top)) {
+                if (
+                    !(
+                        (posY < pageHeight - bottom - top &&
+                            posY + elHight < pageHeight - bottom - top) ||
+                        elHight > pageHeight - bottom - top
+                    )
+                ) {
                     runningY += pageHeight - top - bottom;
-                    posY = (abTranslate.translate[1] + elY || 0) - runningY;
+                    posY = (abTransform.translate[1] + elY || 0) - runningY;
                     runningY += posY;
                     posY = 0;
                     doc.addPage({
@@ -84059,8 +84106,8 @@ Please pipe the document into a Node stream.\
                     }
                     pageNumber += 1;
                 }
-                node.dom.abTranslate = {
-                    translate: [abTranslate.translate[0], posY + top],
+                node.dom.abTransform = {
+                    translate: [abTransform.translate[0], posY + top],
                 };
 
                 const executePdf = node.executePdf.bind(node);
@@ -84107,10 +84154,11 @@ Please pipe the document into a Node stream.\
         while (queue.length !== 0) {
             const node = queue.shift();
             if (
-                node.children &&
-                node.children.length === 0 &&
-                node.nodeName !== "g" &&
-                node.nodeName !== "group"
+                node.block ||
+                (node.children &&
+                    node.children.length === 0 &&
+                    node.nodeName !== "g" &&
+                    node.nodeName !== "group")
             ) {
                 leaves.push(node);
             } else {
@@ -84126,11 +84174,11 @@ Please pipe the document into a Node stream.\
     function updateABBoxOfPdfTemplate(root) {
         const leafNodes = getAllLeafs(root);
         leafNodes.forEach((node) => {
-            const abTranslate = node.dom.abTranslate;
+            const abTransform = node.dom.abTransform;
             const elY = node.dom.abYposition || 0;
-            const posY = abTranslate.translate[1] + elY || 0;
-            node.dom.abTranslate = {
-                translate: [abTranslate.translate[0], posY],
+            const posY = abTransform.translate[1] + elY || 0;
+            node.dom.abTransform = {
+                translate: [abTransform.translate[0], posY],
             };
         });
     }
@@ -84507,15 +84555,6 @@ Please pipe the document into a Node stream.\
                     },
                 pdfConfig
             );
-            // const self = this;
-            // this.pages.forEach(function (page, i) {
-            //     self.ctx.save();
-            //     if (i !== 0) {
-            //         page.addPage();
-            //     }
-            //     page.execute();
-            //     self.ctx.restore();
-            // })
         };
         PDFCreator.prototype.addPage = function (config = {}) {
             const newpage = createPage(ctx, this.vDomIndex);
