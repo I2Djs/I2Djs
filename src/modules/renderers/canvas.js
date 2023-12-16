@@ -90,7 +90,7 @@ const pdfStyleMapper = {
 
 const canvasCssMapper = {
     "fill": "fillStyle",
-    "stroke": "strokeColor",
+    "stroke": "strokeStyle",
     "lineDash": "setLineDash",
     "opacity": "globalAlpha",
     "stroke-width": "lineWidth",

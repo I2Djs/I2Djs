@@ -5885,10 +5885,10 @@ Example valid ways of supplying a shape would be:
         return t2DGeometry$3.linearTransitionBetweenPoints(this.p0, this.p1, f);
     };
 
-    function animatePathTo(targetConfig) {
+    function animatePathTo(targetConfig, fromConfig) {
         const self = this;
-        const { duration, ease, end, loop, direction, d } = targetConfig;
-        const src = d || self.attr.d;
+        const { duration, ease, end, loop, direction, attr } = targetConfig;
+        const src = (fromConfig || self)?.attr?.d ?? (attr.d || "");
         let totalLength = 0;
         self.arrayStack = [];
 
@@ -7410,12 +7410,6 @@ Example valid ways of supplying a shape would be:
     };
 
     const attrTransition = function attrTransition(self, key, srcVal, tgtVal) {
-        // const srcVal = self.attr[key]; // if (typeof value === 'function') {
-        //   return function setAttr_ (f) {
-        //     self.setAttr(key, value.call(self, f))
-        //   }
-        // }
-
         return function setAttr_(f) {
             self.setAttr(key, t2DGeometry$2.intermediateValue(srcVal, tgtVal, f));
         };
@@ -7537,12 +7531,12 @@ Example valid ways of supplying a shape would be:
                 }
             },
             target: self,
-            duration: targetConfig.duration,
-            delay: targetConfig.delay ? targetConfig.delay : 0,
+            duration: targetConfig.duration || 0,
+            delay: targetConfig.delay || 0,
             end: targetConfig.end ? targetConfig.end.bind(self, self.dataObj) : null,
-            loop: targetConfig.loop ? targetConfig.loop : 0,
-            direction: targetConfig.direction ? targetConfig.direction : "default",
-            ease: targetConfig.ease ? targetConfig.ease : "default",
+            loop: targetConfig.loop || 0,
+            direction: targetConfig.direction || "default",
+            ease: targetConfig.ease || "default",
         };
     };
 
@@ -8291,24 +8285,7 @@ Example valid ways of supplying a shape would be:
         }
 
         return this;
-    }; // function DomPattern (self, pattern, repeatInd) {
-    // }
-    // DomPattern.prototype.exe = function () {
-    //   return this.pattern
-    // }
-    // function createDomPattern (url, config) {
-    //   // new DomPattern(this, patternObj, repeatInd)
-    //   let patternEl = this.createEl({
-    //     el: 'pattern'
-    //   })
-    //   patternEl.createEl({
-    //     el: 'image',
-    //     attr: {
-    //       'xlink:href': url
-    //     }
-    //   })
-    // }
-    // CreateElements as CollectionPrototype
+    };
 
     function CollectionPrototype(contextInfo, data, config, vDomIndex) {
         if (!data) {
@@ -81451,7 +81428,7 @@ Please pipe the document into a Node stream.\
 
     const canvasCssMapper = {
         "fill": "fillStyle",
-        "stroke": "strokeColor",
+        "stroke": "strokeStyle",
         "lineDash": "setLineDash",
         "opacity": "globalAlpha",
         "stroke-width": "lineWidth",
