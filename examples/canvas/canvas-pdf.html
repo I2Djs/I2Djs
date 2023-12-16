@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Using Module of I2Djs</title>
+    </head>
+    <body>
+        <div class="main-container">
+            <div id="lineLoaderContainer" class="i2d-canvas">
+                <span class="title">Canvas Output</span>
+            </div>
+            <div id="pdfContainer" class="i2d-canvas">
+                <span class="title">PDF Output</span>
+                <iframe class="iframeCanvas" id="i2dPdfContainer"></iframe>
+            </div>
+        </div>
+    </body>
+</html>
+<script type="text/javascript" src="../../dist/i2d.js"></script>
+<script type="module">
+    let renderer = i2d.canvasLayer("#lineLoaderContainer", {}, { autoUpdate: true });
+    var linearGradiant = renderer.createLinearGradient({
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 100,
+        colorStops: [
+            { color: "red", offset: 0 },
+            { color: "green", offset: 100 },
+        ],
+    });
+
+    renderer.createEl({
+        el: "circle",
+        attr: {
+            cx: 150,
+            cy: 150,
+            r: 50,
+        },
+        style: {
+            fillStyle: "#ff0000",
+            strokeStyle: "#0000ff",
+        },
+    });
+    renderer.createEl({
+        el: "rect",
+        attr: {
+            x: 350,
+            y: 100,
+            width: 100,
+            height: 100,
+        },
+        style: {
+            fillStyle: linearGradiant,
+        },
+    });
+    renderer.createEl({
+        el: "rect",
+        attr: {
+            x: 350,
+            y: 250,
+            width: 100,
+            height: 100,
+            rx: 20,
+            ry: 20,
+        },
+        style: {
+            fillStyle: "pink",
+            strokeStyle: "green",
+            lineWidth: 5,
+        },
+    });
+
+    renderer.createEl({
+        el: "path",
+        attr: {
+            d:
+                "M342.5 394.413C337.759 391.274 327.109 377.16 322.679 366.43 331.4 354.623 336.322 339.964 335.786 322.789 334.213 272.367 294.783 232.769 244.161 234.967 194.512 237.122 145.995 263.825 144.552 314.245 143.109 364.665 190.634 398.88 241.289 400.421 261.42 401.034 280.719 396.856 296.575 388.439 308.736 392.446 325.141 396.147 342.334 395.043 342.651 395.023 342.767 394.589 342.5 394.413",
+        },
+        style: {
+            fillStyle: "#000000",
+        },
+        bbox: false,
+    });
+
+    renderer.exportPdf(function (url) {
+        document.getElementById("i2dPdfContainer").setAttribute("src", url);
+    });
+</script>
+<style>
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+        font-size: 14px;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    .main-container {
+        height: 100%;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 50% 50%;
+    }
+
+    .i2d-canvas {
+        width: 500px;
+        height: 500px;
+    }
+
+    .iframeCanvas {
+        width: 100%;
+        height: 100%;
+    }
+
+    .title {
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        font-size: 24px;
+    }
+</style>

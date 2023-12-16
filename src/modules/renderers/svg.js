@@ -1,14 +1,14 @@
-import queue from "./queue.js";
-import VDom from "./VDom.js";
-import path from "./path.js";
-import colorMap from "./colorMap.js";
-import Events from "./events.js";
+import queue from "./../queue.js";
+import VDom from "./../VDom.js";
+import path from "./../path.js";
+import colorMap from "./../colorMap.js";
+import Events from "./../events.js";
 import {
     CollectionPrototype,
     NodePrototype,
     layerResizeBind,
     layerResizeUnBind,
-} from "./coreApi.js";
+} from "./../coreApi.js";
 
 const queueInstance = queue;
 
@@ -200,7 +200,7 @@ DomGradients.prototype.linearGradient = function linearGradient() {
         el: "stop",
         attr: {
             "offset"(d, i) {
-                return `${d.value}%`;
+                return `${d.offset}%`;
             },
 
             "stop-color": function stopColor(d, i) {
@@ -213,7 +213,7 @@ DomGradients.prototype.linearGradient = function linearGradient() {
 
 DomGradients.prototype.radialGradient = function radialGradient() {
     const self = this;
-
+    const { innerCircle = {}, outerCircle = {} } = this.config;
     if (!this.defs) {
         this.defs = this.pDom.createEl({
             el: "defs",
@@ -227,11 +227,11 @@ DomGradients.prototype.radialGradient = function radialGradient() {
                     el: "radialGradient",
                 }).setAttr({
                     id: self.config.id,
-                    cx: `${self.config.innerCircle.x}%`,
-                    cy: `${self.config.innerCircle.y}%`,
-                    r: `${self.config.outerCircle.r}%`,
-                    fx: `${self.config.outerCircle.x}%`,
-                    fy: `${self.config.outerCircle.y}%`,
+                    cx: `${innerCircle.x}%`,
+                    cy: `${innerCircle.y}%`,
+                    r: `${innerCircle.r}%`,
+                    fx: `${outerCircle.x}%`,
+                    fy: `${outerCircle.y}%`,
                     spreadMethod: self.config.spreadMethod || "pad",
                     gradientUnits: self.config.gradientUnits || "objectBoundingBox",
                 });
@@ -251,11 +251,11 @@ DomGradients.prototype.radialGradient = function radialGradient() {
             update(nodes) {
                 nodes.radialGradient.setAttr({
                     id: self.config.id,
-                    cx: `${self.config.innerCircle.x}%`,
-                    cy: `${self.config.innerCircle.y}%`,
-                    r: `${self.config.outerCircle.r}%`,
-                    fx: `${self.config.outerCircle.x}%`,
-                    fy: `${self.config.outerCircle.y}%`,
+                    cx: `${innerCircle.x}%`,
+                    cy: `${innerCircle.y}%`,
+                    r: `${innerCircle.r}%`,
+                    fx: `${outerCircle.x}%`,
+                    fy: `${outerCircle.y}%`,
                     spreadMethod: self.config.spreadMethod || "pad",
                     gradientUnits: self.config.gradientUnits || "objectBoundingBox",
                 });
@@ -275,7 +275,7 @@ DomGradients.prototype.radialGradient = function radialGradient() {
         el: "stop",
         attr: {
             "offset"(d, i) {
-                return `${d.value}%`;
+                return `${d.offset}%`;
             },
 
             "stop-color": function stopColor(d, i) {
@@ -608,6 +608,7 @@ DomExe.prototype.child = function DMchild(nodes) {
         for (let i = 0, len = nodes.stack.length; i < len; i++) {
             fragment.appendChild(nodes.stack[i].dom);
             nodes.stack[i].parentNode = self;
+            nodes.stack[i].vDomIndex = self.vDomIndex;
             this.children[this.children.length] = nodes.stack[i];
         }
 
@@ -770,7 +771,12 @@ DomExe.prototype.removeChild = function DMremoveChild(obj) {
 };
 
 function svgLayer(container, layerSettings = {}) {
-    const res = document.querySelector(container);
+    const res =
+        container instanceof HTMLElement
+            ? container
+            : typeof container === "string" || container instanceof String
+            ? document.querySelector(container)
+            : null;
     let height = res.clientHeight;
     let width = res.clientWidth;
     const { autoUpdate = true, enableResize = true } = layerSettings;
@@ -812,8 +818,12 @@ function svgLayer(container, layerSettings = {}) {
     };
 
     const resize = function (cr) {
-        if (!document.querySelector(container)) {
+        if (
+            (container instanceof HTMLElement && !document.body.contains(container)) ||
+            (container instanceof String && !document.querySelector(container))
+        ) {
             layerResizeUnBind(root);
+            root.destroy();
             return;
         }
         height = cHeight || cr.height;
@@ -862,11 +872,12 @@ function svgLayer(container, layerSettings = {}) {
     };
 
     root.destroy = function () {
-        const res = document.querySelector(container);
-        if (res && res.contains(layer)) {
-            res.removeChild(layer);
+        const res = document.body.contains(this.container);
+        if (res && this.container.contains(this.domEl)) {
+            this.container.removeChild(this.domEl);
         }
         queueInstance.removeVdom(vDomIndex);
+        layerResizeUnBind(root, resize);
     };
 
     root.createPattern = function (config) {

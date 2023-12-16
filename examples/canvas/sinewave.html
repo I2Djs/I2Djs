@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+    <head>
+        <title></title>
+    </head>
+    <body style="height: 100%">
+        <label style="position: absolute; color: white"> Canvas Example </label>
+        <div
+            id="myCanvas"
+            style="height: 100%; width: 100%; position: absolute; background: black"
+        ></div>
+        <script type="text/javascript" src="../../dist/i2d.js"></script>
+
+        <script type="text/javascript">
+            const renderer = i2d.canvasLayer("#myCanvas", {}, {});
+            const pointCount = 500;
+            const amplitude = 50;
+            const frequency = 0.05;
+            let pointList = Array.from({ length: pointCount }, (_, i) => {
+                return {
+                    x: i,
+                    y: amplitude * Math.sin(frequency * i),
+                };
+            });
+
+            let sineWave = renderer.createEl({
+                el: "polyline",
+                attr: {
+                    transform: {
+                        translate: [100, 200],
+                    },
+                    points: pointList.map((p) => {
+                        return { x: p.x, y: p.y };
+                    }),
+                },
+                style: {
+                    strokeStyle: "blue",
+                    lineWidth: 2,
+                },
+            });
+
+            let phase = 0;
+            setInterval(() => {
+                phase += 0.1;
+                let newPointList = Array.from({ length: pointCount }, (_, i) => {
+                    return {
+                        x: i,
+                        y: amplitude * Math.sin(frequency * i + phase),
+                    };
+                });
+
+                sineWave.setAttr(
+                    "points",
+                    newPointList.map((p) => {
+                        return { x: p.x, y: p.y };
+                    })
+                );
+            }, 50);
+        </script>
+    </body>
+</html>

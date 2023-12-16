@@ -1,24 +1,108 @@
-import queue from "./queue.js";
-import VDom from "./VDom.js";
-import path from "./path.js";
-import geometry from "./geometry.js";
-import colorMap from "./colorMap.js";
-import Events from "./events.js";
-import behaviour from "./behaviour.js";
-// import { imageDataRGB as blur } from "stackblur-canvas";
+import queue from "./../queue.js";
+import VDom from "./../VDom.js";
+import path from "./../path.js";
+import geometry from "./../geometry.js";
+import colorMap from "./../colorMap.js";
+import Events from "./../events.js";
+import behaviour from "./../behaviour.js";
+import blobStream from "blob-stream-i2d/blob-stream.js";
+import PDFDocument from "pdfkit/js/pdfkit.standalone.js";
+
 import {
     NodePrototype,
     CollectionPrototype,
     layerResizeBind,
     layerResizeUnBind,
-} from "./coreApi.js";
+} from "./../coreApi.js";
+
+const pdfSupportedFontFamily = [
+    "Courier",
+    "Courier-Bold",
+    "Courier-Oblique",
+    "Courier-BoldOblique",
+    "Helvetica",
+    "Helvetica-Bold",
+    "Helvetica-Oblique",
+    "Helvetica-BoldOblique",
+    "Symbol",
+    "Times-Roman",
+    "Times-Bold",
+    "Times-Italic",
+    "Times-BoldItalic",
+    "ZapfDingbats",
+];
+
+const pdfStyleMapper = {
+    fillStyle: {
+        prop: "fillColor",
+        getValue: (val) => {
+            return val;
+        },
+    },
+    fill: {
+        prop: "fillColor",
+        getValue: (val) => {
+            return val;
+        },
+    },
+    strokeStyle: {
+        prop: "strokeColor",
+        getValue: (val) => {
+            return val;
+        },
+    },
+    stroke: {
+        prop: "strokeColor",
+        getValue: (val) => {
+            return val;
+        },
+    },
+    globalAlpha: {
+        prop: "opacity",
+        getValue: (val) => {
+            return val;
+        },
+    },
+    lineDash: {
+        prop: "dash",
+        getValue: (val) => {
+            return val[0];
+        },
+    },
+    textAlign: {
+        prop: "align",
+        getValue: (val) => {
+            return val;
+        },
+    },
+    font: {
+        prop: "font",
+        getValue: (val) => {
+            const familyName = val.match(/\b[A-Za-z]+[0-9]*[A-Za-z0-9]*\b/gm);
+            return familyName &&
+                familyName.length > 0 &&
+                pdfSupportedFontFamily.indexOf(familyName[0]) !== -1
+                ? familyName[0]
+                : "Helvetica";
+        },
+    },
+};
+
+const canvasCssMapper = {
+    "fill": "fillStyle",
+    "stroke": "strokeStyle",
+    "lineDash": "setLineDash",
+    "opacity": "globalAlpha",
+    "stroke-width": "lineWidth",
+    "stroke-dasharray": "setLineDash",
+};
+
 const t2DGeometry = geometry;
 const queueInstance = queue;
 let Id = 0;
 
 const zoomInstance = behaviour.zoom();
 const dragInstance = behaviour.drag();
-// let touchInstance = behaviour.touch();
 
 function domId() {
     Id += 1;
@@ -63,6 +147,32 @@ function domSetStyle(attr, value) {
     }
 }
 
+function cRenderPdf(attr, pdfCtx, block) {
+    const self = this;
+
+    if (self.attr.class === "cell") {
+        console.log("cell");
+    }
+
+    const transform = block ? self.attr.transform || {} : self.abTransform || {};
+    const { scale = [1, 1], skew = [0, 0], translate = [0, 0] } = transform;
+    const [hozScale = 1, verScale = hozScale] = scale;
+    const [hozSkew = 0, verSkew = hozSkew] = skew;
+    const [hozMove = 0, verMove = hozMove] = translate;
+
+    pdfCtx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove);
+
+    if (transform.rotate && transform.rotate.length > 0) {
+        pdfCtx.translate(transform.rotate[1] || 0, transform.rotate[2] || 0);
+        pdfCtx.rotate(transform.rotate[0] * (Math.PI / 180));
+        pdfCtx.translate(-transform.rotate[1] || 0, -transform.rotate[2] || 0);
+    }
+
+    for (let i = 0; i < self.stack.length; i += 1) {
+        self.stack[i].executePdf(pdfCtx, block);
+    }
+}
+
 function cRender(attr) {
     const self = this;
 
@@ -72,13 +182,6 @@ function cRender(attr) {
         const [hozScale = 1, verScale = hozScale] = scale;
         const [hozSkew = 0, verSkew = hozSkew] = skew;
         const [hozMove = 0, verMove = hozMove] = translate;
-
-        // const hozScale = scale && scale.length > 0 ? scale[0] : 1;
-        // const verScale = scale && scale.length > 1 ? scale[1] : hozScale || 1;
-        // const hozSkew = transform.skew && transform.skew.length > 0 ? transform.skew[0] : 0;
-        // const verSkew = transform.skew && transform.skew.length > 1 ? transform.skew[1] : 0;
-        // const hozMove = transform.translate && transform.translate.length > 0 ? transform.translate[0] : 0;
-        // const verMove = transform.translate && transform.translate.length > 1 ? transform.translate[1] : 0;
 
         self.ctx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove);
 
@@ -121,6 +224,7 @@ function RPolyupdateBBox() {
     const self = this;
     const { transform, points = [] } = self.attr;
     const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    let abYposition = 0;
 
     if (points && points.length > 0) {
         let minX = points[0].x;
@@ -141,6 +245,7 @@ function RPolyupdateBBox() {
             width: (maxX - minX) * scaleX,
             height: (maxY - minY) * scaleY,
         };
+        abYposition = minY;
     } else {
         self.BBox = {
             x: 0,
@@ -155,91 +260,183 @@ function RPolyupdateBBox() {
     } else {
         self.BBoxHit = this.BBox;
     }
+
+    self.abYposition = abYposition;
 }
 
-function CanvasGradients(config, type) {
+function CanvasGradient(config = {}, type = "linear") {
     this.config = config;
-    this.type = type || "linear";
+    this.type = type;
+    this.dom = {};
     this.mode = !this.config.mode || this.config.mode === "percent" ? "percent" : "absolute";
 }
 
-CanvasGradients.prototype.exe = function GRAexe(ctx, BBox) {
+CanvasGradient.prototype = new NodePrototype();
+
+CanvasGradient.prototype.exe = function GRAexe(ctx, BBox) {
     if (this.type === "linear" && this.mode === "percent") {
         return this.linearGradient(ctx, BBox);
-    }
-
-    if (this.type === "linear" && this.mode === "absolute") {
+    } else if (this.type === "linear" && this.mode === "absolute") {
         return this.absoluteLinearGradient(ctx);
     } else if (this.type === "radial" && this.mode === "percent") {
         return this.radialGradient(ctx, BBox);
     } else if (this.type === "radial" && this.mode === "absolute") {
         return this.absoluteRadialGradient(ctx);
+    } else {
+        console.error("wrong Gradiant type");
     }
-
-    console.error("wrong Gradiant type");
 };
 
-CanvasGradients.prototype.linearGradient = function GralinearGradient(ctx, BBox) {
+CanvasGradient.prototype.setAttr = function (attr, value) {
+    this.config[attr] = value;
+};
+
+CanvasGradient.prototype.exePdf = function GRAexe(ctx, BBox, AABox) {
+    if (this.type === "linear" && this.mode === "percent") {
+        return this.linearGradientPdf(ctx, BBox, AABox);
+    } else if (this.type === "linear" && this.mode === "absolute") {
+        return this.absoluteLinearGradientPdf(ctx, AABox);
+    } else if (this.type === "radial" && this.mode === "percent") {
+        return this.radialGradientPdf(ctx, BBox, AABox);
+    } else if (this.type === "radial" && this.mode === "absolute") {
+        return this.absoluteRadialGradientPdf(ctx, AABox);
+    } else {
+        console.error("wrong Gradiant type");
+    }
+};
+
+CanvasGradient.prototype.linearGradientPdf = function GralinearGradient(ctx, BBox, AABox) {
+    const { translate = [0, 0] } = AABox;
+    const lGradient = ctx.linearGradient(
+        translate[0] + BBox.x + BBox.width * (this.config.x1 / 100),
+        translate[1] + 0 + BBox.height * (this.config.y1 / 100),
+        translate[0] + BBox.x + BBox.width * (this.config.x2 / 100),
+        translate[1] + 0 + BBox.height * (this.config.y2 / 100)
+    );
+    (this.config.colorStops ?? []).forEach((d) => {
+        lGradient.stop(d.offset / 100, d.color, d.opacity);
+    });
+    return lGradient;
+};
+
+CanvasGradient.prototype.linearGradient = function GralinearGradient(ctx, BBox) {
     const lGradient = ctx.createLinearGradient(
         BBox.x + BBox.width * (this.config.x1 / 100),
         BBox.y + BBox.height * (this.config.y1 / 100),
         BBox.x + BBox.width * (this.config.x2 / 100),
         BBox.y + BBox.height * (this.config.y2 / 100)
     );
-    this.config.colorStops.forEach((d) => {
-        lGradient.addColorStop(d.value / 100, d.color);
+    (this.config.colorStops ?? []).forEach((d) => {
+        lGradient.addColorStop(d.offset / 100, d.color);
     });
     return lGradient;
 };
 
-CanvasGradients.prototype.absoluteLinearGradient = function absoluteGralinearGradient(ctx) {
+CanvasGradient.prototype.absoluteLinearGradient = function absoluteGralinearGradient(ctx) {
     const lGradient = ctx.createLinearGradient(
         this.config.x1,
         this.config.y1,
         this.config.x2,
         this.config.y2
     );
-    this.config.colorStops.forEach((d) => {
-        lGradient.addColorStop(d.value, d.color);
+    (this.config.colorStops ?? []).forEach((d) => {
+        lGradient.addColorStop(d.offset, d.color);
     });
     return lGradient;
 };
 
-CanvasGradients.prototype.radialGradient = function GRAradialGradient(ctx, BBox) {
-    const cGradient = ctx.createRadialGradient(
-        BBox.x + BBox.width * (this.config.innerCircle.x / 100),
-        BBox.y + BBox.height * (this.config.innerCircle.y / 100),
-        BBox.width > BBox.height
-            ? (BBox.width * this.config.innerCircle.r) / 100
-            : (BBox.height * this.config.innerCircle.r) / 100,
-        BBox.x + BBox.width * (this.config.outerCircle.x / 100),
-        BBox.y + BBox.height * (this.config.outerCircle.y / 100),
-        BBox.width > BBox.height
-            ? (BBox.width * this.config.outerCircle.r) / 100
-            : (BBox.height * this.config.outerCircle.r) / 100
+CanvasGradient.prototype.absoluteLinearGradientPdf = function absoluteGralinearGradient(
+    ctx,
+    AABox
+) {
+    const { translate = [0, 0] } = AABox;
+    const lGradient = ctx.linearGradient(
+        translate[0] + this.config.x1,
+        translate[1] + this.config.y1,
+        translate[0] + this.config.x2,
+        translate[1] + this.config.y2
     );
-    this.config.colorStops.forEach((d) => {
-        cGradient.addColorStop(d.value / 100, d.color);
+    (this.config.colorStops ?? []).forEach((d) => {
+        lGradient.stop(d.offset, d.color, d.opacity);
+    });
+    return lGradient;
+};
+
+CanvasGradient.prototype.radialGradient = function GRAradialGradient(ctx, BBox) {
+    const { innerCircle = {}, outerCircle = {} } = this.config;
+    const cGradient = ctx.createRadialGradient(
+        BBox.x + BBox.width * (innerCircle.x / 100),
+        BBox.y + BBox.height * (innerCircle.y / 100),
+        BBox.width > BBox.height
+            ? (BBox.width * innerCircle.r) / 100
+            : (BBox.height * innerCircle.r) / 100,
+        BBox.x + BBox.width * (outerCircle.x / 100),
+        BBox.y + BBox.height * (outerCircle.y / 100),
+        BBox.width > BBox.height
+            ? (BBox.width * outerCircle.r) / 100
+            : (BBox.height * outerCircle.r) / 100
+    );
+    (this.config.colorStops ?? []).forEach((d) => {
+        cGradient.addColorStop(d.offset / 100, d.color);
     });
     return cGradient;
 };
 
-CanvasGradients.prototype.absoluteRadialGradient = function absoluteGraradialGradient(ctx, BBox) {
-    const cGradient = ctx.createRadialGradient(
-        this.config.innerCircle.x,
-        this.config.innerCircle.y,
-        this.config.innerCircle.r,
-        this.config.outerCircle.x,
-        this.config.outerCircle.y,
-        this.config.outerCircle.r
+CanvasGradient.prototype.radialGradientPdf = function GRAradialGradient(ctx, BBox, AABox) {
+    const { translate = [0, 0] } = AABox;
+    const { innerCircle = {}, outerCircle = {} } = this.config;
+    const cGradient = ctx.radialGradient(
+        translate[0] + BBox.x + BBox.width * (innerCircle.x / 100),
+        translate[1] + 0 + BBox.height * (innerCircle.y / 100),
+        innerCircle.r,
+        translate[0] + BBox.x + BBox.width * (outerCircle.x / 100),
+        translate[1] + 0 + BBox.height * (outerCircle.y / 100),
+        outerCircle.r2
     );
-    this.config.colorStops.forEach((d) => {
-        cGradient.addColorStop(d.value / 100, d.color);
+    (this.config.colorStops ?? []).forEach((d) => {
+        cGradient.stop(d.offset / 100, d.color, d.opacity);
     });
     return cGradient;
 };
 
-CanvasGradients.prototype.colorStops = function GRAcolorStops(colorStopValues) {
+CanvasGradient.prototype.absoluteRadialGradient = function absoluteGraradialGradient(ctx, BBox) {
+    const { innerCircle = {}, outerCircle = {} } = this.config;
+    const cGradient = ctx.createRadialGradient(
+        innerCircle.x,
+        innerCircle.y,
+        innerCircle.r,
+        outerCircle.x,
+        outerCircle.y,
+        outerCircle.r
+    );
+    (this.config.colorStops ?? []).forEach((d) => {
+        cGradient.addColorStop(d.offset / 100, d.color);
+    });
+    return cGradient;
+};
+
+CanvasGradient.prototype.absoluteRadialGradientPdf = function absoluteGraradialGradient(
+    ctx,
+    BBox,
+    AABox
+) {
+    const { translate = [0, 0] } = AABox;
+    const { innerCircle = {}, outerCircle = {} } = this.config;
+    const cGradient = ctx.radialGradient(
+        translate[0] + innerCircle.x,
+        translate[1] + innerCircle.y,
+        innerCircle.r,
+        translate[0] + outerCircle.x,
+        translate[1] + outerCircle.y,
+        outerCircle.r
+    );
+    (this.config.colorStops ?? []).forEach((d) => {
+        cGradient.stop(d.offset / 100, d.color);
+    });
+    return cGradient;
+};
+
+CanvasGradient.prototype.colorStops = function GRAcolorStops(colorStopValues) {
     if (Object.prototype.toString.call(colorStopValues) !== "[object Array]") {
         return false;
     }
@@ -249,11 +446,11 @@ CanvasGradients.prototype.colorStops = function GRAcolorStops(colorStopValues) {
 };
 
 function createLinearGradient(config) {
-    return new CanvasGradients(config, "linear");
+    return new CanvasGradient(config, "linear");
 }
 
 function createRadialGradient(config) {
-    return new CanvasGradients(config, "radial");
+    return new CanvasGradient(config, "radial");
 }
 
 function PixelObject(data, width, height) {
@@ -290,10 +487,10 @@ PixelObject.prototype.put = function (pos, color) {
 };
 
 // function pixels (pixHndlr) {
-// 	const tObj = this.rImageObj ? this.rImageObj : this.imageObj;
-// 	const tCxt = tObj.getContext('2d');
-// 	const pixelData = tCxt.getImageData(0, 0, this.attr.width, this.attr.height);
-// 	return pixHndlr(pixelData);
+//  const tObj = this.rImageObj ? this.rImageObj : this.imageObj;
+//  const tCxt = tObj.getContext('2d');
+//  const pixelData = tCxt.getImageData(0, 0, this.attr.width, this.attr.height);
+//  return pixHndlr(pixelData);
 // }
 
 function CanvasMask(self, config = {}) {
@@ -356,19 +553,15 @@ function CanvasPattern(self, config = {}, width = 0, height = 0) {
     const selfSelf = this;
     const patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
     this.repeatInd = config.repeat ? config.repeat : "repeat";
-    if (self.ENV === "NODE") {
-        selfSelf.pattern = canvasNodeLayer({}, height, width);
-    } else {
-        selfSelf.pattern = canvasLayer(
-            null,
-            {},
-            {
-                enableEvents: false,
-                enableResize: false,
-            }
-        );
-        selfSelf.pattern.setSize(width, height);
-    }
+    selfSelf.pattern = canvasLayer(
+        null,
+        {},
+        {
+            enableEvents: false,
+            enableResize: false,
+        }
+    );
+    selfSelf.pattern.setSize(width, height);
 
     selfSelf.pattern.setAttr("id", patternId);
     self.prependChild([selfSelf.pattern]);
@@ -400,6 +593,18 @@ function applyStyles() {
     }
 }
 
+function applyStylesPdf(pdfCtx) {
+    const fillColor = this.style.fillStyle ?? this.style.fill ?? this.style.fillColor;
+    const strokeColor = this.style.stroke ?? this.style.strokeStyle ?? this.style.strokeColor;
+    if (fillColor && strokeColor) {
+        pdfCtx.fillAndStroke(fillColor, strokeColor);
+    } else if (fillColor) {
+        pdfCtx.fill();
+    } else if (strokeColor) {
+        pdfCtx.stroke();
+    }
+}
+
 function CanvasDom() {
     this.BBox = {
         x: 0,
@@ -417,10 +622,12 @@ function CanvasDom() {
 
 CanvasDom.prototype = {
     render: cRender,
+    renderPdf: cRenderPdf,
     // on: addListener,
     setAttr: domSetAttribute,
     setStyle: domSetStyle,
     applyStyles,
+    applyStylesPdf,
 };
 
 function imageInstance(self) {
@@ -428,8 +635,14 @@ function imageInstance(self) {
     imageIns.crossOrigin = "anonymous";
 
     imageIns.onload = function onload() {
-        self.attr.height = self.attr.height ? self.attr.height : this.height;
-        self.attr.width = self.attr.width ? self.attr.width : this.width;
+        // self.attr.height = self.attr.height ? self.attr.height : this.height;
+        // self.attr.width = self.attr.width ? self.attr.width : this.width;
+        self.attr.height = self.attr.height
+            ? self.attr.height
+            : (self.attr.width / this.naturalWidth) * this.naturalHeight;
+        self.attr.width = self.attr.width
+            ? self.attr.width
+            : (self.attr.height / this.naturalHeight) * this.naturalWidth;
         self.imageObj = this;
 
         if (self.nodeExe.attr.onload && typeof self.nodeExe.attr.onload === "function") {
@@ -448,6 +661,19 @@ function imageInstance(self) {
 
     return imageIns;
 }
+
+function DummyDom(ctx, props, styleProps) {
+    const self = this;
+    self.ctx = ctx;
+    self.nodeName = "dummy";
+    self.attr = props;
+    self.style = styleProps;
+    self.stack = [self];
+    return this;
+}
+
+DummyDom.prototype = new CanvasDom();
+DummyDom.prototype.constructor = DummyDom;
 
 function RenderImage(ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
     const self = this;
@@ -577,6 +803,8 @@ RenderImage.prototype.updateBBox = function RIupdateBBox() {
     } else {
         self.BBoxHit = this.BBox;
     }
+
+    self.abYposition = y;
 };
 
 RenderImage.prototype.execute = function RIexecute() {
@@ -585,6 +813,15 @@ RenderImage.prototype.execute = function RIexecute() {
     if (this.imageObj) {
         // this.ctx.drawImage(this.rImageObj ? this.rImageObj.canvas : this.imageObj, x, y, width, height);
         this.ctx.drawImage(this.imageObj, x, y, width, height);
+    }
+};
+
+RenderImage.prototype.executePdf = function RIexecute(pdfCtx) {
+    const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
+    if (this.attr.src) {
+        pdfCtx.translate(0, -this.abYposition);
+        // this.ctx.drawImage(this.rImageObj ? this.rImageObj.canvas : this.imageObj, x, y, width, height);
+        pdfCtx.image(this.attr.src, x, y, { width, height });
     }
 };
 
@@ -602,13 +839,77 @@ function RenderText(ctx, props, stylesProps) {
     self.style = stylesProps;
     self.nodeName = "text";
     self.stack = [self];
+    self.textHeight = 0;
+    self.height = 1;
+    if (self.attr.width && self.attr.text) {
+        this.fitWidth();
+    }
 }
 
 RenderText.prototype = new CanvasDom();
 RenderText.prototype.constructor = RenderText;
 
+RenderText.prototype.setAttr = function (attr, value) {
+    if (value == null && this.attr[attr] != null) {
+        delete this.attr[attr];
+    } else {
+        this.attr[attr] = value;
+        if ((attr === "width" || attr === "text") && this.attr.width && this.attr.text) {
+            this.fitWidth();
+        }
+    }
+};
+
+RenderText.prototype.fitWidth = function () {
+    if (this.style.font) {
+        this.ctx.font = this.style.font;
+    }
+    const width = this.attr.width;
+    const textListByLine = this.attr.text.toString().split("\n");
+    const textSubStrs = [];
+    let strLit = "";
+    let i = 0;
+    const textList = textListByLine.reduce((p, c) => {
+        const sstr = c.split(/( )/g);
+
+        sstr.forEach((d) => {
+            if (this.ctx.measureText(d).width < width) {
+                p.push(d);
+            } else {
+                p = p.concat(d.match(new RegExp(".{1,1}", "g")));
+            }
+        });
+        p.push("\n");
+        return p;
+    }, []);
+    while (i < textList.length) {
+        if (textList[i] === "\n") {
+            textSubStrs.push(strLit);
+            strLit = " ";
+        } else {
+            if (this.ctx.measureText(strLit + textList[i]).width < width) {
+                strLit = strLit + textList[i];
+            } else {
+                if (strLit && strLit.length > 0 && strLit !== " ") {
+                    textSubStrs.push(strLit);
+                }
+                strLit = textList[i];
+            }
+        }
+        i++;
+    }
+    if (strLit && strLit !== " ") {
+        textSubStrs.push(strLit);
+    }
+
+    this.textList = textSubStrs;
+};
+
 RenderText.prototype.text = function RTtext(value) {
     this.attr.text = value;
+    if (this.attr.width) {
+        this.fitWidth();
+    }
 };
 
 RenderText.prototype.updateBBox = function RTupdateBBox() {
@@ -621,9 +922,17 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
     if (this.style.font) {
         this.ctx.font = this.style.font;
         height = parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1;
+        self.textHeight = height + 3;
+    } else {
+        self.textHeight = this.ctx.measureText("I2DJS-Z").fontBoundingBoxAscent;
+        height = self.textHeight + 7;
     }
-
-    width = this.ctx.measureText(this.attr.text).width;
+    if (this.attr.width && this.textList && this.textList.length > 0) {
+        width = this.attr.width;
+        height = height * this.textList.length;
+    } else {
+        width = this.ctx.measureText(this.attr.text).width;
+    }
 
     if (this.style.textAlign === "center") {
         x -= width / 2;
@@ -643,6 +952,8 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
         height: height * scaleY,
     };
 
+    self.abYposition = y;
+
     if (transform && transform.rotate) {
         self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
     } else {
@@ -652,17 +963,61 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
 
 RenderText.prototype.execute = function RTexecute() {
     if (this.attr.text !== undefined && this.attr.text !== null) {
-        if (this.ctx.fillStyle !== "#000000") {
-            this.ctx.fillText(this.attr.text, this.attr.x, this.attr.y + this.height);
-        }
+        if (this.textList && this.textList.length > 0) {
+            for (var i = 0; i < this.textList.length; i++) {
+                if (this.ctx.fillStyle !== "#000000") {
+                    this.ctx.fillText(
+                        this.textList[i],
+                        this.attr.x,
+                        this.attr.y + this.textHeight * (i + 1)
+                    );
+                }
 
-        if (this.ctx.strokeStyle !== "#000000") {
-            this.ctx.strokeText(this.attr.text, this.attr.x, this.attr.y + this.height);
+                if (this.ctx.strokeStyle !== "#000000") {
+                    this.ctx.strokeText(
+                        this.textList[i],
+                        this.attr.x,
+                        this.attr.y + this.textHeight * (i + 1)
+                    );
+                }
+            }
+        } else {
+            if (this.ctx.fillStyle !== "#000000") {
+                this.ctx.fillText(this.attr.text, this.attr.x, this.attr.y + this.height);
+            }
+
+            if (this.ctx.strokeStyle !== "#000000") {
+                this.ctx.strokeText(this.attr.text, this.attr.x, this.attr.y + this.height);
+            }
         }
     }
 };
 
-RenderText.prototype.applyStyles = function RTapplyStyles() {};
+RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
+    if (this.attr.text !== undefined && this.attr.text !== null) {
+        if (this.style.font) {
+            // parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1
+            pdfCtx.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
+        }
+        const alignVlaue = this.style.align ?? this.style.textAlign;
+
+        const styleObect = {
+            ...(this.attr.width && { width: this.attr.width }),
+            ...(this.style.lineGap && { lineGap: this.style.lineGap }),
+            ...(this.style.textBaseline && { textBaseline: this.style.textBaseline }),
+            ...(alignVlaue && { align: alignVlaue }),
+        };
+        if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
+            pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
+        }
+
+        if (this.style.strokeStyle || this.style.stroke || this.style.strokeColor) {
+            pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
+        }
+    }
+};
+
+// RenderText.prototype.applyStyles = function RTapplyStyles() {};
 
 RenderText.prototype.in = function RTinfun(co) {
     const { x = 0, y = 0, width = 0, height = 0 } = this;
@@ -699,6 +1054,8 @@ RenderCircle.prototype.updateBBox = function RCupdateBBox() {
     } else {
         self.BBoxHit = this.BBox;
     }
+
+    self.abYposition = cy;
 };
 
 RenderCircle.prototype.execute = function RCexecute() {
@@ -707,6 +1064,15 @@ RenderCircle.prototype.execute = function RCexecute() {
     this.ctx.arc(cx, cy, r, 0, 2 * Math.PI, false);
     this.applyStyles();
     this.ctx.closePath();
+};
+
+RenderCircle.prototype.executePdf = function RCexecute(pdfCtx, block) {
+    const { r = 0, cx = 0, cy = 0 } = this.attr;
+    if (!block) {
+        pdfCtx.translate(0, -this.abYposition);
+    }
+    pdfCtx.circle(parseInt(cx), parseInt(cy), parseInt(r));
+    this.applyStylesPdf(pdfCtx);
 };
 
 RenderCircle.prototype.in = function RCinfun(co, eventType) {
@@ -744,6 +1110,7 @@ RenderLine.prototype.updateBBox = function RLupdateBBox() {
     } else {
         self.BBoxHit = this.BBox;
     }
+    self.abYposition = y1 < y2 ? y1 : y2;
 };
 
 RenderLine.prototype.execute = function RLexecute() {
@@ -754,6 +1121,16 @@ RenderLine.prototype.execute = function RLexecute() {
     ctx.lineTo(x2, y2);
     this.applyStyles();
     ctx.closePath();
+};
+
+RenderLine.prototype.executePdf = function RLexecute(pdfCtx, block) {
+    const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
+    if (!block) {
+        pdfCtx.translate(0, -this.abYposition);
+    }
+    pdfCtx.moveTo(x1, y1);
+    pdfCtx.lineTo(x2, y2);
+    pdfCtx.stroke();
 };
 
 RenderLine.prototype.in = function RLinfun(co) {
@@ -811,6 +1188,22 @@ RenderPolyline.prototype.execute = function polylineExe() {
     }
     this.applyStyles();
     this.ctx.closePath();
+};
+
+RenderPolyline.prototype.executePdf = function polylineExe(pdfCtx, block) {
+    let d;
+    if (!this.attr.points || this.attr.points.length === 0) return;
+
+    if (!block) {
+        pdfCtx.translate(0, -this.abYposition);
+    }
+
+    pdfCtx.moveTo(this.attr.points[0].x, this.attr.points[0].y);
+    for (var i = 1; i < this.attr.points.length; i++) {
+        d = this.attr.points[i];
+        pdfCtx.lineTo(d.x, d.y);
+    }
+    pdfCtx.stroke();
 };
 
 RenderPolyline.prototype.updateBBox = RPolyupdateBBox;
@@ -886,11 +1279,11 @@ RenderPath.prototype.updateBBox = function RPupdateBBox() {
     const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
 
     // if (transform && transform.translate) {
-    // 	[translateX, translateY] = transform.translate;
+    //  [translateX, translateY] = transform.translate;
     // }
 
     // if (transform && transform.scale) {
-    // 	[scaleX = 1, scaleY = scaleX] = transform.scale;
+    //  [scaleX = 1, scaleY = scaleX] = transform.scale;
     // }
 
     self.BBox = self.path
@@ -901,6 +1294,7 @@ RenderPath.prototype.updateBBox = function RPupdateBBox() {
               width: 0,
               height: 0,
           };
+    self.abYposition = self.BBox.y;
     self.BBox.x = translateX + self.BBox.x * scaleX;
     self.BBox.y = translateY + self.BBox.y * scaleY;
     self.BBox.width *= scaleX;
@@ -961,6 +1355,16 @@ RenderPath.prototype.execute = function RPexecute() {
     }
 };
 
+RenderPath.prototype.executePdf = function RPexecute(pdfCtx, block) {
+    if (this.attr.d) {
+        if (!block) {
+            pdfCtx.translate(0, -this.abYposition);
+        }
+        pdfCtx.path(this.attr.d);
+        this.applyStylesPdf(pdfCtx);
+    }
+};
+
 RenderPath.prototype.applyStyles = function RPapplyStyles() {};
 
 RenderPath.prototype.in = function RPinfun(co) {
@@ -1000,6 +1404,9 @@ function polygonExe(points) {
     return {
         path: polygon,
         points: points,
+        rawPoints: points.map((d) => {
+            return [d.x, d.y];
+        }),
         execute: function (ctx) {
             ctx.beginPath();
             const points = this.points;
@@ -1060,6 +1467,17 @@ RenderPolygon.prototype.execute = function RPolyexecute() {
     }
 };
 
+RenderPolygon.prototype.executePdf = function RPolyexecute(pdfCtx, block) {
+    if (!this.polygon) {
+        return;
+    }
+    if (!block) {
+        pdfCtx.translate(0, -this.abYposition);
+    }
+    pdfCtx.polygon(...this.polygon.rawPoints);
+    this.applyStylesPdf(pdfCtx);
+};
+
 RenderPolygon.prototype.applyStyles = function RPolyapplyStyles() {};
 
 RenderPolygon.prototype.in = function RPolyinfun(co) {
@@ -1094,20 +1512,8 @@ RenderEllipse.prototype.constructor = RenderEllipse;
 
 RenderEllipse.prototype.updateBBox = function REupdateBBox() {
     const self = this;
-    // let translateX = 0;
-    // let translateY = 0;
-    // let scaleX = 1;
-    // let scaleY = 1;
     const { transform, cx = 0, cy = 0, rx = 0, ry = 0 } = self.attr;
     const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-
-    // if (transform && transform.translate) {
-    // 	[translateX, translateY] = transform.translate;
-    // }
-
-    // if (transform && transform.scale) {
-    // 	[scaleX = 1, scaleY = scaleX] = transform.scale;
-    // }
 
     self.BBox = {
         x: translateX + (cx - rx) * scaleX,
@@ -1121,6 +1527,8 @@ RenderEllipse.prototype.updateBBox = function REupdateBBox() {
     } else {
         self.BBoxHit = this.BBox;
     }
+
+    this.abYposition = cy - ry;
 };
 
 RenderEllipse.prototype.execute = function REexecute() {
@@ -1130,6 +1538,15 @@ RenderEllipse.prototype.execute = function REexecute() {
     ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
     this.applyStyles();
     ctx.closePath();
+};
+
+RenderEllipse.prototype.executePdf = function REexecute(pdfCtx, block) {
+    const { cx = 0, cy = 0, rx = 0, ry = 0 } = this.attr;
+    if (!block) {
+        pdfCtx.translate(0, -this.abYposition);
+    }
+    pdfCtx.ellipse(cx, cy, rx, ry);
+    this.applyStylesPdf(pdfCtx);
 };
 
 RenderEllipse.prototype.in = function REinfun(co) {
@@ -1170,9 +1587,11 @@ RenderRect.prototype.updateBBox = function RRupdateBBox() {
     } else {
         self.BBoxHit = this.BBox;
     }
+
+    self.abYposition = y;
 };
 
-RenderRect.prototype.applyStyles = function rStyles() {};
+// RenderRect.prototype.applyStyles = function rStyles() {};
 
 function renderRoundRect(ctx, attr) {
     const { x = 0, y = 0, width = 0, height = 0, rx = 0, ry = 0 } = attr;
@@ -1189,6 +1608,41 @@ function renderRoundRect(ctx, attr) {
     ctx.quadraticCurveTo(x, y, x + rx, y);
     ctx.closePath();
 }
+
+function renderRoundRectPdf(ctx, attr) {
+    const { x = 0, y = 0, width = 0, height = 0, rx = 0, ry = 0 } = attr;
+
+    ctx.moveTo(x + rx, y);
+    ctx.lineTo(x + width - rx, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + ry);
+    ctx.lineTo(x + width, y + height - ry);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - rx, y + height);
+    ctx.lineTo(x + rx, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - ry);
+    ctx.lineTo(x, y + ry);
+    ctx.quadraticCurveTo(x, y, x + rx, y);
+}
+
+RenderRect.prototype.executePdf = function RRexecute(pdfCtx, block) {
+    const { x = 0, y = 0, width = 0, height = 0, rx = 0, ry = 0 } = this.attr;
+    if (!block) {
+        pdfCtx.translate(0, -this.abYposition);
+    }
+    if (!rx && !ry) {
+        pdfCtx.rect(x, y, width, height);
+    } else {
+        renderRoundRectPdf(pdfCtx, {
+            x,
+            y,
+            width,
+            height,
+            rx,
+            ry,
+        });
+    }
+
+    this.applyStylesPdf(pdfCtx);
+};
 
 RenderRect.prototype.execute = function RRexecute() {
     const ctx = this.ctx;
@@ -1227,7 +1681,7 @@ RenderRect.prototype.execute = function RRexecute() {
             }
         }
     } else {
-        ctx.rect(x, y, width, height);
+        // ctx.rect(x, y, width, height);
     }
 };
 
@@ -1310,10 +1764,12 @@ RenderGroup.prototype.child = function RGchild(obj) {
 
     if (objLocal instanceof CanvasNodeExe) {
         objLocal.dom.parent = self;
+        objLocal.vDomIndex = self.vDomIndex;
         self.stack[self.stack.length] = objLocal;
     } else if (objLocal instanceof CanvasCollection) {
         objLocal.stack.forEach((d) => {
             d.dom.parent = self;
+            d.vDomIndex = self.vDomIndex;
             self.stack[self.stack.length] = d;
         });
     } else {
@@ -1353,6 +1809,8 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.ctx = context;
     this.vDomIndex = vDomIndex;
     this.bbox = config.bbox !== undefined ? config.bbox : true;
+    this.BBoxUpdate = true;
+    this.block = config.block || false;
 
     switch (config.el) {
         case "circle":
@@ -1415,18 +1873,20 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
             break;
 
         default:
-            this.dom = null;
+            this.dom = new DummyDom(this.ctx, this.attr, this.style);
+            this.bbox = false;
+            this.BBoxUpdate = false;
             break;
     }
 
     this.dom.nodeExe = this;
-    this.BBoxUpdate = true;
+
     // if (config.style) {
-    // 	this.setStyle(config.style);
+    //  this.setStyle(config.style);
     // }
 
     // if (config.attr) {
-    // 	this.setAttr(config.attr);
+    //  this.setAttr(config.attr);
     // }
 };
 
@@ -1442,12 +1902,14 @@ CanvasNodeExe.prototype.stylesExe = function CstylesExe() {
     let key;
     const style = this.style;
 
+    this.resolvedStyle = {};
+
     for (key in style) {
         if (typeof style[key] === "string" || typeof style[key] === "number") {
             value = style[key];
         } else if (typeof style[key] === "object") {
             if (
-                style[key] instanceof CanvasGradients ||
+                style[key] instanceof CanvasGradient ||
                 style[key] instanceof CanvasPattern ||
                 style[key] instanceof CanvasClipping ||
                 style[key] instanceof CanvasMask
@@ -1463,10 +1925,59 @@ CanvasNodeExe.prototype.stylesExe = function CstylesExe() {
             console.log("unkonwn Style");
         }
 
+        if (canvasCssMapper[key]) {
+            key = canvasCssMapper[key];
+        }
+
         if (typeof this.ctx[key] !== "function") {
             this.ctx[key] = value;
         } else if (typeof this.ctx[key] === "function") {
             this.ctx[key](value);
+        } else {
+            console.log("junk comp");
+        }
+        this.resolvedStyle[key] = value;
+    }
+};
+
+CanvasNodeExe.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
+    if (!pdfCtx) return;
+    const style = this.style;
+    let value;
+    for (let key in style) {
+        if (typeof style[key] === "string" || typeof style[key] === "number") {
+            value = style[key];
+        } else if (typeof style[key] === "object") {
+            if (
+                style[key] instanceof CanvasGradient ||
+                style[key] instanceof CanvasPattern ||
+                style[key] instanceof CanvasClipping ||
+                style[key] instanceof CanvasMask
+            ) {
+                value = style[key].exePdf(pdfCtx, this.dom.BBox, this.dom.abTranslate);
+            } else {
+                value = style[key];
+            }
+        } else if (typeof style[key] === "function") {
+            style[key] = style[key].call(this, this.dataObj);
+            value = style[key];
+        } else {
+            console.log("unkonwn Style");
+        }
+
+        if (pdfStyleMapper[key]) {
+            value = pdfStyleMapper[key].getValue(value);
+            key = pdfStyleMapper[key].prop;
+        }
+
+        if ((key === "fillColor" || key === "strokeColor") && typeof value === "string") {
+            value = colorMap.colorToRGBPdf(value);
+        }
+
+        if (typeof pdfCtx[key] !== "function") {
+            pdfCtx[key] = value;
+        } else if (typeof pdfCtx[key] === "function") {
+            pdfCtx[key](value);
         } else {
             console.log("junk comp");
         }
@@ -1487,6 +1998,10 @@ CanvasNodeExe.prototype.remove = function Cremove() {
 
 CanvasNodeExe.prototype.attributesExe = function CattributesExe() {
     this.dom.render(this.attr);
+};
+
+CanvasNodeExe.prototype.attributesExePdf = function CattributesExe(pdfCtx, block) {
+    this.dom.renderPdf(this.attr, pdfCtx, block);
 };
 
 CanvasNodeExe.prototype.setStyle = function CsetStyle(attr, value) {
@@ -1517,7 +2032,7 @@ function valueCheck(value) {
         value = value.rgba;
     }
 
-    return value === "#000" || value === "#000000" || value === "black" ? "rgb(1, 1, 1)" : value;
+    return value === "#000" || value === "#000000" || value === "black" ? "#010101" : value;
 }
 
 CanvasNodeExe.prototype.setAttr = function CsetAttr(attr, value) {
@@ -1636,6 +2151,27 @@ CanvasNodeExe.prototype.execute = function Cexecute() {
     this.ctx.restore();
 };
 
+CanvasNodeExe.prototype.executePdf = function Cexecute(pdfCtx, block) {
+    if (this.style.display === "none") {
+        return;
+    }
+    if (!(this.dom instanceof RenderGroup) || block || this.block) {
+        pdfCtx.save();
+    }
+
+    this.stylesExePdf(pdfCtx);
+    this.attributesExePdf(pdfCtx, block);
+    if (this.dom instanceof RenderGroup) {
+        for (let i = 0, len = this.children.length; i < len; i += 1) {
+            this.children[i].executePdf(pdfCtx, block || this.block);
+        }
+    }
+
+    if (!(this.dom instanceof RenderGroup) || block || this.block) {
+        pdfCtx.restore();
+    }
+};
+
 CanvasNodeExe.prototype.prependChild = function child(childrens) {
     const self = this;
     const childrensLocal = childrens;
@@ -1643,6 +2179,7 @@ CanvasNodeExe.prototype.prependChild = function child(childrens) {
     if (self.dom instanceof RenderGroup) {
         for (let i = 0; i < childrensLocal.length; i += 1) {
             childrensLocal[i].dom.parent = self;
+            childrensLocal[i].vDomIndex = self.vDomIndex;
             self.children.unshift(childrensLocal[i]);
         }
     } else {
@@ -1661,6 +2198,7 @@ CanvasNodeExe.prototype.child = function child(childrens) {
     if (self.dom instanceof RenderGroup) {
         for (let i = 0; i < childrensLocal.length; i += 1) {
             childrensLocal[i].dom.parent = self;
+            childrensLocal[i].setVDomIndex(self.vDomIndex);
             self.children[self.children.length] = childrensLocal[i];
         }
     } else {
@@ -1672,12 +2210,21 @@ CanvasNodeExe.prototype.child = function child(childrens) {
     return self;
 };
 
+CanvasNodeExe.prototype.setVDomIndex = function (vDomIndex) {
+    this.vDomIndex = vDomIndex;
+    for (let i = 0, len = this.children.length; i < len; i += 1) {
+        if (this.children[i] && this.children[i].setVDomIndex) {
+            this.children[i].setVDomIndex(vDomIndex);
+        }
+    }
+};
+
 CanvasNodeExe.prototype.updateBBox = function CupdateBBox() {
     let status;
 
     if (this.bbox) {
         for (let i = 0, len = this.children.length; i < len; i += 1) {
-            if (this.children[i]) {
+            if (this.children[i] && this.children[i].updateBBox) {
                 status = this.children[i].updateBBox() || status;
             }
         }
@@ -1689,6 +2236,30 @@ CanvasNodeExe.prototype.updateBBox = function CupdateBBox() {
     }
 
     return false;
+};
+
+CanvasNodeExe.prototype.updateABBox = function updateABBox(transform = { translate: [0, 0] }) {
+    if (this.attr.class === "0-header") {
+        console.log("0-header");
+    }
+    const localTransform = this.attr.transform || { translate: [0, 0] };
+    const abTransform = {
+        translate: [
+            transform.translate[0] + localTransform.translate[0],
+            transform.translate[1] + localTransform.translate[1],
+        ],
+    };
+    this.dom.abTransform = abTransform;
+    if (this.attr.class === "0-header") {
+        console.log(abTransform);
+    }
+
+    // this.setAttr("abTranslate", this.abTranslate);
+    if (this.dom instanceof RenderGroup) {
+        for (let i = 0, len = this.children.length; i < len && this.children[i]; i += 1) {
+            this.children[i].updateABBox(abTransform);
+        }
+    }
 };
 
 CanvasNodeExe.prototype.in = function Cinfun(co) {
@@ -1809,292 +2380,6 @@ CanvasNodeExe.prototype.putPixels = function (pixels) {
     return this.ctx.putImageData(pixels.imageData, this.dom.BBox.x, this.dom.BBox.y);
 };
 
-function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
-    const res = container ? document.querySelector(container) : null;
-    let height = res ? res.clientHeight : 0;
-    let width = res ? res.clientWidth : 0;
-    const layer = document.createElement("canvas");
-    const ctx = layer.getContext("2d", contextConfig);
-    let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
-    let ratio = getPixlRatio(ctx);
-    ctx.pixelRatio = ratio;
-    let onClear = function (ctx) {
-        ctx.clearRect(0, 0, width * ratio, height * ratio);
-    };
-    layer.setAttribute("height", height * ratio);
-    layer.setAttribute("width", width * ratio);
-    layer.style.height = `${height}px`;
-    layer.style.width = `${width}px`;
-    layer.style.position = "absolute";
-
-    let vDomInstance;
-    let vDomIndex = 999999;
-    let cHeight;
-    let cWidth;
-    let resizeCall;
-    let onChangeExe;
-
-    if (res) {
-        res.appendChild(layer);
-        vDomInstance = new VDom();
-        if (autoUpdate) {
-            vDomIndex = queueInstance.addVdom(vDomInstance);
-        }
-    } else {
-        enableEvents = false;
-    }
-
-    const root = new CanvasNodeExe(
-        ctx,
-        {
-            el: "g",
-            attr: {
-                id: "rootNode",
-            },
-        },
-        domId(),
-        vDomIndex
-    );
-
-    if (vDomInstance) {
-        vDomInstance.rootNode(root);
-    }
-
-    const execute = root.execute.bind(root);
-    root.container = res;
-    root.domEl = layer;
-    root.height = height;
-    root.width = width;
-    root.type = "CANVAS";
-    root.ctx = ctx;
-
-    root.setClear = function (exe) {
-        onClear = exe;
-    };
-
-    root.setAttr = function (prop, value) {
-        if (prop === "viewBox") {
-            this.setViewBox.apply(this, value.split(","));
-        }
-        layer.setAttribute(prop, value);
-        this.attr[prop] = value;
-    };
-
-    root.enableEvents = function (flag) {
-        enableEvents = flag;
-    };
-
-    root.setStyle = function (prop, value) {
-        this.domEl.style[prop] = value;
-    };
-
-    root.addDependentLayer = function (layer) {
-        if (!(layer instanceof CanvasNodeExe)) {
-            return;
-        }
-        const depId = layer.attr.id ? layer.attr.id : "dep-" + Math.ceil(Math.random() * 1000);
-        layer.setAttr("id", depId);
-        layer.vDomIndex = this.vDomIndex + ":" + depId;
-        this.prependChild([layer]);
-    };
-
-    const resize = function (cr) {
-        if (!document.querySelector(container)) {
-            layerResizeUnBind(root);
-            return;
-        }
-        height = cHeight || cr.height;
-        width = cWidth || cr.width;
-
-        root.width = width;
-        root.height = height;
-
-        updateLayerDimension(root.domEl, width, height);
-
-        if (resizeCall) {
-            resizeCall();
-        }
-        root.execute();
-    };
-
-    const updateLayerDimension = function (layer, width, height) {
-        layer.setAttribute("height", height * ratio);
-        layer.setAttribute("width", width * ratio);
-        layer.style.height = `${height}px`;
-        layer.style.width = `${width}px`;
-    };
-
-    root.setPixelRatio = function (val) {
-        ratio = val;
-        this.ctx.pixelRatio = ratio;
-        updateLayerDimension(this.domEl, this.width, this.height);
-    };
-
-    root.onResize = function (exec) {
-        resizeCall = exec;
-    };
-
-    root.onChange = function (exec) {
-        onChangeExe = exec;
-    };
-
-    root.toDataURL = function (p) {
-        return this.domEl.toDataURL(p);
-    };
-
-    root.invokeOnChange = function () {};
-
-    root.setSize = function (width_, height_) {
-        cHeight = height_;
-        cWidth = width_;
-        width = width_;
-        height = height_;
-        this.width = width;
-        this.height = height;
-
-        updateLayerDimension(this.domEl, width, height);
-
-        this.execute();
-    };
-
-    root.setViewBox = function (x, y, height, width) {};
-
-    root.getPixels = function (x, y, width_, height_) {
-        const imageData = this.ctx.getImageData(x, y, width_, height_);
-        const pixelInstance = new PixelObject(imageData, width_, height_);
-
-        return pixelInstance;
-    };
-
-    root.putPixels = function (Pixels, x, y) {
-        if (!(Pixels instanceof PixelObject)) {
-            return;
-        }
-        return this.ctx.putImageData(Pixels.imageData, x, y);
-    };
-
-    root.clear = function () {
-        onClear();
-    };
-
-    root.setContext = function (prop, value) {
-        /** Expecting value to be array if multiple aruments */
-        if (this.ctx[prop] && typeof this.ctx[prop] === "function") {
-            this.ctx[prop].apply(null, value);
-        } else if (this.ctx[prop]) {
-            this.ctx[prop] = value;
-        }
-    };
-
-    root.createPattern = createCanvasPattern;
-
-    root.createClip = createCanvasClip;
-
-    root.createMask = createCanvasMask;
-
-    root.execute = function executeExe() {
-        onClear(ctx);
-        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-        this.updateBBox();
-        execute();
-        if (onChangeExe && this.stateModified) {
-            onChangeExe();
-        }
-        this.stateModified = false;
-    };
-
-    root.update = function executeUpdate() {
-        this.execute();
-    };
-
-    root.createTexture = function (config) {
-        return new RenderTexture(this, config);
-    };
-
-    root.createAsyncTexture = function (config) {
-        return new Promise((resolve, reject) => {
-            const textureInstance = new RenderTexture(this, config);
-            textureInstance.onLoad(function () {
-                resolve(textureInstance);
-            });
-        });
-    };
-
-    root.destroy = function () {
-        const res = document.querySelector(container);
-        if (res && res.contains(layer)) {
-            res.removeChild(layer);
-        }
-        queueInstance.removeVdom(vDomIndex);
-        layerResizeUnBind(root, resize);
-    };
-
-    if (enableEvents) {
-        const eventsInstance = new Events(root);
-        layer.addEventListener("mousemove", (e) => {
-            e.preventDefault();
-            eventsInstance.mousemoveCheck(e);
-        });
-        // layer.addEventListener("click", (e) => {
-        //     e.preventDefault();
-        //     eventsInstance.clickCheck(e);
-        // });
-        // layer.addEventListener("dblclick", (e) => {
-        //     e.preventDefault();
-        //     eventsInstance.dblclickCheck(e);
-        // });
-        layer.addEventListener("mousedown", (e) => {
-            eventsInstance.mousedownCheck(e);
-        });
-        layer.addEventListener("mouseup", (e) => {
-            eventsInstance.mouseupCheck(e);
-        });
-        layer.addEventListener("mouseleave", (e) => {
-            eventsInstance.mouseleaveCheck(e);
-        });
-        layer.addEventListener("contextmenu", (e) => {
-            eventsInstance.contextmenuCheck(e);
-        });
-        layer.addEventListener("touchstart", (e) => {
-            eventsInstance.touchstartCheck(e);
-        });
-        layer.addEventListener("touchend", (e) => {
-            eventsInstance.touchendCheck(e);
-        });
-        layer.addEventListener("touchmove", (e) => {
-            e.preventDefault();
-            eventsInstance.touchmoveCheck(e);
-        });
-        layer.addEventListener("touchcancel", (e) => {
-            eventsInstance.touchcancelCheck(e);
-        });
-        layer.addEventListener("wheel", (e) => {
-            eventsInstance.wheelEventCheck(e);
-        });
-        layer.addEventListener("pointerdown", (e) => {
-            eventsInstance.addPointer(e);
-            eventsInstance.pointerdownCheck(e);
-        });
-        layer.addEventListener("pointerup", (e) => {
-            eventsInstance.removePointer(e);
-            eventsInstance.pointerupCheck(e);
-        });
-        layer.addEventListener("pointermove", (e) => {
-            e.preventDefault();
-            eventsInstance.pointermoveCheck(e);
-        });
-    }
-
-    queueInstance.execute();
-
-    if (enableResize && root.container) {
-        layerResizeBind(root, resize);
-        // window.addEventListener("resize", resize);
-    }
-
-    return root;
-}
-
 function GetCanvasImgInstance(width, height) {
     const canvas = document.createElement("canvas");
     canvas.setAttribute("height", height);
@@ -2123,8 +2408,21 @@ function textureImageInstance(self, url) {
             return;
         }
         if (self.attr) {
-            self.attr.height = self.attr.height ? self.attr.height : this.naturalHeight;
-            self.attr.width = self.attr.width ? self.attr.width : this.naturalWidth;
+            const width =
+                !self.attr.width && !self.attr.height
+                    ? this.naturalWidth
+                    : self.attr.width
+                    ? self.attr.width
+                    : (self.attr.height / this.naturalHeight) * this.naturalWidth;
+            const height =
+                !self.attr.width && !self.attr.height
+                    ? this.naturalHeight
+                    : self.attr.height
+                    ? self.attr.height
+                    : (self.attr.width / this.naturalWidth) * this.naturalHeight;
+
+            self.attr.height = height;
+            self.attr.width = width;
         }
         if (self instanceof RenderTexture) {
             self.setSize(self.attr.width, self.attr.height);
@@ -2281,6 +2579,7 @@ RenderTexture.prototype.setAttr = function RSsetAttr(attr, value) {
     if (attr === "clip" || attr === "filter") {
         postProcess(self);
     }
+    return self;
 };
 
 RenderTexture.prototype.onLoad = function (exec) {
@@ -2312,6 +2611,13 @@ RenderTexture.prototype.execute = function RIexecute() {
     );
 };
 
+RenderTexture.prototype.exportAsDataUrl = function (type = "image/png", encoderOptions = 1) {
+    if (this.rImageObj) {
+        return this.rImageObj.canvas.toDataURL(type, encoderOptions);
+    }
+    return this;
+};
+
 RenderTexture.prototype.next = function (index) {
     if (!Array.isArray(this.image)) {
         return;
@@ -2325,22 +2631,7 @@ RenderTexture.prototype.next = function (index) {
     postProcess(this);
 };
 
-function canvasNodeLayer(config, height = 0, width = 0) {
-    if (!Canvas) {
-        console.error("Canvas missing from node");
-        console.error('Install "Canvas" "canvas-5-polyfill" node modules');
-        console.error('Make "Canvas" "Image" "Path2D" objects global from the above modules');
-        return;
-    }
-    let onChangeExe;
-    const layer = new Canvas(width, height);
-    let ctx = layer.getContext("2d", config);
-    const ratio = getPixlRatio(ctx);
-    let onClear = function (ctx) {
-        ctx.clearRect(0, 0, width * ratio, height * ratio);
-    };
-    const vDomInstance = new VDom();
-    const vDomIndex = queueInstance.addVdom(vDomInstance);
+function createPage(ctx, vDomIndex) {
     const root = new CanvasNodeExe(
         ctx,
         {
@@ -2352,112 +2643,28 @@ function canvasNodeLayer(config, height = 0, width = 0) {
         domId(),
         vDomIndex
     );
-    vDomInstance.rootNode(root);
-    const execute = root.execute.bind(root);
-    root.domEl = layer;
-    root.height = height;
-    root.width = width;
-    root.type = "CANVAS";
-    root.ENV = "NODE";
 
-    root.setClear = function (exe) {
-        onClear = exe;
+    root.setStyle = function (prop, value) {
+        this.domEl.style[prop] = value;
     };
 
-    root.onChange = function (exec) {
-        onChangeExe = exec;
-    };
-
-    root.getPixels = function (x, y, width_, height_) {
-        return this.ctx.getImageData(x, y, width_, height_);
-    };
-
-    root.putPixels = function (imageData, x, y) {
-        return this.ctx.putImageData(imageData, x, y);
-    };
-
-    root.clear = function () {
-        onClear();
-    };
-
-    root.setContext = function (prop, value) {
-        /** Expecting value to be array if multiple aruments */
-        if (this.ctx[prop] && typeof this.ctx[prop] === "function") {
-            this.ctx[prop].apply(null, value);
-        } else if (this.ctx[prop]) {
-            this.ctx[prop] = value;
+    root.addDependentLayer = function (layer) {
+        if (!(layer instanceof CanvasNodeExe)) {
+            return;
         }
-    };
-
-    root.setSize = function (width_, height_) {
-        // cHeight = height_;
-        // cWidth = width_;
-        width = width_;
-        height = height_;
-        this.domEl = new Canvas(width, height);
-        ctx = this.domEl.getContext("2d", config);
-        this.width = width;
-        this.height = height;
-        this.ctx = ctx;
-        this.execute();
-    };
-
-    root.execute = function () {
-        onClear(ctx);
-        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-        root.updateBBox();
-        execute();
-    };
-
-    root.execute = function executeExe() {
-        onClear(ctx);
-        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-        this.updateBBox();
-        execute();
-        if (onChangeExe && this.stateModified) {
-            onChangeExe();
-        }
-        this.stateModified = false;
-    };
-
-    root.update = function executeUpdate() {
-        this.execute();
+        const depId = layer.attr.id ? layer.attr.id : "dep-" + Math.ceil(Math.random() * 1000);
+        layer.setAttr("id", depId);
+        layer.vDomIndex = this.vDomIndex + ":" + depId;
+        this.prependChild([layer]);
     };
 
     root.toDataURL = function (p) {
         return this.domEl.toDataURL(p);
     };
 
-    root.getPixels = function (x, y, width_, height_) {
-        const imageData = this.ctx.getImageData(x, y, width_, height_);
-        const pixelInstance = new PixelObject(imageData, width_, height_);
+    root.invokeOnChange = function () {};
 
-        return pixelInstance;
-    };
-
-    root.putPixels = function (Pixels, x, y) {
-        if (!(Pixels instanceof PixelObject)) {
-            return;
-        }
-        return this.ctx.putImageData(Pixels.imageData, x, y);
-    };
-
-    root.clear = function () {
-        onClear();
-    };
-
-    root.createTexture = function (config) {
-        return new RenderTexture(this, config);
-    };
-
-    root.createAsyncTexture = function (config) {
-        return new Promise((resolve, reject) => {
-            const textureInstance = new RenderTexture(this, config);
-            textureInstance.onLoad(function () {
-                resolve(textureInstance);
-            });
-        });
-    };
+    root.setViewBox = function (x, y, height, width) {};
 
     root.setContext = function (prop, value) {
         /** Expecting value to be array if multiple aruments */
@@ -2474,10 +2681,630 @@ function canvasNodeLayer(config, height = 0, width = 0) {
 
     root.createMask = createCanvasMask;
 
+    root.clear = function () {};
+
+    root.flush = function () {
+        this.children = [];
+        queueInstance.vDomChanged(this.vDomIndex);
+    };
+
+    root.update = function executeUpdate() {
+        this.execute();
+    };
+
+    root.exportPdf = function (doc) {
+        const margin = this.margin || 0;
+        const { top = margin, bottom = margin } = this.margins || {
+            top: margin,
+            bottom: margin,
+        };
+        const pageHeight = this.height;
+
+        root.updateBBox();
+        root.updateABBox();
+
+        let leafNodes = getAllLeafs(root);
+        // sort leafs based on absolute pos
+        leafNodes = leafNodes.sort((a, b) => {
+            const aTrans = a.dom && a.dom.abTransform ? a.dom.abTransform : { translate: [0, 0] };
+            const aBox = a.dom.BBox;
+            const bTrans = b.dom && b.dom.abTransform ? b.dom.abTransform : { translate: [0, 0] };
+            const bBox = b.dom.BBox;
+            return (
+                aTrans.translate[1] +
+                aBox.height +
+                a.dom.abYposition -
+                (bTrans.translate[1] + bBox.height + b.dom.abYposition)
+            );
+        });
+        let runningY = 0;
+        const pageRage = doc.bufferedPageRange();
+        let pageNumber = pageRage.count - 1;
+        leafNodes.forEach((node) => {
+            const abTransform = node.dom.abTransform;
+            const elHight = node.dom.BBox.height || 0;
+            const elY = node.dom.abYposition || 0;
+            let posY = (abTransform.translate[1] + elY || 0) - runningY;
+
+            if (
+                !(
+                    (posY < pageHeight - bottom - top &&
+                        posY + elHight < pageHeight - bottom - top) ||
+                    elHight > pageHeight - bottom - top
+                )
+            ) {
+                runningY += pageHeight - top - bottom;
+                posY = (abTransform.translate[1] + elY || 0) - runningY;
+                runningY += posY;
+                posY = 0;
+                doc.addPage({
+                    margin: this.margin,
+                    margins: this.margins,
+                    size: [this.width, this.height],
+                });
+                if (this.pageTemplate) {
+                    this.pageTemplate.executePdf(doc);
+                }
+                pageNumber += 1;
+            }
+            node.dom.abTransform = {
+                translate: [abTransform.translate[0], posY + top],
+            };
+
+            const executePdf = node.executePdf.bind(node);
+
+            // Redefining pdf call with page mapping
+            node.executePdf = (function (pNumber) {
+                return function (pdfCtx) {
+                    pdfCtx.switchToPage(pNumber);
+                    executePdf(pdfCtx);
+                };
+            })(pageNumber);
+        });
+
+        root.executePdf(doc);
+    };
+
+    root.addTemplate = function (template) {
+        this.pageTemplate = template;
+        this.pageTemplate.updateBBox();
+        this.pageTemplate.updateABBox();
+        updateABBoxOfPdfTemplate(this.pageTemplate);
+    };
+
+    root.createTexture = function (config = {}) {
+        return new RenderTexture(this, config);
+    };
+
+    root.createAsyncTexture = function (config) {
+        return new Promise((resolve, reject) => {
+            const textureInstance = new RenderTexture(this, config);
+            textureInstance.onLoad(function () {
+                resolve(textureInstance);
+            });
+        });
+    };
+
     return root;
+}
+
+function getAllLeafs(node) {
+    const leaves = [];
+    let queue = [node];
+
+    while (queue.length !== 0) {
+        const node = queue.shift();
+        if (
+            node.block ||
+            (node.children &&
+                node.children.length === 0 &&
+                node.nodeName !== "g" &&
+                node.nodeName !== "group")
+        ) {
+            leaves.push(node);
+        } else {
+            if (node.children && node.children.length !== 0) {
+                queue = queue.concat(node.children);
+            }
+        }
+    }
+
+    return leaves;
+}
+
+function updateABBoxOfPdfTemplate(root) {
+    const leafNodes = getAllLeafs(root);
+    leafNodes.forEach((node) => {
+        const abTransform = node.dom.abTransform;
+        const elY = node.dom.abYposition || 0;
+        const posY = abTransform.translate[1] + elY || 0;
+        node.dom.abTransform = {
+            translate: [abTransform.translate[0], posY],
+        };
+    });
+}
+
+function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
+    const res =
+        container instanceof HTMLElement
+            ? container
+            : typeof container === "string" || container instanceof String
+            ? document.querySelector(container)
+            : null;
+    let height = res ? res.clientHeight : 0;
+    let width = res ? res.clientWidth : 0;
+    const layer = document.createElement("canvas");
+    const ctx = layer.getContext("2d", contextConfig);
+    let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
+    let ratio = getPixlRatio(ctx);
+    ctx.pixelRatio = ratio;
+    let onClear = function (ctx) {
+        ctx.clearRect(0, 0, width * ratio, height * ratio);
+    };
+    layer.setAttribute("height", height * ratio);
+    layer.setAttribute("width", width * ratio);
+    layer.style.height = `${height}px`;
+    layer.style.width = `${width}px`;
+    layer.style.position = "absolute";
+
+    let vDomInstance;
+    let vDomIndex = 999999;
+    let cHeight;
+    let cWidth;
+    let resizeCall;
+    let onChangeExe;
+
+    if (res) {
+        res.appendChild(layer);
+        vDomInstance = new VDom();
+        if (autoUpdate) {
+            vDomIndex = queueInstance.addVdom(vDomInstance);
+        }
+    } else {
+        enableEvents = false;
+    }
+
+    const root = createPage(ctx, vDomIndex);
+
+    const resize = function (cr) {
+        if (
+            (container instanceof HTMLElement && !document.body.contains(container)) ||
+            (container instanceof String && !document.querySelector(container))
+        ) {
+            layerResizeUnBind(root);
+            root.destroy();
+            return;
+        }
+        height = cHeight || cr.height;
+        width = cWidth || cr.width;
+
+        root.width = width;
+        root.height = height;
+
+        updateLayerDimension(root.domEl, width, height);
+
+        if (resizeCall) {
+            resizeCall();
+        }
+        root.execute();
+    };
+
+    if (vDomInstance) {
+        vDomInstance.rootNode(root);
+    }
+
+    const execute = root.execute.bind(root);
+    const exportPdf = root.exportPdf.bind(root);
+    root.container = res;
+    root.domEl = layer;
+    root.height = height;
+    root.width = width;
+    root.type = "CANVAS";
+    root.ctx = ctx;
+
+    root.clear = function () {
+        onClear(ctx);
+    };
+
+    root.setAttr = function (prop, value) {
+        if (prop === "viewBox") {
+            this.setViewBox.apply(this, value.split(","));
+        }
+        layer.setAttribute(prop, value);
+        this.attr[prop] = value;
+    };
+
+    root.setClear = function (exe) {
+        onClear = exe;
+    };
+
+    root.setSize = function (width_, height_) {
+        cHeight = height_;
+        cWidth = width_;
+        width = width_;
+        height = height_;
+        this.width = width;
+        this.height = height;
+
+        updateLayerDimension(this.domEl, width, height);
+
+        this.execute();
+    };
+
+    root.onResize = function (exec) {
+        resizeCall = exec;
+    };
+
+    root.getPixels = function (x, y, width_, height_) {
+        const imageData = this.ctx.getImageData(x, y, width_, height_);
+        const pixelInstance = new PixelObject(imageData, width_, height_);
+
+        return pixelInstance;
+    };
+
+    root.putPixels = function (Pixels, x, y) {
+        if (!(Pixels instanceof PixelObject)) {
+            return;
+        }
+        return this.ctx.putImageData(Pixels.imageData, x, y);
+    };
+
+    root.execute = function executeExe() {
+        onClear(ctx);
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        this.updateBBox();
+        execute();
+        if (onChangeExe && this.stateModified) {
+            onChangeExe();
+        }
+        this.stateModified = false;
+    };
+
+    root.onChange = function (exec) {
+        onChangeExe = exec;
+    };
+
+    root.exportPdf = function (callback, options = {}) {
+        const pdfConfig = parsePdfConfig(options);
+        const doc = new PDFDocument({
+            size: [this.width, this.height],
+            ...pdfConfig,
+        });
+        const stream_ = doc.pipe(blobStream());
+
+        const fontRegister = options.fontRegister || {};
+        const pdfInfo = options.info || { title: "I2Djs-PDF" };
+
+        if (fontRegister) {
+            for (const key in fontRegister) {
+                doc.registerFont(key, fontRegister[key]);
+            }
+        }
+
+        if (pdfInfo) {
+            doc.info.Title = pdfInfo.title || "";
+            doc.info.Author = pdfInfo.author || "";
+            doc.info.Subject = pdfInfo.subject || "";
+            doc.info.Keywords = pdfInfo.keywords || "";
+            doc.info.CreationDate = pdfInfo.creationDate || "";
+        }
+
+        root.updateABBox();
+
+        exportPdf(doc);
+
+        doc.end();
+
+        stream_.on("finish", function () {
+            callback(stream_.toBlobURL("application/pdf"));
+        });
+    };
+
+    const updateLayerDimension = function (layer, width, height) {
+        layer.setAttribute("height", height * ratio);
+        layer.setAttribute("width", width * ratio);
+        layer.style.height = `${height}px`;
+        layer.style.width = `${width}px`;
+    };
+
+    root.setPixelRatio = function (val) {
+        ratio = val;
+        this.ctx.pixelRatio = ratio;
+        updateLayerDimension(this.domEl, this.width, this.height);
+    };
+
+    root.destroy = function () {
+        const res = document.body.contains(this.container);
+        if (res && this.container.contains(this.domEl)) {
+            this.container.removeChild(this.domEl);
+        }
+        queueInstance.removeVdom(vDomIndex);
+        layerResizeUnBind(root, resize);
+    };
+
+    if (enableEvents) {
+        const eventsInstance = new Events(root);
+        layer.addEventListener("mousemove", (e) => {
+            e.preventDefault();
+            eventsInstance.mousemoveCheck(e);
+        });
+        // layer.addEventListener("click", (e) => {
+        //     e.preventDefault();
+        //     eventsInstance.clickCheck(e);
+        // });
+        // layer.addEventListener("dblclick", (e) => {
+        //     e.preventDefault();
+        //     eventsInstance.dblclickCheck(e);
+        // });
+        layer.addEventListener("mousedown", (e) => {
+            eventsInstance.mousedownCheck(e);
+        });
+        layer.addEventListener("mouseup", (e) => {
+            eventsInstance.mouseupCheck(e);
+        });
+        layer.addEventListener("mouseleave", (e) => {
+            eventsInstance.mouseleaveCheck(e);
+        });
+        layer.addEventListener("contextmenu", (e) => {
+            eventsInstance.contextmenuCheck(e);
+        });
+        layer.addEventListener("touchstart", (e) => {
+            eventsInstance.touchstartCheck(e);
+        });
+        layer.addEventListener("touchend", (e) => {
+            eventsInstance.touchendCheck(e);
+        });
+        layer.addEventListener("touchmove", (e) => {
+            e.preventDefault();
+            eventsInstance.touchmoveCheck(e);
+        });
+        layer.addEventListener("touchcancel", (e) => {
+            eventsInstance.touchcancelCheck(e);
+        });
+        layer.addEventListener("wheel", (e) => {
+            eventsInstance.wheelEventCheck(e);
+        });
+        layer.addEventListener("pointerdown", (e) => {
+            eventsInstance.addPointer(e);
+            eventsInstance.pointerdownCheck(e);
+        });
+        layer.addEventListener("pointerup", (e) => {
+            eventsInstance.removePointer(e);
+            eventsInstance.pointerupCheck(e);
+        });
+        layer.addEventListener("pointermove", (e) => {
+            e.preventDefault();
+            eventsInstance.pointermoveCheck(e);
+        });
+    }
+
+    queueInstance.execute();
+
+    if (enableResize && root.container) {
+        layerResizeBind(root, resize);
+        // window.addEventListener("resize", resize);
+    }
+
+    return root;
+}
+
+function parsePdfConfig(config, oldConfig = {}) {
+    return {
+        ...oldConfig,
+        autoFirstPage: false,
+        bufferPages: true,
+        ...(config.margin !== undefined && { margin: config.margin }),
+        ...(config.margins !== undefined && { margins: config.margins }),
+        ...(config.defaultFont !== undefined && { font: config.defaultFont }),
+        ...(config.encryption !== undefined && { ...config.encryption }),
+    };
+}
+
+function pdfLayer(container, config = {}, layerSettings = {}) {
+    const res =
+        container instanceof HTMLElement
+            ? container
+            : typeof container === "string" || container instanceof String
+            ? document.querySelector(container)
+            : null;
+    let { height = 0, width = 0 } = config;
+    let pdfConfig = parsePdfConfig(config, {});
+    const { autoUpdate = true, onUpdate } = layerSettings;
+    const layer = document.createElement("canvas");
+    const ctx = layer.getContext("2d", {});
+    let fontRegister = config.fontRegister || {};
+    let pdfInfo = config.info || { title: "I2Djs-PDF" };
+
+    let vDomIndex = 999999;
+    let pageDefaultTemplate = null;
+    ctx.type_ = "pdf";
+
+    layer.setAttribute("height", height * 1);
+    layer.setAttribute("width", width * 1);
+
+    const vDomInstance = new VDom();
+
+    if (autoUpdate) {
+        vDomIndex = queueInstance.addVdom(vDomInstance);
+    }
+
+    const fallBackPage = createPage(ctx, vDomIndex);
+
+    function PDFCreator() {
+        this.pages = [];
+        this.ctx = ctx;
+        this.domEl = layer;
+        this.vDomIndex = vDomIndex;
+        this.container = res;
+    }
+    PDFCreator.prototype.flush = function () {
+        this.pages.forEach(function (page) {
+            page.flush();
+        });
+
+        this.pages = [];
+
+        if (this.doc) {
+            this.doc.flushPages();
+        }
+    };
+
+    PDFCreator.prototype.setConfig = function (config = {}) {
+        const tPdfConfig = parsePdfConfig(config, pdfConfig);
+
+        if (config.fontRegister) {
+            fontRegister = {
+                ...(config.fontRegister || {}),
+            };
+        }
+
+        if (config.info) {
+            pdfInfo = config.info || { title: "I2Djs-PDF" };
+        }
+
+        height = config.height || height;
+        width = config.width || width;
+
+        layer.setAttribute("height", height * 1);
+        layer.setAttribute("width", width * 1);
+
+        this.width = width;
+        this.height = height;
+
+        pdfConfig = tPdfConfig;
+
+        this.execute();
+
+        return this;
+    };
+
+    PDFCreator.prototype.setPageTemplate = function (exec) {
+        pageDefaultTemplate = exec;
+    };
+
+    PDFCreator.prototype.setSize = function (width = 0, height = 0) {
+        this.width = width;
+        this.height = height;
+
+        return this;
+    };
+    PDFCreator.prototype.execute = function () {
+        this.exportPdf(
+            onUpdate ||
+                function (url) {
+                    res.setAttribute("src", url);
+                },
+            pdfConfig
+        );
+    };
+    PDFCreator.prototype.addPage = function (config = {}) {
+        const newpage = createPage(ctx, this.vDomIndex);
+        newpage.domEl = layer;
+        newpage.height = config.height || height;
+        newpage.width = config.width || width;
+        newpage.margin = config.margin || pdfConfig.margin || 0;
+        newpage.margins = config.margins ||
+            pdfConfig.margins || { top: 0, bottom: 0, left: 0, right: 0 };
+        newpage.type = "CANVAS";
+        newpage.EXEType = "pdf";
+        newpage.ctx = ctx;
+
+        if (config.pageTemplate || pageDefaultTemplate) {
+            newpage.addTemplate(config.pageTemplate || pageDefaultTemplate);
+        }
+
+        this.pages.push(newpage);
+        return newpage;
+    };
+    PDFCreator.prototype.removePage = function (page) {
+        const pageIndex = this.pages.indexOf(page);
+        let removedPage = null;
+        if (pageIndex !== -1) {
+            removedPage = this.pages.splice(pageIndex, 1);
+        }
+
+        return removedPage;
+    };
+    PDFCreator.prototype.createTemplate = function () {
+        return createPage(ctx, this.vDomIndex);
+    };
+    PDFCreator.prototype.exportPdf = function (callback, pdfConfig = {}) {
+        const doc = new PDFDocument({
+            ...pdfConfig,
+        });
+        const stream_ = doc.pipe(blobStream());
+
+        if (fontRegister) {
+            for (const key in fontRegister) {
+                doc.registerFont(key, fontRegister[key]);
+            }
+        }
+
+        if (pdfInfo) {
+            doc.info.Title = pdfInfo.title || "";
+            doc.info.Author = pdfInfo.author || "";
+            doc.info.Subject = pdfInfo.subject || "";
+            doc.info.Keywords = pdfInfo.keywords || "";
+            doc.info.CreationDate = pdfInfo.creationDate || "";
+        }
+
+        this.doc = doc;
+
+        this.pages.forEach(function (page, i) {
+            page.updateBBox();
+            doc.addPage({
+                margin: page.margin || 0,
+                size: [page.width, page.height],
+            });
+            if (page.pageTemplate) {
+                page.pageTemplate.executePdf(doc);
+            }
+            page.exportPdf(doc);
+        });
+
+        doc.end();
+
+        stream_.on("finish", function () {
+            callback(stream_.toBlobURL("application/pdf"));
+        });
+    };
+
+    PDFCreator.prototype.destroy = function () {
+        this.flush();
+    };
+    PDFCreator.prototype.exec = function (exe) {
+        exe.call(this, this.dataObj);
+    };
+    PDFCreator.prototype.data = function (data) {
+        if (!data) {
+            return this.dataObj;
+        } else {
+            this.dataObj = data;
+        }
+        return this;
+    };
+    PDFCreator.prototype.createTexture = function (config = {}) {
+        return fallBackPage.createTexture(config);
+    };
+
+    PDFCreator.prototype.createAsyncTexture = function (config = {}) {
+        return fallBackPage.createAsyncTexture(config);
+    };
+
+    const pdfInstance = new PDFCreator();
+
+    if (vDomInstance) {
+        vDomInstance.rootNode(pdfInstance);
+    }
+
+    return pdfInstance;
 }
 
 export default {
     canvasLayer,
-    canvasNodeLayer,
+    pdfLayer,
+    CanvasNodeExe,
+    CanvasGradient,
+    createRadialGradient,
+    createLinearGradient,
 };

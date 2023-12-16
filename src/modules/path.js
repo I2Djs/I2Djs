@@ -1090,10 +1090,10 @@ LinearTransitionBetweenPoints.prototype.pointAt = function (f) {
     return t2DGeometry.linearTransitionBetweenPoints(this.p0, this.p1, f);
 };
 
-function animatePathTo(targetConfig) {
+function animatePathTo(targetConfig, fromConfig) {
     const self = this;
-    const { duration, ease, end, loop, direction, d } = targetConfig;
-    const src = d || self.attr.d;
+    const { duration, ease, end, loop, direction, attr } = targetConfig;
+    const src = (fromConfig || self)?.attr?.d ?? (attr.d || "");
     let totalLength = 0;
     self.arrayStack = [];
 

@@ -1,18 +1,18 @@
-import queue from "./queue.js";
-import VDom from "./VDom.js";
-import path from "./path.js";
-import colorMap from "./colorMap.js";
-import geometry from "./geometry.js";
-import shaders from "./shaders.js";
+import queue from "./../queue.js";
+import VDom from "./../VDom.js";
+import path from "./../path.js";
+import colorMap from "./../colorMap.js";
+import geometry from "./../geometry.js";
+import shaders from "./../shaders.js";
 import earcut from "earcut";
-import Events from "./events.js";
-import behaviour from "./behaviour.js";
+import Events from "./../events.js";
+import behaviour from "./../behaviour.js";
 import {
     CollectionPrototype,
     NodePrototype,
     layerResizeBind,
     layerResizeUnBind,
-} from "./coreApi.js";
+} from "./../coreApi.js";
 
 const t2DGeometry = geometry;
 
@@ -1483,8 +1483,8 @@ function webGlAttrMapper(ctx, program, attr, attrObj) {
         attr: attr,
     };
 
-    ctx.bindBuffer(newAttrObj.bufferType, newAttrObj.buffer);
-    ctx.bufferData(newAttrObj.bufferType, newAttrObj.value, newAttrObj.drawType);
+    // ctx.bindBuffer(newAttrObj.bufferType, newAttrObj.buffer);
+    // ctx.bufferData(newAttrObj.bufferType, newAttrObj.value, newAttrObj.drawType);
 
     return newAttrObj;
 }
@@ -1571,6 +1571,7 @@ function RenderWebglShader(ctx, shader, vDomIndex) {
     this.postDraw = shader.postDraw;
     this.geometry = shader.geometry;
     this.renderTarget = shader.renderTarget;
+    this.vao = ctx.createVertexArray();
 
     for (const uniform in shader.uniforms) {
         this.uniforms[uniform] = webGlUniformMapper(
@@ -1596,6 +1597,7 @@ function RenderWebglShader(ctx, shader, vDomIndex) {
 
     for (const attr in this.attributes) {
         this.attrObjs[attr] = webGlAttrMapper(ctx, this.program, attr, this.attributes[attr]);
+        this.applyAttributeToVao(attr, this.attrObjs[attr]);
     }
 
     if (this.indexes) {
@@ -1605,6 +1607,46 @@ function RenderWebglShader(ctx, shader, vDomIndex) {
 
 RenderWebglShader.prototype = new ShaderNodePrototype();
 RenderWebglShader.prototype.constructor = RenderWebglShader;
+
+RenderWebglShader.prototype.applyAttributeToVao = function (attr, d) {
+    this.ctx.bindVertexArray(this.vao);
+    if (attr === "a_transformMatrix") {
+        this.ctx.enableVertexAttribArray(d.attributeLocation + 0);
+        this.ctx.enableVertexAttribArray(d.attributeLocation + 1);
+        this.ctx.enableVertexAttribArray(d.attributeLocation + 2);
+        this.ctx.bindBuffer(d.bufferType, d.buffer);
+        this.ctx.bufferData(d.bufferType, d.value, d.drawType);
+        this.ctx.vertexAttribPointer(
+            d.attributeLocation + 0,
+            d.size,
+            d.valueType,
+            false,
+            d.size * 4 * 3,
+            3 * 4 * 0
+        );
+        this.ctx.vertexAttribPointer(
+            d.attributeLocation + 1,
+            d.size,
+            d.valueType,
+            false,
+            d.size * 4 * 3,
+            3 * 4 * 1
+        );
+        this.ctx.vertexAttribPointer(
+            d.attributeLocation + 2,
+            d.size,
+            d.valueType,
+            false,
+            d.size * 4 * 3,
+            3 * 4 * 2
+        );
+    } else {
+        this.ctx.enableVertexAttribArray(d.attributeLocation);
+        this.ctx.bindBuffer(d.bufferType, d.buffer);
+        this.ctx.bufferData(d.bufferType, d.value, d.drawType);
+        this.ctx.vertexAttribPointer(d.attributeLocation, d.size, d.valueType, false, 0, 0);
+    }
+};
 
 RenderWebglShader.prototype.useProgram = function () {
     this.ctx.useProgram(this.program);
@@ -1635,46 +1677,47 @@ RenderWebglShader.prototype.applyUniforms = function () {
     }
 };
 
-RenderWebglShader.prototype.applyAttributes = function () {
-    let d;
-    for (const attr in this.attrObjs) {
-        d = this.attrObjs[attr];
-        if (attr === "a_transformMatrix") {
-            this.ctx.enableVertexAttribArray(d.attributeLocation + 0);
-            this.ctx.enableVertexAttribArray(d.attributeLocation + 1);
-            this.ctx.enableVertexAttribArray(d.attributeLocation + 2);
-            this.ctx.bindBuffer(d.bufferType, d.buffer);
-            this.ctx.vertexAttribPointer(
-                d.attributeLocation + 0,
-                d.size,
-                d.valueType,
-                false,
-                d.size * 4 * 3,
-                3 * 4 * 0
-            );
-            this.ctx.vertexAttribPointer(
-                d.attributeLocation + 1,
-                d.size,
-                d.valueType,
-                false,
-                d.size * 4 * 3,
-                3 * 4 * 1
-            );
-            this.ctx.vertexAttribPointer(
-                d.attributeLocation + 2,
-                d.size,
-                d.valueType,
-                false,
-                d.size * 4 * 3,
-                3 * 4 * 2
-            );
-        } else {
-            this.ctx.enableVertexAttribArray(d.attributeLocation);
-            this.ctx.bindBuffer(d.bufferType, d.buffer);
-            this.ctx.vertexAttribPointer(d.attributeLocation, d.size, d.valueType, false, 0, 0);
-        }
-    }
-};
+// RenderWebglShader.prototype.applyAttributes = function () {
+//     let d;
+
+//     for (const attr in this.attrObjs) {
+//         d = this.attrObjs[attr];
+//         if (attr === "a_transformMatrix") {
+//             this.ctx.enableVertexAttribArray(d.attributeLocation + 0);
+//             this.ctx.enableVertexAttribArray(d.attributeLocation + 1);
+//             this.ctx.enableVertexAttribArray(d.attributeLocation + 2);
+//             this.ctx.bindBuffer(d.bufferType, d.buffer);
+//             this.ctx.vertexAttribPointer(
+//                 d.attributeLocation + 0,
+//                 d.size,
+//                 d.valueType,
+//                 false,
+//                 d.size * 4 * 3,
+//                 3 * 4 * 0
+//             );
+//             this.ctx.vertexAttribPointer(
+//                 d.attributeLocation + 1,
+//                 d.size,
+//                 d.valueType,
+//                 false,
+//                 d.size * 4 * 3,
+//                 3 * 4 * 1
+//             );
+//             this.ctx.vertexAttribPointer(
+//                 d.attributeLocation + 2,
+//                 d.size,
+//                 d.valueType,
+//                 false,
+//                 d.size * 4 * 3,
+//                 3 * 4 * 2
+//             );
+//         } else {
+//             this.ctx.enableVertexAttribArray(d.attributeLocation);
+//             this.ctx.bindBuffer(d.bufferType, d.buffer);
+//             this.ctx.vertexAttribPointer(d.attributeLocation, d.size, d.valueType, false, 0, 0);
+//         }
+//     }
+// };
 
 RenderWebglShader.prototype.applyIndexes = function () {
     const d = this.indexesObj;
@@ -1706,7 +1749,7 @@ RenderWebglShader.prototype.updateBBox = function (argument) {
 RenderWebglShader.prototype.execute = function () {
     this.ctx.useProgram(this.program);
     this.applyUniforms();
-    this.applyAttributes();
+    this.ctx.bindVertexArray(this.vao);
     if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
         this.renderTarget.update();
     }
@@ -1729,6 +1772,7 @@ RenderWebglShader.prototype.addUniform = function (key, value) {
 RenderWebglShader.prototype.addAttribute = function (key, obj) {
     this.attributes[key] = obj;
     this.attrObjs[key] = webGlAttrMapper(this.ctx, this.program, key, obj);
+    this.applyAttributeToVao(key, this.attrObjs[key]);
     queueInstance.vDomChanged(this.vDomIndex);
 };
 
@@ -3053,6 +3097,7 @@ WebglNodeExe.prototype.child = function child(childrens) {
             node.dom.parent = self;
             self.children[self.children.length] = node;
             node.dom.pindex = self.children.length - 1;
+            node.vDomIndex = self.vDomIndex;
             if (!(node instanceof RenderWebglShader) && !(node.dom instanceof WebglGroupNode)) {
                 if (this.dom.shader) {
                     if (node.el === this.dom.shader.attr.shaderType) {
@@ -3183,7 +3228,12 @@ WebglNodeExe.prototype.removeChild = function WremoveChild(obj) {
 };
 
 function webglLayer(container, contextConfig = {}, layerSettings = {}) {
-    const res = container ? document.querySelector(container) : null;
+    const res =
+        container instanceof HTMLElement
+            ? container
+            : typeof container === "string" || container instanceof String
+            ? document.querySelector(container)
+            : null;
     let height = res ? res.clientHeight : 0;
     let width = res ? res.clientWidth : 0;
     let clearColor = colorMap.rgba(0, 0, 0, 0);
@@ -3204,7 +3254,7 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
     contextConfig.alpha = contextConfig.alpha === undefined ? true : contextConfig.alpha;
 
     const layer = document.createElement("canvas");
-    const ctx = layer.getContext("webgl", contextConfig);
+    const ctx = layer.getContext("webgl2", contextConfig);
 
     const actualPixel = getPixlRatio(ctx);
 
@@ -3278,13 +3328,13 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
         this.execute();
     };
 
-    root.destroy = function () {
-        const res = document.querySelector(container);
-        if (res && res.contains(layer)) {
-            res.removeChild(layer);
-        }
-        queueInstance.removeVdom(vDomIndex);
-    };
+    // root.destroy = function () {
+    //     const res = document.querySelector(container);
+    //     if (res && res.contains(layer)) {
+    //         res.removeChild(layer);
+    //     }
+    //     queueInstance.removeVdom(vDomIndex);
+    // };
 
     root.getPixels = function (x, y, width_, height_) {
         const pixels = new Uint8Array(width_ * height_ * 4);
@@ -3309,8 +3359,12 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
     };
 
     const resize = function (cr) {
-        if (!document.querySelector(container)) {
+        if (
+            (container instanceof HTMLElement && !document.body.contains(container)) ||
+            (container instanceof String && !document.querySelector(container))
+        ) {
             layerResizeUnBind(root);
+            root.destroy();
             return;
         }
         height = cHeight || cr.height;
@@ -3343,6 +3397,15 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
 
     root.onResize = function (exec) {
         resizeCall = exec;
+    };
+
+    root.destroy = function () {
+        const res = document.body.contains(this.container);
+        if (res && this.container.contains(this.domEl)) {
+            this.container.removeChild(this.domEl);
+        }
+        queueInstance.removeVdom(vDomIndex);
+        layerResizeUnBind(root, resize);
     };
 
     root.onChange = function (exec) {
