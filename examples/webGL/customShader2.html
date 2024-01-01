@@ -5,14 +5,12 @@
     </head>
     <body style="height: 100%">
         <script id="vertexShader" type="x-shader/x-vertex">
-
             attribute vec2 a_vertex;
             void main(void) {
                 gl_Position = vec4(a_vertex, 0.0, 1.0);
             }
         </script>
         <script id="fragmentShader" type="x-shader/x-fragment">
-
             precision highp float;
             uniform float u_k;
 
@@ -130,8 +128,8 @@
             });
             meshGeo.setDrawRange(0, 4);
             var shaderRef = webglRenderer.createShaderEl({
-                fragmentShader: document.getElementById("fragmentShader").textContent,
-                vertexShader: document.getElementById("vertexShader").textContent,
+                fragmentShader: document.getElementById("fragmentShader").textContent.trim(),
+                vertexShader: document.getElementById("vertexShader").textContent.trim(),
                 uniforms: {
                     u_k: {
                         value: k,

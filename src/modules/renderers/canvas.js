@@ -918,6 +918,7 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
     let width = 0;
     let { x = 0, y = 0, transform } = self.attr;
     const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
+    const { doc } = self.ctx;
 
     if (this.style.font) {
         this.ctx.font = this.style.font;
@@ -938,6 +939,22 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
         x -= width / 2;
     } else if (this.style.textAlign === "right") {
         x -= width;
+    }
+
+    if (doc) {
+        const alignVlaue = this.style.align ?? this.style.textAlign;
+        const styleObect = {
+            ...(this.attr.width && { width: this.attr.width }),
+            ...(this.style.lineGap && { lineGap: this.style.lineGap }),
+            ...(this.style.textBaseline && { textBaseline: this.style.textBaseline }),
+            ...(alignVlaue && { align: alignVlaue }),
+        };
+
+        if (this.style.font) {
+            doc.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
+        }
+
+        height = doc.heightOfString(this.attr.text, styleObect);
     }
 
     self.width = width;
@@ -3118,6 +3135,11 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
     let vDomIndex = 999999;
     let pageDefaultTemplate = null;
     ctx.type_ = "pdf";
+
+    ctx.doc = new PDFDocument({
+        size: [width, height],
+        ...pdfConfig,
+    });
 
     layer.setAttribute("height", height * 1);
     layer.setAttribute("width", width * 1);

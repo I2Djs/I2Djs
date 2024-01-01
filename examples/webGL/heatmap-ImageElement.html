@@ -5,27 +5,30 @@
     </head>
     <body style="height: 100%">
         <script id="vertexShader" type="x-shader/x-vertex">
-            attribute vec2 a_texCoord;
-            varying vec2 v_texCoord;
+            #version 300 es
+            in vec2 a_texCoord;
+            out vec2 v_texCoord;
             void main() {
                 vec2 clipSpace = a_texCoord * 2.0 - 1.0;
-                gl_Position = vec4(clipSpace, 0, 1);
                 v_texCoord = a_texCoord;
+                gl_Position = vec4(clipSpace, 0, 1);
             }
         </script>
         <script id="fragmentShader" type="x-shader/x-fragment">
+            #version 300 es
             precision mediump float;
-            varying vec2 v_texCoord;
+            in vec2 v_texCoord;
             uniform sampler2D u_framebuffer;
             uniform vec4 u_colorArr[15];
             uniform float u_offset[15];
+            out vec4 fragColor;
 
             float remap ( float minval, float maxval, float curval ) {
                 return ( curval - minval ) / ( maxval - minval );
             }
 
             void main() {
-                float alpha = texture2D(u_framebuffer, v_texCoord.xy).a;
+                float alpha = texture(u_framebuffer, v_texCoord.xy).a;
                 if (alpha > 0.0 && alpha <= 1.0) {
                     vec4 color_;
                     if (alpha <= u_offset[0]) {
@@ -57,7 +60,7 @@
                     if (color_.a < 0.0) {
                         color_.a = 0.0;
                     }
-                    gl_FragColor = color_;
+                    fragColor = color_;
                 }
             }
         </script>
@@ -74,8 +77,8 @@
                 outerCircle: { x: 50, y: 50, r: 50 },
                 mode: "percent",
                 colorStops: [
-                    { color: "rgba(0, 0, 0, 0.1)", value: 0 },
-                    { color: "rgba(0, 0, 0, 0)", value: 100 },
+                    { color: "rgba(0, 0, 0, 1)", offset: 0 },
+                    { color: "rgba(0, 0, 0, 0)", offset: 100 },
                 ],
             });
 
@@ -186,8 +189,8 @@
 
             var opacity = 1.0;
             var colorShaderRef = webglRenderer.createShaderEl({
-                fragmentShader: document.getElementById("fragmentShader").textContent,
-                vertexShader: document.getElementById("vertexShader").textContent,
+                fragmentShader: document.getElementById("fragmentShader").textContent.trim(),
+                vertexShader: document.getElementById("vertexShader").textContent.trim(),
                 uniforms: {
                     u_colorArr: {
                         value: colorGradMap.value,

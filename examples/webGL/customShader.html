@@ -83,8 +83,8 @@
             geome.setDrawRange(0, n);
 
             var shaderRef = webglRenderer.createShaderEl({
-                fragmentShader: document.getElementById("fragmentShader").textContent,
-                vertexShader: document.getElementById("vertexShader").textContent,
+                fragmentShader: document.getElementById("fragmentShader").textContent.trim(),
+                vertexShader: document.getElementById("vertexShader").textContent.trim(),
                 uniforms: {
                     u_a: {
                         value: a.toFixed(2),

@@ -1679,7 +1679,6 @@ RenderWebglShader.prototype.applyUniforms = function () {
 
 // RenderWebglShader.prototype.applyAttributes = function () {
 //     let d;
-
 //     for (const attr in this.attrObjs) {
 //         d = this.attrObjs[attr];
 //         if (attr === "a_transformMatrix") {
@@ -1750,6 +1749,7 @@ RenderWebglShader.prototype.execute = function () {
     this.ctx.useProgram(this.program);
     this.applyUniforms();
     this.ctx.bindVertexArray(this.vao);
+    // this.applyAttributes()
     if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
         this.renderTarget.update();
     }
@@ -1762,6 +1762,7 @@ RenderWebglShader.prototype.execute = function () {
     if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
         this.renderTarget.clear();
     }
+    this.ctx.bindVertexArray(null);
 };
 
 RenderWebglShader.prototype.addUniform = function (key, value) {
@@ -2679,8 +2680,8 @@ function RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex) {
     this.shaderInstance = new RenderWebglShader(
         ctx,
         {
-            fragmentShader: shaders("image").fragmentShader,
-            vertexShader: shaders("image").vertexShader,
+            fragmentShader: shaders("image").fragmentShader.trim(),
+            vertexShader: shaders("image").vertexShader.trim(),
             uniforms: {
                 u_transformMatrix: {
                     value: new Float32Array(m3.identity()),
