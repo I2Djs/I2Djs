@@ -149,11 +149,6 @@ function domSetStyle(attr, value) {
 
 function cRenderPdf(attr, pdfCtx, block) {
     const self = this;
-
-    if (self.attr.class === "cell") {
-        console.log("cell");
-    }
-
     const transform = block ? self.attr.transform || {} : self.abTransform || {};
     const { scale = [1, 1], skew = [0, 0], translate = [0, 0] } = transform;
     const [hozScale = 1, verScale = hozScale] = scale;
@@ -2256,9 +2251,6 @@ CanvasNodeExe.prototype.updateBBox = function CupdateBBox() {
 };
 
 CanvasNodeExe.prototype.updateABBox = function updateABBox(transform = { translate: [0, 0] }) {
-    if (this.attr.class === "0-header") {
-        console.log("0-header");
-    }
     const localTransform = this.attr.transform || { translate: [0, 0] };
     const abTransform = {
         translate: [
@@ -2267,9 +2259,6 @@ CanvasNodeExe.prototype.updateABBox = function updateABBox(transform = { transla
         ],
     };
     this.dom.abTransform = abTransform;
-    if (this.attr.class === "0-header") {
-        console.log(abTransform);
-    }
 
     // this.setAttr("abTranslate", this.abTranslate);
     if (this.dom instanceof RenderGroup) {

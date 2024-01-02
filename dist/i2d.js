@@ -81487,11 +81487,6 @@ Please pipe the document into a Node stream.\
 
     function cRenderPdf(attr, pdfCtx, block) {
         const self = this;
-
-        if (self.attr.class === "cell") {
-            console.log("cell");
-        }
-
         const transform = block ? self.attr.transform || {} : self.abTransform || {};
         const { scale = [1, 1], skew = [0, 0], translate = [0, 0] } = transform;
         const [hozScale = 1, verScale = hozScale] = scale;
@@ -83592,9 +83587,6 @@ Please pipe the document into a Node stream.\
     };
 
     CanvasNodeExe$1.prototype.updateABBox = function updateABBox(transform = { translate: [0, 0] }) {
-        if (this.attr.class === "0-header") {
-            console.log("0-header");
-        }
         const localTransform = this.attr.transform || { translate: [0, 0] };
         const abTransform = {
             translate: [
@@ -83603,9 +83595,6 @@ Please pipe the document into a Node stream.\
             ],
         };
         this.dom.abTransform = abTransform;
-        if (this.attr.class === "0-header") {
-            console.log(abTransform);
-        }
 
         // this.setAttr("abTranslate", this.abTranslate);
         if (this.dom instanceof RenderGroup) {
