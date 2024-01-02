@@ -11868,7 +11868,7 @@ CanvasNodeExe$1.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
                 style[key] instanceof CanvasClipping ||
                 style[key] instanceof CanvasMask
             ) {
-                value = style[key].exePdf(pdfCtx, this.dom.BBox, this.dom.abTranslate);
+                value = style[key].exePdf(pdfCtx, this.dom.BBox, this.dom.abTransform);
             } else {
                 value = style[key];
             }
@@ -12903,7 +12903,10 @@ function canvasLayer$1(container, contextConfig = {}, layerSettings = {}) {
             doc.info.CreationDate = pdfInfo.creationDate || "";
         }
 
+        root.updateBBox();
         root.updateABBox();
+
+        doc.addPage();
 
         exportPdf(doc);
 
