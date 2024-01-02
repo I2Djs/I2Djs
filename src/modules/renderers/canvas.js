@@ -2169,10 +2169,10 @@ CanvasNodeExe.prototype.executePdf = function Cexecute(pdfCtx, block) {
     }
     if (!(this.dom instanceof RenderGroup) || block || this.block) {
         pdfCtx.save();
+        this.stylesExePdf(pdfCtx);
+        this.attributesExePdf(pdfCtx, block);
     }
 
-    this.stylesExePdf(pdfCtx);
-    this.attributesExePdf(pdfCtx, block);
     if (this.dom instanceof RenderGroup) {
         for (let i = 0, len = this.children.length; i < len; i += 1) {
             this.children[i].executePdf(pdfCtx, block || this.block);
