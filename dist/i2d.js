@@ -5892,6 +5892,7 @@ Example valid ways of supplying a shape would be:
         let totalLength = 0;
         self.arrayStack = [];
 
+        if (this.ctx.type_ === "pdf") return;
         if (!src) {
             throw Error("Path Not defined");
         }
@@ -7879,6 +7880,7 @@ Example valid ways of supplying a shape would be:
     };
 
     NodePrototype.prototype.interrupt = function () {
+        if (this.ctx.type_ === "pdf") return;
         if (this.animList && this.animList.length > 0) {
             for (var i = this.animList.length - 1; i >= 0; i--) {
                 queueInstance$4.remove(this.animList[i]);
@@ -7889,6 +7891,7 @@ Example valid ways of supplying a shape would be:
     };
 
     NodePrototype.prototype.animateTo = function (toConfig, fromConfig) {
+        if (this.ctx.type_ === "pdf") return;
         queueInstance$4.add(
             animeId$1(),
             animate(this, fromConfig || this, toConfig),
@@ -7898,6 +7901,7 @@ Example valid ways of supplying a shape would be:
     };
 
     NodePrototype.prototype.animateExe = function (targetConfig, fromConfig) {
+        if (this.ctx.type_ === "pdf") return;
         return animate(this, fromConfig || this, targetConfig);
     };
 
@@ -81939,6 +81943,7 @@ Please pipe the document into a Node stream.\
     }
 
     function CanvasDom() {
+        this.abYposition = 0;
         this.BBox = {
             x: 0,
             y: 0,
@@ -82188,6 +82193,17 @@ Please pipe the document into a Node stream.\
         } else {
             this.attr[attr] = value;
             if ((attr === "width" || attr === "text") && this.attr.width && this.attr.text) {
+                this.fitWidth();
+            }
+        }
+    };
+
+    RenderText.prototype.setStyle = function (attr, value) {
+        if (value == null && this.style[attr] != null) {
+            delete this.style[attr];
+        } else {
+            this.style[attr] = value;
+            if (attr === "font" && this.attr && this.attr.width && this.attr.text) {
                 this.fitWidth();
             }
         }
@@ -83147,7 +83163,6 @@ Please pipe the document into a Node stream.\
 
     const CanvasNodeExe$1 = function CanvasNodeExe(context, config, id, vDomIndex) {
         this.style = config.style || {};
-        this.setStyle(config.style);
         this.attr = config.attr || {};
         this.id = id;
         this.nodeName = config.el;
@@ -83228,6 +83243,8 @@ Please pipe the document into a Node stream.\
         }
 
         this.dom.nodeExe = this;
+
+        this.setStyle(config.style);
 
         // if (config.style) {
         //  this.setStyle(config.style);
@@ -83359,6 +83376,7 @@ Please pipe the document into a Node stream.\
             } else {
                 this.style[attr] = valueCheck(value);
             }
+            this.dom.setStyle(attr, this.style[attr]);
         } else if (arguments.length === 1 && typeof attr === "object") {
             const styleKeys = Object.keys(attr);
 
@@ -83368,6 +83386,7 @@ Please pipe the document into a Node stream.\
                 } else {
                     this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
                 }
+                this.dom.setStyle(styleKeys[i], this.style[styleKeys[i]]);
             }
         }
 
@@ -83570,7 +83589,7 @@ Please pipe the document into a Node stream.\
     CanvasNodeExe$1.prototype.updateBBox = function CupdateBBox() {
         let status;
 
-        if (this.bbox) {
+        if (this.bbox || this.ctx.type_ === "pdf") {
             for (let i = 0, len = this.children.length; i < len; i += 1) {
                 if (this.children[i] && this.children[i].updateBBox) {
                     status = this.children[i].updateBBox() || status;
@@ -84468,6 +84487,8 @@ Please pipe the document into a Node stream.\
             size: [width, height],
             ...pdfConfig,
         });
+
+        ctx.doc.addPage();
 
         layer.setAttribute("height", height * 1);
         layer.setAttribute("width", width * 1);

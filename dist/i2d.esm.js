@@ -5889,6 +5889,7 @@ function animatePathTo(targetConfig, fromConfig) {
     let totalLength = 0;
     self.arrayStack = [];
 
+    if (this.ctx.type_ === "pdf") return;
     if (!src) {
         throw Error("Path Not defined");
     }
@@ -7876,6 +7877,7 @@ NodePrototype.prototype.data = function (data) {
 };
 
 NodePrototype.prototype.interrupt = function () {
+    if (this.ctx.type_ === "pdf") return;
     if (this.animList && this.animList.length > 0) {
         for (var i = this.animList.length - 1; i >= 0; i--) {
             queueInstance$4.remove(this.animList[i]);
@@ -7886,6 +7888,7 @@ NodePrototype.prototype.interrupt = function () {
 };
 
 NodePrototype.prototype.animateTo = function (toConfig, fromConfig) {
+    if (this.ctx.type_ === "pdf") return;
     queueInstance$4.add(
         animeId$1(),
         animate(this, fromConfig || this, toConfig),
@@ -7895,6 +7898,7 @@ NodePrototype.prototype.animateTo = function (toConfig, fromConfig) {
 };
 
 NodePrototype.prototype.animateExe = function (targetConfig, fromConfig) {
+    if (this.ctx.type_ === "pdf") return;
     return animate(this, fromConfig || this, targetConfig);
 };
 
@@ -10500,6 +10504,7 @@ function applyStylesPdf(pdfCtx) {
 }
 
 function CanvasDom() {
+    this.abYposition = 0;
     this.BBox = {
         x: 0,
         y: 0,
@@ -10749,6 +10754,17 @@ RenderText.prototype.setAttr = function (attr, value) {
     } else {
         this.attr[attr] = value;
         if ((attr === "width" || attr === "text") && this.attr.width && this.attr.text) {
+            this.fitWidth();
+        }
+    }
+};
+
+RenderText.prototype.setStyle = function (attr, value) {
+    if (value == null && this.style[attr] != null) {
+        delete this.style[attr];
+    } else {
+        this.style[attr] = value;
+        if (attr === "font" && this.attr && this.attr.width && this.attr.text) {
             this.fitWidth();
         }
     }
@@ -11708,7 +11724,6 @@ RenderGroup.prototype.in = function RGinfun(coOr) {
 
 const CanvasNodeExe$1 = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.style = config.style || {};
-    this.setStyle(config.style);
     this.attr = config.attr || {};
     this.id = id;
     this.nodeName = config.el;
@@ -11789,6 +11804,8 @@ const CanvasNodeExe$1 = function CanvasNodeExe(context, config, id, vDomIndex) {
     }
 
     this.dom.nodeExe = this;
+
+    this.setStyle(config.style);
 
     // if (config.style) {
     //  this.setStyle(config.style);
@@ -11920,6 +11937,7 @@ CanvasNodeExe$1.prototype.setStyle = function CsetStyle(attr, value) {
         } else {
             this.style[attr] = valueCheck(value);
         }
+        this.dom.setStyle(attr, this.style[attr]);
     } else if (arguments.length === 1 && typeof attr === "object") {
         const styleKeys = Object.keys(attr);
 
@@ -11929,6 +11947,7 @@ CanvasNodeExe$1.prototype.setStyle = function CsetStyle(attr, value) {
             } else {
                 this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
             }
+            this.dom.setStyle(styleKeys[i], this.style[styleKeys[i]]);
         }
     }
 
@@ -12131,7 +12150,7 @@ CanvasNodeExe$1.prototype.setVDomIndex = function (vDomIndex) {
 CanvasNodeExe$1.prototype.updateBBox = function CupdateBBox() {
     let status;
 
-    if (this.bbox) {
+    if (this.bbox || this.ctx.type_ === "pdf") {
         for (let i = 0, len = this.children.length; i < len; i += 1) {
             if (this.children[i] && this.children[i].updateBBox) {
                 status = this.children[i].updateBBox() || status;
@@ -13029,6 +13048,8 @@ function pdfLayer$1(container, config = {}, layerSettings = {}) {
         size: [width, height],
         ...pdfConfig,
     });
+
+    ctx.doc.addPage();
 
     layer.setAttribute("height", height * 1);
     layer.setAttribute("width", width * 1);

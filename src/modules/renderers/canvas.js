@@ -601,6 +601,7 @@ function applyStylesPdf(pdfCtx) {
 }
 
 function CanvasDom() {
+    this.abYposition = 0;
     this.BBox = {
         x: 0,
         y: 0,
@@ -850,6 +851,17 @@ RenderText.prototype.setAttr = function (attr, value) {
     } else {
         this.attr[attr] = value;
         if ((attr === "width" || attr === "text") && this.attr.width && this.attr.text) {
+            this.fitWidth();
+        }
+    }
+};
+
+RenderText.prototype.setStyle = function (attr, value) {
+    if (value == null && this.style[attr] != null) {
+        delete this.style[attr];
+    } else {
+        this.style[attr] = value;
+        if (attr === "font" && this.attr && this.attr.width && this.attr.text) {
             this.fitWidth();
         }
     }
@@ -1811,7 +1823,6 @@ RenderGroup.prototype.in = function RGinfun(coOr) {
 
 const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.style = config.style || {};
-    this.setStyle(config.style);
     this.attr = config.attr || {};
     this.id = id;
     this.nodeName = config.el;
@@ -1892,6 +1903,8 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
     }
 
     this.dom.nodeExe = this;
+
+    this.setStyle(config.style);
 
     // if (config.style) {
     //  this.setStyle(config.style);
@@ -2023,6 +2036,7 @@ CanvasNodeExe.prototype.setStyle = function CsetStyle(attr, value) {
         } else {
             this.style[attr] = valueCheck(value);
         }
+        this.dom.setStyle(attr, this.style[attr]);
     } else if (arguments.length === 1 && typeof attr === "object") {
         const styleKeys = Object.keys(attr);
 
@@ -2032,6 +2046,7 @@ CanvasNodeExe.prototype.setStyle = function CsetStyle(attr, value) {
             } else {
                 this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
             }
+            this.dom.setStyle(styleKeys[i], this.style[styleKeys[i]]);
         }
     }
 
@@ -2234,7 +2249,7 @@ CanvasNodeExe.prototype.setVDomIndex = function (vDomIndex) {
 CanvasNodeExe.prototype.updateBBox = function CupdateBBox() {
     let status;
 
-    if (this.bbox) {
+    if (this.bbox || this.ctx.type_ === "pdf") {
         for (let i = 0, len = this.children.length; i < len; i += 1) {
             if (this.children[i] && this.children[i].updateBBox) {
                 status = this.children[i].updateBBox() || status;
@@ -3132,6 +3147,8 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
         size: [width, height],
         ...pdfConfig,
     });
+
+    ctx.doc.addPage();
 
     layer.setAttribute("height", height * 1);
     layer.setAttribute("width", width * 1);

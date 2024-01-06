@@ -1097,6 +1097,7 @@ function animatePathTo(targetConfig, fromConfig) {
     let totalLength = 0;
     self.arrayStack = [];
 
+    if (this.ctx.type_ === "pdf") return;
     if (!src) {
         throw Error("Path Not defined");
     }
