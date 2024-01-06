@@ -1106,6 +1106,15 @@
         return this;
     }
 
+    function delay(value) {
+        if (arguments.length !== 1) {
+            throw new Error("arguments mis match");
+        }
+
+        this.delayValue = value;
+        return this;
+    }
+
     function loopValue(value) {
         if (arguments.length !== 1) {
             throw new Error("arguments mis match");
@@ -1176,6 +1185,7 @@
     }
 
     SequenceGroup.prototype = {
+        delay: delay,
         duration,
         loop: loopValue,
         callbck: callbckExe,
@@ -1200,6 +1210,9 @@
                 self.lengthV += d.length ? d.length : 0;
                 return d;
             });
+        }
+        if (this.sequenceQueue.length === 0 && this.delayValue && value.length > 0) {
+            value[0].delay += this.delayValue;
         }
 
         this.sequenceQueue = this.sequenceQueue.concat(value);
@@ -1311,12 +1324,13 @@
         this.queue = queue;
         this.group = [];
         this.currPos = 0; // this.lengthV = 0
-
+        this.delay = 0;
         this.ID = generateRendererId();
         this.loopCounter = 1; // this.transition = 'linear'
     }
 
     ParallelGroup.prototype = {
+        delay: delay,
         duration,
         loop: loopValue,
         callbck: callbckExe,
@@ -1334,6 +1348,10 @@
         if (!Array.isArray(value)) {
             value = [value];
         }
+
+        value.forEach((d) => {
+            d.delay += self.delayValue || 0;
+        });
 
         this.group = this.group.concat(value);
         this.group.forEach((d) => {
@@ -5887,7 +5905,7 @@ Example valid ways of supplying a shape would be:
 
     function animatePathTo(targetConfig, fromConfig) {
         const self = this;
-        const { duration, ease, end, loop, direction, attr } = targetConfig;
+        const { duration, ease, end, loop, direction, attr, delay = 0 } = targetConfig;
         const src = (fromConfig || self)?.attr?.d ?? (attr.d || "");
         let totalLength = 0;
         self.arrayStack = [];
@@ -5916,6 +5934,7 @@ Example valid ways of supplying a shape would be:
                     },
                     target: self,
                     id: i,
+                    delay: 0,
                     render: new LinearTransitionBetweenPoints(
                         arrExe[i].type,
                         arrExe[i].p0,
@@ -5935,6 +5954,7 @@ Example valid ways of supplying a shape would be:
                     },
                     target: self,
                     id: i,
+                    delay: 0,
                     render: new LinearTransitionBetweenPoints(
                         arrExe[i].type,
                         arrExe[i].p0,
@@ -5954,6 +5974,7 @@ Example valid ways of supplying a shape would be:
                     },
                     target: self,
                     id: i,
+                    delay: 0,
                     render: new BezierTransition(
                         arrExe[i].type,
                         arrExe[i].p0,
@@ -5981,6 +6002,7 @@ Example valid ways of supplying a shape would be:
                     target: self,
                     id: i,
                     co,
+                    delay: 0,
                     render: new CubicBezierTransition(
                         arrExe[i].type,
                         arrExe[i].p0,
@@ -6007,6 +6029,7 @@ Example valid ways of supplying a shape would be:
                             },
                         };
                     },
+                    delay: 0,
                     target: self,
                     id: i,
                     length: 0,
@@ -6019,6 +6042,7 @@ Example valid ways of supplying a shape would be:
             d.duration = (d.length / totalLength) * duration;
         });
         chainInstance
+            .delay(delay)
             .add(mappedArr)
             .ease(ease)
             .loop(loop || 0)
@@ -6055,6 +6079,7 @@ Example valid ways of supplying a shape would be:
                 target: self,
                 duration: duration,
                 loop: loop,
+                delay: 0,
                 direction: direction,
             },
             easying(ease)

@@ -33,6 +33,15 @@ function duration(value) {
     return this;
 }
 
+function delay(value) {
+    if (arguments.length !== 1) {
+        throw new Error("arguments mis match");
+    }
+
+    this.delayValue = value;
+    return this;
+}
+
 function loopValue(value) {
     if (arguments.length !== 1) {
         throw new Error("arguments mis match");
@@ -103,6 +112,7 @@ function SequenceGroup() {
 }
 
 SequenceGroup.prototype = {
+    delay: delay,
     duration,
     loop: loopValue,
     callbck: callbckExe,
@@ -127,6 +137,9 @@ SequenceGroup.prototype.add = function SGadd(value) {
             self.lengthV += d.length ? d.length : 0;
             return d;
         });
+    }
+    if (this.sequenceQueue.length === 0 && this.delayValue && value.length > 0) {
+        value[0].delay += this.delayValue;
     }
 
     this.sequenceQueue = this.sequenceQueue.concat(value);
@@ -238,12 +251,13 @@ function ParallelGroup() {
     this.queue = queue;
     this.group = [];
     this.currPos = 0; // this.lengthV = 0
-
+    this.delay = 0;
     this.ID = generateRendererId();
     this.loopCounter = 1; // this.transition = 'linear'
 }
 
 ParallelGroup.prototype = {
+    delay: delay,
     duration,
     loop: loopValue,
     callbck: callbckExe,
@@ -261,6 +275,10 @@ ParallelGroup.prototype.add = function PGadd(value) {
     if (!Array.isArray(value)) {
         value = [value];
     }
+
+    value.forEach((d) => {
+        d.delay += self.delayValue || 0;
+    });
 
     this.group = this.group.concat(value);
     this.group.forEach((d) => {

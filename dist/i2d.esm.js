@@ -1103,6 +1103,15 @@ function duration(value) {
     return this;
 }
 
+function delay(value) {
+    if (arguments.length !== 1) {
+        throw new Error("arguments mis match");
+    }
+
+    this.delayValue = value;
+    return this;
+}
+
 function loopValue(value) {
     if (arguments.length !== 1) {
         throw new Error("arguments mis match");
@@ -1173,6 +1182,7 @@ function SequenceGroup() {
 }
 
 SequenceGroup.prototype = {
+    delay: delay,
     duration,
     loop: loopValue,
     callbck: callbckExe,
@@ -1197,6 +1207,9 @@ SequenceGroup.prototype.add = function SGadd(value) {
             self.lengthV += d.length ? d.length : 0;
             return d;
         });
+    }
+    if (this.sequenceQueue.length === 0 && this.delayValue && value.length > 0) {
+        value[0].delay += this.delayValue;
     }
 
     this.sequenceQueue = this.sequenceQueue.concat(value);
@@ -1308,12 +1321,13 @@ function ParallelGroup() {
     this.queue = queue;
     this.group = [];
     this.currPos = 0; // this.lengthV = 0
-
+    this.delay = 0;
     this.ID = generateRendererId();
     this.loopCounter = 1; // this.transition = 'linear'
 }
 
 ParallelGroup.prototype = {
+    delay: delay,
     duration,
     loop: loopValue,
     callbck: callbckExe,
@@ -1331,6 +1345,10 @@ ParallelGroup.prototype.add = function PGadd(value) {
     if (!Array.isArray(value)) {
         value = [value];
     }
+
+    value.forEach((d) => {
+        d.delay += self.delayValue || 0;
+    });
 
     this.group = this.group.concat(value);
     this.group.forEach((d) => {
@@ -5884,7 +5902,7 @@ LinearTransitionBetweenPoints.prototype.pointAt = function (f) {
 
 function animatePathTo(targetConfig, fromConfig) {
     const self = this;
-    const { duration, ease, end, loop, direction, attr } = targetConfig;
+    const { duration, ease, end, loop, direction, attr, delay = 0 } = targetConfig;
     const src = (fromConfig || self)?.attr?.d ?? (attr.d || "");
     let totalLength = 0;
     self.arrayStack = [];
@@ -5913,6 +5931,7 @@ function animatePathTo(targetConfig, fromConfig) {
                 },
                 target: self,
                 id: i,
+                delay: 0,
                 render: new LinearTransitionBetweenPoints(
                     arrExe[i].type,
                     arrExe[i].p0,
@@ -5932,6 +5951,7 @@ function animatePathTo(targetConfig, fromConfig) {
                 },
                 target: self,
                 id: i,
+                delay: 0,
                 render: new LinearTransitionBetweenPoints(
                     arrExe[i].type,
                     arrExe[i].p0,
@@ -5951,6 +5971,7 @@ function animatePathTo(targetConfig, fromConfig) {
                 },
                 target: self,
                 id: i,
+                delay: 0,
                 render: new BezierTransition(
                     arrExe[i].type,
                     arrExe[i].p0,
@@ -5978,6 +5999,7 @@ function animatePathTo(targetConfig, fromConfig) {
                 target: self,
                 id: i,
                 co,
+                delay: 0,
                 render: new CubicBezierTransition(
                     arrExe[i].type,
                     arrExe[i].p0,
@@ -6004,6 +6026,7 @@ function animatePathTo(targetConfig, fromConfig) {
                         },
                     };
                 },
+                delay: 0,
                 target: self,
                 id: i,
                 length: 0,
@@ -6016,6 +6039,7 @@ function animatePathTo(targetConfig, fromConfig) {
         d.duration = (d.length / totalLength) * duration;
     });
     chainInstance
+        .delay(delay)
         .add(mappedArr)
         .ease(ease)
         .loop(loop || 0)
@@ -6052,6 +6076,7 @@ function morphTo(targetConfig) {
             target: self,
             duration: duration,
             loop: loop,
+            delay: 0,
             direction: direction,
         },
         easying(ease)
