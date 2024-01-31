@@ -82388,6 +82388,7 @@ Please pipe the document into a Node stream.\
         if (this.attr.text !== undefined && this.attr.text !== null) {
             if (this.style.font) {
                 // parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1
+
                 pdfCtx.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
             }
             const alignVlaue = this.style.align ?? this.style.textAlign;
@@ -84350,7 +84351,7 @@ Please pipe the document into a Node stream.\
             onChangeExe = exec;
         };
 
-        root.exportPdf = function (callback, options = {}) {
+        root.exportPdf = async function (callback, options = {}) {
             const pdfConfig = parsePdfConfig(options);
             const doc = new PDFDocument({
                 size: [this.width, this.height],
@@ -84363,7 +84364,10 @@ Please pipe the document into a Node stream.\
 
             if (fontRegister) {
                 for (const key in fontRegister) {
-                    doc.registerFont(key, fontRegister[key]);
+                    if (pdfSupportedFontFamily.indexOf(key) === -1) pdfSupportedFontFamily.push(key);
+                    const font = await fetch(fontRegister[key]);
+                    const fontBuffer = await font.arrayBuffer();
+                    doc.registerFont(key, fontBuffer);
                 }
             }
 
@@ -84624,7 +84628,7 @@ Please pipe the document into a Node stream.\
         PDFCreator.prototype.createTemplate = function () {
             return createPage(ctx, this.vDomIndex);
         };
-        PDFCreator.prototype.exportPdf = function (callback, pdfConfig = {}) {
+        PDFCreator.prototype.exportPdf = async function (callback, pdfConfig = {}) {
             const doc = new PDFDocument({
                 ...pdfConfig,
             });
@@ -84632,7 +84636,10 @@ Please pipe the document into a Node stream.\
 
             if (fontRegister) {
                 for (const key in fontRegister) {
-                    doc.registerFont(key, fontRegister[key]);
+                    if (pdfSupportedFontFamily.indexOf(key) === -1) pdfSupportedFontFamily.push(key);
+                    const font = await fetch(fontRegister[key]);
+                    const fontBuffer = await font.arrayBuffer();
+                    doc.registerFont(key, fontBuffer);
                 }
             }
 
