@@ -83187,6 +83187,36 @@ Please pipe the document into a Node stream.\
 
     /** ***************** End Render Group */
 
+    function prepObjProxyNode(attr, context) {
+        const handlr = {
+            set(obj, prop, value) {
+                obj[prop] = value;
+                queueInstance$1.vDomChanged(context.vDomIndex);
+                return true;
+            },
+            deleteProperty(obj, prop) {
+                if (prop in obj) {
+                    delete obj[prop];
+                    queueInstance$1.vDomChanged(context.vDomIndex);
+                }
+                return true;
+            },
+        };
+
+        return new Proxy(Object.assign({}, attr), handlr);
+    }
+
+    // function prepArrayProxyNode(arr, context) {
+    //     const handlr = {
+    //         set(obj, prop, value) {
+    //             obj[prop] = value;
+    //             queueInstance.vDomChanged(context.vDomIndex);
+    //         },
+    //     };
+
+    //     return new Proxy(arr || [], handlr);
+    // }
+
     const CanvasNodeExe$1 = function CanvasNodeExe(context, config, id, vDomIndex) {
         this.style = config.style || {};
         this.attr = config.attr || {};
@@ -83200,6 +83230,12 @@ Please pipe the document into a Node stream.\
         this.bbox = config.bbox !== undefined ? config.bbox : true;
         this.BBoxUpdate = true;
         this.block = config.block || false;
+
+        const reactiveAttr = prepObjProxyNode(config.attr || {}, this);
+        const reactiveStyle = prepObjProxyNode(config.style || {}, this);
+
+        this.style = reactiveStyle;
+        this.attr = reactiveAttr;
 
         switch (config.el) {
             case "circle":
@@ -83416,7 +83452,7 @@ Please pipe the document into a Node stream.\
             }
         }
 
-        queueInstance$1.vDomChanged(this.vDomIndex);
+        // queueInstance.vDomChanged(this.vDomIndex);
         return this;
     };
 
@@ -83450,7 +83486,7 @@ Please pipe the document into a Node stream.\
         }
 
         this.BBoxUpdate = true;
-        queueInstance$1.vDomChanged(this.vDomIndex);
+        // queueInstance.vDomChanged(this.vDomIndex);
         return this;
     };
 
@@ -83467,7 +83503,7 @@ Please pipe the document into a Node stream.\
 
         this.dom.setAttr("transform", this.attr.transform);
         this.BBoxUpdate = true;
-        queueInstance$1.vDomChanged(this.vDomIndex);
+        // queueInstance.vDomChanged(this.vDomIndex);
         return this;
     };
 
@@ -83483,7 +83519,7 @@ Please pipe the document into a Node stream.\
         this.attr.transform.scale = [XY[0], XY[1] ? XY[1] : XY[0]];
         this.dom.setAttr("transform", this.attr.transform);
         this.BBoxUpdate = true;
-        queueInstance$1.vDomChanged(this.vDomIndex);
+        // queueInstance.vDomChanged(this.vDomIndex);
         return this;
     };
 
@@ -83495,7 +83531,7 @@ Please pipe the document into a Node stream.\
         this.attr.transform.translate = XY;
         this.dom.setAttr("transform", this.attr.transform);
         this.BBoxUpdate = true;
-        queueInstance$1.vDomChanged(this.vDomIndex);
+        // queueInstance.vDomChanged(this.vDomIndex);
         return this;
     };
 
@@ -83510,7 +83546,7 @@ Please pipe the document into a Node stream.\
         this.attr.transform.skew[0] = x;
         this.dom.setAttr("transform", this.attr.transform);
         this.BBoxUpdate = true;
-        queueInstance$1.vDomChanged(this.vDomIndex);
+        // queueInstance.vDomChanged(this.vDomIndex);
         return this;
     };
 
@@ -83525,7 +83561,7 @@ Please pipe the document into a Node stream.\
         this.attr.transform.skew[1] = y;
         this.dom.setAttr("transform", this.attr.transform);
         this.BBoxUpdate = true;
-        queueInstance$1.vDomChanged(this.vDomIndex);
+        // queueInstance.vDomChanged(this.vDomIndex);
         return this;
     };
 

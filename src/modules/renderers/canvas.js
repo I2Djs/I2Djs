@@ -1822,6 +1822,36 @@ RenderGroup.prototype.in = function RGinfun(coOr) {
 
 /** ***************** End Render Group */
 
+function prepObjProxyNode(attr, context) {
+    const handlr = {
+        set(obj, prop, value) {
+            obj[prop] = value;
+            queueInstance.vDomChanged(context.vDomIndex);
+            return true;
+        },
+        deleteProperty(obj, prop) {
+            if (prop in obj) {
+                delete obj[prop];
+                queueInstance.vDomChanged(context.vDomIndex);
+            }
+            return true;
+        },
+    };
+
+    return new Proxy(Object.assign({}, attr), handlr);
+}
+
+// function prepArrayProxyNode(arr, context) {
+//     const handlr = {
+//         set(obj, prop, value) {
+//             obj[prop] = value;
+//             queueInstance.vDomChanged(context.vDomIndex);
+//         },
+//     };
+
+//     return new Proxy(arr || [], handlr);
+// }
+
 const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.style = config.style || {};
     this.attr = config.attr || {};
@@ -1835,6 +1865,12 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.bbox = config.bbox !== undefined ? config.bbox : true;
     this.BBoxUpdate = true;
     this.block = config.block || false;
+
+    const reactiveAttr = prepObjProxyNode(config.attr || {}, this);
+    const reactiveStyle = prepObjProxyNode(config.style || {}, this);
+
+    this.style = reactiveStyle;
+    this.attr = reactiveAttr;
 
     switch (config.el) {
         case "circle":
@@ -2051,7 +2087,7 @@ CanvasNodeExe.prototype.setStyle = function CsetStyle(attr, value) {
         }
     }
 
-    queueInstance.vDomChanged(this.vDomIndex);
+    // queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 
@@ -2085,7 +2121,7 @@ CanvasNodeExe.prototype.setAttr = function CsetAttr(attr, value) {
     }
 
     this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
+    // queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 
@@ -2102,7 +2138,7 @@ CanvasNodeExe.prototype.rotate = function Crotate(angle, x, y) {
 
     this.dom.setAttr("transform", this.attr.transform);
     this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
+    // queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 
@@ -2118,7 +2154,7 @@ CanvasNodeExe.prototype.scale = function Cscale(XY) {
     this.attr.transform.scale = [XY[0], XY[1] ? XY[1] : XY[0]];
     this.dom.setAttr("transform", this.attr.transform);
     this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
+    // queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 
@@ -2130,7 +2166,7 @@ CanvasNodeExe.prototype.translate = function Ctranslate(XY) {
     this.attr.transform.translate = XY;
     this.dom.setAttr("transform", this.attr.transform);
     this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
+    // queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 
@@ -2145,7 +2181,7 @@ CanvasNodeExe.prototype.skewX = function CskewX(x) {
     this.attr.transform.skew[0] = x;
     this.dom.setAttr("transform", this.attr.transform);
     this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
+    // queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 
@@ -2160,7 +2196,7 @@ CanvasNodeExe.prototype.skewY = function CskewY(y) {
     this.attr.transform.skew[1] = y;
     this.dom.setAttr("transform", this.attr.transform);
     this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
+    // queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 
