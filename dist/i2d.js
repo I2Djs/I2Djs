@@ -84507,6 +84507,7 @@ Please pipe the document into a Node stream.\
         const ctx = layer.getContext("2d", {});
         let fontRegister = config.fontRegister || {};
         let pdfInfo = config.info || { title: "I2Djs-PDF" };
+        let onUpdateExe = onUpdate;
 
         let vDomIndex = 999999;
         let pageDefaultTemplate = null;
@@ -84590,12 +84591,15 @@ Please pipe the document into a Node stream.\
         };
         PDFCreator.prototype.execute = function () {
             this.exportPdf(
-                onUpdate ||
+                onUpdateExe ||
                     function (url) {
                         res.setAttribute("src", url);
                     },
                 pdfConfig
             );
+        };
+        PDFCreator.prototype.onChange = function (exec) {
+            onUpdateExe = exec;
         };
         PDFCreator.prototype.addPage = function (config = {}) {
             const newpage = createPage(ctx, this.vDomIndex);
