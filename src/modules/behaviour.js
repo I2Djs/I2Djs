@@ -209,8 +209,8 @@ const ZoomClass = function () {
         self.zoomStartFlag = false;
         self.event.distance = 0;
     };
-    this.onPanStart = function (trgt, event) {};
-    this.onPan = function (trgt, event) {};
+    this.onPanStart = function () {};
+    this.onPan = function () {};
     this.onPanEnd = function () {};
     this.disableWheel = false;
     this.disableDbclick = false;
