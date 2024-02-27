@@ -110,7 +110,12 @@ export default [
         plugins: [
             cleanup(),
             nodeResolve(),
-            commonjs(),
+            commonjs({
+                dynamicRequireTargets: ['node_modules/pdfkit/js/pdfkit.standalone.js'],
+                inlineDynamicImports: true,
+                sourceMap: false,
+                transformMixedEsModules: true
+            }),
             terser(),
             eslint({
                 fix: true,
