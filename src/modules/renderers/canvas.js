@@ -5,7 +5,7 @@ import geometry from "./../geometry.js";
 import colorMap from "./../colorMap.js";
 import Events from "./../events.js";
 import behaviour from "./../behaviour.js";
-import blobStream from "blob-stream-i2d/blob-stream.js";
+import blobStream from "blob-stream-i2d";
 import PDFDocument from "pdfkit/js/pdfkit.standalone.js";
 
 import {

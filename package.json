@@ -13,8 +13,7 @@
     "dev": "rollup -wm -c rollup.config.js",
     "build": "rm -rf ./dist/ && rollup -c rollup.config.js",
     "lint": "eslint src/**",
-    "lint-fix": "eslint --cache --fix src/**",
-    "commit": "cz"
+    "lint-fix": "eslint --cache --fix src/**"
   },
   "repository": {
     "type": "git",
@@ -24,9 +23,9 @@
     "dist",
     "src",
     "examples/canvas",
-    "examples/data",
     "examples/svg",
-    "examples/webGL"
+    "examples/webGL",
+    "examples/pdf"
   ],
   "keywords": [
     "SVG",
@@ -43,7 +42,8 @@
     "Scalable Vector Graphics",
     "pixel",
     "Rendering",
-    "Integrated 2D"
+    "Integrated 2D",
+    "pdf"
   ],
   "author": "Narayana Swamy",
   "license": "BSD-3-Clause",
@@ -53,7 +53,7 @@
   "homepage": "https://github.com/i2djs/I2D#readme",
   "dependencies": {
     "@juggle/resize-observer": "^3.4.0",
-    "blob-stream-i2d": "^1.0.0",
+    "blob-stream-i2d": "^1.1.0",
     "earcut": "^2.2.4",
     "flubber": "^0.4.2",
     "pdfkit": "^0.13.0",

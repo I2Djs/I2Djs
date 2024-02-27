@@ -18,33 +18,9 @@ const banner = `/*!
       */`;
 
 export default [
-    // {
-    //     input: "src/main.js",
-    //     // external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream-i2d/blob-stream.js"],
-    //     output: [
-    //         {
-    //             banner,
-    //             dir: "dist/modules",
-    //             format: "es",
-    //             name: "i2d",
-    //         },
-    //     ],
-    //     plugins: [
-    //         nodeResolve(),
-    //         commonjs({
-    //             dynamicRequireRoot: "dist/modules",
-    //             dynamicRequireTargets: ['flubber','blob-stream-i2d/blob-stream.js', 'pdfkit/js/pdfkit.standalone.js'],
-    //             inlineDynamicImports: true,
-    //         }),
-    //         eslint({
-    //             fix: true,
-    //             throwOnError: true,
-    //         }),
-    //     ],
-    // },
     {
         input: "src/main.js",
-        // external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream-i2d/blob-stream.js"],
+        external: ['stackblur-canvas', 'blob-stream-i2d', '@juggle/resize-observer'],
         output: [
             {
                 banner,
@@ -57,8 +33,10 @@ export default [
             cleanup(),
             nodeResolve(),
             commonjs({
-                dynamicRequireTargets: ['node_modules/blob-stream-i2d/blob-stream.js', 'node_modules/pdfkit/js/pdfkit.standalone.js'],
+                dynamicRequireTargets: [ 'node_modules/pdfkit/js/pdfkit.standalone.js'],
                 inlineDynamicImports: true,
+                sourceMap: false,
+                transformMixedEsModules: true
             }),
             eslint({
                 fix: true,
@@ -68,8 +46,6 @@ export default [
     },
     {
         input: "src/main.js",
-        // external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream"],
-        // external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream-i2d"],
         output: [
             {
                 banner,
@@ -81,7 +57,12 @@ export default [
         plugins: [
             cleanup(),
             nodeResolve(),
-            commonjs(),
+            commonjs({
+                dynamicRequireTargets: ['node_modules/pdfkit/js/pdfkit.standalone.js'],
+                inlineDynamicImports: true,
+                sourceMap: false,
+                transformMixedEsModules: true
+            }),
             eslint({
                 fix: true,
                 throwOnError: true,
@@ -90,7 +71,7 @@ export default [
     },
     {
         input: "src/main.js",
-        // external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream-i2d/blob-stream.js"],
+        external: ['stackblur-canvas', 'blob-stream-i2d', '@juggle/resize-observer'],
         output: [
             {
                 file: "dist/i2d.esm.min.js",
@@ -103,7 +84,12 @@ export default [
         plugins: [
             cleanup(),
             nodeResolve(),
-            commonjs(),
+            commonjs({
+                dynamicRequireTargets: [ 'node_modules/pdfkit/js/pdfkit.standalone.js'],
+                inlineDynamicImports: true,
+                sourceMap: false,
+                transformMixedEsModules: true
+            }),
             terser(),
             eslint({
                 fix: true,
@@ -113,7 +99,6 @@ export default [
     },
     {
         input: "src/main.js",
-        // external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream-i2d"],
         output: [
             {
                 banner,
