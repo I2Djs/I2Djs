@@ -3,8 +3,6 @@ import { nodeResolve } from "@rollup/plugin-node-resolve";
 import eslint from '@rollup/plugin-eslint';
 import terser from "@rollup/plugin-terser";
 import cleanup from 'rollup-plugin-cleanup';
-// import nodePolyfills from 'rollup-plugin-polyfill-node';
-// import buble from "@rollup/plugin-buble";
 import packageJson from './package.json' assert { type: "json" };
 const version = process.env.VERSION || packageJson.version;
 
@@ -105,6 +103,7 @@ export default [
                 file: "dist/i2d.min.js",
                 format: "umd",
                 name: "i2d",
+                compact: true
             },
         ],
         plugins: [
