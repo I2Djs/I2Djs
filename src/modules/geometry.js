@@ -427,7 +427,7 @@ const arcToBezier = function arcToBezier(_ref2) {
     });
 };
 
-function rotatePoint(point, centre, newAngle, distance) {
+function rotatePoint(point, centre, newAngle) {
     const p = {};
     const x = point.x;
     const y = point.y;

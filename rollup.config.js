@@ -1,12 +1,13 @@
 import commonjs from "@rollup/plugin-commonjs";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
-import eslint from '@rbnlffl/rollup-plugin-eslint';
-import { terser } from "rollup-plugin-terser";
-// import buble from "@rollup/plugin-buble";
+import eslint from '@rollup/plugin-eslint';
+import terser from "@rollup/plugin-terser";
+import cleanup from 'rollup-plugin-cleanup';
+import packageJson from './package.json' assert { type: "json" };
+const version = process.env.VERSION || packageJson.version;
 
-const version = process.env.VERSION || require("./package.json").version;
-const author = require("./package.json").author;
-const license = require("./package.json").license;
+const author = packageJson.author;
+const license = packageJson.license;
 
 const banner = `/*!
       * i2djs
@@ -17,81 +18,70 @@ const banner = `/*!
 export default [
     {
         input: "src/main.js",
-        external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream-i2d/blob-stream.js"],
+        external: [ 'stackblur-canvas', '@juggle/resize-observer', 'blob-stream-i2d'],
         output: [
             {
                 banner,
-                file: "dist/i2d.esm.js",
-                format: "esm",
+                dir: "dist",
+                format: "es",
                 name: "i2d",
+                entryFileNames: "i2d.esm.js",
+                chunkFileNames: "[name]-bundle-esm.js",
+                manualChunks(id) {
+                    if (id.includes('node_modules/pdfkit') || id.includes('node_modules/flubber') || id.includes('node_modules/earcut') || id.includes('node_modules/earcut')) {
+                      return 'dependencies';
+                    }
+                }
             },
+            {
+                banner,
+                dir: "dist",
+                format: "es",
+                name: "i2d",
+                entryFileNames: "i2d.esm.min.js",
+                chunkFileNames: "[name]-bundle-esm.js",
+                compact: true,
+                plugins: [terser()],
+                manualChunks(id) {
+                    if (id.includes('node_modules/pdfkit') || id.includes('node_modules/flubber') || id.includes('node_modules/earcut')) {
+                      return 'dependencies';
+                    }
+                }
+            }
         ],
         plugins: [
+            cleanup(),
             nodeResolve(),
-            commonjs(),
+            commonjs({
+                // dynamicRequireTargets: [ 'node_modules/pdfkit/js/pdfkit.standalone.js'],
+                // inlineDynamicImports: true,
+                // sourceMap: false,
+                // transformMixedEsModules: true
+            }),
             eslint({
                 fix: true,
                 throwOnError: true,
-            }),
+            })
         ],
     },
     {
         input: "src/main.js",
-        // external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream"],
         output: [
             {
                 banner,
                 file: "dist/i2d.js",
                 format: "umd",
-                name: "i2d",
+                name: "i2d"
             },
         ],
         plugins: [
+            cleanup(),
             nodeResolve(),
-            commonjs(),
-            eslint({
-                fix: true,
-                throwOnError: true,
+            commonjs({
+                inlineDynamicImports: true,
+                sourceMap: false,
+                transformMixedEsModules: true
             }),
-        ],
-    },
-    {
-        input: "src/main.js",
-        external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream-i2d/blob-stream.js"],
-        output: [
-            {
-                file: "dist/i2d.esm.min.js",
-                banner,
-                format: "esm",
-                name: "i2d",
-                compact: true,
-            },
-        ],
-        plugins: [
-            nodeResolve(),
-            commonjs(),
-            terser(),
-            eslint({
-                fix: true,
-                throwOnError: true,
-            }),
-        ],
-    },
-    {
-        input: "src/main.js",
-        // external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream"],
-        output: [
-            {
-                banner,
-                file: "dist/i2d.min.js",
-                format: "umd",
-                name: "i2d",
-            },
-        ],
-        plugins: [
-            nodeResolve(),
-            commonjs(),
-            terser(),
             eslint({
                 fix: true,
                 throwOnError: true,

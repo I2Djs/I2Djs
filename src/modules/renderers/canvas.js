@@ -5,7 +5,7 @@ import geometry from "./../geometry.js";
 import colorMap from "./../colorMap.js";
 import Events from "./../events.js";
 import behaviour from "./../behaviour.js";
-import blobStream from "blob-stream-i2d/blob-stream.js";
+import blobStream from "blob-stream-i2d";
 import PDFDocument from "pdfkit/js/pdfkit.standalone.js";
 
 import {
@@ -394,7 +394,7 @@ CanvasGradient.prototype.radialGradientPdf = function GRAradialGradient(ctx, BBo
     return cGradient;
 };
 
-CanvasGradient.prototype.absoluteRadialGradient = function absoluteGraradialGradient(ctx, BBox) {
+CanvasGradient.prototype.absoluteRadialGradient = function absoluteGraradialGradient(ctx) {
     const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.createRadialGradient(
         innerCircle.x,
@@ -1100,7 +1100,7 @@ RenderCircle.prototype.executePdf = function RCexecute(pdfCtx, block) {
     this.applyStylesPdf(pdfCtx);
 };
 
-RenderCircle.prototype.in = function RCinfun(co, eventType) {
+RenderCircle.prototype.in = function RCinfun(co) {
     const { r = 0, cx = 0, cy = 0 } = this.attr;
     const tr = Math.sqrt((co.x - cx) * (co.x - cx) + (co.y - cy) * (co.y - cy));
     return tr <= r;
@@ -2686,7 +2686,7 @@ function createPage(ctx, vDomIndex) {
 
     root.invokeOnChange = function () {};
 
-    root.setViewBox = function (x, y, height, width) {};
+    root.setViewBox = function () {};
 
     root.setContext = function (prop, value) {
         /** Expecting value to be array if multiple aruments */
@@ -2799,7 +2799,7 @@ function createPage(ctx, vDomIndex) {
     };
 
     root.createAsyncTexture = function (config) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const textureInstance = new RenderTexture(this, config);
             textureInstance.onLoad(function () {
                 resolve(textureInstance);
@@ -3011,7 +3011,7 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
             doc.info.Author = pdfInfo.author || "";
             doc.info.Subject = pdfInfo.subject || "";
             doc.info.Keywords = pdfInfo.keywords || "";
-            doc.info.CreationDate = pdfInfo.creationDate || "";
+            doc.info.CreationDate = pdfInfo.creationDate || new Date();
         }
 
         root.updateBBox();
@@ -3287,12 +3287,12 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
             doc.info.Author = pdfInfo.author || "";
             doc.info.Subject = pdfInfo.subject || "";
             doc.info.Keywords = pdfInfo.keywords || "";
-            doc.info.CreationDate = pdfInfo.creationDate || "";
+            doc.info.CreationDate = pdfInfo.creationDate || new Date();
         }
 
         this.doc = doc;
 
-        this.pages.forEach(function (page, i) {
+        this.pages.forEach(function (page) {
             page.updateBBox();
             doc.addPage({
                 margin: page.margin || 0,

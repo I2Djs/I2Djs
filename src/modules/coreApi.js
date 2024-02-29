@@ -522,7 +522,7 @@ NodePrototype.prototype.data = function (data) {
 };
 
 NodePrototype.prototype.interrupt = function () {
-    if (this.ctx.type_ === "pdf") return;
+    if (this.ctx && this.ctx.type_ === "pdf") return;
     if (this.animList && this.animList.length > 0) {
         for (var i = this.animList.length - 1; i >= 0; i--) {
             queueInstance.remove(this.animList[i]);
@@ -533,7 +533,7 @@ NodePrototype.prototype.interrupt = function () {
 };
 
 NodePrototype.prototype.animateTo = function (toConfig, fromConfig) {
-    if (this.ctx.type_ === "pdf") return;
+    if (this.ctx && this.ctx.type_ === "pdf") return;
     queueInstance.add(
         animeId(),
         animate(this, fromConfig || this, toConfig),
@@ -543,7 +543,7 @@ NodePrototype.prototype.animateTo = function (toConfig, fromConfig) {
 };
 
 NodePrototype.prototype.animateExe = function (targetConfig, fromConfig) {
-    if (this.ctx.type_ === "pdf") return;
+    if (this.ctx && this.ctx.type_ === "pdf") return;
     return animate(this, fromConfig || this, targetConfig);
 };
 
