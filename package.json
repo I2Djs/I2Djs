@@ -53,24 +53,22 @@
   "homepage": "https://github.com/i2djs/I2D#readme",
   "dependencies": {
     "@juggle/resize-observer": "^3.4.0",
-    "blob-stream-i2d": "^1.1.0",
+    "blob-stream-i2d": "^1.1.1",
     "stackblur-canvas": "^2.6.0"
   },
   "resolutions": {
-    "minimist": "^1.2.6",
-    "terser": "^5.14.2"
   },
   "devDependencies": {
-    "earcut": "^2.2.4",
-    "flubber": "^0.4.2",
-    "pdfkit": "^0.13.0",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-eslint": "^9.0.5",
+    "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-terser": "^0.4.4",
+    "earcut": "^2.2.4",
     "eslint": "^8.57.0",
+    "flubber": "^0.4.2",
+    "pdfkit": "^0.14.0",
     "rollup": "^4.12.0",
-    "rollup-plugin-cleanup": "^3.2.1",
-    "rollup-plugin-polyfill-node": "^0.13.0"
+    "rollup-plugin-cleanup": "^3.2.1"
   }
 }

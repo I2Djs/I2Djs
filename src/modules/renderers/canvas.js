@@ -3011,7 +3011,7 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
             doc.info.Author = pdfInfo.author || "";
             doc.info.Subject = pdfInfo.subject || "";
             doc.info.Keywords = pdfInfo.keywords || "";
-            doc.info.CreationDate = pdfInfo.creationDate || "";
+            doc.info.CreationDate = pdfInfo.creationDate || new Date();
         }
 
         root.updateBBox();
@@ -3287,7 +3287,7 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
             doc.info.Author = pdfInfo.author || "";
             doc.info.Subject = pdfInfo.subject || "";
             doc.info.Keywords = pdfInfo.keywords || "";
-            doc.info.CreationDate = pdfInfo.creationDate || "";
+            doc.info.CreationDate = pdfInfo.creationDate || new Date();
         }
 
         this.doc = doc;

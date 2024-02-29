@@ -18,28 +18,50 @@ const banner = `/*!
 export default [
     {
         input: "src/main.js",
-        external: ['stackblur-canvas', 'blob-stream-i2d', '@juggle/resize-observer'],
+        external: [ 'stackblur-canvas', '@juggle/resize-observer', 'blob-stream-i2d'],
         output: [
             {
                 banner,
-                file: "dist/i2d.esm.js",
+                dir: "dist",
                 format: "es",
                 name: "i2d",
+                entryFileNames: "i2d.esm.js",
+                chunkFileNames: "[name]-bundle-esm.js",
+                manualChunks(id) {
+                    if (id.includes('node_modules/pdfkit') || id.includes('node_modules/flubber') || id.includes('node_modules/earcut') || id.includes('node_modules/earcut')) {
+                      return 'dependencies';
+                    }
+                }
             },
+            {
+                banner,
+                dir: "dist",
+                format: "es",
+                name: "i2d",
+                entryFileNames: "i2d.esm.min.js",
+                chunkFileNames: "[name]-bundle-esm.js",
+                compact: true,
+                plugins: [terser()],
+                manualChunks(id) {
+                    if (id.includes('node_modules/pdfkit') || id.includes('node_modules/flubber') || id.includes('node_modules/earcut')) {
+                      return 'dependencies';
+                    }
+                }
+            }
         ],
         plugins: [
             cleanup(),
             nodeResolve(),
             commonjs({
-                dynamicRequireTargets: [ 'node_modules/pdfkit/js/pdfkit.standalone.js'],
-                inlineDynamicImports: true,
-                sourceMap: false,
-                transformMixedEsModules: true
+                // dynamicRequireTargets: [ 'node_modules/pdfkit/js/pdfkit.standalone.js'],
+                // inlineDynamicImports: true,
+                // sourceMap: false,
+                // transformMixedEsModules: true
             }),
             eslint({
                 fix: true,
                 throwOnError: true,
-            }),
+            })
         ],
     },
     {
@@ -56,66 +78,10 @@ export default [
             cleanup(),
             nodeResolve(),
             commonjs({
-                dynamicRequireTargets: ['node_modules/pdfkit/js/pdfkit.standalone.js'],
                 inlineDynamicImports: true,
                 sourceMap: false,
                 transformMixedEsModules: true
             }),
-            eslint({
-                fix: true,
-                throwOnError: true,
-            }),
-        ],
-    },
-    {
-        input: "src/main.js",
-        external: ['stackblur-canvas', 'blob-stream-i2d', '@juggle/resize-observer'],
-        output: [
-            {
-                file: "dist/i2d.esm.min.js",
-                banner,
-                format: "es",
-                name: "i2d",
-                compact: true,
-            },
-        ],
-        plugins: [
-            cleanup(),
-            nodeResolve(),
-            commonjs({
-                dynamicRequireTargets: [ 'node_modules/pdfkit/js/pdfkit.standalone.js'],
-                inlineDynamicImports: true,
-                sourceMap: false,
-                transformMixedEsModules: true
-            }),
-            terser(),
-            eslint({
-                fix: true,
-                throwOnError: true,
-            }),
-        ],
-    },
-    {
-        input: "src/main.js",
-        output: [
-            {
-                banner,
-                file: "dist/i2d.min.js",
-                format: "umd",
-                name: "i2d",
-                compact: true
-            },
-        ],
-        plugins: [
-            cleanup(),
-            nodeResolve(),
-            commonjs({
-                dynamicRequireTargets: ['node_modules/pdfkit/js/pdfkit.standalone.js'],
-                inlineDynamicImports: true,
-                sourceMap: false,
-                transformMixedEsModules: true
-            }),
-            terser(),
             eslint({
                 fix: true,
                 throwOnError: true,
