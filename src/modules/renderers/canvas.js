@@ -6,7 +6,9 @@ import colorMap from "./../colorMap.js";
 import Events from "./../events.js";
 import behaviour from "./../behaviour.js";
 import blobStream from "blob-stream-i2d";
-import PDFDocument from "pdfkit/js/pdfkit.standalone.js";
+import PDFDocument from "pdfkit";
+import fs from "fs";
+import { STANDARD_FONTS } from "./../../data/static-fonts.js";
 
 import {
     NodePrototype,
@@ -96,6 +98,12 @@ const canvasCssMapper = {
     "stroke-width": "lineWidth",
     "stroke-dasharray": "setLineDash",
 };
+
+if (Object.keys(STANDARD_FONTS).length > 0) {
+    for(let key in STANDARD_FONTS) {
+        fs.writeFileSync('/data/'+key, STANDARD_FONTS[key]);
+    }
+}
 
 const t2DGeometry = geometry;
 const queueInstance = queue;

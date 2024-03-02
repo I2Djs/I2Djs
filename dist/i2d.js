@@ -4,10 +4,10 @@
       * @license BSD-3-Clause
       */
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-    typeof define === 'function' && define.amd ? define(['exports'], factory) :
-    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.i2d = {}));
-})(this, (function (exports) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('fs')) :
+    typeof define === 'function' && define.amd ? define(['exports', 'fs'], factory) :
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.i2d = {}, global.fs));
+})(this, (function (exports, fs) { 'use strict';
 
     let animatorInstance = null;
     let tweens = [];
@@ -8028,12 +8028,8 @@ Example valid ways of supplying a shape would be:
         },
     };
 
-    function commonjsRequire(path) {
-    	throw new Error('Could not dynamically require "' + path + '". Please configure the dynamicRequireTargets or/and ignoreDynamicRequires option of @rollup/plugin-commonjs appropriately for this require call to work.');
-    }
-
     !function (e) {
-      if ("object" == typeof exports && "undefined" != typeof module) module.exports = e();else {
+      if ("object" == typeof exports && "undefined" != typeof module) module.exports = e();else if ("function" == typeof define && define.amd) define([], e);else {
         var f;
         "undefined" != typeof window ? f = window : "undefined" != typeof global ? f = global : "undefined" != typeof self && (f = self), f.blobStream = e();
       }
@@ -8042,7 +8038,7 @@ Example valid ways of supplying a shape would be:
         function s(o, u) {
           if (!n[o]) {
             if (!t[o]) {
-              var a = typeof commonjsRequire == "function" && commonjsRequire;
+              var a = typeof require == "function" && require;
               if (!u && a) return a(o, !0);
               if (i) return i(o, !0);
               var f = new Error("Cannot find module '" + o + "'");
@@ -8058,7 +8054,7 @@ Example valid ways of supplying a shape would be:
           }
           return n[o].exports;
         }
-        var i = typeof commonjsRequire == "function" && commonjsRequire;
+        var i = typeof require == "function" && require;
         for (var o = 0; o < r.length; o++) s(r[o]);
         return s;
       }({
@@ -11014,6 +11010,10 @@ Example valid ways of supplying a shape would be:
       }, {}, [2])(2);
     });
     var blobStream$1 = blobStream;
+
+    function commonjsRequire(path) {
+    	throw new Error('Could not dynamically require "' + path + '". Please configure the dynamicRequireTargets or/and ignoreDynamicRequires option of @rollup/plugin-commonjs appropriately for this require call to work.');
+    }
 
     var pdfkit_standalone = {exports: {}};
 
@@ -66667,6 +66667,8 @@ Please pipe the document into a Node stream.\
     var pdfkit_standaloneExports = pdfkit_standalone.exports;
     var PDFDocument = /*@__PURE__*/getDefaultExportFromCjs(pdfkit_standaloneExports);
 
+    const STANDARD_FONTS = {};
+
     const pdfSupportedFontFamily = [
         "Courier",
         "Courier-Bold",
@@ -66746,6 +66748,11 @@ Please pipe the document into a Node stream.\
         "stroke-width": "lineWidth",
         "stroke-dasharray": "setLineDash",
     };
+    if (Object.keys(STANDARD_FONTS).length > 0) {
+        for(let key in STANDARD_FONTS) {
+            fs.writeFileSync('/data/'+key, STANDARD_FONTS[key]);
+        }
+    }
     const t2DGeometry$1 = geometry;
     const queueInstance$1 = queue;
     let Id$1 = 0;
