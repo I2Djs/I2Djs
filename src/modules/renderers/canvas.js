@@ -1997,9 +1997,6 @@ CanvasNodeExe.prototype.remove = function Cremove() {
     if (index !== -1) {
         children.splice(index, 1);
     }
-
-    // this.dom.parent.BBoxUpdate = true;
-    // queueInstance.vDomChanged(this.vDomIndex);
 };
 
 CanvasNodeExe.prototype.attributesExe = function CattributesExe() {
@@ -2012,76 +2009,35 @@ CanvasNodeExe.prototype.attributesExePdf = function CattributesExe(pdfCtx, block
 
 CanvasNodeExe.prototype.setStyle = function CsetStyle(attr, value) {
     if (arguments.length === 2) {
-        if (value == null && this.style[attr] != null) {
-            delete this.style[attr];
-        } else {
-            this.style[attr] = valueCheck(value);
-        }
-        this.dom.setStyle(attr, this.style[attr]);
+        this.style[attr] = value;
     } else if (arguments.length === 1 && typeof attr === "object") {
         const styleKeys = Object.keys(attr);
 
         for (let i = 0, len = styleKeys.length; i < len; i += 1) {
-            if (attr[styleKeys[i]] == null && this.style[styleKeys[i]] != null) {
-                delete this.style[styleKeys[i]];
-            } else {
-                this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
-            }
-            this.dom.setStyle(styleKeys[i], this.style[styleKeys[i]]);
+            this.style[styleKeys[i]] = attr[styleKeys[i]];
         }
     }
-
-    // queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 
-function valueCheck(value) {
-    if (colorMap.RGBAInstanceCheck(value)) {
-        value = value.rgba;
-    }
-
-    return value === "#000" || value === "#000000" || value === "black" ? "#010101" : value;
-}
-
 CanvasNodeExe.prototype.setAttr = function CsetAttr(attr, value) {
     if (arguments.length === 2) {
-        if (value == null && this.attr[attr] != null) {
-            delete this.attr[attr];
-        } else {
-            this.attr[attr] = value;
-        }
-        // this.dom.setAttr(attr, value);
+        this.attr[attr] = value;
     } else if (arguments.length === 1 && typeof attr === "object") {
         const keys = Object.keys(attr);
 
         for (let i = 0; i < keys.length; i += 1) {
-            if (attr[keys[i]] == null && this.attr[keys[i]] != null) {
-                delete this.attr[keys[i]];
-            } else {
-                this.attr[keys[i]] = attr[keys[i]];
-            }
-            // this.dom.setAttr(keys[i], attr[keys[i]]);
+            this.attr[keys[i]] = attr[keys[i]];
         }
     }
-
-    // this.BBoxUpdate = true;
-    // queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 
-CanvasNodeExe.prototype.rotate = function Crotate(angle, x, y) {
+CanvasNodeExe.prototype.rotate = function Crotate(angleXY) {
     if (!this.attr.transform) {
         this.attr.transform = prepObjProxy('transform', {}, this, true);
     }
-
-    if (Object.prototype.toString.call(angle) === "[object Array]") {
-        this.attr.transform.rotate = [angle[0] || 0, angle[1] || 0, angle[2] || 0];
-    } else {
-        this.attr.transform.rotate = [angle, x || 0, y || 0];
-    }
-
-    this.dom.setAttr("transform", this.attr.transform);
-    this.BBoxUpdate = true;
+    this.attr.transform.rotate = angleXY;
     return this;
 };
 
@@ -2090,13 +2046,7 @@ CanvasNodeExe.prototype.scale = function Cscale(XY) {
         this.attr.transform = prepObjProxy('transform', {}, this, true);
     }
 
-    if (XY.length < 1) {
-        return null;
-    }
-
-    this.attr.transform.scale = [XY[0], XY[1] ? XY[1] : XY[0]];
-    this.dom.setAttr("transform", this.attr.transform);
-    this.BBoxUpdate = true;
+    this.attr.transform.scale = XY;
     return this;
 };
 
@@ -2106,36 +2056,15 @@ CanvasNodeExe.prototype.translate = function Ctranslate(XY) {
     }
 
     this.attr.transform.translate = XY;
-    this.dom.setAttr("transform", this.attr.transform);
-    this.BBoxUpdate = true;
     return this;
 };
 
-CanvasNodeExe.prototype.skewX = function CskewX(x) {
+CanvasNodeExe.prototype.skew = function Cskew(XY) {
     if (!this.attr.transform) {
         this.attr.transform = prepObjProxy('transform', {}, this, true);
     }
-    if (!this.attr.transform.skew) {
-        this.attr.transform.skew = [];
-    }
 
-    this.attr.transform.skew[0] = x;
-    this.dom.setAttr("transform", this.attr.transform);
-    this.BBoxUpdate = true;
-    return this;
-};
-
-CanvasNodeExe.prototype.skewY = function CskewY(y) {
-    if (!this.attr.transform) {
-        this.attr.transform = {};
-    }
-    if (!this.attr.transform.skew) {
-        this.attr.transform.skew = [];
-    }
-
-    this.attr.transform.skew[1] = y;
-    this.dom.setAttr("transform", this.attr.transform);
-    this.BBoxUpdate = true;
+    this.attr.transform.skew = XY;
     return this;
 };
 
@@ -2189,8 +2118,6 @@ CanvasNodeExe.prototype.prependChild = function child(childrens) {
         console.error("Trying to insert child to nonGroup Element");
     }
 
-    // this.BBoxUpdate = true;
-    // queueInstance.vDomChanged(this.vDomIndex);
     return self;
 };
 
@@ -2208,8 +2135,6 @@ CanvasNodeExe.prototype.child = function child(childrens) {
         console.error("Trying to insert child to nonGroup Element");
     }
 
-    // this.BBoxUpdate = true;
-    // queueInstance.vDomChanged(this.vDomIndex);
     return self;
 };
 
@@ -2251,7 +2176,6 @@ CanvasNodeExe.prototype.updateABBox = function updateABBox(transform = { transla
     };
     this.dom.abTransform = abTransform;
 
-    // this.setAttr("abTranslate", this.abTranslate);
     if (this.dom instanceof RenderGroup) {
         for (let i = 0, len = this.children.length; i < len && this.children[i]; i += 1) {
             this.children[i].updateABBox(abTransform);
@@ -2265,7 +2189,6 @@ CanvasNodeExe.prototype.in = function Cinfun(co) {
 
 CanvasNodeExe.prototype.on = function Con(eventType, hndlr) {
     const self = this;
-    // this.dom.on(eventType, hndlr);
     if (!this.events) {
         this.events = {};
     }
@@ -2311,7 +2234,6 @@ CanvasNodeExe.prototype.createEls = function CcreateEls(data, config) {
         this.vDomIndex
     );
     this.child(e.stack);
-    // queueInstance.vDomChanged(this.vDomIndex);
     return e;
 };
 
@@ -2319,8 +2241,6 @@ CanvasNodeExe.prototype.text = function Ctext(value) {
     if (this.dom instanceof RenderText) {
         this.setAttr('text', value);
     }
-
-    // queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 

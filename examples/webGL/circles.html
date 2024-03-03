@@ -18,7 +18,7 @@
                 circlesData.push({
                     cx: Math.random() * 1400,
                     cy: Math.random() * 800,
-                    r: Math.random() * 10,
+                    r: Math.random() * 200,
                 });
             }
 
@@ -56,7 +56,9 @@
                 });
 
             circlesRef.animateTo({
-                duration: 10000,
+                duration: function (d, i) {
+                    return 5000 + Math.random() * 5000;
+                },
                 loop: 10,
                 direction: "alternate",
                 attr: {
