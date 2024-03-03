@@ -522,7 +522,7 @@ NodePrototype.prototype.data = function (data) {
 };
 
 NodePrototype.prototype.interrupt = function () {
-    if (this.ctx.type_ === "pdf") return;
+    if (this.ctx && this.ctx.type_ === "pdf") return;
     if (this.animList && this.animList.length > 0) {
         for (var i = this.animList.length - 1; i >= 0; i--) {
             queueInstance.remove(this.animList[i]);
@@ -533,7 +533,7 @@ NodePrototype.prototype.interrupt = function () {
 };
 
 NodePrototype.prototype.animateTo = function (toConfig, fromConfig) {
-    if (this.ctx.type_ === "pdf") return;
+    if (this.ctx && this.ctx.type_ === "pdf") return;
     queueInstance.add(
         animeId(),
         animate(this, fromConfig || this, toConfig),
@@ -543,7 +543,7 @@ NodePrototype.prototype.animateTo = function (toConfig, fromConfig) {
 };
 
 NodePrototype.prototype.animateExe = function (targetConfig, fromConfig) {
-    if (this.ctx.type_ === "pdf") return;
+    if (this.ctx && this.ctx.type_ === "pdf") return;
     return animate(this, fromConfig || this, targetConfig);
 };
 
@@ -906,6 +906,14 @@ const animatePathArrayTo = function animatePathArrayTo(config) {
                 value = value.call(node, node.dataObj, i);
             }
 
+            if (keys[j] === 'attr' && typeof config.attr !== "function") {
+                value = resolveObject(config.attr, node, i);
+            }
+
+            if (keys[j] === 'style' && typeof config.style !== "function") {
+                value = resolveObject(config.style, node, i);
+            }
+
             conf[keys[j]] = value;
         }
 
@@ -1065,4 +1073,84 @@ function layerResizeUnBind(layer, handler) {
     }
 }
 
-export { NodePrototype, CollectionPrototype, layerResizeBind, layerResizeUnBind };
+function prepObjProxy(type, attr, context, BBoxUpdate) {
+    const handlr = {
+        set(obj, prop, value) {
+            if (value !== null) {
+                obj[prop] = value;
+                if (context && context.dom) {
+                    if (type === 'attr') {
+                        context.dom.setAttr(prop, value);
+                    } else if (type === 'style') {
+                        context.dom.setStyle(prop, value);
+                    }
+
+                }
+                queueInstance.vDomChanged(context.vDomIndex);
+                if (BBoxUpdate) {
+                    context.BBoxUpdate = true;
+                }
+            } else {
+                delete obj[prop];
+            }
+            return true;
+        },
+        deleteProperty(obj, prop) {
+            if (prop in obj) {
+                delete obj[prop];
+                queueInstance.vDomChanged(context.vDomIndex);
+                if (BBoxUpdate) {
+                    context.BBoxUpdate = true;
+                }
+            }
+            return true;
+        },
+    };
+
+    return new Proxy(Object.assign({}, attr), handlr);
+}
+
+function prepArrayProxy(arr, context, BBoxUpdate) {
+    const handlr = {
+        get(target, prop) {
+            if (prop === 'push') {
+              return (...args) => {
+                queueInstance.vDomChanged(context.vDomIndex);
+                if (BBoxUpdate) {
+                    context.BBoxUpdate = true;
+                }
+                return target.push(...args);
+              };
+            } else if (prop === 'pop') {
+              return (...args) => {
+                queueInstance.vDomChanged(context.vDomIndex);
+                if (BBoxUpdate) {
+                    context.BBoxUpdate = true;
+                }
+                return target.pop(...args);
+              };
+            } else {
+              return target[prop];
+            }
+        },
+        set(obj, prop, value) {
+            obj[prop] = value;
+            queueInstance.vDomChanged(context.vDomIndex);
+            if (BBoxUpdate) {
+                context.BBoxUpdate = true;
+            }
+            return true;
+        },
+        deleteProperty() {
+            queueInstance.vDomChanged(context.vDomIndex);
+            if (BBoxUpdate) {
+                context.BBoxUpdate = true;
+            }
+            return Reflect.deleteProperty(...arguments);
+        }
+    };
+
+    return new Proxy(arr || [], handlr);
+}
+
+export { NodePrototype, CollectionPrototype, layerResizeBind, layerResizeUnBind, prepObjProxy, prepArrayProxy };

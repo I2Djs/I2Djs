@@ -895,7 +895,7 @@ CircleNode.prototype.setAttr = function (prop, value) {
 // 	return this.style[key];
 // };
 
-CircleNode.prototype.in = function RCinfun(co, eventType) {
+CircleNode.prototype.in = function RCinfun(co) {
     const { r = 0, cx = 0, cy = 0 } = this.attr;
     const tr = Math.sqrt((co.x - cx) * (co.x - cx) + (co.y - cy) * (co.y - cy));
     return tr <= r;
@@ -1741,7 +1741,7 @@ RenderWebglShader.prototype.drawElements = function () {
     );
 };
 
-RenderWebglShader.prototype.updateBBox = function (argument) {
+RenderWebglShader.prototype.updateBBox = function () {
     return true;
 };
 
@@ -2187,7 +2187,7 @@ RenderWebglPoints.prototype.addColors = function (fill, index) {
     addColors(this, index, 1, fill);
 };
 
-RenderWebglPoints.prototype.execute = function (stack) {
+RenderWebglPoints.prototype.execute = function () {
     if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
         this.renderTarget.update();
     }
@@ -2299,7 +2299,7 @@ RenderWebglRects.prototype.addColors = function (fill, index) {
     addColors(this, index, 6, fill);
 };
 
-RenderWebglRects.prototype.execute = function (stack) {
+RenderWebglRects.prototype.execute = function () {
     if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
         this.renderTarget.update();
     }
@@ -2390,7 +2390,7 @@ RenderWebglLines.prototype.addColors = function (stroke, index) {
     addColors(this, index, 2, stroke);
 };
 
-RenderWebglLines.prototype.execute = function (stack) {
+RenderWebglLines.prototype.execute = function () {
     if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
         this.renderTarget.update();
     }
@@ -2621,7 +2621,7 @@ RenderWebglCircles.prototype.addColors = function (fill, index) {
     addColors(this, index, 1, fill);
 };
 
-RenderWebglCircles.prototype.execute = function (stack) {
+RenderWebglCircles.prototype.execute = function () {
     if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
         this.renderTarget.update();
     }
@@ -3434,7 +3434,7 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
         this.execute();
     };
 
-    root.setViewBox = function (x, y, height, width) {};
+    root.setViewBox = function () {};
 
     root.setStyle = function (prop, value) {
         this.domEl.style[prop] = value;
@@ -3671,7 +3671,7 @@ TextureObject.prototype.loadTexture = function () {
     this.ctx.bindTexture(this.ctx.TEXTURE_2D, this.texture);
 };
 
-TextureObject.prototype.clear = function (argument) {};
+TextureObject.prototype.clear = function () {};
 
 TextureObject.prototype.update = function () {
     const ctx = this.ctx;
@@ -3771,7 +3771,7 @@ WebGLGeometry.prototype.setIndex = function (obj) {
     this.indexes = obj;
 };
 
-function MeshGeometry(ctx) {
+function MeshGeometry() {
     this.attributes = {};
     this.drawType = "TRIANGLES";
     this.indexes = null;
@@ -3780,7 +3780,7 @@ function MeshGeometry(ctx) {
 MeshGeometry.prototype = new WebGLGeometry();
 MeshGeometry.constructor = MeshGeometry;
 
-function PointsGeometry(ctx) {
+function PointsGeometry() {
     this.attributes = {};
     this.drawType = "POINTS";
     this.indexes = null;
@@ -3790,7 +3790,7 @@ function PointsGeometry(ctx) {
 PointsGeometry.prototype = new WebGLGeometry();
 PointsGeometry.constructor = PointsGeometry;
 
-function LineGeometry(ctx) {
+function LineGeometry() {
     this.attributes = {};
     this.drawType = "LINES";
     this.indexes = null;

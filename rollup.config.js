@@ -1,12 +1,19 @@
 import commonjs from "@rollup/plugin-commonjs";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
-import eslint from '@rbnlffl/rollup-plugin-eslint';
-import { terser } from "rollup-plugin-terser";
-// import buble from "@rollup/plugin-buble";
+import eslint from '@rollup/plugin-eslint';
+import terser from "@rollup/plugin-terser";
+import cleanup from 'rollup-plugin-cleanup';
+import packageJson from './package.json' assert { type: "json" };
+import nodePolyfills from 'rollup-plugin-polyfill-node';
+import replace from '@rollup/plugin-replace';
+import inject from '@rollup/plugin-inject';
+const version = process.env.VERSION || packageJson.version;
+import alias from '@rollup/plugin-alias';
 
-const version = process.env.VERSION || require("./package.json").version;
-const author = require("./package.json").author;
-const license = require("./package.json").license;
+const author = packageJson.author;
+const license = packageJson.license;
+
+let __dirname = new URL('.', import.meta.url);
 
 const banner = `/*!
       * i2djs
@@ -17,27 +24,83 @@ const banner = `/*!
 export default [
     {
         input: "src/main.js",
-        external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream-i2d/blob-stream.js"],
+        // external: [ 'stackblur-canvas', '@juggle/resize-observer', 'blob-stream-i2d'],
         output: [
             {
                 banner,
-                file: "dist/i2d.esm.js",
-                format: "esm",
+                dir: "dist",
+                format: "es",
                 name: "i2d",
+                entryFileNames: "i2d.esm.js",
+                chunkFileNames: "[name]-bundle-esm.js",
+                manualChunks(id) {
+                    if (id.includes('node_modules')) {
+                        return 'dependencies';
+                    }
+                    // if (id.includes('node_modules/pdfkit') || id.includes('node_modules/flubber') || id.includes('node_modules/earcut')) {
+                    //   return 'dependencies';
+                    // }
+                }
             },
+            {
+                banner,
+                dir: "dist",
+                format: "es",
+                name: "i2d",
+                entryFileNames: "i2d.esm.min.js",
+                chunkFileNames: "[name]-bundle-esm.js",
+                compact: true,
+                plugins: [terser()],
+                manualChunks(id) {
+                    if (id.includes('node_modules')) {
+                        return 'dependencies';
+                    }
+                    // if (id.includes('node_modules/pdfkit') || id.includes('node_modules/flubber') || id.includes('node_modules/earcut')) {
+                    //   return 'dependencies';
+                    // }
+                }
+            }
         ],
         plugins: [
-            nodeResolve(),
-            commonjs(),
+            cleanup(),
+            replace({
+                preventAssignment: true,
+                '__dirname': JSON.stringify(''),
+            }),
+            alias({
+                  entries: [
+                    { find: 'inherits', replacement: 'inherits/inherits_browser' },
+                    { find: 'fs', replacement: 'pdfkit/js/virtual-fs.js' },
+                    { find: 'buffer', replacement: 'buffer/'},
+                    { find: 'util', replacement: 'util'},
+                    { find: 'events', replacement: 'events'},
+                    { find: 'assert', replacement: 'assert'},
+                    { find: 'stream', replacement: 'stream-browserify'},
+                    { find: 'zlib', replacement: 'browserify-zlib'},
+                  ]
+                }),
+            nodeResolve({
+                preferBuiltins: false,
+            }),
+            commonjs({
+                // dynamicRequireTargets: [ 'node_modules/pdfkit/js/pdfkit.standalone.js'],
+                // inlineDynamicImports: true,
+                sourceMap: true,
+                transformMixedEsModules: true
+            }),
+            inject({
+                process: "process/browser",
+                Buffer: ['buffer', 'Buffer'],
+                baseDir: true
+            }),
             eslint({
                 fix: true,
                 throwOnError: true,
-            }),
+            })
         ],
     },
     {
         input: "src/main.js",
-        // external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream"],
         output: [
             {
                 banner,
@@ -47,55 +110,21 @@ export default [
             },
         ],
         plugins: [
-            nodeResolve(),
-            commonjs(),
+            cleanup(),
+            alias({
+                  entries: [
+                    { find: 'pdfkit', replacement: 'pdfkit/js/pdfkit.standalone.js' },
+                    { find: './../../data/static-fonts.js', replacement: __dirname.pathname + 'src/data/dumy-static-fonts.js' },
+                  ]
+                }),
+            nodeResolve({
+            }),
+            commonjs({
+            }),
             eslint({
                 fix: true,
                 throwOnError: true,
             }),
         ],
-    },
-    {
-        input: "src/main.js",
-        external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream-i2d/blob-stream.js"],
-        output: [
-            {
-                file: "dist/i2d.esm.min.js",
-                banner,
-                format: "esm",
-                name: "i2d",
-                compact: true,
-            },
-        ],
-        plugins: [
-            nodeResolve(),
-            commonjs(),
-            terser(),
-            eslint({
-                fix: true,
-                throwOnError: true,
-            }),
-        ],
-    },
-    {
-        input: "src/main.js",
-        // external: ["pdfkit/js/pdfkit.standalone.js", "blob-stream"],
-        output: [
-            {
-                banner,
-                file: "dist/i2d.min.js",
-                format: "umd",
-                name: "i2d",
-            },
-        ],
-        plugins: [
-            nodeResolve(),
-            commonjs(),
-            terser(),
-            eslint({
-                fix: true,
-                throwOnError: true,
-            }),
-        ],
-    },
+    }
 ];

@@ -8,6 +8,8 @@ import {
     NodePrototype,
     layerResizeBind,
     layerResizeUnBind,
+    // prepObjProxy,
+    // prepArrayProxy
 } from "./../coreApi.js";
 
 const queueInstance = queue;
@@ -199,11 +201,11 @@ DomGradients.prototype.linearGradient = function linearGradient() {
     this.linearEl.createEls(this.config.colorStops, {
         el: "stop",
         attr: {
-            "offset"(d, i) {
+            "offset"(d) {
                 return `${d.offset}%`;
             },
 
-            "stop-color": function stopColor(d, i) {
+            "stop-color": function stopColor(d) {
                 return d.color;
             },
         },
@@ -274,11 +276,11 @@ DomGradients.prototype.radialGradient = function radialGradient() {
     this.radialEl.createEls(this.config.colorStops, {
         el: "stop",
         attr: {
-            "offset"(d, i) {
+            "offset"(d) {
                 return `${d.offset}%`;
             },
 
-            "stop-color": function stopColor(d, i) {
+            "stop-color": function stopColor(d) {
                 return d.color;
             },
         },

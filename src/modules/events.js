@@ -7,7 +7,7 @@ function Events(vDom) {
     this.pointers = [];
 }
 
-Events.prototype.getNode = function (e) {};
+Events.prototype.getNode = function () {};
 
 Events.prototype.addPointer = function (e) {
     this.pointers.push(e);
@@ -109,11 +109,12 @@ Events.prototype.pointermoveCheck = function (e) {
         if (node.events.mousemove) {
             node.events.mousemove.call(node, e);
         }
-    } else if (node) {
-        if (e.pointerType === "touch") {
-            node.events.mousemove.call(node, e);
-        }
     }
+    //  else if (node) {
+    //     if (e.pointerType === "touch") {
+    //         node.events.mousemove.call(node, e);
+    //     }
+    // }
     e.preventDefault();
 };
 

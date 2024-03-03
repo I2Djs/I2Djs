@@ -26,9 +26,9 @@
                     x2: 0,
                     y2: 100,
                     colorStops: [
-                        { color: "white", value: 10 },
-                        { color: "rgb(255, 0, 0)", value: 50 },
-                        { color: "yellow", value: 90 },
+                        { color: "white", offset: 10 },
+                        { color: "rgb(255, 0, 0)", offset: 50 },
+                        { color: "yellow", offset: 90 },
                     ],
                 });
 
@@ -36,8 +36,8 @@
                     innerCircle: { x: 50, y: 50, r: 0 },
                     outerCircle: { x: 50, y: 50, r: 50 },
                     colorStops: [
-                        { color: "rgb(255, 0, 0)", value: 0 },
-                        { color: "white", value: 90 },
+                        { color: "rgb(255, 0, 0)", offset: 0 },
+                        { color: "white", offset: 90 },
                     ],
                 });
                 var sparkles = [];
@@ -103,11 +103,20 @@
                             });
 
                             sparkclesNodes.animatePathTo({
-                                duration: 1000,
+                                duration: function (d, i) {
+                                        return 1000 + Math.random() * 1000;
+                                    },
                                 ease: "easeInCubic",
-                                d: function (d) {
-                                    return d.d;
+                                attr: {
+                                    d: function (d) {
+                                        return d.d;
+                                    }
                                 },
+                                end: function (d, i) {
+                                    return function() {
+                                        this.remove();
+                                    }
+                                }
                             });
                         },
                     });

@@ -2,8 +2,9 @@
   "name": "i2djs",
   "version": "4.4.3",
   "description": "Integrated-2d, framework for 2D graphics rendering for SVG/Canvas/WebGl context",
-  "module": "./src/main.js",
-  "main": "./dist/i2d.esm.js",
+  "type": "module",
+  "module": "./dist/i2d.esm.js",
+  "main": "./dist/i2d.js",
   "sideEffects": false,
   "directories": {
     "example": "examples"
@@ -12,8 +13,7 @@
     "dev": "rollup -wm -c rollup.config.js",
     "build": "rm -rf ./dist/ && rollup -c rollup.config.js",
     "lint": "eslint src/**",
-    "lint-fix": "eslint --cache --fix src/**",
-    "commit": "cz"
+    "lint-fix": "eslint --cache --fix src/**"
   },
   "repository": {
     "type": "git",
@@ -23,9 +23,9 @@
     "dist",
     "src",
     "examples/canvas",
-    "examples/data",
     "examples/svg",
-    "examples/webGL"
+    "examples/webGL",
+    "examples/pdf"
   ],
   "keywords": [
     "SVG",
@@ -42,7 +42,8 @@
     "Scalable Vector Graphics",
     "pixel",
     "Rendering",
-    "Integrated 2D"
+    "Integrated 2D",
+    "pdf"
   ],
   "author": "Narayana Swamy",
   "license": "BSD-3-Clause",
@@ -50,51 +51,34 @@
     "url": "https://github.com/i2djs/I2D/issues"
   },
   "homepage": "https://github.com/i2djs/I2D#readme",
-  "devDependencies": {
-    "@rbnlffl/rollup-plugin-eslint": "^1.1.4",
-    "@rollup/plugin-buble": "^0.21.3",
-    "@rollup/plugin-commonjs": "^22.0.2",
-    "@rollup/plugin-node-resolve": "^13.3.0",
-    "commitizen": "^4.3.0",
-    "eslint": "^7.32.0",
-    "eslint-config-prettier": "^6.15.0",
-    "eslint-config-standard": "^14.1.1",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-prettier": "^3.4.1",
-    "eslint-plugin-promise": "^4.3.1",
-    "eslint-plugin-standard": "^4.1.0",
-    "husky": "^4.3.8",
-    "lint-staged": "^10.5.4",
-    "minimist": "^1.2.6",
-    "prettier": "2.1.2",
-    "rollup": "^2.79.1",
-    "rollup-plugin-terser": "^7.0.0"
-  },
   "dependencies": {
-    "@juggle/resize-observer": "^3.4.0",
-    "blob-stream-i2d": "^1.0.0",
+    
+  },
+  "resolutions": {},
+  "devDependencies": {
+    "rollup": "^4.12.0",
+    "rollup-plugin-cleanup": "^3.2.1",
+    "rollup-plugin-polyfill-node": "^0.13.0",
+    "@rollup/plugin-alias": "^5.1.0",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-eslint": "^9.0.5",
+    "@rollup/plugin-inject": "^5.0.5",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-replace": "^5.0.5",
+    "@rollup/plugin-terser": "^0.4.4",
     "earcut": "^2.2.4",
+    "eslint": "^8.57.0",
     "flubber": "^0.4.2",
-    "pdfkit": "^0.13.0",
-    "stackblur-canvas": "^2.6.0"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.{js}": [
-      "prettier --write",
-      "eslint --cache --fix"
-    ],
-    "*.{html,css,md}": [
-      "prettier --write"
-    ]
-  },
-  "resolutions": {
-    "minimist": "^1.2.6",
-    "terser": "^5.14.2"
+    "pdfkit": "^0.14.0",
+    "@juggle/resize-observer": "^3.4.0",
+    "assert": "^2.1.0",
+    "blob-stream-i2d": "^1.1.1",
+    "browserify-zlib": "^0.2.0",
+    "buffer": "6.0.3",
+    "events": "^3.3.0",
+    "process": "^0.11.10",
+    "stackblur-canvas": "^2.6.0",
+    "stream-browserify": "^3.0.0",
+    "util": "^0.12.5"
   }
 }

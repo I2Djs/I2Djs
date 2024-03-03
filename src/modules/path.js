@@ -211,7 +211,7 @@ function m(rel, p0) {
         p0: this.cp,
         length: this.segmentLength,
 
-        pointAt(f) {
+        pointAt() {
             return this.p0;
         },
     });
@@ -756,7 +756,7 @@ Path.prototype.getPointAtLength = function getPointAtLength(length) {
         y: 0,
     };
     let tLength = length;
-    this.stack.every((d, i) => {
+    this.stack.every((d) => {
         tLength -= d.length;
 
         if (Math.floor(tLength) >= 0) {
@@ -812,7 +812,7 @@ Path.prototype.execute = function (ctx, clippath) {
     }
 };
 
-Path.prototype.getPoints = function (factor = 0.01) {
+Path.prototype.getPoints = function () {
     const points = [];
     // let tLength = this.length;
     // let currD = this.stack[0];
@@ -1023,7 +1023,7 @@ CubicBezierTransition.prototype.pointAt = function (f) {
     return t2DGeometry.cubicBezierTransition(this.p0, this.co, f);
 };
 
-const BezierTransition = function BezierTransition(type, p0, p1, p2, length, f) {
+const BezierTransition = function BezierTransition(type, p0, p1, p2, length) {
     this.type = type;
     this.p0 = p0;
     this.p1_src = p1;
@@ -1061,8 +1061,7 @@ const LinearTransitionBetweenPoints = function LinearTransitionBetweenPoints(
     type,
     p0,
     p2,
-    length,
-    f
+    length
 ) {
     this.type = type;
     this.p0 = p0;
@@ -1097,7 +1096,7 @@ function animatePathTo(targetConfig, fromConfig) {
     let totalLength = 0;
     self.arrayStack = [];
 
-    if (this.ctx.type_ === "pdf") return;
+    if (this.ctx && this.ctx.type_ === "pdf") return;
     if (!src) {
         throw Error("Path Not defined");
     }
@@ -1211,7 +1210,7 @@ function animatePathTo(targetConfig, fromConfig) {
                         p0: arrExe[i].p0,
                         length: 0,
 
-                        pointAt(f) {
+                        pointAt() {
                             return this.p0;
                         },
                     };

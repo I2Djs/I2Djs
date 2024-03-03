@@ -21,6 +21,10 @@
             Keywords: "I2Djs, PDF, PDF-Frame",
             CreationDate: new Date(),
         },
+        fontRegister: {
+            'LoveDays': "./../fonts/LoveDays-2v7Oe.ttf",
+            'ShadeBlue': "./../fonts/ShadeBlue-2OozX.ttf"
+        }
     });
 
     let page1 = pdfInstance.addPage();
@@ -36,27 +40,32 @@
     });
 
     page1.createEl({
-        el: "circle",
+        el: "text",
         attr: {
-            cx: 150,
-            cy: 150,
-            r: 50,
+            x: 0,
+            y: 50,
+            width: 600,
+            text: 'PDF-Frame',
         },
         style: {
+            textAlign: "center",
             fillStyle: "#ff0000",
-            strokeStyle: "#0000ff",
+            font: "100px LoveDays"
         },
     });
-    let rect = page1.createEl({
-        el: "rect",
+
+    page1.createEl({
+        el: "text",
         attr: {
-            x: 350,
-            y: 100,
-            width: 100,
-            height: 100,
+            x: 0,
+            y: 200,
+            width: 600,
+            text: 'PDF-Frame',
         },
         style: {
-            fillStyle: linearGradiant,
+            textAlign: "center",
+            fillStyle: "#ff0000",
+            font: "100px ShadeBlue"
         },
     });
 </script>
