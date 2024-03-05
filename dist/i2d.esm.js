@@ -3910,63 +3910,6 @@ function layerResizeUnBind(layer, handler) {
         layer.ro.disconnect();
     }
 }
-function colorValueCheck(value) {
-    if (colorMap$1.RGBAInstanceCheck(value)) {
-        value = value.rgba;
-    }
-    return value === "#000" || value === "#000000" || value === "black" ? "#010101" : value;
-}
-function prepObjProxy(type, attr, context, BBoxUpdate) {
-    const handlr = {
-        set(obj, prop, value) {
-            if (value !== null) {
-                if (type === 'attr') {
-                    if (context && context.dom) {
-                        context.dom.setAttr(prop, value);
-                    }
-                    obj[prop] = value;
-                    if (BBoxUpdate) {
-                        context.BBoxUpdate = true;
-                    }
-                } else if (type === 'style') {
-                    value = colorValueCheck(value);
-                    if (context && context.dom) {
-                        context.dom.setStyle(prop, value);
-                    }
-                    obj[prop] = value;
-                } else if (type === 'transform') {
-                    if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
-                        value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
-                    } else if (prop === 'rotate') {
-                        value = Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0];
-                    }
-                    obj[prop] = value;
-                    if (context && context.dom) {
-                        context.dom.setAttr('transform', obj);
-                    }
-                    if (BBoxUpdate) {
-                        context.BBoxUpdate = true;
-                    }
-                }
-                queueInstance$4.vDomChanged(context.vDomIndex);
-            } else {
-                delete obj[prop];
-            }
-            return true;
-        },
-        deleteProperty(obj, prop) {
-            if (prop in obj) {
-                delete obj[prop];
-                queueInstance$4.vDomChanged(context.vDomIndex);
-                if (type === 'attr' && BBoxUpdate) {
-                    context.BBoxUpdate = true;
-                }
-            }
-            return true;
-        },
-    };
-    return new Proxy(Object.assign({}, attr), handlr);
-}
 function prepArrayProxy(arr, context, BBoxUpdate) {
     const handlr = {
         get(target, prop) {
@@ -5359,6 +5302,63 @@ function domId$1() {
     Id$1 += 1;
     return Id$1;
 }
+function colorValueCheck(value) {
+    if (colorMap$1.RGBAInstanceCheck(value)) {
+        value = value.rgba;
+    }
+    return value === "#000" || value === "#000000" || value === "black" ? "#010101" : value;
+}
+function prepObjProxyCanvas(type, attr, context, BBoxUpdate) {
+    const handlr = {
+        set(obj, prop, value) {
+            if (value !== null) {
+                if (type === 'attr') {
+                    if (context && context.dom) {
+                        context.dom.setAttr(prop, value);
+                    }
+                    obj[prop] = value;
+                    if (BBoxUpdate) {
+                        context.BBoxUpdate = true;
+                    }
+                } else if (type === 'style') {
+                    value = colorValueCheck(value);
+                    if (context && context.dom) {
+                        context.dom.setStyle(prop, value);
+                    }
+                    obj[prop] = value;
+                } else if (type === 'transform') {
+                    if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
+                        value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
+                    } else if (prop === 'rotate') {
+                        value = Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0];
+                    }
+                    obj[prop] = value;
+                    if (context && context.dom) {
+                        context.dom.setAttr('transform', obj);
+                    }
+                    if (BBoxUpdate) {
+                        context.BBoxUpdate = true;
+                    }
+                }
+                queueInstance$1.vDomChanged(context.vDomIndex);
+            } else {
+                delete obj[prop];
+            }
+            return true;
+        },
+        deleteProperty(obj, prop) {
+            if (prop in obj) {
+                delete obj[prop];
+                queueInstance$1.vDomChanged(context.vDomIndex);
+                if (type === 'attr' && BBoxUpdate) {
+                    context.BBoxUpdate = true;
+                }
+            }
+            return true;
+        },
+    };
+    return new Proxy(Object.assign({}, attr), handlr);
+}
 const CanvasCollection = function () {
     CollectionPrototype.apply(this, arguments);
 };
@@ -5842,7 +5842,7 @@ DummyDom.prototype.constructor = DummyDom;
 function RenderImage(ctx, props, styleProps, onloadExe, onerrorExe, nodeExe) {
     const self = this;
     self.ctx = ctx;
-    self.attr = prepObjProxy('imagePoxy', props, nodeExe, true);
+    self.attr = prepObjProxyCanvas('imagePoxy', props, nodeExe, true);
     self.style = styleProps;
     self.nodeName = "Image";
     self.nodeExe = nodeExe;
@@ -6758,8 +6758,8 @@ const CanvasNodeExe$1 = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.bbox = config.bbox !== undefined ? config.bbox : true;
     this.BBoxUpdate = true;
     this.block = config.block || false;
-    this.style = prepObjProxy('style', config.style || {}, this, true);
-    this.attr = prepObjProxy('attr', config.attr || {}, this, true);
+    this.style = prepObjProxyCanvas('style', config.style || {}, this, true);
+    this.attr = prepObjProxyCanvas('attr', config.attr || {}, this, true);
     switch (config.el) {
         case "circle":
             this.dom = new RenderCircle(this.ctx, this.attr, this.style);
@@ -6928,28 +6928,28 @@ CanvasNodeExe$1.prototype.setAttr = function CsetAttr(attr, value) {
 };
 CanvasNodeExe$1.prototype.rotate = function Crotate(angleXY) {
     if (!this.attr.transform) {
-        this.attr.transform = prepObjProxy('transform', {}, this, true);
+        this.attr.transform = prepObjProxyCanvas('transform', {}, this, true);
     }
     this.attr.transform.rotate = angleXY;
     return this;
 };
 CanvasNodeExe$1.prototype.scale = function Cscale(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = prepObjProxy('transform', {}, this, true);
+        this.attr.transform = prepObjProxyCanvas('transform', {}, this, true);
     }
     this.attr.transform.scale = XY;
     return this;
 };
 CanvasNodeExe$1.prototype.translate = function Ctranslate(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = prepObjProxy('transform', {}, this, true);
+        this.attr.transform = prepObjProxyCanvas('transform', {}, this, true);
     }
     this.attr.transform.translate = XY;
     return this;
 };
 CanvasNodeExe$1.prototype.skew = function Cskew(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = prepObjProxy('transform', {}, this, true);
+        this.attr.transform = prepObjProxyCanvas('transform', {}, this, true);
     }
     this.attr.transform.skew = XY;
     return this;
@@ -7239,8 +7239,8 @@ function filterExec(self) {
 }
 function RenderTexture(nodeExe, config = {}) {
     const self = this;
-    self.attr = prepObjProxy('attr', config.attr || {}, nodeExe, true);
-    self.style = prepObjProxy('style', config.style || {}, nodeExe);
+    self.attr = prepObjProxyCanvas('attr', config.attr || {}, nodeExe, true);
+    self.style = prepObjProxyCanvas('style', config.style || {}, nodeExe);
     const scale = self.attr.scale || 1;
     self.rImageObj = new GetCanvasImgInstance(
         (self.attr.width || 1) * scale,
@@ -8302,6 +8302,64 @@ function updateTransformMatrix(matrix_) {
     }
     this.transformMatrix = matrix;
 }
+function prepObjProxyWebGl(type, attr, context, BBoxUpdate) {
+    const handlr = {
+        set(obj, prop, value) {
+            if (value !== null) {
+                if (type === 'attr') {
+                    obj[prop] = value;
+                    if (prop === "transform" && context.children.length > 0) {
+                        context.children.forEach(function (d) {
+                            d.applyTransformationMatrix(context.dom.transformMatrix);
+                        });
+                    }
+                    if (context && context.dom) {
+                        context.dom.setAttr(prop, value);
+                    }
+                    if (BBoxUpdate) {
+                        context.BBoxUpdate = true;
+                    }
+                } else if (type === 'style') {
+                    if (prop === "fill" || prop === "stroke") {
+                        value = colorMap$1.colorToRGB(value);
+                    }
+                    if (context && context.dom) {
+                        context.dom.setStyle(prop, value);
+                    }
+                    obj[prop] = value;
+                } else if (type === 'transform') {
+                    if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
+                        value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
+                    } else if (prop === 'rotate') {
+                        value = Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0];
+                    }
+                    obj[prop] = value;
+                    if (context && context.dom) {
+                        context.dom.setAttr('transform', obj);
+                    }
+                    if (BBoxUpdate) {
+                        context.BBoxUpdate = true;
+                    }
+                }
+                queueInstance.vDomChanged(context.vDomIndex);
+            } else {
+                delete obj[prop];
+            }
+            return true;
+        },
+        deleteProperty(obj, prop) {
+            if (prop in obj) {
+                delete obj[prop];
+                queueInstance.vDomChanged(context.vDomIndex);
+                if (type === 'attr' && BBoxUpdate) {
+                    context.BBoxUpdate = true;
+                }
+            }
+            return true;
+        },
+    };
+    return new Proxy(Object.assign({}, attr), handlr);
+}
 const WebglCollection = function () {
     CollectionPrototype.apply(this, arguments);
 };
@@ -8394,8 +8452,8 @@ WebglDom.prototype.getStyle = function (key) {
 };
 function PointNode(ctx, attr, style) {
     this.ctx = ctx;
-    this.attr = attr || {};
-    this.style = style || {};
+    this.attr = Object.assign({}, attr) ;
+    this.style = Object.assign({}, style);
     this.projectionMatrix = m3.projection(
         this.ctx.canvas.width / ratio,
         this.ctx.canvas.height / ratio
@@ -8461,8 +8519,8 @@ PointNode.prototype.updateBBox = function RRupdateBBox() {
 };
 function RectNode(ctx, attr, style) {
     this.ctx = ctx;
-    this.attr = attr || {};
-    this.style = style || {};
+    this.attr = Object.assign({}, attr) ;
+    this.style = Object.assign({}, style);
     this.projectionMatrix = m3.projection(
         this.ctx.canvas.width / ratio,
         this.ctx.canvas.height / ratio
@@ -8538,8 +8596,8 @@ RectNode.prototype.updateBBox = function RRupdateBBox() {
 function PathNode(ctx, attr, style) {
     const self = this;
     this.ctx = ctx;
-    this.attr = attr;
-    this.style = style;
+    this.attr = Object.assign({}, attr) ;
+    this.style = Object.assign({}, style);
     this.pointsGeometry = [];
     this.transform = [0, 0, 1, 1];
     this.projectionMatrix = m3.projection(
@@ -8619,8 +8677,8 @@ PathNode.prototype.updateBBox = function RCupdateBBox() {
 };
 function PolyLineNode(ctx, attr, style) {
     this.ctx = ctx;
-    this.attr = attr || {};
-    this.style = style || {};
+    this.attr = Object.assign({}, attr || {}) ;
+    this.style = Object.assign({}, style || {});
     this.points = [];
     this.transform = [0, 0, 1, 1];
     const subPoints = [];
@@ -8686,8 +8744,8 @@ PolyLineNode.prototype.setStyle = function (key, value) {
 };
 function LineNode(ctx, attr, style) {
     this.ctx = ctx;
-    this.attr = attr || {};
-    this.style = style || {};
+    this.attr = Object.assign({}, attr || {}) ;
+    this.style = Object.assign({}, style || {});
     this.projectionMatrix = m3.projection(
         this.ctx.canvas.width / ratio,
         this.ctx.canvas.height / ratio
@@ -8765,8 +8823,8 @@ function polygonPointsMapper(value) {
 }
 function PolygonNode(ctx, attr, style) {
     this.ctx = ctx;
-    this.attr = attr;
-    this.style = style;
+    this.attr = Object.assign({}, attr || {}) ;
+    this.style = Object.assign({}, style || {});
     this.positionArray = [];
     this.transform = [0, 0, 1, 1];
     const subPoints = [];
@@ -8836,8 +8894,8 @@ PolygonNode.prototype.setStyle = function (key, value) {
 PolygonNode.prototype.updateBBox = RPolyupdateBBox;
 function CircleNode(ctx, attr, style) {
     this.ctx = ctx;
-    this.attr = attr;
-    this.style = style;
+    this.attr = Object.assign({}, attr || {}) ;
+    this.style = Object.assign({}, style || {});
     this.projectionMatrix = m3.projection(
         this.ctx.canvas.width / ratio,
         this.ctx.canvas.height / ratio
@@ -8957,8 +9015,8 @@ function buildCanvasTextEl(str, style) {
 function TextNode(ctx, attr, style, vDomIndex) {
     const self = this;
     this.ctx = ctx;
-    this.attr = attr;
-    this.style = style;
+    this.attr = Object.assign({}, attr || {}) ;
+    this.style = Object.assign({}, style || {});
     this.vDomIndex = vDomIndex;
     this.positionArray = new Float32Array(12);
     this.transform = [0, 0, 1, 1];
@@ -9093,8 +9151,8 @@ TextNode.prototype.updateBBox = function RIupdateBBox() {
 function ImageNode(ctx, attr, style, vDomIndex) {
     const self = this;
     this.ctx = ctx;
-    this.attr = attr;
-    this.style = style;
+    this.attr = Object.assign({}, attr || {}) ;
+    this.style = Object.assign({}, style || {});
     this.vDomIndex = vDomIndex;
     this.positionArray = new Float32Array(12);
     this.transform = [0, 0, 1, 1];
@@ -9229,8 +9287,8 @@ ImageNode.prototype.updateBBox = function RIupdateBBox() {
 };
 function WebglGroupNode(ctx, attr, style, renderTarget, vDomIndex) {
     this.ctx = ctx;
-    this.attr = attr;
-    this.style = style;
+    this.attr = Object.assign({}, attr || {}) ;
+    this.style = Object.assign({}, style || {});
     this.renderTarget = renderTarget;
     this.vDomIndex = vDomIndex;
     if (attr.shaderType) {
@@ -10490,8 +10548,6 @@ function getTypeShader(ctx, attr, style, type, renderTarget, vDomIndex) {
 }
 function WebglNodeExe(ctx, config, id, vDomIndex) {
     this.ctx = ctx;
-    this.style = config.style || {};
-    this.attr = config.attr || {};
     this.id = id;
     this.nodeName = config.el;
     this.nodeType = "WEBGL";
@@ -10503,6 +10559,8 @@ function WebglNodeExe(ctx, config, id, vDomIndex) {
     this.exeCtx = config.ctx;
     this.bbox = config.bbox !== undefined ? config.bbox : true;
     this.events = {};
+    this.style = prepObjProxyWebGl('style', config.style || {}, this, true);
+    this.attr = prepObjProxyWebGl('attr', config.attr || {}, this, true);
     switch (config.el) {
         case "point":
             this.dom = new PointNode(this.ctx, this.attr, this.style);
@@ -10569,101 +10627,44 @@ WebglNodeExe.prototype.applyTransformationMatrix = function (matrix) {
     });
 };
 WebglNodeExe.prototype.setAttr = function WsetAttr(attr, value) {
-    const self = this;
     if (arguments.length === 2) {
-        if (value === null && this.attr[attr] !== null) {
-            delete this.attr[attr];
-        } else {
-            this.attr[attr] = value;
-        }
-        this.dom.setAttr(attr, value);
-        if (attr === "transform" && this.children.length > 0) {
-            this.children.forEach(function (d) {
-                d.applyTransformationMatrix(self.dom.transformMatrix);
-            });
-        }
+        this.attr[attr] = value;
     } else if (arguments.length === 1 && typeof attr === "object") {
         for (const key in attr) {
-            if (attr[key] === null && this.attr[attr] !== null) {
-                delete this.attr[key];
-            } else {
-                this.attr[key] = attr[key];
-            }
-            this.dom.setAttr(key, attr[key]);
-            if (attr === "transform" && this.children.length > 0) {
-                this.children.forEach(function (d) {
-                    d.applyTransformationMatrix(self.dom.transformMatrix);
-                });
-            }
+            this.attr[key] = attr[key];
         }
     }
-    this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 WebglNodeExe.prototype.scale = function Cscale(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = {};
+        this.attr.transform = prepObjProxyWebGl('transform', {}, this, true);
     }
-    if (XY.length < 1) {
-        return null;
-    }
-    this.attr.transform.scale = [XY[0], XY[1] ? XY[1] : XY[0]];
-    this.dom.setAttr("transform", this.attr.transform);
-    this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
+    this.attr.transform.scale = XY;
     return this;
 };
 WebglNodeExe.prototype.translate = function Ctranslate(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = {};
+        this.attr.transform = prepObjProxyWebGl('transform', {}, this, true);
     }
     this.attr.transform.translate = XY;
-    this.dom.setAttr("transform", this.attr.transform);
-    this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
-WebglNodeExe.prototype.rotate = function Crotate(angle, x, y) {
+WebglNodeExe.prototype.rotate = function Crotate(angleXY) {
     if (!this.attr.transform) {
-        this.attr.transform = {};
+        this.attr.transform = prepObjProxyWebGl('transform', {}, this, true);
     }
-    if (Object.prototype.toString.call(angle) === "[object Array]") {
-        this.attr.transform.rotate = [angle[0] || 0, angle[1] || 0, angle[2] || 0];
-    } else {
-        this.attr.transform.rotate = [angle, x || 0, y || 0];
-    }
-    this.dom.setAttr("transform", this.attr.transform);
-    this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
+    this.attr.transform.rotate = angleXY;
     return this;
 };
 WebglNodeExe.prototype.setStyle = function WsetStyle(attr, value) {
     if (arguments.length === 2) {
-        if (value === null && this.style[attr] != null) {
-            delete this.style[attr];
-        } else {
-            if (attr === "fill" || attr === "stroke") {
-                value = colorMap$1.colorToRGB(value);
-            }
-            this.style[attr] = value;
-        }
-        this.dom.setStyle(attr, value);
+        this.style[attr] = value;
     } else if (arguments.length === 1 && typeof attr === "object") {
         for (const key in attr) {
-            value = attr[key];
-            if (value === null && this.style[key] != null) {
-                delete this.style[key];
-            } else {
-                if (key === "fill" || key === "stroke") {
-                    value = colorMap$1.colorToRGB(value);
-                }
-                this.style[key] = value;
-            }
-            this.dom.setStyle(key, value);
+            this.style[key] = attr[key];
         }
     }
-    queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 WebglNodeExe.prototype.setReIndex = function () {
@@ -11418,3 +11419,4 @@ const createRadialGradient = canvasAPI.createRadialGradient;
 const createLinearGradient = canvasAPI.createLinearGradient;
 
 export { CanvasGradient, CanvasNodeExe, pathIns as Path, behaviour, canvasLayer, chain, colorMap$1 as color, createLinearGradient, createRadialGradient, fetchTransitionType as ease, geometry, pdfLayer, queue, svgLayer, utilities as utility, webglLayer };
+//# sourceMappingURL=i2d.esm.js.map

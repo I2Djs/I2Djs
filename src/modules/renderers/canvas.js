@@ -15,7 +15,6 @@ import {
     CollectionPrototype,
     layerResizeBind,
     layerResizeUnBind,
-    prepObjProxy,
     prepArrayProxy
 } from "./../coreApi.js";
 
@@ -117,6 +116,70 @@ const dragInstance = behaviour.drag();
 function domId() {
     Id += 1;
     return Id;
+}
+
+function colorValueCheck(value) {
+    if (colorMap.RGBAInstanceCheck(value)) {
+        value = value.rgba;
+    }
+
+    return value === "#000" || value === "#000000" || value === "black" ? "#010101" : value;
+}
+
+function prepObjProxyCanvas(type, attr, context, BBoxUpdate) {
+    const handlr = {
+        set(obj, prop, value) {
+            if (value !== null) {
+                if (type === 'attr') {
+                    if (context && context.dom) {
+                        context.dom.setAttr(prop, value);
+                    }
+                    obj[prop] = value;
+                    if (BBoxUpdate) {
+                        context.BBoxUpdate = true;
+                    }
+                } else if (type === 'style') {
+                    value = colorValueCheck(value);
+                    // console.log(value);
+                    if (context && context.dom) {
+                        context.dom.setStyle(prop, value);
+                    }
+                    obj[prop] = value;
+                } else if (type === 'transform') {
+                    if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
+                        value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
+                    } else if (prop === 'rotate') {
+                        value = Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0]
+                    }
+                    obj[prop] = value;
+
+                    if (context && context.dom) {
+                        context.dom.setAttr('transform', obj);
+                    }
+                    if (BBoxUpdate) {
+                        context.BBoxUpdate = true;
+                    }
+                }
+
+                queueInstance.vDomChanged(context.vDomIndex);
+            } else {
+                delete obj[prop];
+            }
+            return true;
+        },
+        deleteProperty(obj, prop) {
+            if (prop in obj) {
+                delete obj[prop];
+                queueInstance.vDomChanged(context.vDomIndex);
+                if (type === 'attr' && BBoxUpdate) {
+                    context.BBoxUpdate = true;
+                }
+            }
+            return true;
+        },
+    };
+
+    return new Proxy(Object.assign({}, attr), handlr);
 }
 
 const CanvasCollection = function () {
@@ -672,7 +735,7 @@ DummyDom.prototype.constructor = DummyDom;
 function RenderImage(ctx, props, styleProps, onloadExe, onerrorExe, nodeExe) {
     const self = this;
     self.ctx = ctx;
-    self.attr = prepObjProxy('imagePoxy', props, nodeExe, true);
+    self.attr = prepObjProxyCanvas('imagePoxy', props, nodeExe, true);
     self.style = styleProps;
     self.nodeName = "Image";
     self.nodeExe = nodeExe;
@@ -1832,8 +1895,8 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.BBoxUpdate = true;
     this.block = config.block || false;
 
-    this.style = prepObjProxy('style', config.style || {}, this, true);
-    this.attr = prepObjProxy('attr', config.attr || {}, this, true);
+    this.style = prepObjProxyCanvas('style', config.style || {}, this, true);
+    this.attr = prepObjProxyCanvas('attr', config.attr || {}, this, true);
 
     switch (config.el) {
         case "circle":
@@ -2035,7 +2098,7 @@ CanvasNodeExe.prototype.setAttr = function CsetAttr(attr, value) {
 
 CanvasNodeExe.prototype.rotate = function Crotate(angleXY) {
     if (!this.attr.transform) {
-        this.attr.transform = prepObjProxy('transform', {}, this, true);
+        this.attr.transform = prepObjProxyCanvas('transform', {}, this, true);
     }
     this.attr.transform.rotate = angleXY;
     return this;
@@ -2043,7 +2106,7 @@ CanvasNodeExe.prototype.rotate = function Crotate(angleXY) {
 
 CanvasNodeExe.prototype.scale = function Cscale(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = prepObjProxy('transform', {}, this, true);
+        this.attr.transform = prepObjProxyCanvas('transform', {}, this, true);
     }
 
     this.attr.transform.scale = XY;
@@ -2052,7 +2115,7 @@ CanvasNodeExe.prototype.scale = function Cscale(XY) {
 
 CanvasNodeExe.prototype.translate = function Ctranslate(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = prepObjProxy('transform', {}, this, true);
+        this.attr.transform = prepObjProxyCanvas('transform', {}, this, true);
     }
 
     this.attr.transform.translate = XY;
@@ -2061,7 +2124,7 @@ CanvasNodeExe.prototype.translate = function Ctranslate(XY) {
 
 CanvasNodeExe.prototype.skew = function Cskew(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = prepObjProxy('transform', {}, this, true);
+        this.attr.transform = prepObjProxyCanvas('transform', {}, this, true);
     }
 
     this.attr.transform.skew = XY;
@@ -2403,8 +2466,8 @@ function filterExec(self) {
 
 function RenderTexture(nodeExe, config = {}) {
     const self = this;
-    self.attr = prepObjProxy('attr', config.attr || {}, nodeExe, true);
-    self.style = prepObjProxy('style', config.style || {}, nodeExe);
+    self.attr = prepObjProxyCanvas('attr', config.attr || {}, nodeExe, true);
+    self.style = prepObjProxyCanvas('style', config.style || {}, nodeExe);
     const scale = self.attr.scale || 1;
     self.rImageObj = new GetCanvasImgInstance(
         (self.attr.width || 1) * scale,

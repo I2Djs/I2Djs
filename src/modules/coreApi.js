@@ -1073,70 +1073,6 @@ function layerResizeUnBind(layer, handler) {
     }
 }
 
-function colorValueCheck(value) {
-    if (colorMap.RGBAInstanceCheck(value)) {
-        value = value.rgba;
-    }
-
-    return value === "#000" || value === "#000000" || value === "black" ? "#010101" : value;
-}
-
-function prepObjProxy(type, attr, context, BBoxUpdate) {
-    const handlr = {
-        set(obj, prop, value) {
-            if (value !== null) {
-                if (type === 'attr') {
-                    if (context && context.dom) {
-                        context.dom.setAttr(prop, value);
-                    }
-                    obj[prop] = value;
-                    if (BBoxUpdate) {
-                        context.BBoxUpdate = true;
-                    }
-                } else if (type === 'style') {
-                    value = colorValueCheck(value);
-                    // console.log(value);
-                    if (context && context.dom) {
-                        context.dom.setStyle(prop, value);
-                    }
-                    obj[prop] = value;
-                } else if (type === 'transform') {
-                    if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
-                        value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
-                    } else if (prop === 'rotate') {
-                        value = Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0]
-                    }
-                    obj[prop] = value;
-
-                    if (context && context.dom) {
-                        context.dom.setAttr('transform', obj);
-                    }
-                    if (BBoxUpdate) {
-                        context.BBoxUpdate = true;
-                    }
-                }
-
-                queueInstance.vDomChanged(context.vDomIndex);
-            } else {
-                delete obj[prop];
-            }
-            return true;
-        },
-        deleteProperty(obj, prop) {
-            if (prop in obj) {
-                delete obj[prop];
-                queueInstance.vDomChanged(context.vDomIndex);
-                if (type === 'attr' && BBoxUpdate) {
-                    context.BBoxUpdate = true;
-                }
-            }
-            return true;
-        },
-    };
-
-    return new Proxy(Object.assign({}, attr), handlr);
-}
-
 function prepArrayProxy(arr, context, BBoxUpdate) {
     const handlr = {
         get(target, prop) {
@@ -1180,4 +1116,4 @@ function prepArrayProxy(arr, context, BBoxUpdate) {
     return new Proxy(arr || [], handlr);
 }
 
-export { NodePrototype, CollectionPrototype, layerResizeBind, layerResizeUnBind, prepObjProxy, prepArrayProxy };
+export { NodePrototype, CollectionPrototype, layerResizeBind, layerResizeUnBind, prepArrayProxy };
