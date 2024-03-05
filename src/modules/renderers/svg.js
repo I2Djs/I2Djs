@@ -8,6 +8,8 @@ import {
     NodePrototype,
     layerResizeBind,
     layerResizeUnBind,
+    // prepObjProxy,
+    // prepArrayProxy
 } from "./../coreApi.js";
 
 const queueInstance = queue;
@@ -27,19 +29,6 @@ SVGCollection.prototype.constructor = SVGCollection;
 SVGCollection.prototype.createNode = function (ctx, config, vDomIndex) {
     return createDomElement(config, vDomIndex);
 };
-// SVGCollection.prototype.wrapper = function (nodes) {
-//   const self = this
-
-//   if (nodes) {
-//     for (let i = 0, len = nodes.length; i < len; i++) {
-//       let node = nodes[i]
-//       if (node instanceof DomExe || node instanceof SVGCollection) {
-//         self.stack.push(node)
-//       }
-//     }
-//   }
-//   return this
-// }
 
 function SVGMasking(self, config = {}) {
     this.pDom = self;
@@ -131,6 +120,54 @@ function transformToString(trns) {
     }
     return cmd;
 }
+
+function prepObjProxySvg(type, attr, context) {
+    const handlr = {
+        set(obj, prop, value) {
+            if (value !== null) {
+                if (prop === 'points') {
+                    value = pointsToString(value);
+                }
+                
+                if (type === 'attr') {
+                    context.changedAttribute[prop] = value;
+                    context.attrChanged = true;
+                } else if (type === 'style') {
+                    if (colorMap.RGBAInstanceCheck(value)) {
+                        value = value.rgba;
+                    }
+                    context.changedStyles[prop] = value;
+                    context.styleChanged = true;
+                } else if (type === 'transform') {
+                    if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
+                        value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
+                    } else if (prop === 'rotate') {
+                        value = Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0]
+                    }
+
+                    context.changedStyles['transform'] = obj;
+                    context.attrChanged = true;
+                }
+
+                obj[prop] = value;
+                queueInstance.vDomChanged(context.vDomIndex);
+            } else {
+                delete obj[prop];
+            }
+            return true;
+        },
+        deleteProperty(obj, prop) {
+            if (prop in obj) {
+                delete obj[prop];
+                queueInstance.vDomChanged(context.vDomIndex);
+            }
+            return true;
+        },
+    };
+
+    return new Proxy(Object.assign({}, attr), handlr);
+}
+
 
 function DomGradients(config, type, pDom) {
     this.config = config;
@@ -346,8 +383,6 @@ function createDomElement(obj, vDomIndex) {
 const DomExe = function DomExe(dom, config, id, vDomIndex) {
     this.dom = dom;
     this.nodeName = dom.nodeName;
-    this.attr = {};
-    this.style = {};
     this.changedAttribute = {};
     this.changedStyles = {};
     this.id = id;
@@ -356,6 +391,8 @@ const DomExe = function DomExe(dom, config, id, vDomIndex) {
     this.children = [];
     this.vDomIndex = vDomIndex;
     this.events = {};
+    this.style = prepObjProxySvg('style', {}, this);
+    this.attr = prepObjProxySvg('attr',{}, this);
 
     if (config.style) {
         this.setStyle(config.style);
@@ -440,94 +477,47 @@ DomExe.prototype.scale = function DMscale(XY) {
     }
 
     this.attr.transform.scale = XY;
-    this.changedAttribute.transform = this.attr.transform;
-    this.attrChanged = true;
-    queueInstance.vDomChanged(this.vDomIndex);
+    // this.changedAttribute.transform = this.attr.transform;
+    // this.attrChanged = true;
+    // queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 
-DomExe.prototype.skewX = function DMskewX(x) {
+DomExe.prototype.skew = function DMskewX(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = {};
+        this.attr.transform = prepObjProxySvg('transform', {}, this);
     }
 
-    this.attr.transform.skewX = [x];
-    this.changedAttribute.transform = this.attr.transform;
-    this.attrChanged = true;
-    queueInstance.vDomChanged(this.vDomIndex);
-    return this;
-};
-
-DomExe.prototype.skewY = function DMskewY(y) {
-    if (!this.attr.transform) {
-        this.attr.transform = {};
-    }
-
-    this.attr.transform.skewY = [y];
-    this.changedAttribute.transform = this.attr.transform;
-    this.attrChanged = true;
-    queueInstance.vDomChanged(this.vDomIndex);
+    this.attr.transform.skew = XY;
     return this;
 };
 
 DomExe.prototype.translate = function DMtranslate(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = {};
+        this.attr.transform = prepObjProxySvg('transform', {}, this);
     }
 
     this.attr.transform.translate = XY;
-    this.changedAttribute.transform = this.attr.transform;
-    this.attrChanged = true;
-    queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 
-DomExe.prototype.rotate = function DMrotate(angle, x, y) {
+DomExe.prototype.rotate = function DMrotate(angleXY) {
     if (!this.attr.transform) {
-        this.attr.transform = {};
+        this.attr.transform = prepObjProxySvg('transform', {}, this);
     }
 
-    if (Object.prototype.toString.call(angle) === "[object Array]" && angle.length > 0) {
-        this.attr.transform.rotate = [angle[0] || 0, angle[1] || 0, angle[2] || 0];
-    } else {
-        this.attr.transform.rotate = [angle, x || 0, y || 0];
-    }
-
-    this.changedAttribute.transform = this.attr.transform;
-    this.attrChanged = true;
-    queueInstance.vDomChanged(this.vDomIndex);
+    this.attr.transform.rotate = angleXY;
     return this;
 };
 
 DomExe.prototype.setStyle = function DMsetStyle(attr, value) {
     if (arguments.length === 2) {
-        if (value == null && this.style[attr] != null) {
-            delete this.style[attr];
-        } else {
-            if (typeof value === "function") {
-                value = value.call(this, this.dataObj);
-            }
-
-            if (colorMap.RGBAInstanceCheck(value)) {
-                value = value.rgba;
-            }
-
-            this.style[attr] = value;
-        }
-        this.changedStyles[attr] = value;
+        this.style[attr] = value;
     } else if (arguments.length === 1 && typeof attr === "object") {
         for (const key in attr) {
-            if (attr[key] == null && this.style[attr] != null) {
-                delete this.style[key];
-            } else {
-                this.style[key] = attr[key];
-            }
-            this.changedStyles[key] = attr[key];
+            this.style[key] = attr[key];
         }
     }
-
-    this.styleChanged = true;
-    queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 
@@ -543,25 +533,12 @@ function pointsToString(points) {
 
 DomExe.prototype.setAttr = function DMsetAttr(attr, value) {
     if (arguments.length === 2) {
-        if (attr === "points") {
-            value = pointsToString(value);
-        }
-
         this.attr[attr] = value;
-        this.changedAttribute[attr] = value;
     } else if (arguments.length === 1 && typeof attr === "object") {
         for (const key in attr) {
-            if (key === "points") {
-                attr[key] = pointsToString(attr[key]);
-            }
-
             this.attr[key] = attr[key];
-            this.changedAttribute[key] = attr[key];
         }
     }
-
-    this.attrChanged = true;
-    queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 

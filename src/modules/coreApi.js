@@ -906,6 +906,14 @@ const animatePathArrayTo = function animatePathArrayTo(config) {
                 value = value.call(node, node.dataObj, i);
             }
 
+            if (keys[j] === 'attr' && typeof config.attr !== "function") {
+                value = resolveObject(config.attr, node, i);
+            }
+
+            if (keys[j] === 'style' && typeof config.style !== "function") {
+                value = resolveObject(config.style, node, i);
+            }
+
             conf[keys[j]] = value;
         }
 
@@ -1065,4 +1073,47 @@ function layerResizeUnBind(layer, handler) {
     }
 }
 
-export { NodePrototype, CollectionPrototype, layerResizeBind, layerResizeUnBind };
+function prepArrayProxy(arr, context, BBoxUpdate) {
+    const handlr = {
+        get(target, prop) {
+            if (prop === 'push') {
+              return (...args) => {
+                queueInstance.vDomChanged(context.vDomIndex);
+                if (BBoxUpdate) {
+                    context.BBoxUpdate = true;
+                }
+                return target.push(...args);
+              };
+            } else if (prop === 'pop') {
+              return (...args) => {
+                queueInstance.vDomChanged(context.vDomIndex);
+                if (BBoxUpdate) {
+                    context.BBoxUpdate = true;
+                }
+                return target.pop(...args);
+              };
+            } else {
+              return target[prop];
+            }
+        },
+        set(obj, prop, value) {
+            obj[prop] = value;
+            queueInstance.vDomChanged(context.vDomIndex);
+            if (BBoxUpdate) {
+                context.BBoxUpdate = true;
+            }
+            return true;
+        },
+        deleteProperty() {
+            queueInstance.vDomChanged(context.vDomIndex);
+            if (BBoxUpdate) {
+                context.BBoxUpdate = true;
+            }
+            return Reflect.deleteProperty(...arguments);
+        }
+    };
+
+    return new Proxy(arr || [], handlr);
+}
+
+export { NodePrototype, CollectionPrototype, layerResizeBind, layerResizeUnBind, prepArrayProxy };

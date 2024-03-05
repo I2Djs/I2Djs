@@ -15,6 +15,7 @@ import {
     CollectionPrototype,
     layerResizeBind,
     layerResizeUnBind,
+    prepArrayProxy
 } from "./../coreApi.js";
 
 const pdfSupportedFontFamily = [
@@ -115,6 +116,70 @@ const dragInstance = behaviour.drag();
 function domId() {
     Id += 1;
     return Id;
+}
+
+function colorValueCheck(value) {
+    if (colorMap.RGBAInstanceCheck(value)) {
+        value = value.rgba;
+    }
+
+    return value === "#000" || value === "#000000" || value === "black" ? "#010101" : value;
+}
+
+function prepObjProxyCanvas(type, attr, context, BBoxUpdate) {
+    const handlr = {
+        set(obj, prop, value) {
+            if (value !== null) {
+                if (type === 'attr') {
+                    if (context && context.dom) {
+                        context.dom.setAttr(prop, value);
+                    }
+                    obj[prop] = value;
+                    if (BBoxUpdate) {
+                        context.BBoxUpdate = true;
+                    }
+                } else if (type === 'style') {
+                    value = colorValueCheck(value);
+                    // console.log(value);
+                    if (context && context.dom) {
+                        context.dom.setStyle(prop, value);
+                    }
+                    obj[prop] = value;
+                } else if (type === 'transform') {
+                    if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
+                        value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
+                    } else if (prop === 'rotate') {
+                        value = Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0]
+                    }
+                    obj[prop] = value;
+
+                    if (context && context.dom) {
+                        context.dom.setAttr('transform', obj);
+                    }
+                    if (BBoxUpdate) {
+                        context.BBoxUpdate = true;
+                    }
+                }
+
+                queueInstance.vDomChanged(context.vDomIndex);
+            } else {
+                delete obj[prop];
+            }
+            return true;
+        },
+        deleteProperty(obj, prop) {
+            if (prop in obj) {
+                delete obj[prop];
+                queueInstance.vDomChanged(context.vDomIndex);
+                if (type === 'attr' && BBoxUpdate) {
+                    context.BBoxUpdate = true;
+                }
+            }
+            return true;
+        },
+    };
+
+    return new Proxy(Object.assign({}, attr), handlr);
 }
 
 const CanvasCollection = function () {
@@ -317,7 +382,7 @@ CanvasGradient.prototype.linearGradientPdf = function GralinearGradient(ctx, BBo
         translate[1] + 0 + BBox.height * (this.config.y2 / 100)
     );
     (this.config.colorStops ?? []).forEach((d) => {
-        lGradient.stop(d.offset / 100, d.color, d.opacity);
+        lGradient.stop((d.offset || 0) / 100, d.color, d.opacity);
     });
     return lGradient;
 };
@@ -330,7 +395,7 @@ CanvasGradient.prototype.linearGradient = function GralinearGradient(ctx, BBox) 
         BBox.y + BBox.height * (this.config.y2 / 100)
     );
     (this.config.colorStops ?? []).forEach((d) => {
-        lGradient.addColorStop(d.offset / 100, d.color);
+        lGradient.addColorStop( (d.offset || 0) / 100, d.color);
     });
     return lGradient;
 };
@@ -343,7 +408,7 @@ CanvasGradient.prototype.absoluteLinearGradient = function absoluteGralinearGrad
         this.config.y2
     );
     (this.config.colorStops ?? []).forEach((d) => {
-        lGradient.addColorStop(d.offset, d.color);
+        lGradient.addColorStop((d.offset || 0), d.color);
     });
     return lGradient;
 };
@@ -360,7 +425,7 @@ CanvasGradient.prototype.absoluteLinearGradientPdf = function absoluteGralinearG
         translate[1] + this.config.y2
     );
     (this.config.colorStops ?? []).forEach((d) => {
-        lGradient.stop(d.offset, d.color, d.opacity);
+        lGradient.stop((d.offset || 0), d.color, d.opacity);
     });
     return lGradient;
 };
@@ -380,7 +445,7 @@ CanvasGradient.prototype.radialGradient = function GRAradialGradient(ctx, BBox) 
             : (BBox.height * outerCircle.r) / 100
     );
     (this.config.colorStops ?? []).forEach((d) => {
-        cGradient.addColorStop(d.offset / 100, d.color);
+        cGradient.addColorStop((d.offset || 0) / 100, d.color);
     });
     return cGradient;
 };
@@ -397,7 +462,7 @@ CanvasGradient.prototype.radialGradientPdf = function GRAradialGradient(ctx, BBo
         outerCircle.r2
     );
     (this.config.colorStops ?? []).forEach((d) => {
-        cGradient.stop(d.offset / 100, d.color, d.opacity);
+        cGradient.stop((d.offset || 0) / 100, d.color, d.opacity);
     });
     return cGradient;
 };
@@ -413,7 +478,7 @@ CanvasGradient.prototype.absoluteRadialGradient = function absoluteGraradialGrad
         outerCircle.r
     );
     (this.config.colorStops ?? []).forEach((d) => {
-        cGradient.addColorStop(d.offset / 100, d.color);
+        cGradient.addColorStop((d.offset || 0) / 100, d.color);
     });
     return cGradient;
 };
@@ -434,7 +499,7 @@ CanvasGradient.prototype.absoluteRadialGradientPdf = function absoluteGraradialG
         outerCircle.r
     );
     (this.config.colorStops ?? []).forEach((d) => {
-        cGradient.stop(d.offset / 100, d.color);
+        cGradient.stop((d.offset || 0) / 100, d.color);
     });
     return cGradient;
 };
@@ -460,8 +525,6 @@ function PixelObject(data, width, height) {
     this.imageData = data;
     this.width = width;
     this.height = height;
-    // this.x = x;
-    // this.y = y;
 }
 
 PixelObject.prototype.get = function (pos) {
@@ -488,13 +551,6 @@ PixelObject.prototype.put = function (pos, color) {
     this.imageData.pixels[rIndex + 3] = color[3];
     return this;
 };
-
-// function pixels (pixHndlr) {
-//  const tObj = this.rImageObj ? this.rImageObj : this.imageObj;
-//  const tCxt = tObj.getContext('2d');
-//  const pixelData = tCxt.getImageData(0, 0, this.attr.width, this.attr.height);
-//  return pixHndlr(pixelData);
-// }
 
 function CanvasMask(self, config = {}) {
     const maskId = config.id ? config.id : "mask-" + Math.ceil(Math.random() * 1000);
@@ -627,7 +683,6 @@ function CanvasDom() {
 CanvasDom.prototype = {
     render: cRender,
     renderPdf: cRenderPdf,
-    // on: addListener,
     setAttr: domSetAttribute,
     setStyle: domSetStyle,
     applyStyles,
@@ -639,8 +694,6 @@ function imageInstance(self) {
     imageIns.crossOrigin = "anonymous";
 
     imageIns.onload = function onload() {
-        // self.attr.height = self.attr.height ? self.attr.height : this.height;
-        // self.attr.width = self.attr.width ? self.attr.width : this.width;
         self.attr.height = self.attr.height
             ? self.attr.height
             : (self.attr.width / this.naturalWidth) * this.naturalHeight;
@@ -653,8 +706,8 @@ function imageInstance(self) {
             self.nodeExe.attr.onload.call(self.nodeExe, self.image);
         }
 
-        self.nodeExe.BBoxUpdate = true;
-        queueInstance.vDomChanged(self.nodeExe.vDomIndex);
+        // self.nodeExe.BBoxUpdate = true;
+        // queueInstance.vDomChanged(self.nodeExe.vDomIndex);
     };
 
     imageIns.onerror = function onerror(error) {
@@ -679,11 +732,11 @@ function DummyDom(ctx, props, styleProps) {
 DummyDom.prototype = new CanvasDom();
 DummyDom.prototype.constructor = DummyDom;
 
-function RenderImage(ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
+function RenderImage(ctx, props, styleProps, onloadExe, onerrorExe, nodeExe) {
     const self = this;
     self.ctx = ctx;
-    self.attr = props;
-    self.style = stylesProps;
+    self.attr = prepObjProxyCanvas('imagePoxy', props, nodeExe, true);
+    self.style = styleProps;
     self.nodeName = "Image";
     self.nodeExe = nodeExe;
 
@@ -691,7 +744,7 @@ function RenderImage(ctx, props, stylesProps, onloadExe, onerrorExe, nodeExe) {
         this.setAttr(key, props[key]);
     }
 
-    queueInstance.vDomChanged(nodeExe.vDomIndex);
+    // queueInstance.vDomChanged(nodeExe.vDomIndex);
     self.stack = [self];
 }
 
@@ -733,7 +786,7 @@ RenderImage.prototype.setAttr = function RIsetAttr(attr, value) {
     //     this.pixelsUpdate();
     // }
 
-    queueInstance.vDomChanged(this.nodeExe.vDomIndex);
+    // queueInstance.vDomChanged(this.nodeExe.vDomIndex);
 };
 
 // RenderImage.prototype.postProcess = function () {
@@ -836,11 +889,11 @@ RenderImage.prototype.in = function RIinfun(co) {
     return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
 };
 
-function RenderText(ctx, props, stylesProps) {
+function RenderText(ctx, props, styleProps) {
     const self = this;
     self.ctx = ctx;
-    self.attr = props;
-    self.style = stylesProps;
+    self.attr = Object.assign({}, props) ;
+    self.style = Object.assign({}, styleProps);
     self.nodeName = "text";
     self.stack = [self];
     self.textHeight = 0;
@@ -1058,11 +1111,11 @@ RenderText.prototype.in = function RTinfun(co) {
 };
 /** ***************** Render Circle */
 
-const RenderCircle = function RenderCircle(ctx, props, stylesProps) {
+const RenderCircle = function RenderCircle(ctx, props, styleProps) {
     const self = this;
     self.ctx = ctx;
-    self.attr = props;
-    self.style = stylesProps;
+    self.attr = Object.assign({}, props) ;
+    self.style = Object.assign({}, styleProps);
     self.nodeName = "circle";
     self.stack = [self];
 };
@@ -1114,11 +1167,11 @@ RenderCircle.prototype.in = function RCinfun(co) {
     return tr <= r;
 };
 
-const RenderLine = function RenderLine(ctx, props, stylesProps) {
+const RenderLine = function RenderLine(ctx, props, styleProps) {
     const self = this;
     self.ctx = ctx;
-    self.attr = props;
-    self.style = stylesProps;
+    self.attr = Object.assign({}, props) ;
+    self.style = Object.assign({}, styleProps);
     self.nodeName = "line";
     self.stack = [self];
 };
@@ -1197,11 +1250,11 @@ RenderLine.prototype.in = function RLinfun(co) {
     );
 };
 
-function RenderPolyline(ctx, props, stylesProps) {
+function RenderPolyline(ctx, props, styleProps) {
     const self = this;
     self.ctx = ctx;
-    self.attr = props;
-    self.style = stylesProps;
+    self.attr = Object.assign({}, props) ;
+    self.style = Object.assign({}, styleProps);
     self.nodeName = "polyline";
     self.stack = [self];
 }
@@ -1285,8 +1338,8 @@ const RenderPath = function RenderPath(ctx, props, styleProps) {
     self.ctx = ctx;
     self.angle = 0;
     self.nodeName = "path";
-    self.attr = props;
-    self.style = styleProps;
+    self.attr = Object.assign({}, props) ;
+    self.style = Object.assign({}, styleProps);
 
     if (self.attr.d) {
         if (path.isTypePath(self.attr.d)) {
@@ -1456,8 +1509,8 @@ const RenderPolygon = function RenderPolygon(ctx, props, styleProps) {
     const self = this;
     self.ctx = ctx;
     self.nodeName = "polygon";
-    self.attr = props;
-    self.style = styleProps;
+    self.attr = Object.assign({}, props) ;
+    self.style = Object.assign({}, styleProps);
     self.stack = [self];
 
     if (self.attr.points) {
@@ -1534,8 +1587,8 @@ const RenderEllipse = function RenderEllipse(ctx, props, styleProps) {
     const self = this;
     self.ctx = ctx;
     self.nodeName = "ellipse";
-    self.attr = props;
-    self.style = styleProps;
+    self.attr = Object.assign({}, props) ;
+    self.style = Object.assign({}, styleProps);
     self.stack = [self];
     return this;
 };
@@ -1594,8 +1647,8 @@ const RenderRect = function RenderRect(ctx, props, styleProps) {
     const self = this;
     self.ctx = ctx;
     self.nodeName = "rect";
-    self.attr = props;
-    self.style = styleProps;
+    self.attr = Object.assign({}, props) ;
+    self.style = Object.assign({}, styleProps);
     self.stack = [self];
     return this;
 };
@@ -1730,8 +1783,8 @@ const RenderGroup = function RenderGroup(ctx, props, styleProps) {
     const self = this;
     self.nodeName = "g";
     self.ctx = ctx;
-    self.attr = props;
-    self.style = styleProps;
+    self.attr = Object.assign({}, props) ;
+    self.style = Object.assign({}, styleProps);
     self.stack = new Array(0);
     return this;
 };
@@ -1831,18 +1884,19 @@ RenderGroup.prototype.in = function RGinfun(coOr) {
 /** ***************** End Render Group */
 
 const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
-    this.style = config.style || {};
-    this.attr = config.attr || {};
     this.id = id;
     this.nodeName = config.el;
     this.nodeType = "CANVAS";
-    this.children = [];
+    this.children = prepArrayProxy([], this, true);
     this.events = {};
     this.ctx = context;
     this.vDomIndex = vDomIndex;
     this.bbox = config.bbox !== undefined ? config.bbox : true;
     this.BBoxUpdate = true;
     this.block = config.block || false;
+
+    this.style = prepObjProxyCanvas('style', config.style || {}, this, true);
+    this.attr = prepObjProxyCanvas('attr', config.attr || {}, this, true);
 
     switch (config.el) {
         case "circle":
@@ -1885,17 +1939,6 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
             );
             break;
 
-        // case "sprite":
-        //     this.dom = new RenderSprite(
-        //         this.ctx,
-        //         this.attr,
-        //         this.style,
-        //         config.onload,
-        //         config.onerror,
-        //         this
-        //     );
-        //     break;
-
         case "polygon":
             this.dom = new RenderPolygon(this.ctx, this.attr, this.style, this);
             break;
@@ -1914,14 +1957,6 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.dom.nodeExe = this;
 
     this.setStyle(config.style);
-
-    // if (config.style) {
-    //  this.setStyle(config.style);
-    // }
-
-    // if (config.attr) {
-    //  this.setAttr(config.attr);
-    // }
 };
 
 CanvasNodeExe.prototype = new NodePrototype();
@@ -2025,9 +2060,6 @@ CanvasNodeExe.prototype.remove = function Cremove() {
     if (index !== -1) {
         children.splice(index, 1);
     }
-
-    this.dom.parent.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
 };
 
 CanvasNodeExe.prototype.attributesExe = function CattributesExe() {
@@ -2040,135 +2072,62 @@ CanvasNodeExe.prototype.attributesExePdf = function CattributesExe(pdfCtx, block
 
 CanvasNodeExe.prototype.setStyle = function CsetStyle(attr, value) {
     if (arguments.length === 2) {
-        if (value == null && this.style[attr] != null) {
-            delete this.style[attr];
-        } else {
-            this.style[attr] = valueCheck(value);
-        }
-        this.dom.setStyle(attr, this.style[attr]);
+        this.style[attr] = value;
     } else if (arguments.length === 1 && typeof attr === "object") {
         const styleKeys = Object.keys(attr);
 
         for (let i = 0, len = styleKeys.length; i < len; i += 1) {
-            if (attr[styleKeys[i]] == null && this.style[styleKeys[i]] != null) {
-                delete this.style[styleKeys[i]];
-            } else {
-                this.style[styleKeys[i]] = valueCheck(attr[styleKeys[i]]);
-            }
-            this.dom.setStyle(styleKeys[i], this.style[styleKeys[i]]);
+            this.style[styleKeys[i]] = attr[styleKeys[i]];
         }
     }
-
-    queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 
-function valueCheck(value) {
-    if (colorMap.RGBAInstanceCheck(value)) {
-        value = value.rgba;
-    }
-
-    return value === "#000" || value === "#000000" || value === "black" ? "#010101" : value;
-}
-
 CanvasNodeExe.prototype.setAttr = function CsetAttr(attr, value) {
     if (arguments.length === 2) {
-        if (value == null && this.attr[attr] != null) {
-            delete this.attr[attr];
-        } else {
-            this.attr[attr] = value;
-        }
-        this.dom.setAttr(attr, value);
+        this.attr[attr] = value;
     } else if (arguments.length === 1 && typeof attr === "object") {
         const keys = Object.keys(attr);
 
         for (let i = 0; i < keys.length; i += 1) {
-            if (attr[keys[i]] == null && this.attr[keys[i]] != null) {
-                delete this.attr[keys[i]];
-            } else {
-                this.attr[keys[i]] = attr[keys[i]];
-            }
-            this.dom.setAttr(keys[i], attr[keys[i]]);
+            this.attr[keys[i]] = attr[keys[i]];
         }
     }
-
-    this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 
-CanvasNodeExe.prototype.rotate = function Crotate(angle, x, y) {
+CanvasNodeExe.prototype.rotate = function Crotate(angleXY) {
     if (!this.attr.transform) {
-        this.attr.transform = {};
+        this.attr.transform = prepObjProxyCanvas('transform', {}, this, true);
     }
-
-    if (Object.prototype.toString.call(angle) === "[object Array]") {
-        this.attr.transform.rotate = [angle[0] || 0, angle[1] || 0, angle[2] || 0];
-    } else {
-        this.attr.transform.rotate = [angle, x || 0, y || 0];
-    }
-
-    this.dom.setAttr("transform", this.attr.transform);
-    this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
+    this.attr.transform.rotate = angleXY;
     return this;
 };
 
 CanvasNodeExe.prototype.scale = function Cscale(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = {};
+        this.attr.transform = prepObjProxyCanvas('transform', {}, this, true);
     }
 
-    if (XY.length < 1) {
-        return null;
-    }
-
-    this.attr.transform.scale = [XY[0], XY[1] ? XY[1] : XY[0]];
-    this.dom.setAttr("transform", this.attr.transform);
-    this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
+    this.attr.transform.scale = XY;
     return this;
 };
 
 CanvasNodeExe.prototype.translate = function Ctranslate(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = {};
+        this.attr.transform = prepObjProxyCanvas('transform', {}, this, true);
     }
 
     this.attr.transform.translate = XY;
-    this.dom.setAttr("transform", this.attr.transform);
-    this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 
-CanvasNodeExe.prototype.skewX = function CskewX(x) {
+CanvasNodeExe.prototype.skew = function Cskew(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = {};
-    }
-    if (!this.attr.transform.skew) {
-        this.attr.transform.skew = [];
+        this.attr.transform = prepObjProxyCanvas('transform', {}, this, true);
     }
 
-    this.attr.transform.skew[0] = x;
-    this.dom.setAttr("transform", this.attr.transform);
-    this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
-    return this;
-};
-
-CanvasNodeExe.prototype.skewY = function CskewY(y) {
-    if (!this.attr.transform) {
-        this.attr.transform = {};
-    }
-    if (!this.attr.transform.skew) {
-        this.attr.transform.skew = [];
-    }
-
-    this.attr.transform.skew[1] = y;
-    this.dom.setAttr("transform", this.attr.transform);
-    this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
+    this.attr.transform.skew = XY;
     return this;
 };
 
@@ -2222,8 +2181,6 @@ CanvasNodeExe.prototype.prependChild = function child(childrens) {
         console.error("Trying to insert child to nonGroup Element");
     }
 
-    this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
     return self;
 };
 
@@ -2241,8 +2198,6 @@ CanvasNodeExe.prototype.child = function child(childrens) {
         console.error("Trying to insert child to nonGroup Element");
     }
 
-    this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
     return self;
 };
 
@@ -2284,7 +2239,6 @@ CanvasNodeExe.prototype.updateABBox = function updateABBox(transform = { transla
     };
     this.dom.abTransform = abTransform;
 
-    // this.setAttr("abTranslate", this.abTranslate);
     if (this.dom instanceof RenderGroup) {
         for (let i = 0, len = this.children.length; i < len && this.children[i]; i += 1) {
             this.children[i].updateABBox(abTransform);
@@ -2298,7 +2252,6 @@ CanvasNodeExe.prototype.in = function Cinfun(co) {
 
 CanvasNodeExe.prototype.on = function Con(eventType, hndlr) {
     const self = this;
-    // this.dom.on(eventType, hndlr);
     if (!this.events) {
         this.events = {};
     }
@@ -2344,23 +2297,20 @@ CanvasNodeExe.prototype.createEls = function CcreateEls(data, config) {
         this.vDomIndex
     );
     this.child(e.stack);
-    queueInstance.vDomChanged(this.vDomIndex);
     return e;
 };
 
 CanvasNodeExe.prototype.text = function Ctext(value) {
     if (this.dom instanceof RenderText) {
-        this.dom.text(value);
+        this.setAttr('text', value);
     }
-
-    queueInstance.vDomChanged(this.vDomIndex);
     return this;
 };
 
 CanvasNodeExe.prototype.createEl = function CcreateEl(config) {
     const e = new CanvasNodeExe(this.dom.ctx, config, domId(), this.vDomIndex);
     this.child([e]);
-    queueInstance.vDomChanged(this.vDomIndex);
+    // queueInstance.vDomChanged(this.vDomIndex);
     return e;
 };
 
@@ -2377,8 +2327,8 @@ CanvasNodeExe.prototype.removeChild = function CremoveChild(obj) {
         this.dom.removeChild(removedNode.dom);
     }
 
-    this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
+    // this.BBoxUpdate = true;
+    // queueInstance.vDomChanged(this.vDomIndex);
 };
 
 CanvasNodeExe.prototype.getBBox = function () {
@@ -2516,8 +2466,8 @@ function filterExec(self) {
 
 function RenderTexture(nodeExe, config = {}) {
     const self = this;
-    self.attr = Object.assign({}, config.attr) || {};
-    self.style = Object.assign({}, config.style) || {};
+    self.attr = prepObjProxyCanvas('attr', config.attr || {}, nodeExe, true);
+    self.style = prepObjProxyCanvas('style', config.style || {}, nodeExe);
     const scale = self.attr.scale || 1;
     self.rImageObj = new GetCanvasImgInstance(
         (self.attr.width || 1) * scale,
@@ -2535,7 +2485,7 @@ function RenderTexture(nodeExe, config = {}) {
         self.setAttr(key, self.attr[key]);
     }
 
-    queueInstance.vDomChanged(nodeExe.vDomIndex);
+    // queueInstance.vDomChanged(nodeExe.vDomIndex);
     // self.stack = [self];
 }
 RenderTexture.prototype = new NodePrototype();
@@ -2714,7 +2664,7 @@ function createPage(ctx, vDomIndex) {
     root.clear = function () {};
 
     root.flush = function () {
-        this.children = [];
+        this.children = prepArrayProxy([], this, true);
         queueInstance.vDomChanged(this.vDomIndex);
     };
 
