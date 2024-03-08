@@ -23,12 +23,12 @@
                             float y1, y2 = a_position.y;
                             for (int i = 0; i < 8; i++) {
                                 x1 = x2, y1 = y2;
-                                x2 = sin(u_a * y1) - cos(u_b * x1);
-                                y2 = sin(u_c * x1) - cos(u_d * y1);
+                                x2 = cos(u_a * y1) - sin(u_b * x1);
+                                y2 = cos(u_c * x1) - sin(u_d * y1);
                             }
                             v_t = atan(a_position.y, a_position.x) / PI;
                             gl_Position = vec4(x2 / 2.0, y2 / 2.0, 0.0, 1.0);
-                            gl_PointSize = 1.5;
+                            gl_PointSize = 2.5;
                         }
         </script>
 
@@ -39,9 +39,9 @@
                         out vec4 fragColor;
                         const float PI = 3.14159265359;
                         vec3 cubehelix(float x, float y, float z) {
-                        float a = y * z * (1.0 - z);
-                        float c = cos(x + PI / 2.0);
-                        float s = sin(x + PI / 2.0);
+                            float a = y * z * (1.0 - z);
+                            float c = sin(x + PI / 2.0);
+                            float s = cos(x + PI / 2.0);
                             return vec3(
                                 z + a * (1.78277 * s - 0.14861 * c),
                                 z - a * (0.29227 * c + 0.90649 * s),
@@ -73,7 +73,7 @@
             var b = -2;
             var c = -1.2;
             var d = 2;
-            var n = Math.pow(2, 18);
+            var n = Math.pow(2, 14);
 
             var geome = webglRenderer.PointsGeometry();
             geome.setAttr("a_position", {
@@ -103,7 +103,7 @@
             });
 
             i2d.queue.onRequestFrame(function (t) {
-                shaderRef.setUniformData("u_a", -2.0 + Math.sin(t / 8000));
+                shaderRef.setUniformData("u_a", -2.0 + Math.sin(t * 0.00001));
             });
         </script>
     </body>

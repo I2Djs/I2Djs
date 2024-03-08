@@ -5,6 +5,9 @@ import queue from "./queue.js";
 import ease from "./ease.js";
 import chain from "./chain.js";
 import { interpolate } from "flubber";
+// import createBezierBuilder from "adaptive-bezier-curve";
+// import createQuadraticBuilder from "adaptive-quadratic-curve";
+
 
 let morphIdentifier = 0;
 const t2DGeometry = geometry;
@@ -365,6 +368,10 @@ function q(rel, c1, ep) {
         pointAt(f) {
             return t2DGeometry.bezierTransition(this.p0, this.cntrl1, this.p1, f);
         },
+
+        // getPoints() {
+        //     return createQuadraticBuilder([this.p0.x, this.p0.y], [this.cntrl1.x, this.cntrl1.y], [this.p1.x, this.p1.y]);
+        // }
     });
     this.length += this.segmentLength;
     this.pp = this.cp;
@@ -413,6 +420,9 @@ function c(rel, c1, c2, ep) {
         pointAt(f) {
             return t2DGeometry.cubicBezierTransition(this.p0, this.co, f);
         },
+        // getPoints() {
+        //     return createBezierBuilder([this.p0.x, this.p0.y], [this.cntrl1.x, this.cntrl1.y], [this.cntrl2.x, this.cntrl2.y], [this.p1.x, this.p1.y]);
+        // }
     });
     this.length += this.segmentLength;
     this.pp = this.cp;
@@ -460,6 +470,9 @@ function s(rel, c2, ep) {
         pointAt(f) {
             return t2DGeometry.cubicBezierTransition(this.p0, this.co, f);
         },
+        // getPoints() {
+        //     return createBezierBuilder([this.p0.x, this.p0.y], [this.cntrl1.x, this.cntrl1.y], [this.cntrl2.x, this.cntrl2.y], [this.p1.x, this.p1.y]);
+        // }
     }); // this.stack.segmentLength += this.segmentLength
     updateBBox(
         this.stack[this.stack.length - 1],
@@ -532,6 +545,9 @@ function a(rel, rx, ry, xRotation, arcLargeFlag, sweepFlag, ep) {
             pointAt(f) {
                 return t2DGeometry.bezierTransition(this.p0, this.cntrl1, this.cntrl2, this.p1, f);
             },
+            // getPoints() {
+            //     return createQuadraticBuilder([this.p0.x, this.p0.y], [this.cntrl1.x, this.cntrl1.y], [this.p1.x, this.p1.y]);
+            // }
         });
         self.length += segmentLength;
         updateBBox(
@@ -812,57 +828,66 @@ Path.prototype.execute = function (ctx, clippath) {
     }
 };
 
-Path.prototype.getPoints = function () {
-    const points = [];
-    // let tLength = this.length;
-    // let currD = this.stack[0];
-    // let cumLength = 0;
-    // let iLenFact = 0;
-    let d;
+// Path.prototype.getPoints = function () {
+//     const points = [];
+//     // let tLength = this.length;
+//     // let currD = this.stack[0];
+//     // let cumLength = 0;
+//     // let iLenFact = 0;
+//     let d;
 
-    for (let i = 0; i < this.stack.length; i++) {
-        d = this.stack[i];
-        const f = 0.05;
-        let tf = 0;
-        switch (d.type) {
-            case "M":
-            case "m":
-                points[points.length] = d.p0.x;
-                points[points.length] = d.p0.y;
-                break;
-            case "Z":
-            case "z":
-                points[points.length] = d.p1.x;
-                points[points.length] = d.p1.y;
-                break;
-            case "L":
-            case "l":
-            case "V":
-            case "v":
-            case "H":
-            case "h":
-                points[points.length] = d.p1.x;
-                points[points.length] = d.p1.y;
-                break;
-            case "C":
-            case "c":
-            case "S":
-            case "s":
-            case "Q":
-            case "q":
-                while (tf <= 1.0) {
-                    const xy = d.pointAt(tf);
-                    points[points.length] = xy.x;
-                    points[points.length] = xy.y;
-                    tf += f;
-                }
-                break;
-            default:
-                break;
-        }
-    }
-    return points;
-};
+//     for (let i = 0; i < this.stack.length; i++) {
+//         d = this.stack[i];
+//         let xypoints;
+//         // const f = 0.05;
+//         // let tf = 0;
+//         switch (d.type) {
+//             case "M":
+//             case "m":
+//                 points.push([d.p0.x, d.p0.y]);
+//                 // points[points.length] = d.p0.x;
+//                 // points[points.length] = d.p0.y;
+//                 break;
+//             case "Z":
+//             case "z":
+//                 points.push([d.p1.x, d.p1.y]);
+//                 // points[points.length] = d.p1.x;
+//                 // points[points.length] = d.p1.y;
+//                 break;
+//             case "L":
+//             case "l":
+//             case "V":
+//             case "v":
+//             case "H":
+//             case "h":
+//                 points.push([d.p1.x, d.p1.y]);
+//                 // points[points.length] = d.p1.x;
+//                 // points[points.length] = d.p1.y;
+//                 break;
+//             case "C":
+//             case "c":
+//             case "S":
+//             case "s":
+//             case "Q":
+//             case "q":
+//                 xypoints = d.getPoints();
+//                 for(let i =0; i < xypoints.length; i++) {
+//                     points[points.length] = xypoints[i];
+//                     // points[points.length] = xypoints[i][1];
+//                 }
+//                 // while (tf <= 1.0) {
+//                 //     const xy = d.pointAt(tf);
+//                 //     points[points.length] = xy.x;
+//                 //     points[points.length] = xy.y;
+//                 //     tf += f;
+//                 // }
+//                 break;
+//             default:
+//                 break;
+//         }
+//     }
+//     return points;
+// };
 
 Path.prototype.case = function pCase(currCmd) {
     let currCmdI = currCmd;
@@ -974,6 +999,39 @@ Path.prototype.case = function pCase(currCmd) {
             break;
     }
 };
+
+Path.prototype.getPath2DObject = function (pathStr) {
+    return new Path2D(pathStr || this.fetchPathString());
+}
+
+Path.prototype.getPathTexture = function (style, refresh) {
+    if(!this.layer || refresh) {
+        const {x = 0, y= 0, height = 0, width = 0} = this.BBox;
+
+        this.pathNode = this.getPath2DObject();
+
+        this.layer = document.createElement("canvas");
+        this.ctx = this.layer.getContext("2d");
+
+        this.layer.setAttribute("height", height);
+        this.layer.setAttribute("width", width);
+
+        this.ctx.translate(x * -1 || 0, y * -1 || 0);
+
+        const fillColor = style.fill || style.fillStyle;
+        const strokeColor = style.stroke || style.strokeStyle;
+        if (fillColor) {
+            this.ctx['fillStyle'] = fillColor;
+            this.ctx.fill(this.pathNode);
+        }
+        if (strokeColor) {
+            this.ctx['strokeStyle'] = strokeColor;
+            this.ctx.stroke(this.pathNode);
+        }
+    }
+
+    return this.layer;
+}
 
 function relativeCheck(type) {
     return ["S", "C", "V", "L", "H", "Q"].indexOf(type) > -1;
@@ -1251,10 +1309,10 @@ function morphTo(targetConfig) {
     const loop = targetConfig.loop ? targetConfig.loop : 0;
     const direction = targetConfig.direction ? targetConfig.direction : "default";
     const destD = targetConfig.attr.d ? targetConfig.attr.d : self.attr.d;
-    const srcPath = isTypePath(self.attr.d) ? self.attr.d.fetchPathString() : self.attr.d;
-    const destPath = isTypePath(destD) ? destD.fetchPathString() : destD;
+    const srcPath = isTypePath(self.attr.d) ? self.attr.d : new Path(self.attr.d);
+    const destPath = isTypePath(destD) ? destD : new Path(destD);
 
-    const morphExe = interpolate(srcPath, destPath, {
+    const morphExe = interpolate(srcPath.fetchPathString(), destPath.fetchPathString(), {
         maxSegmentLength: 25,
     });
 

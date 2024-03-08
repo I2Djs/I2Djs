@@ -17,14 +17,14 @@
             /************** polygons *****************/
 
             var polygonsData = [];
-            for (let i = 0; i < 10000; i++) {
-                let x1 = Math.random() * 1400;
-                let y1 = Math.random() * 800;
+            for (let i = 0; i < 10; i++) {
                 polygonsData.push({
                     points: [
-                        { x: x1, y: y1 },
-                        { x: x1 + 5, y: y1 + Math.random() * 10 },
-                        { x: x1 - 5, y: y1 + Math.random() * 10 },
+                        { x: 100, y: 10 },
+                        { x: 40, y: 180 },
+                        { x: 190, y: 60 },
+                        { x: 10, y: 60 },
+                        { x: 160, y: 180 }
                     ],
                 });
             }
@@ -39,9 +39,19 @@
             polygonsRef.createEls(polygonsData, {
                 el: "polygon",
                 attr: {
-                    points: function (d) {
-                        return d.points;
+                    transform: function (d, i) {
+                        return {
+                            translate: [webglRenderer.width * Math.random(), webglRenderer.height * Math.random()]
+                        }
                     },
+                    points: [
+                        { x: 150, y: 75 },
+                        { x: 258, y: 137 },
+                        { x: 258, y: 262 },
+                        { x: 150, y: 325 },
+                        { x: 42, y: 262 },
+                        { x: 42, y: 137 },
+                    ],
                 },
                 style: { fill: i2d.color.rgba(0, 203, 255, 255) },
             });

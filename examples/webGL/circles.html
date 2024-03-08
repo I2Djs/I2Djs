@@ -16,9 +16,9 @@
             var circlesData = [];
             for (let i = 0; i < 10000; i++) {
                 circlesData.push({
-                    cx: Math.random() * 1400,
-                    cy: Math.random() * 800,
-                    r: Math.random() * 200,
+                    cx: Math.random() * webglRenderer.width,
+                    cy: Math.random() * webglRenderer.height,
+                    r: Math.random() * 100,
                 });
             }
 

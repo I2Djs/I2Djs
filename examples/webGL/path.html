@@ -9,75 +9,37 @@
         <div id="canvas" style="height: 100%; width: 100%; background: black"></div>
         <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script type="text/javascript">
-            // import path from "./../../src/modules/path.js";
-            var webglRenderer = i2d.webglLayer("#canvas", {}, {});
+            var webglRenderer = i2d.webglLayer("#canvas", {}, { enableEvents:true});
+            // var pathNode = i2d.Path("M366.2,204.2 c-9.8,0 -15,-5.6 -15,-15.1 V77.2 h-85 v28 h19.5 c9.8,0 8.5,2.1 8.5,11.6 v72.4 c0,9.5 0.5,15.1 -9.3,15.1 H277 h-20.7 c-8.5,0 -14.2,-4.1 -14.2,-12.9 V52.4 c0,-8.5 5.7,-12.3 14.2,-12.3 h18.8 v-28 h-127 v28 h18.1 c8.5,0 9.9,2.1 9.9,8.9 v56.1 h-75 V53.4 c0,-11.5 8.6,-13.3 17,-13.3 h11 v-28 H2.2 v28 h26 c8.5,0 12,2.1 12,7.9 v142.2 c0,8.5 -3.6,13.9 -12,13.9 h-21 v33 h122 v-33 h-11 c-8.5,0 -17,-4.1 -17,-12.2 v-57.8 h75 v58.4 c0,9.1 -1.4,11.6 -9.9,11.6 h-18.1 v33 h122.9 h5.9 h102.2 v-33 H366.2 z");
+
             var pathRef = webglRenderer.createEl({
                 el: "group",
                 attr: {
                     transform: {
-                        translate: [0, 0],
+                        translate: [100, 0]
                     },
                     shaderType: "path",
-                },
-                bbox: false,
+                }
             });
 
-            pathRef.createEl({
-                el: "rect",
-                attr: {
-                    transform: {
-                        translate: [0, 0],
-                    },
-                    x: 100,
-                    y: 100,
-                    width: 100,
-                    height: 100,
-                },
-                style: { stroke: i2d.color.rgba(145, 100, 100, 255) },
-            });
-
-            pathRef.createEl({
+            pathRef.createEls(Array(5000).fill().map(() => Math.random()), {
                 el: "path",
                 attr: {
-                    transform: {
-                        translate: [0, 0],
+                    transform: function (d, i) {
+                        let scaleRand = 0.1 + Math.random() * 0.1;
+                        return {
+                            translate: [1500 * Math.random(), 2000 * Math.random()],
+                            scale: [scaleRand, scaleRand]
+                        }
                     },
-                    d: "M350,225 L450,225 L450,475 L570,475",
+                    d: "M366.2,204.2 c-9.8,0 -15,-5.6 -15,-15.1 V77.2 h-85 v28 h19.5 c9.8,0 8.5,2.1 8.5,11.6 v72.4 c0,9.5 0.5,15.1 -9.3,15.1 H277 h-20.7 c-8.5,0 -14.2,-4.1 -14.2,-12.9 V52.4 c0,-8.5 5.7,-12.3 14.2,-12.3 h18.8 v-28 h-127 v28 h18.1 c8.5,0 9.9,2.1 9.9,8.9 v56.1 h-75 V53.4 c0,-11.5 8.6,-13.3 17,-13.3 h11 v-28 H2.2 v28 h26 c8.5,0 12,2.1 12,7.9 v142.2 c0,8.5 -3.6,13.9 -12,13.9 h-21 v33 h122 v-33 h-11 c-8.5,0 -17,-4.1 -17,-12.2 v-57.8 h75 v58.4 c0,9.1 -1.4,11.6 -9.9,11.6 h-18.1 v33 h122.9 h5.9 h102.2 v-33 H366.2 z",
                 },
-                style: { stroke: i2d.color.rgba(145, 100, 100, 255) },
-            });
-
-            pathRef.createEl({
-                el: "path",
-                attr: {
-                    transform: {
-                        translate: [200, 0],
-                    },
-                    d:
-                        "M286,227 L556.149478,227 L556.149478,352.5 L418.443053,352.5 L418.443053,478 L675.470664,478",
-                },
-                style: { stroke: i2d.color.rgba(0, 203, 255, 255) },
-            });
-            pathRef.createEl({
-                el: "path",
-                attr: {
-                    transform: {
-                        translate: [350, 0],
-                    },
-                    d:
-                        "M461,359.245249 L461,230 L561.860025,230.999803 C561.860025,230.999803 672.401935,230 672.401935,353.481856 C672.401935,486.963711 561.860025,479.591179 561.860025,479.591179",
-                },
-                style: { stroke: i2d.color.rgba(145, 100, 100, 255) },
-            });
-
-            // var path2 = path.instance(
-            //     "M461,359.245249 L461,230 L561.860025,230.999803 C561.860025,230.999803 672.401935,230 672.401935,353.481856 C672.401935,486.963711 561.860025,479.591179 561.860025,479.591179"
-            //     // "M286,227 L556.149478,227 L556.149478,352.5 L418.443053,352.5 L418.443053,478 L675.470664,478"
-            // );
-            // console.log(path2.getPoints());
-
-            // console.log(path2);
-            // console.log(webglRenderer);
+                style: { fill: function (d, i) {
+                    return i2d.color.colorToRGB("hsl(" + ((i % 50) / 50) * 360 + ",70%, 50%)");
+                } },
+            }).on("click", function () {
+                    this.setStyle("fill", i2d.color.colorToRGB("hsl(" + (((Math.random() * 1000) % 50) / 50) * 360 + ",70%, 50%)"));
+                });
         </script>
     </body>
 </html>

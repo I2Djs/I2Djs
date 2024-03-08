@@ -4270,50 +4270,6 @@ Example valid ways of supplying a shape would be:
             ctx.closePath();
         }
     };
-    Path.prototype.getPoints = function () {
-        const points = [];
-        let d;
-        for (let i = 0; i < this.stack.length; i++) {
-            d = this.stack[i];
-            const f = 0.05;
-            let tf = 0;
-            switch (d.type) {
-                case "M":
-                case "m":
-                    points[points.length] = d.p0.x;
-                    points[points.length] = d.p0.y;
-                    break;
-                case "Z":
-                case "z":
-                    points[points.length] = d.p1.x;
-                    points[points.length] = d.p1.y;
-                    break;
-                case "L":
-                case "l":
-                case "V":
-                case "v":
-                case "H":
-                case "h":
-                    points[points.length] = d.p1.x;
-                    points[points.length] = d.p1.y;
-                    break;
-                case "C":
-                case "c":
-                case "S":
-                case "s":
-                case "Q":
-                case "q":
-                    while (tf <= 1.0) {
-                        const xy = d.pointAt(tf);
-                        points[points.length] = xy.x;
-                        points[points.length] = xy.y;
-                        tf += f;
-                    }
-                    break;
-            }
-        }
-        return points;
-    };
     Path.prototype.case = function pCase(currCmd) {
         let currCmdI = currCmd;
         let rx;
@@ -4403,6 +4359,31 @@ Example valid ways of supplying a shape would be:
                 this.z();
                 break;
         }
+    };
+    Path.prototype.getPath2DObject = function (pathStr) {
+        return new Path2D(pathStr || this.fetchPathString());
+    };
+    Path.prototype.getPathTexture = function (style, refresh) {
+        if(!this.layer || refresh) {
+            const {x = 0, y= 0, height = 0, width = 0} = this.BBox;
+            this.pathNode = this.getPath2DObject();
+            this.layer = document.createElement("canvas");
+            this.ctx = this.layer.getContext("2d");
+            this.layer.setAttribute("height", height);
+            this.layer.setAttribute("width", width);
+            this.ctx.translate(x * -1 || 0, y * -1 || 0);
+            const fillColor = style.fill || style.fillStyle;
+            const strokeColor = style.stroke || style.strokeStyle;
+            if (fillColor) {
+                this.ctx['fillStyle'] = fillColor;
+                this.ctx.fill(this.pathNode);
+            }
+            if (strokeColor) {
+                this.ctx['strokeStyle'] = strokeColor;
+                this.ctx.stroke(this.pathNode);
+            }
+        }
+        return this.layer;
     };
     function relativeCheck(type) {
         return ["S", "C", "V", "L", "H", "Q"].indexOf(type) > -1;
@@ -4655,9 +4636,9 @@ Example valid ways of supplying a shape would be:
         const loop = targetConfig.loop ? targetConfig.loop : 0;
         const direction = targetConfig.direction ? targetConfig.direction : "default";
         const destD = targetConfig.attr.d ? targetConfig.attr.d : self.attr.d;
-        const srcPath = isTypePath(self.attr.d) ? self.attr.d.fetchPathString() : self.attr.d;
-        const destPath = isTypePath(destD) ? destD.fetchPathString() : destD;
-        const morphExe = interpolate(srcPath, destPath, {
+        const srcPath = isTypePath(self.attr.d) ? self.attr.d : new Path(self.attr.d);
+        const destPath = isTypePath(destD) ? destD : new Path(destD);
+        const morphExe = interpolate(srcPath.fetchPathString(), destPath.fetchPathString(), {
             maxSegmentLength: 25,
         });
         queueInstance$5.add(
@@ -4916,6 +4897,7 @@ Example valid ways of supplying a shape would be:
             g = hue2rgb(p, q, h) * 255;
             b = hue2rgb(p, q, h - 1 / 3) * 255;
         }
+        a = a === undefined ? 255 : a;
         return new RGBA(r, g, b, a);
     }
     function colorToRGB(val) {
@@ -69855,6 +69837,18 @@ Please pipe the document into a Node stream.\
         };
         return new Proxy(Object.assign({}, attr), handlr);
     }
+    function updatePositionVector (positionArray, attr) {
+            const x = attr.x || 0;
+            const y = attr.y || 0;
+            const width = attr.width || 0;
+            const height = attr.height || 0;
+            const x1 = x + width;
+            const y1 = y + height;
+            positionArray[0] = positionArray[4] = positionArray[6] = x;
+            positionArray[1] = positionArray[3] = positionArray[9] = y;
+            positionArray[2] = positionArray[8] = positionArray[10] = x1;
+            positionArray[5] = positionArray[7] = positionArray[11] = y1;
+    }
     const WebglCollection = function () {
         CollectionPrototype.apply(this, arguments);
     };
@@ -70095,31 +70089,16 @@ Please pipe the document into a Node stream.\
         this.style = Object.assign({}, style);
         this.pointsGeometry = [];
         this.transform = [0, 0, 1, 1];
+        this.positionArray = new Float32Array(12);
         this.projectionMatrix = m3.projection(
             this.ctx.canvas.width / ratio,
             this.ctx.canvas.height / ratio
         );
-        if (self.attr.d) {
-            if (path.isTypePath(self.attr.d)) {
-                self.path = self.attr.d;
-                self.attr.d = self.attr.d.fetchPathString();
-            } else {
-                self.path = path.instance(self.attr.d);
-            }
-            this.points = new Float32Array(this.path.getPoints());
-        }
-        if (this.style.stroke) {
-            this.color = new Float32Array([
-                this.style.stroke.r / 255,
-                this.style.stroke.g / 255,
-                this.style.stroke.b / 255,
-                this.style.stroke.a === undefined ? 1 : this.style.stroke.a / 255,
-            ]);
-        }
         this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
-        if (this.attr.transform) {
-            this.exec(updateTransformMatrix, null);
+        for(let key in self.attr) {
+            this.setAttr(key, self.attr[key]);
         }
+        updatePositionVector(this.positionArray, {x: 0, y: 0, height: this.pathTexture?.height??0, width: this.pathTexture?.width??0});
     }
     PathNode.prototype = new WebglDom();
     PathNode.prototype.constructor = PathNode;
@@ -70143,10 +70122,42 @@ Please pipe the document into a Node stream.\
             } else {
                 this.path = path.instance(this.attr.d);
             }
-            this.points = new Float32Array(this.path.getPoints());
+            let bbox = this.path.BBox;
+            let pathTexture = this.path.getPathTexture(this.style, true);
+            if (!this.textureNode) {
+                this.textureNode = new TextureObject(
+                    this.ctx,
+                    {
+                        src: pathTexture,
+                    },
+                    this.vDomIndex
+                );
+            } else {
+                this.textureNode.setAttr('src', pathTexture);
+            }
+            updatePositionVector(this.positionArray, {x: 0, y: 0, height: bbox?.height??0, width: bbox?.width??0});
         } else if (key === "transform") {
-            this.exec(updateTransformMatrix, this.p_matrix);
+            this.exec(updateTransformMatrix, this.p_matrix ? this.p_matrix : this.projectionMatrix);
         }
+    };
+    PathNode.prototype.setStyle = function (key, value) {
+        if (value === null) {
+            delete this.style[key];
+            return;
+        }
+        this.style[key] = value;
+        if (this.path) {
+            this.textureNode.setAttr('src', this.path.getPathTexture(this.style));
+        }
+    };
+    PathNode.prototype.in = function RIinfun(co) {
+        const { x = 0, y = 0 } = co;
+        let ctx = this.path.ctx;
+        let flag = false;
+        ctx.save();
+        flag = ctx.isPointInPath(this.path.pathNode, x, y);
+        ctx.restore();
+        return flag;
     };
     PathNode.prototype.updateBBox = function RCupdateBBox() {
         const self = this;
@@ -70306,13 +70317,11 @@ Please pipe the document into a Node stream.\
         }
     };
     function polygonPointsMapper(value) {
-        return earcut$1(
-            value.reduce(function (p, c) {
+        return earcut$1(value.reduce(function (p, c) {
                 p[p.length] = c.x;
                 p[p.length] = c.y;
                 return p;
-            }, [])
-        ).map(function (d) {
+            }, [])).map(function (d) {
             return value[d];
         });
     }
@@ -70328,7 +70337,7 @@ Please pipe the document into a Node stream.\
             this.ctx.canvas.height / ratio
         );
         if (this.attr.points) {
-            const points = polygonPointsMapper(this.attr.points);
+            const points = polygonPointsMapper(this.attr.points || []);
             for (let j = 0, jlen = points.length; j < jlen; j++) {
                 subPoints[j * 2] = points[j].x;
                 subPoints[j * 2 + 1] = points[j].y;
@@ -70365,7 +70374,7 @@ Please pipe the document into a Node stream.\
         }
         if (key === "points") {
             const subPoints = [];
-            const points = polygonPointsMapper(value);
+            const points = polygonPointsMapper((value || []));
             for (let j = 0, jlen = points.length; j < jlen; j++) {
                 subPoints[j * 2] = points[j].x;
                 subPoints[j * 2 + 1] = points[j].y;
@@ -70528,6 +70537,9 @@ Please pipe the document into a Node stream.\
             this.attr.width = this.text.width;
             this.attr.height = this.text.height;
         }
+        if (this.attr.x || this.attr.y) {
+            updatePositionVector(this.positionArray, this.attr);
+        }
         if (this.text) {
             this.textureNode = new TextureObject(
                 ctx,
@@ -70572,16 +70584,7 @@ Please pipe the document into a Node stream.\
         if (key === "transform") {
             this.exec(updateTransformMatrix, this.p_matrix);
         } else if (key === "x" || key === "y") {
-            const x = this.attr.x || 0;
-            const y = this.attr.y || 0;
-            const width = this.attr.width || 0;
-            const height = this.attr.height || 0;
-            const x1 = x + width;
-            const y1 = y + height;
-            this.positionArray[0] = this.positionArray[4] = this.positionArray[6] = x;
-            this.positionArray[1] = this.positionArray[3] = this.positionArray[9] = y;
-            this.positionArray[2] = this.positionArray[8] = this.positionArray[10] = x1;
-            this.positionArray[5] = this.positionArray[7] = this.positionArray[11] = y1;
+            updatePositionVector(this.positionArray, this.attr);
         }
     };
     TextNode.prototype.applyTransformationMatrix = function (matrix) {
@@ -70682,16 +70685,7 @@ Please pipe the document into a Node stream.\
             this.textureNode = self.attr.src;
         }
         if (this.attr.x || this.attr.y || this.attr.width || this.attr.height) {
-            const x = this.attr.x || 0;
-            const y = this.attr.y || 0;
-            const width = this.attr.width || 0;
-            const height = this.attr.height || 0;
-            const x1 = x + width;
-            const y1 = y + height;
-            this.positionArray[0] = this.positionArray[4] = this.positionArray[6] = x;
-            this.positionArray[1] = this.positionArray[3] = this.positionArray[9] = y;
-            this.positionArray[2] = this.positionArray[8] = this.positionArray[10] = x1;
-            this.positionArray[5] = this.positionArray[7] = this.positionArray[11] = y1;
+            updatePositionVector(this.positionArray, this.attr);
         }
     }
     ImageNode.prototype = new WebglDom();
@@ -70733,16 +70727,7 @@ Please pipe the document into a Node stream.\
         } else if (key === "src" && value instanceof TextureObject) {
             this.textureNode = value;
         } else if (key === "x" || key === "width" || key === "y" || key === "height") {
-            const x = this.attr.x || 0;
-            const y = this.attr.y || 0;
-            const width = this.attr.width || 0;
-            const height = this.attr.height || 0;
-            const x1 = x + width;
-            const y1 = y + height;
-            this.positionArray[0] = this.positionArray[4] = this.positionArray[6] = x;
-            this.positionArray[1] = this.positionArray[3] = this.positionArray[9] = y;
-            this.positionArray[2] = this.positionArray[8] = this.positionArray[10] = x1;
-            this.positionArray[5] = this.positionArray[7] = this.positionArray[11] = y1;
+            updatePositionVector(this.positionArray, this.attr);
         } else if (key === "transform") {
             this.exec(updateTransformMatrix, this.p_matrix);
         }
@@ -71548,7 +71533,7 @@ Please pipe the document into a Node stream.\
             this.filterSizeFlag = false;
         }
         this.shaderInstance.setAttributeData("a_size", this.typedSizeArray);
-        this.geometry.setDrawRange(0, this.typedPositionArray.length / 2);
+        this.geometry.setDrawRange(0, (this.typedPositionArray?.length ?? 0) / 2);
         this.shaderInstance.execute();
         if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
             this.renderTarget.update();
@@ -71580,7 +71565,7 @@ Please pipe the document into a Node stream.\
             value: new Float32Array(this.positionArray),
             size: 2,
         });
-        this.geometry.setDrawRange(0, this.positionArray.length / 2);
+        this.geometry.setDrawRange(0, (this.positionArray?.length??0) / 2);
         this.shaderInstance = new RenderWebglShader(
             ctx,
             {
@@ -71628,7 +71613,7 @@ Please pipe the document into a Node stream.\
         colorExec(this);
         transformExec(this);
         vertexExec(this);
-        this.geometry.setDrawRange(0, this.typedPositionArray.length / 2);
+        this.geometry.setDrawRange(0, (this.typedPositionArray?.length??0) / 2);
         this.shaderInstance.execute();
         if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
             this.renderTarget.clear();
@@ -71661,7 +71646,7 @@ Please pipe the document into a Node stream.\
             value: new Float32Array(this.transform),
             size: 3,
         });
-        this.geometry.setDrawRange(0, this.positionArray.length / 2);
+        this.geometry.setDrawRange(0, (this.positionArray?.length??0) / 2);
         this.shaderInstance = new RenderWebglShader(
             ctx,
             {
@@ -71704,7 +71689,7 @@ Please pipe the document into a Node stream.\
         vertexExec(this);
         colorExec(this);
         transformExec(this);
-        this.geometry.setDrawRange(0, this.typedPositionArray.length / 2);
+        this.geometry.setDrawRange(0, (this.typedPositionArray?.length??0) / 2);
         this.shaderInstance.execute();
         if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
             this.renderTarget.clear();
@@ -71726,7 +71711,7 @@ Please pipe the document into a Node stream.\
             value: new Float32Array(this.positionArray),
             size: 2,
         });
-        this.geometry.setDrawRange(0, this.positionArray.length / 2);
+        this.geometry.setDrawRange(0, (this.positionArray?.length??0) / 2);
         this.shaderInstance = new RenderWebglShader(
             ctx,
             {
@@ -71921,7 +71906,7 @@ Please pipe the document into a Node stream.\
             this.filterSizeFlag = false;
         }
         this.shaderInstance.setAttributeData("a_radius", this.typedSizeArray);
-        this.geometry.setDrawRange(0, this.typedPositionArray.length / 2);
+        this.geometry.setDrawRange(0, (this.typedPositionArray?.length??0) / 2);
         this.shaderInstance.execute();
         if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
             this.renderTarget.clear();
@@ -72021,7 +72006,7 @@ Please pipe the document into a Node stream.\
                 e = new RenderWebglPolyLines(ctx, attr, style, renderTarget, vDomIndex);
                 break;
             case "path":
-                e = new RenderWebglPolyLines(ctx, attr, style, renderTarget, vDomIndex);
+                e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
                 break;
             case "polygon":
                 e = new RenderWebglPolygons(ctx, attr, style, renderTarget, vDomIndex);
@@ -72701,7 +72686,6 @@ Please pipe the document into a Node stream.\
             }
         } else {
             this[attr] = value;
-            console.warning("Instead of key, value, pass Object of key,value for optimal rendering");
             if (attr === "src") {
                 if (typeof value === "string") {
                     if (!this.image || !(this.image instanceof Image)) {
@@ -73148,4 +73132,3 @@ Please pipe the document into a Node stream.\
     exports.webglLayer = webglLayer;
 
 }));
-//# sourceMappingURL=i2d.js.map

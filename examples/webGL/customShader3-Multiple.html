@@ -37,8 +37,8 @@
             const float PI = 3.14159265359;
             vec3 cubehelix(float x, float y, float z) {
             float a = y * z * (1.0 - z);
-            float c = cos(x + PI / 2.0);
-            float s = sin(x + PI / 2.0);
+            float c = sin(x + PI / 2.0);
+            float s = cos(x + PI / 2.0);
                 return vec3(
                     z + a * (1.78277 * s - 0.14861 * c),
                     z - a * (0.29227 * c + 0.90649 * s),
@@ -72,6 +72,7 @@
 
             precision highp float;
             uniform float u_k;
+            uniform vec2 u_dim;
 
             const float PI = 3.14159265359;
 
@@ -162,7 +163,7 @@
             }
 
             void main(void) {
-                vec2 z = (gl_FragCoord.xy - 932.0 / 2.0) / 256.0;
+                vec2 z = (gl_FragCoord.xy - u_dim / 2.0) / 256.0;
                 z = complex_sin(complex_pow(z, vec2(5.0, 0.0)) - u_k);
                 float t = complex_phase(z) / PI;
                 gl_FragColor = vec4(cubehelixRainbow(t), 1.0);
@@ -199,6 +200,10 @@
                     u_k: {
                         value: k,
                     },
+                    u_dim: {
+                        value: Float32Array.of(webglRenderer.width * 2, webglRenderer.height * 2),
+                        size: 2,
+                    }
                 },
                 geometry: meshGeo,
             });

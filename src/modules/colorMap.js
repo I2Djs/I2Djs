@@ -211,7 +211,6 @@ function hslParse(hsl) {
     var h;
     var s;
     var l;
-    var obj = {};
     const res = hsl
         .replace(/[^0-9.,]+/g, "")
         .split(",")
@@ -242,7 +241,8 @@ function hslParse(hsl) {
         b = hue2rgb(p, q, h - 1 / 3) * 255;
     }
 
-    if (a !== undefined) obj.a = a;
+    a = a === undefined ? 255 : a;
+
     return new RGBA(r, g, b, a);
 }
 
