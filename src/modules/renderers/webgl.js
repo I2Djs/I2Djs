@@ -3279,6 +3279,9 @@ WebglNodeExe.prototype.remove = function Wremove() {
     queueInstance.vDomChanged(this.vDomIndex);
 };
 
+WebglNodeExe.prototype.animatePathTo = path.animatePathTo;
+WebglNodeExe.prototype.morphTo = path.morphTo;
+
 WebglNodeExe.prototype.removeChild = function WremoveChild(obj) {
     let index = -1;
     this.children.forEach((d, i) => {

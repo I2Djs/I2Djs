@@ -5,6 +5,7 @@ import queue from "./queue.js";
 import ease from "./ease.js";
 import chain from "./chain.js";
 import { interpolate } from "flubber";
+import colorMap from "./colorMap.js";
 // import createBezierBuilder from "adaptive-bezier-curve";
 // import createQuadraticBuilder from "adaptive-quadratic-curve";
 
@@ -1021,11 +1022,11 @@ Path.prototype.getPathTexture = function (style, refresh) {
         const fillColor = style.fill || style.fillStyle;
         const strokeColor = style.stroke || style.strokeStyle;
         if (fillColor) {
-            this.ctx['fillStyle'] = fillColor;
+            this.ctx['fillStyle'] = colorMap.RGBAInstanceCheck(fillColor) ? fillColor.rgba : fillColor;
             this.ctx.fill(this.pathNode);
         }
         if (strokeColor) {
-            this.ctx['strokeStyle'] = strokeColor;
+            this.ctx['strokeStyle'] = colorMap.RGBAInstanceCheck(strokeColor) ? fillColor.rgba : fillColor;
             this.ctx.stroke(this.pathNode);
         }
     }
