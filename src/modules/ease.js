@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 import geometry from "./geometry.js";
 
-const t2DGeometry = geometry;
+const i2DGeometry = geometry;
 
 function linear(starttime, duration) {
     return starttime / duration;
@@ -45,7 +45,7 @@ function easeInOutQuad(starttime, duration) {
 
 function easeInCubic(starttime, duration) {
     const t = starttime / duration;
-    return t2DGeometry.pow(t, 3);
+    return i2DGeometry.pow(t, 3);
 }
 
 function easeOutCubic(starttime, duration) {
@@ -56,7 +56,7 @@ function easeOutCubic(starttime, duration) {
 
 function easeInOutCubic(starttime, duration) {
     const t = starttime / duration;
-    return t < 0.5 ? 4 * t2DGeometry.pow(t, 3) : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+    return t < 0.5 ? 4 * i2DGeometry.pow(t, 3) : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
 }
 
 function sinIn(starttime, duration) {
@@ -74,17 +74,17 @@ function easeInOutSin(starttime, duration) {
     return (1 - Math.cos(Math.PI * t)) / 2;
 } // function easeInQuart (starttime, duration) {
 //   const t = starttime / duration
-//   return t2DGeometry.pow(t, 4)
+//   return i2DGeometry.pow(t, 4)
 // }
 // function easeOutQuart (starttime, duration) {
 //   let t = starttime / duration
 //   t -= 1
-//   return 1 - t * t2DGeometry.pow(t, 3)
+//   return 1 - t * i2DGeometry.pow(t, 3)
 // }
 // function easeInOutQuart (starttime, duration) {
 //   let t = starttime / duration
 //   t -= 1
-//   return t < 0.5 ? 8 * t2DGeometry.pow(t, 4) : 1 - 8 * t * t2DGeometry.pow(t, 3)
+//   return t < 0.5 ? 8 * i2DGeometry.pow(t, 4) : 1 - 8 * t * i2DGeometry.pow(t, 3)
 // }
 
 export default function fetchTransitionType(_) {

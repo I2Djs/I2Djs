@@ -1005,7 +1005,7 @@ Path.prototype.getPath2DObject = function (pathStr) {
     return new Path2D(pathStr || this.fetchPathString());
 }
 
-Path.prototype.getPathTexture = function (style, refresh) {
+Path.prototype.getPathTexture = function (style = {}, refresh) {
     if(!this.layer || refresh) {
         const {x = 0, y= 0, height = 0, width = 0} = this.BBox;
 
@@ -1019,15 +1019,21 @@ Path.prototype.getPathTexture = function (style, refresh) {
 
         this.ctx.translate(x * -1 || 0, y * -1 || 0);
 
-        const fillColor = style.fill || style.fillStyle;
-        const strokeColor = style.stroke || style.strokeStyle;
-        if (fillColor) {
-            this.ctx['fillStyle'] = colorMap.RGBAInstanceCheck(fillColor) ? fillColor.rgba : fillColor;
-            this.ctx.fill(this.pathNode);
-        }
-        if (strokeColor) {
-            this.ctx['strokeStyle'] = colorMap.RGBAInstanceCheck(strokeColor) ? fillColor.rgba : fillColor;
-            this.ctx.stroke(this.pathNode);
+        for(let key in style) {
+            let value = style[key];
+            if (key === 'fillStyle' || key === 'fill') {
+                this.ctx['fillStyle'] = colorMap.RGBAInstanceCheck(value) ? value.rgba : value;
+                this.ctx.fill(this.pathNode);
+            } else if (key === 'strokeStyle' || key === 'stroke') {
+                this.ctx['strokeStyle'] = colorMap.RGBAInstanceCheck(value) ? value.rgba : value;
+                this.ctx.stroke(this.pathNode);
+            } else {
+                if (typeof this.ctx[key] !== "function") {
+                    this.ctx[key] = value;
+                } else if (typeof this.ctx[key] === "function") {
+                    this.ctx[key](value);
+                }
+            }
         }
     }
 
@@ -1148,7 +1154,7 @@ LinearTransitionBetweenPoints.prototype.pointAt = function (f) {
     return t2DGeometry.linearTransitionBetweenPoints(this.p0, this.p1, f);
 };
 
-function animatePathTo(targetConfig, fromConfig) {
+function AnimatePathTo(targetConfig, fromConfig) {
     const self = this;
     const { duration, ease, end, loop, direction, attr, delay = 0 } = targetConfig;
     const src = (fromConfig || self)?.attr?.d ?? (attr.d || "");
@@ -1161,7 +1167,7 @@ function animatePathTo(targetConfig, fromConfig) {
     }
 
     const chainInstance = chain.sequenceChain();
-    const newPathInstance = isTypePath(src) ? src : new Path(src);
+    const newPathInstance = CheckPathType(src) ? src : new Path(src);
     const arrExe = newPathInstance.stackGroup.reduce((p, c) => {
         p = p.concat(c);
         return p;
@@ -1303,15 +1309,15 @@ function animatePathTo(targetConfig, fromConfig) {
     return this;
 }
 
-function morphTo(targetConfig) {
+function MorphTo(targetConfig) {
     const self = this;
     const { duration } = targetConfig;
     const { ease } = targetConfig;
     const loop = targetConfig.loop ? targetConfig.loop : 0;
     const direction = targetConfig.direction ? targetConfig.direction : "default";
     const destD = targetConfig.attr.d ? targetConfig.attr.d : self.attr.d;
-    const srcPath = isTypePath(self.attr.d) ? self.attr.d : new Path(self.attr.d);
-    const destPath = isTypePath(destD) ? destD : new Path(destD);
+    const srcPath = CheckPathType(self.attr.d) ? self.attr.d : new Path(self.attr.d);
+    const destPath = CheckPathType(destD) ? destD : new Path(destD);
 
     const morphExe = interpolate(srcPath.fetchPathString(), destPath.fetchPathString(), {
         maxSegmentLength: 25,
@@ -1333,15 +1339,15 @@ function morphTo(targetConfig) {
     );
 }
 
-function isTypePath(pathInstance) {
+function CheckPathType(pathInstance) {
     return pathInstance instanceof Path;
 }
 
-export default {
-    instance: function (d) {
-        return new Path(d);
-    },
-    isTypePath,
-    animatePathTo,
-    morphTo,
-};
+function CreatePath (d) {
+    return new Path(d);
+}
+
+export { CreatePath };
+export { CheckPathType };
+export { AnimatePathTo };
+export { MorphTo };

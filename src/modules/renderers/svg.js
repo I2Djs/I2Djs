@@ -1,6 +1,6 @@
 import queue from "./../queue.js";
 import VDom from "./../VDom.js";
-import path from "./../path.js";
+import { CheckPathType, AnimatePathTo, MorphTo} from "./../path.js";
 import colorMap from "./../colorMap.js";
 import Events from "./../events.js";
 import {
@@ -420,7 +420,7 @@ function updateAttrsToDom(self, key) {
         if (key === "text") {
             self.dom.textContent = value;
         } else if (key === "d") {
-            if (path.isTypePath(value)) {
+            if (CheckPathType(value)) {
                 self.dom.setAttribute(key, value.fetchPathString());
             } else {
                 self.dom.setAttribute(key, value);
@@ -601,8 +601,8 @@ DomExe.prototype.child = function DMchild(nodes) {
     return this;
 };
 
-DomExe.prototype.animatePathTo = path.animatePathTo;
-DomExe.prototype.morphTo = path.morphTo;
+DomExe.prototype.animatePathTo = AnimatePathTo;
+DomExe.prototype.morphTo = MorphTo;
 
 DomExe.prototype.createRadialGradient = function DMcreateRadialGradient(config) {
     const gradientIns = new DomGradients(config, "radial", this);

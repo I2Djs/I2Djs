@@ -143,6 +143,9 @@
     };
     ExeQueue.prototype.removeVdom = function removeVdom(_) {
         const index = vDomIds.indexOf(_);
+        tweens = tweens.filter((d)=>{
+            return (d?.executable?.target?.vDomIndex??null) !== _;
+        });
         if (index !== -1) {
             vDomIds.splice(index, 1);
             vDoms[_].root.destroy();
@@ -760,7 +763,7 @@
     };
     var geometry = new Geometry();
 
-    const t2DGeometry$4 = geometry;
+    const i2DGeometry$1 = geometry;
     function linear(starttime, duration) {
         return starttime / duration;
     }
@@ -797,7 +800,7 @@
     }
     function easeInCubic(starttime, duration) {
         const t = starttime / duration;
-        return t2DGeometry$4.pow(t, 3);
+        return i2DGeometry$1.pow(t, 3);
     }
     function easeOutCubic(starttime, duration) {
         let t = starttime / duration;
@@ -806,7 +809,7 @@
     }
     function easeInOutCubic(starttime, duration) {
         const t = starttime / duration;
-        return t < 0.5 ? 4 * t2DGeometry$4.pow(t, 3) : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+        return t < 0.5 ? 4 * i2DGeometry$1.pow(t, 3) : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
     }
     function sinIn(starttime, duration) {
         const t = starttime / duration;
@@ -3848,7 +3851,7 @@ Example valid ways of supplying a shape would be:
     };
 
     let morphIdentifier = 0;
-    const t2DGeometry$3 = geometry;
+    const t2DGeometry$2 = geometry;
     const queueInstance$5 = queue;
     const easying = fetchTransitionType;
     function animeId$2() {
@@ -3897,8 +3900,8 @@ Example valid ways of supplying a shape would be:
                 }
             });
         } else if (["Q", "C", "q", "c"].indexOf(d.type) !== -1) {
-            const co = t2DGeometry$3.cubicBezierCoefficients(d);
-            const exe = t2DGeometry$3.cubicBezierTransition.bind(null, d.p0, co);
+            const co = t2DGeometry$2.cubicBezierCoefficients(d);
+            const exe = t2DGeometry$2.cubicBezierTransition.bind(null, d.p0, co);
             let ii = 0;
             let point;
             while (ii < 1) {
@@ -4041,14 +4044,14 @@ Example valid ways of supplying a shape would be:
         });
         this.cntrl = null;
         this.cp = addVectors(p1, temp);
-        this.segmentLength = t2DGeometry$3.getDistance(this.pp, this.cp);
+        this.segmentLength = t2DGeometry$2.getDistance(this.pp, this.cp);
         this.stack.push({
             type: "V",
             p0: this.pp,
             p1: this.cp,
             length: this.segmentLength,
             pointAt(f) {
-                return t2DGeometry$3.linearTransitionBetweenPoints(this.p0, this.p1, f);
+                return t2DGeometry$2.linearTransitionBetweenPoints(this.p0, this.p1, f);
             },
         });
         this.length += this.segmentLength;
@@ -4068,7 +4071,7 @@ Example valid ways of supplying a shape would be:
         });
         this.cntrl = null;
         this.cp = addVectors(p1, temp);
-        this.segmentLength = t2DGeometry$3.getDistance(this.pp, this.cp);
+        this.segmentLength = t2DGeometry$2.getDistance(this.pp, this.cp);
         this.stack.push({
             type: rel ? "L" : "l",
             p0: this.pp,
@@ -4078,7 +4081,7 @@ Example valid ways of supplying a shape would be:
             },
             length: this.segmentLength,
             pointAt(f) {
-                return t2DGeometry$3.linearTransitionBetweenPoints(this.p0, this.p1, f);
+                return t2DGeometry$2.linearTransitionBetweenPoints(this.p0, this.p1, f);
             },
         });
         this.length += this.segmentLength;
@@ -4098,7 +4101,7 @@ Example valid ways of supplying a shape would be:
         });
         this.cp = addVectors(p1, temp);
         this.cntrl = null;
-        this.segmentLength = t2DGeometry$3.getDistance(this.pp, this.cp);
+        this.segmentLength = t2DGeometry$2.getDistance(this.pp, this.cp);
         this.stack.push({
             type: rel ? "H" : "h",
             p0: this.pp,
@@ -4108,7 +4111,7 @@ Example valid ways of supplying a shape would be:
                 p1: p1,
             },
             pointAt(f) {
-                return t2DGeometry$3.linearTransitionBetweenPoints(this.p0, this.p1, f);
+                return t2DGeometry$2.linearTransitionBetweenPoints(this.p0, this.p1, f);
             },
         });
         this.length += this.segmentLength;
@@ -4123,14 +4126,14 @@ Example valid ways of supplying a shape would be:
     }
     function z() {
         this.cp = this.start;
-        this.segmentLength = t2DGeometry$3.getDistance(this.pp, this.cp);
+        this.segmentLength = t2DGeometry$2.getDistance(this.pp, this.cp);
         this.stack.push({
             p0: this.pp,
             p1: this.cp,
             type: "Z",
             length: this.segmentLength,
             pointAt(f) {
-                return t2DGeometry$3.linearTransitionBetweenPoints(this.p0, this.p1, f);
+                return t2DGeometry$2.linearTransitionBetweenPoints(this.p0, this.p1, f);
             },
         });
         this.length += this.segmentLength;
@@ -4151,7 +4154,7 @@ Example valid ways of supplying a shape would be:
         const cntrl1 = addVectors(c1, temp);
         const endPoint = addVectors(ep, temp);
         this.cp = endPoint;
-        this.segmentLength = t2DGeometry$3.bezierLength(this.pp, cntrl1, this.cp);
+        this.segmentLength = t2DGeometry$2.bezierLength(this.pp, cntrl1, this.cp);
         this.cp = endPoint;
         this.stack.push({
             type: rel ? "Q" : "q",
@@ -4165,7 +4168,7 @@ Example valid ways of supplying a shape would be:
             },
             length: this.segmentLength,
             pointAt(f) {
-                return t2DGeometry$3.bezierTransition(this.p0, this.cntrl1, this.p1, f);
+                return t2DGeometry$2.bezierTransition(this.p0, this.cntrl1, this.p1, f);
             },
         });
         this.length += this.segmentLength;
@@ -4188,7 +4191,7 @@ Example valid ways of supplying a shape would be:
         const cntrl1 = addVectors(c1, temp);
         const cntrl2 = addVectors(c2, temp);
         const endPoint = addVectors(ep, temp);
-        const co = t2DGeometry$3.cubicBezierCoefficients({
+        const co = t2DGeometry$2.cubicBezierCoefficients({
             p0: this.pp,
             cntrl1,
             cntrl2,
@@ -4196,7 +4199,7 @@ Example valid ways of supplying a shape would be:
         });
         this.cntrl = cntrl2;
         this.cp = endPoint;
-        this.segmentLength = t2DGeometry$3.cubicBezierLength(this.pp, co);
+        this.segmentLength = t2DGeometry$2.cubicBezierLength(this.pp, co);
         this.stack.push({
             type: rel ? "C" : "c",
             p0: this.pp,
@@ -4211,7 +4214,7 @@ Example valid ways of supplying a shape would be:
                 p1: ep,
             },
             pointAt(f) {
-                return t2DGeometry$3.cubicBezierTransition(this.p0, this.co, f);
+                return t2DGeometry$2.cubicBezierTransition(this.p0, this.co, f);
             },
         });
         this.length += this.segmentLength;
@@ -4235,13 +4238,13 @@ Example valid ways of supplying a shape would be:
             : cntrl2;
         const endPoint = addVectors(ep, temp);
         this.cp = endPoint;
-        const co = t2DGeometry$3.cubicBezierCoefficients({
+        const co = t2DGeometry$2.cubicBezierCoefficients({
             p0: this.pp,
             cntrl1,
             cntrl2,
             p1: endPoint,
         });
-        this.segmentLength = t2DGeometry$3.cubicBezierLength(this.pp, co);
+        this.segmentLength = t2DGeometry$2.cubicBezierLength(this.pp, co);
         this.stack.push({
             type: rel ? "S" : "s",
             p0: this.pp,
@@ -4255,7 +4258,7 @@ Example valid ways of supplying a shape would be:
                 p1: ep,
             },
             pointAt(f) {
-                return t2DGeometry$3.cubicBezierTransition(this.p0, this.co, f);
+                return t2DGeometry$2.cubicBezierTransition(this.p0, this.co, f);
             },
         });
         updateBBox(
@@ -4277,7 +4280,7 @@ Example valid ways of supplying a shape would be:
         const self = this;
         const endPoint = addVectors(ep, temp);
         this.cp = endPoint;
-        const arcToQuad = t2DGeometry$3.arcToBezier({
+        const arcToQuad = t2DGeometry$2.arcToBezier({
             px: this.pp.x,
             py: this.pp.y,
             cx: endPoint.x,
@@ -4308,9 +4311,9 @@ Example valid ways of supplying a shape would be:
                 x: d.x,
                 y: d.y,
             };
-            const segmentLength = t2DGeometry$3.cubicBezierLength(
+            const segmentLength = t2DGeometry$2.cubicBezierLength(
                 pp,
-                t2DGeometry$3.cubicBezierCoefficients({
+                t2DGeometry$2.cubicBezierCoefficients({
                     p0: pp,
                     cntrl1,
                     cntrl2,
@@ -4325,7 +4328,7 @@ Example valid ways of supplying a shape would be:
                 p1: cp,
                 length: segmentLength,
                 pointAt(f) {
-                    return t2DGeometry$3.bezierTransition(this.p0, this.cntrl1, this.cntrl2, this.p1, f);
+                    return t2DGeometry$2.bezierTransition(this.p0, this.cntrl1, this.cntrl2, this.p1, f);
                 },
             });
             self.length += segmentLength;
@@ -4669,7 +4672,7 @@ Example valid ways of supplying a shape would be:
     Path.prototype.getPath2DObject = function (pathStr) {
         return new Path2D(pathStr || this.fetchPathString());
     };
-    Path.prototype.getPathTexture = function (style, refresh) {
+    Path.prototype.getPathTexture = function (style = {}, refresh) {
         if(!this.layer || refresh) {
             const {x = 0, y= 0, height = 0, width = 0} = this.BBox;
             this.pathNode = this.getPath2DObject();
@@ -4678,15 +4681,21 @@ Example valid ways of supplying a shape would be:
             this.layer.setAttribute("height", height);
             this.layer.setAttribute("width", width);
             this.ctx.translate(x * -1 || 0, y * -1 || 0);
-            const fillColor = style.fill || style.fillStyle;
-            const strokeColor = style.stroke || style.strokeStyle;
-            if (fillColor) {
-                this.ctx['fillStyle'] = colorMap$1.RGBAInstanceCheck(fillColor) ? fillColor.rgba : fillColor;
-                this.ctx.fill(this.pathNode);
-            }
-            if (strokeColor) {
-                this.ctx['strokeStyle'] = colorMap$1.RGBAInstanceCheck(strokeColor) ? fillColor.rgba : fillColor;
-                this.ctx.stroke(this.pathNode);
+            for(let key in style) {
+                let value = style[key];
+                if (key === 'fillStyle' || key === 'fill') {
+                    this.ctx['fillStyle'] = colorMap$1.RGBAInstanceCheck(value) ? value.rgba : value;
+                    this.ctx.fill(this.pathNode);
+                } else if (key === 'strokeStyle' || key === 'stroke') {
+                    this.ctx['strokeStyle'] = colorMap$1.RGBAInstanceCheck(value) ? value.rgba : value;
+                    this.ctx.stroke(this.pathNode);
+                } else {
+                    if (typeof this.ctx[key] !== "function") {
+                        this.ctx[key] = value;
+                    } else if (typeof this.ctx[key] === "function") {
+                        this.ctx[key](value);
+                    }
+                }
             }
         }
         return this.layer;
@@ -4721,8 +4730,8 @@ Example valid ways of supplying a shape would be:
             y: c1Temp.y + (c2Temp.y - c1Temp.y) * f,
         };
         this.p1 = {
-            x: co.ax * t2DGeometry$3.pow(f, 3) + co.bx * t2DGeometry$3.pow(f, 2) + co.cx * f + p0.x,
-            y: co.ay * t2DGeometry$3.pow(f, 3) + co.by * t2DGeometry$3.pow(f, 2) + co.cy * f + p0.y,
+            x: co.ax * t2DGeometry$2.pow(f, 3) + co.bx * t2DGeometry$2.pow(f, 2) + co.cx * f + p0.x,
+            y: co.ay * t2DGeometry$2.pow(f, 3) + co.by * t2DGeometry$2.pow(f, 2) + co.cy * f + p0.y,
         };
         this.length = this.length_src * f;
         this.relative = {
@@ -4733,7 +4742,7 @@ Example valid ways of supplying a shape would be:
         return this;
     };
     CubicBezierTransition.prototype.pointAt = function (f) {
-        return t2DGeometry$3.cubicBezierTransition(this.p0, this.co, f);
+        return t2DGeometry$2.cubicBezierTransition(this.p0, this.co, f);
     };
     const BezierTransition = function BezierTransition(type, p0, p1, p2, length) {
         this.type = type;
@@ -4764,7 +4773,7 @@ Example valid ways of supplying a shape would be:
         return this;
     };
     BezierTransition.prototype.pointAt = function (f) {
-        return t2DGeometry$3.bezierTransition(this.p0, this.cntrl1, this.p1, f);
+        return t2DGeometry$2.bezierTransition(this.p0, this.cntrl1, this.p1, f);
     };
     const LinearTransitionBetweenPoints = function LinearTransitionBetweenPoints(
         type,
@@ -4793,9 +4802,9 @@ Example valid ways of supplying a shape would be:
         return this;
     };
     LinearTransitionBetweenPoints.prototype.pointAt = function (f) {
-        return t2DGeometry$3.linearTransitionBetweenPoints(this.p0, this.p1, f);
+        return t2DGeometry$2.linearTransitionBetweenPoints(this.p0, this.p1, f);
     };
-    function animatePathTo(targetConfig, fromConfig) {
+    function AnimatePathTo(targetConfig, fromConfig) {
         const self = this;
         const { duration, ease, end, loop, direction, attr, delay = 0 } = targetConfig;
         const src = (fromConfig || self)?.attr?.d ?? (attr.d || "");
@@ -4806,7 +4815,7 @@ Example valid ways of supplying a shape would be:
             throw Error("Path Not defined");
         }
         const chainInstance = chain.sequenceChain();
-        const newPathInstance = isTypePath(src) ? src : new Path(src);
+        const newPathInstance = CheckPathType(src) ? src : new Path(src);
         const arrExe = newPathInstance.stackGroup.reduce((p, c) => {
             p = p.concat(c);
             return p;
@@ -4877,7 +4886,7 @@ Example valid ways of supplying a shape would be:
                 arrExe[i].type === "c" ||
                 arrExe[i].type === "s"
             ) {
-                const co = t2DGeometry$3.cubicBezierCoefficients(arrExe[i]);
+                const co = t2DGeometry$2.cubicBezierCoefficients(arrExe[i]);
                 mappedArr.push({
                     run(f) {
                         newPathInstance.stack.length = this.id + 1;
@@ -4935,15 +4944,15 @@ Example valid ways of supplying a shape would be:
         chainInstance.commit();
         return this;
     }
-    function morphTo(targetConfig) {
+    function MorphTo(targetConfig) {
         const self = this;
         const { duration } = targetConfig;
         const { ease } = targetConfig;
         const loop = targetConfig.loop ? targetConfig.loop : 0;
         const direction = targetConfig.direction ? targetConfig.direction : "default";
         const destD = targetConfig.attr.d ? targetConfig.attr.d : self.attr.d;
-        const srcPath = isTypePath(self.attr.d) ? self.attr.d : new Path(self.attr.d);
-        const destPath = isTypePath(destD) ? destD : new Path(destD);
+        const srcPath = CheckPathType(self.attr.d) ? self.attr.d : new Path(self.attr.d);
+        const destPath = CheckPathType(destD) ? destD : new Path(destD);
         const morphExe = interpolate(srcPath.fetchPathString(), destPath.fetchPathString(), {
             maxSegmentLength: 25,
         });
@@ -4962,17 +4971,12 @@ Example valid ways of supplying a shape would be:
             easying(ease)
         );
     }
-    function isTypePath(pathInstance) {
+    function CheckPathType(pathInstance) {
         return pathInstance instanceof Path;
     }
-    var path = {
-        instance: function (d) {
-            return new Path(d);
-        },
-        isTypePath,
-        animatePathTo,
-        morphTo,
-    };
+    function CreatePath (d) {
+        return new Path(d);
+    }
 
     function Events(vDom) {
         this.vDom = vDom;
@@ -5875,7 +5879,7 @@ Example valid ways of supplying a shape would be:
     }());
 
     let animeIdentifier$1 = 0;
-    const t2DGeometry$2 = geometry;
+    const t2DGeometry$1 = geometry;
     const easing$1 = fetchTransitionType;
     const queueInstance$4 = queue;
     const ResizeObserver = window.ResizeObserver || ResizeObserver$1;
@@ -5906,7 +5910,7 @@ Example valid ways of supplying a shape would be:
             } else {
                 val = subkey === "scale" ? 1 : 0;
             }
-            exe.push(t2DGeometry$2.intermediateValue.bind(null, val, tV));
+            exe.push(t2DGeometry$1.intermediateValue.bind(null, val, tV));
         });
         return function inner(f) {
             self[subkey](exe.map((d) => d(f)));
@@ -5914,7 +5918,7 @@ Example valid ways of supplying a shape would be:
     };
     const attrTransition = function attrTransition(self, key, srcVal, tgtVal) {
         return function setAttr_(f) {
-            self.setAttr(key, t2DGeometry$2.intermediateValue(srcVal, tgtVal, f));
+            self.setAttr(key, t2DGeometry$1.intermediateValue(srcVal, tgtVal, f));
         };
     };
     const styleTransition = function styleTransition(self, key, sVal, value) {
@@ -5946,7 +5950,7 @@ Example valid ways of supplying a shape would be:
                 destUnit = 0;
             }
             return function inner(f) {
-                self.setStyle(key, t2DGeometry$2.intermediateValue(srcValue, destValue, f) + destUnit);
+                self.setStyle(key, t2DGeometry$1.intermediateValue(srcValue, destValue, f) + destUnit);
             };
         }
     };
@@ -7159,7 +7163,7 @@ Example valid ways of supplying a shape would be:
             if (key === "text") {
                 self.dom.textContent = value;
             } else if (key === "d") {
-                if (path.isTypePath(value)) {
+                if (CheckPathType(value)) {
                     self.dom.setAttribute(key, value.fetchPathString());
                 } else {
                     self.dom.setAttribute(key, value);
@@ -7292,8 +7296,8 @@ Example valid ways of supplying a shape would be:
         }
         return this;
     };
-    DomExe.prototype.animatePathTo = path.animatePathTo;
-    DomExe.prototype.morphTo = path.morphTo;
+    DomExe.prototype.animatePathTo = AnimatePathTo;
+    DomExe.prototype.morphTo = MorphTo;
     DomExe.prototype.createRadialGradient = function DMcreateRadialGradient(config) {
         const gradientIns = new DomGradients(config, "radial", this);
         gradientIns.radialGradient();
@@ -7540,6 +7544,197 @@ Example valid ways of supplying a shape would be:
             layerResizeBind(root, resize);
         }
         return root;
+    }
+
+    function shaders(el) {
+        let res;
+        switch (el) {
+            case "point":
+                res = {
+                    vertexShader: `#version 300 es
+                    precision highp float;
+                    in vec2 a_position;
+                    in vec4 a_color;
+                    in float a_size;
+                    in mat3 a_transformMatrix;
+                    out vec4 v_color;
+                    void main() {
+                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);
+                      gl_PointSize = a_size;
+                      v_color = a_color;
+                    }
+                    `,
+                    fragmentShader: `#version 300 es
+                    precision mediump float;
+                    in vec4 v_color;
+                    out vec4 fragColor;
+                    void main() {
+                        fragColor = v_color;
+                    }
+                    `,
+                };
+                break;
+            case "circle":
+                res = {
+                    vertexShader: `#version 300 es
+                    precision highp float;
+                    in vec2 a_position;
+                    in vec4 a_color;
+                    in float a_radius;
+                    in mat3 a_transformMatrix;
+                    out vec4 v_color;
+
+                    void main() {
+                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);
+                      gl_PointSize = a_radius; // * a_transform.z * u_transform.z;
+                      v_color = a_color;
+                    }
+                    `,
+                    fragmentShader: `#version 300 es
+                    precision mediump float;
+                    in vec4 v_color;
+                    out vec4 fragColor;
+                    void main() {
+                      float r = 0.0, delta = 0.0, alpha = 1.0;
+                      vec2 cxy = 2.0 * gl_PointCoord - 1.0;
+                      r = dot(cxy, cxy);
+                      if(r > 1.0) {
+                        discard;
+                      }
+                      delta = 0.09;
+                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);
+                      fragColor = v_color * alpha;
+                    }
+                    `,
+                };
+                break;
+            case "image":
+                res = {
+                    vertexShader: `#version 300 es
+                    precision highp float;
+                    in vec2 a_position;
+                    in vec2 a_texCoord;
+                    uniform mat3 u_transformMatrix;
+                    out vec2 v_texCoord;
+
+                    void main() {
+                      gl_Position = vec4(u_transformMatrix * vec3(a_position, 1), 1);
+                      v_texCoord = a_texCoord;
+                    }
+          `,
+                    fragmentShader: `#version 300 es
+                    precision mediump float;
+                    uniform sampler2D u_image;
+                    uniform float u_opacity;
+                    in vec2 v_texCoord;
+                    out vec4 fragColor;
+                    void main() {
+                      vec4 col = texture(u_image, v_texCoord);
+                      if (col.a == 0.0) {
+                        discard;
+                      } else {
+                        fragColor = col;
+                        fragColor.a *= u_opacity;
+                      }
+                    }
+                    `,
+                };
+                break;
+            case "polyline":
+            case "polygon":
+                res = {
+                    vertexShader: `#version 300 es
+                    precision highp float;
+                    in vec2 a_position;
+                    uniform mat3 u_transformMatrix;
+
+                    void main() {
+                      gl_Position = vec4(u_transformMatrix * vec3(a_position, 1), 1);
+                    }
+                    `,
+                    fragmentShader: `#version 300 es
+                    precision mediump float;
+                    uniform vec4 u_color;
+                    out vec4 fragColor;
+                    void main() {
+                        fragColor = u_color;
+                    }
+                    `,
+                };
+                break;
+            case "rect":
+                res = {
+                    vertexShader: `#version 300 es
+                    precision highp float;
+                    in vec2 a_position;
+                    in vec4 a_color;
+                    in mat3 a_transformMatrix;
+                    out vec4 v_color;
+
+                    void main() {
+                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);
+                      v_color = a_color;
+                    }
+                    `,
+                    fragmentShader: `#version 300 es
+                    precision mediump float;
+                    in vec4 v_color;
+                    out vec4 fragColor;
+                    void main() {
+                      fragColor = v_color;
+                    }
+                    `,
+                };
+                break;
+            case "line":
+                res = {
+                    vertexShader: `#version 300 es
+                    precision highp float;
+                    in vec2 a_position;
+                    in vec4 a_color;
+                    in mat3 a_transformMatrix;
+                    out vec4 v_color;
+
+                    void main() {
+                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);
+                      v_color = a_color;
+                    }
+                    `,
+                    fragmentShader: `#version 300 es
+                    precision mediump float;
+                    in vec4 v_color;
+                    out vec4 fragColor;
+                    void main() {
+                        fragColor = v_color;
+                    }
+                    `,
+                };
+                break;
+            default:
+                res = {
+                    vertexShader: `#version 300 es
+                    precision highp float;
+                    in vec2 a_position;
+                    in vec4 a_color;
+                    in mat3 a_transformMatrix;
+                    out vec4 v_color;
+
+                    void main() {
+                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);
+                      v_color = a_color;
+                    }
+                    `,
+                    fragmentShader: `#version 300 es
+                    precision mediump float;
+                    in vec4 v_color;
+                    out vec4 fragColor;
+                    void main() {
+                      fragColor = v_color;
+                    }
+                    `,
+                };
+        }
+        return res;
     }
 
     const queueInstance$2 = queue;
@@ -8045,2988 +8240,3220 @@ Example valid ways of supplying a shape would be:
         },
     };
 
-    !function (e) {
-      if ("object" == typeof exports && "undefined" != typeof module) module.exports = e();else if ("function" == typeof define && define.amd) define([], e);else {
-        var f;
-        "undefined" != typeof window ? f = window : "undefined" != typeof global ? f = global : "undefined" != typeof self && (f = self), f.blobStream = e();
-      }
-    }(function () {
-      return function e(t, n, r) {
-        function s(o, u) {
-          if (!n[o]) {
-            if (!t[o]) {
-              var a = typeof require == "function" && require;
-              if (!u && a) return a(o, !0);
-              if (i) return i(o, !0);
-              var f = new Error("Cannot find module '" + o + "'");
-              throw f.code = "MODULE_NOT_FOUND", f;
+    const t2DGeometry = geometry;
+    let ratio;
+    const queueInstance$1 = queue;
+    const zoomInstance$1 = behaviour.zoom();
+    const dragInstance$1 = behaviour.drag();
+    function getPixlRatio$1(ctx) {
+        const dpr = window.devicePixelRatio || 1;
+        const bsr =
+            ctx.webkitBackingStorePixelRatio ||
+            ctx.mozBackingStorePixelRatio ||
+            ctx.msBackingStorePixelRatio ||
+            ctx.oBackingStorePixelRatio ||
+            ctx.backingStorePixelRatio ||
+            1;
+        const ratio = dpr / bsr;
+        return ratio < 1.0 ? 1.0 : ratio;
+    }
+    let Id$1 = 0;
+    function domId$1() {
+        Id$1 += 1;
+        return Id$1;
+    }
+    function parseTransform$1(transform) {
+        const output = {
+            translateX: 0,
+            translateY: 0,
+            scaleX: 1,
+            scaleY: 1,
+            angle: 0,
+        };
+        if (transform) {
+            if (transform.translate && transform.translate.length > 0) {
+                output.translateX = transform.translate[0];
+                output.translateY = transform.translate[1];
             }
-            var l = n[o] = {
-              exports: {}
-            };
-            t[o][0].call(l.exports, function (e) {
-              var n = t[o][1][e];
-              return s(n ? n : e);
-            }, l, l.exports, e, t, n, r);
-          }
-          return n[o].exports;
+            if (transform.scale && transform.scale.length > 0) {
+                output.scaleX = transform.scale[0];
+                output.scaleY = transform.scale[1] || output.scaleX;
+            }
+            if (transform.rotate && transform.rotate.length > 0) {
+                output.angle = transform.rotate[0];
+            }
         }
-        var i = typeof require == "function" && require;
-        for (var o = 0; o < r.length; o++) s(r[o]);
-        return s;
-      }({
-        1: [function (require, module, exports) {
-          (function (global) {
-            var BlobBuilder = global.BlobBuilder || global.WebKitBlobBuilder || global.MSBlobBuilder || global.MozBlobBuilder;
-            var blobSupported = function () {
-              try {
-                var a = new Blob(['hi']);
-                return a.size === 2;
-              } catch (e) {
-                return false;
-              }
-            }();
-            var blobSupportsArrayBufferView = blobSupported && function () {
-              try {
-                var b = new Blob([new Uint8Array([1, 2])]);
-                return b.size === 2;
-              } catch (e) {
-                return false;
-              }
-            }();
-            var blobBuilderSupported = BlobBuilder && BlobBuilder.prototype.append && BlobBuilder.prototype.getBlob;
-            function mapArrayBufferViews(ary) {
-              for (var i = 0; i < ary.length; i++) {
-                var chunk = ary[i];
-                if (chunk.buffer instanceof ArrayBuffer) {
-                  var buf = chunk.buffer;
-                  if (chunk.byteLength !== buf.byteLength) {
-                    var copy = new Uint8Array(chunk.byteLength);
-                    copy.set(new Uint8Array(buf, chunk.byteOffset, chunk.byteLength));
-                    buf = copy.buffer;
-                  }
-                  ary[i] = buf;
+        return output;
+    }
+    function RPolyupdateBBox$1() {
+        const self = this;
+        const { transform, points = [] } = self.attr;
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        if (points && points.length > 0) {
+            let minX = points[0].x;
+            let maxX = points[0].x;
+            let minY = points[0].y;
+            let maxY = points[0].y;
+            for (let i = 1; i < points.length; i += 1) {
+                if (minX > points[i].x) minX = points[i].x;
+                if (maxX < points[i].x) maxX = points[i].x;
+                if (minY > points[i].y) minY = points[i].y;
+                if (maxY < points[i].y) maxY = points[i].y;
+            }
+            self.BBox = {
+                x: translateX + minX * scaleX,
+                y: translateY + minY * scaleY,
+                width: (maxX - minX) * scaleX,
+                height: (maxY - minY) * scaleY,
+            };
+        } else {
+            self.BBox = {
+                x: 0,
+                y: 0,
+                width: 0,
+                height: 0,
+            };
+        }
+        if (transform && transform.rotate) {
+            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+        } else {
+            self.BBoxHit = this.BBox;
+        }
+    }
+    var m3 = {
+        multiply: function (a, b) {
+            var a00 = a[0 * 3 + 0];
+            var a01 = a[0 * 3 + 1];
+            var a02 = a[0 * 3 + 2];
+            var a10 = a[1 * 3 + 0];
+            var a11 = a[1 * 3 + 1];
+            var a12 = a[1 * 3 + 2];
+            var a20 = a[2 * 3 + 0];
+            var a21 = a[2 * 3 + 1];
+            var a22 = a[2 * 3 + 2];
+            var b00 = b[0 * 3 + 0];
+            var b01 = b[0 * 3 + 1];
+            var b02 = b[0 * 3 + 2];
+            var b10 = b[1 * 3 + 0];
+            var b11 = b[1 * 3 + 1];
+            var b12 = b[1 * 3 + 2];
+            var b20 = b[2 * 3 + 0];
+            var b21 = b[2 * 3 + 1];
+            var b22 = b[2 * 3 + 2];
+            return [
+                b00 * a00 + b01 * a10 + b02 * a20,
+                b00 * a01 + b01 * a11 + b02 * a21,
+                b00 * a02 + b01 * a12 + b02 * a22,
+                b10 * a00 + b11 * a10 + b12 * a20,
+                b10 * a01 + b11 * a11 + b12 * a21,
+                b10 * a02 + b11 * a12 + b12 * a22,
+                b20 * a00 + b21 * a10 + b22 * a20,
+                b20 * a01 + b21 * a11 + b22 * a21,
+                b20 * a02 + b21 * a12 + b22 * a22,
+            ];
+        },
+        translation: function (tx, ty, mtrx) {
+            if (mtrx && mtrx[6] === tx && mtrx[7] === ty) {
+                return mtrx;
+            }
+            return [1, 0, 0, 0, 1, 0, tx, ty, 1];
+        },
+        rotation: function (angleInRadians) {
+            var c = Math.cos(angleInRadians);
+            var s = Math.sin(angleInRadians);
+            return [c, -s, 0, s, c, 0, 0, 0, 1];
+        },
+        scaling: function (sx, sy) {
+            return [sx, 0, 0, 0, sy, 0, 0, 0, 1];
+        },
+        identity: function () {
+            return [1, 0, 0, 0, 1, 0, 0, 0, 1];
+        },
+        projection: function (width, height) {
+            return [2 / width, 0, 0, 0, -2 / height, 0, -1, 1, 1];
+        },
+    };
+    function updateTransformMatrix(matrix_) {
+        const transform = this.attr.transform;
+        let matrix = matrix_ || this.projectionMatrix;
+        if (transform && transform.translate) {
+            this.translationMatrix = m3.translation(
+                transform.translate[0],
+                transform.translate[1],
+                this.translationMatrix
+            );
+            matrix = m3.multiply(matrix, this.translationMatrix);
+        }
+        if (transform && transform.rotate) {
+            const angle = (Math.PI / 180) * transform.rotate[0];
+            this.rotationMatrix = m3.rotation(angle);
+            this.rotationCentric = m3.translation(
+                transform.rotate[1] || 0,
+                transform.rotate[2] || 0,
+                this.rotationCentric
+            );
+            matrix = m3.multiply(matrix, this.rotationMatrix);
+        }
+        if (transform && transform.scale) {
+            this.scaleMatrix = m3.scaling(transform.scale[0], transform.scale[1]);
+            matrix = m3.multiply(matrix, this.scaleMatrix);
+        }
+        if (this.rotationCentric) {
+            matrix = m3.multiply(matrix, this.rotationCentric);
+        }
+        this.transformMatrix = matrix;
+    }
+    function prepObjProxyWebGl(type, attr, context, BBoxUpdate) {
+        const handlr = {
+            set(obj, prop, value) {
+                if (value !== null) {
+                    if (type === 'attr') {
+                        obj[prop] = value;
+                        if (prop === "transform" && context.children.length > 0) {
+                            context.children.forEach(function (d) {
+                                d.applyTransformationMatrix(context.dom.transformMatrix);
+                            });
+                        }
+                        if (context && context.dom) {
+                            context.dom.setAttr(prop, value);
+                        }
+                        if (BBoxUpdate) {
+                            context.BBoxUpdate = true;
+                        }
+                    } else if (type === 'style') {
+                        if (prop === "fill" || prop === "stroke") {
+                            value = colorMap$1.colorToRGB(value);
+                        }
+                        if (context && context.dom) {
+                            context.dom.setStyle(prop, value);
+                        }
+                        obj[prop] = value;
+                    } else if (type === 'transform') {
+                        if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
+                            value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
+                        } else if (prop === 'rotate') {
+                            value = Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0];
+                        }
+                        obj[prop] = value;
+                        if (context && context.dom) {
+                            context.dom.setAttr('transform', obj);
+                        }
+                        if (BBoxUpdate) {
+                            context.BBoxUpdate = true;
+                        }
+                    }
+                    queueInstance$1.vDomChanged(context.vDomIndex);
+                } else {
+                    delete obj[prop];
                 }
-              }
-            }
-            function BlobBuilderConstructor(ary, options) {
-              options = options || {};
-              var bb = new BlobBuilder();
-              mapArrayBufferViews(ary);
-              for (var i = 0; i < ary.length; i++) {
-                bb.append(ary[i]);
-              }
-              return options.type ? bb.getBlob(options.type) : bb.getBlob();
-            }
-            function BlobConstructor(ary, options) {
-              mapArrayBufferViews(ary);
-              return new Blob(ary, options || {});
-            }
-            module.exports = function () {
-              if (blobSupported) {
-                return blobSupportsArrayBufferView ? global.Blob : BlobConstructor;
-              } else if (blobBuilderSupported) {
-                return BlobBuilderConstructor;
-              } else {
-                return undefined;
-              }
-            }();
-          }).call(this, typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
-        }, {}],
-        2: [function (require, module, exports) {
-          (function (global) {
-            var WritableStream = require('stream').Writable;
-            var util = require('util');
-            var Blob = require('blob');
-            var URL = global.URL || global.webkitURL || global.mozURL;
-            function BlobStream() {
-              if (!(this instanceof BlobStream)) return new BlobStream();
-              WritableStream.call(this);
-              this._chunks = [];
-              this._blob = null;
-              this.length = 0;
-            }
-            util.inherits(BlobStream, WritableStream);
-            BlobStream.prototype._write = function (chunk, encoding, callback) {
-              if (!(chunk instanceof Uint8Array)) chunk = new Uint8Array(chunk);
-              this.length += chunk.length;
-              this._chunks.push(chunk);
-              callback();
-            };
-            BlobStream.prototype.toBlob = function (type) {
-              type = type || 'application/octet-stream';
-              if (!this._blob) {
-                this._blob = new Blob(this._chunks, {
-                  type: type
-                });
-                this._chunks = [];
-              }
-              if (this._blob.type !== type) this._blob = new Blob([this._blob], {
-                type: type
-              });
-              return this._blob;
-            };
-            BlobStream.prototype.toBlobURL = function (type) {
-              return URL.createObjectURL(this.toBlob(type));
-            };
-            module.exports = BlobStream;
-          }).call(this, typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
-        }, {
-          "blob": 1,
-          "stream": 22,
-          "util": 25
-        }],
-        3: [function (require, module, exports) {
-          /*!
-           * The buffer module from node.js, for the browser.
-           *
-           * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
-           * @license  MIT
-           */
-          var base64 = require('base64-js');
-          var ieee754 = require('ieee754');
-          var isArray = require('is-array');
-          exports.Buffer = Buffer;
-          exports.SlowBuffer = Buffer;
-          exports.INSPECT_MAX_BYTES = 50;
-          Buffer.poolSize = 8192;
-          var kMaxLength = 0x3fffffff;
-          Buffer.TYPED_ARRAY_SUPPORT = function () {
-            try {
-              var buf = new ArrayBuffer(0);
-              var arr = new Uint8Array(buf);
-              arr.foo = function () {
-                return 42;
-              };
-              return 42 === arr.foo() &&
-              typeof arr.subarray === 'function' &&
-              new Uint8Array(1).subarray(1, 1).byteLength === 0;
-            } catch (e) {
-              return false;
-            }
-          }();
-          function Buffer(subject, encoding, noZero) {
-            if (!(this instanceof Buffer)) return new Buffer(subject, encoding, noZero);
-            var type = typeof subject;
-            var length;
-            if (type === 'number') length = subject > 0 ? subject >>> 0 : 0;else if (type === 'string') {
-              if (encoding === 'base64') subject = base64clean(subject);
-              length = Buffer.byteLength(subject, encoding);
-            } else if (type === 'object' && subject !== null) {
-              if (subject.type === 'Buffer' && isArray(subject.data)) subject = subject.data;
-              length = +subject.length > 0 ? Math.floor(+subject.length) : 0;
-            } else throw new TypeError('must start with number, buffer, array or string');
-            if (this.length > kMaxLength) throw new RangeError('Attempt to allocate Buffer larger than maximum ' + 'size: 0x' + kMaxLength.toString(16) + ' bytes');
-            var buf;
-            if (Buffer.TYPED_ARRAY_SUPPORT) {
-              buf = Buffer._augment(new Uint8Array(length));
-            } else {
-              buf = this;
-              buf.length = length;
-              buf._isBuffer = true;
-            }
-            var i;
-            if (Buffer.TYPED_ARRAY_SUPPORT && typeof subject.byteLength === 'number') {
-              buf._set(subject);
-            } else if (isArrayish(subject)) {
-              if (Buffer.isBuffer(subject)) {
-                for (i = 0; i < length; i++) buf[i] = subject.readUInt8(i);
-              } else {
-                for (i = 0; i < length; i++) buf[i] = (subject[i] % 256 + 256) % 256;
-              }
-            } else if (type === 'string') {
-              buf.write(subject, 0, encoding);
-            } else if (type === 'number' && !Buffer.TYPED_ARRAY_SUPPORT && !noZero) {
-              for (i = 0; i < length; i++) {
-                buf[i] = 0;
-              }
-            }
-            return buf;
-          }
-          Buffer.isBuffer = function (b) {
-            return !!(b != null && b._isBuffer);
-          };
-          Buffer.compare = function (a, b) {
-            if (!Buffer.isBuffer(a) || !Buffer.isBuffer(b)) throw new TypeError('Arguments must be Buffers');
-            var x = a.length;
-            var y = b.length;
-            for (var i = 0, len = Math.min(x, y); i < len && a[i] === b[i]; i++) {}
-            if (i !== len) {
-              x = a[i];
-              y = b[i];
-            }
-            if (x < y) return -1;
-            if (y < x) return 1;
-            return 0;
-          };
-          Buffer.isEncoding = function (encoding) {
-            switch (String(encoding).toLowerCase()) {
-              case 'hex':
-              case 'utf8':
-              case 'utf-8':
-              case 'ascii':
-              case 'binary':
-              case 'base64':
-              case 'raw':
-              case 'ucs2':
-              case 'ucs-2':
-              case 'utf16le':
-              case 'utf-16le':
                 return true;
-              default:
-                return false;
-            }
-          };
-          Buffer.concat = function (list, totalLength) {
-            if (!isArray(list)) throw new TypeError('Usage: Buffer.concat(list[, length])');
-            if (list.length === 0) {
-              return new Buffer(0);
-            } else if (list.length === 1) {
-              return list[0];
-            }
-            var i;
-            if (totalLength === undefined) {
-              totalLength = 0;
-              for (i = 0; i < list.length; i++) {
-                totalLength += list[i].length;
-              }
-            }
-            var buf = new Buffer(totalLength);
-            var pos = 0;
-            for (i = 0; i < list.length; i++) {
-              var item = list[i];
-              item.copy(buf, pos);
-              pos += item.length;
-            }
-            return buf;
-          };
-          Buffer.byteLength = function (str, encoding) {
-            var ret;
-            str = str + '';
-            switch (encoding || 'utf8') {
-              case 'ascii':
-              case 'binary':
-              case 'raw':
-                ret = str.length;
-                break;
-              case 'ucs2':
-              case 'ucs-2':
-              case 'utf16le':
-              case 'utf-16le':
-                ret = str.length * 2;
-                break;
-              case 'hex':
-                ret = str.length >>> 1;
-                break;
-              case 'utf8':
-              case 'utf-8':
-                ret = utf8ToBytes(str).length;
-                break;
-              case 'base64':
-                ret = base64ToBytes(str).length;
-                break;
-              default:
-                ret = str.length;
-            }
-            return ret;
-          };
-          Buffer.prototype.length = undefined;
-          Buffer.prototype.parent = undefined;
-          Buffer.prototype.toString = function (encoding, start, end) {
-            var loweredCase = false;
-            start = start >>> 0;
-            end = end === undefined || end === Infinity ? this.length : end >>> 0;
-            if (!encoding) encoding = 'utf8';
-            if (start < 0) start = 0;
-            if (end > this.length) end = this.length;
-            if (end <= start) return '';
-            while (true) {
-              switch (encoding) {
-                case 'hex':
-                  return hexSlice(this, start, end);
-                case 'utf8':
-                case 'utf-8':
-                  return utf8Slice(this, start, end);
-                case 'ascii':
-                  return asciiSlice(this, start, end);
-                case 'binary':
-                  return binarySlice(this, start, end);
-                case 'base64':
-                  return base64Slice(this, start, end);
-                case 'ucs2':
-                case 'ucs-2':
-                case 'utf16le':
-                case 'utf-16le':
-                  return utf16leSlice(this, start, end);
-                default:
-                  if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding);
-                  encoding = (encoding + '').toLowerCase();
-                  loweredCase = true;
-              }
-            }
-          };
-          Buffer.prototype.equals = function (b) {
-            if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer');
-            return Buffer.compare(this, b) === 0;
-          };
-          Buffer.prototype.inspect = function () {
-            var str = '';
-            var max = exports.INSPECT_MAX_BYTES;
-            if (this.length > 0) {
-              str = this.toString('hex', 0, max).match(/.{2}/g).join(' ');
-              if (this.length > max) str += ' ... ';
-            }
-            return '<Buffer ' + str + '>';
-          };
-          Buffer.prototype.compare = function (b) {
-            if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer');
-            return Buffer.compare(this, b);
-          };
-          Buffer.prototype.get = function (offset) {
-            console.log('.get() is deprecated. Access using array indexes instead.');
-            return this.readUInt8(offset);
-          };
-          Buffer.prototype.set = function (v, offset) {
-            console.log('.set() is deprecated. Access using array indexes instead.');
-            return this.writeUInt8(v, offset);
-          };
-          function hexWrite(buf, string, offset, length) {
-            offset = Number(offset) || 0;
-            var remaining = buf.length - offset;
-            if (!length) {
-              length = remaining;
-            } else {
-              length = Number(length);
-              if (length > remaining) {
-                length = remaining;
-              }
-            }
-            var strLen = string.length;
-            if (strLen % 2 !== 0) throw new Error('Invalid hex string');
-            if (length > strLen / 2) {
-              length = strLen / 2;
-            }
-            for (var i = 0; i < length; i++) {
-              var byte = parseInt(string.substr(i * 2, 2), 16);
-              if (isNaN(byte)) throw new Error('Invalid hex string');
-              buf[offset + i] = byte;
-            }
-            return i;
-          }
-          function utf8Write(buf, string, offset, length) {
-            var charsWritten = blitBuffer(utf8ToBytes(string), buf, offset, length);
-            return charsWritten;
-          }
-          function asciiWrite(buf, string, offset, length) {
-            var charsWritten = blitBuffer(asciiToBytes(string), buf, offset, length);
-            return charsWritten;
-          }
-          function binaryWrite(buf, string, offset, length) {
-            return asciiWrite(buf, string, offset, length);
-          }
-          function base64Write(buf, string, offset, length) {
-            var charsWritten = blitBuffer(base64ToBytes(string), buf, offset, length);
-            return charsWritten;
-          }
-          function utf16leWrite(buf, string, offset, length) {
-            var charsWritten = blitBuffer(utf16leToBytes(string), buf, offset, length);
-            return charsWritten;
-          }
-          Buffer.prototype.write = function (string, offset, length, encoding) {
-            if (isFinite(offset)) {
-              if (!isFinite(length)) {
-                encoding = length;
-                length = undefined;
-              }
-            } else {
-              var swap = encoding;
-              encoding = offset;
-              offset = length;
-              length = swap;
-            }
-            offset = Number(offset) || 0;
-            var remaining = this.length - offset;
-            if (!length) {
-              length = remaining;
-            } else {
-              length = Number(length);
-              if (length > remaining) {
-                length = remaining;
-              }
-            }
-            encoding = String(encoding || 'utf8').toLowerCase();
-            var ret;
-            switch (encoding) {
-              case 'hex':
-                ret = hexWrite(this, string, offset, length);
-                break;
-              case 'utf8':
-              case 'utf-8':
-                ret = utf8Write(this, string, offset, length);
-                break;
-              case 'ascii':
-                ret = asciiWrite(this, string, offset, length);
-                break;
-              case 'binary':
-                ret = binaryWrite(this, string, offset, length);
-                break;
-              case 'base64':
-                ret = base64Write(this, string, offset, length);
-                break;
-              case 'ucs2':
-              case 'ucs-2':
-              case 'utf16le':
-              case 'utf-16le':
-                ret = utf16leWrite(this, string, offset, length);
-                break;
-              default:
-                throw new TypeError('Unknown encoding: ' + encoding);
-            }
-            return ret;
-          };
-          Buffer.prototype.toJSON = function () {
-            return {
-              type: 'Buffer',
-              data: Array.prototype.slice.call(this._arr || this, 0)
-            };
-          };
-          function base64Slice(buf, start, end) {
-            if (start === 0 && end === buf.length) {
-              return base64.fromByteArray(buf);
-            } else {
-              return base64.fromByteArray(buf.slice(start, end));
-            }
-          }
-          function utf8Slice(buf, start, end) {
-            var res = '';
-            var tmp = '';
-            end = Math.min(buf.length, end);
-            for (var i = start; i < end; i++) {
-              if (buf[i] <= 0x7F) {
-                res += decodeUtf8Char(tmp) + String.fromCharCode(buf[i]);
-                tmp = '';
-              } else {
-                tmp += '%' + buf[i].toString(16);
-              }
-            }
-            return res + decodeUtf8Char(tmp);
-          }
-          function asciiSlice(buf, start, end) {
-            var ret = '';
-            end = Math.min(buf.length, end);
-            for (var i = start; i < end; i++) {
-              ret += String.fromCharCode(buf[i]);
-            }
-            return ret;
-          }
-          function binarySlice(buf, start, end) {
-            return asciiSlice(buf, start, end);
-          }
-          function hexSlice(buf, start, end) {
-            var len = buf.length;
-            if (!start || start < 0) start = 0;
-            if (!end || end < 0 || end > len) end = len;
-            var out = '';
-            for (var i = start; i < end; i++) {
-              out += toHex(buf[i]);
-            }
-            return out;
-          }
-          function utf16leSlice(buf, start, end) {
-            var bytes = buf.slice(start, end);
-            var res = '';
-            for (var i = 0; i < bytes.length; i += 2) {
-              res += String.fromCharCode(bytes[i] + bytes[i + 1] * 256);
-            }
-            return res;
-          }
-          Buffer.prototype.slice = function (start, end) {
-            var len = this.length;
-            start = ~~start;
-            end = end === undefined ? len : ~~end;
-            if (start < 0) {
-              start += len;
-              if (start < 0) start = 0;
-            } else if (start > len) {
-              start = len;
-            }
-            if (end < 0) {
-              end += len;
-              if (end < 0) end = 0;
-            } else if (end > len) {
-              end = len;
-            }
-            if (end < start) end = start;
-            if (Buffer.TYPED_ARRAY_SUPPORT) {
-              return Buffer._augment(this.subarray(start, end));
-            } else {
-              var sliceLen = end - start;
-              var newBuf = new Buffer(sliceLen, undefined, true);
-              for (var i = 0; i < sliceLen; i++) {
-                newBuf[i] = this[i + start];
-              }
-              return newBuf;
-            }
-          };
-          function checkOffset(offset, ext, length) {
-            if (offset % 1 !== 0 || offset < 0) throw new RangeError('offset is not uint');
-            if (offset + ext > length) throw new RangeError('Trying to access beyond buffer length');
-          }
-          Buffer.prototype.readUInt8 = function (offset, noAssert) {
-            if (!noAssert) checkOffset(offset, 1, this.length);
-            return this[offset];
-          };
-          Buffer.prototype.readUInt16LE = function (offset, noAssert) {
-            if (!noAssert) checkOffset(offset, 2, this.length);
-            return this[offset] | this[offset + 1] << 8;
-          };
-          Buffer.prototype.readUInt16BE = function (offset, noAssert) {
-            if (!noAssert) checkOffset(offset, 2, this.length);
-            return this[offset] << 8 | this[offset + 1];
-          };
-          Buffer.prototype.readUInt32LE = function (offset, noAssert) {
-            if (!noAssert) checkOffset(offset, 4, this.length);
-            return (this[offset] | this[offset + 1] << 8 | this[offset + 2] << 16) + this[offset + 3] * 0x1000000;
-          };
-          Buffer.prototype.readUInt32BE = function (offset, noAssert) {
-            if (!noAssert) checkOffset(offset, 4, this.length);
-            return this[offset] * 0x1000000 + (this[offset + 1] << 16 | this[offset + 2] << 8 | this[offset + 3]);
-          };
-          Buffer.prototype.readInt8 = function (offset, noAssert) {
-            if (!noAssert) checkOffset(offset, 1, this.length);
-            if (!(this[offset] & 0x80)) return this[offset];
-            return (0xff - this[offset] + 1) * -1;
-          };
-          Buffer.prototype.readInt16LE = function (offset, noAssert) {
-            if (!noAssert) checkOffset(offset, 2, this.length);
-            var val = this[offset] | this[offset + 1] << 8;
-            return val & 0x8000 ? val | 0xFFFF0000 : val;
-          };
-          Buffer.prototype.readInt16BE = function (offset, noAssert) {
-            if (!noAssert) checkOffset(offset, 2, this.length);
-            var val = this[offset + 1] | this[offset] << 8;
-            return val & 0x8000 ? val | 0xFFFF0000 : val;
-          };
-          Buffer.prototype.readInt32LE = function (offset, noAssert) {
-            if (!noAssert) checkOffset(offset, 4, this.length);
-            return this[offset] | this[offset + 1] << 8 | this[offset + 2] << 16 | this[offset + 3] << 24;
-          };
-          Buffer.prototype.readInt32BE = function (offset, noAssert) {
-            if (!noAssert) checkOffset(offset, 4, this.length);
-            return this[offset] << 24 | this[offset + 1] << 16 | this[offset + 2] << 8 | this[offset + 3];
-          };
-          Buffer.prototype.readFloatLE = function (offset, noAssert) {
-            if (!noAssert) checkOffset(offset, 4, this.length);
-            return ieee754.read(this, offset, true, 23, 4);
-          };
-          Buffer.prototype.readFloatBE = function (offset, noAssert) {
-            if (!noAssert) checkOffset(offset, 4, this.length);
-            return ieee754.read(this, offset, false, 23, 4);
-          };
-          Buffer.prototype.readDoubleLE = function (offset, noAssert) {
-            if (!noAssert) checkOffset(offset, 8, this.length);
-            return ieee754.read(this, offset, true, 52, 8);
-          };
-          Buffer.prototype.readDoubleBE = function (offset, noAssert) {
-            if (!noAssert) checkOffset(offset, 8, this.length);
-            return ieee754.read(this, offset, false, 52, 8);
-          };
-          function checkInt(buf, value, offset, ext, max, min) {
-            if (!Buffer.isBuffer(buf)) throw new TypeError('buffer must be a Buffer instance');
-            if (value > max || value < min) throw new TypeError('value is out of bounds');
-            if (offset + ext > buf.length) throw new TypeError('index out of range');
-          }
-          Buffer.prototype.writeUInt8 = function (value, offset, noAssert) {
-            value = +value;
-            offset = offset >>> 0;
-            if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0);
-            if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value);
-            this[offset] = value;
-            return offset + 1;
-          };
-          function objectWriteUInt16(buf, value, offset, littleEndian) {
-            if (value < 0) value = 0xffff + value + 1;
-            for (var i = 0, j = Math.min(buf.length - offset, 2); i < j; i++) {
-              buf[offset + i] = (value & 0xff << 8 * (littleEndian ? i : 1 - i)) >>> (littleEndian ? i : 1 - i) * 8;
-            }
-          }
-          Buffer.prototype.writeUInt16LE = function (value, offset, noAssert) {
-            value = +value;
-            offset = offset >>> 0;
-            if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0);
-            if (Buffer.TYPED_ARRAY_SUPPORT) {
-              this[offset] = value;
-              this[offset + 1] = value >>> 8;
-            } else objectWriteUInt16(this, value, offset, true);
-            return offset + 2;
-          };
-          Buffer.prototype.writeUInt16BE = function (value, offset, noAssert) {
-            value = +value;
-            offset = offset >>> 0;
-            if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0);
-            if (Buffer.TYPED_ARRAY_SUPPORT) {
-              this[offset] = value >>> 8;
-              this[offset + 1] = value;
-            } else objectWriteUInt16(this, value, offset, false);
-            return offset + 2;
-          };
-          function objectWriteUInt32(buf, value, offset, littleEndian) {
-            if (value < 0) value = 0xffffffff + value + 1;
-            for (var i = 0, j = Math.min(buf.length - offset, 4); i < j; i++) {
-              buf[offset + i] = value >>> (littleEndian ? i : 3 - i) * 8 & 0xff;
-            }
-          }
-          Buffer.prototype.writeUInt32LE = function (value, offset, noAssert) {
-            value = +value;
-            offset = offset >>> 0;
-            if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0);
-            if (Buffer.TYPED_ARRAY_SUPPORT) {
-              this[offset + 3] = value >>> 24;
-              this[offset + 2] = value >>> 16;
-              this[offset + 1] = value >>> 8;
-              this[offset] = value;
-            } else objectWriteUInt32(this, value, offset, true);
-            return offset + 4;
-          };
-          Buffer.prototype.writeUInt32BE = function (value, offset, noAssert) {
-            value = +value;
-            offset = offset >>> 0;
-            if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0);
-            if (Buffer.TYPED_ARRAY_SUPPORT) {
-              this[offset] = value >>> 24;
-              this[offset + 1] = value >>> 16;
-              this[offset + 2] = value >>> 8;
-              this[offset + 3] = value;
-            } else objectWriteUInt32(this, value, offset, false);
-            return offset + 4;
-          };
-          Buffer.prototype.writeInt8 = function (value, offset, noAssert) {
-            value = +value;
-            offset = offset >>> 0;
-            if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -0x80);
-            if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value);
-            if (value < 0) value = 0xff + value + 1;
-            this[offset] = value;
-            return offset + 1;
-          };
-          Buffer.prototype.writeInt16LE = function (value, offset, noAssert) {
-            value = +value;
-            offset = offset >>> 0;
-            if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000);
-            if (Buffer.TYPED_ARRAY_SUPPORT) {
-              this[offset] = value;
-              this[offset + 1] = value >>> 8;
-            } else objectWriteUInt16(this, value, offset, true);
-            return offset + 2;
-          };
-          Buffer.prototype.writeInt16BE = function (value, offset, noAssert) {
-            value = +value;
-            offset = offset >>> 0;
-            if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000);
-            if (Buffer.TYPED_ARRAY_SUPPORT) {
-              this[offset] = value >>> 8;
-              this[offset + 1] = value;
-            } else objectWriteUInt16(this, value, offset, false);
-            return offset + 2;
-          };
-          Buffer.prototype.writeInt32LE = function (value, offset, noAssert) {
-            value = +value;
-            offset = offset >>> 0;
-            if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);
-            if (Buffer.TYPED_ARRAY_SUPPORT) {
-              this[offset] = value;
-              this[offset + 1] = value >>> 8;
-              this[offset + 2] = value >>> 16;
-              this[offset + 3] = value >>> 24;
-            } else objectWriteUInt32(this, value, offset, true);
-            return offset + 4;
-          };
-          Buffer.prototype.writeInt32BE = function (value, offset, noAssert) {
-            value = +value;
-            offset = offset >>> 0;
-            if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);
-            if (value < 0) value = 0xffffffff + value + 1;
-            if (Buffer.TYPED_ARRAY_SUPPORT) {
-              this[offset] = value >>> 24;
-              this[offset + 1] = value >>> 16;
-              this[offset + 2] = value >>> 8;
-              this[offset + 3] = value;
-            } else objectWriteUInt32(this, value, offset, false);
-            return offset + 4;
-          };
-          function checkIEEE754(buf, value, offset, ext, max, min) {
-            if (value > max || value < min) throw new TypeError('value is out of bounds');
-            if (offset + ext > buf.length) throw new TypeError('index out of range');
-          }
-          function writeFloat(buf, value, offset, littleEndian, noAssert) {
-            if (!noAssert) checkIEEE754(buf, value, offset, 4, 3.4028234663852886e+38, -3.4028234663852886e+38);
-            ieee754.write(buf, value, offset, littleEndian, 23, 4);
-            return offset + 4;
-          }
-          Buffer.prototype.writeFloatLE = function (value, offset, noAssert) {
-            return writeFloat(this, value, offset, true, noAssert);
-          };
-          Buffer.prototype.writeFloatBE = function (value, offset, noAssert) {
-            return writeFloat(this, value, offset, false, noAssert);
-          };
-          function writeDouble(buf, value, offset, littleEndian, noAssert) {
-            if (!noAssert) checkIEEE754(buf, value, offset, 8, 1.7976931348623157E+308, -1.7976931348623157E+308);
-            ieee754.write(buf, value, offset, littleEndian, 52, 8);
-            return offset + 8;
-          }
-          Buffer.prototype.writeDoubleLE = function (value, offset, noAssert) {
-            return writeDouble(this, value, offset, true, noAssert);
-          };
-          Buffer.prototype.writeDoubleBE = function (value, offset, noAssert) {
-            return writeDouble(this, value, offset, false, noAssert);
-          };
-          Buffer.prototype.copy = function (target, target_start, start, end) {
-            var source = this;
-            if (!start) start = 0;
-            if (!end && end !== 0) end = this.length;
-            if (!target_start) target_start = 0;
-            if (end === start) return;
-            if (target.length === 0 || source.length === 0) return;
-            if (end < start) throw new TypeError('sourceEnd < sourceStart');
-            if (target_start < 0 || target_start >= target.length) throw new TypeError('targetStart out of bounds');
-            if (start < 0 || start >= source.length) throw new TypeError('sourceStart out of bounds');
-            if (end < 0 || end > source.length) throw new TypeError('sourceEnd out of bounds');
-            if (end > this.length) end = this.length;
-            if (target.length - target_start < end - start) end = target.length - target_start + start;
-            var len = end - start;
-            if (len < 1000 || !Buffer.TYPED_ARRAY_SUPPORT) {
-              for (var i = 0; i < len; i++) {
-                target[i + target_start] = this[i + start];
-              }
-            } else {
-              target._set(this.subarray(start, start + len), target_start);
-            }
-          };
-          Buffer.prototype.fill = function (value, start, end) {
-            if (!value) value = 0;
-            if (!start) start = 0;
-            if (!end) end = this.length;
-            if (end < start) throw new TypeError('end < start');
-            if (end === start) return;
-            if (this.length === 0) return;
-            if (start < 0 || start >= this.length) throw new TypeError('start out of bounds');
-            if (end < 0 || end > this.length) throw new TypeError('end out of bounds');
-            var i;
-            if (typeof value === 'number') {
-              for (i = start; i < end; i++) {
-                this[i] = value;
-              }
-            } else {
-              var bytes = utf8ToBytes(value.toString());
-              var len = bytes.length;
-              for (i = start; i < end; i++) {
-                this[i] = bytes[i % len];
-              }
-            }
-            return this;
-          };
-          Buffer.prototype.toArrayBuffer = function () {
-            if (typeof Uint8Array !== 'undefined') {
-              if (Buffer.TYPED_ARRAY_SUPPORT) {
-                return new Buffer(this).buffer;
-              } else {
-                var buf = new Uint8Array(this.length);
-                for (var i = 0, len = buf.length; i < len; i += 1) {
-                  buf[i] = this[i];
+            },
+            deleteProperty(obj, prop) {
+                if (prop in obj) {
+                    delete obj[prop];
+                    queueInstance$1.vDomChanged(context.vDomIndex);
+                    if (type === 'attr' && BBoxUpdate) {
+                        context.BBoxUpdate = true;
+                    }
                 }
-                return buf.buffer;
-              }
-            } else {
-              throw new TypeError('Buffer.toArrayBuffer not supported in this browser');
-            }
-          };
-          var BP = Buffer.prototype;
-          Buffer._augment = function (arr) {
-            arr.constructor = Buffer;
-            arr._isBuffer = true;
-            arr._get = arr.get;
-            arr._set = arr.set;
-            arr.get = BP.get;
-            arr.set = BP.set;
-            arr.write = BP.write;
-            arr.toString = BP.toString;
-            arr.toLocaleString = BP.toString;
-            arr.toJSON = BP.toJSON;
-            arr.equals = BP.equals;
-            arr.compare = BP.compare;
-            arr.copy = BP.copy;
-            arr.slice = BP.slice;
-            arr.readUInt8 = BP.readUInt8;
-            arr.readUInt16LE = BP.readUInt16LE;
-            arr.readUInt16BE = BP.readUInt16BE;
-            arr.readUInt32LE = BP.readUInt32LE;
-            arr.readUInt32BE = BP.readUInt32BE;
-            arr.readInt8 = BP.readInt8;
-            arr.readInt16LE = BP.readInt16LE;
-            arr.readInt16BE = BP.readInt16BE;
-            arr.readInt32LE = BP.readInt32LE;
-            arr.readInt32BE = BP.readInt32BE;
-            arr.readFloatLE = BP.readFloatLE;
-            arr.readFloatBE = BP.readFloatBE;
-            arr.readDoubleLE = BP.readDoubleLE;
-            arr.readDoubleBE = BP.readDoubleBE;
-            arr.writeUInt8 = BP.writeUInt8;
-            arr.writeUInt16LE = BP.writeUInt16LE;
-            arr.writeUInt16BE = BP.writeUInt16BE;
-            arr.writeUInt32LE = BP.writeUInt32LE;
-            arr.writeUInt32BE = BP.writeUInt32BE;
-            arr.writeInt8 = BP.writeInt8;
-            arr.writeInt16LE = BP.writeInt16LE;
-            arr.writeInt16BE = BP.writeInt16BE;
-            arr.writeInt32LE = BP.writeInt32LE;
-            arr.writeInt32BE = BP.writeInt32BE;
-            arr.writeFloatLE = BP.writeFloatLE;
-            arr.writeFloatBE = BP.writeFloatBE;
-            arr.writeDoubleLE = BP.writeDoubleLE;
-            arr.writeDoubleBE = BP.writeDoubleBE;
-            arr.fill = BP.fill;
-            arr.inspect = BP.inspect;
-            arr.toArrayBuffer = BP.toArrayBuffer;
-            return arr;
-          };
-          var INVALID_BASE64_RE = /[^+\/0-9A-z]/g;
-          function base64clean(str) {
-            str = stringtrim(str).replace(INVALID_BASE64_RE, '');
-            while (str.length % 4 !== 0) {
-              str = str + '=';
-            }
-            return str;
-          }
-          function stringtrim(str) {
-            if (str.trim) return str.trim();
-            return str.replace(/^\s+|\s+$/g, '');
-          }
-          function isArrayish(subject) {
-            return isArray(subject) || Buffer.isBuffer(subject) || subject && typeof subject === 'object' && typeof subject.length === 'number';
-          }
-          function toHex(n) {
-            if (n < 16) return '0' + n.toString(16);
-            return n.toString(16);
-          }
-          function utf8ToBytes(str) {
-            var byteArray = [];
-            for (var i = 0; i < str.length; i++) {
-              var b = str.charCodeAt(i);
-              if (b <= 0x7F) {
-                byteArray.push(b);
-              } else {
-                var start = i;
-                if (b >= 0xD800 && b <= 0xDFFF) i++;
-                var h = encodeURIComponent(str.slice(start, i + 1)).substr(1).split('%');
-                for (var j = 0; j < h.length; j++) {
-                  byteArray.push(parseInt(h[j], 16));
-                }
-              }
-            }
-            return byteArray;
-          }
-          function asciiToBytes(str) {
-            var byteArray = [];
-            for (var i = 0; i < str.length; i++) {
-              byteArray.push(str.charCodeAt(i) & 0xFF);
-            }
-            return byteArray;
-          }
-          function utf16leToBytes(str) {
-            var c, hi, lo;
-            var byteArray = [];
-            for (var i = 0; i < str.length; i++) {
-              c = str.charCodeAt(i);
-              hi = c >> 8;
-              lo = c % 256;
-              byteArray.push(lo);
-              byteArray.push(hi);
-            }
-            return byteArray;
-          }
-          function base64ToBytes(str) {
-            return base64.toByteArray(str);
-          }
-          function blitBuffer(src, dst, offset, length) {
-            for (var i = 0; i < length; i++) {
-              if (i + offset >= dst.length || i >= src.length) break;
-              dst[i + offset] = src[i];
-            }
-            return i;
-          }
-          function decodeUtf8Char(str) {
-            try {
-              return decodeURIComponent(str);
-            } catch (err) {
-              return String.fromCharCode(0xFFFD);
-            }
-          }
-        }, {
-          "base64-js": 4,
-          "ieee754": 5,
-          "is-array": 6
-        }],
-        4: [function (require, module, exports) {
-          var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-          (function (exports) {
-            var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array;
-            var PLUS = '+'.charCodeAt(0);
-            var SLASH = '/'.charCodeAt(0);
-            var NUMBER = '0'.charCodeAt(0);
-            var LOWER = 'a'.charCodeAt(0);
-            var UPPER = 'A'.charCodeAt(0);
-            function decode(elt) {
-              var code = elt.charCodeAt(0);
-              if (code === PLUS) return 62;
-              if (code === SLASH) return 63;
-              if (code < NUMBER) return -1;
-              if (code < NUMBER + 10) return code - NUMBER + 26 + 26;
-              if (code < UPPER + 26) return code - UPPER;
-              if (code < LOWER + 26) return code - LOWER + 26;
-            }
-            function b64ToByteArray(b64) {
-              var i, j, l, tmp, placeHolders, arr;
-              if (b64.length % 4 > 0) {
-                throw new Error('Invalid string. Length must be a multiple of 4');
-              }
-              var len = b64.length;
-              placeHolders = '=' === b64.charAt(len - 2) ? 2 : '=' === b64.charAt(len - 1) ? 1 : 0;
-              arr = new Arr(b64.length * 3 / 4 - placeHolders);
-              l = placeHolders > 0 ? b64.length - 4 : b64.length;
-              var L = 0;
-              function push(v) {
-                arr[L++] = v;
-              }
-              for (i = 0, j = 0; i < l; i += 4, j += 3) {
-                tmp = decode(b64.charAt(i)) << 18 | decode(b64.charAt(i + 1)) << 12 | decode(b64.charAt(i + 2)) << 6 | decode(b64.charAt(i + 3));
-                push((tmp & 0xFF0000) >> 16);
-                push((tmp & 0xFF00) >> 8);
-                push(tmp & 0xFF);
-              }
-              if (placeHolders === 2) {
-                tmp = decode(b64.charAt(i)) << 2 | decode(b64.charAt(i + 1)) >> 4;
-                push(tmp & 0xFF);
-              } else if (placeHolders === 1) {
-                tmp = decode(b64.charAt(i)) << 10 | decode(b64.charAt(i + 1)) << 4 | decode(b64.charAt(i + 2)) >> 2;
-                push(tmp >> 8 & 0xFF);
-                push(tmp & 0xFF);
-              }
-              return arr;
-            }
-            function uint8ToBase64(uint8) {
-              var i,
-                extraBytes = uint8.length % 3,
-                output = "",
-                temp,
-                length;
-              function encode(num) {
-                return lookup.charAt(num);
-              }
-              function tripletToBase64(num) {
-                return encode(num >> 18 & 0x3F) + encode(num >> 12 & 0x3F) + encode(num >> 6 & 0x3F) + encode(num & 0x3F);
-              }
-              for (i = 0, length = uint8.length - extraBytes; i < length; i += 3) {
-                temp = (uint8[i] << 16) + (uint8[i + 1] << 8) + uint8[i + 2];
-                output += tripletToBase64(temp);
-              }
-              switch (extraBytes) {
-                case 1:
-                  temp = uint8[uint8.length - 1];
-                  output += encode(temp >> 2);
-                  output += encode(temp << 4 & 0x3F);
-                  output += '==';
-                  break;
-                case 2:
-                  temp = (uint8[uint8.length - 2] << 8) + uint8[uint8.length - 1];
-                  output += encode(temp >> 10);
-                  output += encode(temp >> 4 & 0x3F);
-                  output += encode(temp << 2 & 0x3F);
-                  output += '=';
-                  break;
-              }
-              return output;
-            }
-            exports.toByteArray = b64ToByteArray;
-            exports.fromByteArray = uint8ToBase64;
-          })(typeof exports === 'undefined' ? this.base64js = {} : exports);
-        }, {}],
-        5: [function (require, module, exports) {
-          exports.read = function (buffer, offset, isLE, mLen, nBytes) {
-            var e,
-              m,
-              eLen = nBytes * 8 - mLen - 1,
-              eMax = (1 << eLen) - 1,
-              eBias = eMax >> 1,
-              nBits = -7,
-              i = isLE ? nBytes - 1 : 0,
-              d = isLE ? -1 : 1,
-              s = buffer[offset + i];
-            i += d;
-            e = s & (1 << -nBits) - 1;
-            s >>= -nBits;
-            nBits += eLen;
-            for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8);
-            m = e & (1 << -nBits) - 1;
-            e >>= -nBits;
-            nBits += mLen;
-            for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8);
-            if (e === 0) {
-              e = 1 - eBias;
-            } else if (e === eMax) {
-              return m ? NaN : (s ? -1 : 1) * Infinity;
-            } else {
-              m = m + Math.pow(2, mLen);
-              e = e - eBias;
-            }
-            return (s ? -1 : 1) * m * Math.pow(2, e - mLen);
-          };
-          exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
-            var e,
-              m,
-              c,
-              eLen = nBytes * 8 - mLen - 1,
-              eMax = (1 << eLen) - 1,
-              eBias = eMax >> 1,
-              rt = mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0,
-              i = isLE ? 0 : nBytes - 1,
-              d = isLE ? 1 : -1,
-              s = value < 0 || value === 0 && 1 / value < 0 ? 1 : 0;
-            value = Math.abs(value);
-            if (isNaN(value) || value === Infinity) {
-              m = isNaN(value) ? 1 : 0;
-              e = eMax;
-            } else {
-              e = Math.floor(Math.log(value) / Math.LN2);
-              if (value * (c = Math.pow(2, -e)) < 1) {
-                e--;
-                c *= 2;
-              }
-              if (e + eBias >= 1) {
-                value += rt / c;
-              } else {
-                value += rt * Math.pow(2, 1 - eBias);
-              }
-              if (value * c >= 2) {
-                e++;
-                c /= 2;
-              }
-              if (e + eBias >= eMax) {
-                m = 0;
-                e = eMax;
-              } else if (e + eBias >= 1) {
-                m = (value * c - 1) * Math.pow(2, mLen);
-                e = e + eBias;
-              } else {
-                m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen);
-                e = 0;
-              }
-            }
-            for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8);
-            e = e << mLen | m;
-            eLen += mLen;
-            for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8);
-            buffer[offset + i - d] |= s * 128;
-          };
-        }, {}],
-        6: [function (require, module, exports) {
-          var isArray = Array.isArray;
-          var str = Object.prototype.toString;
-          module.exports = isArray || function (val) {
-            return !!val && '[object Array]' == str.call(val);
-          };
-        }, {}],
-        7: [function (require, module, exports) {
-          function EventEmitter() {
-            this._events = this._events || {};
-            this._maxListeners = this._maxListeners || undefined;
-          }
-          module.exports = EventEmitter;
-          EventEmitter.EventEmitter = EventEmitter;
-          EventEmitter.prototype._events = undefined;
-          EventEmitter.prototype._maxListeners = undefined;
-          EventEmitter.defaultMaxListeners = 10;
-          EventEmitter.prototype.setMaxListeners = function (n) {
-            if (!isNumber(n) || n < 0 || isNaN(n)) throw TypeError('n must be a positive number');
-            this._maxListeners = n;
-            return this;
-          };
-          EventEmitter.prototype.emit = function (type) {
-            var er, handler, len, args, i, listeners;
-            if (!this._events) this._events = {};
-            if (type === 'error') {
-              if (!this._events.error || isObject(this._events.error) && !this._events.error.length) {
-                er = arguments[1];
-                if (er instanceof Error) {
-                  throw er;
-                }
-                throw TypeError('Uncaught, unspecified "error" event.');
-              }
-            }
-            handler = this._events[type];
-            if (isUndefined(handler)) return false;
-            if (isFunction(handler)) {
-              switch (arguments.length) {
-                case 1:
-                  handler.call(this);
-                  break;
-                case 2:
-                  handler.call(this, arguments[1]);
-                  break;
-                case 3:
-                  handler.call(this, arguments[1], arguments[2]);
-                  break;
-                default:
-                  len = arguments.length;
-                  args = new Array(len - 1);
-                  for (i = 1; i < len; i++) args[i - 1] = arguments[i];
-                  handler.apply(this, args);
-              }
-            } else if (isObject(handler)) {
-              len = arguments.length;
-              args = new Array(len - 1);
-              for (i = 1; i < len; i++) args[i - 1] = arguments[i];
-              listeners = handler.slice();
-              len = listeners.length;
-              for (i = 0; i < len; i++) listeners[i].apply(this, args);
-            }
-            return true;
-          };
-          EventEmitter.prototype.addListener = function (type, listener) {
-            var m;
-            if (!isFunction(listener)) throw TypeError('listener must be a function');
-            if (!this._events) this._events = {};
-            if (this._events.newListener) this.emit('newListener', type, isFunction(listener.listener) ? listener.listener : listener);
-            if (!this._events[type])
-              this._events[type] = listener;else if (isObject(this._events[type]))
-              this._events[type].push(listener);else
-              this._events[type] = [this._events[type], listener];
-            if (isObject(this._events[type]) && !this._events[type].warned) {
-              var m;
-              if (!isUndefined(this._maxListeners)) {
-                m = this._maxListeners;
-              } else {
-                m = EventEmitter.defaultMaxListeners;
-              }
-              if (m && m > 0 && this._events[type].length > m) {
-                this._events[type].warned = true;
-                console.error('(node) warning: possible EventEmitter memory ' + 'leak detected. %d listeners added. ' + 'Use emitter.setMaxListeners() to increase limit.', this._events[type].length);
-                if (typeof console.trace === 'function') {
-                  console.trace();
-                }
-              }
-            }
-            return this;
-          };
-          EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-          EventEmitter.prototype.once = function (type, listener) {
-            if (!isFunction(listener)) throw TypeError('listener must be a function');
-            var fired = false;
-            function g() {
-              this.removeListener(type, g);
-              if (!fired) {
-                fired = true;
-                listener.apply(this, arguments);
-              }
-            }
-            g.listener = listener;
-            this.on(type, g);
-            return this;
-          };
-          EventEmitter.prototype.removeListener = function (type, listener) {
-            var list, position, length, i;
-            if (!isFunction(listener)) throw TypeError('listener must be a function');
-            if (!this._events || !this._events[type]) return this;
-            list = this._events[type];
-            length = list.length;
-            position = -1;
-            if (list === listener || isFunction(list.listener) && list.listener === listener) {
-              delete this._events[type];
-              if (this._events.removeListener) this.emit('removeListener', type, listener);
-            } else if (isObject(list)) {
-              for (i = length; i-- > 0;) {
-                if (list[i] === listener || list[i].listener && list[i].listener === listener) {
-                  position = i;
-                  break;
-                }
-              }
-              if (position < 0) return this;
-              if (list.length === 1) {
-                list.length = 0;
-                delete this._events[type];
-              } else {
-                list.splice(position, 1);
-              }
-              if (this._events.removeListener) this.emit('removeListener', type, listener);
-            }
-            return this;
-          };
-          EventEmitter.prototype.removeAllListeners = function (type) {
-            var key, listeners;
-            if (!this._events) return this;
-            if (!this._events.removeListener) {
-              if (arguments.length === 0) this._events = {};else if (this._events[type]) delete this._events[type];
-              return this;
-            }
-            if (arguments.length === 0) {
-              for (key in this._events) {
-                if (key === 'removeListener') continue;
-                this.removeAllListeners(key);
-              }
-              this.removeAllListeners('removeListener');
-              this._events = {};
-              return this;
-            }
-            listeners = this._events[type];
-            if (isFunction(listeners)) {
-              this.removeListener(type, listeners);
-            } else {
-              while (listeners.length) this.removeListener(type, listeners[listeners.length - 1]);
-            }
-            delete this._events[type];
-            return this;
-          };
-          EventEmitter.prototype.listeners = function (type) {
-            var ret;
-            if (!this._events || !this._events[type]) ret = [];else if (isFunction(this._events[type])) ret = [this._events[type]];else ret = this._events[type].slice();
-            return ret;
-          };
-          EventEmitter.listenerCount = function (emitter, type) {
-            var ret;
-            if (!emitter._events || !emitter._events[type]) ret = 0;else if (isFunction(emitter._events[type])) ret = 1;else ret = emitter._events[type].length;
-            return ret;
-          };
-          function isFunction(arg) {
-            return typeof arg === 'function';
-          }
-          function isNumber(arg) {
-            return typeof arg === 'number';
-          }
-          function isObject(arg) {
-            return typeof arg === 'object' && arg !== null;
-          }
-          function isUndefined(arg) {
-            return arg === void 0;
-          }
-        }, {}],
-        8: [function (require, module, exports) {
-          if (typeof Object.create === 'function') {
-            module.exports = function inherits(ctor, superCtor) {
-              ctor.super_ = superCtor;
-              ctor.prototype = Object.create(superCtor.prototype, {
-                constructor: {
-                  value: ctor,
-                  enumerable: false,
-                  writable: true,
-                  configurable: true
-                }
-              });
-            };
-          } else {
-            module.exports = function inherits(ctor, superCtor) {
-              ctor.super_ = superCtor;
-              var TempCtor = function () {};
-              TempCtor.prototype = superCtor.prototype;
-              ctor.prototype = new TempCtor();
-              ctor.prototype.constructor = ctor;
-            };
-          }
-        }, {}],
-        9: [function (require, module, exports) {
-          module.exports = Array.isArray || function (arr) {
-            return Object.prototype.toString.call(arr) == '[object Array]';
-          };
-        }, {}],
-        10: [function (require, module, exports) {
-          var process = module.exports = {};
-          process.nextTick = function () {
-            var canSetImmediate = typeof window !== 'undefined' && window.setImmediate;
-            var canMutationObserver = typeof window !== 'undefined' && window.MutationObserver;
-            var canPost = typeof window !== 'undefined' && window.postMessage && window.addEventListener;
-            if (canSetImmediate) {
-              return function (f) {
-                return window.setImmediate(f);
-              };
-            }
-            var queue = [];
-            if (canMutationObserver) {
-              var hiddenDiv = document.createElement("div");
-              var observer = new MutationObserver(function () {
-                var queueList = queue.slice();
-                queue.length = 0;
-                queueList.forEach(function (fn) {
-                  fn();
-                });
-              });
-              observer.observe(hiddenDiv, {
-                attributes: true
-              });
-              return function nextTick(fn) {
-                if (!queue.length) {
-                  hiddenDiv.setAttribute('yes', 'no');
-                }
-                queue.push(fn);
-              };
-            }
-            if (canPost) {
-              window.addEventListener('message', function (ev) {
-                var source = ev.source;
-                if ((source === window || source === null) && ev.data === 'process-tick') {
-                  ev.stopPropagation();
-                  if (queue.length > 0) {
-                    var fn = queue.shift();
-                    fn();
-                  }
-                }
-              }, true);
-              return function nextTick(fn) {
-                queue.push(fn);
-                window.postMessage('process-tick', '*');
-              };
-            }
-            return function nextTick(fn) {
-              setTimeout(fn, 0);
-            };
-          }();
-          process.title = 'browser';
-          process.browser = true;
-          process.env = {};
-          process.argv = [];
-          function noop() {}
-          process.on = noop;
-          process.addListener = noop;
-          process.once = noop;
-          process.off = noop;
-          process.removeListener = noop;
-          process.removeAllListeners = noop;
-          process.emit = noop;
-          process.binding = function (name) {
-            throw new Error('process.binding is not supported');
-          };
-          process.cwd = function () {
-            return '/';
-          };
-          process.chdir = function (dir) {
-            throw new Error('process.chdir is not supported');
-          };
-        }, {}],
-        11: [function (require, module, exports) {
-          module.exports = require("./lib/_stream_duplex.js");
-        }, {
-          "./lib/_stream_duplex.js": 12
-        }],
-        12: [function (require, module, exports) {
-          (function (process) {
-            module.exports = Duplex;
-            var objectKeys = Object.keys || function (obj) {
-              var keys = [];
-              for (var key in obj) keys.push(key);
-              return keys;
-            };
-            var util = require('core-util-is');
-            util.inherits = require('inherits');
-            var Readable = require('./_stream_readable');
-            var Writable = require('./_stream_writable');
-            util.inherits(Duplex, Readable);
-            forEach(objectKeys(Writable.prototype), function (method) {
-              if (!Duplex.prototype[method]) Duplex.prototype[method] = Writable.prototype[method];
-            });
-            function Duplex(options) {
-              if (!(this instanceof Duplex)) return new Duplex(options);
-              Readable.call(this, options);
-              Writable.call(this, options);
-              if (options && options.readable === false) this.readable = false;
-              if (options && options.writable === false) this.writable = false;
-              this.allowHalfOpen = true;
-              if (options && options.allowHalfOpen === false) this.allowHalfOpen = false;
-              this.once('end', onend);
-            }
-            function onend() {
-              if (this.allowHalfOpen || this._writableState.ended) return;
-              process.nextTick(this.end.bind(this));
-            }
-            function forEach(xs, f) {
-              for (var i = 0, l = xs.length; i < l; i++) {
-                f(xs[i], i);
-              }
-            }
-          }).call(this, require('_process'));
-        }, {
-          "./_stream_readable": 14,
-          "./_stream_writable": 16,
-          "_process": 10,
-          "core-util-is": 17,
-          "inherits": 8
-        }],
-        13: [function (require, module, exports) {
-          module.exports = PassThrough;
-          var Transform = require('./_stream_transform');
-          var util = require('core-util-is');
-          util.inherits = require('inherits');
-          util.inherits(PassThrough, Transform);
-          function PassThrough(options) {
-            if (!(this instanceof PassThrough)) return new PassThrough(options);
-            Transform.call(this, options);
-          }
-          PassThrough.prototype._transform = function (chunk, encoding, cb) {
-            cb(null, chunk);
-          };
-        }, {
-          "./_stream_transform": 15,
-          "core-util-is": 17,
-          "inherits": 8
-        }],
-        14: [function (require, module, exports) {
-          (function (process) {
-            module.exports = Readable;
-            var isArray = require('isarray');
-            var Buffer = require('buffer').Buffer;
-            Readable.ReadableState = ReadableState;
-            var EE = require('events').EventEmitter;
-            if (!EE.listenerCount) EE.listenerCount = function (emitter, type) {
-              return emitter.listeners(type).length;
-            };
-            var Stream = require('stream');
-            var util = require('core-util-is');
-            util.inherits = require('inherits');
-            var StringDecoder;
-            util.inherits(Readable, Stream);
-            function ReadableState(options, stream) {
-              options = options || {};
-              var hwm = options.highWaterMark;
-              this.highWaterMark = hwm || hwm === 0 ? hwm : 16 * 1024;
-              this.highWaterMark = ~~this.highWaterMark;
-              this.buffer = [];
-              this.length = 0;
-              this.pipes = null;
-              this.pipesCount = 0;
-              this.flowing = false;
-              this.ended = false;
-              this.endEmitted = false;
-              this.reading = false;
-              this.calledRead = false;
-              this.sync = true;
-              this.needReadable = false;
-              this.emittedReadable = false;
-              this.readableListening = false;
-              this.objectMode = !!options.objectMode;
-              this.defaultEncoding = options.defaultEncoding || 'utf8';
-              this.ranOut = false;
-              this.awaitDrain = 0;
-              this.readingMore = false;
-              this.decoder = null;
-              this.encoding = null;
-              if (options.encoding) {
-                if (!StringDecoder) StringDecoder = require('string_decoder/').StringDecoder;
-                this.decoder = new StringDecoder(options.encoding);
-                this.encoding = options.encoding;
-              }
-            }
-            function Readable(options) {
-              if (!(this instanceof Readable)) return new Readable(options);
-              this._readableState = new ReadableState(options);
-              this.readable = true;
-              Stream.call(this);
-            }
-            Readable.prototype.push = function (chunk, encoding) {
-              var state = this._readableState;
-              if (typeof chunk === 'string' && !state.objectMode) {
-                encoding = encoding || state.defaultEncoding;
-                if (encoding !== state.encoding) {
-                  chunk = new Buffer(chunk, encoding);
-                  encoding = '';
-                }
-              }
-              return readableAddChunk(this, state, chunk, encoding, false);
-            };
-            Readable.prototype.unshift = function (chunk) {
-              var state = this._readableState;
-              return readableAddChunk(this, state, chunk, '', true);
-            };
-            function readableAddChunk(stream, state, chunk, encoding, addToFront) {
-              var er = chunkInvalid(state, chunk);
-              if (er) {
-                stream.emit('error', er);
-              } else if (chunk === null || chunk === undefined) {
-                state.reading = false;
-                if (!state.ended) onEofChunk(stream, state);
-              } else if (state.objectMode || chunk && chunk.length > 0) {
-                if (state.ended && !addToFront) {
-                  var e = new Error('stream.push() after EOF');
-                  stream.emit('error', e);
-                } else if (state.endEmitted && addToFront) {
-                  var e = new Error('stream.unshift() after end event');
-                  stream.emit('error', e);
-                } else {
-                  if (state.decoder && !addToFront && !encoding) chunk = state.decoder.write(chunk);
-                  state.length += state.objectMode ? 1 : chunk.length;
-                  if (addToFront) {
-                    state.buffer.unshift(chunk);
-                  } else {
-                    state.reading = false;
-                    state.buffer.push(chunk);
-                  }
-                  if (state.needReadable) emitReadable(stream);
-                  maybeReadMore(stream, state);
-                }
-              } else if (!addToFront) {
-                state.reading = false;
-              }
-              return needMoreData(state);
-            }
-            function needMoreData(state) {
-              return !state.ended && (state.needReadable || state.length < state.highWaterMark || state.length === 0);
-            }
-            Readable.prototype.setEncoding = function (enc) {
-              if (!StringDecoder) StringDecoder = require('string_decoder/').StringDecoder;
-              this._readableState.decoder = new StringDecoder(enc);
-              this._readableState.encoding = enc;
-            };
-            var MAX_HWM = 0x800000;
-            function roundUpToNextPowerOf2(n) {
-              if (n >= MAX_HWM) {
-                n = MAX_HWM;
-              } else {
-                n--;
-                for (var p = 1; p < 32; p <<= 1) n |= n >> p;
-                n++;
-              }
-              return n;
-            }
-            function howMuchToRead(n, state) {
-              if (state.length === 0 && state.ended) return 0;
-              if (state.objectMode) return n === 0 ? 0 : 1;
-              if (n === null || isNaN(n)) {
-                if (state.flowing && state.buffer.length) return state.buffer[0].length;else return state.length;
-              }
-              if (n <= 0) return 0;
-              if (n > state.highWaterMark) state.highWaterMark = roundUpToNextPowerOf2(n);
-              if (n > state.length) {
-                if (!state.ended) {
-                  state.needReadable = true;
-                  return 0;
-                } else return state.length;
-              }
-              return n;
-            }
-            Readable.prototype.read = function (n) {
-              var state = this._readableState;
-              state.calledRead = true;
-              var nOrig = n;
-              var ret;
-              if (typeof n !== 'number' || n > 0) state.emittedReadable = false;
-              if (n === 0 && state.needReadable && (state.length >= state.highWaterMark || state.ended)) {
-                emitReadable(this);
-                return null;
-              }
-              n = howMuchToRead(n, state);
-              if (n === 0 && state.ended) {
-                ret = null;
-                if (state.length > 0 && state.decoder) {
-                  ret = fromList(n, state);
-                  state.length -= ret.length;
-                }
-                if (state.length === 0) endReadable(this);
-                return ret;
-              }
-              var doRead = state.needReadable;
-              if (state.length - n <= state.highWaterMark) doRead = true;
-              if (state.ended || state.reading) doRead = false;
-              if (doRead) {
-                state.reading = true;
-                state.sync = true;
-                if (state.length === 0) state.needReadable = true;
-                this._read(state.highWaterMark);
-                state.sync = false;
-              }
-              if (doRead && !state.reading) n = howMuchToRead(nOrig, state);
-              if (n > 0) ret = fromList(n, state);else ret = null;
-              if (ret === null) {
-                state.needReadable = true;
-                n = 0;
-              }
-              state.length -= n;
-              if (state.length === 0 && !state.ended) state.needReadable = true;
-              if (state.ended && !state.endEmitted && state.length === 0) endReadable(this);
-              return ret;
-            };
-            function chunkInvalid(state, chunk) {
-              var er = null;
-              if (!Buffer.isBuffer(chunk) && 'string' !== typeof chunk && chunk !== null && chunk !== undefined && !state.objectMode) {
-                er = new TypeError('Invalid non-string/buffer chunk');
-              }
-              return er;
-            }
-            function onEofChunk(stream, state) {
-              if (state.decoder && !state.ended) {
-                var chunk = state.decoder.end();
-                if (chunk && chunk.length) {
-                  state.buffer.push(chunk);
-                  state.length += state.objectMode ? 1 : chunk.length;
-                }
-              }
-              state.ended = true;
-              if (state.length > 0) emitReadable(stream);else endReadable(stream);
-            }
-            function emitReadable(stream) {
-              var state = stream._readableState;
-              state.needReadable = false;
-              if (state.emittedReadable) return;
-              state.emittedReadable = true;
-              if (state.sync) process.nextTick(function () {
-                emitReadable_(stream);
-              });else emitReadable_(stream);
-            }
-            function emitReadable_(stream) {
-              stream.emit('readable');
-            }
-            function maybeReadMore(stream, state) {
-              if (!state.readingMore) {
-                state.readingMore = true;
-                process.nextTick(function () {
-                  maybeReadMore_(stream, state);
-                });
-              }
-            }
-            function maybeReadMore_(stream, state) {
-              var len = state.length;
-              while (!state.reading && !state.flowing && !state.ended && state.length < state.highWaterMark) {
-                stream.read(0);
-                if (len === state.length)
-                  break;else len = state.length;
-              }
-              state.readingMore = false;
-            }
-            Readable.prototype._read = function (n) {
-              this.emit('error', new Error('not implemented'));
-            };
-            Readable.prototype.pipe = function (dest, pipeOpts) {
-              var src = this;
-              var state = this._readableState;
-              switch (state.pipesCount) {
-                case 0:
-                  state.pipes = dest;
-                  break;
-                case 1:
-                  state.pipes = [state.pipes, dest];
-                  break;
-                default:
-                  state.pipes.push(dest);
-                  break;
-              }
-              state.pipesCount += 1;
-              var doEnd = (!pipeOpts || pipeOpts.end !== false) && dest !== process.stdout && dest !== process.stderr;
-              var endFn = doEnd ? onend : cleanup;
-              if (state.endEmitted) process.nextTick(endFn);else src.once('end', endFn);
-              dest.on('unpipe', onunpipe);
-              function onunpipe(readable) {
-                if (readable !== src) return;
-                cleanup();
-              }
-              function onend() {
-                dest.end();
-              }
-              var ondrain = pipeOnDrain(src);
-              dest.on('drain', ondrain);
-              function cleanup() {
-                dest.removeListener('close', onclose);
-                dest.removeListener('finish', onfinish);
-                dest.removeListener('drain', ondrain);
-                dest.removeListener('error', onerror);
-                dest.removeListener('unpipe', onunpipe);
-                src.removeListener('end', onend);
-                src.removeListener('end', cleanup);
-                if (!dest._writableState || dest._writableState.needDrain) ondrain();
-              }
-              function onerror(er) {
-                unpipe();
-                dest.removeListener('error', onerror);
-                if (EE.listenerCount(dest, 'error') === 0) dest.emit('error', er);
-              }
-              if (!dest._events || !dest._events.error) dest.on('error', onerror);else if (isArray(dest._events.error)) dest._events.error.unshift(onerror);else dest._events.error = [onerror, dest._events.error];
-              function onclose() {
-                dest.removeListener('finish', onfinish);
-                unpipe();
-              }
-              dest.once('close', onclose);
-              function onfinish() {
-                dest.removeListener('close', onclose);
-                unpipe();
-              }
-              dest.once('finish', onfinish);
-              function unpipe() {
-                src.unpipe(dest);
-              }
-              dest.emit('pipe', src);
-              if (!state.flowing) {
-                this.on('readable', pipeOnReadable);
-                state.flowing = true;
-                process.nextTick(function () {
-                  flow(src);
-                });
-              }
-              return dest;
-            };
-            function pipeOnDrain(src) {
-              return function () {
-                var state = src._readableState;
-                state.awaitDrain--;
-                if (state.awaitDrain === 0) flow(src);
-              };
-            }
-            function flow(src) {
-              var state = src._readableState;
-              var chunk;
-              state.awaitDrain = 0;
-              function write(dest, i, list) {
-                var written = dest.write(chunk);
-                if (false === written) {
-                  state.awaitDrain++;
-                }
-              }
-              while (state.pipesCount && null !== (chunk = src.read())) {
-                if (state.pipesCount === 1) write(state.pipes);else forEach(state.pipes, write);
-                src.emit('data', chunk);
-                if (state.awaitDrain > 0) return;
-              }
-              if (state.pipesCount === 0) {
-                state.flowing = false;
-                if (EE.listenerCount(src, 'data') > 0) emitDataEvents(src);
-                return;
-              }
-              state.ranOut = true;
-            }
-            function pipeOnReadable() {
-              if (this._readableState.ranOut) {
-                this._readableState.ranOut = false;
-                flow(this);
-              }
-            }
-            Readable.prototype.unpipe = function (dest) {
-              var state = this._readableState;
-              if (state.pipesCount === 0) return this;
-              if (state.pipesCount === 1) {
-                if (dest && dest !== state.pipes) return this;
-                if (!dest) dest = state.pipes;
-                state.pipes = null;
-                state.pipesCount = 0;
-                this.removeListener('readable', pipeOnReadable);
-                state.flowing = false;
-                if (dest) dest.emit('unpipe', this);
-                return this;
-              }
-              if (!dest) {
-                var dests = state.pipes;
-                var len = state.pipesCount;
-                state.pipes = null;
-                state.pipesCount = 0;
-                this.removeListener('readable', pipeOnReadable);
-                state.flowing = false;
-                for (var i = 0; i < len; i++) dests[i].emit('unpipe', this);
-                return this;
-              }
-              var i = indexOf(state.pipes, dest);
-              if (i === -1) return this;
-              state.pipes.splice(i, 1);
-              state.pipesCount -= 1;
-              if (state.pipesCount === 1) state.pipes = state.pipes[0];
-              dest.emit('unpipe', this);
-              return this;
-            };
-            Readable.prototype.on = function (ev, fn) {
-              var res = Stream.prototype.on.call(this, ev, fn);
-              if (ev === 'data' && !this._readableState.flowing) emitDataEvents(this);
-              if (ev === 'readable' && this.readable) {
-                var state = this._readableState;
-                if (!state.readableListening) {
-                  state.readableListening = true;
-                  state.emittedReadable = false;
-                  state.needReadable = true;
-                  if (!state.reading) {
-                    this.read(0);
-                  } else if (state.length) {
-                    emitReadable(this);
-                  }
-                }
-              }
-              return res;
-            };
-            Readable.prototype.addListener = Readable.prototype.on;
-            Readable.prototype.resume = function () {
-              emitDataEvents(this);
-              this.read(0);
-              this.emit('resume');
-            };
-            Readable.prototype.pause = function () {
-              emitDataEvents(this, true);
-              this.emit('pause');
-            };
-            function emitDataEvents(stream, startPaused) {
-              var state = stream._readableState;
-              if (state.flowing) {
-                throw new Error('Cannot switch to old mode now.');
-              }
-              var paused = startPaused || false;
-              var readable = false;
-              stream.readable = true;
-              stream.pipe = Stream.prototype.pipe;
-              stream.on = stream.addListener = Stream.prototype.on;
-              stream.on('readable', function () {
-                readable = true;
-                var c;
-                while (!paused && null !== (c = stream.read())) stream.emit('data', c);
-                if (c === null) {
-                  readable = false;
-                  stream._readableState.needReadable = true;
-                }
-              });
-              stream.pause = function () {
-                paused = true;
-                this.emit('pause');
-              };
-              stream.resume = function () {
-                paused = false;
-                if (readable) process.nextTick(function () {
-                  stream.emit('readable');
-                });else this.read(0);
-                this.emit('resume');
-              };
-              stream.emit('readable');
-            }
-            Readable.prototype.wrap = function (stream) {
-              var state = this._readableState;
-              var paused = false;
-              var self = this;
-              stream.on('end', function () {
-                if (state.decoder && !state.ended) {
-                  var chunk = state.decoder.end();
-                  if (chunk && chunk.length) self.push(chunk);
-                }
-                self.push(null);
-              });
-              stream.on('data', function (chunk) {
-                if (state.decoder) chunk = state.decoder.write(chunk);
-                if (state.objectMode && (chunk === null || chunk === undefined)) return;else if (!state.objectMode && (!chunk || !chunk.length)) return;
-                var ret = self.push(chunk);
-                if (!ret) {
-                  paused = true;
-                  stream.pause();
-                }
-              });
-              for (var i in stream) {
-                if (typeof stream[i] === 'function' && typeof this[i] === 'undefined') {
-                  this[i] = function (method) {
-                    return function () {
-                      return stream[method].apply(stream, arguments);
-                    };
-                  }(i);
-                }
-              }
-              var events = ['error', 'close', 'destroy', 'pause', 'resume'];
-              forEach(events, function (ev) {
-                stream.on(ev, self.emit.bind(self, ev));
-              });
-              self._read = function (n) {
-                if (paused) {
-                  paused = false;
-                  stream.resume();
-                }
-              };
-              return self;
-            };
-            Readable._fromList = fromList;
-            function fromList(n, state) {
-              var list = state.buffer;
-              var length = state.length;
-              var stringMode = !!state.decoder;
-              var objectMode = !!state.objectMode;
-              var ret;
-              if (list.length === 0) return null;
-              if (length === 0) ret = null;else if (objectMode) ret = list.shift();else if (!n || n >= length) {
-                if (stringMode) ret = list.join('');else ret = Buffer.concat(list, length);
-                list.length = 0;
-              } else {
-                if (n < list[0].length) {
-                  var buf = list[0];
-                  ret = buf.slice(0, n);
-                  list[0] = buf.slice(n);
-                } else if (n === list[0].length) {
-                  ret = list.shift();
-                } else {
-                  if (stringMode) ret = '';else ret = new Buffer(n);
-                  var c = 0;
-                  for (var i = 0, l = list.length; i < l && c < n; i++) {
-                    var buf = list[0];
-                    var cpy = Math.min(n - c, buf.length);
-                    if (stringMode) ret += buf.slice(0, cpy);else buf.copy(ret, c, 0, cpy);
-                    if (cpy < buf.length) list[0] = buf.slice(cpy);else list.shift();
-                    c += cpy;
-                  }
-                }
-              }
-              return ret;
-            }
-            function endReadable(stream) {
-              var state = stream._readableState;
-              if (state.length > 0) throw new Error('endReadable called on non-empty stream');
-              if (!state.endEmitted && state.calledRead) {
-                state.ended = true;
-                process.nextTick(function () {
-                  if (!state.endEmitted && state.length === 0) {
-                    state.endEmitted = true;
-                    stream.readable = false;
-                    stream.emit('end');
-                  }
-                });
-              }
-            }
-            function forEach(xs, f) {
-              for (var i = 0, l = xs.length; i < l; i++) {
-                f(xs[i], i);
-              }
-            }
-            function indexOf(xs, x) {
-              for (var i = 0, l = xs.length; i < l; i++) {
-                if (xs[i] === x) return i;
-              }
-              return -1;
-            }
-          }).call(this, require('_process'));
-        }, {
-          "_process": 10,
-          "buffer": 3,
-          "core-util-is": 17,
-          "events": 7,
-          "inherits": 8,
-          "isarray": 9,
-          "stream": 22,
-          "string_decoder/": 23
-        }],
-        15: [function (require, module, exports) {
-          module.exports = Transform;
-          var Duplex = require('./_stream_duplex');
-          var util = require('core-util-is');
-          util.inherits = require('inherits');
-          util.inherits(Transform, Duplex);
-          function TransformState(options, stream) {
-            this.afterTransform = function (er, data) {
-              return afterTransform(stream, er, data);
-            };
-            this.needTransform = false;
-            this.transforming = false;
-            this.writecb = null;
-            this.writechunk = null;
-          }
-          function afterTransform(stream, er, data) {
-            var ts = stream._transformState;
-            ts.transforming = false;
-            var cb = ts.writecb;
-            if (!cb) return stream.emit('error', new Error('no writecb in Transform class'));
-            ts.writechunk = null;
-            ts.writecb = null;
-            if (data !== null && data !== undefined) stream.push(data);
-            if (cb) cb(er);
-            var rs = stream._readableState;
-            rs.reading = false;
-            if (rs.needReadable || rs.length < rs.highWaterMark) {
-              stream._read(rs.highWaterMark);
-            }
-          }
-          function Transform(options) {
-            if (!(this instanceof Transform)) return new Transform(options);
-            Duplex.call(this, options);
-            this._transformState = new TransformState(options, this);
-            var stream = this;
-            this._readableState.needReadable = true;
-            this._readableState.sync = false;
-            this.once('finish', function () {
-              if ('function' === typeof this._flush) this._flush(function (er) {
-                done(stream, er);
-              });else done(stream);
-            });
-          }
-          Transform.prototype.push = function (chunk, encoding) {
-            this._transformState.needTransform = false;
-            return Duplex.prototype.push.call(this, chunk, encoding);
-          };
-          Transform.prototype._transform = function (chunk, encoding, cb) {
-            throw new Error('not implemented');
-          };
-          Transform.prototype._write = function (chunk, encoding, cb) {
-            var ts = this._transformState;
-            ts.writecb = cb;
-            ts.writechunk = chunk;
-            ts.writeencoding = encoding;
-            if (!ts.transforming) {
-              var rs = this._readableState;
-              if (ts.needTransform || rs.needReadable || rs.length < rs.highWaterMark) this._read(rs.highWaterMark);
-            }
-          };
-          Transform.prototype._read = function (n) {
-            var ts = this._transformState;
-            if (ts.writechunk !== null && ts.writecb && !ts.transforming) {
-              ts.transforming = true;
-              this._transform(ts.writechunk, ts.writeencoding, ts.afterTransform);
-            } else {
-              ts.needTransform = true;
-            }
-          };
-          function done(stream, er) {
-            if (er) return stream.emit('error', er);
-            var ws = stream._writableState;
-            stream._readableState;
-            var ts = stream._transformState;
-            if (ws.length) throw new Error('calling transform done when ws.length != 0');
-            if (ts.transforming) throw new Error('calling transform done when still transforming');
-            return stream.push(null);
-          }
-        }, {
-          "./_stream_duplex": 12,
-          "core-util-is": 17,
-          "inherits": 8
-        }],
-        16: [function (require, module, exports) {
-          (function (process) {
-            module.exports = Writable;
-            var Buffer = require('buffer').Buffer;
-            Writable.WritableState = WritableState;
-            var util = require('core-util-is');
-            util.inherits = require('inherits');
-            var Stream = require('stream');
-            util.inherits(Writable, Stream);
-            function WriteReq(chunk, encoding, cb) {
-              this.chunk = chunk;
-              this.encoding = encoding;
-              this.callback = cb;
-            }
-            function WritableState(options, stream) {
-              options = options || {};
-              var hwm = options.highWaterMark;
-              this.highWaterMark = hwm || hwm === 0 ? hwm : 16 * 1024;
-              this.objectMode = !!options.objectMode;
-              this.highWaterMark = ~~this.highWaterMark;
-              this.needDrain = false;
-              this.ending = false;
-              this.ended = false;
-              this.finished = false;
-              var noDecode = options.decodeStrings === false;
-              this.decodeStrings = !noDecode;
-              this.defaultEncoding = options.defaultEncoding || 'utf8';
-              this.length = 0;
-              this.writing = false;
-              this.sync = true;
-              this.bufferProcessing = false;
-              this.onwrite = function (er) {
-                onwrite(stream, er);
-              };
-              this.writecb = null;
-              this.writelen = 0;
-              this.buffer = [];
-              this.errorEmitted = false;
-            }
-            function Writable(options) {
-              var Duplex = require('./_stream_duplex');
-              if (!(this instanceof Writable) && !(this instanceof Duplex)) return new Writable(options);
-              this._writableState = new WritableState(options, this);
-              this.writable = true;
-              Stream.call(this);
-            }
-            Writable.prototype.pipe = function () {
-              this.emit('error', new Error('Cannot pipe. Not readable.'));
-            };
-            function writeAfterEnd(stream, state, cb) {
-              var er = new Error('write after end');
-              stream.emit('error', er);
-              process.nextTick(function () {
-                cb(er);
-              });
-            }
-            function validChunk(stream, state, chunk, cb) {
-              var valid = true;
-              if (!Buffer.isBuffer(chunk) && 'string' !== typeof chunk && chunk !== null && chunk !== undefined && !state.objectMode) {
-                var er = new TypeError('Invalid non-string/buffer chunk');
-                stream.emit('error', er);
-                process.nextTick(function () {
-                  cb(er);
-                });
-                valid = false;
-              }
-              return valid;
-            }
-            Writable.prototype.write = function (chunk, encoding, cb) {
-              var state = this._writableState;
-              var ret = false;
-              if (typeof encoding === 'function') {
-                cb = encoding;
-                encoding = null;
-              }
-              if (Buffer.isBuffer(chunk)) encoding = 'buffer';else if (!encoding) encoding = state.defaultEncoding;
-              if (typeof cb !== 'function') cb = function () {};
-              if (state.ended) writeAfterEnd(this, state, cb);else if (validChunk(this, state, chunk, cb)) ret = writeOrBuffer(this, state, chunk, encoding, cb);
-              return ret;
-            };
-            function decodeChunk(state, chunk, encoding) {
-              if (!state.objectMode && state.decodeStrings !== false && typeof chunk === 'string') {
-                chunk = new Buffer(chunk, encoding);
-              }
-              return chunk;
-            }
-            function writeOrBuffer(stream, state, chunk, encoding, cb) {
-              chunk = decodeChunk(state, chunk, encoding);
-              if (Buffer.isBuffer(chunk)) encoding = 'buffer';
-              var len = state.objectMode ? 1 : chunk.length;
-              state.length += len;
-              var ret = state.length < state.highWaterMark;
-              if (!ret) state.needDrain = true;
-              if (state.writing) state.buffer.push(new WriteReq(chunk, encoding, cb));else doWrite(stream, state, len, chunk, encoding, cb);
-              return ret;
-            }
-            function doWrite(stream, state, len, chunk, encoding, cb) {
-              state.writelen = len;
-              state.writecb = cb;
-              state.writing = true;
-              state.sync = true;
-              stream._write(chunk, encoding, state.onwrite);
-              state.sync = false;
-            }
-            function onwriteError(stream, state, sync, er, cb) {
-              if (sync) process.nextTick(function () {
-                cb(er);
-              });else cb(er);
-              stream._writableState.errorEmitted = true;
-              stream.emit('error', er);
-            }
-            function onwriteStateUpdate(state) {
-              state.writing = false;
-              state.writecb = null;
-              state.length -= state.writelen;
-              state.writelen = 0;
-            }
-            function onwrite(stream, er) {
-              var state = stream._writableState;
-              var sync = state.sync;
-              var cb = state.writecb;
-              onwriteStateUpdate(state);
-              if (er) onwriteError(stream, state, sync, er, cb);else {
-                var finished = needFinish(stream, state);
-                if (!finished && !state.bufferProcessing && state.buffer.length) clearBuffer(stream, state);
-                if (sync) {
-                  process.nextTick(function () {
-                    afterWrite(stream, state, finished, cb);
-                  });
-                } else {
-                  afterWrite(stream, state, finished, cb);
-                }
-              }
-            }
-            function afterWrite(stream, state, finished, cb) {
-              if (!finished) onwriteDrain(stream, state);
-              cb();
-              if (finished) finishMaybe(stream, state);
-            }
-            function onwriteDrain(stream, state) {
-              if (state.length === 0 && state.needDrain) {
-                state.needDrain = false;
-                stream.emit('drain');
-              }
-            }
-            function clearBuffer(stream, state) {
-              state.bufferProcessing = true;
-              for (var c = 0; c < state.buffer.length; c++) {
-                var entry = state.buffer[c];
-                var chunk = entry.chunk;
-                var encoding = entry.encoding;
-                var cb = entry.callback;
-                var len = state.objectMode ? 1 : chunk.length;
-                doWrite(stream, state, len, chunk, encoding, cb);
-                if (state.writing) {
-                  c++;
-                  break;
-                }
-              }
-              state.bufferProcessing = false;
-              if (c < state.buffer.length) state.buffer = state.buffer.slice(c);else state.buffer.length = 0;
-            }
-            Writable.prototype._write = function (chunk, encoding, cb) {
-              cb(new Error('not implemented'));
-            };
-            Writable.prototype.end = function (chunk, encoding, cb) {
-              var state = this._writableState;
-              if (typeof chunk === 'function') {
-                cb = chunk;
-                chunk = null;
-                encoding = null;
-              } else if (typeof encoding === 'function') {
-                cb = encoding;
-                encoding = null;
-              }
-              if (typeof chunk !== 'undefined' && chunk !== null) this.write(chunk, encoding);
-              if (!state.ending && !state.finished) endWritable(this, state, cb);
-            };
-            function needFinish(stream, state) {
-              return state.ending && state.length === 0 && !state.finished && !state.writing;
-            }
-            function finishMaybe(stream, state) {
-              var need = needFinish(stream, state);
-              if (need) {
-                state.finished = true;
-                stream.emit('finish');
-              }
-              return need;
-            }
-            function endWritable(stream, state, cb) {
-              state.ending = true;
-              finishMaybe(stream, state);
-              if (cb) {
-                if (state.finished) process.nextTick(cb);else stream.once('finish', cb);
-              }
-              state.ended = true;
-            }
-          }).call(this, require('_process'));
-        }, {
-          "./_stream_duplex": 12,
-          "_process": 10,
-          "buffer": 3,
-          "core-util-is": 17,
-          "inherits": 8,
-          "stream": 22
-        }],
-        17: [function (require, module, exports) {
-          (function (Buffer) {
-            function isArray(ar) {
-              return Array.isArray(ar);
-            }
-            exports.isArray = isArray;
-            function isBoolean(arg) {
-              return typeof arg === 'boolean';
-            }
-            exports.isBoolean = isBoolean;
-            function isNull(arg) {
-              return arg === null;
-            }
-            exports.isNull = isNull;
-            function isNullOrUndefined(arg) {
-              return arg == null;
-            }
-            exports.isNullOrUndefined = isNullOrUndefined;
-            function isNumber(arg) {
-              return typeof arg === 'number';
-            }
-            exports.isNumber = isNumber;
-            function isString(arg) {
-              return typeof arg === 'string';
-            }
-            exports.isString = isString;
-            function isSymbol(arg) {
-              return typeof arg === 'symbol';
-            }
-            exports.isSymbol = isSymbol;
-            function isUndefined(arg) {
-              return arg === void 0;
-            }
-            exports.isUndefined = isUndefined;
-            function isRegExp(re) {
-              return isObject(re) && objectToString(re) === '[object RegExp]';
-            }
-            exports.isRegExp = isRegExp;
-            function isObject(arg) {
-              return typeof arg === 'object' && arg !== null;
-            }
-            exports.isObject = isObject;
-            function isDate(d) {
-              return isObject(d) && objectToString(d) === '[object Date]';
-            }
-            exports.isDate = isDate;
-            function isError(e) {
-              return isObject(e) && (objectToString(e) === '[object Error]' || e instanceof Error);
-            }
-            exports.isError = isError;
-            function isFunction(arg) {
-              return typeof arg === 'function';
-            }
-            exports.isFunction = isFunction;
-            function isPrimitive(arg) {
-              return arg === null || typeof arg === 'boolean' || typeof arg === 'number' || typeof arg === 'string' || typeof arg === 'symbol' ||
-              typeof arg === 'undefined';
-            }
-            exports.isPrimitive = isPrimitive;
-            function isBuffer(arg) {
-              return Buffer.isBuffer(arg);
-            }
-            exports.isBuffer = isBuffer;
-            function objectToString(o) {
-              return Object.prototype.toString.call(o);
-            }
-          }).call(this, require("buffer").Buffer);
-        }, {
-          "buffer": 3
-        }],
-        18: [function (require, module, exports) {
-          module.exports = require("./lib/_stream_passthrough.js");
-        }, {
-          "./lib/_stream_passthrough.js": 13
-        }],
-        19: [function (require, module, exports) {
-          var Stream = require('stream');
-          exports = module.exports = require('./lib/_stream_readable.js');
-          exports.Stream = Stream;
-          exports.Readable = exports;
-          exports.Writable = require('./lib/_stream_writable.js');
-          exports.Duplex = require('./lib/_stream_duplex.js');
-          exports.Transform = require('./lib/_stream_transform.js');
-          exports.PassThrough = require('./lib/_stream_passthrough.js');
-        }, {
-          "./lib/_stream_duplex.js": 12,
-          "./lib/_stream_passthrough.js": 13,
-          "./lib/_stream_readable.js": 14,
-          "./lib/_stream_transform.js": 15,
-          "./lib/_stream_writable.js": 16,
-          "stream": 22
-        }],
-        20: [function (require, module, exports) {
-          module.exports = require("./lib/_stream_transform.js");
-        }, {
-          "./lib/_stream_transform.js": 15
-        }],
-        21: [function (require, module, exports) {
-          module.exports = require("./lib/_stream_writable.js");
-        }, {
-          "./lib/_stream_writable.js": 16
-        }],
-        22: [function (require, module, exports) {
-          module.exports = Stream;
-          var EE = require('events').EventEmitter;
-          var inherits = require('inherits');
-          inherits(Stream, EE);
-          Stream.Readable = require('readable-stream/readable.js');
-          Stream.Writable = require('readable-stream/writable.js');
-          Stream.Duplex = require('readable-stream/duplex.js');
-          Stream.Transform = require('readable-stream/transform.js');
-          Stream.PassThrough = require('readable-stream/passthrough.js');
-          Stream.Stream = Stream;
-          function Stream() {
-            EE.call(this);
-          }
-          Stream.prototype.pipe = function (dest, options) {
-            var source = this;
-            function ondata(chunk) {
-              if (dest.writable) {
-                if (false === dest.write(chunk) && source.pause) {
-                  source.pause();
-                }
-              }
-            }
-            source.on('data', ondata);
-            function ondrain() {
-              if (source.readable && source.resume) {
-                source.resume();
-              }
-            }
-            dest.on('drain', ondrain);
-            if (!dest._isStdio && (!options || options.end !== false)) {
-              source.on('end', onend);
-              source.on('close', onclose);
-            }
-            var didOnEnd = false;
-            function onend() {
-              if (didOnEnd) return;
-              didOnEnd = true;
-              dest.end();
-            }
-            function onclose() {
-              if (didOnEnd) return;
-              didOnEnd = true;
-              if (typeof dest.destroy === 'function') dest.destroy();
-            }
-            function onerror(er) {
-              cleanup();
-              if (EE.listenerCount(this, 'error') === 0) {
-                throw er;
-              }
-            }
-            source.on('error', onerror);
-            dest.on('error', onerror);
-            function cleanup() {
-              source.removeListener('data', ondata);
-              dest.removeListener('drain', ondrain);
-              source.removeListener('end', onend);
-              source.removeListener('close', onclose);
-              source.removeListener('error', onerror);
-              dest.removeListener('error', onerror);
-              source.removeListener('end', cleanup);
-              source.removeListener('close', cleanup);
-              dest.removeListener('close', cleanup);
-            }
-            source.on('end', cleanup);
-            source.on('close', cleanup);
-            dest.on('close', cleanup);
-            dest.emit('pipe', source);
-            return dest;
-          };
-        }, {
-          "events": 7,
-          "inherits": 8,
-          "readable-stream/duplex.js": 11,
-          "readable-stream/passthrough.js": 18,
-          "readable-stream/readable.js": 19,
-          "readable-stream/transform.js": 20,
-          "readable-stream/writable.js": 21
-        }],
-        23: [function (require, module, exports) {
-          var Buffer = require('buffer').Buffer;
-          var isBufferEncoding = Buffer.isEncoding || function (encoding) {
-            switch (encoding && encoding.toLowerCase()) {
-              case 'hex':
-              case 'utf8':
-              case 'utf-8':
-              case 'ascii':
-              case 'binary':
-              case 'base64':
-              case 'ucs2':
-              case 'ucs-2':
-              case 'utf16le':
-              case 'utf-16le':
-              case 'raw':
                 return true;
-              default:
-                return false;
+            },
+        };
+        return new Proxy(Object.assign({}, attr), handlr);
+    }
+    function updatePositionVector (positionArray, attr) {
+            const x = attr.x || 0;
+            const y = attr.y || 0;
+            const width = attr.width || 0;
+            const height = attr.height || 0;
+            const x1 = x + width;
+            const y1 = y + height;
+            positionArray[0] = positionArray[4] = positionArray[6] = x;
+            positionArray[1] = positionArray[3] = positionArray[9] = y;
+            positionArray[2] = positionArray[8] = positionArray[10] = x1;
+            positionArray[5] = positionArray[7] = positionArray[11] = y1;
+    }
+    const WebglCollection = function () {
+        CollectionPrototype.apply(this, arguments);
+    };
+    WebglCollection.prototype = new CollectionPrototype();
+    WebglCollection.prototype.constructor = WebglCollection;
+    WebglCollection.prototype.createNode = function (ctx, config, vDomIndex) {
+        return new WebglNodeExe(ctx, config, domId$1(), vDomIndex);
+    };
+    function loadShader(ctx, shaderSource, shaderType) {
+        var shader = ctx.createShader(shaderType);
+        ctx.shaderSource(shader, shaderSource);
+        ctx.compileShader(shader);
+        var compiled = ctx.getShaderParameter(shader, ctx.COMPILE_STATUS);
+        if (!compiled) {
+            var lastError = ctx.getShaderInfoLog(shader);
+            console.error("*** Error compiling shader '" + shader + "':" + lastError);
+            ctx.deleteShader(shader);
+            return null;
+        }
+        return shader;
+    }
+    function createProgram(ctx, shaders) {
+        var program = ctx.createProgram();
+        shaders.forEach(function (shader) {
+            ctx.attachShader(program, shader);
+        });
+        ctx.linkProgram(program);
+        var linked = ctx.getProgramParameter(program, ctx.LINK_STATUS);
+        if (!linked) {
+            var lastError = ctx.getProgramInfoLog(program);
+            console.error("Error in program linking:" + lastError);
+            ctx.deleteProgram(program);
+            return null;
+        }
+        return program;
+    }
+    function getProgram(ctx, shaderCode) {
+        var shaders = [
+            loadShader(ctx, shaderCode.vertexShader, ctx.VERTEX_SHADER),
+            loadShader(ctx, shaderCode.fragmentShader, ctx.FRAGMENT_SHADER),
+        ];
+        return createProgram(ctx, shaders);
+    }
+    function WebglDom() {
+        this.BBox = {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+        };
+        this.BBoxHit = {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+        };
+    }
+    WebglDom.prototype.exec = function (exe, d) {
+        if (typeof exe !== "function") {
+            console.error("Wrong Exe type");
+        }
+        exe.call(this, d);
+    };
+    WebglDom.prototype.setStyle = function (key, value) {
+        if (value) {
+            this.style[key] = value;
+            if (this.shader && key === "fill") {
+                if (this.style.opacity !== undefined) {
+                    value.a *= this.style.opacity;
+                }
+                if (this.shader.indexBased) {
+                    this.shader.updateColor(this.pindex, value);
+                }
             }
-          };
-          function assertEncoding(encoding) {
-            if (encoding && !isBufferEncoding(encoding)) {
-              throw new Error('Unknown encoding: ' + encoding);
+            if (this.shader && key === "opacity") {
+                if (this.style.fill !== undefined) {
+                    this.style.fill.a *= this.style.opacity;
+                }
+                this.shader.updateColor(this.pindex, this.style.fill);
             }
-          }
-          var StringDecoder = exports.StringDecoder = function (encoding) {
-            this.encoding = (encoding || 'utf8').toLowerCase().replace(/[-_]/, '');
-            assertEncoding(encoding);
-            switch (this.encoding) {
-              case 'utf8':
-                this.surrogateSize = 3;
-                break;
-              case 'ucs2':
-              case 'utf16le':
-                this.surrogateSize = 2;
-                this.detectIncompleteChar = utf16DetectIncompleteChar;
-                break;
-              case 'base64':
-                this.surrogateSize = 3;
-                this.detectIncompleteChar = base64DetectIncompleteChar;
-                break;
-              default:
-                this.write = passThroughWrite;
-                return;
+        } else if (this.style[key]) {
+            delete this.style[key];
+        }
+    };
+    WebglDom.prototype.getAttr = function (key) {
+        return this.attr[key];
+    };
+    WebglDom.prototype.getStyle = function (key) {
+        return this.style[key];
+    };
+    function PointNode(ctx, attr, style) {
+        this.ctx = ctx;
+        this.attr = Object.assign({}, attr) ;
+        this.style = Object.assign({}, style);
+        this.projectionMatrix = m3.projection(
+            this.ctx.canvas.width / ratio,
+            this.ctx.canvas.height / ratio
+        );
+        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
+        if (this.attr.transform) {
+            this.exec(updateTransformMatrix, null);
+        }
+    }
+    PointNode.prototype = new WebglDom();
+    PointNode.prototype.constructor = PointNode;
+    PointNode.prototype.setShader = function (shader) {
+        this.shader = shader;
+        if (this.shader) {
+            this.shader.addVertex(this.attr.x || 0, this.attr.y || 0, this.pindex);
+            this.shader.addColors(this.style.fill || defaultColor, this.pindex);
+            this.shader.addSize(this.attr.size || 0, this.pindex);
+            this.shader.addTransform(this.transformMatrix, this.pindex);
+        }
+    };
+    PointNode.prototype.setAttr = function (prop, value) {
+        this.attr[prop] = value;
+        if (prop === "transform") {
+            this.exec(updateTransformMatrix, this.p_matrix);
+        }
+        if (!this.shader) {
+            return;
+        }
+        if (prop === "x" || prop === "y") {
+            this.shader.updateVertex(this.pindex, this.attr.x, this.attr.y);
+        } else if (prop === "size") {
+            this.shader.updateSize(this.pindex, this.attr.size || 0);
+        } else if (prop === "transform") {
+            this.shader.updateTransform(this.pindex, this.transformMatrix);
+        }
+    };
+    PointNode.prototype.applyTransformationMatrix = function (matrix) {
+        this.p_matrix = matrix;
+        this.exec(updateTransformMatrix, matrix);
+        if (this.shader) {
+            this.shader.addTransform(this.transformMatrix, this.pindex);
+        }
+    };
+    PointNode.prototype.in = function RRinfun(co) {
+        const { x = 0, y = 0, size = 0 } = this.attr;
+        return co.x >= x && co.x <= x + size && co.y >= y && co.y <= y + size;
+    };
+    PointNode.prototype.updateBBox = function RRupdateBBox() {
+        const self = this;
+        const { transform, x = 0, y = 0, size = 0 } = self.attr;
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        self.BBox = {
+            x: translateX + x * scaleX,
+            y: translateY + y * scaleY,
+            width: size * scaleX,
+            height: size * scaleY,
+        };
+        if (transform && transform.rotate) {
+            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+        } else {
+            self.BBoxHit = this.BBox;
+        }
+    };
+    function RectNode(ctx, attr, style) {
+        this.ctx = ctx;
+        this.attr = Object.assign({}, attr) ;
+        this.style = Object.assign({}, style);
+        this.projectionMatrix = m3.projection(
+            this.ctx.canvas.width / ratio,
+            this.ctx.canvas.height / ratio
+        );
+        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
+        if (this.attr.transform) {
+            this.exec(updateTransformMatrix, null);
+        }
+    }
+    RectNode.prototype = new WebglDom();
+    RectNode.prototype.constructor = RectNode;
+    RectNode.prototype.setShader = function (shader) {
+        this.shader = shader;
+        if (this.shader) {
+            this.shader.addVertex(
+                this.attr.x || 0,
+                this.attr.y || 0,
+                this.attr.width || 0,
+                this.attr.height || 0,
+                this.pindex
+            );
+            this.shader.addColors(this.style.fill || defaultColor, this.pindex);
+            this.shader.addTransform(this.transformMatrix, this.pindex);
+        }
+    };
+    RectNode.prototype.applyTransformationMatrix = function (matrix) {
+        this.p_matrix = matrix;
+        this.exec(updateTransformMatrix, matrix);
+        if (this.shader) {
+            this.shader.addTransform(this.transformMatrix, this.pindex);
+        }
+    };
+    RectNode.prototype.setAttr = function (key, value) {
+        this.attr[key] = value;
+        if (key === "transform") {
+            this.exec(updateTransformMatrix, this.p_matrix);
+        }
+        if (!this.shader) {
+            return;
+        }
+        if (key === "x" || key === "width" || key === "y" || key === "height") {
+            this.shader.updateVertex(
+                this.pindex,
+                this.attr.x || 0,
+                this.attr.y || 0,
+                this.attr.width || 0,
+                this.attr.height || 0
+            );
+        } else if (key === "transform") {
+            this.shader.updateTransform(this.pindex, this.transformMatrix);
+        }
+    };
+    RectNode.prototype.in = function RRinfun(co) {
+        const { x = 0, y = 0, width = 0, height = 0 } = this.attr;
+        return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
+    };
+    RectNode.prototype.updateBBox = function RRupdateBBox() {
+        const self = this;
+        const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        self.BBox = {
+            x: translateX + x * scaleX,
+            y: translateY + y * scaleY,
+            width: width * scaleX,
+            height: height * scaleY,
+        };
+        if (transform && transform.rotate) {
+            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+        } else {
+            self.BBoxHit = this.BBox;
+        }
+    };
+    function PathNode(ctx, attr, style) {
+        const self = this;
+        this.ctx = ctx;
+        this.attr = Object.assign({}, attr) ;
+        this.style = Object.assign({}, style);
+        this.pointsGeometry = [];
+        this.transform = [0, 0, 1, 1];
+        this.positionArray = new Float32Array(12);
+        this.projectionMatrix = m3.projection(
+            this.ctx.canvas.width / ratio,
+            this.ctx.canvas.height / ratio
+        );
+        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
+        for(let key in self.attr) {
+            this.setAttr(key, self.attr[key]);
+        }
+        updatePositionVector(this.positionArray, {x: 0, y: 0, height: this.pathTexture?.height??0, width: this.pathTexture?.width??0});
+    }
+    PathNode.prototype = new WebglDom();
+    PathNode.prototype.constructor = PathNode;
+    PathNode.prototype.setShader = function (shader) {
+        this.shader = shader;
+    };
+    PathNode.prototype.applyTransformationMatrix = function (matrix) {
+        this.p_matrix = matrix;
+        this.exec(updateTransformMatrix, matrix);
+    };
+    PathNode.prototype.setAttr = function (key, value) {
+        this.attr[key] = value;
+        if (value === null) {
+            delete this.attr[key];
+            return;
+        }
+        if (key === "d") {
+            if (CheckPathType(value)) {
+                this.path = value;
+                this.attr.d = value.fetchPathString();
+            } else {
+                this.path = CreatePath(this.attr.d);
             }
-            this.charBuffer = new Buffer(6);
-            this.charReceived = 0;
-            this.charLength = 0;
-          };
-          StringDecoder.prototype.write = function (buffer) {
-            var charStr = '';
-            while (this.charLength) {
-              var available = buffer.length >= this.charLength - this.charReceived ? this.charLength - this.charReceived : buffer.length;
-              buffer.copy(this.charBuffer, this.charReceived, 0, available);
-              this.charReceived += available;
-              if (this.charReceived < this.charLength) {
-                return '';
-              }
-              buffer = buffer.slice(available, buffer.length);
-              charStr = this.charBuffer.slice(0, this.charLength).toString(this.encoding);
-              var charCode = charStr.charCodeAt(charStr.length - 1);
-              if (charCode >= 0xD800 && charCode <= 0xDBFF) {
-                this.charLength += this.surrogateSize;
-                charStr = '';
+            let bbox = this.path.BBox;
+            let pathTexture = this.path.getPathTexture(this.style, true);
+            if (!this.textureNode) {
+                this.textureNode = new TextureObject(
+                    this.ctx,
+                    {
+                        src: pathTexture,
+                    },
+                    this.vDomIndex
+                );
+            } else {
+                this.textureNode.setAttr('src', pathTexture);
+            }
+            updatePositionVector(this.positionArray, {x: 0, y: 0, height: bbox?.height??0, width: bbox?.width??0});
+        } else if (key === "transform") {
+            this.exec(updateTransformMatrix, this.p_matrix ? this.p_matrix : this.projectionMatrix);
+        }
+    };
+    PathNode.prototype.setStyle = function (key, value) {
+        if (value === null) {
+            delete this.style[key];
+            return;
+        }
+        this.style[key] = value;
+        if (this.path) {
+            this.textureNode.setAttr('src', this.path.getPathTexture(this.style));
+        }
+    };
+    PathNode.prototype.in = function RIinfun(co) {
+        const { x = 0, y = 0 } = co;
+        let ctx = this.path.ctx;
+        let flag = false;
+        ctx.save();
+        flag = ctx.isPointInPath(this.path.pathNode, x, y);
+        ctx.restore();
+        return flag;
+    };
+    PathNode.prototype.updateBBox = function RCupdateBBox() {
+        const self = this;
+        const { transform } = self.attr;
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        self.BBox = self.path
+            ? self.path.BBox
+            : {
+                  x: 0,
+                  y: 0,
+                  width: 0,
+                  height: 0,
+              };
+        self.BBox.x = translateX + self.BBox.x * scaleX;
+        self.BBox.y = translateY + self.BBox.y * scaleY;
+        self.BBox.width *= scaleX;
+        self.BBox.height *= scaleY;
+        if (transform && transform.rotate) {
+            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+        } else {
+            self.BBoxHit = this.BBox;
+        }
+    };
+    function PolyLineNode(ctx, attr, style) {
+        this.ctx = ctx;
+        this.attr = Object.assign({}, attr || {}) ;
+        this.style = Object.assign({}, style || {});
+        this.points = [];
+        this.transform = [0, 0, 1, 1];
+        const subPoints = [];
+        this.projectionMatrix = m3.projection(
+            this.ctx.canvas.width / ratio,
+            this.ctx.canvas.height / ratio
+        );
+        if (this.attr.points) {
+            const points = this.attr.points;
+            for (let j = 0, jlen = points.length; j < jlen; j++) {
+                subPoints[j * 2] = points[j].x;
+                subPoints[j * 2 + 1] = points[j].y;
+            }
+            this.points = new Float32Array(subPoints);
+        }
+        if (this.style.stroke) {
+            this.color = new Float32Array([
+                this.style.stroke.r / 255,
+                this.style.stroke.g / 255,
+                this.style.stroke.b / 255,
+                this.style.stroke.a === undefined ? 1 : this.style.stroke.a / 255,
+            ]);
+        }
+        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
+        if (this.attr.transform) {
+            this.exec(updateTransformMatrix, null);
+        }
+    }
+    PolyLineNode.prototype = new WebglDom();
+    PolyLineNode.prototype.constructor = PolyLineNode;
+    PolyLineNode.prototype.setShader = function (shader) {
+        this.shader = shader;
+    };
+    PolyLineNode.prototype.applyTransformationMatrix = function (matrix) {
+        this.p_matrix = matrix;
+        this.exec(updateTransformMatrix, matrix);
+    };
+    PolyLineNode.prototype.setAttr = function (key, value) {
+        this.attr[key] = value;
+        if (key === "points") {
+            const points = this.attr.points;
+            const subPoints = [];
+            for (let j = 0, jlen = points.length; j < jlen; j++) {
+                subPoints[j * 2] = points[j].x;
+                subPoints[j * 2 + 1] = points[j].y;
+            }
+            this.points = new Float32Array(subPoints);
+        } else if (key === "transform") {
+            this.exec(updateTransformMatrix, this.p_matrix);
+        }
+    };
+    PolyLineNode.prototype.updateBBox = RPolyupdateBBox$1;
+    PolyLineNode.prototype.setStyle = function (key, value) {
+        this.style[key] = value;
+        if (key === "stroke") {
+            this.color = new Float32Array([
+                this.style.stroke.r / 255,
+                this.style.stroke.g / 255,
+                this.style.stroke.b / 255,
+                this.style.stroke.a === undefined ? 1 : this.style.stroke.a / 255,
+            ]);
+        }
+    };
+    function LineNode(ctx, attr, style) {
+        this.ctx = ctx;
+        this.attr = Object.assign({}, attr || {}) ;
+        this.style = Object.assign({}, style || {});
+        this.projectionMatrix = m3.projection(
+            this.ctx.canvas.width / ratio,
+            this.ctx.canvas.height / ratio
+        );
+        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
+        if (this.attr.transform) {
+            this.exec(updateTransformMatrix, null);
+        }
+    }
+    LineNode.prototype = new WebglDom();
+    LineNode.prototype.constructor = LineNode;
+    LineNode.prototype.setShader = function (shader) {
+        this.shader = shader;
+        const { x1 = 0, y1 = 0, x2 = x1, y2 = y1 } = this.attr;
+        if (this.shader) {
+            this.shader.addVertex(x1, y1, x2, y2, this.pindex);
+            this.shader.addColors(this.style.stroke || defaultColor, this.pindex);
+            this.shader.addTransform(this.transformMatrix, this.pindex);
+        }
+    };
+    LineNode.prototype.applyTransformationMatrix = function (matrix) {
+        this.p_matrix = matrix;
+        this.exec(updateTransformMatrix, matrix);
+        if (this.shader) {
+            this.shader.addTransform(this.transformMatrix, this.pindex);
+        }
+    };
+    LineNode.prototype.setAttr = function (key, value) {
+        this.attr[key] = value;
+        if (value === null && this.attr[key] !== null) {
+            delete this.attr[key];
+            return;
+        }
+        if (key === "transform") {
+            this.exec(updateTransformMatrix, this.p_matrix);
+        }
+        if (this.shader && (key === "x1" || key === "y1" || key === "x2" || key === "y2")) {
+            this.shader.updateVertex(
+                this.pindex,
+                this.attr.x1,
+                this.attr.y1,
+                this.attr.x2,
+                this.attr.y2
+            );
+        } else if (this.shader && key === "transform") {
+            this.shader.updateTransform(this.pindex, this.transformMatrix);
+        }
+    };
+    LineNode.prototype.updateBBox = function RLupdateBBox() {
+        const self = this;
+        const { transform, x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = self.attr;
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        self.BBox = {
+            x: translateX + (x1 < x2 ? x1 : x2) * scaleX,
+            y: translateY + (y1 < y2 ? y1 : y2) * scaleY,
+            width: Math.abs(x2 - x1) * scaleX,
+            height: Math.abs(y2 - y1) * scaleY,
+        };
+        if (transform && transform.rotate) {
+            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+        } else {
+            self.BBoxHit = this.BBox;
+        }
+    };
+    function polygonPointsMapper(value) {
+        return earcut$1(value.reduce(function (p, c) {
+                p[p.length] = c.x;
+                p[p.length] = c.y;
+                return p;
+            }, [])).map(function (d) {
+            return value[d];
+        });
+    }
+    function PolygonNode(ctx, attr, style) {
+        this.ctx = ctx;
+        this.attr = Object.assign({}, attr || {}) ;
+        this.style = Object.assign({}, style || {});
+        this.positionArray = [];
+        this.transform = [0, 0, 1, 1];
+        const subPoints = [];
+        this.projectionMatrix = m3.projection(
+            this.ctx.canvas.width / ratio,
+            this.ctx.canvas.height / ratio
+        );
+        if (this.attr.points) {
+            const points = polygonPointsMapper(this.attr.points || []);
+            for (let j = 0, jlen = points.length; j < jlen; j++) {
+                subPoints[j * 2] = points[j].x;
+                subPoints[j * 2 + 1] = points[j].y;
+            }
+            this.points = new Float32Array(subPoints);
+        }
+        if (this.style.fill) {
+            this.color = new Float32Array([
+                this.style.stroke.r / 255,
+                this.style.stroke.g / 255,
+                this.style.stroke.b / 255,
+                this.style.stroke.a === undefined ? 1 : this.style.stroke.a / 255,
+            ]);
+        }
+        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
+        if (this.attr.transform) {
+            this.exec(updateTransformMatrix, null);
+        }
+    }
+    PolygonNode.prototype = new WebglDom();
+    PolygonNode.prototype.constructor = PolygonNode;
+    PolygonNode.prototype.setShader = function (shader) {
+        this.shader = shader;
+    };
+    PolygonNode.prototype.applyTransformationMatrix = function (matrix) {
+        this.p_matrix = matrix;
+        this.exec(updateTransformMatrix, matrix);
+    };
+    PolygonNode.prototype.setAttr = function (key, value) {
+        this.attr[key] = value;
+        if (value === null) {
+            delete this.attr[key];
+            return;
+        }
+        if (key === "points") {
+            const subPoints = [];
+            const points = polygonPointsMapper((value || []));
+            for (let j = 0, jlen = points.length; j < jlen; j++) {
+                subPoints[j * 2] = points[j].x;
+                subPoints[j * 2 + 1] = points[j].y;
+            }
+            this.points = new Float32Array(subPoints);
+        } else if (key === "transform") {
+            this.exec(updateTransformMatrix, this.p_matrix);
+        }
+    };
+    PolygonNode.prototype.setStyle = function (key, value) {
+        this.style[key] = value;
+        if (key === "fill") {
+            this.color = new Float32Array([
+                this.style.fill.r / 255,
+                this.style.fill.g / 255,
+                this.style.fill.b / 255,
+                this.style.fill.a === undefined ? 1 : this.style.fill.a / 255,
+            ]);
+        }
+    };
+    PolygonNode.prototype.updateBBox = RPolyupdateBBox$1;
+    function CircleNode(ctx, attr, style) {
+        this.ctx = ctx;
+        this.attr = Object.assign({}, attr || {}) ;
+        this.style = Object.assign({}, style || {});
+        this.projectionMatrix = m3.projection(
+            this.ctx.canvas.width / ratio,
+            this.ctx.canvas.height / ratio
+        );
+        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
+        if (this.attr.transform) {
+            this.exec(updateTransformMatrix, null);
+        }
+    }
+    CircleNode.prototype = new WebglDom();
+    CircleNode.prototype.constructor = CircleNode;
+    CircleNode.prototype.setShader = function (shader) {
+        this.shader = shader;
+        if (this.shader) {
+            this.shader.addVertex(this.attr.cx || 0, this.attr.cy || 0, this.pindex);
+            this.shader.addColors(this.style.fill || defaultColor, this.pindex);
+            this.shader.addSize(this.attr.r || 0, this.pindex);
+            this.shader.addTransform(this.transformMatrix, this.pindex);
+        }
+    };
+    CircleNode.prototype.applyTransformationMatrix = function (matrix) {
+        this.p_matrix = matrix;
+        this.exec(updateTransformMatrix, matrix);
+        if (this.shader) {
+            this.shader.addTransform(this.transformMatrix, this.pindex);
+        }
+    };
+    CircleNode.prototype.setAttr = function (prop, value) {
+        this.attr[prop] = value;
+        if (value === null) {
+            delete this.attr[prop];
+            return;
+        }
+        if (prop === "transform") {
+            this.exec(updateTransformMatrix, this.p_matrix);
+        }
+        if ((prop === "cx" || prop === "cy") && this.shader) {
+            this.shader.updateVertex(this.pindex, this.attr.cx, this.attr.cy);
+        } else if (prop === "r" && this.shader) {
+            this.shader.updateSize(this.pindex, this.attr.r || 0);
+        } else if (prop === "transform" && this.shader) {
+            this.shader.updateTransform(this.pindex, this.transformMatrix);
+        }
+    };
+    CircleNode.prototype.in = function RCinfun(co) {
+        const { r = 0, cx = 0, cy = 0 } = this.attr;
+        const tr = Math.sqrt((co.x - cx) * (co.x - cx) + (co.y - cy) * (co.y - cy));
+        return tr <= r;
+    };
+    CircleNode.prototype.updateBBox = function RCupdateBBox() {
+        const self = this;
+        const { transform, r = 0, cx = 0, cy = 0 } = self.attr;
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        self.BBox = {
+            x: translateX + (cx - r) * scaleX,
+            y: translateY + (cy - r) * scaleY,
+            width: 2 * r * scaleX,
+            height: 2 * r * scaleY,
+        };
+        if (transform && transform.rotate) {
+            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+        } else {
+            self.BBoxHit = this.BBox;
+        }
+    };
+    const webGLImageTextures = {};
+    function isPowerOf2(value) {
+        return (value & (value - 1)) === 0;
+    }
+    const onClear = function (ctx, width, height, ratio) {
+        ctx.clearRect(0, 0, width * ratio, height * ratio);
+    };
+    function buildCanvasTextEl(str, style) {
+        const layer = document.createElement("canvas");
+        const ctx = layer.getContext("2d");
+        style = style || {
+            fill: "#fff",
+        };
+        if (!style.font) {
+            style.font = "10px Arial";
+        }
+        const fontSize = parseFloat(style.font, 10) || 12;
+        ctx.font = style.font;
+        const twid = ctx.measureText(str);
+        const width = twid.width;
+        const height = fontSize;
+        layer.setAttribute("height", height * ratio);
+        layer.setAttribute("width", width * ratio);
+        layer.style.width = width;
+        layer.style.height = height;
+        style.font =
+            fontSize * ratio +
+            (isNaN(parseFloat(style.font, 10))
+                ? style.font
+                : style.font.substring(fontSize.toString().length));
+        for (const st in style) {
+            ctx[st] = style[st];
+        }
+        ctx.fillText(str, 0, height * 0.75 * ratio);
+        return {
+            dom: layer,
+            ctx: ctx,
+            width: width,
+            height: height,
+            ratio: ratio,
+            style: style,
+            str: str,
+            updateText: function () {
+                onClear(this.ctx, this.width, this.height, this.ratio);
+                for (const st in this.style) {
+                    this.ctx[st] = this.style[st];
+                }
+                this.ctx.fillText(this.str, 0, this.height * 0.75);
+            },
+        };
+    }
+    function TextNode(ctx, attr, style, vDomIndex) {
+        const self = this;
+        this.ctx = ctx;
+        this.attr = Object.assign({}, attr || {}) ;
+        this.style = Object.assign({}, style || {});
+        this.vDomIndex = vDomIndex;
+        this.positionArray = new Float32Array(12);
+        this.transform = [0, 0, 1, 1];
+        this.projectionMatrix = m3.projection(
+            this.ctx.canvas.width / ratio,
+            this.ctx.canvas.height / ratio
+        );
+        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
+        if (this.attr.transform) {
+            this.exec(updateTransformMatrix, null);
+        }
+        if (self.attr.text && typeof self.attr.text === "string") {
+            this.text = buildCanvasTextEl(self.attr.text, self.style);
+            this.attr.width = this.text.width;
+            this.attr.height = this.text.height;
+        }
+        if (this.attr.x || this.attr.y) {
+            updatePositionVector(this.positionArray, this.attr);
+        }
+        if (this.text) {
+            this.textureNode = new TextureObject(
+                ctx,
+                {
+                    src: this.text.dom,
+                },
+                this.vDomIndex
+            );
+        }
+    }
+    TextNode.prototype = new WebglDom();
+    TextNode.prototype.constructor = TextNode;
+    TextNode.prototype.setShader = function (shader) {
+        this.shader = shader;
+    };
+    TextNode.prototype.setAttr = function (key, value) {
+        this.attr[key] = value;
+        if (value === null) {
+            delete this.attr[key];
+            return;
+        }
+        if (key === "text" && typeof value === "string") {
+            if (this.text) {
+                this.text = buildCanvasTextEl(this.attr.text, this.style);
+            } else {
+                this.text = buildCanvasTextEl(value, this.style);
+            }
+            this.attr.width = this.text.width;
+            this.attr.height = this.text.height;
+            if (this.textureNode) {
+                this.textureNode.setAttr("src", this.text.dom);
+            } else {
+                this.textureNode = new TextureObject(
+                    this.ctx,
+                    {
+                        src: this.text.dom,
+                    },
+                    this.vDomIndex
+                );
+            }
+        }
+        if (key === "transform") {
+            this.exec(updateTransformMatrix, this.p_matrix);
+        } else if (key === "x" || key === "y") {
+            updatePositionVector(this.positionArray, this.attr);
+        }
+    };
+    TextNode.prototype.applyTransformationMatrix = function (matrix) {
+        this.p_matrix = matrix;
+        this.exec(updateTransformMatrix, matrix);
+    };
+    TextNode.prototype.setStyle = function (key, value) {
+        this.style[key] = value;
+        if (this.text) {
+            this.text.style[key] = value;
+            if (key === "font") {
+                const fontSize = parseFloat(value, 10) || 12;
+                this.text.ctx.font = value;
+                const twid = this.text.ctx.measureText(this.attr.text);
+                const width = twid.width;
+                const height = fontSize;
+                this.text.style.font =
+                    fontSize * ratio +
+                    (isNaN(parseFloat(value, 10))
+                        ? this.style.font
+                        : this.style.font.substring(fontSize.toString().length));
+                this.text.updateText();
+                this.text.dom.setAttribute("height", height * ratio);
+                this.text.dom.setAttribute("width", width * ratio);
+                this.attr.width = width;
+                this.attr.height = height;
+                this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
+                this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
+            } else {
+                this.text.style[key] = value;
+                this.text.updateText();
+                this.textureNode.setAttr("src", this.text.dom);
+            }
+        }
+    };
+    TextNode.prototype.getAttr = function (key) {
+        return this.attr[key];
+    };
+    TextNode.prototype.getStyle = function (key) {
+        return this.style[key];
+    };
+    TextNode.prototype.in = function RIinfun(co) {
+        const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
+        return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
+    };
+    TextNode.prototype.updateBBox = function RIupdateBBox() {
+        const self = this;
+        const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        self.BBox = {
+            x: (translateX + x) * scaleX,
+            y: (translateY + y) * scaleY,
+            width: width * scaleX,
+            height: height * scaleY,
+        };
+        if (transform && transform.rotate) {
+            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+        } else {
+            self.BBoxHit = this.BBox;
+        }
+    };
+    function ImageNode(ctx, attr, style, vDomIndex) {
+        const self = this;
+        this.ctx = ctx;
+        this.attr = Object.assign({}, attr || {}) ;
+        this.style = Object.assign({}, style || {});
+        this.vDomIndex = vDomIndex;
+        this.positionArray = new Float32Array(12);
+        this.transform = [0, 0, 1, 1];
+        this.projectionMatrix = m3.projection(
+            this.ctx.canvas.width / ratio,
+            this.ctx.canvas.height / ratio
+        );
+        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
+        if (this.attr.transform) {
+            this.exec(updateTransformMatrix, null);
+        }
+        if (self.attr.src && typeof self.attr.src === "string" && !webGLImageTextures[self.attr.src]) {
+            this.textureNode = new TextureObject(
+                ctx,
+                {
+                    src: this.attr.src,
+                },
+                this.vDomIndex
+            );
+            webGLImageTextures[self.attr.src] = this.textureNode;
+        } else if (self.attr.src && self.attr.src instanceof NodePrototype) {
+            this.textureNode = new TextureObject(
+                ctx,
+                {
+                    src: this.attr.src,
+                },
+                this.vDomIndex
+            );
+        } else if (typeof self.attr.src === "string" && webGLImageTextures[self.attr.src]) {
+            this.textureNode = webGLImageTextures[self.attr.src];
+        } else if (self.attr.src && self.attr.src instanceof TextureObject) {
+            this.textureNode = self.attr.src;
+        }
+        if (this.attr.x || this.attr.y || this.attr.width || this.attr.height) {
+            updatePositionVector(this.positionArray, this.attr);
+        }
+    }
+    ImageNode.prototype = new WebglDom();
+    ImageNode.prototype.constructor = ImageNode;
+    ImageNode.prototype.setShader = function (shader) {
+        this.shader = shader;
+    };
+    ImageNode.prototype.applyTransformationMatrix = function (matrix) {
+        this.p_matrix = matrix;
+        this.exec(updateTransformMatrix, matrix);
+    };
+    ImageNode.prototype.setAttr = function (key, value) {
+        this.attr[key] = value;
+        if (value === null) {
+            delete this.attr[key];
+            return;
+        }
+        if (key === "src" && typeof value === "string") {
+            if (value && !webGLImageTextures[value]) {
+                this.textureNode = new TextureObject(
+                    this.ctx,
+                    {
+                        src: value,
+                    },
+                    this.vDomIndex
+                );
+                webGLImageTextures[value] = this.textureNode;
+            } else if (value && webGLImageTextures[value]) {
+                this.textureNode = webGLImageTextures[value];
+            }
+        } else if (key === "src" && value instanceof NodePrototype) {
+            this.textureNode = new TextureObject(
+                this.ctx,
+                {
+                    src: value,
+                },
+                this.vDomIndex
+            );
+        } else if (key === "src" && value instanceof TextureObject) {
+            this.textureNode = value;
+        } else if (key === "x" || key === "width" || key === "y" || key === "height") {
+            updatePositionVector(this.positionArray, this.attr);
+        } else if (key === "transform") {
+            this.exec(updateTransformMatrix, this.p_matrix);
+        }
+    };
+    ImageNode.prototype.setStyle = function (key, value) {
+        if (value) {
+            this.style[key] = value;
+        } else if (this.style[key]) {
+            delete this.style[key];
+        }
+    };
+    ImageNode.prototype.getAttr = function (key) {
+        return this.attr[key];
+    };
+    ImageNode.prototype.getStyle = function (key) {
+        return this.style[key];
+    };
+    ImageNode.prototype.in = function RIinfun(co) {
+        const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
+        return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
+    };
+    ImageNode.prototype.updateBBox = function RIupdateBBox() {
+        const self = this;
+        const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        self.BBox = {
+            x: (translateX + x) * scaleX,
+            y: (translateY + y) * scaleY,
+            width: width * scaleX,
+            height: height * scaleY,
+        };
+        if (transform && transform.rotate) {
+            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+        } else {
+            self.BBoxHit = this.BBox;
+        }
+    };
+    function WebglGroupNode(ctx, attr, style, renderTarget, vDomIndex) {
+        this.ctx = ctx;
+        this.attr = Object.assign({}, attr || {}) ;
+        this.style = Object.assign({}, style || {});
+        this.renderTarget = renderTarget;
+        this.vDomIndex = vDomIndex;
+        if (attr.shaderType) {
+            this.shader = getTypeShader(
+                ctx,
+                attr,
+                style,
+                attr.shaderType,
+                this.renderTarget,
+                vDomIndex
+            );
+        }
+        this.projectionMatrix = m3.projection(
+            this.ctx.canvas.width / ratio,
+            this.ctx.canvas.height / ratio
+        );
+        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
+        if (this.attr.transform) {
+            this.exec(updateTransformMatrix, null);
+        }
+    }
+    WebglGroupNode.prototype = new WebglDom();
+    WebglGroupNode.prototype.constructor = WebglGroupNode;
+    WebglGroupNode.prototype.applyTransformationMatrix = function (matrix) {
+        this.p_matrix = matrix;
+        this.exec(updateTransformMatrix, matrix);
+        this.transformMatrix = m3.multiply(this.transformMatrix, matrix);
+    };
+    WebglGroupNode.prototype.setAttr = function (key, value) {
+        this.attr[key] = value;
+        if (key === "shaderType") {
+            this.shader = getTypeShader(
+                this.ctx,
+                this.attr,
+                this.style,
+                value,
+                this.renderTarget,
+                this.vDomIndex
+            );
+        }
+        if (key === "transform") {
+            this.exec(updateTransformMatrix, this.p_matrix);
+        }
+    };
+    WebglGroupNode.prototype.setShader = function () {};
+    WebglGroupNode.prototype.in = function RGinfun(coOr) {
+        const self = this;
+        const co = {
+            x: coOr.x,
+            y: coOr.y,
+        };
+        const { BBox } = this;
+        const { transform } = self.attr;
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        return (
+            co.x >= (BBox.x - translateX) / scaleX &&
+            co.x <= (BBox.x - translateX + BBox.width) / scaleX &&
+            co.y >= (BBox.y - translateY) / scaleY &&
+            co.y <= (BBox.y - translateY + BBox.height) / scaleY
+        );
+    };
+    WebglGroupNode.prototype.updateBBox = function RGupdateBBox(children) {
+        const self = this;
+        let minX;
+        let maxX;
+        let minY;
+        let maxY;
+        const { transform } = self.attr;
+        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        self.BBox = {};
+        if (children && children.length > 0) {
+            let d;
+            let boxX;
+            let boxY;
+            for (let i = 0; i < children.length; i += 1) {
+                d = children[i];
+                if (!d) {
+                    continue;
+                }
+                boxX = d.dom.BBoxHit.x;
+                boxY = d.dom.BBoxHit.y;
+                minX = minX === undefined ? boxX : minX > boxX ? boxX : minX;
+                minY = minY === undefined ? boxY : minY > boxY ? boxY : minY;
+                maxX =
+                    maxX === undefined
+                        ? boxX + d.dom.BBoxHit.width
+                        : maxX < boxX + d.dom.BBoxHit.width
+                        ? boxX + d.dom.BBoxHit.width
+                        : maxX;
+                maxY =
+                    maxY === undefined
+                        ? boxY + d.dom.BBoxHit.height
+                        : maxY < boxY + d.dom.BBoxHit.height
+                        ? boxY + d.dom.BBoxHit.height
+                        : maxY;
+            }
+        }
+        minX = minX === undefined ? 0 : minX;
+        minY = minY === undefined ? 0 : minY;
+        maxX = maxX === undefined ? 0 : maxX;
+        maxY = maxY === undefined ? 0 : maxY;
+        self.BBox.x = translateX + minX * scaleX;
+        self.BBox.y = translateY + minY * scaleY;
+        self.BBox.width = Math.abs(maxX - minX) * scaleX;
+        self.BBox.height = Math.abs(maxY - minY) * scaleY;
+        if (self.attr.transform && self.attr.transform.rotate) {
+            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, this.attr.transform);
+        } else {
+            self.BBoxHit = this.BBox;
+        }
+    };
+    const defaultColor = colorMap$1.rgba(0, 0, 0, 255);
+    function webGlAttrMapper(ctx, program, attr, attrObj) {
+        let valType = attrObj.type;
+        if (!valType) {
+            valType = "FLOAT";
+            if (attrObj.value instanceof Float32Array) {
+                valType = "FLOAT";
+            } else if (attrObj.value instanceof Int8Array) {
+                valType = "BYTE";
+            } else if (attrObj.value instanceof Int16Array) {
+                valType = "SHORT";
+            } else if (attrObj.value instanceof Uint8Array) {
+                valType = "UNSIGNED_BYTE";
+            } else if (attrObj.value instanceof Uint16Array) {
+                valType = "UNSIGNED_SHORT";
+            }
+        }
+        const buffer = ctx.createBuffer();
+        const newAttrObj = {
+            bufferType: ctx.ARRAY_BUFFER,
+            buffer: buffer,
+            drawType: ctx.STATIC_DRAW,
+            valueType: ctx[valType],
+            size: attrObj.size,
+            attributeLocation: ctx.getAttribLocation(program, attr),
+            value: attrObj.value,
+            attr: attr,
+        };
+        return newAttrObj;
+    }
+    function webGlIndexMapper(ctx, program, attrObj) {
+        let valType = "FLOAT";
+        if (attrObj.value instanceof Float32Array) {
+            valType = "FLOAT";
+        } else if (attrObj.value instanceof Int8Array) {
+            valType = "BYTE";
+        } else if (attrObj.value instanceof Int16Array) {
+            valType = "SHORT";
+        } else if (attrObj.value instanceof Uint8Array) {
+            valType = "UNSIGNED_BYTE";
+        } else if (attrObj.value instanceof Uint16Array) {
+            valType = "UNSIGNED_SHORT";
+        }
+        return {
+            bufferType: ctx.ELEMENT_ARRAY_BUFFER,
+            buffer: ctx.createBuffer(),
+            drawType: ctx.STATIC_DRAW,
+            valueType: ctx[valType],
+            value: attrObj.value,
+            count: attrObj.count,
+            offset: attrObj.offset,
+        };
+    }
+    function webGlUniformMapper(ctx, program, uniform, uniObj) {
+        let type;
+        const len = uniObj.size ? uniObj.size : uniObj.value.length;
+        if (!uniObj.matrix) {
+            if (uniObj.value instanceof TextureObject) {
+                type = "uniform1i";
+            } else if (uniObj.value instanceof Float32Array) {
+                type = "uniform" + len + "fv";
+            } else if (
+                uniObj.value instanceof Int8Array ||
+                uniObj.value instanceof Int16Array ||
+                uniObj.value instanceof Uint8Array
+            ) {
+                type = "uniform" + len + "iv";
+            } else if (!Number.isInteger(uniObj.value)) {
+                type = "uniform1f";
+            } else if (Number.isInteger(uniObj.value)) {
+                type = "uniform1i";
+            }
+        } else {
+            if (Number.isInteger(Math.sqrt(uniObj.value.length))) {
+                type = "uniformMatrix" + Math.sqrt(uniObj.value.length) + "fv";
+            } else {
+                console.error("Not Square Matrix");
+            }
+        }
+        return {
+            matrix: uniObj.matrix,
+            transpose: uniObj.transpose === undefined ? false : uniObj.transpose,
+            type: type,
+            value: uniObj.value,
+            uniformLocation: ctx.getUniformLocation(program, uniform),
+        };
+    }
+    function RenderWebglShader(ctx, shader, vDomIndex) {
+        this.ctx = ctx;
+        this.dom = {
+            BBoxHit: {
+                x: 0,
+                y: 0,
+                height: 0,
+                width: 0,
+            },
+        };
+        this.shader = shader;
+        this.vDomIndex = vDomIndex;
+        this.program = getProgram(ctx, shader);
+        this.uniforms = {};
+        this.attr = {};
+        this.attrObjs = {};
+        this.indexesObj = null;
+        this.preDraw = shader.preDraw;
+        this.postDraw = shader.postDraw;
+        this.geometry = shader.geometry;
+        this.renderTarget = shader.renderTarget;
+        this.vao = ctx.createVertexArray();
+        for (const uniform in shader.uniforms) {
+            this.uniforms[uniform] = webGlUniformMapper(
+                ctx,
+                this.program,
+                uniform,
+                shader.uniforms[uniform]
+            );
+        }
+        if (this.geometry) {
+            if (
+                this.geometry instanceof MeshGeometry ||
+                this.geometry instanceof PointsGeometry ||
+                this.geometry instanceof LineGeometry
+            ) {
+                this.attributes = this.geometry.attributes;
+                this.indexes = this.geometry.indexes;
+            } else {
+                console.error("Wrong Geometry type");
+            }
+        }
+        for (const attr in this.attributes) {
+            this.attrObjs[attr] = webGlAttrMapper(ctx, this.program, attr, this.attributes[attr]);
+            this.applyAttributeToVao(attr, this.attrObjs[attr]);
+        }
+        if (this.indexes) {
+            this.indexesObj = webGlIndexMapper(ctx, this.program, this.indexes);
+        }
+    }
+    RenderWebglShader.prototype = new ShaderNodePrototype();
+    RenderWebglShader.prototype.constructor = RenderWebglShader;
+    RenderWebglShader.prototype.applyAttributeToVao = function (attr, d) {
+        this.ctx.bindVertexArray(this.vao);
+        if (attr === "a_transformMatrix") {
+            this.ctx.enableVertexAttribArray(d.attributeLocation + 0);
+            this.ctx.enableVertexAttribArray(d.attributeLocation + 1);
+            this.ctx.enableVertexAttribArray(d.attributeLocation + 2);
+            this.ctx.bindBuffer(d.bufferType, d.buffer);
+            this.ctx.bufferData(d.bufferType, d.value, d.drawType);
+            this.ctx.vertexAttribPointer(
+                d.attributeLocation + 0,
+                d.size,
+                d.valueType,
+                false,
+                d.size * 4 * 3,
+                3 * 4 * 0
+            );
+            this.ctx.vertexAttribPointer(
+                d.attributeLocation + 1,
+                d.size,
+                d.valueType,
+                false,
+                d.size * 4 * 3,
+                3 * 4 * 1
+            );
+            this.ctx.vertexAttribPointer(
+                d.attributeLocation + 2,
+                d.size,
+                d.valueType,
+                false,
+                d.size * 4 * 3,
+                3 * 4 * 2
+            );
+        } else {
+            this.ctx.enableVertexAttribArray(d.attributeLocation);
+            this.ctx.bindBuffer(d.bufferType, d.buffer);
+            this.ctx.bufferData(d.bufferType, d.value, d.drawType);
+            this.ctx.vertexAttribPointer(d.attributeLocation, d.size, d.valueType, false, 0, 0);
+        }
+    };
+    RenderWebglShader.prototype.useProgram = function () {
+        this.ctx.useProgram(this.program);
+    };
+    RenderWebglShader.prototype.applyUniforms = function () {
+        for (const uniform in this.uniforms) {
+            if (this.uniforms[uniform].matrix) {
+                this.ctx[this.uniforms[uniform].type](
+                    this.uniforms[uniform].uniformLocation,
+                    this.uniforms[uniform].transpose,
+                    this.uniforms[uniform].value
+                );
+            } else {
+                if (this.uniforms[uniform].value instanceof TextureObject) {
+                    this.ctx[this.uniforms[uniform].type](
+                        this.uniforms[uniform].uniformLocation,
+                        this.uniforms[uniform].value.texture
+                    );
+                    this.uniforms[uniform].value.loadTexture();
+                } else {
+                    this.ctx[this.uniforms[uniform].type](
+                        this.uniforms[uniform].uniformLocation,
+                        this.uniforms[uniform].value
+                    );
+                }
+            }
+        }
+    };
+    RenderWebglShader.prototype.applyIndexes = function () {
+        const d = this.indexesObj;
+        this.ctx.bindBuffer(d.bufferType, d.buffer);
+        this.ctx.bufferData(d.bufferType, d.value, d.drawType);
+    };
+    RenderWebglShader.prototype.draw = function () {
+        this.ctx.drawArrays(
+            this.ctx[this.geometry.drawType],
+            this.geometry.drawRange[0],
+            this.geometry.drawRange[1]
+        );
+    };
+    RenderWebglShader.prototype.drawElements = function () {
+        this.ctx.drawElements(
+            this.ctx[this.geometry.drawType],
+            this.indexesObj.count,
+            this.indexesObj.type ? this.indexesObj.type : this.ctx.UNSIGNED_SHORT,
+            this.indexesObj.offset
+        );
+    };
+    RenderWebglShader.prototype.updateBBox = function () {
+        return true;
+    };
+    RenderWebglShader.prototype.execute = function () {
+        this.ctx.useProgram(this.program);
+        this.applyUniforms();
+        this.ctx.bindVertexArray(this.vao);
+        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+            this.renderTarget.update();
+        }
+        if (this.indexesObj) {
+            this.applyIndexes();
+            this.drawElements();
+        } else {
+            this.draw();
+        }
+        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+            this.renderTarget.clear();
+        }
+        this.ctx.bindVertexArray(null);
+    };
+    RenderWebglShader.prototype.addUniform = function (key, value) {
+        this.uniforms[key] = webGlUniformMapper(this.ctx, this.program, key, value);
+        queueInstance$1.vDomChanged(this.vDomIndex);
+    };
+    RenderWebglShader.prototype.addAttribute = function (key, obj) {
+        this.attributes[key] = obj;
+        this.attrObjs[key] = webGlAttrMapper(this.ctx, this.program, key, obj);
+        this.applyAttributeToVao(key, this.attrObjs[key]);
+        queueInstance$1.vDomChanged(this.vDomIndex);
+    };
+    RenderWebglShader.prototype.setAttributeData = function (key, value) {
+        const attrObj = this.attrObjs[key];
+        this.attributes[key].value = value;
+        this.attrObjs[key].value = value;
+        this.ctx.bindBuffer(attrObj.bufferType, attrObj.buffer);
+        this.ctx.bufferData(attrObj.bufferType, attrObj.value, attrObj.drawType);
+        queueInstance$1.vDomChanged(this.vDomIndex);
+    };
+    RenderWebglShader.prototype.applyAttributeData = function (key, value) {
+        this.attributes[key].value = value;
+        this.attrObjs[key].value = value;
+        const d = this.attrObjs[key];
+        this.ctx.bindBuffer(d.bufferType, d.buffer);
+        this.ctx.bufferData(d.bufferType, this.attributes[d.attr].value, d.drawType);
+        this.ctx.enableVertexAttribArray(d.attributeLocation);
+        this.ctx.vertexAttribPointer(d.attributeLocation, d.size, d.valueType, false, 0, 0);
+    };
+    RenderWebglShader.prototype.setUniformData = function (key, value) {
+        this.uniforms[key].value = value;
+        queueInstance$1.vDomChanged(this.vDomIndex);
+    };
+    RenderWebglShader.prototype.applyUniformData = function (uniform, value) {
+        this.uniforms[uniform].value = value;
+        if (this.uniforms[uniform].matrix) {
+            this.ctx[this.uniforms[uniform].type](
+                this.uniforms[uniform].uniformLocation,
+                this.uniforms[uniform].transpose,
+                this.uniforms[uniform].value
+            );
+        } else {
+            this.ctx[this.uniforms[uniform].type](
+                this.uniforms[uniform].uniformLocation,
+                this.uniforms[uniform].value
+            );
+        }
+    };
+    function ShaderNodePrototype() {}
+    ShaderNodePrototype.prototype.setAttr = function (attr, value) {
+        this.attr[attr] = value;
+        if (attr === "transform") {
+            const { translateX, translateY, scaleX, scaleY } = parseTransform$1(this.attr.transform);
+            this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
+        }
+    };
+    ShaderNodePrototype.prototype.translate = function (trans) {
+        this.attr.transform.translate = trans;
+    };
+    ShaderNodePrototype.prototype.scale = function (scale) {
+        this.attr.transform.scale = scale;
+    };
+    ShaderNodePrototype.prototype.rotate = function (angle) {
+        this.attr.transform.rotate = angle;
+    };
+    function addTransform(self, index, length, transform) {
+        self.transform =
+            self.transformTyped && self.transformTyped.length > 0
+                ? Array.from(self.transformTyped)
+                : self.transform;
+        self.transformTyped = null;
+        const len = index * length * 9;
+        let i = 0;
+        while (i < length) {
+            self.transform[len + i * 9] = transform[0];
+            self.transform[len + i * 9 + 1] = transform[1];
+            self.transform[len + i * 9 + 2] = transform[2];
+            self.transform[len + i * 9 + 3] = transform[3];
+            self.transform[len + i * 9 + 4] = transform[4];
+            self.transform[len + i * 9 + 5] = transform[5];
+            self.transform[len + i * 9 + 6] = transform[6];
+            self.transform[len + i * 9 + 7] = transform[7];
+            self.transform[len + i * 9 + 8] = transform[8];
+            i++;
+        }
+        self.addTransform_ = true;
+        self.transformUpdate = true;
+    }
+    function updateTransform(self, index, length, transform) {
+        const transform_ = self.addTransform_ ? self.transform : self.transformTyped;
+        const len = index * length * 9;
+        let i = 0;
+        while (i < length) {
+            transform_[len + i * 9] = transform[0];
+            transform_[len + i * 9 + 1] = transform[1];
+            transform_[len + i * 9 + 2] = transform[2];
+            transform_[len + i * 9 + 3] = transform[3];
+            transform_[len + i * 9 + 4] = transform[4];
+            transform_[len + i * 9 + 5] = transform[5];
+            transform_[len + i * 9 + 6] = transform[6];
+            transform_[len + i * 9 + 7] = transform[7];
+            transform_[len + i * 9 + 8] = transform[8];
+            i++;
+        }
+        self.updateTransform_ = true;
+    }
+    function clearTransform(self, index, length) {
+        const transform_ = self.addTransform_ ? self.transform : self.transformTyped;
+        const len = index * length * 9;
+        let i = 0;
+        while (i < length) {
+            transform_[len + i * 9] = undefined;
+            transform_[len + i * 9 + 1] = undefined;
+            transform_[len + i * 9 + 2] = undefined;
+            transform_[len + i * 9 + 3] = undefined;
+            transform_[len + i * 9 + 4] = undefined;
+            transform_[len + i * 9 + 5] = undefined;
+            transform_[len + i * 9 + 6] = undefined;
+            transform_[len + i * 9 + 7] = undefined;
+            transform_[len + i * 9 + 8] = undefined;
+            i++;
+        }
+        self.clearTransform_ = true;
+        self.filterTransformUpdate = true;
+    }
+    function transformExec(self) {
+        if (self.addTransform_) {
+            if (self.clearTransform_) {
+                self.transform = self.transform.filter(function (d) {
+                    return !isNaN(d);
+                });
+                self.clearTransform_ = false;
+            }
+            self.transformTyped = new Float32Array(self.transform);
+            self.transform = [];
+            self.addTransform_ = false;
+            self.updateTransform_ = false;
+            self.shaderInstance.setAttributeData("a_transformMatrix", self.transformTyped);
+        }
+        if (self.clearTransform_) {
+            self.transformTyped = self.transformTyped.filter(function (d) {
+                return !isNaN(d);
+            });
+            self.clearTransform_ = false;
+            self.shaderInstance.setAttributeData("a_transformMatrix", self.transformTyped);
+        }
+        if (self.updateTransform_) {
+            self.shaderInstance.setAttributeData("a_transformMatrix", self.transformTyped);
+            self.updateTransform_ = false;
+        }
+    }
+    function addVertex(self, index, length, ver) {
+        self.positionArray =
+            self.typedPositionArray && self.typedPositionArray.length > 0
+                ? Array.from(self.typedPositionArray)
+                : self.positionArray;
+        self.typedPositionArray = null;
+        const b = index * length * 2;
+        let i = 0;
+        while (i < ver.length) {
+            self.positionArray[b + i] = ver[i];
+            i++;
+        }
+        self.addVertex_ = true;
+    }
+    function updateVertex(self, index, length, ver) {
+        const positionArray = self.addVertex_ ? self.positionArray : self.typedPositionArray;
+        const b = index * length * 2;
+        let i = 0;
+        if (isNaN(positionArray[b])) {
+            console.log("overriding Nan");
+        }
+        while (i < ver.length) {
+            positionArray[b + i] = ver[i];
+            i++;
+        }
+        self.updateVertex_ = true;
+    }
+    function clearVertex(self, index, length) {
+        const positionArray = self.addVertex_ ? self.positionArray : self.typedPositionArray;
+        const b = index * length * 2;
+        let i = 0;
+        while (i < length) {
+            positionArray[b + i * 2] = undefined;
+            positionArray[b + i * 2 + 1] = undefined;
+            i++;
+        }
+        self.filterVertex_ = true;
+    }
+    function vertexExec(self) {
+        if (self.addVertex_) {
+            if (self.filterVertex_) {
+                self.positionArray = self.positionArray.filter(function (d) {
+                    return !isNaN(d);
+                });
+                self.filterVertex_ = false;
+            }
+            self.typedPositionArray = new Float32Array(self.positionArray);
+            self.positionArray = [];
+            self.addVertex_ = false;
+            self.updateVertex_ = false;
+            self.shaderInstance.setAttributeData("a_position", self.typedPositionArray);
+        }
+        if (self.filterVertex_) {
+            self.typedPositionArray = self.typedPositionArray.filter(function (d) {
+                return !isNaN(d);
+            });
+            self.filterVertex_ = false;
+            self.shaderInstance.setAttributeData("a_position", self.typedPositionArray);
+        }
+        if (self.updateVertex_) {
+            self.shaderInstance.setAttributeData("a_position", self.typedPositionArray);
+            self.updateVertex_ = false;
+        }
+    }
+    function addColors(self, index, length, fill) {
+        self.colorArray =
+            self.typedColorArray && self.typedColorArray.length > 0
+                ? Array.from(self.typedColorArray)
+                : self.colorArray;
+        self.typedColorArray = null;
+        const b = index * length * 4;
+        let i = 0;
+        fill = colorMap$1.colorToRGB(fill);
+        while (i < length) {
+            self.colorArray[b + i * 4] = fill.r / 255;
+            self.colorArray[b + i * 4 + 1] = fill.g / 255;
+            self.colorArray[b + i * 4 + 2] = fill.b / 255;
+            self.colorArray[b + i * 4 + 3] = fill.a === undefined ? 1 : fill.a / 255;
+            i++;
+        }
+        self.addColor_ = true;
+    }
+    function updateColor(self, index, length, fill) {
+        const colorArray = self.addColor_ ? self.colorArray : self.typedColorArray;
+        const ti = index * length * 4;
+        if (isNaN(colorArray[ti])) {
+            console.log("overriding Nan");
+        }
+        const b = index * length * 4;
+        let i = 0;
+        while (i < length) {
+            colorArray[b + i * 4] = fill.r / 255;
+            colorArray[b + i * 4 + 1] = fill.g / 255;
+            colorArray[b + i * 4 + 2] = fill.b / 255;
+            colorArray[b + i * 4 + 3] = fill.a === undefined ? 1 : fill.a / 255;
+            i++;
+        }
+        self.updateColor_ = true;
+    }
+    function clearColor(self, index, length) {
+        const colorArray = self.addColor_ ? self.colorArray : self.typedColorArray;
+        const ti = index * length * 4;
+        if (isNaN(colorArray[ti])) {
+            console.log("overriding Nan");
+        }
+        const b = index * length * 4;
+        let i = 0;
+        while (i < length) {
+            colorArray[b + i * 4] = undefined;
+            colorArray[b + i * 4 + 1] = undefined;
+            colorArray[b + i * 4 + 2] = undefined;
+            colorArray[b + i * 4 + 3] = undefined;
+            i++;
+        }
+        self.filterColor_ = true;
+    }
+    function colorExec(self) {
+        if (self.addColor_) {
+            if (self.filterColor_) {
+                self.colorArray = self.colorArray.filter(function (d) {
+                    return !isNaN(d);
+                });
+                self.filterColor_ = false;
+            }
+            self.typedColorArray = new Float32Array(self.colorArray);
+            self.colorArray = [];
+            self.addColor_ = false;
+            self.updateColor_ = false;
+            self.shaderInstance.setAttributeData("a_color", self.typedColorArray);
+        }
+        if (self.filterColor_) {
+            self.typedColorArray = self.typedColorArray.filter(function (d) {
+                return !isNaN(d);
+            });
+            self.shaderInstance.setAttributeData("a_color", self.typedColorArray);
+            self.filterColor_ = false;
+        }
+        if (self.updateColor_) {
+            self.shaderInstance.setAttributeData("a_color", self.typedColorArray);
+            self.updateColor_ = false;
+        }
+    }
+    function RenderWebglPoints(ctx, attr, style, vDomIndex) {
+        this.ctx = ctx;
+        this.dom = {};
+        this.attr = attr || {};
+        this.style = style || {};
+        this.vDomIndex = vDomIndex;
+        this.indexBased = true;
+        this.transform = [];
+        this.selftransform = [0, 0, 1, 1];
+        if (!this.attr.transform) {
+            this.attr.transform = {
+                translate: [0.0, 0.0],
+                scale: [1.0, 1.0],
+            };
+        }
+        this.geometry = new PointsGeometry();
+        this.geometry.setAttr("a_color", {
+            value: new Float32Array([]),
+            size: 4,
+        });
+        this.geometry.setAttr("a_size", {
+            value: new Float32Array([]),
+            size: 1,
+        });
+        this.geometry.setAttr("a_position", {
+            value: new Float32Array([]),
+            size: 2,
+        });
+        this.geometry.setAttr("a_transformMatrix", {
+            value: new Float32Array(this.transform),
+            size: 3,
+        });
+        this.shaderInstance = new RenderWebglShader(
+            ctx,
+            {
+                fragmentShader: shaders("point").fragmentShader,
+                vertexShader: shaders("point").vertexShader,
+                uniforms: {},
+                geometry: this.geometry,
+            },
+            vDomIndex
+        );
+        this.positionArray = [];
+        this.colorArray = [];
+        this.pointsSize = [];
+        this.transform = [];
+        this.vertexUpdate = true;
+        this.colorUpdate = true;
+        this.sizeUpdate = true;
+        this.transformUpdate = true;
+    }
+    RenderWebglPoints.prototype = new ShaderNodePrototype();
+    RenderWebglPoints.prototype.constructor = RenderWebglPoints;
+    RenderWebglPoints.prototype.clear = function (index) {
+        clearColor(this, index, 1);
+        clearVertex(this, index, 1);
+        clearTransform(this, index, 1);
+        const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
+        sizeArray[index] = undefined;
+        this.filterSizeFlag = true;
+    };
+    RenderWebglPoints.prototype.addTransform = function (transform, index) {
+        addTransform(this, index, 1, transform);
+    };
+    RenderWebglPoints.prototype.updateTransform = function (index, transform) {
+        updateTransform(this, index, 1, transform);
+    };
+    RenderWebglPoints.prototype.updateVertex = function (index, x, y) {
+        updateVertex(this, index, 1, [x, y]);
+    };
+    RenderWebglPoints.prototype.updateSize = function (index, size) {
+        const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
+        sizeArray[index] = size;
+    };
+    RenderWebglPoints.prototype.updateColor = function (index, fill) {
+        updateColor(this, index, 1, fill);
+    };
+    RenderWebglPoints.prototype.addVertex = function (x, y, index) {
+        addVertex(this, index, 1, [x, y]);
+    };
+    RenderWebglPoints.prototype.addSize = function (size, index) {
+        this.pointsSize =
+            this.typedSizeArray && this.typedSizeArray.length > 0
+                ? Array.from(this.typedSizeArray)
+                : this.pointsSize;
+        this.pointsSize[index] = size;
+        this.sizeUpdate = true;
+    };
+    RenderWebglPoints.prototype.addColors = function (fill, index) {
+        addColors(this, index, 1, fill);
+    };
+    RenderWebglPoints.prototype.execute = function () {
+        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+            this.renderTarget.update();
+        }
+        vertexExec(this);
+        colorExec(this);
+        transformExec(this);
+        if (this.sizeUpdate) {
+            if (this.filterSizeFlag) {
+                this.pointsSize = this.pointsSize.filter(function (d) {
+                    return !isNaN(d);
+                });
+                this.filterSizeFlag = false;
+            }
+            this.typedSizeArray = new Float32Array(this.pointsSize);
+            this.pointsSize = [];
+            this.sizeUpdate = false;
+        }
+        if (this.filterSizeFlag) {
+            this.typedSizeArray = this.typedSizeArray.filter(function (d) {
+                return !isNaN(d);
+            });
+            this.filterSizeFlag = false;
+        }
+        this.shaderInstance.setAttributeData("a_size", this.typedSizeArray);
+        this.geometry.setDrawRange(0, (this.typedPositionArray?.length ?? 0) / 2);
+        this.shaderInstance.execute();
+        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+            this.renderTarget.update();
+        }
+    };
+    function RenderWebglRects(ctx, attr, style, renderTarget, vDomIndex) {
+        this.ctx = ctx;
+        this.dom = {};
+        this.positionArray = [];
+        this.colorArray = [];
+        this.transform = [];
+        this.rotate = [];
+        this.attr = attr || {};
+        this.style = style || {};
+        this.vDomIndex = vDomIndex;
+        this.renderTarget = renderTarget;
+        this.indexBased = true;
+        this.selftransform = [0, 0, 1, 1];
+        this.geometry = new MeshGeometry();
+        this.geometry.setAttr("a_transformMatrix", {
+            value: new Float32Array([]),
+            size: 3,
+        });
+        this.geometry.setAttr("a_color", {
+            value: new Float32Array(this.colorArray),
+            size: 4,
+        });
+        this.geometry.setAttr("a_position", {
+            value: new Float32Array(this.positionArray),
+            size: 2,
+        });
+        this.geometry.setDrawRange(0, (this.positionArray?.length??0) / 2);
+        this.shaderInstance = new RenderWebglShader(
+            ctx,
+            {
+                fragmentShader: shaders("rect").fragmentShader,
+                vertexShader: shaders("rect").vertexShader,
+                uniforms: {},
+                geometry: this.geometry,
+            },
+            vDomIndex
+        );
+    }
+    RenderWebglRects.prototype = new ShaderNodePrototype();
+    RenderWebglRects.prototype.constructor = RenderWebglRects;
+    RenderWebglRects.prototype.clear = function (index) {
+        clearColor(this, index, 6);
+        clearVertex(this, index, 6);
+        clearTransform(this, index, 6);
+    };
+    RenderWebglRects.prototype.updateVertex = function (index, x, y, width, height) {
+        const x1 = x + width;
+        const y1 = y + height;
+        updateVertex(this, index, 6, [x, y, x1, y, x, y1, x, y1, x1, y, x1, y1]);
+    };
+    RenderWebglRects.prototype.updateTransform = function (index, transform) {
+        updateTransform(this, index, 6, transform);
+    };
+    RenderWebglRects.prototype.addTransform = function (transform, index) {
+        addTransform(this, index, 6, transform);
+    };
+    RenderWebglRects.prototype.updateColor = function (index, fill) {
+        updateColor(this, index, 6, fill);
+    };
+    RenderWebglRects.prototype.addVertex = function (x, y, width, height, index) {
+        const x1 = x + width;
+        const y1 = y + height;
+        addVertex(this, index, 6, [x, y, x1, y, x, y1, x, y1, x1, y, x1, y1]);
+    };
+    RenderWebglRects.prototype.addColors = function (fill, index) {
+        addColors(this, index, 6, fill);
+    };
+    RenderWebglRects.prototype.execute = function () {
+        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+            this.renderTarget.update();
+        }
+        colorExec(this);
+        transformExec(this);
+        vertexExec(this);
+        this.geometry.setDrawRange(0, (this.typedPositionArray?.length??0) / 2);
+        this.shaderInstance.execute();
+        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+            this.renderTarget.clear();
+        }
+    };
+    function RenderWebglLines(ctx, attr, style, renderTarget, vDomIndex) {
+        this.ctx = ctx;
+        this.dom = {};
+        this.attr = attr || {};
+        this.style = style || {};
+        this.vDomIndex = vDomIndex;
+        this.positionArray = [];
+        this.colorArray = [];
+        this.transform = [];
+        this.vertexUpdate = true;
+        this.colorUpdate = true;
+        this.renderTarget = renderTarget;
+        this.indexBased = true;
+        this.selftransform = new Float32Array([0, 0, 1, 1]);
+        this.geometry = new LineGeometry();
+        this.geometry.setAttr("a_color", {
+            value: new Float32Array(this.colorArray),
+            size: 4,
+        });
+        this.geometry.setAttr("a_position", {
+            value: new Float32Array(this.positionArray),
+            size: 2,
+        });
+        this.geometry.setAttr("a_transformMatrix", {
+            value: new Float32Array(this.transform),
+            size: 3,
+        });
+        this.geometry.setDrawRange(0, (this.positionArray?.length??0) / 2);
+        this.shaderInstance = new RenderWebglShader(
+            ctx,
+            {
+                fragmentShader: shaders("line").fragmentShader,
+                vertexShader: shaders("line").vertexShader,
+                uniforms: {},
+                geometry: this.geometry,
+            },
+            vDomIndex
+        );
+    }
+    RenderWebglLines.prototype = new ShaderNodePrototype();
+    RenderWebglLines.prototype.constructor = RenderWebglLines;
+    RenderWebglLines.prototype.clear = function (index) {
+        clearColor(this, index, 2);
+        clearVertex(this, index, 2);
+    };
+    RenderWebglLines.prototype.updateTransform = function (index, transform) {
+        updateTransform(this, index, 2, transform);
+    };
+    RenderWebglLines.prototype.addTransform = function (transform, index) {
+        addTransform(this, index, 2, transform);
+    };
+    RenderWebglLines.prototype.updateVertex = function (index, x1, y1, x2, y2) {
+        updateVertex(this, index, 2, [x1, y1, x2, y2]);
+    };
+    RenderWebglLines.prototype.updateColor = function (index, stroke) {
+        updateColor(this, index, 2, stroke);
+    };
+    RenderWebglLines.prototype.addVertex = function (x1, y1, x2, y2, index) {
+        addVertex(this, index, 2, [x1, y1, x2, y2]);
+    };
+    RenderWebglLines.prototype.addColors = function (stroke, index) {
+        addColors(this, index, 2, stroke);
+    };
+    RenderWebglLines.prototype.execute = function () {
+        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+            this.renderTarget.update();
+        }
+        vertexExec(this);
+        colorExec(this);
+        transformExec(this);
+        this.geometry.setDrawRange(0, (this.typedPositionArray?.length??0) / 2);
+        this.shaderInstance.execute();
+        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+            this.renderTarget.clear();
+        }
+    };
+    function RenderWebglPolyLines(ctx, attr, style, renderTarget, vDomIndex) {
+        this.ctx = ctx;
+        this.dom = {};
+        this.attr = attr || {};
+        this.style = style || {};
+        this.vDomIndex = vDomIndex;
+        this.positionArray = [];
+        this.colorArray = [];
+        this.renderTarget = renderTarget;
+        this.indexBased = false;
+        this.geometry = new LineGeometry();
+        this.geometry.drawType = "LINE_STRIP";
+        this.geometry.setAttr("a_position", {
+            value: new Float32Array(this.positionArray),
+            size: 2,
+        });
+        this.geometry.setDrawRange(0, (this.positionArray?.length??0) / 2);
+        this.shaderInstance = new RenderWebglShader(
+            ctx,
+            {
+                fragmentShader: shaders("polyline").fragmentShader,
+                vertexShader: shaders("polyline").vertexShader,
+                uniforms: {
+                    u_transformMatrix: {
+                        value: new Float32Array(m3.identity()),
+                        matrix: true,
+                    },
+                    u_color: {
+                        value: new Float32Array(4),
+                    },
+                },
+                geometry: this.geometry,
+            },
+            vDomIndex
+        );
+    }
+    RenderWebglPolyLines.prototype = new ShaderNodePrototype();
+    RenderWebglPolyLines.prototype.constructor = RenderWebglPolyLines;
+    RenderWebglPolyLines.prototype.execute = function (stack) {
+        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+            this.renderTarget.update();
+        }
+        for (let i = 0, len = stack.length; i < len; i++) {
+            this.shaderInstance.setUniformData("u_transformMatrix", stack[i].dom.transformMatrix);
+            this.shaderInstance.setAttributeData("a_position", stack[i].dom.points);
+            this.shaderInstance.setUniformData("u_color", stack[i].dom.color);
+            this.geometry.setDrawRange(0, stack[i].dom.points.length / 2);
+            this.shaderInstance.execute();
+        }
+        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+            this.renderTarget.clear();
+        }
+    };
+    function RenderWebglPolygons(ctx, attr, style, renderTarget, vDomIndex) {
+        this.ctx = ctx;
+        this.dom = {};
+        this.attr = attr || {};
+        this.style = style || {};
+        this.vDomIndex = vDomIndex;
+        this.colorArray = [];
+        this.positionArray = [];
+        this.renderTarget = renderTarget;
+        this.indexBased = false;
+        this.geometry = new MeshGeometry();
+        this.geometry.setAttr("a_position", {
+            value: new Float32Array([]),
+            size: 2,
+        });
+        this.shaderInstance = new RenderWebglShader(
+            ctx,
+            {
+                fragmentShader: shaders("polygon").fragmentShader,
+                vertexShader: shaders("polygon").vertexShader,
+                uniforms: {
+                    u_transformMatrix: {
+                        value: new Float32Array(m3.identity()),
+                        matrix: true,
+                    },
+                    u_color: {
+                        value: new Float32Array(4),
+                    },
+                },
+                geometry: this.geometry,
+            },
+            vDomIndex
+        );
+    }
+    RenderWebglPolygons.prototype = new ShaderNodePrototype();
+    RenderWebglPolygons.prototype.constructor = RenderWebglPolygons;
+    RenderWebglPolygons.prototype.execute = function (stack) {
+        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+            this.renderTarget.update();
+        }
+        this.shaderInstance.useProgram();
+        for (let i = 0, len = stack.length; i < len; i++) {
+            this.shaderInstance.setUniformData("u_transformMatrix", stack[i].dom.transformMatrix);
+            this.shaderInstance.setAttributeData("a_position", stack[i].dom.points);
+            this.shaderInstance.setUniformData("u_color", stack[i].dom.color);
+            this.geometry.setDrawRange(0, stack[i].dom.points.length / 2);
+            this.shaderInstance.execute();
+        }
+        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+            this.renderTarget.clear();
+        }
+    };
+    function RenderWebglCircles(ctx, attr, style, renderTarget, vDomIndex) {
+        this.ctx = ctx;
+        this.dom = {};
+        this.attr = attr || {};
+        this.style = style || {};
+        this.vDomIndex = vDomIndex;
+        this.positionArray = [];
+        this.colorArray = [];
+        this.transform = [];
+        this.pointsSize = [];
+        this.renderTarget = renderTarget;
+        this.indexBased = true;
+        this.geometry = new PointsGeometry();
+        this.geometry.setAttr("a_transformMatrix", {
+            value: new Float32Array(this.transform),
+            size: 3,
+        });
+        this.geometry.setAttr("a_color", {
+            value: new Float32Array(this.colorArray),
+            size: 4,
+        });
+        this.geometry.setAttr("a_radius", {
+            value: new Float32Array(this.pointsSize),
+            size: 1,
+        });
+        this.geometry.setAttr("a_position", {
+            value: new Float32Array(this.positionArray),
+            size: 2,
+        });
+        this.geometry.setDrawRange(0, 0);
+        this.shaderInstance = new RenderWebglShader(
+            ctx,
+            {
+                fragmentShader: shaders("circle").fragmentShader,
+                vertexShader: shaders("circle").vertexShader,
+                uniforms: {},
+                geometry: this.geometry,
+            },
+            vDomIndex
+        );
+    }
+    RenderWebglCircles.prototype = new ShaderNodePrototype();
+    RenderWebglCircles.prototype.constructor = RenderWebglCircles;
+    RenderWebglCircles.prototype.clear = function (index) {
+        clearColor(this, index, 1);
+        clearVertex(this, index, 1);
+        clearTransform(this, index, 1);
+        const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
+        sizeArray[index] = undefined;
+        this.filterSizeFlag = true;
+    };
+    RenderWebglCircles.prototype.updateTransform = function (index, transform) {
+        updateTransform(this, index, 1, transform);
+    };
+    RenderWebglCircles.prototype.addTransform = function (transform, index) {
+        addTransform(this, index, 1, transform);
+    };
+    RenderWebglCircles.prototype.updateVertex = function (index, x, y) {
+        updateVertex(this, index, 1, [x, y]);
+    };
+    RenderWebglCircles.prototype.updateColor = function (index, fill) {
+        updateColor(this, index, 1, fill);
+    };
+    RenderWebglCircles.prototype.updateSize = function (index, value) {
+        const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
+        sizeArray[index] = value;
+    };
+    RenderWebglCircles.prototype.addVertex = function (x, y, index) {
+        addVertex(this, index, 1, [x, y]);
+    };
+    RenderWebglCircles.prototype.addSize = function (size, index) {
+        this.pointsSize =
+            this.typedSizeArray && this.typedSizeArray.length > 0
+                ? Array.from(this.typedSizeArray)
+                : this.pointsSize;
+        this.pointsSize[index] = size;
+        this.sizeUpdate = true;
+    };
+    RenderWebglCircles.prototype.addColors = function (fill, index) {
+        addColors(this, index, 1, fill);
+    };
+    RenderWebglCircles.prototype.execute = function () {
+        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+            this.renderTarget.update();
+        }
+        vertexExec(this);
+        colorExec(this);
+        transformExec(this);
+        if (this.sizeUpdate) {
+            if (this.filterSizeFlag) {
+                this.pointsSize = this.pointsSize.filter(function (d) {
+                    return !isNaN(d);
+                });
+                this.filterSizeFlag = false;
+            }
+            this.typedSizeArray = new Float32Array(this.pointsSize);
+            this.pointsSize = [];
+            this.sizeUpdate = false;
+        }
+        if (this.filterSizeFlag) {
+            this.typedSizeArray = this.typedSizeArray.filter(function (d) {
+                return !isNaN(d);
+            });
+            this.filterSizeFlag = false;
+        }
+        this.shaderInstance.setAttributeData("a_radius", this.typedSizeArray);
+        this.geometry.setDrawRange(0, (this.typedPositionArray?.length??0) / 2);
+        this.shaderInstance.execute();
+        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+            this.renderTarget.clear();
+        }
+    };
+    function RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex) {
+        this.ctx = ctx;
+        this.dom = {};
+        this.attr = attr || {};
+        this.style = style || {};
+        this.vDomIndex = vDomIndex;
+        this.textCoor = new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]);
+        this.renderTarget = renderTarget;
+        this.indexBased = false;
+        this.geometry = new MeshGeometry();
+        this.geometry.setAttr("a_texCoord", {
+            value: this.textCoor,
+            size: 2,
+        });
+        this.geometry.setAttr("a_position", {
+            value: new Float32Array([0, 0]),
+            size: 2,
+        });
+        this.geometry.setDrawRange(0, 6);
+        this.shaderInstance = new RenderWebglShader(
+            ctx,
+            {
+                fragmentShader: shaders("image").fragmentShader.trim(),
+                vertexShader: shaders("image").vertexShader.trim(),
+                uniforms: {
+                    u_transformMatrix: {
+                        value: new Float32Array(m3.identity()),
+                        matrix: true,
+                    },
+                    u_image: {
+                        value: new TextureObject(this.ctx, {}, this.vDomIndex),
+                    },
+                    u_opacity: {
+                        value: (1.0).toFixed(2),
+                    },
+                },
+                geometry: this.geometry,
+            },
+            vDomIndex
+        );
+        this.positionArray = [];
+        this.vertexUpdate = true;
+    }
+    RenderWebglImages.prototype = new ShaderNodePrototype();
+    RenderWebglImages.prototype.constructor = RenderWebglImages;
+    RenderWebglImages.prototype.execute = function (stack) {
+        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+            this.renderTarget.update();
+        }
+        this.shaderInstance.useProgram();
+        this.shaderInstance.applyAttributeData("a_texCoord", this.textCoor);
+        const gOp = this.style.opacity !== undefined ? this.style.opacity : 1.0;
+        let prevTexture;
+        for (let i = 0, len = stack.length; i < len; i++) {
+            const node = stack[i];
+            if (!node.dom.textureNode || !node.dom.textureNode.updated) {
                 continue;
-              }
-              this.charReceived = this.charLength = 0;
-              if (buffer.length === 0) {
-                return charStr;
-              }
-              break;
             }
-            this.detectIncompleteChar(buffer);
-            var end = buffer.length;
-            if (this.charLength) {
-              buffer.copy(this.charBuffer, 0, buffer.length - this.charReceived, end);
-              end -= this.charReceived;
+            if (node.style.display === "none") {
+                continue;
             }
-            charStr += buffer.toString(this.encoding, 0, end);
-            var end = charStr.length - 1;
-            var charCode = charStr.charCodeAt(end);
-            if (charCode >= 0xD800 && charCode <= 0xDBFF) {
-              var size = this.surrogateSize;
-              this.charLength += size;
-              this.charReceived += size;
-              this.charBuffer.copy(this.charBuffer, size, 0, size);
-              buffer.copy(this.charBuffer, 0, 0, size);
-              return charStr.substring(0, end);
+            this.shaderInstance.applyUniformData("u_transformMatrix", node.dom.transformMatrix);
+            if (node.dom.textureNode !== prevTexture) {
+                node.dom.textureNode.loadTexture();
+                prevTexture = node.dom.textureNode;
+                this.shaderInstance.applyUniformData("u_image", node.dom.textureNode);
             }
-            return charStr;
-          };
-          StringDecoder.prototype.detectIncompleteChar = function (buffer) {
-            var i = buffer.length >= 3 ? 3 : buffer.length;
-            for (; i > 0; i--) {
-              var c = buffer[buffer.length - i];
-              if (i == 1 && c >> 5 == 0x06) {
-                this.charLength = 2;
+            this.shaderInstance.applyAttributeData("a_position", node.dom.positionArray);
+            this.shaderInstance.applyUniformData(
+                "u_opacity",
+                ((node.style.opacity !== undefined ? node.style.opacity : 1.0) * gOp).toFixed(2)
+            );
+            this.shaderInstance.draw();
+        }
+        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
+            this.renderTarget.clear();
+        }
+    };
+    function getTypeShader(ctx, attr, style, type, renderTarget, vDomIndex) {
+        let e;
+        switch (type) {
+            case "rect":
+                e = new RenderWebglRects(ctx, attr, style, renderTarget, vDomIndex);
                 break;
-              }
-              if (i <= 2 && c >> 4 == 0x0E) {
-                this.charLength = 3;
+            case "point":
+                e = new RenderWebglPoints(ctx, attr, style, renderTarget);
                 break;
-              }
-              if (i <= 3 && c >> 3 == 0x1E) {
-                this.charLength = 4;
+            case "line":
+                e = new RenderWebglLines(ctx, attr, style, renderTarget, vDomIndex);
                 break;
-              }
+            case "polyline":
+                e = new RenderWebglPolyLines(ctx, attr, style, renderTarget, vDomIndex);
+                break;
+            case "path":
+                e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
+                break;
+            case "polygon":
+                e = new RenderWebglPolygons(ctx, attr, style, renderTarget, vDomIndex);
+                break;
+            case "circle":
+                e = new RenderWebglCircles(ctx, attr, style, renderTarget, vDomIndex);
+                break;
+            case "image":
+                e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
+                break;
+            case "text":
+                e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
+                break;
+            default:
+                e = null;
+                break;
+        }
+        return e;
+    }
+    function WebglNodeExe(ctx, config, id, vDomIndex) {
+        this.ctx = ctx;
+        this.id = id;
+        this.nodeName = config.el;
+        this.nodeType = "WEBGL";
+        this.children = [];
+        this.ctx = ctx;
+        this.vDomIndex = vDomIndex;
+        this.el = config.el;
+        this.shaderType = config.shaderType;
+        this.exeCtx = config.ctx;
+        this.bbox = config.bbox !== undefined ? config.bbox : true;
+        this.events = {};
+        this.style = prepObjProxyWebGl('style', config.style || {}, this, true);
+        this.attr = prepObjProxyWebGl('attr', config.attr || {}, this, true);
+        switch (config.el) {
+            case "point":
+                this.dom = new PointNode(this.ctx, this.attr, this.style);
+                break;
+            case "rect":
+                this.dom = new RectNode(this.ctx, this.attr, this.style);
+                break;
+            case "line":
+                this.dom = new LineNode(this.ctx, this.attr, this.style);
+                break;
+            case "polyline":
+                this.dom = new PolyLineNode(this.ctx, this.attr, this.style);
+                break;
+            case "polygon":
+                this.dom = new PolygonNode(this.ctx, this.attr, this.style);
+                break;
+            case "path":
+                this.dom = new PathNode(this.ctx, this.attr, this.style);
+                break;
+            case "circle":
+                this.dom = new CircleNode(this.ctx, this.attr, this.style);
+                break;
+            case "image":
+                this.dom = new ImageNode(this.ctx, this.attr, this.style, vDomIndex);
+                break;
+            case "text":
+                this.dom = new TextNode(this.ctx, this.attr, this.style, vDomIndex);
+                break;
+            case "group":
+                this.dom = new WebglGroupNode(
+                    this.ctx,
+                    this.attr,
+                    this.style,
+                    config.renderTarget,
+                    vDomIndex
+                );
+                break;
+            default:
+                this.dom = null;
+                break;
+        }
+        this.dom.nodeExe = this;
+        if (!(this.dom instanceof WebglGroupNode)) {
+            delete this.createEl;
+            delete this.createEls;
+        }
+    }
+    WebglNodeExe.prototype = new NodePrototype();
+    WebglNodeExe.prototype.reIndexChildren = function (shader) {
+        const childParent = shader || this;
+        let children = childParent.children;
+        children = children.filter(function (d) {
+            return d;
+        });
+        for (var i = 0, len = children.length; i < len; i++) {
+            children[i].dom.pindex = i;
+        }
+        childParent.children = children;
+    };
+    WebglNodeExe.prototype.applyTransformationMatrix = function (matrix) {
+        this.dom.applyTransformationMatrix(matrix);
+        this.children.forEach(function (d) {
+            d.applyTransformationMatrix(self.dom.transformMatrix);
+        });
+    };
+    WebglNodeExe.prototype.setAttr = function WsetAttr(attr, value) {
+        if (arguments.length === 2) {
+            this.attr[attr] = value;
+        } else if (arguments.length === 1 && typeof attr === "object") {
+            for (const key in attr) {
+                this.attr[key] = attr[key];
             }
-            this.charReceived = i;
-          };
-          StringDecoder.prototype.end = function (buffer) {
-            var res = '';
-            if (buffer && buffer.length) res = this.write(buffer);
-            if (this.charReceived) {
-              var cr = this.charReceived;
-              var buf = this.charBuffer;
-              var enc = this.encoding;
-              res += buf.slice(0, cr).toString(enc);
+        }
+        return this;
+    };
+    WebglNodeExe.prototype.scale = function Cscale(XY) {
+        if (!this.attr.transform) {
+            this.attr.transform = prepObjProxyWebGl('transform', {}, this, true);
+        }
+        this.attr.transform.scale = XY;
+        return this;
+    };
+    WebglNodeExe.prototype.translate = function Ctranslate(XY) {
+        if (!this.attr.transform) {
+            this.attr.transform = prepObjProxyWebGl('transform', {}, this, true);
+        }
+        this.attr.transform.translate = XY;
+        return this;
+    };
+    WebglNodeExe.prototype.rotate = function Crotate(angleXY) {
+        if (!this.attr.transform) {
+            this.attr.transform = prepObjProxyWebGl('transform', {}, this, true);
+        }
+        this.attr.transform.rotate = angleXY;
+        return this;
+    };
+    WebglNodeExe.prototype.setStyle = function WsetStyle(attr, value) {
+        if (arguments.length === 2) {
+            this.style[attr] = value;
+        } else if (arguments.length === 1 && typeof attr === "object") {
+            for (const key in attr) {
+                this.style[key] = attr[key];
             }
-            return res;
-          };
-          function passThroughWrite(buffer) {
-            return buffer.toString(this.encoding);
-          }
-          function utf16DetectIncompleteChar(buffer) {
-            this.charReceived = buffer.length % 2;
-            this.charLength = this.charReceived ? 2 : 0;
-          }
-          function base64DetectIncompleteChar(buffer) {
-            this.charReceived = buffer.length % 3;
-            this.charLength = this.charReceived ? 3 : 0;
-          }
-        }, {
-          "buffer": 3
-        }],
-        24: [function (require, module, exports) {
-          module.exports = function isBuffer(arg) {
-            return arg && typeof arg === 'object' && typeof arg.copy === 'function' && typeof arg.fill === 'function' && typeof arg.readUInt8 === 'function';
-          };
-        }, {}],
-        25: [function (require, module, exports) {
-          (function (process, global) {
-            var formatRegExp = /%[sdj%]/g;
-            exports.format = function (f) {
-              if (!isString(f)) {
-                var objects = [];
-                for (var i = 0; i < arguments.length; i++) {
-                  objects.push(inspect(arguments[i]));
+        }
+        return this;
+    };
+    WebglNodeExe.prototype.setReIndex = function () {
+        this.reindex = true;
+    };
+    WebglNodeExe.prototype.updateBBox = function CupdateBBox() {
+        let status;
+        if (this.bbox) {
+            for (let i = 0, len = this.children.length; i < len; i += 1) {
+                if (this.children[i]) {
+                    status = this.children[i].updateBBox() || status;
                 }
-                return objects.join(' ');
-              }
-              var i = 1;
-              var args = arguments;
-              var len = args.length;
-              var str = String(f).replace(formatRegExp, function (x) {
-                if (x === '%%') return '%';
-                if (i >= len) return x;
-                switch (x) {
-                  case '%s':
-                    return String(args[i++]);
-                  case '%d':
-                    return Number(args[i++]);
-                  case '%j':
-                    try {
-                      return JSON.stringify(args[i++]);
-                    } catch (_) {
-                      return '[Circular]';
-                    }
-                  default:
-                    return x;
-                }
-              });
-              for (var x = args[i]; i < len; x = args[++i]) {
-                if (isNull(x) || !isObject(x)) {
-                  str += ' ' + x;
-                } else {
-                  str += ' ' + inspect(x);
-                }
-              }
-              return str;
-            };
-            exports.deprecate = function (fn, msg) {
-              if (isUndefined(global.process)) {
-                return function () {
-                  return exports.deprecate(fn, msg).apply(this, arguments);
+            }
+            if (this.BBoxUpdate || status) {
+                this.dom.updateBBox(this.children);
+                this.BBoxUpdate = false;
+                return true;
+            }
+        }
+        return false;
+    };
+    WebglNodeExe.prototype.in = function Cinfun(co) {
+        return this.dom.in(co);
+    };
+    WebglNodeExe.prototype.on = function Con(eventType, hndlr) {
+        const self = this;
+        if (!this.events) {
+            this.events = {};
+        }
+        if (hndlr === null && this.events[eventType] !== null) {
+            delete this.events[eventType];
+        } else if (hndlr) {
+            if (typeof hndlr === "function") {
+                const hnd = hndlr.bind(self);
+                this.events[eventType] = function (event) {
+                    hnd(event);
                 };
-              }
-              if (process.noDeprecation === true) {
-                return fn;
-              }
-              var warned = false;
-              function deprecated() {
-                if (!warned) {
-                  if (process.throwDeprecation) {
-                    throw new Error(msg);
-                  } else if (process.traceDeprecation) {
-                    console.trace(msg);
-                  } else {
-                    console.error(msg);
-                  }
-                  warned = true;
+            } else if (typeof hndlr === "object") {
+                this.events[eventType] = hndlr;
+                if (
+                    hndlr.constructor === zoomInstance$1.constructor ||
+                    hndlr.constructor === dragInstance$1.constructor
+                ) {
+                    hndlr.bindMethods(this);
                 }
-                return fn.apply(this, arguments);
-              }
-              return deprecated;
-            };
-            var debugs = {};
-            var debugEnviron;
-            exports.debuglog = function (set) {
-              if (isUndefined(debugEnviron)) debugEnviron = process.env.NODE_DEBUG || '';
-              set = set.toUpperCase();
-              if (!debugs[set]) {
-                if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
-                  var pid = process.pid;
-                  debugs[set] = function () {
-                    var msg = exports.format.apply(exports, arguments);
-                    console.error('%s %d: %s', set, pid, msg);
-                  };
-                } else {
-                  debugs[set] = function () {};
-                }
-              }
-              return debugs[set];
-            };
-            function inspect(obj, opts) {
-              var ctx = {
-                seen: [],
-                stylize: stylizeNoColor
-              };
-              if (arguments.length >= 3) ctx.depth = arguments[2];
-              if (arguments.length >= 4) ctx.colors = arguments[3];
-              if (isBoolean(opts)) {
-                ctx.showHidden = opts;
-              } else if (opts) {
-                exports._extend(ctx, opts);
-              }
-              if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
-              if (isUndefined(ctx.depth)) ctx.depth = 2;
-              if (isUndefined(ctx.colors)) ctx.colors = false;
-              if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
-              if (ctx.colors) ctx.stylize = stylizeWithColor;
-              return formatValue(ctx, obj, ctx.depth);
             }
-            exports.inspect = inspect;
-            inspect.colors = {
-              'bold': [1, 22],
-              'italic': [3, 23],
-              'underline': [4, 24],
-              'inverse': [7, 27],
-              'white': [37, 39],
-              'grey': [90, 39],
-              'black': [30, 39],
-              'blue': [34, 39],
-              'cyan': [36, 39],
-              'green': [32, 39],
-              'magenta': [35, 39],
-              'red': [31, 39],
-              'yellow': [33, 39]
-            };
-            inspect.styles = {
-              'special': 'cyan',
-              'number': 'yellow',
-              'boolean': 'yellow',
-              'undefined': 'grey',
-              'null': 'bold',
-              'string': 'green',
-              'date': 'magenta',
-              'regexp': 'red'
-            };
-            function stylizeWithColor(str, styleType) {
-              var style = inspect.styles[styleType];
-              if (style) {
-                return '\u001b[' + inspect.colors[style][0] + 'm' + str + '\u001b[' + inspect.colors[style][1] + 'm';
-              } else {
-                return str;
-              }
+        }
+        return this;
+    };
+    WebglNodeExe.prototype.execute = function Cexecute() {
+        if (this.style.display === "none") {
+            return;
+        }
+        if (!this.dom.shader && !this.dom.shaderGroup && this.dom instanceof WebglGroupNode) {
+            for (let i = 0, len = this.children.length; i < len; i += 1) {
+                this.children[i].execute();
             }
-            function stylizeNoColor(str, styleType) {
-              return str;
+        } else if (this.dom.shader && this.dom instanceof WebglGroupNode) {
+            if (this.reindex) {
+                this.reIndexChildren();
+                this.reindex = false;
             }
-            function arrayToHash(array) {
-              var hash = {};
-              array.forEach(function (val, idx) {
-                hash[val] = true;
-              });
-              return hash;
+            if (this.exeCtx) {
+                this.exeCtx(this.ctx);
             }
-            function formatValue(ctx, value, recurseTimes) {
-              if (ctx.customInspect && value && isFunction(value.inspect) &&
-              value.inspect !== exports.inspect &&
-              !(value.constructor && value.constructor.prototype === value)) {
-                var ret = value.inspect(recurseTimes, ctx);
-                if (!isString(ret)) {
-                  ret = formatValue(ctx, ret, recurseTimes);
-                }
-                return ret;
-              }
-              var primitive = formatPrimitive(ctx, value);
-              if (primitive) {
-                return primitive;
-              }
-              var keys = Object.keys(value);
-              var visibleKeys = arrayToHash(keys);
-              if (ctx.showHidden) {
-                keys = Object.getOwnPropertyNames(value);
-              }
-              if (isError(value) && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
-                return formatError(value);
-              }
-              if (keys.length === 0) {
-                if (isFunction(value)) {
-                  var name = value.name ? ': ' + value.name : '';
-                  return ctx.stylize('[Function' + name + ']', 'special');
-                }
-                if (isRegExp(value)) {
-                  return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-                }
-                if (isDate(value)) {
-                  return ctx.stylize(Date.prototype.toString.call(value), 'date');
-                }
-                if (isError(value)) {
-                  return formatError(value);
-                }
-              }
-              var base = '',
-                array = false,
-                braces = ['{', '}'];
-              if (isArray(value)) {
-                array = true;
-                braces = ['[', ']'];
-              }
-              if (isFunction(value)) {
-                var n = value.name ? ': ' + value.name : '';
-                base = ' [Function' + n + ']';
-              }
-              if (isRegExp(value)) {
-                base = ' ' + RegExp.prototype.toString.call(value);
-              }
-              if (isDate(value)) {
-                base = ' ' + Date.prototype.toUTCString.call(value);
-              }
-              if (isError(value)) {
-                base = ' ' + formatError(value);
-              }
-              if (keys.length === 0 && (!array || value.length == 0)) {
-                return braces[0] + base + braces[1];
-              }
-              if (recurseTimes < 0) {
-                if (isRegExp(value)) {
-                  return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-                } else {
-                  return ctx.stylize('[Object]', 'special');
-                }
-              }
-              ctx.seen.push(value);
-              var output;
-              if (array) {
-                output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
-              } else {
-                output = keys.map(function (key) {
-                  return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
-                });
-              }
-              ctx.seen.pop();
-              return reduceToSingleString(output, base, braces);
+            this.dom.shader.execute(this.children);
+        } else if (this.dom.shaderGroup && this.dom instanceof WebglGroupNode) {
+            if (this.exeCtx) {
+                this.exeCtx(this.ctx);
             }
-            function formatPrimitive(ctx, value) {
-              if (isUndefined(value)) return ctx.stylize('undefined', 'undefined');
-              if (isString(value)) {
-                var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '').replace(/'/g, "\\'").replace(/\\"/g, '"') + '\'';
-                return ctx.stylize(simple, 'string');
-              }
-              if (isNumber(value)) return ctx.stylize('' + value, 'number');
-              if (isBoolean(value)) return ctx.stylize('' + value, 'boolean');
-              if (isNull(value)) return ctx.stylize('null', 'null');
+            for (const key in this.dom.shaderGroup) {
+                const shad = this.dom.shaderGroup[key];
+                if (shad.reindex) {
+                    this.reIndexChildren(shad);
+                    shad.reindex = false;
+                }
+                shad.shader.execute(shad.children);
             }
-            function formatError(value) {
-              return '[' + Error.prototype.toString.call(value) + ']';
-            }
-            function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
-              var output = [];
-              for (var i = 0, l = value.length; i < l; ++i) {
-                if (hasOwnProperty(value, String(i))) {
-                  output.push(formatProperty(ctx, value, recurseTimes, visibleKeys, String(i), true));
-                } else {
-                  output.push('');
-                }
-              }
-              keys.forEach(function (key) {
-                if (!key.match(/^\d+$/)) {
-                  output.push(formatProperty(ctx, value, recurseTimes, visibleKeys, key, true));
-                }
-              });
-              return output;
-            }
-            function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
-              var name, str, desc;
-              desc = Object.getOwnPropertyDescriptor(value, key) || {
-                value: value[key]
-              };
-              if (desc.get) {
-                if (desc.set) {
-                  str = ctx.stylize('[Getter/Setter]', 'special');
-                } else {
-                  str = ctx.stylize('[Getter]', 'special');
-                }
-              } else {
-                if (desc.set) {
-                  str = ctx.stylize('[Setter]', 'special');
-                }
-              }
-              if (!hasOwnProperty(visibleKeys, key)) {
-                name = '[' + key + ']';
-              }
-              if (!str) {
-                if (ctx.seen.indexOf(desc.value) < 0) {
-                  if (isNull(recurseTimes)) {
-                    str = formatValue(ctx, desc.value, null);
-                  } else {
-                    str = formatValue(ctx, desc.value, recurseTimes - 1);
-                  }
-                  if (str.indexOf('\n') > -1) {
-                    if (array) {
-                      str = str.split('\n').map(function (line) {
-                        return '  ' + line;
-                      }).join('\n').substr(2);
+        }
+    };
+    WebglNodeExe.prototype.child = function child(childrens) {
+        const self = this;
+        let node;
+        if (self.dom instanceof WebglGroupNode) {
+            for (let i = 0; i < childrens.length; i += 1) {
+                node = childrens[i];
+                node.dom.parent = self;
+                self.children[self.children.length] = node;
+                node.dom.pindex = self.children.length - 1;
+                node.vDomIndex = self.vDomIndex;
+                if (!(node instanceof RenderWebglShader) && !(node.dom instanceof WebglGroupNode)) {
+                    if (this.dom.shader) {
+                        if (node.el === this.dom.shader.attr.shaderType) {
+                            node.dom.setShader(this.dom.shader);
+                        } else {
+                            console.warn(
+                                "wrong el type '" +
+                                    node.el +
+                                    "' being added to shader group - '" +
+                                    this.dom.shader.attr.shaderType +
+                                    "'"
+                            );
+                            self.children.pop();
+                        }
                     } else {
-                      str = '\n' + str.split('\n').map(function (line) {
-                        return '   ' + line;
-                      }).join('\n');
+                        if (!this.dom.shaderGroup) {
+                            this.dom.shaderGroup = {};
+                        }
+                        if (!this.dom.shaderGroup[node.el]) {
+                            this.dom.shaderGroup[node.el] = {
+                                children: [],
+                                shader: getTypeShader(
+                                    self.ctx,
+                                    self.attr,
+                                    self.style,
+                                    node.el,
+                                    self.renderTarget,
+                                    self.vDomIndex
+                                ),
+                            };
+                        }
+                        this.dom.shaderGroup[node.el].children[
+                            this.dom.shaderGroup[node.el].children.length
+                        ] = node;
+                        node.dom.pindex = this.dom.shaderGroup[node.el].children.length - 1;
+                        node.dom.setShader(this.dom.shaderGroup[node.el].shader);
                     }
-                  }
-                } else {
-                  str = ctx.stylize('[Circular]', 'special');
                 }
-              }
-              if (isUndefined(name)) {
-                if (array && key.match(/^\d+$/)) {
-                  return str;
+                if (self.dom.attr && self.dom.attr.transform) {
+                    node.applyTransformationMatrix(self.dom.transformMatrix);
                 }
-                name = JSON.stringify('' + key);
-                if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
-                  name = name.substr(1, name.length - 2);
-                  name = ctx.stylize(name, 'name');
-                } else {
-                  name = name.replace(/'/g, "\\'").replace(/\\"/g, '"').replace(/(^"|"$)/g, "'");
-                  name = ctx.stylize(name, 'string');
+            }
+        } else {
+            console.log("Error");
+        }
+        this.BBoxUpdate = true;
+        queueInstance$1.vDomChanged(this.vDomIndex);
+        return self;
+    };
+    WebglNodeExe.prototype.createEls = function CcreateEls(data, config) {
+        const e = new WebglCollection(
+            {
+                type: "WEBGL",
+                ctx: this.dom.ctx,
+            },
+            data,
+            config,
+            this.vDomIndex
+        );
+        this.child(e.stack);
+        queueInstance$1.vDomChanged(this.vDomIndex);
+        return e;
+    };
+    WebglNodeExe.prototype.createEl = function WcreateEl(config) {
+        const e = new WebglNodeExe(this.ctx, config, domId$1(), this.vDomIndex);
+        this.child([e]);
+        queueInstance$1.vDomChanged(this.vDomIndex);
+        return e;
+    };
+    WebglNodeExe.prototype.createShaderEl = function createShader(shaderObject) {
+        const e = new RenderWebglShader(this.ctx, shaderObject, this.vDomIndex);
+        this.child([e]);
+        queueInstance$1.vDomChanged(this.vDomIndex);
+        return e;
+    };
+    WebglNodeExe.prototype.remove = function Wremove() {
+        const { children } = this.dom.parent;
+        const index = children.indexOf(this);
+        if (index !== -1) {
+            if (this.dom.parent.dom.shader) {
+                if (this.dom.parent.dom.shader.indexBased) {
+                    this.dom.parent.dom.shader.clear(this.dom.pindex);
                 }
-              }
-              return name + ': ' + str;
+                this.dom.parent.setReIndex();
+                children[this.dom.pindex] = undefined;
+            } else if (this.dom.parent.dom.shaderGroup) {
+                const shaderEl = this.dom.parent.dom.shaderGroup[this.el];
+                if (shaderEl) {
+                    const localIndex = shaderEl.children.indexOf(this);
+                    shaderEl.reindex = true;
+                    if (shaderEl.shader.indexBased) {
+                        shaderEl.shader.clear(this.dom.pindex);
+                        this.dom.parent.setReIndex();
+                    }
+                    shaderEl.children[localIndex] = undefined;
+                }
+                children[index] = undefined;
+            } else {
+                children.splice(index, 1);
             }
-            function reduceToSingleString(output, base, braces) {
-              var length = output.reduce(function (prev, cur) {
-                if (cur.indexOf('\n') >= 0) ;
-                return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
-              }, 0);
-              if (length > 60) {
-                return braces[0] + (base === '' ? '' : base + '\n ') + ' ' + output.join(',\n  ') + ' ' + braces[1];
-              }
-              return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
+        }
+        this.BBoxUpdate = true;
+        queueInstance$1.vDomChanged(this.vDomIndex);
+    };
+    WebglNodeExe.prototype.animatePathTo = AnimatePathTo;
+    WebglNodeExe.prototype.morphTo = MorphTo;
+    WebglNodeExe.prototype.removeChild = function WremoveChild(obj) {
+        let index = -1;
+        this.children.forEach((d, i) => {
+            if (d === obj) {
+                index = i;
             }
-            function isArray(ar) {
-              return Array.isArray(ar);
+        });
+        if (index !== -1) {
+            const removedNode = this.children.splice(index, 1)[0];
+            this.dom.removeChild(removedNode.dom);
+        }
+        this.BBoxUpdate = true;
+        queueInstance$1.vDomChanged(this.vDomIndex);
+    };
+    function webglLayer(container, contextConfig = {}, layerSettings = {}) {
+        const res =
+            container instanceof HTMLElement
+                ? container
+                : typeof container === "string" || container instanceof String
+                ? document.querySelector(container)
+                : null;
+        let height = res ? res.clientHeight : 0;
+        let width = res ? res.clientWidth : 0;
+        let clearColor = colorMap$1.rgba(0, 0, 0, 0);
+        const { enableEvents = false, autoUpdate = true, enableResize = false } = layerSettings;
+        contextConfig = contextConfig || {
+            premultipliedAlpha: false,
+            depth: false,
+            antialias: false,
+            alpha: true,
+        };
+        contextConfig.premultipliedAlpha =
+            contextConfig.premultipliedAlpha === undefined ? false : contextConfig.premultipliedAlpha;
+        contextConfig.depth = contextConfig.depth === undefined ? false : contextConfig.depth;
+        contextConfig.antialias =
+            contextConfig.antialias === undefined ? false : contextConfig.antialias;
+        contextConfig.alpha = contextConfig.alpha === undefined ? true : contextConfig.alpha;
+        const layer = document.createElement("canvas");
+        const ctx = layer.getContext("webgl2", contextConfig);
+        const actualPixel = getPixlRatio$1(ctx);
+        ratio = actualPixel >= 2 ? 2 : Math.floor(actualPixel);
+        layer.setAttribute("height", height * ratio);
+        layer.setAttribute("width", width * ratio);
+        layer.style.height = `${height}px`;
+        layer.style.width = `${width}px`;
+        layer.style.position = "absolute";
+        let vDomInstance;
+        let vDomIndex = 999999;
+        let resizeCall;
+        let onChangeExe;
+        if (res) {
+            res.appendChild(layer);
+            vDomInstance = new VDom();
+            if (autoUpdate) {
+                vDomIndex = queueInstance$1.addVdom(vDomInstance);
             }
-            exports.isArray = isArray;
-            function isBoolean(arg) {
-              return typeof arg === 'boolean';
+        }
+        const root = new WebglNodeExe(
+            ctx,
+            {
+                el: "group",
+                attr: {
+                    id: "rootNode",
+                },
+                ctx: function (ctx) {
+                    ctx.enable(ctx.BLEND);
+                    ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
+                    ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+                },
+            },
+            domId$1(),
+            vDomIndex
+        );
+        if (vDomInstance) {
+            vDomInstance.rootNode(root);
+        }
+        const execute = root.execute.bind(root);
+        root.container = res;
+        root.domEl = layer;
+        root.height = height;
+        root.width = width;
+        root.type = "WEBGL";
+        root.ctx.pixelRatio = ratio;
+        let onClear = function (ctx) {
+            ctx.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT);
+        };
+        root.execute = function () {
+            onClear(this.ctx);
+            this.updateBBox();
+            this.ctx.enable(this.ctx.BLEND);
+            this.ctx.blendFunc(this.ctx.SRC_ALPHA, this.ctx.ONE_MINUS_SRC_ALPHA);
+            execute();
+        };
+        root.update = function () {
+            this.execute();
+        };
+        root.getPixels = function (x, y, width_, height_) {
+            const pixels = new Uint8Array(width_ * height_ * 4);
+            this.ctx.readPixels(x, y, width_, height_, this.ctx.RGBA, this.ctx.UNSIGNED_BYTE, pixels);
+            return pixels;
+        };
+        root.putPixels = function (imageData, x, y) {
+            return this.ctx.putImageData(imageData, x, y);
+        };
+        root.clear = function () {
+            onClear(this.ctx);
+        };
+        root.setClearColor = function (color) {
+            clearColor = color;
+        };
+        root.setClear = function (exe) {
+            onClear = exe;
+        };
+        const resize = function (cr) {
+            if (
+                (container instanceof HTMLElement && !document.body.contains(container)) ||
+                (container instanceof String && !document.querySelector(container))
+            ) {
+                layerResizeUnBind(root);
+                root.destroy();
+                return;
             }
-            exports.isBoolean = isBoolean;
-            function isNull(arg) {
-              return arg === null;
+            height = cr.height;
+            width = cr.width;
+            root.width = width;
+            root.height = height;
+            updateLayerDimension(root.domEl, width, height);
+            onClear(root.ctx);
+            if (resizeCall) {
+                resizeCall();
             }
-            exports.isNull = isNull;
-            function isNullOrUndefined(arg) {
-              return arg == null;
+            root.execute();
+            layer.style.height = `${height}px`;
+            layer.style.width = `${width}px`;
+        };
+        const updateLayerDimension = function (layer, width, height) {
+            layer.width = Math.floor(width * ratio);
+            layer.height = Math.floor(height * ratio);
+            layer.style.height = height + "px";
+            layer.style.width = width + "px";
+        };
+        root.onResize = function (exec) {
+            resizeCall = exec;
+        };
+        root.destroy = function () {
+            const res = document.body.contains(this.container);
+            if (res && this.container.contains(this.domEl)) {
+                this.container.removeChild(this.domEl);
             }
-            exports.isNullOrUndefined = isNullOrUndefined;
-            function isNumber(arg) {
-              return typeof arg === 'number';
+            queueInstance$1.removeVdom(vDomIndex);
+            layerResizeUnBind(root, resize);
+        };
+        root.onChange = function (exec) {
+            onChangeExe = exec;
+        };
+        root.invokeOnChange = function () {
+            if (onChangeExe) {
+                onChangeExe();
             }
-            exports.isNumber = isNumber;
-            function isString(arg) {
-              return typeof arg === 'string';
+        };
+        root.setPixelRatio = function (val) {
+            ratio = val;
+            this.ctx.pixelRatio = ratio;
+            updateLayerDimension(this.domEl, this.width, this.height);
+        };
+        root.setSize = function (width_, height_) {
+            this.width = width_;
+            this.height = height_;
+            height = height_;
+            width = width_;
+            updateLayerDimension(this.domEl, this.width, this.height);
+            this.execute();
+        };
+        root.setViewBox = function () {};
+        root.setStyle = function (prop, value) {
+            this.domEl.style[prop] = value;
+        };
+        root.setAttr = function (prop, value) {
+            if (prop === "viewBox") {
+                this.setViewBox.apply(this, value.split(","));
             }
-            exports.isString = isString;
-            function isSymbol(arg) {
-              return typeof arg === 'symbol';
+            layer.setAttribute(prop, value);
+        };
+        root.setContext = function (prop, value) {
+            if (this.ctx[prop] && typeof this.ctx[prop] === "function") {
+                this.ctx[prop].apply(null, value);
+            } else if (this.ctx[prop]) {
+                this.ctx[prop] = value;
             }
-            exports.isSymbol = isSymbol;
-            function isUndefined(arg) {
-              return arg === void 0;
+        };
+        root.MeshGeometry = function () {
+            return new MeshGeometry(this.ctx);
+        };
+        root.PointsGeometry = function () {
+            return new PointsGeometry(this.ctx);
+        };
+        root.LineGeometry = function () {
+            return new LineGeometry(this.ctx);
+        };
+        root.createWebglTexture = function (config) {
+            return new TextureObject(this.ctx, config, this.vDomIndex);
+        };
+        root.RenderTarget = function (config) {
+            return new RenderTarget(this.ctx, config, this.vDomIndex);
+        };
+        if (enableEvents) {
+            const eventsInstance = new Events(root);
+            layer.addEventListener("mousemove", (e) => {
+                e.preventDefault();
+                eventsInstance.mousemoveCheck(e);
+            });
+            layer.addEventListener("mousedown", (e) => {
+                eventsInstance.mousedownCheck(e);
+            });
+            layer.addEventListener("mouseup", (e) => {
+                eventsInstance.mouseupCheck(e);
+            });
+            layer.addEventListener("mouseleave", (e) => {
+                eventsInstance.mouseleaveCheck(e);
+            });
+            layer.addEventListener("contextmenu", (e) => {
+                eventsInstance.contextmenuCheck(e);
+            });
+            layer.addEventListener("touchstart", (e) => {
+                eventsInstance.touchstartCheck(e);
+            });
+            layer.addEventListener("touchend", (e) => {
+                eventsInstance.touchendCheck(e);
+            });
+            layer.addEventListener("touchmove", (e) => {
+                e.preventDefault();
+                eventsInstance.touchmoveCheck(e);
+            });
+            layer.addEventListener("touchcancel", (e) => {
+                eventsInstance.touchcancelCheck(e);
+            });
+            layer.addEventListener("wheel", (e) => {
+                eventsInstance.wheelEventCheck(e);
+            });
+            layer.addEventListener("pointerdown", (e) => {
+                eventsInstance.addPointer(e);
+                eventsInstance.pointerdownCheck(e);
+            });
+            layer.addEventListener("pointerup", (e) => {
+                eventsInstance.removePointer(e);
+                eventsInstance.pointerupCheck(e);
+            });
+            layer.addEventListener("pointermove", (e) => {
+                e.preventDefault();
+                eventsInstance.pointermoveCheck(e);
+            });
+        }
+        queueInstance$1.execute();
+        if (enableResize && root.container) {
+            layerResizeBind(root, resize);
+        }
+        return root;
+    }
+    function imageInstance$1(self) {
+        const imageIns = new Image();
+        imageIns.crossOrigin = "anonymous";
+        imageIns.onload = function onload() {
+            self.update();
+            self.updated = true;
+            queueInstance$1.vDomChanged(self.vDomIndex);
+        };
+        imageIns.onerror = function onerror(onerrorExe) {
+        };
+        return imageIns;
+    }
+    function createEmptyArrayBuffer(width, height) {
+        return new Uint8Array(new ArrayBuffer(width * height * 4));
+    }
+    function TextureObject(ctx, config, vDomIndex) {
+        const self = this;
+        const maxTextureSize = ctx.getParameter(ctx.MAX_TEXTURE_SIZE);
+        this.ctx = ctx;
+        this.texture = ctx.createTexture();
+        this.type = "TEXTURE_2D";
+        this.width = config.width > maxTextureSize ? maxTextureSize : config.width;
+        this.height = config.height > maxTextureSize ? maxTextureSize : config.height;
+        this.border = config.border ? config.border : 0;
+        this.format = config.format ? config.format : "RGBA";
+        this.type = config.type ? config.type : "UNSIGNED_BYTE";
+        this.warpS = config.warpS ? config.warpS : "CLAMP_TO_EDGE";
+        this.warpT = config.warpT ? config.warpT : "CLAMP_TO_EDGE";
+        this.magFilter = config.magFilter ? config.magFilter : "LINEAR";
+        this.minFilter = config.minFilter ? config.minFilter : "LINEAR";
+        this.mipMap = config.mipMap;
+        this.updated = false;
+        this.image = null;
+        this.vDomIndex = vDomIndex;
+        if (typeof config.src === "string") {
+            self.image = imageInstance$1(self);
+            self.image.src = config.src;
+        } else if (
+            config.src instanceof HTMLImageElement ||
+            config.src instanceof SVGImageElement ||
+            config.src instanceof HTMLCanvasElement ||
+            config.src instanceof Uint8Array
+        ) {
+            self.image = config.src;
+            self.update();
+            self.updated = true;
+        } else if (config.src instanceof NodePrototype) {
+            self.image = config.src.domEl;
+            self.update();
+            self.updated = true;
+        } else {
+            if (this.width && this.height) {
+                self.image = createEmptyArrayBuffer(this.width, this.height);
+                self.update();
             }
-            exports.isUndefined = isUndefined;
-            function isRegExp(re) {
-              return isObject(re) && objectToString(re) === '[object RegExp]';
+            self.updated = true;
+        }
+        queueInstance$1.vDomChanged(self.vDomIndex);
+    }
+    TextureObject.prototype.setAttr = function (attr, value) {
+        if (arguments.length === 1) {
+            for (const key in attr) {
+                this[key] = attr[key];
+                if (key === "src") {
+                    if (typeof value === "string") {
+                        if (!this.image || !(this.image instanceof Image)) {
+                            this.image = imageInstance$1(this);
+                        }
+                        this.image.src = value;
+                    } else if (
+                        value instanceof HTMLImageElement ||
+                        value instanceof SVGImageElement ||
+                        value instanceof HTMLCanvasElement ||
+                        value instanceof Uint8Array
+                    ) {
+                        this.image = value;
+                        this.update();
+                    } else if (value instanceof NodePrototype) {
+                        this.image = value.domEl;
+                        this.update();
+                    }
+                }
+                if (attr.height || attr.width) {
+                    self.image = createEmptyArrayBuffer(this.width, this.height);
+                }
             }
-            exports.isRegExp = isRegExp;
-            function isObject(arg) {
-              return typeof arg === 'object' && arg !== null;
+        } else {
+            this[attr] = value;
+            console.warn("Instead of key, value, pass Object of key,value for optimal rendering");
+            if (attr === "src") {
+                if (typeof value === "string") {
+                    if (!this.image || !(this.image instanceof Image)) {
+                        this.image = imageInstance$1(this);
+                    }
+                    this.image.src = value;
+                } else if (
+                    value instanceof HTMLImageElement ||
+                    value instanceof SVGImageElement ||
+                    value instanceof HTMLCanvasElement ||
+                    value instanceof Uint8Array
+                ) {
+                    this.image = value;
+                    this.update();
+                } else if (value instanceof NodePrototype) {
+                    this.image = value.domEl;
+                    this.update();
+                }
             }
-            exports.isObject = isObject;
-            function isDate(d) {
-              return isObject(d) && objectToString(d) === '[object Date]';
+        }
+    };
+    TextureObject.prototype.loadTexture = function () {
+        if (!this.updated) {
+            return;
+        }
+        this.ctx.activeTexture(this.ctx.TEXTURE0);
+        this.ctx.bindTexture(this.ctx.TEXTURE_2D, this.texture);
+    };
+    TextureObject.prototype.clear = function () {};
+    TextureObject.prototype.update = function () {
+        const ctx = this.ctx;
+        ctx.activeTexture(ctx.TEXTURE0);
+        ctx.bindTexture(ctx.TEXTURE_2D, this.texture);
+        if (this.image && !(this.image instanceof Uint8Array)) {
+            ctx.texImage2D(
+                ctx.TEXTURE_2D,
+                this.border,
+                ctx[this.format],
+                ctx[this.format],
+                ctx[this.type],
+                this.image
+            );
+        } else {
+            ctx.texImage2D(
+                ctx.TEXTURE_2D,
+                this.border,
+                ctx[this.format],
+                this.width,
+                this.height,
+                0,
+                ctx[this.format],
+                ctx[this.type],
+                this.image
+            );
+        }
+        if (this.mipMap) {
+            if (!isPowerOf2(self.image.width) || !isPowerOf2(self.image.height)) {
+                console.warn("Image dimension not in power of 2");
             }
-            exports.isDate = isDate;
-            function isError(e) {
-              return isObject(e) && (objectToString(e) === '[object Error]' || e instanceof Error);
-            }
-            exports.isError = isError;
-            function isFunction(arg) {
-              return typeof arg === 'function';
-            }
-            exports.isFunction = isFunction;
-            function isPrimitive(arg) {
-              return arg === null || typeof arg === 'boolean' || typeof arg === 'number' || typeof arg === 'string' || typeof arg === 'symbol' ||
-              typeof arg === 'undefined';
-            }
-            exports.isPrimitive = isPrimitive;
-            exports.isBuffer = require('./support/isBuffer');
-            function objectToString(o) {
-              return Object.prototype.toString.call(o);
-            }
-            function pad(n) {
-              return n < 10 ? '0' + n.toString(10) : n.toString(10);
-            }
-            var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            function timestamp() {
-              var d = new Date();
-              var time = [pad(d.getHours()), pad(d.getMinutes()), pad(d.getSeconds())].join(':');
-              return [d.getDate(), months[d.getMonth()], time].join(' ');
-            }
-            exports.log = function () {
-              console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
-            };
-            exports.inherits = require('inherits');
-            exports._extend = function (origin, add) {
-              if (!add || !isObject(add)) return origin;
-              var keys = Object.keys(add);
-              var i = keys.length;
-              while (i--) {
-                origin[keys[i]] = add[keys[i]];
-              }
-              return origin;
-            };
-            function hasOwnProperty(obj, prop) {
-              return Object.prototype.hasOwnProperty.call(obj, prop);
-            }
-          }).call(this, require('_process'), typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
-        }, {
-          "./support/isBuffer": 24,
-          "_process": 10,
-          "inherits": 8
-        }]
-      }, {}, [2])(2);
-    });
-    var blobStream$1 = blobStream;
+            ctx.generateMipmap(ctx.TEXTURE_2D);
+            ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx[this.minFilter]);
+            ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx[this.magFilter]);
+        } else {
+            ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx[this.warpS]);
+            ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx[this.warpT]);
+            ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx[this.minFilter]);
+            ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx[this.minFilter]);
+        }
+        this.updated = true;
+    };
+    function RenderTarget(ctx, config) {
+        this.ctx = ctx;
+        this.fbo = ctx.createFramebuffer();
+        this.texture = config.texture;
+        if (!this.texture.updated) {
+            this.texture.update();
+        }
+    }
+    RenderTarget.prototype.setAttr = function (attr, value) {
+        this[attr] = value;
+    };
+    RenderTarget.prototype.update = function () {
+        if (!this.texture || !(this.texture instanceof TextureObject)) {
+            return;
+        }
+        this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, this.fbo);
+        this.ctx.framebufferTexture2D(
+            this.ctx.FRAMEBUFFER,
+            this.ctx.COLOR_ATTACHMENT0,
+            this.ctx.TEXTURE_2D,
+            this.texture.texture,
+            0
+        );
+        this.ctx.clearColor(0, 0, 0, 0);
+        this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT);
+    };
+    RenderTarget.prototype.clear = function () {
+        this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, null);
+    };
+    function WebGLGeometry() {
+    }
+    WebGLGeometry.prototype.setAttr = function (attr, value) {
+        if (!value && this.attributes[attr]) {
+            delete this.attributes[attr];
+        } else {
+            this.attributes[attr] = value;
+        }
+    };
+    WebGLGeometry.prototype.setDrawRange = function (start, end) {
+        this.drawRange = [start, end];
+    };
+    WebGLGeometry.prototype.setDrawType = function (type) {
+        this.drawType = type;
+    };
+    WebGLGeometry.prototype.setIndex = function (obj) {
+        this.indexes = obj;
+    };
+    function MeshGeometry() {
+        this.attributes = {};
+        this.drawType = "TRIANGLES";
+        this.indexes = null;
+        this.drawRange = [0, 0];
+    }
+    MeshGeometry.prototype = new WebGLGeometry();
+    MeshGeometry.constructor = MeshGeometry;
+    function PointsGeometry() {
+        this.attributes = {};
+        this.drawType = "POINTS";
+        this.indexes = null;
+        this.drawRange = [0, 0];
+    }
+    PointsGeometry.prototype = new WebGLGeometry();
+    PointsGeometry.constructor = PointsGeometry;
+    function LineGeometry() {
+        this.attributes = {};
+        this.drawType = "LINES";
+        this.indexes = null;
+        this.drawRange = [0, 0];
+    }
+    LineGeometry.prototype = new WebGLGeometry();
+    LineGeometry.constructor = LineGeometry;
 
     function commonjsRequire(path) {
     	throw new Error('Could not dynamically require "' + path + '". Please configure the dynamicRequireTargets or/and ignoreDynamicRequires option of @rollup/plugin-commonjs appropriately for this require call to work.');
@@ -66684,8 +67111,2999 @@ Please pipe the document into a Node stream.\
     var pdfkit_standaloneExports = pdfkit_standalone.exports;
     var PDFDocument = /*@__PURE__*/getDefaultExportFromCjs(pdfkit_standaloneExports);
 
+    !function (e) {
+      if ("object" == typeof exports && "undefined" != typeof module) module.exports = e();else if ("function" == typeof define && define.amd) define([], e);else {
+        var f;
+        "undefined" != typeof window ? f = window : "undefined" != typeof global ? f = global : "undefined" != typeof self && (f = self), f.blobStream = e();
+      }
+    }(function () {
+      return function e(t, n, r) {
+        function s(o, u) {
+          if (!n[o]) {
+            if (!t[o]) {
+              var a = typeof require == "function" && require;
+              if (!u && a) return a(o, !0);
+              if (i) return i(o, !0);
+              var f = new Error("Cannot find module '" + o + "'");
+              throw f.code = "MODULE_NOT_FOUND", f;
+            }
+            var l = n[o] = {
+              exports: {}
+            };
+            t[o][0].call(l.exports, function (e) {
+              var n = t[o][1][e];
+              return s(n ? n : e);
+            }, l, l.exports, e, t, n, r);
+          }
+          return n[o].exports;
+        }
+        var i = typeof require == "function" && require;
+        for (var o = 0; o < r.length; o++) s(r[o]);
+        return s;
+      }({
+        1: [function (require, module, exports) {
+          (function (global) {
+            var BlobBuilder = global.BlobBuilder || global.WebKitBlobBuilder || global.MSBlobBuilder || global.MozBlobBuilder;
+            var blobSupported = function () {
+              try {
+                var a = new Blob(['hi']);
+                return a.size === 2;
+              } catch (e) {
+                return false;
+              }
+            }();
+            var blobSupportsArrayBufferView = blobSupported && function () {
+              try {
+                var b = new Blob([new Uint8Array([1, 2])]);
+                return b.size === 2;
+              } catch (e) {
+                return false;
+              }
+            }();
+            var blobBuilderSupported = BlobBuilder && BlobBuilder.prototype.append && BlobBuilder.prototype.getBlob;
+            function mapArrayBufferViews(ary) {
+              for (var i = 0; i < ary.length; i++) {
+                var chunk = ary[i];
+                if (chunk.buffer instanceof ArrayBuffer) {
+                  var buf = chunk.buffer;
+                  if (chunk.byteLength !== buf.byteLength) {
+                    var copy = new Uint8Array(chunk.byteLength);
+                    copy.set(new Uint8Array(buf, chunk.byteOffset, chunk.byteLength));
+                    buf = copy.buffer;
+                  }
+                  ary[i] = buf;
+                }
+              }
+            }
+            function BlobBuilderConstructor(ary, options) {
+              options = options || {};
+              var bb = new BlobBuilder();
+              mapArrayBufferViews(ary);
+              for (var i = 0; i < ary.length; i++) {
+                bb.append(ary[i]);
+              }
+              return options.type ? bb.getBlob(options.type) : bb.getBlob();
+            }
+            function BlobConstructor(ary, options) {
+              mapArrayBufferViews(ary);
+              return new Blob(ary, options || {});
+            }
+            module.exports = function () {
+              if (blobSupported) {
+                return blobSupportsArrayBufferView ? global.Blob : BlobConstructor;
+              } else if (blobBuilderSupported) {
+                return BlobBuilderConstructor;
+              } else {
+                return undefined;
+              }
+            }();
+          }).call(this, typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
+        }, {}],
+        2: [function (require, module, exports) {
+          (function (global) {
+            var WritableStream = require('stream').Writable;
+            var util = require('util');
+            var Blob = require('blob');
+            var URL = global.URL || global.webkitURL || global.mozURL;
+            function BlobStream() {
+              if (!(this instanceof BlobStream)) return new BlobStream();
+              WritableStream.call(this);
+              this._chunks = [];
+              this._blob = null;
+              this.length = 0;
+            }
+            util.inherits(BlobStream, WritableStream);
+            BlobStream.prototype._write = function (chunk, encoding, callback) {
+              if (!(chunk instanceof Uint8Array)) chunk = new Uint8Array(chunk);
+              this.length += chunk.length;
+              this._chunks.push(chunk);
+              callback();
+            };
+            BlobStream.prototype.toBlob = function (type) {
+              type = type || 'application/octet-stream';
+              if (!this._blob) {
+                this._blob = new Blob(this._chunks, {
+                  type: type
+                });
+                this._chunks = [];
+              }
+              if (this._blob.type !== type) this._blob = new Blob([this._blob], {
+                type: type
+              });
+              return this._blob;
+            };
+            BlobStream.prototype.toBlobURL = function (type) {
+              return URL.createObjectURL(this.toBlob(type));
+            };
+            module.exports = BlobStream;
+          }).call(this, typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
+        }, {
+          "blob": 1,
+          "stream": 22,
+          "util": 25
+        }],
+        3: [function (require, module, exports) {
+          /*!
+           * The buffer module from node.js, for the browser.
+           *
+           * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+           * @license  MIT
+           */
+          var base64 = require('base64-js');
+          var ieee754 = require('ieee754');
+          var isArray = require('is-array');
+          exports.Buffer = Buffer;
+          exports.SlowBuffer = Buffer;
+          exports.INSPECT_MAX_BYTES = 50;
+          Buffer.poolSize = 8192;
+          var kMaxLength = 0x3fffffff;
+          Buffer.TYPED_ARRAY_SUPPORT = function () {
+            try {
+              var buf = new ArrayBuffer(0);
+              var arr = new Uint8Array(buf);
+              arr.foo = function () {
+                return 42;
+              };
+              return 42 === arr.foo() &&
+              typeof arr.subarray === 'function' &&
+              new Uint8Array(1).subarray(1, 1).byteLength === 0;
+            } catch (e) {
+              return false;
+            }
+          }();
+          function Buffer(subject, encoding, noZero) {
+            if (!(this instanceof Buffer)) return new Buffer(subject, encoding, noZero);
+            var type = typeof subject;
+            var length;
+            if (type === 'number') length = subject > 0 ? subject >>> 0 : 0;else if (type === 'string') {
+              if (encoding === 'base64') subject = base64clean(subject);
+              length = Buffer.byteLength(subject, encoding);
+            } else if (type === 'object' && subject !== null) {
+              if (subject.type === 'Buffer' && isArray(subject.data)) subject = subject.data;
+              length = +subject.length > 0 ? Math.floor(+subject.length) : 0;
+            } else throw new TypeError('must start with number, buffer, array or string');
+            if (this.length > kMaxLength) throw new RangeError('Attempt to allocate Buffer larger than maximum ' + 'size: 0x' + kMaxLength.toString(16) + ' bytes');
+            var buf;
+            if (Buffer.TYPED_ARRAY_SUPPORT) {
+              buf = Buffer._augment(new Uint8Array(length));
+            } else {
+              buf = this;
+              buf.length = length;
+              buf._isBuffer = true;
+            }
+            var i;
+            if (Buffer.TYPED_ARRAY_SUPPORT && typeof subject.byteLength === 'number') {
+              buf._set(subject);
+            } else if (isArrayish(subject)) {
+              if (Buffer.isBuffer(subject)) {
+                for (i = 0; i < length; i++) buf[i] = subject.readUInt8(i);
+              } else {
+                for (i = 0; i < length; i++) buf[i] = (subject[i] % 256 + 256) % 256;
+              }
+            } else if (type === 'string') {
+              buf.write(subject, 0, encoding);
+            } else if (type === 'number' && !Buffer.TYPED_ARRAY_SUPPORT && !noZero) {
+              for (i = 0; i < length; i++) {
+                buf[i] = 0;
+              }
+            }
+            return buf;
+          }
+          Buffer.isBuffer = function (b) {
+            return !!(b != null && b._isBuffer);
+          };
+          Buffer.compare = function (a, b) {
+            if (!Buffer.isBuffer(a) || !Buffer.isBuffer(b)) throw new TypeError('Arguments must be Buffers');
+            var x = a.length;
+            var y = b.length;
+            for (var i = 0, len = Math.min(x, y); i < len && a[i] === b[i]; i++) {}
+            if (i !== len) {
+              x = a[i];
+              y = b[i];
+            }
+            if (x < y) return -1;
+            if (y < x) return 1;
+            return 0;
+          };
+          Buffer.isEncoding = function (encoding) {
+            switch (String(encoding).toLowerCase()) {
+              case 'hex':
+              case 'utf8':
+              case 'utf-8':
+              case 'ascii':
+              case 'binary':
+              case 'base64':
+              case 'raw':
+              case 'ucs2':
+              case 'ucs-2':
+              case 'utf16le':
+              case 'utf-16le':
+                return true;
+              default:
+                return false;
+            }
+          };
+          Buffer.concat = function (list, totalLength) {
+            if (!isArray(list)) throw new TypeError('Usage: Buffer.concat(list[, length])');
+            if (list.length === 0) {
+              return new Buffer(0);
+            } else if (list.length === 1) {
+              return list[0];
+            }
+            var i;
+            if (totalLength === undefined) {
+              totalLength = 0;
+              for (i = 0; i < list.length; i++) {
+                totalLength += list[i].length;
+              }
+            }
+            var buf = new Buffer(totalLength);
+            var pos = 0;
+            for (i = 0; i < list.length; i++) {
+              var item = list[i];
+              item.copy(buf, pos);
+              pos += item.length;
+            }
+            return buf;
+          };
+          Buffer.byteLength = function (str, encoding) {
+            var ret;
+            str = str + '';
+            switch (encoding || 'utf8') {
+              case 'ascii':
+              case 'binary':
+              case 'raw':
+                ret = str.length;
+                break;
+              case 'ucs2':
+              case 'ucs-2':
+              case 'utf16le':
+              case 'utf-16le':
+                ret = str.length * 2;
+                break;
+              case 'hex':
+                ret = str.length >>> 1;
+                break;
+              case 'utf8':
+              case 'utf-8':
+                ret = utf8ToBytes(str).length;
+                break;
+              case 'base64':
+                ret = base64ToBytes(str).length;
+                break;
+              default:
+                ret = str.length;
+            }
+            return ret;
+          };
+          Buffer.prototype.length = undefined;
+          Buffer.prototype.parent = undefined;
+          Buffer.prototype.toString = function (encoding, start, end) {
+            var loweredCase = false;
+            start = start >>> 0;
+            end = end === undefined || end === Infinity ? this.length : end >>> 0;
+            if (!encoding) encoding = 'utf8';
+            if (start < 0) start = 0;
+            if (end > this.length) end = this.length;
+            if (end <= start) return '';
+            while (true) {
+              switch (encoding) {
+                case 'hex':
+                  return hexSlice(this, start, end);
+                case 'utf8':
+                case 'utf-8':
+                  return utf8Slice(this, start, end);
+                case 'ascii':
+                  return asciiSlice(this, start, end);
+                case 'binary':
+                  return binarySlice(this, start, end);
+                case 'base64':
+                  return base64Slice(this, start, end);
+                case 'ucs2':
+                case 'ucs-2':
+                case 'utf16le':
+                case 'utf-16le':
+                  return utf16leSlice(this, start, end);
+                default:
+                  if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding);
+                  encoding = (encoding + '').toLowerCase();
+                  loweredCase = true;
+              }
+            }
+          };
+          Buffer.prototype.equals = function (b) {
+            if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer');
+            return Buffer.compare(this, b) === 0;
+          };
+          Buffer.prototype.inspect = function () {
+            var str = '';
+            var max = exports.INSPECT_MAX_BYTES;
+            if (this.length > 0) {
+              str = this.toString('hex', 0, max).match(/.{2}/g).join(' ');
+              if (this.length > max) str += ' ... ';
+            }
+            return '<Buffer ' + str + '>';
+          };
+          Buffer.prototype.compare = function (b) {
+            if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer');
+            return Buffer.compare(this, b);
+          };
+          Buffer.prototype.get = function (offset) {
+            console.log('.get() is deprecated. Access using array indexes instead.');
+            return this.readUInt8(offset);
+          };
+          Buffer.prototype.set = function (v, offset) {
+            console.log('.set() is deprecated. Access using array indexes instead.');
+            return this.writeUInt8(v, offset);
+          };
+          function hexWrite(buf, string, offset, length) {
+            offset = Number(offset) || 0;
+            var remaining = buf.length - offset;
+            if (!length) {
+              length = remaining;
+            } else {
+              length = Number(length);
+              if (length > remaining) {
+                length = remaining;
+              }
+            }
+            var strLen = string.length;
+            if (strLen % 2 !== 0) throw new Error('Invalid hex string');
+            if (length > strLen / 2) {
+              length = strLen / 2;
+            }
+            for (var i = 0; i < length; i++) {
+              var byte = parseInt(string.substr(i * 2, 2), 16);
+              if (isNaN(byte)) throw new Error('Invalid hex string');
+              buf[offset + i] = byte;
+            }
+            return i;
+          }
+          function utf8Write(buf, string, offset, length) {
+            var charsWritten = blitBuffer(utf8ToBytes(string), buf, offset, length);
+            return charsWritten;
+          }
+          function asciiWrite(buf, string, offset, length) {
+            var charsWritten = blitBuffer(asciiToBytes(string), buf, offset, length);
+            return charsWritten;
+          }
+          function binaryWrite(buf, string, offset, length) {
+            return asciiWrite(buf, string, offset, length);
+          }
+          function base64Write(buf, string, offset, length) {
+            var charsWritten = blitBuffer(base64ToBytes(string), buf, offset, length);
+            return charsWritten;
+          }
+          function utf16leWrite(buf, string, offset, length) {
+            var charsWritten = blitBuffer(utf16leToBytes(string), buf, offset, length);
+            return charsWritten;
+          }
+          Buffer.prototype.write = function (string, offset, length, encoding) {
+            if (isFinite(offset)) {
+              if (!isFinite(length)) {
+                encoding = length;
+                length = undefined;
+              }
+            } else {
+              var swap = encoding;
+              encoding = offset;
+              offset = length;
+              length = swap;
+            }
+            offset = Number(offset) || 0;
+            var remaining = this.length - offset;
+            if (!length) {
+              length = remaining;
+            } else {
+              length = Number(length);
+              if (length > remaining) {
+                length = remaining;
+              }
+            }
+            encoding = String(encoding || 'utf8').toLowerCase();
+            var ret;
+            switch (encoding) {
+              case 'hex':
+                ret = hexWrite(this, string, offset, length);
+                break;
+              case 'utf8':
+              case 'utf-8':
+                ret = utf8Write(this, string, offset, length);
+                break;
+              case 'ascii':
+                ret = asciiWrite(this, string, offset, length);
+                break;
+              case 'binary':
+                ret = binaryWrite(this, string, offset, length);
+                break;
+              case 'base64':
+                ret = base64Write(this, string, offset, length);
+                break;
+              case 'ucs2':
+              case 'ucs-2':
+              case 'utf16le':
+              case 'utf-16le':
+                ret = utf16leWrite(this, string, offset, length);
+                break;
+              default:
+                throw new TypeError('Unknown encoding: ' + encoding);
+            }
+            return ret;
+          };
+          Buffer.prototype.toJSON = function () {
+            return {
+              type: 'Buffer',
+              data: Array.prototype.slice.call(this._arr || this, 0)
+            };
+          };
+          function base64Slice(buf, start, end) {
+            if (start === 0 && end === buf.length) {
+              return base64.fromByteArray(buf);
+            } else {
+              return base64.fromByteArray(buf.slice(start, end));
+            }
+          }
+          function utf8Slice(buf, start, end) {
+            var res = '';
+            var tmp = '';
+            end = Math.min(buf.length, end);
+            for (var i = start; i < end; i++) {
+              if (buf[i] <= 0x7F) {
+                res += decodeUtf8Char(tmp) + String.fromCharCode(buf[i]);
+                tmp = '';
+              } else {
+                tmp += '%' + buf[i].toString(16);
+              }
+            }
+            return res + decodeUtf8Char(tmp);
+          }
+          function asciiSlice(buf, start, end) {
+            var ret = '';
+            end = Math.min(buf.length, end);
+            for (var i = start; i < end; i++) {
+              ret += String.fromCharCode(buf[i]);
+            }
+            return ret;
+          }
+          function binarySlice(buf, start, end) {
+            return asciiSlice(buf, start, end);
+          }
+          function hexSlice(buf, start, end) {
+            var len = buf.length;
+            if (!start || start < 0) start = 0;
+            if (!end || end < 0 || end > len) end = len;
+            var out = '';
+            for (var i = start; i < end; i++) {
+              out += toHex(buf[i]);
+            }
+            return out;
+          }
+          function utf16leSlice(buf, start, end) {
+            var bytes = buf.slice(start, end);
+            var res = '';
+            for (var i = 0; i < bytes.length; i += 2) {
+              res += String.fromCharCode(bytes[i] + bytes[i + 1] * 256);
+            }
+            return res;
+          }
+          Buffer.prototype.slice = function (start, end) {
+            var len = this.length;
+            start = ~~start;
+            end = end === undefined ? len : ~~end;
+            if (start < 0) {
+              start += len;
+              if (start < 0) start = 0;
+            } else if (start > len) {
+              start = len;
+            }
+            if (end < 0) {
+              end += len;
+              if (end < 0) end = 0;
+            } else if (end > len) {
+              end = len;
+            }
+            if (end < start) end = start;
+            if (Buffer.TYPED_ARRAY_SUPPORT) {
+              return Buffer._augment(this.subarray(start, end));
+            } else {
+              var sliceLen = end - start;
+              var newBuf = new Buffer(sliceLen, undefined, true);
+              for (var i = 0; i < sliceLen; i++) {
+                newBuf[i] = this[i + start];
+              }
+              return newBuf;
+            }
+          };
+          function checkOffset(offset, ext, length) {
+            if (offset % 1 !== 0 || offset < 0) throw new RangeError('offset is not uint');
+            if (offset + ext > length) throw new RangeError('Trying to access beyond buffer length');
+          }
+          Buffer.prototype.readUInt8 = function (offset, noAssert) {
+            if (!noAssert) checkOffset(offset, 1, this.length);
+            return this[offset];
+          };
+          Buffer.prototype.readUInt16LE = function (offset, noAssert) {
+            if (!noAssert) checkOffset(offset, 2, this.length);
+            return this[offset] | this[offset + 1] << 8;
+          };
+          Buffer.prototype.readUInt16BE = function (offset, noAssert) {
+            if (!noAssert) checkOffset(offset, 2, this.length);
+            return this[offset] << 8 | this[offset + 1];
+          };
+          Buffer.prototype.readUInt32LE = function (offset, noAssert) {
+            if (!noAssert) checkOffset(offset, 4, this.length);
+            return (this[offset] | this[offset + 1] << 8 | this[offset + 2] << 16) + this[offset + 3] * 0x1000000;
+          };
+          Buffer.prototype.readUInt32BE = function (offset, noAssert) {
+            if (!noAssert) checkOffset(offset, 4, this.length);
+            return this[offset] * 0x1000000 + (this[offset + 1] << 16 | this[offset + 2] << 8 | this[offset + 3]);
+          };
+          Buffer.prototype.readInt8 = function (offset, noAssert) {
+            if (!noAssert) checkOffset(offset, 1, this.length);
+            if (!(this[offset] & 0x80)) return this[offset];
+            return (0xff - this[offset] + 1) * -1;
+          };
+          Buffer.prototype.readInt16LE = function (offset, noAssert) {
+            if (!noAssert) checkOffset(offset, 2, this.length);
+            var val = this[offset] | this[offset + 1] << 8;
+            return val & 0x8000 ? val | 0xFFFF0000 : val;
+          };
+          Buffer.prototype.readInt16BE = function (offset, noAssert) {
+            if (!noAssert) checkOffset(offset, 2, this.length);
+            var val = this[offset + 1] | this[offset] << 8;
+            return val & 0x8000 ? val | 0xFFFF0000 : val;
+          };
+          Buffer.prototype.readInt32LE = function (offset, noAssert) {
+            if (!noAssert) checkOffset(offset, 4, this.length);
+            return this[offset] | this[offset + 1] << 8 | this[offset + 2] << 16 | this[offset + 3] << 24;
+          };
+          Buffer.prototype.readInt32BE = function (offset, noAssert) {
+            if (!noAssert) checkOffset(offset, 4, this.length);
+            return this[offset] << 24 | this[offset + 1] << 16 | this[offset + 2] << 8 | this[offset + 3];
+          };
+          Buffer.prototype.readFloatLE = function (offset, noAssert) {
+            if (!noAssert) checkOffset(offset, 4, this.length);
+            return ieee754.read(this, offset, true, 23, 4);
+          };
+          Buffer.prototype.readFloatBE = function (offset, noAssert) {
+            if (!noAssert) checkOffset(offset, 4, this.length);
+            return ieee754.read(this, offset, false, 23, 4);
+          };
+          Buffer.prototype.readDoubleLE = function (offset, noAssert) {
+            if (!noAssert) checkOffset(offset, 8, this.length);
+            return ieee754.read(this, offset, true, 52, 8);
+          };
+          Buffer.prototype.readDoubleBE = function (offset, noAssert) {
+            if (!noAssert) checkOffset(offset, 8, this.length);
+            return ieee754.read(this, offset, false, 52, 8);
+          };
+          function checkInt(buf, value, offset, ext, max, min) {
+            if (!Buffer.isBuffer(buf)) throw new TypeError('buffer must be a Buffer instance');
+            if (value > max || value < min) throw new TypeError('value is out of bounds');
+            if (offset + ext > buf.length) throw new TypeError('index out of range');
+          }
+          Buffer.prototype.writeUInt8 = function (value, offset, noAssert) {
+            value = +value;
+            offset = offset >>> 0;
+            if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0);
+            if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value);
+            this[offset] = value;
+            return offset + 1;
+          };
+          function objectWriteUInt16(buf, value, offset, littleEndian) {
+            if (value < 0) value = 0xffff + value + 1;
+            for (var i = 0, j = Math.min(buf.length - offset, 2); i < j; i++) {
+              buf[offset + i] = (value & 0xff << 8 * (littleEndian ? i : 1 - i)) >>> (littleEndian ? i : 1 - i) * 8;
+            }
+          }
+          Buffer.prototype.writeUInt16LE = function (value, offset, noAssert) {
+            value = +value;
+            offset = offset >>> 0;
+            if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0);
+            if (Buffer.TYPED_ARRAY_SUPPORT) {
+              this[offset] = value;
+              this[offset + 1] = value >>> 8;
+            } else objectWriteUInt16(this, value, offset, true);
+            return offset + 2;
+          };
+          Buffer.prototype.writeUInt16BE = function (value, offset, noAssert) {
+            value = +value;
+            offset = offset >>> 0;
+            if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0);
+            if (Buffer.TYPED_ARRAY_SUPPORT) {
+              this[offset] = value >>> 8;
+              this[offset + 1] = value;
+            } else objectWriteUInt16(this, value, offset, false);
+            return offset + 2;
+          };
+          function objectWriteUInt32(buf, value, offset, littleEndian) {
+            if (value < 0) value = 0xffffffff + value + 1;
+            for (var i = 0, j = Math.min(buf.length - offset, 4); i < j; i++) {
+              buf[offset + i] = value >>> (littleEndian ? i : 3 - i) * 8 & 0xff;
+            }
+          }
+          Buffer.prototype.writeUInt32LE = function (value, offset, noAssert) {
+            value = +value;
+            offset = offset >>> 0;
+            if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0);
+            if (Buffer.TYPED_ARRAY_SUPPORT) {
+              this[offset + 3] = value >>> 24;
+              this[offset + 2] = value >>> 16;
+              this[offset + 1] = value >>> 8;
+              this[offset] = value;
+            } else objectWriteUInt32(this, value, offset, true);
+            return offset + 4;
+          };
+          Buffer.prototype.writeUInt32BE = function (value, offset, noAssert) {
+            value = +value;
+            offset = offset >>> 0;
+            if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0);
+            if (Buffer.TYPED_ARRAY_SUPPORT) {
+              this[offset] = value >>> 24;
+              this[offset + 1] = value >>> 16;
+              this[offset + 2] = value >>> 8;
+              this[offset + 3] = value;
+            } else objectWriteUInt32(this, value, offset, false);
+            return offset + 4;
+          };
+          Buffer.prototype.writeInt8 = function (value, offset, noAssert) {
+            value = +value;
+            offset = offset >>> 0;
+            if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -0x80);
+            if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value);
+            if (value < 0) value = 0xff + value + 1;
+            this[offset] = value;
+            return offset + 1;
+          };
+          Buffer.prototype.writeInt16LE = function (value, offset, noAssert) {
+            value = +value;
+            offset = offset >>> 0;
+            if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000);
+            if (Buffer.TYPED_ARRAY_SUPPORT) {
+              this[offset] = value;
+              this[offset + 1] = value >>> 8;
+            } else objectWriteUInt16(this, value, offset, true);
+            return offset + 2;
+          };
+          Buffer.prototype.writeInt16BE = function (value, offset, noAssert) {
+            value = +value;
+            offset = offset >>> 0;
+            if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000);
+            if (Buffer.TYPED_ARRAY_SUPPORT) {
+              this[offset] = value >>> 8;
+              this[offset + 1] = value;
+            } else objectWriteUInt16(this, value, offset, false);
+            return offset + 2;
+          };
+          Buffer.prototype.writeInt32LE = function (value, offset, noAssert) {
+            value = +value;
+            offset = offset >>> 0;
+            if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);
+            if (Buffer.TYPED_ARRAY_SUPPORT) {
+              this[offset] = value;
+              this[offset + 1] = value >>> 8;
+              this[offset + 2] = value >>> 16;
+              this[offset + 3] = value >>> 24;
+            } else objectWriteUInt32(this, value, offset, true);
+            return offset + 4;
+          };
+          Buffer.prototype.writeInt32BE = function (value, offset, noAssert) {
+            value = +value;
+            offset = offset >>> 0;
+            if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);
+            if (value < 0) value = 0xffffffff + value + 1;
+            if (Buffer.TYPED_ARRAY_SUPPORT) {
+              this[offset] = value >>> 24;
+              this[offset + 1] = value >>> 16;
+              this[offset + 2] = value >>> 8;
+              this[offset + 3] = value;
+            } else objectWriteUInt32(this, value, offset, false);
+            return offset + 4;
+          };
+          function checkIEEE754(buf, value, offset, ext, max, min) {
+            if (value > max || value < min) throw new TypeError('value is out of bounds');
+            if (offset + ext > buf.length) throw new TypeError('index out of range');
+          }
+          function writeFloat(buf, value, offset, littleEndian, noAssert) {
+            if (!noAssert) checkIEEE754(buf, value, offset, 4, 3.4028234663852886e+38, -3.4028234663852886e+38);
+            ieee754.write(buf, value, offset, littleEndian, 23, 4);
+            return offset + 4;
+          }
+          Buffer.prototype.writeFloatLE = function (value, offset, noAssert) {
+            return writeFloat(this, value, offset, true, noAssert);
+          };
+          Buffer.prototype.writeFloatBE = function (value, offset, noAssert) {
+            return writeFloat(this, value, offset, false, noAssert);
+          };
+          function writeDouble(buf, value, offset, littleEndian, noAssert) {
+            if (!noAssert) checkIEEE754(buf, value, offset, 8, 1.7976931348623157E+308, -1.7976931348623157E+308);
+            ieee754.write(buf, value, offset, littleEndian, 52, 8);
+            return offset + 8;
+          }
+          Buffer.prototype.writeDoubleLE = function (value, offset, noAssert) {
+            return writeDouble(this, value, offset, true, noAssert);
+          };
+          Buffer.prototype.writeDoubleBE = function (value, offset, noAssert) {
+            return writeDouble(this, value, offset, false, noAssert);
+          };
+          Buffer.prototype.copy = function (target, target_start, start, end) {
+            var source = this;
+            if (!start) start = 0;
+            if (!end && end !== 0) end = this.length;
+            if (!target_start) target_start = 0;
+            if (end === start) return;
+            if (target.length === 0 || source.length === 0) return;
+            if (end < start) throw new TypeError('sourceEnd < sourceStart');
+            if (target_start < 0 || target_start >= target.length) throw new TypeError('targetStart out of bounds');
+            if (start < 0 || start >= source.length) throw new TypeError('sourceStart out of bounds');
+            if (end < 0 || end > source.length) throw new TypeError('sourceEnd out of bounds');
+            if (end > this.length) end = this.length;
+            if (target.length - target_start < end - start) end = target.length - target_start + start;
+            var len = end - start;
+            if (len < 1000 || !Buffer.TYPED_ARRAY_SUPPORT) {
+              for (var i = 0; i < len; i++) {
+                target[i + target_start] = this[i + start];
+              }
+            } else {
+              target._set(this.subarray(start, start + len), target_start);
+            }
+          };
+          Buffer.prototype.fill = function (value, start, end) {
+            if (!value) value = 0;
+            if (!start) start = 0;
+            if (!end) end = this.length;
+            if (end < start) throw new TypeError('end < start');
+            if (end === start) return;
+            if (this.length === 0) return;
+            if (start < 0 || start >= this.length) throw new TypeError('start out of bounds');
+            if (end < 0 || end > this.length) throw new TypeError('end out of bounds');
+            var i;
+            if (typeof value === 'number') {
+              for (i = start; i < end; i++) {
+                this[i] = value;
+              }
+            } else {
+              var bytes = utf8ToBytes(value.toString());
+              var len = bytes.length;
+              for (i = start; i < end; i++) {
+                this[i] = bytes[i % len];
+              }
+            }
+            return this;
+          };
+          Buffer.prototype.toArrayBuffer = function () {
+            if (typeof Uint8Array !== 'undefined') {
+              if (Buffer.TYPED_ARRAY_SUPPORT) {
+                return new Buffer(this).buffer;
+              } else {
+                var buf = new Uint8Array(this.length);
+                for (var i = 0, len = buf.length; i < len; i += 1) {
+                  buf[i] = this[i];
+                }
+                return buf.buffer;
+              }
+            } else {
+              throw new TypeError('Buffer.toArrayBuffer not supported in this browser');
+            }
+          };
+          var BP = Buffer.prototype;
+          Buffer._augment = function (arr) {
+            arr.constructor = Buffer;
+            arr._isBuffer = true;
+            arr._get = arr.get;
+            arr._set = arr.set;
+            arr.get = BP.get;
+            arr.set = BP.set;
+            arr.write = BP.write;
+            arr.toString = BP.toString;
+            arr.toLocaleString = BP.toString;
+            arr.toJSON = BP.toJSON;
+            arr.equals = BP.equals;
+            arr.compare = BP.compare;
+            arr.copy = BP.copy;
+            arr.slice = BP.slice;
+            arr.readUInt8 = BP.readUInt8;
+            arr.readUInt16LE = BP.readUInt16LE;
+            arr.readUInt16BE = BP.readUInt16BE;
+            arr.readUInt32LE = BP.readUInt32LE;
+            arr.readUInt32BE = BP.readUInt32BE;
+            arr.readInt8 = BP.readInt8;
+            arr.readInt16LE = BP.readInt16LE;
+            arr.readInt16BE = BP.readInt16BE;
+            arr.readInt32LE = BP.readInt32LE;
+            arr.readInt32BE = BP.readInt32BE;
+            arr.readFloatLE = BP.readFloatLE;
+            arr.readFloatBE = BP.readFloatBE;
+            arr.readDoubleLE = BP.readDoubleLE;
+            arr.readDoubleBE = BP.readDoubleBE;
+            arr.writeUInt8 = BP.writeUInt8;
+            arr.writeUInt16LE = BP.writeUInt16LE;
+            arr.writeUInt16BE = BP.writeUInt16BE;
+            arr.writeUInt32LE = BP.writeUInt32LE;
+            arr.writeUInt32BE = BP.writeUInt32BE;
+            arr.writeInt8 = BP.writeInt8;
+            arr.writeInt16LE = BP.writeInt16LE;
+            arr.writeInt16BE = BP.writeInt16BE;
+            arr.writeInt32LE = BP.writeInt32LE;
+            arr.writeInt32BE = BP.writeInt32BE;
+            arr.writeFloatLE = BP.writeFloatLE;
+            arr.writeFloatBE = BP.writeFloatBE;
+            arr.writeDoubleLE = BP.writeDoubleLE;
+            arr.writeDoubleBE = BP.writeDoubleBE;
+            arr.fill = BP.fill;
+            arr.inspect = BP.inspect;
+            arr.toArrayBuffer = BP.toArrayBuffer;
+            return arr;
+          };
+          var INVALID_BASE64_RE = /[^+\/0-9A-z]/g;
+          function base64clean(str) {
+            str = stringtrim(str).replace(INVALID_BASE64_RE, '');
+            while (str.length % 4 !== 0) {
+              str = str + '=';
+            }
+            return str;
+          }
+          function stringtrim(str) {
+            if (str.trim) return str.trim();
+            return str.replace(/^\s+|\s+$/g, '');
+          }
+          function isArrayish(subject) {
+            return isArray(subject) || Buffer.isBuffer(subject) || subject && typeof subject === 'object' && typeof subject.length === 'number';
+          }
+          function toHex(n) {
+            if (n < 16) return '0' + n.toString(16);
+            return n.toString(16);
+          }
+          function utf8ToBytes(str) {
+            var byteArray = [];
+            for (var i = 0; i < str.length; i++) {
+              var b = str.charCodeAt(i);
+              if (b <= 0x7F) {
+                byteArray.push(b);
+              } else {
+                var start = i;
+                if (b >= 0xD800 && b <= 0xDFFF) i++;
+                var h = encodeURIComponent(str.slice(start, i + 1)).substr(1).split('%');
+                for (var j = 0; j < h.length; j++) {
+                  byteArray.push(parseInt(h[j], 16));
+                }
+              }
+            }
+            return byteArray;
+          }
+          function asciiToBytes(str) {
+            var byteArray = [];
+            for (var i = 0; i < str.length; i++) {
+              byteArray.push(str.charCodeAt(i) & 0xFF);
+            }
+            return byteArray;
+          }
+          function utf16leToBytes(str) {
+            var c, hi, lo;
+            var byteArray = [];
+            for (var i = 0; i < str.length; i++) {
+              c = str.charCodeAt(i);
+              hi = c >> 8;
+              lo = c % 256;
+              byteArray.push(lo);
+              byteArray.push(hi);
+            }
+            return byteArray;
+          }
+          function base64ToBytes(str) {
+            return base64.toByteArray(str);
+          }
+          function blitBuffer(src, dst, offset, length) {
+            for (var i = 0; i < length; i++) {
+              if (i + offset >= dst.length || i >= src.length) break;
+              dst[i + offset] = src[i];
+            }
+            return i;
+          }
+          function decodeUtf8Char(str) {
+            try {
+              return decodeURIComponent(str);
+            } catch (err) {
+              return String.fromCharCode(0xFFFD);
+            }
+          }
+        }, {
+          "base64-js": 4,
+          "ieee754": 5,
+          "is-array": 6
+        }],
+        4: [function (require, module, exports) {
+          var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+          (function (exports) {
+            var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array;
+            var PLUS = '+'.charCodeAt(0);
+            var SLASH = '/'.charCodeAt(0);
+            var NUMBER = '0'.charCodeAt(0);
+            var LOWER = 'a'.charCodeAt(0);
+            var UPPER = 'A'.charCodeAt(0);
+            function decode(elt) {
+              var code = elt.charCodeAt(0);
+              if (code === PLUS) return 62;
+              if (code === SLASH) return 63;
+              if (code < NUMBER) return -1;
+              if (code < NUMBER + 10) return code - NUMBER + 26 + 26;
+              if (code < UPPER + 26) return code - UPPER;
+              if (code < LOWER + 26) return code - LOWER + 26;
+            }
+            function b64ToByteArray(b64) {
+              var i, j, l, tmp, placeHolders, arr;
+              if (b64.length % 4 > 0) {
+                throw new Error('Invalid string. Length must be a multiple of 4');
+              }
+              var len = b64.length;
+              placeHolders = '=' === b64.charAt(len - 2) ? 2 : '=' === b64.charAt(len - 1) ? 1 : 0;
+              arr = new Arr(b64.length * 3 / 4 - placeHolders);
+              l = placeHolders > 0 ? b64.length - 4 : b64.length;
+              var L = 0;
+              function push(v) {
+                arr[L++] = v;
+              }
+              for (i = 0, j = 0; i < l; i += 4, j += 3) {
+                tmp = decode(b64.charAt(i)) << 18 | decode(b64.charAt(i + 1)) << 12 | decode(b64.charAt(i + 2)) << 6 | decode(b64.charAt(i + 3));
+                push((tmp & 0xFF0000) >> 16);
+                push((tmp & 0xFF00) >> 8);
+                push(tmp & 0xFF);
+              }
+              if (placeHolders === 2) {
+                tmp = decode(b64.charAt(i)) << 2 | decode(b64.charAt(i + 1)) >> 4;
+                push(tmp & 0xFF);
+              } else if (placeHolders === 1) {
+                tmp = decode(b64.charAt(i)) << 10 | decode(b64.charAt(i + 1)) << 4 | decode(b64.charAt(i + 2)) >> 2;
+                push(tmp >> 8 & 0xFF);
+                push(tmp & 0xFF);
+              }
+              return arr;
+            }
+            function uint8ToBase64(uint8) {
+              var i,
+                extraBytes = uint8.length % 3,
+                output = "",
+                temp,
+                length;
+              function encode(num) {
+                return lookup.charAt(num);
+              }
+              function tripletToBase64(num) {
+                return encode(num >> 18 & 0x3F) + encode(num >> 12 & 0x3F) + encode(num >> 6 & 0x3F) + encode(num & 0x3F);
+              }
+              for (i = 0, length = uint8.length - extraBytes; i < length; i += 3) {
+                temp = (uint8[i] << 16) + (uint8[i + 1] << 8) + uint8[i + 2];
+                output += tripletToBase64(temp);
+              }
+              switch (extraBytes) {
+                case 1:
+                  temp = uint8[uint8.length - 1];
+                  output += encode(temp >> 2);
+                  output += encode(temp << 4 & 0x3F);
+                  output += '==';
+                  break;
+                case 2:
+                  temp = (uint8[uint8.length - 2] << 8) + uint8[uint8.length - 1];
+                  output += encode(temp >> 10);
+                  output += encode(temp >> 4 & 0x3F);
+                  output += encode(temp << 2 & 0x3F);
+                  output += '=';
+                  break;
+              }
+              return output;
+            }
+            exports.toByteArray = b64ToByteArray;
+            exports.fromByteArray = uint8ToBase64;
+          })(typeof exports === 'undefined' ? this.base64js = {} : exports);
+        }, {}],
+        5: [function (require, module, exports) {
+          exports.read = function (buffer, offset, isLE, mLen, nBytes) {
+            var e,
+              m,
+              eLen = nBytes * 8 - mLen - 1,
+              eMax = (1 << eLen) - 1,
+              eBias = eMax >> 1,
+              nBits = -7,
+              i = isLE ? nBytes - 1 : 0,
+              d = isLE ? -1 : 1,
+              s = buffer[offset + i];
+            i += d;
+            e = s & (1 << -nBits) - 1;
+            s >>= -nBits;
+            nBits += eLen;
+            for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8);
+            m = e & (1 << -nBits) - 1;
+            e >>= -nBits;
+            nBits += mLen;
+            for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8);
+            if (e === 0) {
+              e = 1 - eBias;
+            } else if (e === eMax) {
+              return m ? NaN : (s ? -1 : 1) * Infinity;
+            } else {
+              m = m + Math.pow(2, mLen);
+              e = e - eBias;
+            }
+            return (s ? -1 : 1) * m * Math.pow(2, e - mLen);
+          };
+          exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
+            var e,
+              m,
+              c,
+              eLen = nBytes * 8 - mLen - 1,
+              eMax = (1 << eLen) - 1,
+              eBias = eMax >> 1,
+              rt = mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0,
+              i = isLE ? 0 : nBytes - 1,
+              d = isLE ? 1 : -1,
+              s = value < 0 || value === 0 && 1 / value < 0 ? 1 : 0;
+            value = Math.abs(value);
+            if (isNaN(value) || value === Infinity) {
+              m = isNaN(value) ? 1 : 0;
+              e = eMax;
+            } else {
+              e = Math.floor(Math.log(value) / Math.LN2);
+              if (value * (c = Math.pow(2, -e)) < 1) {
+                e--;
+                c *= 2;
+              }
+              if (e + eBias >= 1) {
+                value += rt / c;
+              } else {
+                value += rt * Math.pow(2, 1 - eBias);
+              }
+              if (value * c >= 2) {
+                e++;
+                c /= 2;
+              }
+              if (e + eBias >= eMax) {
+                m = 0;
+                e = eMax;
+              } else if (e + eBias >= 1) {
+                m = (value * c - 1) * Math.pow(2, mLen);
+                e = e + eBias;
+              } else {
+                m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen);
+                e = 0;
+              }
+            }
+            for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8);
+            e = e << mLen | m;
+            eLen += mLen;
+            for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8);
+            buffer[offset + i - d] |= s * 128;
+          };
+        }, {}],
+        6: [function (require, module, exports) {
+          var isArray = Array.isArray;
+          var str = Object.prototype.toString;
+          module.exports = isArray || function (val) {
+            return !!val && '[object Array]' == str.call(val);
+          };
+        }, {}],
+        7: [function (require, module, exports) {
+          function EventEmitter() {
+            this._events = this._events || {};
+            this._maxListeners = this._maxListeners || undefined;
+          }
+          module.exports = EventEmitter;
+          EventEmitter.EventEmitter = EventEmitter;
+          EventEmitter.prototype._events = undefined;
+          EventEmitter.prototype._maxListeners = undefined;
+          EventEmitter.defaultMaxListeners = 10;
+          EventEmitter.prototype.setMaxListeners = function (n) {
+            if (!isNumber(n) || n < 0 || isNaN(n)) throw TypeError('n must be a positive number');
+            this._maxListeners = n;
+            return this;
+          };
+          EventEmitter.prototype.emit = function (type) {
+            var er, handler, len, args, i, listeners;
+            if (!this._events) this._events = {};
+            if (type === 'error') {
+              if (!this._events.error || isObject(this._events.error) && !this._events.error.length) {
+                er = arguments[1];
+                if (er instanceof Error) {
+                  throw er;
+                }
+                throw TypeError('Uncaught, unspecified "error" event.');
+              }
+            }
+            handler = this._events[type];
+            if (isUndefined(handler)) return false;
+            if (isFunction(handler)) {
+              switch (arguments.length) {
+                case 1:
+                  handler.call(this);
+                  break;
+                case 2:
+                  handler.call(this, arguments[1]);
+                  break;
+                case 3:
+                  handler.call(this, arguments[1], arguments[2]);
+                  break;
+                default:
+                  len = arguments.length;
+                  args = new Array(len - 1);
+                  for (i = 1; i < len; i++) args[i - 1] = arguments[i];
+                  handler.apply(this, args);
+              }
+            } else if (isObject(handler)) {
+              len = arguments.length;
+              args = new Array(len - 1);
+              for (i = 1; i < len; i++) args[i - 1] = arguments[i];
+              listeners = handler.slice();
+              len = listeners.length;
+              for (i = 0; i < len; i++) listeners[i].apply(this, args);
+            }
+            return true;
+          };
+          EventEmitter.prototype.addListener = function (type, listener) {
+            var m;
+            if (!isFunction(listener)) throw TypeError('listener must be a function');
+            if (!this._events) this._events = {};
+            if (this._events.newListener) this.emit('newListener', type, isFunction(listener.listener) ? listener.listener : listener);
+            if (!this._events[type])
+              this._events[type] = listener;else if (isObject(this._events[type]))
+              this._events[type].push(listener);else
+              this._events[type] = [this._events[type], listener];
+            if (isObject(this._events[type]) && !this._events[type].warned) {
+              var m;
+              if (!isUndefined(this._maxListeners)) {
+                m = this._maxListeners;
+              } else {
+                m = EventEmitter.defaultMaxListeners;
+              }
+              if (m && m > 0 && this._events[type].length > m) {
+                this._events[type].warned = true;
+                console.error('(node) warning: possible EventEmitter memory ' + 'leak detected. %d listeners added. ' + 'Use emitter.setMaxListeners() to increase limit.', this._events[type].length);
+                if (typeof console.trace === 'function') {
+                  console.trace();
+                }
+              }
+            }
+            return this;
+          };
+          EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+          EventEmitter.prototype.once = function (type, listener) {
+            if (!isFunction(listener)) throw TypeError('listener must be a function');
+            var fired = false;
+            function g() {
+              this.removeListener(type, g);
+              if (!fired) {
+                fired = true;
+                listener.apply(this, arguments);
+              }
+            }
+            g.listener = listener;
+            this.on(type, g);
+            return this;
+          };
+          EventEmitter.prototype.removeListener = function (type, listener) {
+            var list, position, length, i;
+            if (!isFunction(listener)) throw TypeError('listener must be a function');
+            if (!this._events || !this._events[type]) return this;
+            list = this._events[type];
+            length = list.length;
+            position = -1;
+            if (list === listener || isFunction(list.listener) && list.listener === listener) {
+              delete this._events[type];
+              if (this._events.removeListener) this.emit('removeListener', type, listener);
+            } else if (isObject(list)) {
+              for (i = length; i-- > 0;) {
+                if (list[i] === listener || list[i].listener && list[i].listener === listener) {
+                  position = i;
+                  break;
+                }
+              }
+              if (position < 0) return this;
+              if (list.length === 1) {
+                list.length = 0;
+                delete this._events[type];
+              } else {
+                list.splice(position, 1);
+              }
+              if (this._events.removeListener) this.emit('removeListener', type, listener);
+            }
+            return this;
+          };
+          EventEmitter.prototype.removeAllListeners = function (type) {
+            var key, listeners;
+            if (!this._events) return this;
+            if (!this._events.removeListener) {
+              if (arguments.length === 0) this._events = {};else if (this._events[type]) delete this._events[type];
+              return this;
+            }
+            if (arguments.length === 0) {
+              for (key in this._events) {
+                if (key === 'removeListener') continue;
+                this.removeAllListeners(key);
+              }
+              this.removeAllListeners('removeListener');
+              this._events = {};
+              return this;
+            }
+            listeners = this._events[type];
+            if (isFunction(listeners)) {
+              this.removeListener(type, listeners);
+            } else {
+              while (listeners.length) this.removeListener(type, listeners[listeners.length - 1]);
+            }
+            delete this._events[type];
+            return this;
+          };
+          EventEmitter.prototype.listeners = function (type) {
+            var ret;
+            if (!this._events || !this._events[type]) ret = [];else if (isFunction(this._events[type])) ret = [this._events[type]];else ret = this._events[type].slice();
+            return ret;
+          };
+          EventEmitter.listenerCount = function (emitter, type) {
+            var ret;
+            if (!emitter._events || !emitter._events[type]) ret = 0;else if (isFunction(emitter._events[type])) ret = 1;else ret = emitter._events[type].length;
+            return ret;
+          };
+          function isFunction(arg) {
+            return typeof arg === 'function';
+          }
+          function isNumber(arg) {
+            return typeof arg === 'number';
+          }
+          function isObject(arg) {
+            return typeof arg === 'object' && arg !== null;
+          }
+          function isUndefined(arg) {
+            return arg === void 0;
+          }
+        }, {}],
+        8: [function (require, module, exports) {
+          if (typeof Object.create === 'function') {
+            module.exports = function inherits(ctor, superCtor) {
+              ctor.super_ = superCtor;
+              ctor.prototype = Object.create(superCtor.prototype, {
+                constructor: {
+                  value: ctor,
+                  enumerable: false,
+                  writable: true,
+                  configurable: true
+                }
+              });
+            };
+          } else {
+            module.exports = function inherits(ctor, superCtor) {
+              ctor.super_ = superCtor;
+              var TempCtor = function () {};
+              TempCtor.prototype = superCtor.prototype;
+              ctor.prototype = new TempCtor();
+              ctor.prototype.constructor = ctor;
+            };
+          }
+        }, {}],
+        9: [function (require, module, exports) {
+          module.exports = Array.isArray || function (arr) {
+            return Object.prototype.toString.call(arr) == '[object Array]';
+          };
+        }, {}],
+        10: [function (require, module, exports) {
+          var process = module.exports = {};
+          process.nextTick = function () {
+            var canSetImmediate = typeof window !== 'undefined' && window.setImmediate;
+            var canMutationObserver = typeof window !== 'undefined' && window.MutationObserver;
+            var canPost = typeof window !== 'undefined' && window.postMessage && window.addEventListener;
+            if (canSetImmediate) {
+              return function (f) {
+                return window.setImmediate(f);
+              };
+            }
+            var queue = [];
+            if (canMutationObserver) {
+              var hiddenDiv = document.createElement("div");
+              var observer = new MutationObserver(function () {
+                var queueList = queue.slice();
+                queue.length = 0;
+                queueList.forEach(function (fn) {
+                  fn();
+                });
+              });
+              observer.observe(hiddenDiv, {
+                attributes: true
+              });
+              return function nextTick(fn) {
+                if (!queue.length) {
+                  hiddenDiv.setAttribute('yes', 'no');
+                }
+                queue.push(fn);
+              };
+            }
+            if (canPost) {
+              window.addEventListener('message', function (ev) {
+                var source = ev.source;
+                if ((source === window || source === null) && ev.data === 'process-tick') {
+                  ev.stopPropagation();
+                  if (queue.length > 0) {
+                    var fn = queue.shift();
+                    fn();
+                  }
+                }
+              }, true);
+              return function nextTick(fn) {
+                queue.push(fn);
+                window.postMessage('process-tick', '*');
+              };
+            }
+            return function nextTick(fn) {
+              setTimeout(fn, 0);
+            };
+          }();
+          process.title = 'browser';
+          process.browser = true;
+          process.env = {};
+          process.argv = [];
+          function noop() {}
+          process.on = noop;
+          process.addListener = noop;
+          process.once = noop;
+          process.off = noop;
+          process.removeListener = noop;
+          process.removeAllListeners = noop;
+          process.emit = noop;
+          process.binding = function (name) {
+            throw new Error('process.binding is not supported');
+          };
+          process.cwd = function () {
+            return '/';
+          };
+          process.chdir = function (dir) {
+            throw new Error('process.chdir is not supported');
+          };
+        }, {}],
+        11: [function (require, module, exports) {
+          module.exports = require("./lib/_stream_duplex.js");
+        }, {
+          "./lib/_stream_duplex.js": 12
+        }],
+        12: [function (require, module, exports) {
+          (function (process) {
+            module.exports = Duplex;
+            var objectKeys = Object.keys || function (obj) {
+              var keys = [];
+              for (var key in obj) keys.push(key);
+              return keys;
+            };
+            var util = require('core-util-is');
+            util.inherits = require('inherits');
+            var Readable = require('./_stream_readable');
+            var Writable = require('./_stream_writable');
+            util.inherits(Duplex, Readable);
+            forEach(objectKeys(Writable.prototype), function (method) {
+              if (!Duplex.prototype[method]) Duplex.prototype[method] = Writable.prototype[method];
+            });
+            function Duplex(options) {
+              if (!(this instanceof Duplex)) return new Duplex(options);
+              Readable.call(this, options);
+              Writable.call(this, options);
+              if (options && options.readable === false) this.readable = false;
+              if (options && options.writable === false) this.writable = false;
+              this.allowHalfOpen = true;
+              if (options && options.allowHalfOpen === false) this.allowHalfOpen = false;
+              this.once('end', onend);
+            }
+            function onend() {
+              if (this.allowHalfOpen || this._writableState.ended) return;
+              process.nextTick(this.end.bind(this));
+            }
+            function forEach(xs, f) {
+              for (var i = 0, l = xs.length; i < l; i++) {
+                f(xs[i], i);
+              }
+            }
+          }).call(this, require('_process'));
+        }, {
+          "./_stream_readable": 14,
+          "./_stream_writable": 16,
+          "_process": 10,
+          "core-util-is": 17,
+          "inherits": 8
+        }],
+        13: [function (require, module, exports) {
+          module.exports = PassThrough;
+          var Transform = require('./_stream_transform');
+          var util = require('core-util-is');
+          util.inherits = require('inherits');
+          util.inherits(PassThrough, Transform);
+          function PassThrough(options) {
+            if (!(this instanceof PassThrough)) return new PassThrough(options);
+            Transform.call(this, options);
+          }
+          PassThrough.prototype._transform = function (chunk, encoding, cb) {
+            cb(null, chunk);
+          };
+        }, {
+          "./_stream_transform": 15,
+          "core-util-is": 17,
+          "inherits": 8
+        }],
+        14: [function (require, module, exports) {
+          (function (process) {
+            module.exports = Readable;
+            var isArray = require('isarray');
+            var Buffer = require('buffer').Buffer;
+            Readable.ReadableState = ReadableState;
+            var EE = require('events').EventEmitter;
+            if (!EE.listenerCount) EE.listenerCount = function (emitter, type) {
+              return emitter.listeners(type).length;
+            };
+            var Stream = require('stream');
+            var util = require('core-util-is');
+            util.inherits = require('inherits');
+            var StringDecoder;
+            util.inherits(Readable, Stream);
+            function ReadableState(options, stream) {
+              options = options || {};
+              var hwm = options.highWaterMark;
+              this.highWaterMark = hwm || hwm === 0 ? hwm : 16 * 1024;
+              this.highWaterMark = ~~this.highWaterMark;
+              this.buffer = [];
+              this.length = 0;
+              this.pipes = null;
+              this.pipesCount = 0;
+              this.flowing = false;
+              this.ended = false;
+              this.endEmitted = false;
+              this.reading = false;
+              this.calledRead = false;
+              this.sync = true;
+              this.needReadable = false;
+              this.emittedReadable = false;
+              this.readableListening = false;
+              this.objectMode = !!options.objectMode;
+              this.defaultEncoding = options.defaultEncoding || 'utf8';
+              this.ranOut = false;
+              this.awaitDrain = 0;
+              this.readingMore = false;
+              this.decoder = null;
+              this.encoding = null;
+              if (options.encoding) {
+                if (!StringDecoder) StringDecoder = require('string_decoder/').StringDecoder;
+                this.decoder = new StringDecoder(options.encoding);
+                this.encoding = options.encoding;
+              }
+            }
+            function Readable(options) {
+              if (!(this instanceof Readable)) return new Readable(options);
+              this._readableState = new ReadableState(options);
+              this.readable = true;
+              Stream.call(this);
+            }
+            Readable.prototype.push = function (chunk, encoding) {
+              var state = this._readableState;
+              if (typeof chunk === 'string' && !state.objectMode) {
+                encoding = encoding || state.defaultEncoding;
+                if (encoding !== state.encoding) {
+                  chunk = new Buffer(chunk, encoding);
+                  encoding = '';
+                }
+              }
+              return readableAddChunk(this, state, chunk, encoding, false);
+            };
+            Readable.prototype.unshift = function (chunk) {
+              var state = this._readableState;
+              return readableAddChunk(this, state, chunk, '', true);
+            };
+            function readableAddChunk(stream, state, chunk, encoding, addToFront) {
+              var er = chunkInvalid(state, chunk);
+              if (er) {
+                stream.emit('error', er);
+              } else if (chunk === null || chunk === undefined) {
+                state.reading = false;
+                if (!state.ended) onEofChunk(stream, state);
+              } else if (state.objectMode || chunk && chunk.length > 0) {
+                if (state.ended && !addToFront) {
+                  var e = new Error('stream.push() after EOF');
+                  stream.emit('error', e);
+                } else if (state.endEmitted && addToFront) {
+                  var e = new Error('stream.unshift() after end event');
+                  stream.emit('error', e);
+                } else {
+                  if (state.decoder && !addToFront && !encoding) chunk = state.decoder.write(chunk);
+                  state.length += state.objectMode ? 1 : chunk.length;
+                  if (addToFront) {
+                    state.buffer.unshift(chunk);
+                  } else {
+                    state.reading = false;
+                    state.buffer.push(chunk);
+                  }
+                  if (state.needReadable) emitReadable(stream);
+                  maybeReadMore(stream, state);
+                }
+              } else if (!addToFront) {
+                state.reading = false;
+              }
+              return needMoreData(state);
+            }
+            function needMoreData(state) {
+              return !state.ended && (state.needReadable || state.length < state.highWaterMark || state.length === 0);
+            }
+            Readable.prototype.setEncoding = function (enc) {
+              if (!StringDecoder) StringDecoder = require('string_decoder/').StringDecoder;
+              this._readableState.decoder = new StringDecoder(enc);
+              this._readableState.encoding = enc;
+            };
+            var MAX_HWM = 0x800000;
+            function roundUpToNextPowerOf2(n) {
+              if (n >= MAX_HWM) {
+                n = MAX_HWM;
+              } else {
+                n--;
+                for (var p = 1; p < 32; p <<= 1) n |= n >> p;
+                n++;
+              }
+              return n;
+            }
+            function howMuchToRead(n, state) {
+              if (state.length === 0 && state.ended) return 0;
+              if (state.objectMode) return n === 0 ? 0 : 1;
+              if (n === null || isNaN(n)) {
+                if (state.flowing && state.buffer.length) return state.buffer[0].length;else return state.length;
+              }
+              if (n <= 0) return 0;
+              if (n > state.highWaterMark) state.highWaterMark = roundUpToNextPowerOf2(n);
+              if (n > state.length) {
+                if (!state.ended) {
+                  state.needReadable = true;
+                  return 0;
+                } else return state.length;
+              }
+              return n;
+            }
+            Readable.prototype.read = function (n) {
+              var state = this._readableState;
+              state.calledRead = true;
+              var nOrig = n;
+              var ret;
+              if (typeof n !== 'number' || n > 0) state.emittedReadable = false;
+              if (n === 0 && state.needReadable && (state.length >= state.highWaterMark || state.ended)) {
+                emitReadable(this);
+                return null;
+              }
+              n = howMuchToRead(n, state);
+              if (n === 0 && state.ended) {
+                ret = null;
+                if (state.length > 0 && state.decoder) {
+                  ret = fromList(n, state);
+                  state.length -= ret.length;
+                }
+                if (state.length === 0) endReadable(this);
+                return ret;
+              }
+              var doRead = state.needReadable;
+              if (state.length - n <= state.highWaterMark) doRead = true;
+              if (state.ended || state.reading) doRead = false;
+              if (doRead) {
+                state.reading = true;
+                state.sync = true;
+                if (state.length === 0) state.needReadable = true;
+                this._read(state.highWaterMark);
+                state.sync = false;
+              }
+              if (doRead && !state.reading) n = howMuchToRead(nOrig, state);
+              if (n > 0) ret = fromList(n, state);else ret = null;
+              if (ret === null) {
+                state.needReadable = true;
+                n = 0;
+              }
+              state.length -= n;
+              if (state.length === 0 && !state.ended) state.needReadable = true;
+              if (state.ended && !state.endEmitted && state.length === 0) endReadable(this);
+              return ret;
+            };
+            function chunkInvalid(state, chunk) {
+              var er = null;
+              if (!Buffer.isBuffer(chunk) && 'string' !== typeof chunk && chunk !== null && chunk !== undefined && !state.objectMode) {
+                er = new TypeError('Invalid non-string/buffer chunk');
+              }
+              return er;
+            }
+            function onEofChunk(stream, state) {
+              if (state.decoder && !state.ended) {
+                var chunk = state.decoder.end();
+                if (chunk && chunk.length) {
+                  state.buffer.push(chunk);
+                  state.length += state.objectMode ? 1 : chunk.length;
+                }
+              }
+              state.ended = true;
+              if (state.length > 0) emitReadable(stream);else endReadable(stream);
+            }
+            function emitReadable(stream) {
+              var state = stream._readableState;
+              state.needReadable = false;
+              if (state.emittedReadable) return;
+              state.emittedReadable = true;
+              if (state.sync) process.nextTick(function () {
+                emitReadable_(stream);
+              });else emitReadable_(stream);
+            }
+            function emitReadable_(stream) {
+              stream.emit('readable');
+            }
+            function maybeReadMore(stream, state) {
+              if (!state.readingMore) {
+                state.readingMore = true;
+                process.nextTick(function () {
+                  maybeReadMore_(stream, state);
+                });
+              }
+            }
+            function maybeReadMore_(stream, state) {
+              var len = state.length;
+              while (!state.reading && !state.flowing && !state.ended && state.length < state.highWaterMark) {
+                stream.read(0);
+                if (len === state.length)
+                  break;else len = state.length;
+              }
+              state.readingMore = false;
+            }
+            Readable.prototype._read = function (n) {
+              this.emit('error', new Error('not implemented'));
+            };
+            Readable.prototype.pipe = function (dest, pipeOpts) {
+              var src = this;
+              var state = this._readableState;
+              switch (state.pipesCount) {
+                case 0:
+                  state.pipes = dest;
+                  break;
+                case 1:
+                  state.pipes = [state.pipes, dest];
+                  break;
+                default:
+                  state.pipes.push(dest);
+                  break;
+              }
+              state.pipesCount += 1;
+              var doEnd = (!pipeOpts || pipeOpts.end !== false) && dest !== process.stdout && dest !== process.stderr;
+              var endFn = doEnd ? onend : cleanup;
+              if (state.endEmitted) process.nextTick(endFn);else src.once('end', endFn);
+              dest.on('unpipe', onunpipe);
+              function onunpipe(readable) {
+                if (readable !== src) return;
+                cleanup();
+              }
+              function onend() {
+                dest.end();
+              }
+              var ondrain = pipeOnDrain(src);
+              dest.on('drain', ondrain);
+              function cleanup() {
+                dest.removeListener('close', onclose);
+                dest.removeListener('finish', onfinish);
+                dest.removeListener('drain', ondrain);
+                dest.removeListener('error', onerror);
+                dest.removeListener('unpipe', onunpipe);
+                src.removeListener('end', onend);
+                src.removeListener('end', cleanup);
+                if (!dest._writableState || dest._writableState.needDrain) ondrain();
+              }
+              function onerror(er) {
+                unpipe();
+                dest.removeListener('error', onerror);
+                if (EE.listenerCount(dest, 'error') === 0) dest.emit('error', er);
+              }
+              if (!dest._events || !dest._events.error) dest.on('error', onerror);else if (isArray(dest._events.error)) dest._events.error.unshift(onerror);else dest._events.error = [onerror, dest._events.error];
+              function onclose() {
+                dest.removeListener('finish', onfinish);
+                unpipe();
+              }
+              dest.once('close', onclose);
+              function onfinish() {
+                dest.removeListener('close', onclose);
+                unpipe();
+              }
+              dest.once('finish', onfinish);
+              function unpipe() {
+                src.unpipe(dest);
+              }
+              dest.emit('pipe', src);
+              if (!state.flowing) {
+                this.on('readable', pipeOnReadable);
+                state.flowing = true;
+                process.nextTick(function () {
+                  flow(src);
+                });
+              }
+              return dest;
+            };
+            function pipeOnDrain(src) {
+              return function () {
+                var state = src._readableState;
+                state.awaitDrain--;
+                if (state.awaitDrain === 0) flow(src);
+              };
+            }
+            function flow(src) {
+              var state = src._readableState;
+              var chunk;
+              state.awaitDrain = 0;
+              function write(dest, i, list) {
+                var written = dest.write(chunk);
+                if (false === written) {
+                  state.awaitDrain++;
+                }
+              }
+              while (state.pipesCount && null !== (chunk = src.read())) {
+                if (state.pipesCount === 1) write(state.pipes);else forEach(state.pipes, write);
+                src.emit('data', chunk);
+                if (state.awaitDrain > 0) return;
+              }
+              if (state.pipesCount === 0) {
+                state.flowing = false;
+                if (EE.listenerCount(src, 'data') > 0) emitDataEvents(src);
+                return;
+              }
+              state.ranOut = true;
+            }
+            function pipeOnReadable() {
+              if (this._readableState.ranOut) {
+                this._readableState.ranOut = false;
+                flow(this);
+              }
+            }
+            Readable.prototype.unpipe = function (dest) {
+              var state = this._readableState;
+              if (state.pipesCount === 0) return this;
+              if (state.pipesCount === 1) {
+                if (dest && dest !== state.pipes) return this;
+                if (!dest) dest = state.pipes;
+                state.pipes = null;
+                state.pipesCount = 0;
+                this.removeListener('readable', pipeOnReadable);
+                state.flowing = false;
+                if (dest) dest.emit('unpipe', this);
+                return this;
+              }
+              if (!dest) {
+                var dests = state.pipes;
+                var len = state.pipesCount;
+                state.pipes = null;
+                state.pipesCount = 0;
+                this.removeListener('readable', pipeOnReadable);
+                state.flowing = false;
+                for (var i = 0; i < len; i++) dests[i].emit('unpipe', this);
+                return this;
+              }
+              var i = indexOf(state.pipes, dest);
+              if (i === -1) return this;
+              state.pipes.splice(i, 1);
+              state.pipesCount -= 1;
+              if (state.pipesCount === 1) state.pipes = state.pipes[0];
+              dest.emit('unpipe', this);
+              return this;
+            };
+            Readable.prototype.on = function (ev, fn) {
+              var res = Stream.prototype.on.call(this, ev, fn);
+              if (ev === 'data' && !this._readableState.flowing) emitDataEvents(this);
+              if (ev === 'readable' && this.readable) {
+                var state = this._readableState;
+                if (!state.readableListening) {
+                  state.readableListening = true;
+                  state.emittedReadable = false;
+                  state.needReadable = true;
+                  if (!state.reading) {
+                    this.read(0);
+                  } else if (state.length) {
+                    emitReadable(this);
+                  }
+                }
+              }
+              return res;
+            };
+            Readable.prototype.addListener = Readable.prototype.on;
+            Readable.prototype.resume = function () {
+              emitDataEvents(this);
+              this.read(0);
+              this.emit('resume');
+            };
+            Readable.prototype.pause = function () {
+              emitDataEvents(this, true);
+              this.emit('pause');
+            };
+            function emitDataEvents(stream, startPaused) {
+              var state = stream._readableState;
+              if (state.flowing) {
+                throw new Error('Cannot switch to old mode now.');
+              }
+              var paused = startPaused || false;
+              var readable = false;
+              stream.readable = true;
+              stream.pipe = Stream.prototype.pipe;
+              stream.on = stream.addListener = Stream.prototype.on;
+              stream.on('readable', function () {
+                readable = true;
+                var c;
+                while (!paused && null !== (c = stream.read())) stream.emit('data', c);
+                if (c === null) {
+                  readable = false;
+                  stream._readableState.needReadable = true;
+                }
+              });
+              stream.pause = function () {
+                paused = true;
+                this.emit('pause');
+              };
+              stream.resume = function () {
+                paused = false;
+                if (readable) process.nextTick(function () {
+                  stream.emit('readable');
+                });else this.read(0);
+                this.emit('resume');
+              };
+              stream.emit('readable');
+            }
+            Readable.prototype.wrap = function (stream) {
+              var state = this._readableState;
+              var paused = false;
+              var self = this;
+              stream.on('end', function () {
+                if (state.decoder && !state.ended) {
+                  var chunk = state.decoder.end();
+                  if (chunk && chunk.length) self.push(chunk);
+                }
+                self.push(null);
+              });
+              stream.on('data', function (chunk) {
+                if (state.decoder) chunk = state.decoder.write(chunk);
+                if (state.objectMode && (chunk === null || chunk === undefined)) return;else if (!state.objectMode && (!chunk || !chunk.length)) return;
+                var ret = self.push(chunk);
+                if (!ret) {
+                  paused = true;
+                  stream.pause();
+                }
+              });
+              for (var i in stream) {
+                if (typeof stream[i] === 'function' && typeof this[i] === 'undefined') {
+                  this[i] = function (method) {
+                    return function () {
+                      return stream[method].apply(stream, arguments);
+                    };
+                  }(i);
+                }
+              }
+              var events = ['error', 'close', 'destroy', 'pause', 'resume'];
+              forEach(events, function (ev) {
+                stream.on(ev, self.emit.bind(self, ev));
+              });
+              self._read = function (n) {
+                if (paused) {
+                  paused = false;
+                  stream.resume();
+                }
+              };
+              return self;
+            };
+            Readable._fromList = fromList;
+            function fromList(n, state) {
+              var list = state.buffer;
+              var length = state.length;
+              var stringMode = !!state.decoder;
+              var objectMode = !!state.objectMode;
+              var ret;
+              if (list.length === 0) return null;
+              if (length === 0) ret = null;else if (objectMode) ret = list.shift();else if (!n || n >= length) {
+                if (stringMode) ret = list.join('');else ret = Buffer.concat(list, length);
+                list.length = 0;
+              } else {
+                if (n < list[0].length) {
+                  var buf = list[0];
+                  ret = buf.slice(0, n);
+                  list[0] = buf.slice(n);
+                } else if (n === list[0].length) {
+                  ret = list.shift();
+                } else {
+                  if (stringMode) ret = '';else ret = new Buffer(n);
+                  var c = 0;
+                  for (var i = 0, l = list.length; i < l && c < n; i++) {
+                    var buf = list[0];
+                    var cpy = Math.min(n - c, buf.length);
+                    if (stringMode) ret += buf.slice(0, cpy);else buf.copy(ret, c, 0, cpy);
+                    if (cpy < buf.length) list[0] = buf.slice(cpy);else list.shift();
+                    c += cpy;
+                  }
+                }
+              }
+              return ret;
+            }
+            function endReadable(stream) {
+              var state = stream._readableState;
+              if (state.length > 0) throw new Error('endReadable called on non-empty stream');
+              if (!state.endEmitted && state.calledRead) {
+                state.ended = true;
+                process.nextTick(function () {
+                  if (!state.endEmitted && state.length === 0) {
+                    state.endEmitted = true;
+                    stream.readable = false;
+                    stream.emit('end');
+                  }
+                });
+              }
+            }
+            function forEach(xs, f) {
+              for (var i = 0, l = xs.length; i < l; i++) {
+                f(xs[i], i);
+              }
+            }
+            function indexOf(xs, x) {
+              for (var i = 0, l = xs.length; i < l; i++) {
+                if (xs[i] === x) return i;
+              }
+              return -1;
+            }
+          }).call(this, require('_process'));
+        }, {
+          "_process": 10,
+          "buffer": 3,
+          "core-util-is": 17,
+          "events": 7,
+          "inherits": 8,
+          "isarray": 9,
+          "stream": 22,
+          "string_decoder/": 23
+        }],
+        15: [function (require, module, exports) {
+          module.exports = Transform;
+          var Duplex = require('./_stream_duplex');
+          var util = require('core-util-is');
+          util.inherits = require('inherits');
+          util.inherits(Transform, Duplex);
+          function TransformState(options, stream) {
+            this.afterTransform = function (er, data) {
+              return afterTransform(stream, er, data);
+            };
+            this.needTransform = false;
+            this.transforming = false;
+            this.writecb = null;
+            this.writechunk = null;
+          }
+          function afterTransform(stream, er, data) {
+            var ts = stream._transformState;
+            ts.transforming = false;
+            var cb = ts.writecb;
+            if (!cb) return stream.emit('error', new Error('no writecb in Transform class'));
+            ts.writechunk = null;
+            ts.writecb = null;
+            if (data !== null && data !== undefined) stream.push(data);
+            if (cb) cb(er);
+            var rs = stream._readableState;
+            rs.reading = false;
+            if (rs.needReadable || rs.length < rs.highWaterMark) {
+              stream._read(rs.highWaterMark);
+            }
+          }
+          function Transform(options) {
+            if (!(this instanceof Transform)) return new Transform(options);
+            Duplex.call(this, options);
+            this._transformState = new TransformState(options, this);
+            var stream = this;
+            this._readableState.needReadable = true;
+            this._readableState.sync = false;
+            this.once('finish', function () {
+              if ('function' === typeof this._flush) this._flush(function (er) {
+                done(stream, er);
+              });else done(stream);
+            });
+          }
+          Transform.prototype.push = function (chunk, encoding) {
+            this._transformState.needTransform = false;
+            return Duplex.prototype.push.call(this, chunk, encoding);
+          };
+          Transform.prototype._transform = function (chunk, encoding, cb) {
+            throw new Error('not implemented');
+          };
+          Transform.prototype._write = function (chunk, encoding, cb) {
+            var ts = this._transformState;
+            ts.writecb = cb;
+            ts.writechunk = chunk;
+            ts.writeencoding = encoding;
+            if (!ts.transforming) {
+              var rs = this._readableState;
+              if (ts.needTransform || rs.needReadable || rs.length < rs.highWaterMark) this._read(rs.highWaterMark);
+            }
+          };
+          Transform.prototype._read = function (n) {
+            var ts = this._transformState;
+            if (ts.writechunk !== null && ts.writecb && !ts.transforming) {
+              ts.transforming = true;
+              this._transform(ts.writechunk, ts.writeencoding, ts.afterTransform);
+            } else {
+              ts.needTransform = true;
+            }
+          };
+          function done(stream, er) {
+            if (er) return stream.emit('error', er);
+            var ws = stream._writableState;
+            stream._readableState;
+            var ts = stream._transformState;
+            if (ws.length) throw new Error('calling transform done when ws.length != 0');
+            if (ts.transforming) throw new Error('calling transform done when still transforming');
+            return stream.push(null);
+          }
+        }, {
+          "./_stream_duplex": 12,
+          "core-util-is": 17,
+          "inherits": 8
+        }],
+        16: [function (require, module, exports) {
+          (function (process) {
+            module.exports = Writable;
+            var Buffer = require('buffer').Buffer;
+            Writable.WritableState = WritableState;
+            var util = require('core-util-is');
+            util.inherits = require('inherits');
+            var Stream = require('stream');
+            util.inherits(Writable, Stream);
+            function WriteReq(chunk, encoding, cb) {
+              this.chunk = chunk;
+              this.encoding = encoding;
+              this.callback = cb;
+            }
+            function WritableState(options, stream) {
+              options = options || {};
+              var hwm = options.highWaterMark;
+              this.highWaterMark = hwm || hwm === 0 ? hwm : 16 * 1024;
+              this.objectMode = !!options.objectMode;
+              this.highWaterMark = ~~this.highWaterMark;
+              this.needDrain = false;
+              this.ending = false;
+              this.ended = false;
+              this.finished = false;
+              var noDecode = options.decodeStrings === false;
+              this.decodeStrings = !noDecode;
+              this.defaultEncoding = options.defaultEncoding || 'utf8';
+              this.length = 0;
+              this.writing = false;
+              this.sync = true;
+              this.bufferProcessing = false;
+              this.onwrite = function (er) {
+                onwrite(stream, er);
+              };
+              this.writecb = null;
+              this.writelen = 0;
+              this.buffer = [];
+              this.errorEmitted = false;
+            }
+            function Writable(options) {
+              var Duplex = require('./_stream_duplex');
+              if (!(this instanceof Writable) && !(this instanceof Duplex)) return new Writable(options);
+              this._writableState = new WritableState(options, this);
+              this.writable = true;
+              Stream.call(this);
+            }
+            Writable.prototype.pipe = function () {
+              this.emit('error', new Error('Cannot pipe. Not readable.'));
+            };
+            function writeAfterEnd(stream, state, cb) {
+              var er = new Error('write after end');
+              stream.emit('error', er);
+              process.nextTick(function () {
+                cb(er);
+              });
+            }
+            function validChunk(stream, state, chunk, cb) {
+              var valid = true;
+              if (!Buffer.isBuffer(chunk) && 'string' !== typeof chunk && chunk !== null && chunk !== undefined && !state.objectMode) {
+                var er = new TypeError('Invalid non-string/buffer chunk');
+                stream.emit('error', er);
+                process.nextTick(function () {
+                  cb(er);
+                });
+                valid = false;
+              }
+              return valid;
+            }
+            Writable.prototype.write = function (chunk, encoding, cb) {
+              var state = this._writableState;
+              var ret = false;
+              if (typeof encoding === 'function') {
+                cb = encoding;
+                encoding = null;
+              }
+              if (Buffer.isBuffer(chunk)) encoding = 'buffer';else if (!encoding) encoding = state.defaultEncoding;
+              if (typeof cb !== 'function') cb = function () {};
+              if (state.ended) writeAfterEnd(this, state, cb);else if (validChunk(this, state, chunk, cb)) ret = writeOrBuffer(this, state, chunk, encoding, cb);
+              return ret;
+            };
+            function decodeChunk(state, chunk, encoding) {
+              if (!state.objectMode && state.decodeStrings !== false && typeof chunk === 'string') {
+                chunk = new Buffer(chunk, encoding);
+              }
+              return chunk;
+            }
+            function writeOrBuffer(stream, state, chunk, encoding, cb) {
+              chunk = decodeChunk(state, chunk, encoding);
+              if (Buffer.isBuffer(chunk)) encoding = 'buffer';
+              var len = state.objectMode ? 1 : chunk.length;
+              state.length += len;
+              var ret = state.length < state.highWaterMark;
+              if (!ret) state.needDrain = true;
+              if (state.writing) state.buffer.push(new WriteReq(chunk, encoding, cb));else doWrite(stream, state, len, chunk, encoding, cb);
+              return ret;
+            }
+            function doWrite(stream, state, len, chunk, encoding, cb) {
+              state.writelen = len;
+              state.writecb = cb;
+              state.writing = true;
+              state.sync = true;
+              stream._write(chunk, encoding, state.onwrite);
+              state.sync = false;
+            }
+            function onwriteError(stream, state, sync, er, cb) {
+              if (sync) process.nextTick(function () {
+                cb(er);
+              });else cb(er);
+              stream._writableState.errorEmitted = true;
+              stream.emit('error', er);
+            }
+            function onwriteStateUpdate(state) {
+              state.writing = false;
+              state.writecb = null;
+              state.length -= state.writelen;
+              state.writelen = 0;
+            }
+            function onwrite(stream, er) {
+              var state = stream._writableState;
+              var sync = state.sync;
+              var cb = state.writecb;
+              onwriteStateUpdate(state);
+              if (er) onwriteError(stream, state, sync, er, cb);else {
+                var finished = needFinish(stream, state);
+                if (!finished && !state.bufferProcessing && state.buffer.length) clearBuffer(stream, state);
+                if (sync) {
+                  process.nextTick(function () {
+                    afterWrite(stream, state, finished, cb);
+                  });
+                } else {
+                  afterWrite(stream, state, finished, cb);
+                }
+              }
+            }
+            function afterWrite(stream, state, finished, cb) {
+              if (!finished) onwriteDrain(stream, state);
+              cb();
+              if (finished) finishMaybe(stream, state);
+            }
+            function onwriteDrain(stream, state) {
+              if (state.length === 0 && state.needDrain) {
+                state.needDrain = false;
+                stream.emit('drain');
+              }
+            }
+            function clearBuffer(stream, state) {
+              state.bufferProcessing = true;
+              for (var c = 0; c < state.buffer.length; c++) {
+                var entry = state.buffer[c];
+                var chunk = entry.chunk;
+                var encoding = entry.encoding;
+                var cb = entry.callback;
+                var len = state.objectMode ? 1 : chunk.length;
+                doWrite(stream, state, len, chunk, encoding, cb);
+                if (state.writing) {
+                  c++;
+                  break;
+                }
+              }
+              state.bufferProcessing = false;
+              if (c < state.buffer.length) state.buffer = state.buffer.slice(c);else state.buffer.length = 0;
+            }
+            Writable.prototype._write = function (chunk, encoding, cb) {
+              cb(new Error('not implemented'));
+            };
+            Writable.prototype.end = function (chunk, encoding, cb) {
+              var state = this._writableState;
+              if (typeof chunk === 'function') {
+                cb = chunk;
+                chunk = null;
+                encoding = null;
+              } else if (typeof encoding === 'function') {
+                cb = encoding;
+                encoding = null;
+              }
+              if (typeof chunk !== 'undefined' && chunk !== null) this.write(chunk, encoding);
+              if (!state.ending && !state.finished) endWritable(this, state, cb);
+            };
+            function needFinish(stream, state) {
+              return state.ending && state.length === 0 && !state.finished && !state.writing;
+            }
+            function finishMaybe(stream, state) {
+              var need = needFinish(stream, state);
+              if (need) {
+                state.finished = true;
+                stream.emit('finish');
+              }
+              return need;
+            }
+            function endWritable(stream, state, cb) {
+              state.ending = true;
+              finishMaybe(stream, state);
+              if (cb) {
+                if (state.finished) process.nextTick(cb);else stream.once('finish', cb);
+              }
+              state.ended = true;
+            }
+          }).call(this, require('_process'));
+        }, {
+          "./_stream_duplex": 12,
+          "_process": 10,
+          "buffer": 3,
+          "core-util-is": 17,
+          "inherits": 8,
+          "stream": 22
+        }],
+        17: [function (require, module, exports) {
+          (function (Buffer) {
+            function isArray(ar) {
+              return Array.isArray(ar);
+            }
+            exports.isArray = isArray;
+            function isBoolean(arg) {
+              return typeof arg === 'boolean';
+            }
+            exports.isBoolean = isBoolean;
+            function isNull(arg) {
+              return arg === null;
+            }
+            exports.isNull = isNull;
+            function isNullOrUndefined(arg) {
+              return arg == null;
+            }
+            exports.isNullOrUndefined = isNullOrUndefined;
+            function isNumber(arg) {
+              return typeof arg === 'number';
+            }
+            exports.isNumber = isNumber;
+            function isString(arg) {
+              return typeof arg === 'string';
+            }
+            exports.isString = isString;
+            function isSymbol(arg) {
+              return typeof arg === 'symbol';
+            }
+            exports.isSymbol = isSymbol;
+            function isUndefined(arg) {
+              return arg === void 0;
+            }
+            exports.isUndefined = isUndefined;
+            function isRegExp(re) {
+              return isObject(re) && objectToString(re) === '[object RegExp]';
+            }
+            exports.isRegExp = isRegExp;
+            function isObject(arg) {
+              return typeof arg === 'object' && arg !== null;
+            }
+            exports.isObject = isObject;
+            function isDate(d) {
+              return isObject(d) && objectToString(d) === '[object Date]';
+            }
+            exports.isDate = isDate;
+            function isError(e) {
+              return isObject(e) && (objectToString(e) === '[object Error]' || e instanceof Error);
+            }
+            exports.isError = isError;
+            function isFunction(arg) {
+              return typeof arg === 'function';
+            }
+            exports.isFunction = isFunction;
+            function isPrimitive(arg) {
+              return arg === null || typeof arg === 'boolean' || typeof arg === 'number' || typeof arg === 'string' || typeof arg === 'symbol' ||
+              typeof arg === 'undefined';
+            }
+            exports.isPrimitive = isPrimitive;
+            function isBuffer(arg) {
+              return Buffer.isBuffer(arg);
+            }
+            exports.isBuffer = isBuffer;
+            function objectToString(o) {
+              return Object.prototype.toString.call(o);
+            }
+          }).call(this, require("buffer").Buffer);
+        }, {
+          "buffer": 3
+        }],
+        18: [function (require, module, exports) {
+          module.exports = require("./lib/_stream_passthrough.js");
+        }, {
+          "./lib/_stream_passthrough.js": 13
+        }],
+        19: [function (require, module, exports) {
+          var Stream = require('stream');
+          exports = module.exports = require('./lib/_stream_readable.js');
+          exports.Stream = Stream;
+          exports.Readable = exports;
+          exports.Writable = require('./lib/_stream_writable.js');
+          exports.Duplex = require('./lib/_stream_duplex.js');
+          exports.Transform = require('./lib/_stream_transform.js');
+          exports.PassThrough = require('./lib/_stream_passthrough.js');
+        }, {
+          "./lib/_stream_duplex.js": 12,
+          "./lib/_stream_passthrough.js": 13,
+          "./lib/_stream_readable.js": 14,
+          "./lib/_stream_transform.js": 15,
+          "./lib/_stream_writable.js": 16,
+          "stream": 22
+        }],
+        20: [function (require, module, exports) {
+          module.exports = require("./lib/_stream_transform.js");
+        }, {
+          "./lib/_stream_transform.js": 15
+        }],
+        21: [function (require, module, exports) {
+          module.exports = require("./lib/_stream_writable.js");
+        }, {
+          "./lib/_stream_writable.js": 16
+        }],
+        22: [function (require, module, exports) {
+          module.exports = Stream;
+          var EE = require('events').EventEmitter;
+          var inherits = require('inherits');
+          inherits(Stream, EE);
+          Stream.Readable = require('readable-stream/readable.js');
+          Stream.Writable = require('readable-stream/writable.js');
+          Stream.Duplex = require('readable-stream/duplex.js');
+          Stream.Transform = require('readable-stream/transform.js');
+          Stream.PassThrough = require('readable-stream/passthrough.js');
+          Stream.Stream = Stream;
+          function Stream() {
+            EE.call(this);
+          }
+          Stream.prototype.pipe = function (dest, options) {
+            var source = this;
+            function ondata(chunk) {
+              if (dest.writable) {
+                if (false === dest.write(chunk) && source.pause) {
+                  source.pause();
+                }
+              }
+            }
+            source.on('data', ondata);
+            function ondrain() {
+              if (source.readable && source.resume) {
+                source.resume();
+              }
+            }
+            dest.on('drain', ondrain);
+            if (!dest._isStdio && (!options || options.end !== false)) {
+              source.on('end', onend);
+              source.on('close', onclose);
+            }
+            var didOnEnd = false;
+            function onend() {
+              if (didOnEnd) return;
+              didOnEnd = true;
+              dest.end();
+            }
+            function onclose() {
+              if (didOnEnd) return;
+              didOnEnd = true;
+              if (typeof dest.destroy === 'function') dest.destroy();
+            }
+            function onerror(er) {
+              cleanup();
+              if (EE.listenerCount(this, 'error') === 0) {
+                throw er;
+              }
+            }
+            source.on('error', onerror);
+            dest.on('error', onerror);
+            function cleanup() {
+              source.removeListener('data', ondata);
+              dest.removeListener('drain', ondrain);
+              source.removeListener('end', onend);
+              source.removeListener('close', onclose);
+              source.removeListener('error', onerror);
+              dest.removeListener('error', onerror);
+              source.removeListener('end', cleanup);
+              source.removeListener('close', cleanup);
+              dest.removeListener('close', cleanup);
+            }
+            source.on('end', cleanup);
+            source.on('close', cleanup);
+            dest.on('close', cleanup);
+            dest.emit('pipe', source);
+            return dest;
+          };
+        }, {
+          "events": 7,
+          "inherits": 8,
+          "readable-stream/duplex.js": 11,
+          "readable-stream/passthrough.js": 18,
+          "readable-stream/readable.js": 19,
+          "readable-stream/transform.js": 20,
+          "readable-stream/writable.js": 21
+        }],
+        23: [function (require, module, exports) {
+          var Buffer = require('buffer').Buffer;
+          var isBufferEncoding = Buffer.isEncoding || function (encoding) {
+            switch (encoding && encoding.toLowerCase()) {
+              case 'hex':
+              case 'utf8':
+              case 'utf-8':
+              case 'ascii':
+              case 'binary':
+              case 'base64':
+              case 'ucs2':
+              case 'ucs-2':
+              case 'utf16le':
+              case 'utf-16le':
+              case 'raw':
+                return true;
+              default:
+                return false;
+            }
+          };
+          function assertEncoding(encoding) {
+            if (encoding && !isBufferEncoding(encoding)) {
+              throw new Error('Unknown encoding: ' + encoding);
+            }
+          }
+          var StringDecoder = exports.StringDecoder = function (encoding) {
+            this.encoding = (encoding || 'utf8').toLowerCase().replace(/[-_]/, '');
+            assertEncoding(encoding);
+            switch (this.encoding) {
+              case 'utf8':
+                this.surrogateSize = 3;
+                break;
+              case 'ucs2':
+              case 'utf16le':
+                this.surrogateSize = 2;
+                this.detectIncompleteChar = utf16DetectIncompleteChar;
+                break;
+              case 'base64':
+                this.surrogateSize = 3;
+                this.detectIncompleteChar = base64DetectIncompleteChar;
+                break;
+              default:
+                this.write = passThroughWrite;
+                return;
+            }
+            this.charBuffer = new Buffer(6);
+            this.charReceived = 0;
+            this.charLength = 0;
+          };
+          StringDecoder.prototype.write = function (buffer) {
+            var charStr = '';
+            while (this.charLength) {
+              var available = buffer.length >= this.charLength - this.charReceived ? this.charLength - this.charReceived : buffer.length;
+              buffer.copy(this.charBuffer, this.charReceived, 0, available);
+              this.charReceived += available;
+              if (this.charReceived < this.charLength) {
+                return '';
+              }
+              buffer = buffer.slice(available, buffer.length);
+              charStr = this.charBuffer.slice(0, this.charLength).toString(this.encoding);
+              var charCode = charStr.charCodeAt(charStr.length - 1);
+              if (charCode >= 0xD800 && charCode <= 0xDBFF) {
+                this.charLength += this.surrogateSize;
+                charStr = '';
+                continue;
+              }
+              this.charReceived = this.charLength = 0;
+              if (buffer.length === 0) {
+                return charStr;
+              }
+              break;
+            }
+            this.detectIncompleteChar(buffer);
+            var end = buffer.length;
+            if (this.charLength) {
+              buffer.copy(this.charBuffer, 0, buffer.length - this.charReceived, end);
+              end -= this.charReceived;
+            }
+            charStr += buffer.toString(this.encoding, 0, end);
+            var end = charStr.length - 1;
+            var charCode = charStr.charCodeAt(end);
+            if (charCode >= 0xD800 && charCode <= 0xDBFF) {
+              var size = this.surrogateSize;
+              this.charLength += size;
+              this.charReceived += size;
+              this.charBuffer.copy(this.charBuffer, size, 0, size);
+              buffer.copy(this.charBuffer, 0, 0, size);
+              return charStr.substring(0, end);
+            }
+            return charStr;
+          };
+          StringDecoder.prototype.detectIncompleteChar = function (buffer) {
+            var i = buffer.length >= 3 ? 3 : buffer.length;
+            for (; i > 0; i--) {
+              var c = buffer[buffer.length - i];
+              if (i == 1 && c >> 5 == 0x06) {
+                this.charLength = 2;
+                break;
+              }
+              if (i <= 2 && c >> 4 == 0x0E) {
+                this.charLength = 3;
+                break;
+              }
+              if (i <= 3 && c >> 3 == 0x1E) {
+                this.charLength = 4;
+                break;
+              }
+            }
+            this.charReceived = i;
+          };
+          StringDecoder.prototype.end = function (buffer) {
+            var res = '';
+            if (buffer && buffer.length) res = this.write(buffer);
+            if (this.charReceived) {
+              var cr = this.charReceived;
+              var buf = this.charBuffer;
+              var enc = this.encoding;
+              res += buf.slice(0, cr).toString(enc);
+            }
+            return res;
+          };
+          function passThroughWrite(buffer) {
+            return buffer.toString(this.encoding);
+          }
+          function utf16DetectIncompleteChar(buffer) {
+            this.charReceived = buffer.length % 2;
+            this.charLength = this.charReceived ? 2 : 0;
+          }
+          function base64DetectIncompleteChar(buffer) {
+            this.charReceived = buffer.length % 3;
+            this.charLength = this.charReceived ? 3 : 0;
+          }
+        }, {
+          "buffer": 3
+        }],
+        24: [function (require, module, exports) {
+          module.exports = function isBuffer(arg) {
+            return arg && typeof arg === 'object' && typeof arg.copy === 'function' && typeof arg.fill === 'function' && typeof arg.readUInt8 === 'function';
+          };
+        }, {}],
+        25: [function (require, module, exports) {
+          (function (process, global) {
+            var formatRegExp = /%[sdj%]/g;
+            exports.format = function (f) {
+              if (!isString(f)) {
+                var objects = [];
+                for (var i = 0; i < arguments.length; i++) {
+                  objects.push(inspect(arguments[i]));
+                }
+                return objects.join(' ');
+              }
+              var i = 1;
+              var args = arguments;
+              var len = args.length;
+              var str = String(f).replace(formatRegExp, function (x) {
+                if (x === '%%') return '%';
+                if (i >= len) return x;
+                switch (x) {
+                  case '%s':
+                    return String(args[i++]);
+                  case '%d':
+                    return Number(args[i++]);
+                  case '%j':
+                    try {
+                      return JSON.stringify(args[i++]);
+                    } catch (_) {
+                      return '[Circular]';
+                    }
+                  default:
+                    return x;
+                }
+              });
+              for (var x = args[i]; i < len; x = args[++i]) {
+                if (isNull(x) || !isObject(x)) {
+                  str += ' ' + x;
+                } else {
+                  str += ' ' + inspect(x);
+                }
+              }
+              return str;
+            };
+            exports.deprecate = function (fn, msg) {
+              if (isUndefined(global.process)) {
+                return function () {
+                  return exports.deprecate(fn, msg).apply(this, arguments);
+                };
+              }
+              if (process.noDeprecation === true) {
+                return fn;
+              }
+              var warned = false;
+              function deprecated() {
+                if (!warned) {
+                  if (process.throwDeprecation) {
+                    throw new Error(msg);
+                  } else if (process.traceDeprecation) {
+                    console.trace(msg);
+                  } else {
+                    console.error(msg);
+                  }
+                  warned = true;
+                }
+                return fn.apply(this, arguments);
+              }
+              return deprecated;
+            };
+            var debugs = {};
+            var debugEnviron;
+            exports.debuglog = function (set) {
+              if (isUndefined(debugEnviron)) debugEnviron = process.env.NODE_DEBUG || '';
+              set = set.toUpperCase();
+              if (!debugs[set]) {
+                if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
+                  var pid = process.pid;
+                  debugs[set] = function () {
+                    var msg = exports.format.apply(exports, arguments);
+                    console.error('%s %d: %s', set, pid, msg);
+                  };
+                } else {
+                  debugs[set] = function () {};
+                }
+              }
+              return debugs[set];
+            };
+            function inspect(obj, opts) {
+              var ctx = {
+                seen: [],
+                stylize: stylizeNoColor
+              };
+              if (arguments.length >= 3) ctx.depth = arguments[2];
+              if (arguments.length >= 4) ctx.colors = arguments[3];
+              if (isBoolean(opts)) {
+                ctx.showHidden = opts;
+              } else if (opts) {
+                exports._extend(ctx, opts);
+              }
+              if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
+              if (isUndefined(ctx.depth)) ctx.depth = 2;
+              if (isUndefined(ctx.colors)) ctx.colors = false;
+              if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
+              if (ctx.colors) ctx.stylize = stylizeWithColor;
+              return formatValue(ctx, obj, ctx.depth);
+            }
+            exports.inspect = inspect;
+            inspect.colors = {
+              'bold': [1, 22],
+              'italic': [3, 23],
+              'underline': [4, 24],
+              'inverse': [7, 27],
+              'white': [37, 39],
+              'grey': [90, 39],
+              'black': [30, 39],
+              'blue': [34, 39],
+              'cyan': [36, 39],
+              'green': [32, 39],
+              'magenta': [35, 39],
+              'red': [31, 39],
+              'yellow': [33, 39]
+            };
+            inspect.styles = {
+              'special': 'cyan',
+              'number': 'yellow',
+              'boolean': 'yellow',
+              'undefined': 'grey',
+              'null': 'bold',
+              'string': 'green',
+              'date': 'magenta',
+              'regexp': 'red'
+            };
+            function stylizeWithColor(str, styleType) {
+              var style = inspect.styles[styleType];
+              if (style) {
+                return '\u001b[' + inspect.colors[style][0] + 'm' + str + '\u001b[' + inspect.colors[style][1] + 'm';
+              } else {
+                return str;
+              }
+            }
+            function stylizeNoColor(str, styleType) {
+              return str;
+            }
+            function arrayToHash(array) {
+              var hash = {};
+              array.forEach(function (val, idx) {
+                hash[val] = true;
+              });
+              return hash;
+            }
+            function formatValue(ctx, value, recurseTimes) {
+              if (ctx.customInspect && value && isFunction(value.inspect) &&
+              value.inspect !== exports.inspect &&
+              !(value.constructor && value.constructor.prototype === value)) {
+                var ret = value.inspect(recurseTimes, ctx);
+                if (!isString(ret)) {
+                  ret = formatValue(ctx, ret, recurseTimes);
+                }
+                return ret;
+              }
+              var primitive = formatPrimitive(ctx, value);
+              if (primitive) {
+                return primitive;
+              }
+              var keys = Object.keys(value);
+              var visibleKeys = arrayToHash(keys);
+              if (ctx.showHidden) {
+                keys = Object.getOwnPropertyNames(value);
+              }
+              if (isError(value) && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
+                return formatError(value);
+              }
+              if (keys.length === 0) {
+                if (isFunction(value)) {
+                  var name = value.name ? ': ' + value.name : '';
+                  return ctx.stylize('[Function' + name + ']', 'special');
+                }
+                if (isRegExp(value)) {
+                  return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+                }
+                if (isDate(value)) {
+                  return ctx.stylize(Date.prototype.toString.call(value), 'date');
+                }
+                if (isError(value)) {
+                  return formatError(value);
+                }
+              }
+              var base = '',
+                array = false,
+                braces = ['{', '}'];
+              if (isArray(value)) {
+                array = true;
+                braces = ['[', ']'];
+              }
+              if (isFunction(value)) {
+                var n = value.name ? ': ' + value.name : '';
+                base = ' [Function' + n + ']';
+              }
+              if (isRegExp(value)) {
+                base = ' ' + RegExp.prototype.toString.call(value);
+              }
+              if (isDate(value)) {
+                base = ' ' + Date.prototype.toUTCString.call(value);
+              }
+              if (isError(value)) {
+                base = ' ' + formatError(value);
+              }
+              if (keys.length === 0 && (!array || value.length == 0)) {
+                return braces[0] + base + braces[1];
+              }
+              if (recurseTimes < 0) {
+                if (isRegExp(value)) {
+                  return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+                } else {
+                  return ctx.stylize('[Object]', 'special');
+                }
+              }
+              ctx.seen.push(value);
+              var output;
+              if (array) {
+                output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
+              } else {
+                output = keys.map(function (key) {
+                  return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
+                });
+              }
+              ctx.seen.pop();
+              return reduceToSingleString(output, base, braces);
+            }
+            function formatPrimitive(ctx, value) {
+              if (isUndefined(value)) return ctx.stylize('undefined', 'undefined');
+              if (isString(value)) {
+                var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '').replace(/'/g, "\\'").replace(/\\"/g, '"') + '\'';
+                return ctx.stylize(simple, 'string');
+              }
+              if (isNumber(value)) return ctx.stylize('' + value, 'number');
+              if (isBoolean(value)) return ctx.stylize('' + value, 'boolean');
+              if (isNull(value)) return ctx.stylize('null', 'null');
+            }
+            function formatError(value) {
+              return '[' + Error.prototype.toString.call(value) + ']';
+            }
+            function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
+              var output = [];
+              for (var i = 0, l = value.length; i < l; ++i) {
+                if (hasOwnProperty(value, String(i))) {
+                  output.push(formatProperty(ctx, value, recurseTimes, visibleKeys, String(i), true));
+                } else {
+                  output.push('');
+                }
+              }
+              keys.forEach(function (key) {
+                if (!key.match(/^\d+$/)) {
+                  output.push(formatProperty(ctx, value, recurseTimes, visibleKeys, key, true));
+                }
+              });
+              return output;
+            }
+            function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
+              var name, str, desc;
+              desc = Object.getOwnPropertyDescriptor(value, key) || {
+                value: value[key]
+              };
+              if (desc.get) {
+                if (desc.set) {
+                  str = ctx.stylize('[Getter/Setter]', 'special');
+                } else {
+                  str = ctx.stylize('[Getter]', 'special');
+                }
+              } else {
+                if (desc.set) {
+                  str = ctx.stylize('[Setter]', 'special');
+                }
+              }
+              if (!hasOwnProperty(visibleKeys, key)) {
+                name = '[' + key + ']';
+              }
+              if (!str) {
+                if (ctx.seen.indexOf(desc.value) < 0) {
+                  if (isNull(recurseTimes)) {
+                    str = formatValue(ctx, desc.value, null);
+                  } else {
+                    str = formatValue(ctx, desc.value, recurseTimes - 1);
+                  }
+                  if (str.indexOf('\n') > -1) {
+                    if (array) {
+                      str = str.split('\n').map(function (line) {
+                        return '  ' + line;
+                      }).join('\n').substr(2);
+                    } else {
+                      str = '\n' + str.split('\n').map(function (line) {
+                        return '   ' + line;
+                      }).join('\n');
+                    }
+                  }
+                } else {
+                  str = ctx.stylize('[Circular]', 'special');
+                }
+              }
+              if (isUndefined(name)) {
+                if (array && key.match(/^\d+$/)) {
+                  return str;
+                }
+                name = JSON.stringify('' + key);
+                if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
+                  name = name.substr(1, name.length - 2);
+                  name = ctx.stylize(name, 'name');
+                } else {
+                  name = name.replace(/'/g, "\\'").replace(/\\"/g, '"').replace(/(^"|"$)/g, "'");
+                  name = ctx.stylize(name, 'string');
+                }
+              }
+              return name + ': ' + str;
+            }
+            function reduceToSingleString(output, base, braces) {
+              var length = output.reduce(function (prev, cur) {
+                if (cur.indexOf('\n') >= 0) ;
+                return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
+              }, 0);
+              if (length > 60) {
+                return braces[0] + (base === '' ? '' : base + '\n ') + ' ' + output.join(',\n  ') + ' ' + braces[1];
+              }
+              return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
+            }
+            function isArray(ar) {
+              return Array.isArray(ar);
+            }
+            exports.isArray = isArray;
+            function isBoolean(arg) {
+              return typeof arg === 'boolean';
+            }
+            exports.isBoolean = isBoolean;
+            function isNull(arg) {
+              return arg === null;
+            }
+            exports.isNull = isNull;
+            function isNullOrUndefined(arg) {
+              return arg == null;
+            }
+            exports.isNullOrUndefined = isNullOrUndefined;
+            function isNumber(arg) {
+              return typeof arg === 'number';
+            }
+            exports.isNumber = isNumber;
+            function isString(arg) {
+              return typeof arg === 'string';
+            }
+            exports.isString = isString;
+            function isSymbol(arg) {
+              return typeof arg === 'symbol';
+            }
+            exports.isSymbol = isSymbol;
+            function isUndefined(arg) {
+              return arg === void 0;
+            }
+            exports.isUndefined = isUndefined;
+            function isRegExp(re) {
+              return isObject(re) && objectToString(re) === '[object RegExp]';
+            }
+            exports.isRegExp = isRegExp;
+            function isObject(arg) {
+              return typeof arg === 'object' && arg !== null;
+            }
+            exports.isObject = isObject;
+            function isDate(d) {
+              return isObject(d) && objectToString(d) === '[object Date]';
+            }
+            exports.isDate = isDate;
+            function isError(e) {
+              return isObject(e) && (objectToString(e) === '[object Error]' || e instanceof Error);
+            }
+            exports.isError = isError;
+            function isFunction(arg) {
+              return typeof arg === 'function';
+            }
+            exports.isFunction = isFunction;
+            function isPrimitive(arg) {
+              return arg === null || typeof arg === 'boolean' || typeof arg === 'number' || typeof arg === 'string' || typeof arg === 'symbol' ||
+              typeof arg === 'undefined';
+            }
+            exports.isPrimitive = isPrimitive;
+            exports.isBuffer = require('./support/isBuffer');
+            function objectToString(o) {
+              return Object.prototype.toString.call(o);
+            }
+            function pad(n) {
+              return n < 10 ? '0' + n.toString(10) : n.toString(10);
+            }
+            var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            function timestamp() {
+              var d = new Date();
+              var time = [pad(d.getHours()), pad(d.getMinutes()), pad(d.getSeconds())].join(':');
+              return [d.getDate(), months[d.getMonth()], time].join(' ');
+            }
+            exports.log = function () {
+              console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
+            };
+            exports.inherits = require('inherits');
+            exports._extend = function (origin, add) {
+              if (!add || !isObject(add)) return origin;
+              var keys = Object.keys(add);
+              var i = keys.length;
+              while (i--) {
+                origin[keys[i]] = add[keys[i]];
+              }
+              return origin;
+            };
+            function hasOwnProperty(obj, prop) {
+              return Object.prototype.hasOwnProperty.call(obj, prop);
+            }
+          }).call(this, require('_process'), typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
+        }, {
+          "./support/isBuffer": 24,
+          "_process": 10,
+          "inherits": 8
+        }]
+      }, {}, [2])(2);
+    });
+    var blobStream$1 = blobStream;
+
     const STANDARD_FONTS = {};
 
+    const canvasStyleMapper = {
+        "fill": "fillStyle",
+        "stroke": "strokeStyle",
+        "lineDash": "setLineDash",
+        "opacity": "globalAlpha",
+        "stroke-width": "lineWidth",
+        "stroke-dasharray": "setLineDash",
+    };
     const pdfSupportedFontFamily = [
         "Courier",
         "Courier-Bold",
@@ -66702,6 +70120,7 @@ Please pipe the document into a Node stream.\
         "Times-BoldItalic",
         "ZapfDingbats",
     ];
+
     const pdfStyleMapper = {
         fillStyle: {
             prop: "fillColor",
@@ -66757,27 +70176,14 @@ Please pipe the document into a Node stream.\
             },
         },
     };
-    const canvasCssMapper = {
-        "fill": "fillStyle",
-        "stroke": "strokeStyle",
-        "lineDash": "setLineDash",
-        "opacity": "globalAlpha",
-        "stroke-width": "lineWidth",
-        "stroke-dasharray": "setLineDash",
-    };
-    if (Object.keys(STANDARD_FONTS).length > 0) {
-        for(let key in STANDARD_FONTS) {
-            fs.writeFileSync('/data/'+key, STANDARD_FONTS[key]);
-        }
-    }
-    const t2DGeometry$1 = geometry;
-    const queueInstance$1 = queue;
-    let Id$1 = 0;
-    const zoomInstance$1 = behaviour.zoom();
-    const dragInstance$1 = behaviour.drag();
-    function domId$1() {
-        Id$1 += 1;
-        return Id$1;
+    const queueInstance = queue;
+    const i2DGeometry = geometry;
+    let Id = 0;
+    const zoomInstance = behaviour.zoom();
+    const dragInstance = behaviour.drag();
+    function domId() {
+        Id += 1;
+        return Id;
     }
     function colorValueCheck(value) {
         if (colorMap$1.RGBAInstanceCheck(value)) {
@@ -66817,7 +70223,7 @@ Please pipe the document into a Node stream.\
                             context.BBoxUpdate = true;
                         }
                     }
-                    queueInstance$1.vDomChanged(context.vDomIndex);
+                    queueInstance.vDomChanged(context.vDomIndex);
                 } else {
                     delete obj[prop];
                 }
@@ -66826,7 +70232,7 @@ Please pipe the document into a Node stream.\
             deleteProperty(obj, prop) {
                 if (prop in obj) {
                     delete obj[prop];
-                    queueInstance$1.vDomChanged(context.vDomIndex);
+                    queueInstance.vDomChanged(context.vDomIndex);
                     if (type === 'attr' && BBoxUpdate) {
                         context.BBoxUpdate = true;
                     }
@@ -66842,9 +70248,9 @@ Please pipe the document into a Node stream.\
     CanvasCollection.prototype = new CollectionPrototype();
     CanvasCollection.prototype.constructor = CanvasCollection;
     CanvasCollection.prototype.createNode = function (ctx, config, vDomIndex) {
-        return new CanvasNodeExe$1(ctx, config, domId$1(), vDomIndex);
+        return new CanvasNodeExe(ctx, config, domId(), vDomIndex);
     };
-    function getPixlRatio$1(ctx) {
+    function getPixlRatio(ctx) {
         const dpr = window.devicePixelRatio || 1;
         const bsr =
             ctx.webkitBackingStorePixelRatio ||
@@ -66906,7 +70312,7 @@ Please pipe the document into a Node stream.\
             self.stack[i].execute();
         }
     }
-    function parseTransform$1(transform) {
+    function parseTransform(transform) {
         const output = {
             translateX: 0,
             translateY: 0,
@@ -66925,10 +70331,10 @@ Please pipe the document into a Node stream.\
         }
         return output;
     }
-    function RPolyupdateBBox$1() {
+    function RPolyupdateBBox() {
         const self = this;
         const { transform, points = [] } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
         let abYposition = 0;
         if (points && points.length > 0) {
             let minX = points[0].x;
@@ -66957,20 +70363,20 @@ Please pipe the document into a Node stream.\
             };
         }
         if (transform && transform.rotate) {
-            self.BBoxHit = t2DGeometry$1.rotateBBox(this.BBox, transform);
+            self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, transform);
         } else {
             self.BBoxHit = this.BBox;
         }
         self.abYposition = abYposition;
     }
-    function CanvasGradient$1(config = {}, type = "linear") {
+    function CanvasGradient(config = {}, type = "linear") {
         this.config = config;
         this.type = type;
         this.dom = {};
         this.mode = !this.config.mode || this.config.mode === "percent" ? "percent" : "absolute";
     }
-    CanvasGradient$1.prototype = new NodePrototype();
-    CanvasGradient$1.prototype.exe = function GRAexe(ctx, BBox) {
+    CanvasGradient.prototype = new NodePrototype();
+    CanvasGradient.prototype.exe = function GRAexe(ctx, BBox) {
         if (this.type === "linear" && this.mode === "percent") {
             return this.linearGradient(ctx, BBox);
         } else if (this.type === "linear" && this.mode === "absolute") {
@@ -66983,10 +70389,10 @@ Please pipe the document into a Node stream.\
             console.error("wrong Gradiant type");
         }
     };
-    CanvasGradient$1.prototype.setAttr = function (attr, value) {
+    CanvasGradient.prototype.setAttr = function (attr, value) {
         this.config[attr] = value;
     };
-    CanvasGradient$1.prototype.exePdf = function GRAexe(ctx, BBox, AABox) {
+    CanvasGradient.prototype.exePdf = function GRAexe(ctx, BBox, AABox) {
         if (this.type === "linear" && this.mode === "percent") {
             return this.linearGradientPdf(ctx, BBox, AABox);
         } else if (this.type === "linear" && this.mode === "absolute") {
@@ -66999,7 +70405,7 @@ Please pipe the document into a Node stream.\
             console.error("wrong Gradiant type");
         }
     };
-    CanvasGradient$1.prototype.linearGradientPdf = function GralinearGradient(ctx, BBox, AABox) {
+    CanvasGradient.prototype.linearGradientPdf = function GralinearGradient(ctx, BBox, AABox) {
         const { translate = [0, 0] } = AABox;
         const lGradient = ctx.linearGradient(
             translate[0] + BBox.x + BBox.width * (this.config.x1 / 100),
@@ -67012,7 +70418,7 @@ Please pipe the document into a Node stream.\
         });
         return lGradient;
     };
-    CanvasGradient$1.prototype.linearGradient = function GralinearGradient(ctx, BBox) {
+    CanvasGradient.prototype.linearGradient = function GralinearGradient(ctx, BBox) {
         const lGradient = ctx.createLinearGradient(
             BBox.x + BBox.width * (this.config.x1 / 100),
             BBox.y + BBox.height * (this.config.y1 / 100),
@@ -67024,7 +70430,7 @@ Please pipe the document into a Node stream.\
         });
         return lGradient;
     };
-    CanvasGradient$1.prototype.absoluteLinearGradient = function absoluteGralinearGradient(ctx) {
+    CanvasGradient.prototype.absoluteLinearGradient = function absoluteGralinearGradient(ctx) {
         const lGradient = ctx.createLinearGradient(
             this.config.x1,
             this.config.y1,
@@ -67036,7 +70442,7 @@ Please pipe the document into a Node stream.\
         });
         return lGradient;
     };
-    CanvasGradient$1.prototype.absoluteLinearGradientPdf = function absoluteGralinearGradient(
+    CanvasGradient.prototype.absoluteLinearGradientPdf = function absoluteGralinearGradient(
         ctx,
         AABox
     ) {
@@ -67052,7 +70458,7 @@ Please pipe the document into a Node stream.\
         });
         return lGradient;
     };
-    CanvasGradient$1.prototype.radialGradient = function GRAradialGradient(ctx, BBox) {
+    CanvasGradient.prototype.radialGradient = function GRAradialGradient(ctx, BBox) {
         const { innerCircle = {}, outerCircle = {} } = this.config;
         const cGradient = ctx.createRadialGradient(
             BBox.x + BBox.width * (innerCircle.x / 100),
@@ -67071,7 +70477,7 @@ Please pipe the document into a Node stream.\
         });
         return cGradient;
     };
-    CanvasGradient$1.prototype.radialGradientPdf = function GRAradialGradient(ctx, BBox, AABox) {
+    CanvasGradient.prototype.radialGradientPdf = function GRAradialGradient(ctx, BBox, AABox) {
         const { translate = [0, 0] } = AABox;
         const { innerCircle = {}, outerCircle = {} } = this.config;
         const cGradient = ctx.radialGradient(
@@ -67087,7 +70493,7 @@ Please pipe the document into a Node stream.\
         });
         return cGradient;
     };
-    CanvasGradient$1.prototype.absoluteRadialGradient = function absoluteGraradialGradient(ctx) {
+    CanvasGradient.prototype.absoluteRadialGradient = function absoluteGraradialGradient(ctx) {
         const { innerCircle = {}, outerCircle = {} } = this.config;
         const cGradient = ctx.createRadialGradient(
             innerCircle.x,
@@ -67102,7 +70508,7 @@ Please pipe the document into a Node stream.\
         });
         return cGradient;
     };
-    CanvasGradient$1.prototype.absoluteRadialGradientPdf = function absoluteGraradialGradient(
+    CanvasGradient.prototype.absoluteRadialGradientPdf = function absoluteGraradialGradient(
         ctx,
         BBox,
         AABox
@@ -67122,18 +70528,18 @@ Please pipe the document into a Node stream.\
         });
         return cGradient;
     };
-    CanvasGradient$1.prototype.colorStops = function GRAcolorStops(colorStopValues) {
+    CanvasGradient.prototype.colorStops = function GRAcolorStops(colorStopValues) {
         if (Object.prototype.toString.call(colorStopValues) !== "[object Array]") {
             return false;
         }
         this.config.colorStops = colorStopValues;
         return this;
     };
-    function createLinearGradient$1(config) {
-        return new CanvasGradient$1(config, "linear");
+    function createLinearGradient(config) {
+        return new CanvasGradient(config, "linear");
     }
-    function createRadialGradient$1(config) {
-        return new CanvasGradient$1(config, "radial");
+    function createRadialGradient(config) {
+        return new CanvasGradient(config, "radial");
     }
     function PixelObject(data, width, height) {
         this.imageData = data;
@@ -67166,7 +70572,7 @@ Please pipe the document into a Node stream.\
     function CanvasMask(self, config = {}) {
         const maskId = config.id ? config.id : "mask-" + Math.ceil(Math.random() * 1000);
         this.config = config;
-        this.mask = new CanvasNodeExe$1(
+        this.mask = new CanvasNodeExe(
             self.dom.ctx,
             {
                 el: "g",
@@ -67174,7 +70580,7 @@ Please pipe the document into a Node stream.\
                     id: maskId,
                 },
             },
-            domId$1(),
+            domId(),
             self.vDomIndex
         );
     }
@@ -67192,7 +70598,7 @@ Please pipe the document into a Node stream.\
     }
     function CanvasClipping(self, config = {}) {
         const clipId = config.id ? config.id : "clip-" + Math.ceil(Math.random() * 1000);
-        this.clip = new CanvasNodeExe$1(
+        this.clip = new CanvasNodeExe(
             self.dom.ctx,
             {
                 el: "g",
@@ -67200,11 +70606,12 @@ Please pipe the document into a Node stream.\
                     id: clipId,
                 },
             },
-            domId$1(),
+            domId(),
             self.vDomIndex
         );
     }
     CanvasClipping.prototype.exe = function () {
+        this.clip.dom.ctx.beginPath();
         this.clip.execute();
         this.clip.dom.ctx.clip();
         return true;
@@ -67216,7 +70623,7 @@ Please pipe the document into a Node stream.\
         const selfSelf = this;
         const patternId = config.id ? config.id : "pattern-" + Math.ceil(Math.random() * 1000);
         this.repeatInd = config.repeat ? config.repeat : "repeat";
-        selfSelf.pattern = canvasLayer$1(
+        selfSelf.pattern = canvasLayer(
             null,
             {},
             {
@@ -67283,7 +70690,7 @@ Please pipe the document into a Node stream.\
         applyStyles,
         applyStylesPdf,
     };
-    function imageInstance$1(self) {
+    function imageInstance(self) {
         const imageIns = new Image();
         imageIns.crossOrigin = "anonymous";
         imageIns.onload = function onload() {
@@ -67297,6 +70704,8 @@ Please pipe the document into a Node stream.\
             if (self.nodeExe.attr.onload && typeof self.nodeExe.attr.onload === "function") {
                 self.nodeExe.attr.onload.call(self.nodeExe, self.image);
             }
+            self.nodeExe.BBoxUpdate = true;
+            queueInstance.vDomChanged(self.nodeExe.vDomIndex);
         };
         imageIns.onerror = function onerror(error) {
             if (self.nodeExe.attr.onerror && typeof self.nodeExe.attr.onerror === "function") {
@@ -67319,10 +70728,10 @@ Please pipe the document into a Node stream.\
     function RenderImage(ctx, props, styleProps, onloadExe, onerrorExe, nodeExe) {
         const self = this;
         self.ctx = ctx;
-        self.attr = prepObjProxyCanvas('imagePoxy', props, nodeExe, true);
-        self.style = styleProps;
         self.nodeName = "Image";
         self.nodeExe = nodeExe;
+        self.attr = Object.assign({}, props) ;
+        self.style = Object.assign({}, styleProps);
         for (const key in props) {
             this.setAttr(key, props[key]);
         }
@@ -67334,7 +70743,7 @@ Please pipe the document into a Node stream.\
         const self = this;
         if (attr === "src") {
             if (typeof value === "string") {
-                self.image = self.image ? self.image : imageInstance$1(self);
+                self.image = self.image ? self.image : imageInstance(self);
                 if (self.image.src !== value) {
                     self.image.src = value;
                 }
@@ -67346,7 +70755,7 @@ Please pipe the document into a Node stream.\
                 self.imageObj = value;
                 self.attr.height = self.attr.height ? self.attr.height : value.height;
                 self.attr.width = self.attr.width ? self.attr.width : value.width;
-            } else if (value instanceof CanvasNodeExe$1 || value instanceof RenderTexture) {
+            } else if (value instanceof CanvasNodeExe || value instanceof RenderTexture) {
                 self.imageObj = value.domEl;
                 self.attr.height = self.attr.height ? self.attr.height : value.attr.height;
                 self.attr.width = self.attr.width ? self.attr.width : value.attr.width;
@@ -67357,7 +70766,7 @@ Please pipe the document into a Node stream.\
     RenderImage.prototype.updateBBox = function RIupdateBBox() {
         const self = this;
         const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
         self.BBox = {
             x: (translateX + x) * scaleX,
             y: (translateY + y) * scaleY,
@@ -67365,7 +70774,7 @@ Please pipe the document into a Node stream.\
             height: height * scaleY,
         };
         if (transform && transform.rotate) {
-            self.BBoxHit = t2DGeometry$1.rotateBBox(this.BBox, transform);
+            self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, transform);
         } else {
             self.BBoxHit = this.BBox;
         }
@@ -67477,7 +70886,7 @@ Please pipe the document into a Node stream.\
         let height = 1;
         let width = 0;
         let { x = 0, y = 0, transform } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
         const { doc } = self.ctx;
         if (this.style.font) {
             this.ctx.font = this.style.font;
@@ -67523,7 +70932,7 @@ Please pipe the document into a Node stream.\
         };
         self.abYposition = y;
         if (transform && transform.rotate) {
-            self.BBoxHit = t2DGeometry$1.rotateBBox(this.BBox, transform);
+            self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, transform);
         } else {
             self.BBoxHit = this.BBox;
         }
@@ -67594,7 +71003,7 @@ Please pipe the document into a Node stream.\
     RenderCircle.prototype.updateBBox = function RCupdateBBox() {
         const self = this;
         const { transform, r = 0, cx = 0, cy = 0 } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
         self.BBox = {
             x: translateX + (cx - r) * scaleX,
             y: translateY + (cy - r) * scaleY,
@@ -67602,7 +71011,7 @@ Please pipe the document into a Node stream.\
             height: 2 * r * scaleY,
         };
         if (transform && transform.rotate) {
-            self.BBoxHit = t2DGeometry$1.rotateBBox(this.BBox, transform);
+            self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, transform);
         } else {
             self.BBoxHit = this.BBox;
         }
@@ -67641,7 +71050,7 @@ Please pipe the document into a Node stream.\
     RenderLine.prototype.updateBBox = function RLupdateBBox() {
         const self = this;
         const { transform, x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
         self.BBox = {
             x: translateX + (x1 < x2 ? x1 : x2) * scaleX,
             y: translateY + (y1 < y2 ? y1 : y2) * scaleY,
@@ -67649,7 +71058,7 @@ Please pipe the document into a Node stream.\
             height: Math.abs(y2 - y1) * scaleY,
         };
         if (transform && transform.rotate) {
-            self.BBoxHit = t2DGeometry$1.rotateBBox(this.BBox, transform);
+            self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, transform);
         } else {
             self.BBoxHit = this.BBox;
         }
@@ -67677,20 +71086,20 @@ Please pipe the document into a Node stream.\
         const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
         return (
             parseFloat(
-                t2DGeometry$1.getDistance(
+                i2DGeometry.getDistance(
                     {
                         x: x1,
                         y: y1,
                     },
                     co
                 ) +
-                    t2DGeometry$1.getDistance(co, {
+                    i2DGeometry.getDistance(co, {
                         x: x2,
                         y: y2,
                     })
             ).toFixed(1) ===
             parseFloat(
-                t2DGeometry$1.getDistance(
+                i2DGeometry.getDistance(
                     {
                         x: x1,
                         y: y1,
@@ -67739,7 +71148,7 @@ Please pipe the document into a Node stream.\
         }
         pdfCtx.stroke();
     };
-    RenderPolyline.prototype.updateBBox = RPolyupdateBBox$1;
+    RenderPolyline.prototype.updateBBox = RPolyupdateBBox;
     RenderPolyline.prototype.in = function RPolyLinfun(co) {
         let flag = false;
         for (let i = 0, len = this.attr.points.length; i <= len - 2; i++) {
@@ -67748,20 +71157,20 @@ Please pipe the document into a Node stream.\
             flag =
                 flag ||
                 parseFloat(
-                    t2DGeometry$1.getDistance(
+                    i2DGeometry.getDistance(
                         {
                             x: p1.x,
                             y: p1.y,
                         },
                         co
                     ) +
-                        t2DGeometry$1.getDistance(co, {
+                        i2DGeometry.getDistance(co, {
                             x: p2.x,
                             y: p2.y,
                         })
                 ).toFixed(1) ===
                     parseFloat(
-                        t2DGeometry$1.getDistance(
+                        i2DGeometry.getDistance(
                             {
                                 x: p1.x,
                                 y: p1.y,
@@ -67783,11 +71192,11 @@ Please pipe the document into a Node stream.\
         self.attr = Object.assign({}, props) ;
         self.style = Object.assign({}, styleProps);
         if (self.attr.d) {
-            if (path.isTypePath(self.attr.d)) {
+            if (CheckPathType(self.attr.d)) {
                 self.path = self.attr.d;
                 self.attr.d = self.attr.d.fetchPathString();
             } else {
-                self.path = path.instance(self.attr.d);
+                self.path = CreatePath(self.attr.d);
             }
             self.pathNode = new Path2D(self.attr.d);
         }
@@ -67799,7 +71208,7 @@ Please pipe the document into a Node stream.\
     RenderPath.prototype.updateBBox = function RPupdateBBox() {
         const self = this;
         const { transform } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
         self.BBox = self.path
             ? self.path.BBox
             : {
@@ -67814,7 +71223,7 @@ Please pipe the document into a Node stream.\
         self.BBox.width *= scaleX;
         self.BBox.height *= scaleY;
         if (transform && transform.rotate) {
-            self.BBoxHit = t2DGeometry$1.rotateBBox(this.BBox, transform);
+            self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, transform);
         } else {
             self.BBoxHit = this.BBox;
         }
@@ -67822,11 +71231,11 @@ Please pipe the document into a Node stream.\
     RenderPath.prototype.setAttr = function RPsetAttr(attr, value) {
         this.attr[attr] = value;
         if (attr === "d") {
-            if (path.isTypePath(value)) {
+            if (CheckPathType(value)) {
                 this.path = value;
                 this.attr.d = value.fetchPathString();
             } else {
-                this.path = path.instance(this.attr.d);
+                this.path = CreatePath(this.attr.d);
             }
             this.pathNode = new Path2D(this.attr.d);
         }
@@ -67934,7 +71343,7 @@ Please pipe the document into a Node stream.\
             }
         }
     };
-    RenderPolygon.prototype.updateBBox = RPolyupdateBBox$1;
+    RenderPolygon.prototype.updateBBox = RPolyupdateBBox;
     RenderPolygon.prototype.execute = function RPolyexecute() {
         if (!this.polygon) {
             return;
@@ -67986,7 +71395,7 @@ Please pipe the document into a Node stream.\
     RenderEllipse.prototype.updateBBox = function REupdateBBox() {
         const self = this;
         const { transform, cx = 0, cy = 0, rx = 0, ry = 0 } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
         self.BBox = {
             x: translateX + (cx - rx) * scaleX,
             y: translateY + (cy - ry) * scaleY,
@@ -67994,7 +71403,7 @@ Please pipe the document into a Node stream.\
             height: ry * 2 * scaleY,
         };
         if (transform && transform.rotate) {
-            self.BBoxHit = t2DGeometry$1.rotateBBox(this.BBox, transform);
+            self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, transform);
         } else {
             self.BBoxHit = this.BBox;
         }
@@ -68034,7 +71443,7 @@ Please pipe the document into a Node stream.\
     RenderRect.prototype.updateBBox = function RRupdateBBox() {
         const self = this;
         const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
         self.BBox = {
             x: translateX + x * scaleX,
             y: translateY + y * scaleY,
@@ -68042,7 +71451,7 @@ Please pipe the document into a Node stream.\
             height: height * scaleY,
         };
         if (transform && transform.rotate) {
-            self.BBoxHit = t2DGeometry$1.rotateBBox(this.BBox, transform);
+            self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, transform);
         } else {
             self.BBoxHit = this.BBox;
         }
@@ -68151,7 +71560,7 @@ Please pipe the document into a Node stream.\
         let minY;
         let maxY;
         const { transform } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
         self.BBox = {};
         if (children && children.length > 0) {
             let d;
@@ -68186,7 +71595,7 @@ Please pipe the document into a Node stream.\
         self.BBox.width = Math.abs(maxX - minX) * scaleX;
         self.BBox.height = Math.abs(maxY - minY) * scaleY;
         if (self.attr.transform && self.attr.transform.rotate) {
-            self.BBoxHit = t2DGeometry$1.rotateBBox(this.BBox, this.attr.transform);
+            self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, this.attr.transform);
         } else {
             self.BBoxHit = this.BBox;
         }
@@ -68194,7 +71603,7 @@ Please pipe the document into a Node stream.\
     RenderGroup.prototype.child = function RGchild(obj) {
         const self = this;
         const objLocal = obj;
-        if (objLocal instanceof CanvasNodeExe$1) {
+        if (objLocal instanceof CanvasNodeExe) {
             objLocal.dom.parent = self;
             objLocal.vDomIndex = self.vDomIndex;
             self.stack[self.stack.length] = objLocal;
@@ -68216,7 +71625,7 @@ Please pipe the document into a Node stream.\
         };
         const { BBox } = this;
         const { transform } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform$1(transform);
+        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
         return (
             co.x >= (BBox.x - translateX) / scaleX &&
             co.x <= (BBox.x - translateX + BBox.width) / scaleX &&
@@ -68224,7 +71633,7 @@ Please pipe the document into a Node stream.\
             co.y <= (BBox.y - translateY + BBox.height) / scaleY
         );
     };
-    const CanvasNodeExe$1 = function CanvasNodeExe(context, config, id, vDomIndex) {
+    const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
         this.id = id;
         this.nodeName = config.el;
         this.nodeType = "CANVAS";
@@ -68285,12 +71694,12 @@ Please pipe the document into a Node stream.\
         this.dom.nodeExe = this;
         this.setStyle(config.style);
     };
-    CanvasNodeExe$1.prototype = new NodePrototype();
-    CanvasNodeExe$1.prototype.node = function Cnode() {
+    CanvasNodeExe.prototype = new NodePrototype();
+    CanvasNodeExe.prototype.node = function Cnode() {
         this.updateBBox();
         return this.dom;
     };
-    CanvasNodeExe$1.prototype.stylesExe = function CstylesExe() {
+    CanvasNodeExe.prototype.stylesExe = function CstylesExe() {
         let value;
         let key;
         const style = this.style;
@@ -68300,7 +71709,7 @@ Please pipe the document into a Node stream.\
                 value = style[key];
             } else if (typeof style[key] === "object") {
                 if (
-                    style[key] instanceof CanvasGradient$1 ||
+                    style[key] instanceof CanvasGradient ||
                     style[key] instanceof CanvasPattern ||
                     style[key] instanceof CanvasClipping ||
                     style[key] instanceof CanvasMask
@@ -68315,8 +71724,8 @@ Please pipe the document into a Node stream.\
             } else {
                 console.log("unkonwn Style");
             }
-            if (canvasCssMapper[key]) {
-                key = canvasCssMapper[key];
+            if (canvasStyleMapper[key]) {
+                key = canvasStyleMapper[key];
             }
             if (typeof this.ctx[key] !== "function") {
                 this.ctx[key] = value;
@@ -68328,7 +71737,7 @@ Please pipe the document into a Node stream.\
             this.resolvedStyle[key] = value;
         }
     };
-    CanvasNodeExe$1.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
+    CanvasNodeExe.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
         if (!pdfCtx) return;
         const style = this.style;
         let value;
@@ -68337,7 +71746,7 @@ Please pipe the document into a Node stream.\
                 value = style[key];
             } else if (typeof style[key] === "object") {
                 if (
-                    style[key] instanceof CanvasGradient$1 ||
+                    style[key] instanceof CanvasGradient ||
                     style[key] instanceof CanvasPattern ||
                     style[key] instanceof CanvasClipping ||
                     style[key] instanceof CanvasMask
@@ -68368,20 +71777,20 @@ Please pipe the document into a Node stream.\
             }
         }
     };
-    CanvasNodeExe$1.prototype.remove = function Cremove() {
+    CanvasNodeExe.prototype.remove = function Cremove() {
         const { children } = this.dom.parent;
         const index = children.indexOf(this);
         if (index !== -1) {
             children.splice(index, 1);
         }
     };
-    CanvasNodeExe$1.prototype.attributesExe = function CattributesExe() {
+    CanvasNodeExe.prototype.attributesExe = function CattributesExe() {
         this.dom.render(this.attr);
     };
-    CanvasNodeExe$1.prototype.attributesExePdf = function CattributesExe(pdfCtx, block) {
+    CanvasNodeExe.prototype.attributesExePdf = function CattributesExe(pdfCtx, block) {
         this.dom.renderPdf(this.attr, pdfCtx, block);
     };
-    CanvasNodeExe$1.prototype.setStyle = function CsetStyle(attr, value) {
+    CanvasNodeExe.prototype.setStyle = function CsetStyle(attr, value) {
         if (arguments.length === 2) {
             this.style[attr] = value;
         } else if (arguments.length === 1 && typeof attr === "object") {
@@ -68392,7 +71801,7 @@ Please pipe the document into a Node stream.\
         }
         return this;
     };
-    CanvasNodeExe$1.prototype.setAttr = function CsetAttr(attr, value) {
+    CanvasNodeExe.prototype.setAttr = function CsetAttr(attr, value) {
         if (arguments.length === 2) {
             this.attr[attr] = value;
         } else if (arguments.length === 1 && typeof attr === "object") {
@@ -68403,35 +71812,35 @@ Please pipe the document into a Node stream.\
         }
         return this;
     };
-    CanvasNodeExe$1.prototype.rotate = function Crotate(angleXY) {
+    CanvasNodeExe.prototype.rotate = function Crotate(angleXY) {
         if (!this.attr.transform) {
             this.attr.transform = prepObjProxyCanvas('transform', {}, this, true);
         }
         this.attr.transform.rotate = angleXY;
         return this;
     };
-    CanvasNodeExe$1.prototype.scale = function Cscale(XY) {
+    CanvasNodeExe.prototype.scale = function Cscale(XY) {
         if (!this.attr.transform) {
             this.attr.transform = prepObjProxyCanvas('transform', {}, this, true);
         }
         this.attr.transform.scale = XY;
         return this;
     };
-    CanvasNodeExe$1.prototype.translate = function Ctranslate(XY) {
+    CanvasNodeExe.prototype.translate = function Ctranslate(XY) {
         if (!this.attr.transform) {
             this.attr.transform = prepObjProxyCanvas('transform', {}, this, true);
         }
         this.attr.transform.translate = XY;
         return this;
     };
-    CanvasNodeExe$1.prototype.skew = function Cskew(XY) {
+    CanvasNodeExe.prototype.skew = function Cskew(XY) {
         if (!this.attr.transform) {
             this.attr.transform = prepObjProxyCanvas('transform', {}, this, true);
         }
         this.attr.transform.skew = XY;
         return this;
     };
-    CanvasNodeExe$1.prototype.execute = function Cexecute() {
+    CanvasNodeExe.prototype.execute = function Cexecute() {
         if (this.style.display === "none") {
             return;
         }
@@ -68445,7 +71854,7 @@ Please pipe the document into a Node stream.\
         }
         this.ctx.restore();
     };
-    CanvasNodeExe$1.prototype.executePdf = function Cexecute(pdfCtx, block) {
+    CanvasNodeExe.prototype.executePdf = function Cexecute(pdfCtx, block) {
         if (this.style.display === "none") {
             return;
         }
@@ -68463,7 +71872,7 @@ Please pipe the document into a Node stream.\
             pdfCtx.restore();
         }
     };
-    CanvasNodeExe$1.prototype.prependChild = function child(childrens) {
+    CanvasNodeExe.prototype.prependChild = function child(childrens) {
         const self = this;
         const childrensLocal = childrens;
         if (self.dom instanceof RenderGroup) {
@@ -68477,7 +71886,7 @@ Please pipe the document into a Node stream.\
         }
         return self;
     };
-    CanvasNodeExe$1.prototype.child = function child(childrens) {
+    CanvasNodeExe.prototype.child = function child(childrens) {
         const self = this;
         const childrensLocal = childrens;
         if (self.dom instanceof RenderGroup) {
@@ -68491,7 +71900,7 @@ Please pipe the document into a Node stream.\
         }
         return self;
     };
-    CanvasNodeExe$1.prototype.setVDomIndex = function (vDomIndex) {
+    CanvasNodeExe.prototype.setVDomIndex = function (vDomIndex) {
         this.vDomIndex = vDomIndex;
         for (let i = 0, len = this.children.length; i < len; i += 1) {
             if (this.children[i] && this.children[i].setVDomIndex) {
@@ -68499,7 +71908,7 @@ Please pipe the document into a Node stream.\
             }
         }
     };
-    CanvasNodeExe$1.prototype.updateBBox = function CupdateBBox() {
+    CanvasNodeExe.prototype.updateBBox = function CupdateBBox() {
         let status;
         if (this.bbox || this.ctx.type_ === "pdf") {
             for (let i = 0, len = this.children.length; i < len; i += 1) {
@@ -68515,7 +71924,7 @@ Please pipe the document into a Node stream.\
         }
         return false;
     };
-    CanvasNodeExe$1.prototype.updateABBox = function updateABBox(transform = { translate: [0, 0] }) {
+    CanvasNodeExe.prototype.updateABBox = function updateABBox(transform = { translate: [0, 0] }) {
         const localTransform = this.attr.transform || { translate: [0, 0] };
         const abTransform = {
             translate: [
@@ -68530,10 +71939,10 @@ Please pipe the document into a Node stream.\
             }
         }
     };
-    CanvasNodeExe$1.prototype.in = function Cinfun(co) {
+    CanvasNodeExe.prototype.in = function Cinfun(co) {
         return this.dom.in(co);
     };
-    CanvasNodeExe$1.prototype.on = function Con(eventType, hndlr) {
+    CanvasNodeExe.prototype.on = function Con(eventType, hndlr) {
         const self = this;
         if (!this.events) {
             this.events = {};
@@ -68549,8 +71958,8 @@ Please pipe the document into a Node stream.\
             } else if (typeof hndlr === "object") {
                 this.events[eventType] = hndlr;
                 if (
-                    hndlr.constructor === zoomInstance$1.constructor ||
-                    hndlr.constructor === dragInstance$1.constructor
+                    hndlr.constructor === zoomInstance.constructor ||
+                    hndlr.constructor === dragInstance.constructor
                 ) {
                     hndlr.bindMethods(this);
                 }
@@ -68558,12 +71967,12 @@ Please pipe the document into a Node stream.\
         }
         return this;
     };
-    CanvasNodeExe$1.prototype.animatePathTo = path.animatePathTo;
-    CanvasNodeExe$1.prototype.morphTo = path.morphTo;
-    CanvasNodeExe$1.prototype.vDomIndex = null;
-    CanvasNodeExe$1.prototype.createRadialGradient = createRadialGradient$1;
-    CanvasNodeExe$1.prototype.createLinearGradient = createLinearGradient$1;
-    CanvasNodeExe$1.prototype.createEls = function CcreateEls(data, config) {
+    CanvasNodeExe.prototype.animatePathTo = AnimatePathTo;
+    CanvasNodeExe.prototype.morphTo = MorphTo;
+    CanvasNodeExe.prototype.vDomIndex = null;
+    CanvasNodeExe.prototype.createRadialGradient = createRadialGradient;
+    CanvasNodeExe.prototype.createLinearGradient = createLinearGradient;
+    CanvasNodeExe.prototype.createEls = function CcreateEls(data, config) {
         const e = new CanvasCollection(
             {
                 type: "CANVAS",
@@ -68576,18 +71985,18 @@ Please pipe the document into a Node stream.\
         this.child(e.stack);
         return e;
     };
-    CanvasNodeExe$1.prototype.text = function Ctext(value) {
+    CanvasNodeExe.prototype.text = function Ctext(value) {
         if (this.dom instanceof RenderText) {
             this.setAttr('text', value);
         }
         return this;
     };
-    CanvasNodeExe$1.prototype.createEl = function CcreateEl(config) {
-        const e = new CanvasNodeExe$1(this.dom.ctx, config, domId$1(), this.vDomIndex);
+    CanvasNodeExe.prototype.createEl = function CcreateEl(config) {
+        const e = new CanvasNodeExe(this.dom.ctx, config, domId(), this.vDomIndex);
         this.child([e]);
         return e;
     };
-    CanvasNodeExe$1.prototype.removeChild = function CremoveChild(obj) {
+    CanvasNodeExe.prototype.removeChild = function CremoveChild(obj) {
         let index = -1;
         this.children.forEach((d, i) => {
             if (d === obj) {
@@ -68599,7 +72008,7 @@ Please pipe the document into a Node stream.\
             this.dom.removeChild(removedNode.dom);
         }
     };
-    CanvasNodeExe$1.prototype.getBBox = function () {
+    CanvasNodeExe.prototype.getBBox = function () {
         return {
             x: this.dom.BBox.x,
             y: this.dom.BBox.y,
@@ -68607,7 +72016,7 @@ Please pipe the document into a Node stream.\
             height: this.dom.BBox.height,
         };
     };
-    CanvasNodeExe$1.prototype.getPixels = function () {
+    CanvasNodeExe.prototype.getPixels = function () {
         const imageData = this.ctx.getImageData(
             this.dom.BBox.x,
             this.dom.BBox.y,
@@ -68617,7 +72026,7 @@ Please pipe the document into a Node stream.\
         const pixelInstance = new PixelObject(imageData, this.dom.BBox.width, this.dom.BBox.height);
         return pixelInstance;
     };
-    CanvasNodeExe$1.prototype.putPixels = function (pixels) {
+    CanvasNodeExe.prototype.putPixels = function (pixels) {
         if (!(pixels instanceof PixelObject)) {
             return;
         }
@@ -68699,7 +72108,7 @@ Please pipe the document into a Node stream.\
         if (self.attr && self.attr.filter) {
             filterExec(self);
         }
-        queueInstance$1.vDomChanged(self.nodeExe.vDomIndex);
+        queueInstance.vDomChanged(self.nodeExe.vDomIndex);
     }
     function clipExec(self) {
         const ctxX = self.ctx;
@@ -68783,7 +72192,7 @@ Please pipe the document into a Node stream.\
                 self.attr.height = self.attr.height ? self.attr.height : value.height;
                 self.attr.width = self.attr.width ? self.attr.width : value.width;
                 postProcess(self);
-            } else if (value instanceof CanvasNodeExe$1 || value instanceof RenderTexture) {
+            } else if (value instanceof CanvasNodeExe || value instanceof RenderTexture) {
                 self.imageObj = value.domEl;
                 self.attr.height = self.attr.height ? self.attr.height : value.attr.height;
                 self.attr.width = self.attr.width ? self.attr.width : value.attr.width;
@@ -68844,7 +72253,7 @@ Please pipe the document into a Node stream.\
         postProcess(this);
     };
     function createPage(ctx, vDomIndex) {
-        const root = new CanvasNodeExe$1(
+        const root = new CanvasNodeExe(
             ctx,
             {
                 el: "g",
@@ -68852,14 +72261,14 @@ Please pipe the document into a Node stream.\
                     id: "rootNode",
                 },
             },
-            domId$1(),
+            domId(),
             vDomIndex
         );
         root.setStyle = function (prop, value) {
             this.domEl.style[prop] = value;
         };
         root.addDependentLayer = function (layer) {
-            if (!(layer instanceof CanvasNodeExe$1)) {
+            if (!(layer instanceof CanvasNodeExe)) {
                 return;
             }
             const depId = layer.attr.id ? layer.attr.id : "dep-" + Math.ceil(Math.random() * 1000);
@@ -68885,33 +72294,29 @@ Please pipe the document into a Node stream.\
         root.clear = function () {};
         root.flush = function () {
             this.children = prepArrayProxy([], this, true);
-            queueInstance$1.vDomChanged(this.vDomIndex);
+            queueInstance.vDomChanged(this.vDomIndex);
         };
         root.update = function executeUpdate() {
             this.execute();
         };
         root.exportPdf = function (doc) {
             const margin = this.margin || 0;
-            const { top = margin, bottom = margin } = this.margins || {
-                top: margin,
-                bottom: margin,
-            };
+            const { top = margin, bottom = margin } = this.margins || { };
             const pageHeight = this.height;
-            root.updateBBox();
-            root.updateABBox();
-            let leafNodes = getAllLeafs(root);
-            leafNodes = leafNodes.sort((a, b) => {
-                const aTrans = a.dom && a.dom.abTransform ? a.dom.abTransform : { translate: [0, 0] };
-                const aBox = a.dom.BBox;
-                const bTrans = b.dom && b.dom.abTransform ? b.dom.abTransform : { translate: [0, 0] };
-                const bBox = b.dom.BBox;
-                return (
-                    aTrans.translate[1] +
-                    aBox.height +
-                    a.dom.abYposition -
-                    (bTrans.translate[1] + bBox.height + b.dom.abYposition)
-                );
-            });
+            this.updateBBox();
+            this.updateABBox();
+            let leafNodes = getAllLeafs(this).sort((a, b) => {
+                    const aTrans = a.dom && a.dom.abTransform ? a.dom.abTransform : { translate: [0, 0] };
+                    const aBox = a.dom.BBox;
+                    const bTrans = b.dom && b.dom.abTransform ? b.dom.abTransform : { translate: [0, 0] };
+                    const bBox = b.dom.BBox;
+                    return (
+                        aTrans.translate[1] +
+                        aBox.height +
+                        a.dom.abYposition -
+                        (bTrans.translate[1] + bBox.height + b.dom.abYposition)
+                    );
+                });
             let runningY = 0;
             const pageRage = doc.bufferedPageRange();
             let pageNumber = pageRage.count - 1;
@@ -68919,16 +72324,10 @@ Please pipe the document into a Node stream.\
                 const abTransform = node.dom.abTransform;
                 const elHight = node.dom.BBox.height || 0;
                 const elY = node.dom.abYposition || 0;
-                let posY = (abTransform.translate[1] + elY || 0) - runningY;
-                if (
-                    !(
-                        (posY < pageHeight - bottom - top &&
-                            posY + elHight < pageHeight - bottom - top) ||
-                        elHight > pageHeight - bottom - top
-                    )
-                ) {
+                let posY = calculatePosY(abTransform, elY, runningY);
+                if (needsNewPage(node, posY, elHight)) {
                     runningY += pageHeight - top - bottom;
-                    posY = (abTransform.translate[1] + elY || 0) - runningY;
+                    posY = calculatePosY(abTransform, elY, runningY);
                     runningY += posY;
                     posY = 0;
                     doc.addPage({
@@ -68952,7 +72351,13 @@ Please pipe the document into a Node stream.\
                     };
                 })(pageNumber);
             });
-            root.executePdf(doc);
+            this.executePdf(doc);
+            function needsNewPage(node, posY, elHight) {
+                return !(posY < pageHeight - bottom - top && posY + elHight < pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
+            }
+            function calculatePosY(abTransform, elY, runningY) {
+                return (abTransform.translate[1] + elY || 0) - runningY;
+            }
         };
         root.addTemplate = function (template) {
             this.pageTemplate = template;
@@ -68976,20 +72381,17 @@ Please pipe the document into a Node stream.\
     function getAllLeafs(node) {
         const leaves = [];
         let queue = [node];
-        while (queue.length !== 0) {
-            const node = queue.shift();
-            if (
-                node.block ||
-                (node.children &&
-                    node.children.length === 0 &&
-                    node.nodeName !== "g" &&
-                    node.nodeName !== "group")
-            ) {
-                leaves.push(node);
-            } else {
-                if (node.children && node.children.length !== 0) {
-                    queue = queue.concat(node.children);
-                }
+        while (queue.length > 0) {
+            const currentNode = queue.shift();
+            const isLeaf = currentNode.block ||
+                            (currentNode.children &&
+                            currentNode.children.length === 0 &&
+                            currentNode.nodeName !== "g" &&
+                            currentNode.nodeName !== "group");
+            if (isLeaf) {
+                leaves.push(currentNode);
+            } else if (currentNode.children) {
+                queue.push(...currentNode.children);
             }
         }
         return leaves;
@@ -69005,7 +72407,7 @@ Please pipe the document into a Node stream.\
             };
         });
     }
-    function canvasLayer$1(container, contextConfig = {}, layerSettings = {}) {
+    function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
         const res =
             container instanceof HTMLElement
                 ? container
@@ -69017,7 +72419,7 @@ Please pipe the document into a Node stream.\
         const layer = document.createElement("canvas");
         const ctx = layer.getContext("2d", contextConfig);
         let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
-        let ratio = getPixlRatio$1(ctx);
+        let ratio = getPixlRatio(ctx);
         ctx.pixelRatio = ratio;
         let onClear = function (ctx) {
             ctx.clearRect(0, 0, width * ratio, height * ratio);
@@ -69037,7 +72439,7 @@ Please pipe the document into a Node stream.\
             res.appendChild(layer);
             vDomInstance = new VDom();
             if (autoUpdate) {
-                vDomIndex = queueInstance$1.addVdom(vDomInstance);
+                vDomIndex = queueInstance.addVdom(vDomInstance);
             }
         } else {
             enableEvents = false;
@@ -69066,7 +72468,6 @@ Please pipe the document into a Node stream.\
             vDomInstance.rootNode(root);
         }
         const execute = root.execute.bind(root);
-        const exportPdf = root.exportPdf.bind(root);
         root.container = res;
         root.domEl = layer;
         root.height = height;
@@ -69123,39 +72524,6 @@ Please pipe the document into a Node stream.\
         root.onChange = function (exec) {
             onChangeExe = exec;
         };
-        root.exportPdf = async function (callback, options = {}) {
-            const pdfConfig = parsePdfConfig(options);
-            const doc = new PDFDocument({
-                size: [this.width, this.height],
-                ...pdfConfig,
-            });
-            const stream_ = doc.pipe(blobStream$1());
-            const fontRegister = options.fontRegister || {};
-            const pdfInfo = options.info || { title: "I2Djs-PDF" };
-            if (fontRegister) {
-                for (const key in fontRegister) {
-                    if (pdfSupportedFontFamily.indexOf(key) === -1) pdfSupportedFontFamily.push(key);
-                    const font = await fetch(fontRegister[key]);
-                    const fontBuffer = await font.arrayBuffer();
-                    doc.registerFont(key, fontBuffer);
-                }
-            }
-            if (pdfInfo) {
-                doc.info.Title = pdfInfo.title || "";
-                doc.info.Author = pdfInfo.author || "";
-                doc.info.Subject = pdfInfo.subject || "";
-                doc.info.Keywords = pdfInfo.keywords || "";
-                doc.info.CreationDate = pdfInfo.creationDate || new Date();
-            }
-            root.updateBBox();
-            root.updateABBox();
-            doc.addPage();
-            exportPdf(doc);
-            doc.end();
-            stream_.on("finish", function () {
-                callback(stream_.toBlobURL("application/pdf"));
-            });
-        };
         const updateLayerDimension = function (layer, width, height) {
             layer.setAttribute("height", height * ratio);
             layer.setAttribute("width", width * ratio);
@@ -69172,7 +72540,7 @@ Please pipe the document into a Node stream.\
             if (res && this.container.contains(this.domEl)) {
                 this.container.removeChild(this.domEl);
             }
-            queueInstance$1.removeVdom(vDomIndex);
+            queueInstance.removeVdom(vDomIndex);
             layerResizeUnBind(root, resize);
         };
         if (enableEvents) {
@@ -69222,11 +72590,17 @@ Please pipe the document into a Node stream.\
                 eventsInstance.pointermoveCheck(e);
             });
         }
-        queueInstance$1.execute();
+        queueInstance.execute();
         if (enableResize && root.container) {
             layerResizeBind(root, resize);
         }
         return root;
+    }
+
+    if (Object.keys(STANDARD_FONTS).length > 0) {
+        for(let key in STANDARD_FONTS) {
+            fs.writeFileSync('/data/'+key, STANDARD_FONTS[key]);
+        }
     }
     function parsePdfConfig(config, oldConfig = {}) {
         return {
@@ -69239,7 +72613,7 @@ Please pipe the document into a Node stream.\
             ...(config.encryption !== undefined && { ...config.encryption }),
         };
     }
-    function pdfLayer$1(container, config = {}, layerSettings = {}) {
+    function pdfLayer(container, config = {}, layerSettings = {}) {
         const res =
             container instanceof HTMLElement
                 ? container
@@ -69266,7 +72640,7 @@ Please pipe the document into a Node stream.\
         layer.setAttribute("width", width * 1);
         const vDomInstance = new VDom();
         if (autoUpdate) {
-            vDomIndex = queueInstance$1.addVdom(vDomInstance);
+            vDomIndex = queue.addVdom(vDomInstance);
         }
         const fallBackPage = createPage(ctx, vDomIndex);
         function PDFCreator() {
@@ -69391,7 +72765,12 @@ Please pipe the document into a Node stream.\
             });
         };
         PDFCreator.prototype.destroy = function () {
+            const res = document.body.contains(this.container);
+            if (res && this.container.contains(this.domEl)) {
+                this.container.removeChild(this.domEl);
+            }
             this.flush();
+            queue.removeVdom(this.vDomIndex);
         };
         PDFCreator.prototype.exec = function (exe) {
             exe.call(this, this.dataObj);
@@ -69416,3419 +72795,50 @@ Please pipe the document into a Node stream.\
         }
         return pdfInstance;
     }
-    var canvasAPI = {
-        canvasLayer: canvasLayer$1,
-        pdfLayer: pdfLayer$1,
-        CanvasNodeExe: CanvasNodeExe$1,
-        CanvasGradient: CanvasGradient$1,
-        createRadialGradient: createRadialGradient$1,
-        createLinearGradient: createLinearGradient$1,
-    };
-
-    function shaders(el) {
-        let res;
-        switch (el) {
-            case "point":
-                res = {
-                    vertexShader: `#version 300 es
-                    precision highp float;
-                    in vec2 a_position;
-                    in vec4 a_color;
-                    in float a_size;
-                    in mat3 a_transformMatrix;
-                    out vec4 v_color;
-                    void main() {
-                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);
-                      gl_PointSize = a_size;
-                      v_color = a_color;
-                    }
-                    `,
-                    fragmentShader: `#version 300 es
-                    precision mediump float;
-                    in vec4 v_color;
-                    out vec4 fragColor;
-                    void main() {
-                        fragColor = v_color;
-                    }
-                    `,
-                };
-                break;
-            case "circle":
-                res = {
-                    vertexShader: `#version 300 es
-                    precision highp float;
-                    in vec2 a_position;
-                    in vec4 a_color;
-                    in float a_radius;
-                    in mat3 a_transformMatrix;
-                    out vec4 v_color;
-
-                    void main() {
-                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);
-                      gl_PointSize = a_radius; // * a_transform.z * u_transform.z;
-                      v_color = a_color;
-                    }
-                    `,
-                    fragmentShader: `#version 300 es
-                    precision mediump float;
-                    in vec4 v_color;
-                    out vec4 fragColor;
-                    void main() {
-                      float r = 0.0, delta = 0.0, alpha = 1.0;
-                      vec2 cxy = 2.0 * gl_PointCoord - 1.0;
-                      r = dot(cxy, cxy);
-                      if(r > 1.0) {
-                        discard;
-                      }
-                      delta = 0.09;
-                      alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);
-                      fragColor = v_color * alpha;
-                    }
-                    `,
-                };
-                break;
-            case "image":
-                res = {
-                    vertexShader: `#version 300 es
-                    precision highp float;
-                    in vec2 a_position;
-                    in vec2 a_texCoord;
-                    uniform mat3 u_transformMatrix;
-                    out vec2 v_texCoord;
-
-                    void main() {
-                      gl_Position = vec4(u_transformMatrix * vec3(a_position, 1), 1);
-                      v_texCoord = a_texCoord;
-                    }
-          `,
-                    fragmentShader: `#version 300 es
-                    precision mediump float;
-                    uniform sampler2D u_image;
-                    uniform float u_opacity;
-                    in vec2 v_texCoord;
-                    out vec4 fragColor;
-                    void main() {
-                      vec4 col = texture(u_image, v_texCoord);
-                      if (col.a == 0.0) {
-                        discard;
-                      } else {
-                        fragColor = col;
-                        fragColor.a *= u_opacity;
-                      }
-                    }
-                    `,
-                };
-                break;
-            case "polyline":
-            case "polygon":
-                res = {
-                    vertexShader: `#version 300 es
-                    precision highp float;
-                    in vec2 a_position;
-                    uniform mat3 u_transformMatrix;
-
-                    void main() {
-                      gl_Position = vec4(u_transformMatrix * vec3(a_position, 1), 1);
-                    }
-                    `,
-                    fragmentShader: `#version 300 es
-                    precision mediump float;
-                    uniform vec4 u_color;
-                    out vec4 fragColor;
-                    void main() {
-                        fragColor = u_color;
-                    }
-                    `,
-                };
-                break;
-            case "rect":
-                res = {
-                    vertexShader: `#version 300 es
-                    precision highp float;
-                    in vec2 a_position;
-                    in vec4 a_color;
-                    in mat3 a_transformMatrix;
-                    out vec4 v_color;
-
-                    void main() {
-                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);
-                      v_color = a_color;
-                    }
-                    `,
-                    fragmentShader: `#version 300 es
-                    precision mediump float;
-                    in vec4 v_color;
-                    out vec4 fragColor;
-                    void main() {
-                      fragColor = v_color;
-                    }
-                    `,
-                };
-                break;
-            case "line":
-                res = {
-                    vertexShader: `#version 300 es
-                    precision highp float;
-                    in vec2 a_position;
-                    in vec4 a_color;
-                    in mat3 a_transformMatrix;
-                    out vec4 v_color;
-
-                    void main() {
-                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);
-                      v_color = a_color;
-                    }
-                    `,
-                    fragmentShader: `#version 300 es
-                    precision mediump float;
-                    in vec4 v_color;
-                    out vec4 fragColor;
-                    void main() {
-                        fragColor = v_color;
-                    }
-                    `,
-                };
-                break;
-            default:
-                res = {
-                    vertexShader: `#version 300 es
-                    precision highp float;
-                    in vec2 a_position;
-                    in vec4 a_color;
-                    in mat3 a_transformMatrix;
-                    out vec4 v_color;
-
-                    void main() {
-                      gl_Position = vec4(a_transformMatrix * vec3(a_position, 1), 1);
-                      v_color = a_color;
-                    }
-                    `,
-                    fragmentShader: `#version 300 es
-                    precision mediump float;
-                    in vec4 v_color;
-                    out vec4 fragColor;
-                    void main() {
-                      fragColor = v_color;
-                    }
-                    `,
-                };
-        }
-        return res;
-    }
-
-    const t2DGeometry = geometry;
-    let ratio;
-    const queueInstance = queue;
-    const zoomInstance = behaviour.zoom();
-    const dragInstance = behaviour.drag();
-    function getPixlRatio(ctx) {
-        const dpr = window.devicePixelRatio || 1;
-        const bsr =
-            ctx.webkitBackingStorePixelRatio ||
-            ctx.mozBackingStorePixelRatio ||
-            ctx.msBackingStorePixelRatio ||
-            ctx.oBackingStorePixelRatio ||
-            ctx.backingStorePixelRatio ||
-            1;
-        const ratio = dpr / bsr;
-        return ratio < 1.0 ? 1.0 : ratio;
-    }
-    let Id = 0;
-    function domId() {
-        Id += 1;
-        return Id;
-    }
-    function parseTransform(transform) {
-        const output = {
-            translateX: 0,
-            translateY: 0,
-            scaleX: 1,
-            scaleY: 1,
-            angle: 0,
-        };
-        if (transform) {
-            if (transform.translate && transform.translate.length > 0) {
-                output.translateX = transform.translate[0];
-                output.translateY = transform.translate[1];
-            }
-            if (transform.scale && transform.scale.length > 0) {
-                output.scaleX = transform.scale[0];
-                output.scaleY = transform.scale[1] || output.scaleX;
-            }
-            if (transform.rotate && transform.rotate.length > 0) {
-                output.angle = transform.rotate[0];
-            }
-        }
-        return output;
-    }
-    function RPolyupdateBBox() {
-        const self = this;
-        const { transform, points = [] } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-        if (points && points.length > 0) {
-            let minX = points[0].x;
-            let maxX = points[0].x;
-            let minY = points[0].y;
-            let maxY = points[0].y;
-            for (let i = 1; i < points.length; i += 1) {
-                if (minX > points[i].x) minX = points[i].x;
-                if (maxX < points[i].x) maxX = points[i].x;
-                if (minY > points[i].y) minY = points[i].y;
-                if (maxY < points[i].y) maxY = points[i].y;
-            }
-            self.BBox = {
-                x: translateX + minX * scaleX,
-                y: translateY + minY * scaleY,
-                width: (maxX - minX) * scaleX,
-                height: (maxY - minY) * scaleY,
-            };
-        } else {
-            self.BBox = {
-                x: 0,
-                y: 0,
-                width: 0,
-                height: 0,
-            };
-        }
-        if (transform && transform.rotate) {
-            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
-        } else {
-            self.BBoxHit = this.BBox;
-        }
-    }
-    var m3 = {
-        multiply: function (a, b) {
-            var a00 = a[0 * 3 + 0];
-            var a01 = a[0 * 3 + 1];
-            var a02 = a[0 * 3 + 2];
-            var a10 = a[1 * 3 + 0];
-            var a11 = a[1 * 3 + 1];
-            var a12 = a[1 * 3 + 2];
-            var a20 = a[2 * 3 + 0];
-            var a21 = a[2 * 3 + 1];
-            var a22 = a[2 * 3 + 2];
-            var b00 = b[0 * 3 + 0];
-            var b01 = b[0 * 3 + 1];
-            var b02 = b[0 * 3 + 2];
-            var b10 = b[1 * 3 + 0];
-            var b11 = b[1 * 3 + 1];
-            var b12 = b[1 * 3 + 2];
-            var b20 = b[2 * 3 + 0];
-            var b21 = b[2 * 3 + 1];
-            var b22 = b[2 * 3 + 2];
-            return [
-                b00 * a00 + b01 * a10 + b02 * a20,
-                b00 * a01 + b01 * a11 + b02 * a21,
-                b00 * a02 + b01 * a12 + b02 * a22,
-                b10 * a00 + b11 * a10 + b12 * a20,
-                b10 * a01 + b11 * a11 + b12 * a21,
-                b10 * a02 + b11 * a12 + b12 * a22,
-                b20 * a00 + b21 * a10 + b22 * a20,
-                b20 * a01 + b21 * a11 + b22 * a21,
-                b20 * a02 + b21 * a12 + b22 * a22,
-            ];
-        },
-        translation: function (tx, ty, mtrx) {
-            if (mtrx && mtrx[6] === tx && mtrx[7] === ty) {
-                return mtrx;
-            }
-            return [1, 0, 0, 0, 1, 0, tx, ty, 1];
-        },
-        rotation: function (angleInRadians) {
-            var c = Math.cos(angleInRadians);
-            var s = Math.sin(angleInRadians);
-            return [c, -s, 0, s, c, 0, 0, 0, 1];
-        },
-        scaling: function (sx, sy) {
-            return [sx, 0, 0, 0, sy, 0, 0, 0, 1];
-        },
-        identity: function () {
-            return [1, 0, 0, 0, 1, 0, 0, 0, 1];
-        },
-        projection: function (width, height) {
-            return [2 / width, 0, 0, 0, -2 / height, 0, -1, 1, 1];
-        },
-    };
-    function updateTransformMatrix(matrix_) {
-        const transform = this.attr.transform;
-        let matrix = matrix_ || this.projectionMatrix;
-        if (transform && transform.translate) {
-            this.translationMatrix = m3.translation(
-                transform.translate[0],
-                transform.translate[1],
-                this.translationMatrix
-            );
-            matrix = m3.multiply(matrix, this.translationMatrix);
-        }
-        if (transform && transform.rotate) {
-            const angle = (Math.PI / 180) * transform.rotate[0];
-            this.rotationMatrix = m3.rotation(angle);
-            this.rotationCentric = m3.translation(
-                transform.rotate[1] || 0,
-                transform.rotate[2] || 0,
-                this.rotationCentric
-            );
-            matrix = m3.multiply(matrix, this.rotationMatrix);
-        }
-        if (transform && transform.scale) {
-            this.scaleMatrix = m3.scaling(transform.scale[0], transform.scale[1]);
-            matrix = m3.multiply(matrix, this.scaleMatrix);
-        }
-        if (this.rotationCentric) {
-            matrix = m3.multiply(matrix, this.rotationCentric);
-        }
-        this.transformMatrix = matrix;
-    }
-    function prepObjProxyWebGl(type, attr, context, BBoxUpdate) {
-        const handlr = {
-            set(obj, prop, value) {
-                if (value !== null) {
-                    if (type === 'attr') {
-                        obj[prop] = value;
-                        if (prop === "transform" && context.children.length > 0) {
-                            context.children.forEach(function (d) {
-                                d.applyTransformationMatrix(context.dom.transformMatrix);
-                            });
+    async function CanvasToPdf(options) {
+        return new Promise((resolve, reject) => {
+            (async () => {
+                try {
+                        const pdfConfig = parsePdfConfig(options);
+                        const doc = new PDFDocument({
+                            size: [this.width, this.height],
+                            ...pdfConfig,
+                        });
+                        const stream_ = doc.pipe(blobStream$1());
+                        const fontRegister = options.fontRegister || {};
+                        const pdfInfo = options.info || { title: "I2Djs-PDF" };
+                        if (fontRegister) {
+                            for (const key in fontRegister) {
+                                if (pdfSupportedFontFamily.indexOf(key) === -1) pdfSupportedFontFamily.push(key);
+                                const font = await fetch(fontRegister[key]);
+                                const fontBuffer = await font.arrayBuffer();
+                                doc.registerFont(key, fontBuffer);
+                            }
                         }
-                        if (context && context.dom) {
-                            context.dom.setAttr(prop, value);
-                        }
-                        if (BBoxUpdate) {
-                            context.BBoxUpdate = true;
-                        }
-                    } else if (type === 'style') {
-                        if (prop === "fill" || prop === "stroke") {
-                            value = colorMap$1.colorToRGB(value);
-                        }
-                        if (context && context.dom) {
-                            context.dom.setStyle(prop, value);
-                        }
-                        obj[prop] = value;
-                    } else if (type === 'transform') {
-                        if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
-                            value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
-                        } else if (prop === 'rotate') {
-                            value = Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0];
-                        }
-                        obj[prop] = value;
-                        if (context && context.dom) {
-                            context.dom.setAttr('transform', obj);
-                        }
-                        if (BBoxUpdate) {
-                            context.BBoxUpdate = true;
-                        }
+                        doc.info = {
+                            Title: pdfInfo.title || "",
+                            Author: pdfInfo.author || "",
+                            Subject: pdfInfo.subject || "",
+                            Keywords: pdfInfo.keywords || "",
+                            CreationDate: pdfInfo.creationDate || new Date(),
+                        };
+                        this.updateBBox();
+                        this.updateABBox();
+                        doc.addPage();
+                        this.exportPdf(doc);
+                        doc.end();
+                        stream_.on("finish", function () {
+                            resolve(stream_.toBlobURL("application/pdf"));
+                        });
+                    } catch (error) {
+                        reject(error);
                     }
-                    queueInstance.vDomChanged(context.vDomIndex);
-                } else {
-                    delete obj[prop];
-                }
-                return true;
-            },
-            deleteProperty(obj, prop) {
-                if (prop in obj) {
-                    delete obj[prop];
-                    queueInstance.vDomChanged(context.vDomIndex);
-                    if (type === 'attr' && BBoxUpdate) {
-                        context.BBoxUpdate = true;
-                    }
-                }
-                return true;
-            },
-        };
-        return new Proxy(Object.assign({}, attr), handlr);
+                })();
+            })
     }
-    function updatePositionVector (positionArray, attr) {
-            const x = attr.x || 0;
-            const y = attr.y || 0;
-            const width = attr.width || 0;
-            const height = attr.height || 0;
-            const x1 = x + width;
-            const y1 = y + height;
-            positionArray[0] = positionArray[4] = positionArray[6] = x;
-            positionArray[1] = positionArray[3] = positionArray[9] = y;
-            positionArray[2] = positionArray[8] = positionArray[10] = x1;
-            positionArray[5] = positionArray[7] = positionArray[11] = y1;
+    function exportCanvasToPdf(canvasLayer, options) {
+        return CanvasToPdf.call(canvasLayer, options);
     }
-    const WebglCollection = function () {
-        CollectionPrototype.apply(this, arguments);
-    };
-    WebglCollection.prototype = new CollectionPrototype();
-    WebglCollection.prototype.constructor = WebglCollection;
-    WebglCollection.prototype.createNode = function (ctx, config, vDomIndex) {
-        return new WebglNodeExe(ctx, config, domId(), vDomIndex);
-    };
-    function loadShader(ctx, shaderSource, shaderType) {
-        var shader = ctx.createShader(shaderType);
-        ctx.shaderSource(shader, shaderSource);
-        ctx.compileShader(shader);
-        var compiled = ctx.getShaderParameter(shader, ctx.COMPILE_STATUS);
-        if (!compiled) {
-            var lastError = ctx.getShaderInfoLog(shader);
-            console.error("*** Error compiling shader '" + shader + "':" + lastError);
-            ctx.deleteShader(shader);
-            return null;
-        }
-        return shader;
-    }
-    function createProgram(ctx, shaders) {
-        var program = ctx.createProgram();
-        shaders.forEach(function (shader) {
-            ctx.attachShader(program, shader);
-        });
-        ctx.linkProgram(program);
-        var linked = ctx.getProgramParameter(program, ctx.LINK_STATUS);
-        if (!linked) {
-            var lastError = ctx.getProgramInfoLog(program);
-            console.error("Error in program linking:" + lastError);
-            ctx.deleteProgram(program);
-            return null;
-        }
-        return program;
-    }
-    function getProgram(ctx, shaderCode) {
-        var shaders = [
-            loadShader(ctx, shaderCode.vertexShader, ctx.VERTEX_SHADER),
-            loadShader(ctx, shaderCode.fragmentShader, ctx.FRAGMENT_SHADER),
-        ];
-        return createProgram(ctx, shaders);
-    }
-    function WebglDom() {
-        this.BBox = {
-            x: 0,
-            y: 0,
-            width: 0,
-            height: 0,
-        };
-        this.BBoxHit = {
-            x: 0,
-            y: 0,
-            width: 0,
-            height: 0,
-        };
-    }
-    WebglDom.prototype.exec = function (exe, d) {
-        if (typeof exe !== "function") {
-            console.error("Wrong Exe type");
-        }
-        exe.call(this, d);
-    };
-    WebglDom.prototype.setStyle = function (key, value) {
-        if (value) {
-            this.style[key] = value;
-            if (this.shader && key === "fill") {
-                if (this.style.opacity !== undefined) {
-                    value.a *= this.style.opacity;
-                }
-                if (this.shader.indexBased) {
-                    this.shader.updateColor(this.pindex, value);
-                }
-            }
-            if (this.shader && key === "opacity") {
-                if (this.style.fill !== undefined) {
-                    this.style.fill.a *= this.style.opacity;
-                }
-                this.shader.updateColor(this.pindex, this.style.fill);
-            }
-        } else if (this.style[key]) {
-            delete this.style[key];
-        }
-    };
-    WebglDom.prototype.getAttr = function (key) {
-        return this.attr[key];
-    };
-    WebglDom.prototype.getStyle = function (key) {
-        return this.style[key];
-    };
-    function PointNode(ctx, attr, style) {
-        this.ctx = ctx;
-        this.attr = Object.assign({}, attr) ;
-        this.style = Object.assign({}, style);
-        this.projectionMatrix = m3.projection(
-            this.ctx.canvas.width / ratio,
-            this.ctx.canvas.height / ratio
-        );
-        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
-        if (this.attr.transform) {
-            this.exec(updateTransformMatrix, null);
-        }
-    }
-    PointNode.prototype = new WebglDom();
-    PointNode.prototype.constructor = PointNode;
-    PointNode.prototype.setShader = function (shader) {
-        this.shader = shader;
-        if (this.shader) {
-            this.shader.addVertex(this.attr.x || 0, this.attr.y || 0, this.pindex);
-            this.shader.addColors(this.style.fill || defaultColor, this.pindex);
-            this.shader.addSize(this.attr.size || 0, this.pindex);
-            this.shader.addTransform(this.transformMatrix, this.pindex);
-        }
-    };
-    PointNode.prototype.setAttr = function (prop, value) {
-        this.attr[prop] = value;
-        if (prop === "transform") {
-            this.exec(updateTransformMatrix, this.p_matrix);
-        }
-        if (!this.shader) {
-            return;
-        }
-        if (prop === "x" || prop === "y") {
-            this.shader.updateVertex(this.pindex, this.attr.x, this.attr.y);
-        } else if (prop === "size") {
-            this.shader.updateSize(this.pindex, this.attr.size || 0);
-        } else if (prop === "transform") {
-            this.shader.updateTransform(this.pindex, this.transformMatrix);
-        }
-    };
-    PointNode.prototype.applyTransformationMatrix = function (matrix) {
-        this.p_matrix = matrix;
-        this.exec(updateTransformMatrix, matrix);
-        if (this.shader) {
-            this.shader.addTransform(this.transformMatrix, this.pindex);
-        }
-    };
-    PointNode.prototype.in = function RRinfun(co) {
-        const { x = 0, y = 0, size = 0 } = this.attr;
-        return co.x >= x && co.x <= x + size && co.y >= y && co.y <= y + size;
-    };
-    PointNode.prototype.updateBBox = function RRupdateBBox() {
-        const self = this;
-        const { transform, x = 0, y = 0, size = 0 } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-        self.BBox = {
-            x: translateX + x * scaleX,
-            y: translateY + y * scaleY,
-            width: size * scaleX,
-            height: size * scaleY,
-        };
-        if (transform && transform.rotate) {
-            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
-        } else {
-            self.BBoxHit = this.BBox;
-        }
-    };
-    function RectNode(ctx, attr, style) {
-        this.ctx = ctx;
-        this.attr = Object.assign({}, attr) ;
-        this.style = Object.assign({}, style);
-        this.projectionMatrix = m3.projection(
-            this.ctx.canvas.width / ratio,
-            this.ctx.canvas.height / ratio
-        );
-        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
-        if (this.attr.transform) {
-            this.exec(updateTransformMatrix, null);
-        }
-    }
-    RectNode.prototype = new WebglDom();
-    RectNode.prototype.constructor = RectNode;
-    RectNode.prototype.setShader = function (shader) {
-        this.shader = shader;
-        if (this.shader) {
-            this.shader.addVertex(
-                this.attr.x || 0,
-                this.attr.y || 0,
-                this.attr.width || 0,
-                this.attr.height || 0,
-                this.pindex
-            );
-            this.shader.addColors(this.style.fill || defaultColor, this.pindex);
-            this.shader.addTransform(this.transformMatrix, this.pindex);
-        }
-    };
-    RectNode.prototype.applyTransformationMatrix = function (matrix) {
-        this.p_matrix = matrix;
-        this.exec(updateTransformMatrix, matrix);
-        if (this.shader) {
-            this.shader.addTransform(this.transformMatrix, this.pindex);
-        }
-    };
-    RectNode.prototype.setAttr = function (key, value) {
-        this.attr[key] = value;
-        if (key === "transform") {
-            this.exec(updateTransformMatrix, this.p_matrix);
-        }
-        if (!this.shader) {
-            return;
-        }
-        if (key === "x" || key === "width" || key === "y" || key === "height") {
-            this.shader.updateVertex(
-                this.pindex,
-                this.attr.x || 0,
-                this.attr.y || 0,
-                this.attr.width || 0,
-                this.attr.height || 0
-            );
-        } else if (key === "transform") {
-            this.shader.updateTransform(this.pindex, this.transformMatrix);
-        }
-    };
-    RectNode.prototype.in = function RRinfun(co) {
-        const { x = 0, y = 0, width = 0, height = 0 } = this.attr;
-        return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
-    };
-    RectNode.prototype.updateBBox = function RRupdateBBox() {
-        const self = this;
-        const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-        self.BBox = {
-            x: translateX + x * scaleX,
-            y: translateY + y * scaleY,
-            width: width * scaleX,
-            height: height * scaleY,
-        };
-        if (transform && transform.rotate) {
-            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
-        } else {
-            self.BBoxHit = this.BBox;
-        }
-    };
-    function PathNode(ctx, attr, style) {
-        const self = this;
-        this.ctx = ctx;
-        this.attr = Object.assign({}, attr) ;
-        this.style = Object.assign({}, style);
-        this.pointsGeometry = [];
-        this.transform = [0, 0, 1, 1];
-        this.positionArray = new Float32Array(12);
-        this.projectionMatrix = m3.projection(
-            this.ctx.canvas.width / ratio,
-            this.ctx.canvas.height / ratio
-        );
-        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
-        for(let key in self.attr) {
-            this.setAttr(key, self.attr[key]);
-        }
-        updatePositionVector(this.positionArray, {x: 0, y: 0, height: this.pathTexture?.height??0, width: this.pathTexture?.width??0});
-    }
-    PathNode.prototype = new WebglDom();
-    PathNode.prototype.constructor = PathNode;
-    PathNode.prototype.setShader = function (shader) {
-        this.shader = shader;
-    };
-    PathNode.prototype.applyTransformationMatrix = function (matrix) {
-        this.p_matrix = matrix;
-        this.exec(updateTransformMatrix, matrix);
-    };
-    PathNode.prototype.setAttr = function (key, value) {
-        this.attr[key] = value;
-        if (value === null) {
-            delete this.attr[key];
-            return;
-        }
-        if (key === "d") {
-            if (path.isTypePath(value)) {
-                this.path = value;
-                this.attr.d = value.fetchPathString();
-            } else {
-                this.path = path.instance(this.attr.d);
-            }
-            let bbox = this.path.BBox;
-            let pathTexture = this.path.getPathTexture(this.style, true);
-            if (!this.textureNode) {
-                this.textureNode = new TextureObject(
-                    this.ctx,
-                    {
-                        src: pathTexture,
-                    },
-                    this.vDomIndex
-                );
-            } else {
-                this.textureNode.setAttr('src', pathTexture);
-            }
-            updatePositionVector(this.positionArray, {x: 0, y: 0, height: bbox?.height??0, width: bbox?.width??0});
-        } else if (key === "transform") {
-            this.exec(updateTransformMatrix, this.p_matrix ? this.p_matrix : this.projectionMatrix);
-        }
-    };
-    PathNode.prototype.setStyle = function (key, value) {
-        if (value === null) {
-            delete this.style[key];
-            return;
-        }
-        this.style[key] = value;
-        if (this.path) {
-            this.textureNode.setAttr('src', this.path.getPathTexture(this.style));
-        }
-    };
-    PathNode.prototype.in = function RIinfun(co) {
-        const { x = 0, y = 0 } = co;
-        let ctx = this.path.ctx;
-        let flag = false;
-        ctx.save();
-        flag = ctx.isPointInPath(this.path.pathNode, x, y);
-        ctx.restore();
-        return flag;
-    };
-    PathNode.prototype.updateBBox = function RCupdateBBox() {
-        const self = this;
-        const { transform } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-        self.BBox = self.path
-            ? self.path.BBox
-            : {
-                  x: 0,
-                  y: 0,
-                  width: 0,
-                  height: 0,
-              };
-        self.BBox.x = translateX + self.BBox.x * scaleX;
-        self.BBox.y = translateY + self.BBox.y * scaleY;
-        self.BBox.width *= scaleX;
-        self.BBox.height *= scaleY;
-        if (transform && transform.rotate) {
-            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
-        } else {
-            self.BBoxHit = this.BBox;
-        }
-    };
-    function PolyLineNode(ctx, attr, style) {
-        this.ctx = ctx;
-        this.attr = Object.assign({}, attr || {}) ;
-        this.style = Object.assign({}, style || {});
-        this.points = [];
-        this.transform = [0, 0, 1, 1];
-        const subPoints = [];
-        this.projectionMatrix = m3.projection(
-            this.ctx.canvas.width / ratio,
-            this.ctx.canvas.height / ratio
-        );
-        if (this.attr.points) {
-            const points = this.attr.points;
-            for (let j = 0, jlen = points.length; j < jlen; j++) {
-                subPoints[j * 2] = points[j].x;
-                subPoints[j * 2 + 1] = points[j].y;
-            }
-            this.points = new Float32Array(subPoints);
-        }
-        if (this.style.stroke) {
-            this.color = new Float32Array([
-                this.style.stroke.r / 255,
-                this.style.stroke.g / 255,
-                this.style.stroke.b / 255,
-                this.style.stroke.a === undefined ? 1 : this.style.stroke.a / 255,
-            ]);
-        }
-        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
-        if (this.attr.transform) {
-            this.exec(updateTransformMatrix, null);
-        }
-    }
-    PolyLineNode.prototype = new WebglDom();
-    PolyLineNode.prototype.constructor = PolyLineNode;
-    PolyLineNode.prototype.setShader = function (shader) {
-        this.shader = shader;
-    };
-    PolyLineNode.prototype.applyTransformationMatrix = function (matrix) {
-        this.p_matrix = matrix;
-        this.exec(updateTransformMatrix, matrix);
-    };
-    PolyLineNode.prototype.setAttr = function (key, value) {
-        this.attr[key] = value;
-        if (key === "points") {
-            const points = this.attr.points;
-            const subPoints = [];
-            for (let j = 0, jlen = points.length; j < jlen; j++) {
-                subPoints[j * 2] = points[j].x;
-                subPoints[j * 2 + 1] = points[j].y;
-            }
-            this.points = new Float32Array(subPoints);
-        } else if (key === "transform") {
-            this.exec(updateTransformMatrix, this.p_matrix);
-        }
-    };
-    PolyLineNode.prototype.updateBBox = RPolyupdateBBox;
-    PolyLineNode.prototype.setStyle = function (key, value) {
-        this.style[key] = value;
-        if (key === "stroke") {
-            this.color = new Float32Array([
-                this.style.stroke.r / 255,
-                this.style.stroke.g / 255,
-                this.style.stroke.b / 255,
-                this.style.stroke.a === undefined ? 1 : this.style.stroke.a / 255,
-            ]);
-        }
-    };
-    function LineNode(ctx, attr, style) {
-        this.ctx = ctx;
-        this.attr = Object.assign({}, attr || {}) ;
-        this.style = Object.assign({}, style || {});
-        this.projectionMatrix = m3.projection(
-            this.ctx.canvas.width / ratio,
-            this.ctx.canvas.height / ratio
-        );
-        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
-        if (this.attr.transform) {
-            this.exec(updateTransformMatrix, null);
-        }
-    }
-    LineNode.prototype = new WebglDom();
-    LineNode.prototype.constructor = LineNode;
-    LineNode.prototype.setShader = function (shader) {
-        this.shader = shader;
-        const { x1 = 0, y1 = 0, x2 = x1, y2 = y1 } = this.attr;
-        if (this.shader) {
-            this.shader.addVertex(x1, y1, x2, y2, this.pindex);
-            this.shader.addColors(this.style.stroke || defaultColor, this.pindex);
-            this.shader.addTransform(this.transformMatrix, this.pindex);
-        }
-    };
-    LineNode.prototype.applyTransformationMatrix = function (matrix) {
-        this.p_matrix = matrix;
-        this.exec(updateTransformMatrix, matrix);
-        if (this.shader) {
-            this.shader.addTransform(this.transformMatrix, this.pindex);
-        }
-    };
-    LineNode.prototype.setAttr = function (key, value) {
-        this.attr[key] = value;
-        if (value === null && this.attr[key] !== null) {
-            delete this.attr[key];
-            return;
-        }
-        if (key === "transform") {
-            this.exec(updateTransformMatrix, this.p_matrix);
-        }
-        if (this.shader && (key === "x1" || key === "y1" || key === "x2" || key === "y2")) {
-            this.shader.updateVertex(
-                this.pindex,
-                this.attr.x1,
-                this.attr.y1,
-                this.attr.x2,
-                this.attr.y2
-            );
-        } else if (this.shader && key === "transform") {
-            this.shader.updateTransform(this.pindex, this.transformMatrix);
-        }
-    };
-    LineNode.prototype.updateBBox = function RLupdateBBox() {
-        const self = this;
-        const { transform, x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-        self.BBox = {
-            x: translateX + (x1 < x2 ? x1 : x2) * scaleX,
-            y: translateY + (y1 < y2 ? y1 : y2) * scaleY,
-            width: Math.abs(x2 - x1) * scaleX,
-            height: Math.abs(y2 - y1) * scaleY,
-        };
-        if (transform && transform.rotate) {
-            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
-        } else {
-            self.BBoxHit = this.BBox;
-        }
-    };
-    function polygonPointsMapper(value) {
-        return earcut$1(value.reduce(function (p, c) {
-                p[p.length] = c.x;
-                p[p.length] = c.y;
-                return p;
-            }, [])).map(function (d) {
-            return value[d];
-        });
-    }
-    function PolygonNode(ctx, attr, style) {
-        this.ctx = ctx;
-        this.attr = Object.assign({}, attr || {}) ;
-        this.style = Object.assign({}, style || {});
-        this.positionArray = [];
-        this.transform = [0, 0, 1, 1];
-        const subPoints = [];
-        this.projectionMatrix = m3.projection(
-            this.ctx.canvas.width / ratio,
-            this.ctx.canvas.height / ratio
-        );
-        if (this.attr.points) {
-            const points = polygonPointsMapper(this.attr.points || []);
-            for (let j = 0, jlen = points.length; j < jlen; j++) {
-                subPoints[j * 2] = points[j].x;
-                subPoints[j * 2 + 1] = points[j].y;
-            }
-            this.points = new Float32Array(subPoints);
-        }
-        if (this.style.fill) {
-            this.color = new Float32Array([
-                this.style.stroke.r / 255,
-                this.style.stroke.g / 255,
-                this.style.stroke.b / 255,
-                this.style.stroke.a === undefined ? 1 : this.style.stroke.a / 255,
-            ]);
-        }
-        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
-        if (this.attr.transform) {
-            this.exec(updateTransformMatrix, null);
-        }
-    }
-    PolygonNode.prototype = new WebglDom();
-    PolygonNode.prototype.constructor = PolygonNode;
-    PolygonNode.prototype.setShader = function (shader) {
-        this.shader = shader;
-    };
-    PolygonNode.prototype.applyTransformationMatrix = function (matrix) {
-        this.p_matrix = matrix;
-        this.exec(updateTransformMatrix, matrix);
-    };
-    PolygonNode.prototype.setAttr = function (key, value) {
-        this.attr[key] = value;
-        if (value === null) {
-            delete this.attr[key];
-            return;
-        }
-        if (key === "points") {
-            const subPoints = [];
-            const points = polygonPointsMapper((value || []));
-            for (let j = 0, jlen = points.length; j < jlen; j++) {
-                subPoints[j * 2] = points[j].x;
-                subPoints[j * 2 + 1] = points[j].y;
-            }
-            this.points = new Float32Array(subPoints);
-        } else if (key === "transform") {
-            this.exec(updateTransformMatrix, this.p_matrix);
-        }
-    };
-    PolygonNode.prototype.setStyle = function (key, value) {
-        this.style[key] = value;
-        if (key === "fill") {
-            this.color = new Float32Array([
-                this.style.fill.r / 255,
-                this.style.fill.g / 255,
-                this.style.fill.b / 255,
-                this.style.fill.a === undefined ? 1 : this.style.fill.a / 255,
-            ]);
-        }
-    };
-    PolygonNode.prototype.updateBBox = RPolyupdateBBox;
-    function CircleNode(ctx, attr, style) {
-        this.ctx = ctx;
-        this.attr = Object.assign({}, attr || {}) ;
-        this.style = Object.assign({}, style || {});
-        this.projectionMatrix = m3.projection(
-            this.ctx.canvas.width / ratio,
-            this.ctx.canvas.height / ratio
-        );
-        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
-        if (this.attr.transform) {
-            this.exec(updateTransformMatrix, null);
-        }
-    }
-    CircleNode.prototype = new WebglDom();
-    CircleNode.prototype.constructor = CircleNode;
-    CircleNode.prototype.setShader = function (shader) {
-        this.shader = shader;
-        if (this.shader) {
-            this.shader.addVertex(this.attr.cx || 0, this.attr.cy || 0, this.pindex);
-            this.shader.addColors(this.style.fill || defaultColor, this.pindex);
-            this.shader.addSize(this.attr.r || 0, this.pindex);
-            this.shader.addTransform(this.transformMatrix, this.pindex);
-        }
-    };
-    CircleNode.prototype.applyTransformationMatrix = function (matrix) {
-        this.p_matrix = matrix;
-        this.exec(updateTransformMatrix, matrix);
-        if (this.shader) {
-            this.shader.addTransform(this.transformMatrix, this.pindex);
-        }
-    };
-    CircleNode.prototype.setAttr = function (prop, value) {
-        this.attr[prop] = value;
-        if (value === null) {
-            delete this.attr[prop];
-            return;
-        }
-        if (prop === "transform") {
-            this.exec(updateTransformMatrix, this.p_matrix);
-        }
-        if ((prop === "cx" || prop === "cy") && this.shader) {
-            this.shader.updateVertex(this.pindex, this.attr.cx, this.attr.cy);
-        } else if (prop === "r" && this.shader) {
-            this.shader.updateSize(this.pindex, this.attr.r || 0);
-        } else if (prop === "transform" && this.shader) {
-            this.shader.updateTransform(this.pindex, this.transformMatrix);
-        }
-    };
-    CircleNode.prototype.in = function RCinfun(co) {
-        const { r = 0, cx = 0, cy = 0 } = this.attr;
-        const tr = Math.sqrt((co.x - cx) * (co.x - cx) + (co.y - cy) * (co.y - cy));
-        return tr <= r;
-    };
-    CircleNode.prototype.updateBBox = function RCupdateBBox() {
-        const self = this;
-        const { transform, r = 0, cx = 0, cy = 0 } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-        self.BBox = {
-            x: translateX + (cx - r) * scaleX,
-            y: translateY + (cy - r) * scaleY,
-            width: 2 * r * scaleX,
-            height: 2 * r * scaleY,
-        };
-        if (transform && transform.rotate) {
-            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
-        } else {
-            self.BBoxHit = this.BBox;
-        }
-    };
-    const webGLImageTextures = {};
-    function isPowerOf2(value) {
-        return (value & (value - 1)) === 0;
-    }
-    const onClear = function (ctx, width, height, ratio) {
-        ctx.clearRect(0, 0, width * ratio, height * ratio);
-    };
-    function buildCanvasTextEl(str, style) {
-        const layer = document.createElement("canvas");
-        const ctx = layer.getContext("2d");
-        style = style || {
-            fill: "#fff",
-        };
-        if (!style.font) {
-            style.font = "10px Arial";
-        }
-        const fontSize = parseFloat(style.font, 10) || 12;
-        ctx.font = style.font;
-        const twid = ctx.measureText(str);
-        const width = twid.width;
-        const height = fontSize;
-        layer.setAttribute("height", height * ratio);
-        layer.setAttribute("width", width * ratio);
-        layer.style.width = width;
-        layer.style.height = height;
-        style.font =
-            fontSize * ratio +
-            (isNaN(parseFloat(style.font, 10))
-                ? style.font
-                : style.font.substring(fontSize.toString().length));
-        for (const st in style) {
-            ctx[st] = style[st];
-        }
-        ctx.fillText(str, 0, height * 0.75 * ratio);
-        return {
-            dom: layer,
-            ctx: ctx,
-            width: width,
-            height: height,
-            ratio: ratio,
-            style: style,
-            str: str,
-            updateText: function () {
-                onClear(this.ctx, this.width, this.height, this.ratio);
-                for (const st in this.style) {
-                    this.ctx[st] = this.style[st];
-                }
-                this.ctx.fillText(this.str, 0, this.height * 0.75);
-            },
-        };
-    }
-    function TextNode(ctx, attr, style, vDomIndex) {
-        const self = this;
-        this.ctx = ctx;
-        this.attr = Object.assign({}, attr || {}) ;
-        this.style = Object.assign({}, style || {});
-        this.vDomIndex = vDomIndex;
-        this.positionArray = new Float32Array(12);
-        this.transform = [0, 0, 1, 1];
-        this.projectionMatrix = m3.projection(
-            this.ctx.canvas.width / ratio,
-            this.ctx.canvas.height / ratio
-        );
-        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
-        if (this.attr.transform) {
-            this.exec(updateTransformMatrix, null);
-        }
-        if (self.attr.text && typeof self.attr.text === "string") {
-            this.text = buildCanvasTextEl(self.attr.text, self.style);
-            this.attr.width = this.text.width;
-            this.attr.height = this.text.height;
-        }
-        if (this.attr.x || this.attr.y) {
-            updatePositionVector(this.positionArray, this.attr);
-        }
-        if (this.text) {
-            this.textureNode = new TextureObject(
-                ctx,
-                {
-                    src: this.text.dom,
-                },
-                this.vDomIndex
-            );
-        }
-    }
-    TextNode.prototype = new WebglDom();
-    TextNode.prototype.constructor = TextNode;
-    TextNode.prototype.setShader = function (shader) {
-        this.shader = shader;
-    };
-    TextNode.prototype.setAttr = function (key, value) {
-        this.attr[key] = value;
-        if (value === null) {
-            delete this.attr[key];
-            return;
-        }
-        if (key === "text" && typeof value === "string") {
-            if (this.text) {
-                this.text = buildCanvasTextEl(this.attr.text, this.style);
-            } else {
-                this.text = buildCanvasTextEl(value, this.style);
-            }
-            this.attr.width = this.text.width;
-            this.attr.height = this.text.height;
-            if (this.textureNode) {
-                this.textureNode.setAttr("src", this.text.dom);
-            } else {
-                this.textureNode = new TextureObject(
-                    this.ctx,
-                    {
-                        src: this.text.dom,
-                    },
-                    this.vDomIndex
-                );
-            }
-        }
-        if (key === "transform") {
-            this.exec(updateTransformMatrix, this.p_matrix);
-        } else if (key === "x" || key === "y") {
-            updatePositionVector(this.positionArray, this.attr);
-        }
-    };
-    TextNode.prototype.applyTransformationMatrix = function (matrix) {
-        this.p_matrix = matrix;
-        this.exec(updateTransformMatrix, matrix);
-    };
-    TextNode.prototype.setStyle = function (key, value) {
-        this.style[key] = value;
-        if (this.text) {
-            this.text.style[key] = value;
-            if (key === "font") {
-                const fontSize = parseFloat(value, 10) || 12;
-                this.text.ctx.font = value;
-                const twid = this.text.ctx.measureText(this.attr.text);
-                const width = twid.width;
-                const height = fontSize;
-                this.text.style.font =
-                    fontSize * ratio +
-                    (isNaN(parseFloat(value, 10))
-                        ? this.style.font
-                        : this.style.font.substring(fontSize.toString().length));
-                this.text.updateText();
-                this.text.dom.setAttribute("height", height * ratio);
-                this.text.dom.setAttribute("width", width * ratio);
-                this.attr.width = width;
-                this.attr.height = height;
-                this.shader.updateVertexX(this.pindex, this.attr.x || 0, this.attr.width || 0);
-                this.shader.updateVertexY(this.pindex, this.attr.y || 0, this.attr.height || 0);
-            } else {
-                this.text.style[key] = value;
-                this.text.updateText();
-                this.textureNode.setAttr("src", this.text.dom);
-            }
-        }
-    };
-    TextNode.prototype.getAttr = function (key) {
-        return this.attr[key];
-    };
-    TextNode.prototype.getStyle = function (key) {
-        return this.style[key];
-    };
-    TextNode.prototype.in = function RIinfun(co) {
-        const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
-        return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
-    };
-    TextNode.prototype.updateBBox = function RIupdateBBox() {
-        const self = this;
-        const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-        self.BBox = {
-            x: (translateX + x) * scaleX,
-            y: (translateY + y) * scaleY,
-            width: width * scaleX,
-            height: height * scaleY,
-        };
-        if (transform && transform.rotate) {
-            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
-        } else {
-            self.BBoxHit = this.BBox;
-        }
-    };
-    function ImageNode(ctx, attr, style, vDomIndex) {
-        const self = this;
-        this.ctx = ctx;
-        this.attr = Object.assign({}, attr || {}) ;
-        this.style = Object.assign({}, style || {});
-        this.vDomIndex = vDomIndex;
-        this.positionArray = new Float32Array(12);
-        this.transform = [0, 0, 1, 1];
-        this.projectionMatrix = m3.projection(
-            this.ctx.canvas.width / ratio,
-            this.ctx.canvas.height / ratio
-        );
-        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
-        if (this.attr.transform) {
-            this.exec(updateTransformMatrix, null);
-        }
-        if (self.attr.src && typeof self.attr.src === "string" && !webGLImageTextures[self.attr.src]) {
-            this.textureNode = new TextureObject(
-                ctx,
-                {
-                    src: this.attr.src,
-                },
-                this.vDomIndex
-            );
-            webGLImageTextures[self.attr.src] = this.textureNode;
-        } else if (self.attr.src && self.attr.src instanceof NodePrototype) {
-            this.textureNode = new TextureObject(
-                ctx,
-                {
-                    src: this.attr.src,
-                },
-                this.vDomIndex
-            );
-        } else if (typeof self.attr.src === "string" && webGLImageTextures[self.attr.src]) {
-            this.textureNode = webGLImageTextures[self.attr.src];
-        } else if (self.attr.src && self.attr.src instanceof TextureObject) {
-            this.textureNode = self.attr.src;
-        }
-        if (this.attr.x || this.attr.y || this.attr.width || this.attr.height) {
-            updatePositionVector(this.positionArray, this.attr);
-        }
-    }
-    ImageNode.prototype = new WebglDom();
-    ImageNode.prototype.constructor = ImageNode;
-    ImageNode.prototype.setShader = function (shader) {
-        this.shader = shader;
-    };
-    ImageNode.prototype.applyTransformationMatrix = function (matrix) {
-        this.p_matrix = matrix;
-        this.exec(updateTransformMatrix, matrix);
-    };
-    ImageNode.prototype.setAttr = function (key, value) {
-        this.attr[key] = value;
-        if (value === null) {
-            delete this.attr[key];
-            return;
-        }
-        if (key === "src" && typeof value === "string") {
-            if (value && !webGLImageTextures[value]) {
-                this.textureNode = new TextureObject(
-                    this.ctx,
-                    {
-                        src: value,
-                    },
-                    this.vDomIndex
-                );
-                webGLImageTextures[value] = this.textureNode;
-            } else if (value && webGLImageTextures[value]) {
-                this.textureNode = webGLImageTextures[value];
-            }
-        } else if (key === "src" && value instanceof NodePrototype) {
-            this.textureNode = new TextureObject(
-                this.ctx,
-                {
-                    src: value,
-                },
-                this.vDomIndex
-            );
-        } else if (key === "src" && value instanceof TextureObject) {
-            this.textureNode = value;
-        } else if (key === "x" || key === "width" || key === "y" || key === "height") {
-            updatePositionVector(this.positionArray, this.attr);
-        } else if (key === "transform") {
-            this.exec(updateTransformMatrix, this.p_matrix);
-        }
-    };
-    ImageNode.prototype.setStyle = function (key, value) {
-        if (value) {
-            this.style[key] = value;
-        } else if (this.style[key]) {
-            delete this.style[key];
-        }
-    };
-    ImageNode.prototype.getAttr = function (key) {
-        return this.attr[key];
-    };
-    ImageNode.prototype.getStyle = function (key) {
-        return this.style[key];
-    };
-    ImageNode.prototype.in = function RIinfun(co) {
-        const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
-        return co.x >= x && co.x <= x + width && co.y >= y && co.y <= y + height;
-    };
-    ImageNode.prototype.updateBBox = function RIupdateBBox() {
-        const self = this;
-        const { transform, x = 0, y = 0, width = 0, height = 0 } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-        self.BBox = {
-            x: (translateX + x) * scaleX,
-            y: (translateY + y) * scaleY,
-            width: width * scaleX,
-            height: height * scaleY,
-        };
-        if (transform && transform.rotate) {
-            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
-        } else {
-            self.BBoxHit = this.BBox;
-        }
-    };
-    function WebglGroupNode(ctx, attr, style, renderTarget, vDomIndex) {
-        this.ctx = ctx;
-        this.attr = Object.assign({}, attr || {}) ;
-        this.style = Object.assign({}, style || {});
-        this.renderTarget = renderTarget;
-        this.vDomIndex = vDomIndex;
-        if (attr.shaderType) {
-            this.shader = getTypeShader(
-                ctx,
-                attr,
-                style,
-                attr.shaderType,
-                this.renderTarget,
-                vDomIndex
-            );
-        }
-        this.projectionMatrix = m3.projection(
-            this.ctx.canvas.width / ratio,
-            this.ctx.canvas.height / ratio
-        );
-        this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
-        if (this.attr.transform) {
-            this.exec(updateTransformMatrix, null);
-        }
-    }
-    WebglGroupNode.prototype = new WebglDom();
-    WebglGroupNode.prototype.constructor = WebglGroupNode;
-    WebglGroupNode.prototype.applyTransformationMatrix = function (matrix) {
-        this.p_matrix = matrix;
-        this.exec(updateTransformMatrix, matrix);
-        this.transformMatrix = m3.multiply(this.transformMatrix, matrix);
-    };
-    WebglGroupNode.prototype.setAttr = function (key, value) {
-        this.attr[key] = value;
-        if (key === "shaderType") {
-            this.shader = getTypeShader(
-                this.ctx,
-                this.attr,
-                this.style,
-                value,
-                this.renderTarget,
-                this.vDomIndex
-            );
-        }
-        if (key === "transform") {
-            this.exec(updateTransformMatrix, this.p_matrix);
-        }
-    };
-    WebglGroupNode.prototype.setShader = function () {};
-    WebglGroupNode.prototype.in = function RGinfun(coOr) {
-        const self = this;
-        const co = {
-            x: coOr.x,
-            y: coOr.y,
-        };
-        const { BBox } = this;
-        const { transform } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-        return (
-            co.x >= (BBox.x - translateX) / scaleX &&
-            co.x <= (BBox.x - translateX + BBox.width) / scaleX &&
-            co.y >= (BBox.y - translateY) / scaleY &&
-            co.y <= (BBox.y - translateY + BBox.height) / scaleY
-        );
-    };
-    WebglGroupNode.prototype.updateBBox = function RGupdateBBox(children) {
-        const self = this;
-        let minX;
-        let maxX;
-        let minY;
-        let maxY;
-        const { transform } = self.attr;
-        const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-        self.BBox = {};
-        if (children && children.length > 0) {
-            let d;
-            let boxX;
-            let boxY;
-            for (let i = 0; i < children.length; i += 1) {
-                d = children[i];
-                if (!d) {
-                    continue;
-                }
-                boxX = d.dom.BBoxHit.x;
-                boxY = d.dom.BBoxHit.y;
-                minX = minX === undefined ? boxX : minX > boxX ? boxX : minX;
-                minY = minY === undefined ? boxY : minY > boxY ? boxY : minY;
-                maxX =
-                    maxX === undefined
-                        ? boxX + d.dom.BBoxHit.width
-                        : maxX < boxX + d.dom.BBoxHit.width
-                        ? boxX + d.dom.BBoxHit.width
-                        : maxX;
-                maxY =
-                    maxY === undefined
-                        ? boxY + d.dom.BBoxHit.height
-                        : maxY < boxY + d.dom.BBoxHit.height
-                        ? boxY + d.dom.BBoxHit.height
-                        : maxY;
-            }
-        }
-        minX = minX === undefined ? 0 : minX;
-        minY = minY === undefined ? 0 : minY;
-        maxX = maxX === undefined ? 0 : maxX;
-        maxY = maxY === undefined ? 0 : maxY;
-        self.BBox.x = translateX + minX * scaleX;
-        self.BBox.y = translateY + minY * scaleY;
-        self.BBox.width = Math.abs(maxX - minX) * scaleX;
-        self.BBox.height = Math.abs(maxY - minY) * scaleY;
-        if (self.attr.transform && self.attr.transform.rotate) {
-            self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, this.attr.transform);
-        } else {
-            self.BBoxHit = this.BBox;
-        }
-    };
-    const defaultColor = colorMap$1.rgba(0, 0, 0, 255);
-    function webGlAttrMapper(ctx, program, attr, attrObj) {
-        let valType = attrObj.type;
-        if (!valType) {
-            valType = "FLOAT";
-            if (attrObj.value instanceof Float32Array) {
-                valType = "FLOAT";
-            } else if (attrObj.value instanceof Int8Array) {
-                valType = "BYTE";
-            } else if (attrObj.value instanceof Int16Array) {
-                valType = "SHORT";
-            } else if (attrObj.value instanceof Uint8Array) {
-                valType = "UNSIGNED_BYTE";
-            } else if (attrObj.value instanceof Uint16Array) {
-                valType = "UNSIGNED_SHORT";
-            }
-        }
-        const buffer = ctx.createBuffer();
-        const newAttrObj = {
-            bufferType: ctx.ARRAY_BUFFER,
-            buffer: buffer,
-            drawType: ctx.STATIC_DRAW,
-            valueType: ctx[valType],
-            size: attrObj.size,
-            attributeLocation: ctx.getAttribLocation(program, attr),
-            value: attrObj.value,
-            attr: attr,
-        };
-        return newAttrObj;
-    }
-    function webGlIndexMapper(ctx, program, attrObj) {
-        let valType = "FLOAT";
-        if (attrObj.value instanceof Float32Array) {
-            valType = "FLOAT";
-        } else if (attrObj.value instanceof Int8Array) {
-            valType = "BYTE";
-        } else if (attrObj.value instanceof Int16Array) {
-            valType = "SHORT";
-        } else if (attrObj.value instanceof Uint8Array) {
-            valType = "UNSIGNED_BYTE";
-        } else if (attrObj.value instanceof Uint16Array) {
-            valType = "UNSIGNED_SHORT";
-        }
-        return {
-            bufferType: ctx.ELEMENT_ARRAY_BUFFER,
-            buffer: ctx.createBuffer(),
-            drawType: ctx.STATIC_DRAW,
-            valueType: ctx[valType],
-            value: attrObj.value,
-            count: attrObj.count,
-            offset: attrObj.offset,
-        };
-    }
-    function webGlUniformMapper(ctx, program, uniform, uniObj) {
-        let type;
-        const len = uniObj.size ? uniObj.size : uniObj.value.length;
-        if (!uniObj.matrix) {
-            if (uniObj.value instanceof TextureObject) {
-                type = "uniform1i";
-            } else if (uniObj.value instanceof Float32Array) {
-                type = "uniform" + len + "fv";
-            } else if (
-                uniObj.value instanceof Int8Array ||
-                uniObj.value instanceof Int16Array ||
-                uniObj.value instanceof Uint8Array
-            ) {
-                type = "uniform" + len + "iv";
-            } else if (!Number.isInteger(uniObj.value)) {
-                type = "uniform1f";
-            } else if (Number.isInteger(uniObj.value)) {
-                type = "uniform1i";
-            }
-        } else {
-            if (Number.isInteger(Math.sqrt(uniObj.value.length))) {
-                type = "uniformMatrix" + Math.sqrt(uniObj.value.length) + "fv";
-            } else {
-                console.error("Not Square Matrix");
-            }
-        }
-        return {
-            matrix: uniObj.matrix,
-            transpose: uniObj.transpose === undefined ? false : uniObj.transpose,
-            type: type,
-            value: uniObj.value,
-            uniformLocation: ctx.getUniformLocation(program, uniform),
-        };
-    }
-    function RenderWebglShader(ctx, shader, vDomIndex) {
-        this.ctx = ctx;
-        this.dom = {
-            BBoxHit: {
-                x: 0,
-                y: 0,
-                height: 0,
-                width: 0,
-            },
-        };
-        this.shader = shader;
-        this.vDomIndex = vDomIndex;
-        this.program = getProgram(ctx, shader);
-        this.uniforms = {};
-        this.attr = {};
-        this.attrObjs = {};
-        this.indexesObj = null;
-        this.preDraw = shader.preDraw;
-        this.postDraw = shader.postDraw;
-        this.geometry = shader.geometry;
-        this.renderTarget = shader.renderTarget;
-        this.vao = ctx.createVertexArray();
-        for (const uniform in shader.uniforms) {
-            this.uniforms[uniform] = webGlUniformMapper(
-                ctx,
-                this.program,
-                uniform,
-                shader.uniforms[uniform]
-            );
-        }
-        if (this.geometry) {
-            if (
-                this.geometry instanceof MeshGeometry ||
-                this.geometry instanceof PointsGeometry ||
-                this.geometry instanceof LineGeometry
-            ) {
-                this.attributes = this.geometry.attributes;
-                this.indexes = this.geometry.indexes;
-            } else {
-                console.error("Wrong Geometry type");
-            }
-        }
-        for (const attr in this.attributes) {
-            this.attrObjs[attr] = webGlAttrMapper(ctx, this.program, attr, this.attributes[attr]);
-            this.applyAttributeToVao(attr, this.attrObjs[attr]);
-        }
-        if (this.indexes) {
-            this.indexesObj = webGlIndexMapper(ctx, this.program, this.indexes);
-        }
-    }
-    RenderWebglShader.prototype = new ShaderNodePrototype();
-    RenderWebglShader.prototype.constructor = RenderWebglShader;
-    RenderWebglShader.prototype.applyAttributeToVao = function (attr, d) {
-        this.ctx.bindVertexArray(this.vao);
-        if (attr === "a_transformMatrix") {
-            this.ctx.enableVertexAttribArray(d.attributeLocation + 0);
-            this.ctx.enableVertexAttribArray(d.attributeLocation + 1);
-            this.ctx.enableVertexAttribArray(d.attributeLocation + 2);
-            this.ctx.bindBuffer(d.bufferType, d.buffer);
-            this.ctx.bufferData(d.bufferType, d.value, d.drawType);
-            this.ctx.vertexAttribPointer(
-                d.attributeLocation + 0,
-                d.size,
-                d.valueType,
-                false,
-                d.size * 4 * 3,
-                3 * 4 * 0
-            );
-            this.ctx.vertexAttribPointer(
-                d.attributeLocation + 1,
-                d.size,
-                d.valueType,
-                false,
-                d.size * 4 * 3,
-                3 * 4 * 1
-            );
-            this.ctx.vertexAttribPointer(
-                d.attributeLocation + 2,
-                d.size,
-                d.valueType,
-                false,
-                d.size * 4 * 3,
-                3 * 4 * 2
-            );
-        } else {
-            this.ctx.enableVertexAttribArray(d.attributeLocation);
-            this.ctx.bindBuffer(d.bufferType, d.buffer);
-            this.ctx.bufferData(d.bufferType, d.value, d.drawType);
-            this.ctx.vertexAttribPointer(d.attributeLocation, d.size, d.valueType, false, 0, 0);
-        }
-    };
-    RenderWebglShader.prototype.useProgram = function () {
-        this.ctx.useProgram(this.program);
-    };
-    RenderWebglShader.prototype.applyUniforms = function () {
-        for (const uniform in this.uniforms) {
-            if (this.uniforms[uniform].matrix) {
-                this.ctx[this.uniforms[uniform].type](
-                    this.uniforms[uniform].uniformLocation,
-                    this.uniforms[uniform].transpose,
-                    this.uniforms[uniform].value
-                );
-            } else {
-                if (this.uniforms[uniform].value instanceof TextureObject) {
-                    this.ctx[this.uniforms[uniform].type](
-                        this.uniforms[uniform].uniformLocation,
-                        this.uniforms[uniform].value.texture
-                    );
-                    this.uniforms[uniform].value.loadTexture();
-                } else {
-                    this.ctx[this.uniforms[uniform].type](
-                        this.uniforms[uniform].uniformLocation,
-                        this.uniforms[uniform].value
-                    );
-                }
-            }
-        }
-    };
-    RenderWebglShader.prototype.applyIndexes = function () {
-        const d = this.indexesObj;
-        this.ctx.bindBuffer(d.bufferType, d.buffer);
-        this.ctx.bufferData(d.bufferType, d.value, d.drawType);
-    };
-    RenderWebglShader.prototype.draw = function () {
-        this.ctx.drawArrays(
-            this.ctx[this.geometry.drawType],
-            this.geometry.drawRange[0],
-            this.geometry.drawRange[1]
-        );
-    };
-    RenderWebglShader.prototype.drawElements = function () {
-        this.ctx.drawElements(
-            this.ctx[this.geometry.drawType],
-            this.indexesObj.count,
-            this.indexesObj.type ? this.indexesObj.type : this.ctx.UNSIGNED_SHORT,
-            this.indexesObj.offset
-        );
-    };
-    RenderWebglShader.prototype.updateBBox = function () {
-        return true;
-    };
-    RenderWebglShader.prototype.execute = function () {
-        this.ctx.useProgram(this.program);
-        this.applyUniforms();
-        this.ctx.bindVertexArray(this.vao);
-        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
-            this.renderTarget.update();
-        }
-        if (this.indexesObj) {
-            this.applyIndexes();
-            this.drawElements();
-        } else {
-            this.draw();
-        }
-        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
-            this.renderTarget.clear();
-        }
-        this.ctx.bindVertexArray(null);
-    };
-    RenderWebglShader.prototype.addUniform = function (key, value) {
-        this.uniforms[key] = webGlUniformMapper(this.ctx, this.program, key, value);
-        queueInstance.vDomChanged(this.vDomIndex);
-    };
-    RenderWebglShader.prototype.addAttribute = function (key, obj) {
-        this.attributes[key] = obj;
-        this.attrObjs[key] = webGlAttrMapper(this.ctx, this.program, key, obj);
-        this.applyAttributeToVao(key, this.attrObjs[key]);
-        queueInstance.vDomChanged(this.vDomIndex);
-    };
-    RenderWebglShader.prototype.setAttributeData = function (key, value) {
-        const attrObj = this.attrObjs[key];
-        this.attributes[key].value = value;
-        this.attrObjs[key].value = value;
-        this.ctx.bindBuffer(attrObj.bufferType, attrObj.buffer);
-        this.ctx.bufferData(attrObj.bufferType, attrObj.value, attrObj.drawType);
-        queueInstance.vDomChanged(this.vDomIndex);
-    };
-    RenderWebglShader.prototype.applyAttributeData = function (key, value) {
-        this.attributes[key].value = value;
-        this.attrObjs[key].value = value;
-        const d = this.attrObjs[key];
-        this.ctx.bindBuffer(d.bufferType, d.buffer);
-        this.ctx.bufferData(d.bufferType, this.attributes[d.attr].value, d.drawType);
-        this.ctx.enableVertexAttribArray(d.attributeLocation);
-        this.ctx.vertexAttribPointer(d.attributeLocation, d.size, d.valueType, false, 0, 0);
-    };
-    RenderWebglShader.prototype.setUniformData = function (key, value) {
-        this.uniforms[key].value = value;
-        queueInstance.vDomChanged(this.vDomIndex);
-    };
-    RenderWebglShader.prototype.applyUniformData = function (uniform, value) {
-        this.uniforms[uniform].value = value;
-        if (this.uniforms[uniform].matrix) {
-            this.ctx[this.uniforms[uniform].type](
-                this.uniforms[uniform].uniformLocation,
-                this.uniforms[uniform].transpose,
-                this.uniforms[uniform].value
-            );
-        } else {
-            this.ctx[this.uniforms[uniform].type](
-                this.uniforms[uniform].uniformLocation,
-                this.uniforms[uniform].value
-            );
-        }
-    };
-    function ShaderNodePrototype() {}
-    ShaderNodePrototype.prototype.setAttr = function (attr, value) {
-        this.attr[attr] = value;
-        if (attr === "transform") {
-            const { translateX, translateY, scaleX, scaleY } = parseTransform(this.attr.transform);
-            this.selftransform = new Float32Array([translateX, translateY, scaleX, scaleY]);
-        }
-    };
-    ShaderNodePrototype.prototype.translate = function (trans) {
-        this.attr.transform.translate = trans;
-    };
-    ShaderNodePrototype.prototype.scale = function (scale) {
-        this.attr.transform.scale = scale;
-    };
-    ShaderNodePrototype.prototype.rotate = function (angle) {
-        this.attr.transform.rotate = angle;
-    };
-    function addTransform(self, index, length, transform) {
-        self.transform =
-            self.transformTyped && self.transformTyped.length > 0
-                ? Array.from(self.transformTyped)
-                : self.transform;
-        self.transformTyped = null;
-        const len = index * length * 9;
-        let i = 0;
-        while (i < length) {
-            self.transform[len + i * 9] = transform[0];
-            self.transform[len + i * 9 + 1] = transform[1];
-            self.transform[len + i * 9 + 2] = transform[2];
-            self.transform[len + i * 9 + 3] = transform[3];
-            self.transform[len + i * 9 + 4] = transform[4];
-            self.transform[len + i * 9 + 5] = transform[5];
-            self.transform[len + i * 9 + 6] = transform[6];
-            self.transform[len + i * 9 + 7] = transform[7];
-            self.transform[len + i * 9 + 8] = transform[8];
-            i++;
-        }
-        self.addTransform_ = true;
-        self.transformUpdate = true;
-    }
-    function updateTransform(self, index, length, transform) {
-        const transform_ = self.addTransform_ ? self.transform : self.transformTyped;
-        const len = index * length * 9;
-        let i = 0;
-        while (i < length) {
-            transform_[len + i * 9] = transform[0];
-            transform_[len + i * 9 + 1] = transform[1];
-            transform_[len + i * 9 + 2] = transform[2];
-            transform_[len + i * 9 + 3] = transform[3];
-            transform_[len + i * 9 + 4] = transform[4];
-            transform_[len + i * 9 + 5] = transform[5];
-            transform_[len + i * 9 + 6] = transform[6];
-            transform_[len + i * 9 + 7] = transform[7];
-            transform_[len + i * 9 + 8] = transform[8];
-            i++;
-        }
-        self.updateTransform_ = true;
-    }
-    function clearTransform(self, index, length) {
-        const transform_ = self.addTransform_ ? self.transform : self.transformTyped;
-        const len = index * length * 9;
-        let i = 0;
-        while (i < length) {
-            transform_[len + i * 9] = undefined;
-            transform_[len + i * 9 + 1] = undefined;
-            transform_[len + i * 9 + 2] = undefined;
-            transform_[len + i * 9 + 3] = undefined;
-            transform_[len + i * 9 + 4] = undefined;
-            transform_[len + i * 9 + 5] = undefined;
-            transform_[len + i * 9 + 6] = undefined;
-            transform_[len + i * 9 + 7] = undefined;
-            transform_[len + i * 9 + 8] = undefined;
-            i++;
-        }
-        self.clearTransform_ = true;
-        self.filterTransformUpdate = true;
-    }
-    function transformExec(self) {
-        if (self.addTransform_) {
-            if (self.clearTransform_) {
-                self.transform = self.transform.filter(function (d) {
-                    return !isNaN(d);
-                });
-                self.clearTransform_ = false;
-            }
-            self.transformTyped = new Float32Array(self.transform);
-            self.transform = [];
-            self.addTransform_ = false;
-            self.updateTransform_ = false;
-            self.shaderInstance.setAttributeData("a_transformMatrix", self.transformTyped);
-        }
-        if (self.clearTransform_) {
-            self.transformTyped = self.transformTyped.filter(function (d) {
-                return !isNaN(d);
-            });
-            self.clearTransform_ = false;
-            self.shaderInstance.setAttributeData("a_transformMatrix", self.transformTyped);
-        }
-        if (self.updateTransform_) {
-            self.shaderInstance.setAttributeData("a_transformMatrix", self.transformTyped);
-            self.updateTransform_ = false;
-        }
-    }
-    function addVertex(self, index, length, ver) {
-        self.positionArray =
-            self.typedPositionArray && self.typedPositionArray.length > 0
-                ? Array.from(self.typedPositionArray)
-                : self.positionArray;
-        self.typedPositionArray = null;
-        const b = index * length * 2;
-        let i = 0;
-        while (i < ver.length) {
-            self.positionArray[b + i] = ver[i];
-            i++;
-        }
-        self.addVertex_ = true;
-    }
-    function updateVertex(self, index, length, ver) {
-        const positionArray = self.addVertex_ ? self.positionArray : self.typedPositionArray;
-        const b = index * length * 2;
-        let i = 0;
-        if (isNaN(positionArray[b])) {
-            console.log("overriding Nan");
-        }
-        while (i < ver.length) {
-            positionArray[b + i] = ver[i];
-            i++;
-        }
-        self.updateVertex_ = true;
-    }
-    function clearVertex(self, index, length) {
-        const positionArray = self.addVertex_ ? self.positionArray : self.typedPositionArray;
-        const b = index * length * 2;
-        let i = 0;
-        while (i < length) {
-            positionArray[b + i * 2] = undefined;
-            positionArray[b + i * 2 + 1] = undefined;
-            i++;
-        }
-        self.filterVertex_ = true;
-    }
-    function vertexExec(self) {
-        if (self.addVertex_) {
-            if (self.filterVertex_) {
-                self.positionArray = self.positionArray.filter(function (d) {
-                    return !isNaN(d);
-                });
-                self.filterVertex_ = false;
-            }
-            self.typedPositionArray = new Float32Array(self.positionArray);
-            self.positionArray = [];
-            self.addVertex_ = false;
-            self.updateVertex_ = false;
-            self.shaderInstance.setAttributeData("a_position", self.typedPositionArray);
-        }
-        if (self.filterVertex_) {
-            self.typedPositionArray = self.typedPositionArray.filter(function (d) {
-                return !isNaN(d);
-            });
-            self.filterVertex_ = false;
-            self.shaderInstance.setAttributeData("a_position", self.typedPositionArray);
-        }
-        if (self.updateVertex_) {
-            self.shaderInstance.setAttributeData("a_position", self.typedPositionArray);
-            self.updateVertex_ = false;
-        }
-    }
-    function addColors(self, index, length, fill) {
-        self.colorArray =
-            self.typedColorArray && self.typedColorArray.length > 0
-                ? Array.from(self.typedColorArray)
-                : self.colorArray;
-        self.typedColorArray = null;
-        const b = index * length * 4;
-        let i = 0;
-        fill = colorMap$1.colorToRGB(fill);
-        while (i < length) {
-            self.colorArray[b + i * 4] = fill.r / 255;
-            self.colorArray[b + i * 4 + 1] = fill.g / 255;
-            self.colorArray[b + i * 4 + 2] = fill.b / 255;
-            self.colorArray[b + i * 4 + 3] = fill.a === undefined ? 1 : fill.a / 255;
-            i++;
-        }
-        self.addColor_ = true;
-    }
-    function updateColor(self, index, length, fill) {
-        const colorArray = self.addColor_ ? self.colorArray : self.typedColorArray;
-        const ti = index * length * 4;
-        if (isNaN(colorArray[ti])) {
-            console.log("overriding Nan");
-        }
-        const b = index * length * 4;
-        let i = 0;
-        while (i < length) {
-            colorArray[b + i * 4] = fill.r / 255;
-            colorArray[b + i * 4 + 1] = fill.g / 255;
-            colorArray[b + i * 4 + 2] = fill.b / 255;
-            colorArray[b + i * 4 + 3] = fill.a === undefined ? 1 : fill.a / 255;
-            i++;
-        }
-        self.updateColor_ = true;
-    }
-    function clearColor(self, index, length) {
-        const colorArray = self.addColor_ ? self.colorArray : self.typedColorArray;
-        const ti = index * length * 4;
-        if (isNaN(colorArray[ti])) {
-            console.log("overriding Nan");
-        }
-        const b = index * length * 4;
-        let i = 0;
-        while (i < length) {
-            colorArray[b + i * 4] = undefined;
-            colorArray[b + i * 4 + 1] = undefined;
-            colorArray[b + i * 4 + 2] = undefined;
-            colorArray[b + i * 4 + 3] = undefined;
-            i++;
-        }
-        self.filterColor_ = true;
-    }
-    function colorExec(self) {
-        if (self.addColor_) {
-            if (self.filterColor_) {
-                self.colorArray = self.colorArray.filter(function (d) {
-                    return !isNaN(d);
-                });
-                self.filterColor_ = false;
-            }
-            self.typedColorArray = new Float32Array(self.colorArray);
-            self.colorArray = [];
-            self.addColor_ = false;
-            self.updateColor_ = false;
-            self.shaderInstance.setAttributeData("a_color", self.typedColorArray);
-        }
-        if (self.filterColor_) {
-            self.typedColorArray = self.typedColorArray.filter(function (d) {
-                return !isNaN(d);
-            });
-            self.shaderInstance.setAttributeData("a_color", self.typedColorArray);
-            self.filterColor_ = false;
-        }
-        if (self.updateColor_) {
-            self.shaderInstance.setAttributeData("a_color", self.typedColorArray);
-            self.updateColor_ = false;
-        }
-    }
-    function RenderWebglPoints(ctx, attr, style, vDomIndex) {
-        this.ctx = ctx;
-        this.dom = {};
-        this.attr = attr || {};
-        this.style = style || {};
-        this.vDomIndex = vDomIndex;
-        this.indexBased = true;
-        this.transform = [];
-        this.selftransform = [0, 0, 1, 1];
-        if (!this.attr.transform) {
-            this.attr.transform = {
-                translate: [0.0, 0.0],
-                scale: [1.0, 1.0],
-            };
-        }
-        this.geometry = new PointsGeometry();
-        this.geometry.setAttr("a_color", {
-            value: new Float32Array([]),
-            size: 4,
-        });
-        this.geometry.setAttr("a_size", {
-            value: new Float32Array([]),
-            size: 1,
-        });
-        this.geometry.setAttr("a_position", {
-            value: new Float32Array([]),
-            size: 2,
-        });
-        this.geometry.setAttr("a_transformMatrix", {
-            value: new Float32Array(this.transform),
-            size: 3,
-        });
-        this.shaderInstance = new RenderWebglShader(
-            ctx,
-            {
-                fragmentShader: shaders("point").fragmentShader,
-                vertexShader: shaders("point").vertexShader,
-                uniforms: {},
-                geometry: this.geometry,
-            },
-            vDomIndex
-        );
-        this.positionArray = [];
-        this.colorArray = [];
-        this.pointsSize = [];
-        this.transform = [];
-        this.vertexUpdate = true;
-        this.colorUpdate = true;
-        this.sizeUpdate = true;
-        this.transformUpdate = true;
-    }
-    RenderWebglPoints.prototype = new ShaderNodePrototype();
-    RenderWebglPoints.prototype.constructor = RenderWebglPoints;
-    RenderWebglPoints.prototype.clear = function (index) {
-        clearColor(this, index, 1);
-        clearVertex(this, index, 1);
-        clearTransform(this, index, 1);
-        const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
-        sizeArray[index] = undefined;
-        this.filterSizeFlag = true;
-    };
-    RenderWebglPoints.prototype.addTransform = function (transform, index) {
-        addTransform(this, index, 1, transform);
-    };
-    RenderWebglPoints.prototype.updateTransform = function (index, transform) {
-        updateTransform(this, index, 1, transform);
-    };
-    RenderWebglPoints.prototype.updateVertex = function (index, x, y) {
-        updateVertex(this, index, 1, [x, y]);
-    };
-    RenderWebglPoints.prototype.updateSize = function (index, size) {
-        const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
-        sizeArray[index] = size;
-    };
-    RenderWebglPoints.prototype.updateColor = function (index, fill) {
-        updateColor(this, index, 1, fill);
-    };
-    RenderWebglPoints.prototype.addVertex = function (x, y, index) {
-        addVertex(this, index, 1, [x, y]);
-    };
-    RenderWebglPoints.prototype.addSize = function (size, index) {
-        this.pointsSize =
-            this.typedSizeArray && this.typedSizeArray.length > 0
-                ? Array.from(this.typedSizeArray)
-                : this.pointsSize;
-        this.pointsSize[index] = size;
-        this.sizeUpdate = true;
-    };
-    RenderWebglPoints.prototype.addColors = function (fill, index) {
-        addColors(this, index, 1, fill);
-    };
-    RenderWebglPoints.prototype.execute = function () {
-        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
-            this.renderTarget.update();
-        }
-        vertexExec(this);
-        colorExec(this);
-        transformExec(this);
-        if (this.sizeUpdate) {
-            if (this.filterSizeFlag) {
-                this.pointsSize = this.pointsSize.filter(function (d) {
-                    return !isNaN(d);
-                });
-                this.filterSizeFlag = false;
-            }
-            this.typedSizeArray = new Float32Array(this.pointsSize);
-            this.pointsSize = [];
-            this.sizeUpdate = false;
-        }
-        if (this.filterSizeFlag) {
-            this.typedSizeArray = this.typedSizeArray.filter(function (d) {
-                return !isNaN(d);
-            });
-            this.filterSizeFlag = false;
-        }
-        this.shaderInstance.setAttributeData("a_size", this.typedSizeArray);
-        this.geometry.setDrawRange(0, (this.typedPositionArray?.length ?? 0) / 2);
-        this.shaderInstance.execute();
-        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
-            this.renderTarget.update();
-        }
-    };
-    function RenderWebglRects(ctx, attr, style, renderTarget, vDomIndex) {
-        this.ctx = ctx;
-        this.dom = {};
-        this.positionArray = [];
-        this.colorArray = [];
-        this.transform = [];
-        this.rotate = [];
-        this.attr = attr || {};
-        this.style = style || {};
-        this.vDomIndex = vDomIndex;
-        this.renderTarget = renderTarget;
-        this.indexBased = true;
-        this.selftransform = [0, 0, 1, 1];
-        this.geometry = new MeshGeometry();
-        this.geometry.setAttr("a_transformMatrix", {
-            value: new Float32Array([]),
-            size: 3,
-        });
-        this.geometry.setAttr("a_color", {
-            value: new Float32Array(this.colorArray),
-            size: 4,
-        });
-        this.geometry.setAttr("a_position", {
-            value: new Float32Array(this.positionArray),
-            size: 2,
-        });
-        this.geometry.setDrawRange(0, (this.positionArray?.length??0) / 2);
-        this.shaderInstance = new RenderWebglShader(
-            ctx,
-            {
-                fragmentShader: shaders("rect").fragmentShader,
-                vertexShader: shaders("rect").vertexShader,
-                uniforms: {},
-                geometry: this.geometry,
-            },
-            vDomIndex
-        );
-    }
-    RenderWebglRects.prototype = new ShaderNodePrototype();
-    RenderWebglRects.prototype.constructor = RenderWebglRects;
-    RenderWebglRects.prototype.clear = function (index) {
-        clearColor(this, index, 6);
-        clearVertex(this, index, 6);
-        clearTransform(this, index, 6);
-    };
-    RenderWebglRects.prototype.updateVertex = function (index, x, y, width, height) {
-        const x1 = x + width;
-        const y1 = y + height;
-        updateVertex(this, index, 6, [x, y, x1, y, x, y1, x, y1, x1, y, x1, y1]);
-    };
-    RenderWebglRects.prototype.updateTransform = function (index, transform) {
-        updateTransform(this, index, 6, transform);
-    };
-    RenderWebglRects.prototype.addTransform = function (transform, index) {
-        addTransform(this, index, 6, transform);
-    };
-    RenderWebglRects.prototype.updateColor = function (index, fill) {
-        updateColor(this, index, 6, fill);
-    };
-    RenderWebglRects.prototype.addVertex = function (x, y, width, height, index) {
-        const x1 = x + width;
-        const y1 = y + height;
-        addVertex(this, index, 6, [x, y, x1, y, x, y1, x, y1, x1, y, x1, y1]);
-    };
-    RenderWebglRects.prototype.addColors = function (fill, index) {
-        addColors(this, index, 6, fill);
-    };
-    RenderWebglRects.prototype.execute = function () {
-        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
-            this.renderTarget.update();
-        }
-        colorExec(this);
-        transformExec(this);
-        vertexExec(this);
-        this.geometry.setDrawRange(0, (this.typedPositionArray?.length??0) / 2);
-        this.shaderInstance.execute();
-        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
-            this.renderTarget.clear();
-        }
-    };
-    function RenderWebglLines(ctx, attr, style, renderTarget, vDomIndex) {
-        this.ctx = ctx;
-        this.dom = {};
-        this.attr = attr || {};
-        this.style = style || {};
-        this.vDomIndex = vDomIndex;
-        this.positionArray = [];
-        this.colorArray = [];
-        this.transform = [];
-        this.vertexUpdate = true;
-        this.colorUpdate = true;
-        this.renderTarget = renderTarget;
-        this.indexBased = true;
-        this.selftransform = new Float32Array([0, 0, 1, 1]);
-        this.geometry = new LineGeometry();
-        this.geometry.setAttr("a_color", {
-            value: new Float32Array(this.colorArray),
-            size: 4,
-        });
-        this.geometry.setAttr("a_position", {
-            value: new Float32Array(this.positionArray),
-            size: 2,
-        });
-        this.geometry.setAttr("a_transformMatrix", {
-            value: new Float32Array(this.transform),
-            size: 3,
-        });
-        this.geometry.setDrawRange(0, (this.positionArray?.length??0) / 2);
-        this.shaderInstance = new RenderWebglShader(
-            ctx,
-            {
-                fragmentShader: shaders("line").fragmentShader,
-                vertexShader: shaders("line").vertexShader,
-                uniforms: {},
-                geometry: this.geometry,
-            },
-            vDomIndex
-        );
-    }
-    RenderWebglLines.prototype = new ShaderNodePrototype();
-    RenderWebglLines.prototype.constructor = RenderWebglLines;
-    RenderWebglLines.prototype.clear = function (index) {
-        clearColor(this, index, 2);
-        clearVertex(this, index, 2);
-    };
-    RenderWebglLines.prototype.updateTransform = function (index, transform) {
-        updateTransform(this, index, 2, transform);
-    };
-    RenderWebglLines.prototype.addTransform = function (transform, index) {
-        addTransform(this, index, 2, transform);
-    };
-    RenderWebglLines.prototype.updateVertex = function (index, x1, y1, x2, y2) {
-        updateVertex(this, index, 2, [x1, y1, x2, y2]);
-    };
-    RenderWebglLines.prototype.updateColor = function (index, stroke) {
-        updateColor(this, index, 2, stroke);
-    };
-    RenderWebglLines.prototype.addVertex = function (x1, y1, x2, y2, index) {
-        addVertex(this, index, 2, [x1, y1, x2, y2]);
-    };
-    RenderWebglLines.prototype.addColors = function (stroke, index) {
-        addColors(this, index, 2, stroke);
-    };
-    RenderWebglLines.prototype.execute = function () {
-        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
-            this.renderTarget.update();
-        }
-        vertexExec(this);
-        colorExec(this);
-        transformExec(this);
-        this.geometry.setDrawRange(0, (this.typedPositionArray?.length??0) / 2);
-        this.shaderInstance.execute();
-        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
-            this.renderTarget.clear();
-        }
-    };
-    function RenderWebglPolyLines(ctx, attr, style, renderTarget, vDomIndex) {
-        this.ctx = ctx;
-        this.dom = {};
-        this.attr = attr || {};
-        this.style = style || {};
-        this.vDomIndex = vDomIndex;
-        this.positionArray = [];
-        this.colorArray = [];
-        this.renderTarget = renderTarget;
-        this.indexBased = false;
-        this.geometry = new LineGeometry();
-        this.geometry.drawType = "LINE_STRIP";
-        this.geometry.setAttr("a_position", {
-            value: new Float32Array(this.positionArray),
-            size: 2,
-        });
-        this.geometry.setDrawRange(0, (this.positionArray?.length??0) / 2);
-        this.shaderInstance = new RenderWebglShader(
-            ctx,
-            {
-                fragmentShader: shaders("polyline").fragmentShader,
-                vertexShader: shaders("polyline").vertexShader,
-                uniforms: {
-                    u_transformMatrix: {
-                        value: new Float32Array(m3.identity()),
-                        matrix: true,
-                    },
-                    u_color: {
-                        value: new Float32Array(4),
-                    },
-                },
-                geometry: this.geometry,
-            },
-            vDomIndex
-        );
-    }
-    RenderWebglPolyLines.prototype = new ShaderNodePrototype();
-    RenderWebglPolyLines.prototype.constructor = RenderWebglPolyLines;
-    RenderWebglPolyLines.prototype.execute = function (stack) {
-        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
-            this.renderTarget.update();
-        }
-        for (let i = 0, len = stack.length; i < len; i++) {
-            this.shaderInstance.setUniformData("u_transformMatrix", stack[i].dom.transformMatrix);
-            this.shaderInstance.setAttributeData("a_position", stack[i].dom.points);
-            this.shaderInstance.setUniformData("u_color", stack[i].dom.color);
-            this.geometry.setDrawRange(0, stack[i].dom.points.length / 2);
-            this.shaderInstance.execute();
-        }
-        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
-            this.renderTarget.clear();
-        }
-    };
-    function RenderWebglPolygons(ctx, attr, style, renderTarget, vDomIndex) {
-        this.ctx = ctx;
-        this.dom = {};
-        this.attr = attr || {};
-        this.style = style || {};
-        this.vDomIndex = vDomIndex;
-        this.colorArray = [];
-        this.positionArray = [];
-        this.renderTarget = renderTarget;
-        this.indexBased = false;
-        this.geometry = new MeshGeometry();
-        this.geometry.setAttr("a_position", {
-            value: new Float32Array([]),
-            size: 2,
-        });
-        this.shaderInstance = new RenderWebglShader(
-            ctx,
-            {
-                fragmentShader: shaders("polygon").fragmentShader,
-                vertexShader: shaders("polygon").vertexShader,
-                uniforms: {
-                    u_transformMatrix: {
-                        value: new Float32Array(m3.identity()),
-                        matrix: true,
-                    },
-                    u_color: {
-                        value: new Float32Array(4),
-                    },
-                },
-                geometry: this.geometry,
-            },
-            vDomIndex
-        );
-    }
-    RenderWebglPolygons.prototype = new ShaderNodePrototype();
-    RenderWebglPolygons.prototype.constructor = RenderWebglPolygons;
-    RenderWebglPolygons.prototype.execute = function (stack) {
-        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
-            this.renderTarget.update();
-        }
-        this.shaderInstance.useProgram();
-        for (let i = 0, len = stack.length; i < len; i++) {
-            this.shaderInstance.setUniformData("u_transformMatrix", stack[i].dom.transformMatrix);
-            this.shaderInstance.setAttributeData("a_position", stack[i].dom.points);
-            this.shaderInstance.setUniformData("u_color", stack[i].dom.color);
-            this.geometry.setDrawRange(0, stack[i].dom.points.length / 2);
-            this.shaderInstance.execute();
-        }
-        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
-            this.renderTarget.clear();
-        }
-    };
-    function RenderWebglCircles(ctx, attr, style, renderTarget, vDomIndex) {
-        this.ctx = ctx;
-        this.dom = {};
-        this.attr = attr || {};
-        this.style = style || {};
-        this.vDomIndex = vDomIndex;
-        this.positionArray = [];
-        this.colorArray = [];
-        this.transform = [];
-        this.pointsSize = [];
-        this.renderTarget = renderTarget;
-        this.indexBased = true;
-        this.geometry = new PointsGeometry();
-        this.geometry.setAttr("a_transformMatrix", {
-            value: new Float32Array(this.transform),
-            size: 3,
-        });
-        this.geometry.setAttr("a_color", {
-            value: new Float32Array(this.colorArray),
-            size: 4,
-        });
-        this.geometry.setAttr("a_radius", {
-            value: new Float32Array(this.pointsSize),
-            size: 1,
-        });
-        this.geometry.setAttr("a_position", {
-            value: new Float32Array(this.positionArray),
-            size: 2,
-        });
-        this.geometry.setDrawRange(0, 0);
-        this.shaderInstance = new RenderWebglShader(
-            ctx,
-            {
-                fragmentShader: shaders("circle").fragmentShader,
-                vertexShader: shaders("circle").vertexShader,
-                uniforms: {},
-                geometry: this.geometry,
-            },
-            vDomIndex
-        );
-    }
-    RenderWebglCircles.prototype = new ShaderNodePrototype();
-    RenderWebglCircles.prototype.constructor = RenderWebglCircles;
-    RenderWebglCircles.prototype.clear = function (index) {
-        clearColor(this, index, 1);
-        clearVertex(this, index, 1);
-        clearTransform(this, index, 1);
-        const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
-        sizeArray[index] = undefined;
-        this.filterSizeFlag = true;
-    };
-    RenderWebglCircles.prototype.updateTransform = function (index, transform) {
-        updateTransform(this, index, 1, transform);
-    };
-    RenderWebglCircles.prototype.addTransform = function (transform, index) {
-        addTransform(this, index, 1, transform);
-    };
-    RenderWebglCircles.prototype.updateVertex = function (index, x, y) {
-        updateVertex(this, index, 1, [x, y]);
-    };
-    RenderWebglCircles.prototype.updateColor = function (index, fill) {
-        updateColor(this, index, 1, fill);
-    };
-    RenderWebglCircles.prototype.updateSize = function (index, value) {
-        const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
-        sizeArray[index] = value;
-    };
-    RenderWebglCircles.prototype.addVertex = function (x, y, index) {
-        addVertex(this, index, 1, [x, y]);
-    };
-    RenderWebglCircles.prototype.addSize = function (size, index) {
-        this.pointsSize =
-            this.typedSizeArray && this.typedSizeArray.length > 0
-                ? Array.from(this.typedSizeArray)
-                : this.pointsSize;
-        this.pointsSize[index] = size;
-        this.sizeUpdate = true;
-    };
-    RenderWebglCircles.prototype.addColors = function (fill, index) {
-        addColors(this, index, 1, fill);
-    };
-    RenderWebglCircles.prototype.execute = function () {
-        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
-            this.renderTarget.update();
-        }
-        vertexExec(this);
-        colorExec(this);
-        transformExec(this);
-        if (this.sizeUpdate) {
-            if (this.filterSizeFlag) {
-                this.pointsSize = this.pointsSize.filter(function (d) {
-                    return !isNaN(d);
-                });
-                this.filterSizeFlag = false;
-            }
-            this.typedSizeArray = new Float32Array(this.pointsSize);
-            this.pointsSize = [];
-            this.sizeUpdate = false;
-        }
-        if (this.filterSizeFlag) {
-            this.typedSizeArray = this.typedSizeArray.filter(function (d) {
-                return !isNaN(d);
-            });
-            this.filterSizeFlag = false;
-        }
-        this.shaderInstance.setAttributeData("a_radius", this.typedSizeArray);
-        this.geometry.setDrawRange(0, (this.typedPositionArray?.length??0) / 2);
-        this.shaderInstance.execute();
-        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
-            this.renderTarget.clear();
-        }
-    };
-    function RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex) {
-        this.ctx = ctx;
-        this.dom = {};
-        this.attr = attr || {};
-        this.style = style || {};
-        this.vDomIndex = vDomIndex;
-        this.textCoor = new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]);
-        this.renderTarget = renderTarget;
-        this.indexBased = false;
-        this.geometry = new MeshGeometry();
-        this.geometry.setAttr("a_texCoord", {
-            value: this.textCoor,
-            size: 2,
-        });
-        this.geometry.setAttr("a_position", {
-            value: new Float32Array([0, 0]),
-            size: 2,
-        });
-        this.geometry.setDrawRange(0, 6);
-        this.shaderInstance = new RenderWebglShader(
-            ctx,
-            {
-                fragmentShader: shaders("image").fragmentShader.trim(),
-                vertexShader: shaders("image").vertexShader.trim(),
-                uniforms: {
-                    u_transformMatrix: {
-                        value: new Float32Array(m3.identity()),
-                        matrix: true,
-                    },
-                    u_image: {
-                        value: new TextureObject(this.ctx, {}, this.vDomIndex),
-                    },
-                    u_opacity: {
-                        value: (1.0).toFixed(2),
-                    },
-                },
-                geometry: this.geometry,
-            },
-            vDomIndex
-        );
-        this.positionArray = [];
-        this.vertexUpdate = true;
-    }
-    RenderWebglImages.prototype = new ShaderNodePrototype();
-    RenderWebglImages.prototype.constructor = RenderWebglImages;
-    RenderWebglImages.prototype.execute = function (stack) {
-        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
-            this.renderTarget.update();
-        }
-        this.shaderInstance.useProgram();
-        this.shaderInstance.applyAttributeData("a_texCoord", this.textCoor);
-        const gOp = this.style.opacity !== undefined ? this.style.opacity : 1.0;
-        let prevTexture;
-        for (let i = 0, len = stack.length; i < len; i++) {
-            const node = stack[i];
-            if (!node.dom.textureNode || !node.dom.textureNode.updated) {
-                continue;
-            }
-            if (node.style.display === "none") {
-                continue;
-            }
-            this.shaderInstance.applyUniformData("u_transformMatrix", node.dom.transformMatrix);
-            if (node.dom.textureNode !== prevTexture) {
-                node.dom.textureNode.loadTexture();
-                prevTexture = node.dom.textureNode;
-                this.shaderInstance.applyUniformData("u_image", node.dom.textureNode);
-            }
-            this.shaderInstance.applyAttributeData("a_position", node.dom.positionArray);
-            this.shaderInstance.applyUniformData(
-                "u_opacity",
-                ((node.style.opacity !== undefined ? node.style.opacity : 1.0) * gOp).toFixed(2)
-            );
-            this.shaderInstance.draw();
-        }
-        if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
-            this.renderTarget.clear();
-        }
-    };
-    function getTypeShader(ctx, attr, style, type, renderTarget, vDomIndex) {
-        let e;
-        switch (type) {
-            case "rect":
-                e = new RenderWebglRects(ctx, attr, style, renderTarget, vDomIndex);
-                break;
-            case "point":
-                e = new RenderWebglPoints(ctx, attr, style, renderTarget);
-                break;
-            case "line":
-                e = new RenderWebglLines(ctx, attr, style, renderTarget, vDomIndex);
-                break;
-            case "polyline":
-                e = new RenderWebglPolyLines(ctx, attr, style, renderTarget, vDomIndex);
-                break;
-            case "path":
-                e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
-                break;
-            case "polygon":
-                e = new RenderWebglPolygons(ctx, attr, style, renderTarget, vDomIndex);
-                break;
-            case "circle":
-                e = new RenderWebglCircles(ctx, attr, style, renderTarget, vDomIndex);
-                break;
-            case "image":
-                e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
-                break;
-            case "text":
-                e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
-                break;
-            default:
-                e = null;
-                break;
-        }
-        return e;
-    }
-    function WebglNodeExe(ctx, config, id, vDomIndex) {
-        this.ctx = ctx;
-        this.id = id;
-        this.nodeName = config.el;
-        this.nodeType = "WEBGL";
-        this.children = [];
-        this.ctx = ctx;
-        this.vDomIndex = vDomIndex;
-        this.el = config.el;
-        this.shaderType = config.shaderType;
-        this.exeCtx = config.ctx;
-        this.bbox = config.bbox !== undefined ? config.bbox : true;
-        this.events = {};
-        this.style = prepObjProxyWebGl('style', config.style || {}, this, true);
-        this.attr = prepObjProxyWebGl('attr', config.attr || {}, this, true);
-        switch (config.el) {
-            case "point":
-                this.dom = new PointNode(this.ctx, this.attr, this.style);
-                break;
-            case "rect":
-                this.dom = new RectNode(this.ctx, this.attr, this.style);
-                break;
-            case "line":
-                this.dom = new LineNode(this.ctx, this.attr, this.style);
-                break;
-            case "polyline":
-                this.dom = new PolyLineNode(this.ctx, this.attr, this.style);
-                break;
-            case "polygon":
-                this.dom = new PolygonNode(this.ctx, this.attr, this.style);
-                break;
-            case "path":
-                this.dom = new PathNode(this.ctx, this.attr, this.style);
-                break;
-            case "circle":
-                this.dom = new CircleNode(this.ctx, this.attr, this.style);
-                break;
-            case "image":
-                this.dom = new ImageNode(this.ctx, this.attr, this.style, vDomIndex);
-                break;
-            case "text":
-                this.dom = new TextNode(this.ctx, this.attr, this.style, vDomIndex);
-                break;
-            case "group":
-                this.dom = new WebglGroupNode(
-                    this.ctx,
-                    this.attr,
-                    this.style,
-                    config.renderTarget,
-                    vDomIndex
-                );
-                break;
-            default:
-                this.dom = null;
-                break;
-        }
-        this.dom.nodeExe = this;
-        if (!(this.dom instanceof WebglGroupNode)) {
-            delete this.createEl;
-            delete this.createEls;
-        }
-    }
-    WebglNodeExe.prototype = new NodePrototype();
-    WebglNodeExe.prototype.reIndexChildren = function (shader) {
-        const childParent = shader || this;
-        let children = childParent.children;
-        children = children.filter(function (d) {
-            return d;
-        });
-        for (var i = 0, len = children.length; i < len; i++) {
-            children[i].dom.pindex = i;
-        }
-        childParent.children = children;
-    };
-    WebglNodeExe.prototype.applyTransformationMatrix = function (matrix) {
-        this.dom.applyTransformationMatrix(matrix);
-        this.children.forEach(function (d) {
-            d.applyTransformationMatrix(self.dom.transformMatrix);
-        });
-    };
-    WebglNodeExe.prototype.setAttr = function WsetAttr(attr, value) {
-        if (arguments.length === 2) {
-            this.attr[attr] = value;
-        } else if (arguments.length === 1 && typeof attr === "object") {
-            for (const key in attr) {
-                this.attr[key] = attr[key];
-            }
-        }
-        return this;
-    };
-    WebglNodeExe.prototype.scale = function Cscale(XY) {
-        if (!this.attr.transform) {
-            this.attr.transform = prepObjProxyWebGl('transform', {}, this, true);
-        }
-        this.attr.transform.scale = XY;
-        return this;
-    };
-    WebglNodeExe.prototype.translate = function Ctranslate(XY) {
-        if (!this.attr.transform) {
-            this.attr.transform = prepObjProxyWebGl('transform', {}, this, true);
-        }
-        this.attr.transform.translate = XY;
-        return this;
-    };
-    WebglNodeExe.prototype.rotate = function Crotate(angleXY) {
-        if (!this.attr.transform) {
-            this.attr.transform = prepObjProxyWebGl('transform', {}, this, true);
-        }
-        this.attr.transform.rotate = angleXY;
-        return this;
-    };
-    WebglNodeExe.prototype.setStyle = function WsetStyle(attr, value) {
-        if (arguments.length === 2) {
-            this.style[attr] = value;
-        } else if (arguments.length === 1 && typeof attr === "object") {
-            for (const key in attr) {
-                this.style[key] = attr[key];
-            }
-        }
-        return this;
-    };
-    WebglNodeExe.prototype.setReIndex = function () {
-        this.reindex = true;
-    };
-    WebglNodeExe.prototype.updateBBox = function CupdateBBox() {
-        let status;
-        if (this.bbox) {
-            for (let i = 0, len = this.children.length; i < len; i += 1) {
-                if (this.children[i]) {
-                    status = this.children[i].updateBBox() || status;
-                }
-            }
-            if (this.BBoxUpdate || status) {
-                this.dom.updateBBox(this.children);
-                this.BBoxUpdate = false;
-                return true;
-            }
-        }
-        return false;
-    };
-    WebglNodeExe.prototype.in = function Cinfun(co) {
-        return this.dom.in(co);
-    };
-    WebglNodeExe.prototype.on = function Con(eventType, hndlr) {
-        const self = this;
-        if (!this.events) {
-            this.events = {};
-        }
-        if (hndlr === null && this.events[eventType] !== null) {
-            delete this.events[eventType];
-        } else if (hndlr) {
-            if (typeof hndlr === "function") {
-                const hnd = hndlr.bind(self);
-                this.events[eventType] = function (event) {
-                    hnd(event);
-                };
-            } else if (typeof hndlr === "object") {
-                this.events[eventType] = hndlr;
-                if (
-                    hndlr.constructor === zoomInstance.constructor ||
-                    hndlr.constructor === dragInstance.constructor
-                ) {
-                    hndlr.bindMethods(this);
-                }
-            }
-        }
-        return this;
-    };
-    WebglNodeExe.prototype.execute = function Cexecute() {
-        if (this.style.display === "none") {
-            return;
-        }
-        if (!this.dom.shader && !this.dom.shaderGroup && this.dom instanceof WebglGroupNode) {
-            for (let i = 0, len = this.children.length; i < len; i += 1) {
-                this.children[i].execute();
-            }
-        } else if (this.dom.shader && this.dom instanceof WebglGroupNode) {
-            if (this.reindex) {
-                this.reIndexChildren();
-                this.reindex = false;
-            }
-            if (this.exeCtx) {
-                this.exeCtx(this.ctx);
-            }
-            this.dom.shader.execute(this.children);
-        } else if (this.dom.shaderGroup && this.dom instanceof WebglGroupNode) {
-            if (this.exeCtx) {
-                this.exeCtx(this.ctx);
-            }
-            for (const key in this.dom.shaderGroup) {
-                const shad = this.dom.shaderGroup[key];
-                if (shad.reindex) {
-                    this.reIndexChildren(shad);
-                    shad.reindex = false;
-                }
-                shad.shader.execute(shad.children);
-            }
-        }
-    };
-    WebglNodeExe.prototype.child = function child(childrens) {
-        const self = this;
-        let node;
-        if (self.dom instanceof WebglGroupNode) {
-            for (let i = 0; i < childrens.length; i += 1) {
-                node = childrens[i];
-                node.dom.parent = self;
-                self.children[self.children.length] = node;
-                node.dom.pindex = self.children.length - 1;
-                node.vDomIndex = self.vDomIndex;
-                if (!(node instanceof RenderWebglShader) && !(node.dom instanceof WebglGroupNode)) {
-                    if (this.dom.shader) {
-                        if (node.el === this.dom.shader.attr.shaderType) {
-                            node.dom.setShader(this.dom.shader);
-                        } else {
-                            console.warn(
-                                "wrong el type '" +
-                                    node.el +
-                                    "' being added to shader group - '" +
-                                    this.dom.shader.attr.shaderType +
-                                    "'"
-                            );
-                            self.children.pop();
-                        }
-                    } else {
-                        if (!this.dom.shaderGroup) {
-                            this.dom.shaderGroup = {};
-                        }
-                        if (!this.dom.shaderGroup[node.el]) {
-                            this.dom.shaderGroup[node.el] = {
-                                children: [],
-                                shader: getTypeShader(
-                                    self.ctx,
-                                    self.attr,
-                                    self.style,
-                                    node.el,
-                                    self.renderTarget,
-                                    self.vDomIndex
-                                ),
-                            };
-                        }
-                        this.dom.shaderGroup[node.el].children[
-                            this.dom.shaderGroup[node.el].children.length
-                        ] = node;
-                        node.dom.pindex = this.dom.shaderGroup[node.el].children.length - 1;
-                        node.dom.setShader(this.dom.shaderGroup[node.el].shader);
-                    }
-                }
-                if (self.dom.attr && self.dom.attr.transform) {
-                    node.applyTransformationMatrix(self.dom.transformMatrix);
-                }
-            }
-        } else {
-            console.log("Error");
-        }
-        this.BBoxUpdate = true;
-        queueInstance.vDomChanged(this.vDomIndex);
-        return self;
-    };
-    WebglNodeExe.prototype.createEls = function CcreateEls(data, config) {
-        const e = new WebglCollection(
-            {
-                type: "WEBGL",
-                ctx: this.dom.ctx,
-            },
-            data,
-            config,
-            this.vDomIndex
-        );
-        this.child(e.stack);
-        queueInstance.vDomChanged(this.vDomIndex);
-        return e;
-    };
-    WebglNodeExe.prototype.createEl = function WcreateEl(config) {
-        const e = new WebglNodeExe(this.ctx, config, domId(), this.vDomIndex);
-        this.child([e]);
-        queueInstance.vDomChanged(this.vDomIndex);
-        return e;
-    };
-    WebglNodeExe.prototype.createShaderEl = function createShader(shaderObject) {
-        const e = new RenderWebglShader(this.ctx, shaderObject, this.vDomIndex);
-        this.child([e]);
-        queueInstance.vDomChanged(this.vDomIndex);
-        return e;
-    };
-    WebglNodeExe.prototype.remove = function Wremove() {
-        const { children } = this.dom.parent;
-        const index = children.indexOf(this);
-        if (index !== -1) {
-            if (this.dom.parent.dom.shader) {
-                if (this.dom.parent.dom.shader.indexBased) {
-                    this.dom.parent.dom.shader.clear(this.dom.pindex);
-                }
-                this.dom.parent.setReIndex();
-                children[this.dom.pindex] = undefined;
-            } else if (this.dom.parent.dom.shaderGroup) {
-                const shaderEl = this.dom.parent.dom.shaderGroup[this.el];
-                if (shaderEl) {
-                    const localIndex = shaderEl.children.indexOf(this);
-                    shaderEl.reindex = true;
-                    if (shaderEl.shader.indexBased) {
-                        shaderEl.shader.clear(this.dom.pindex);
-                        this.dom.parent.setReIndex();
-                    }
-                    shaderEl.children[localIndex] = undefined;
-                }
-                children[index] = undefined;
-            } else {
-                children.splice(index, 1);
-            }
-        }
-        this.BBoxUpdate = true;
-        queueInstance.vDomChanged(this.vDomIndex);
-    };
-    WebglNodeExe.prototype.animatePathTo = path.animatePathTo;
-    WebglNodeExe.prototype.morphTo = path.morphTo;
-    WebglNodeExe.prototype.removeChild = function WremoveChild(obj) {
-        let index = -1;
-        this.children.forEach((d, i) => {
-            if (d === obj) {
-                index = i;
-            }
-        });
-        if (index !== -1) {
-            const removedNode = this.children.splice(index, 1)[0];
-            this.dom.removeChild(removedNode.dom);
-        }
-        this.BBoxUpdate = true;
-        queueInstance.vDomChanged(this.vDomIndex);
-    };
-    function webglLayer(container, contextConfig = {}, layerSettings = {}) {
-        const res =
-            container instanceof HTMLElement
-                ? container
-                : typeof container === "string" || container instanceof String
-                ? document.querySelector(container)
-                : null;
-        let height = res ? res.clientHeight : 0;
-        let width = res ? res.clientWidth : 0;
-        let clearColor = colorMap$1.rgba(0, 0, 0, 0);
-        const { enableEvents = false, autoUpdate = true, enableResize = false } = layerSettings;
-        contextConfig = contextConfig || {
-            premultipliedAlpha: false,
-            depth: false,
-            antialias: false,
-            alpha: true,
-        };
-        contextConfig.premultipliedAlpha =
-            contextConfig.premultipliedAlpha === undefined ? false : contextConfig.premultipliedAlpha;
-        contextConfig.depth = contextConfig.depth === undefined ? false : contextConfig.depth;
-        contextConfig.antialias =
-            contextConfig.antialias === undefined ? false : contextConfig.antialias;
-        contextConfig.alpha = contextConfig.alpha === undefined ? true : contextConfig.alpha;
-        const layer = document.createElement("canvas");
-        const ctx = layer.getContext("webgl2", contextConfig);
-        const actualPixel = getPixlRatio(ctx);
-        ratio = actualPixel >= 2 ? 2 : Math.floor(actualPixel);
-        layer.setAttribute("height", height * ratio);
-        layer.setAttribute("width", width * ratio);
-        layer.style.height = `${height}px`;
-        layer.style.width = `${width}px`;
-        layer.style.position = "absolute";
-        let vDomInstance;
-        let vDomIndex = 999999;
-        let resizeCall;
-        let onChangeExe;
-        if (res) {
-            res.appendChild(layer);
-            vDomInstance = new VDom();
-            if (autoUpdate) {
-                vDomIndex = queueInstance.addVdom(vDomInstance);
-            }
-        }
-        const root = new WebglNodeExe(
-            ctx,
-            {
-                el: "group",
-                attr: {
-                    id: "rootNode",
-                },
-                ctx: function (ctx) {
-                    ctx.enable(ctx.BLEND);
-                    ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
-                    ctx.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
-                },
-            },
-            domId(),
-            vDomIndex
-        );
-        if (vDomInstance) {
-            vDomInstance.rootNode(root);
-        }
-        const execute = root.execute.bind(root);
-        root.container = res;
-        root.domEl = layer;
-        root.height = height;
-        root.width = width;
-        root.type = "WEBGL";
-        root.ctx.pixelRatio = ratio;
-        let onClear = function (ctx) {
-            ctx.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
-            ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT);
-        };
-        root.execute = function () {
-            onClear(this.ctx);
-            this.updateBBox();
-            this.ctx.enable(this.ctx.BLEND);
-            this.ctx.blendFunc(this.ctx.SRC_ALPHA, this.ctx.ONE_MINUS_SRC_ALPHA);
-            execute();
-        };
-        root.update = function () {
-            this.execute();
-        };
-        root.getPixels = function (x, y, width_, height_) {
-            const pixels = new Uint8Array(width_ * height_ * 4);
-            this.ctx.readPixels(x, y, width_, height_, this.ctx.RGBA, this.ctx.UNSIGNED_BYTE, pixels);
-            return pixels;
-        };
-        root.putPixels = function (imageData, x, y) {
-            return this.ctx.putImageData(imageData, x, y);
-        };
-        root.clear = function () {
-            onClear(this.ctx);
-        };
-        root.setClearColor = function (color) {
-            clearColor = color;
-        };
-        root.setClear = function (exe) {
-            onClear = exe;
-        };
-        const resize = function (cr) {
-            if (
-                (container instanceof HTMLElement && !document.body.contains(container)) ||
-                (container instanceof String && !document.querySelector(container))
-            ) {
-                layerResizeUnBind(root);
-                root.destroy();
-                return;
-            }
-            height = cr.height;
-            width = cr.width;
-            root.width = width;
-            root.height = height;
-            updateLayerDimension(root.domEl, width, height);
-            onClear(root.ctx);
-            if (resizeCall) {
-                resizeCall();
-            }
-            root.execute();
-            layer.style.height = `${height}px`;
-            layer.style.width = `${width}px`;
-        };
-        const updateLayerDimension = function (layer, width, height) {
-            layer.width = Math.floor(width * ratio);
-            layer.height = Math.floor(height * ratio);
-            layer.style.height = height + "px";
-            layer.style.width = width + "px";
-        };
-        root.onResize = function (exec) {
-            resizeCall = exec;
-        };
-        root.destroy = function () {
-            const res = document.body.contains(this.container);
-            if (res && this.container.contains(this.domEl)) {
-                this.container.removeChild(this.domEl);
-            }
-            queueInstance.removeVdom(vDomIndex);
-            layerResizeUnBind(root, resize);
-        };
-        root.onChange = function (exec) {
-            onChangeExe = exec;
-        };
-        root.invokeOnChange = function () {
-            if (onChangeExe) {
-                onChangeExe();
-            }
-        };
-        root.setPixelRatio = function (val) {
-            ratio = val;
-            this.ctx.pixelRatio = ratio;
-            updateLayerDimension(this.domEl, this.width, this.height);
-        };
-        root.setSize = function (width_, height_) {
-            this.width = width_;
-            this.height = height_;
-            height = height_;
-            width = width_;
-            updateLayerDimension(this.domEl, this.width, this.height);
-            this.execute();
-        };
-        root.setViewBox = function () {};
-        root.setStyle = function (prop, value) {
-            this.domEl.style[prop] = value;
-        };
-        root.setAttr = function (prop, value) {
-            if (prop === "viewBox") {
-                this.setViewBox.apply(this, value.split(","));
-            }
-            layer.setAttribute(prop, value);
-        };
-        root.setContext = function (prop, value) {
-            if (this.ctx[prop] && typeof this.ctx[prop] === "function") {
-                this.ctx[prop].apply(null, value);
-            } else if (this.ctx[prop]) {
-                this.ctx[prop] = value;
-            }
-        };
-        root.MeshGeometry = function () {
-            return new MeshGeometry(this.ctx);
-        };
-        root.PointsGeometry = function () {
-            return new PointsGeometry(this.ctx);
-        };
-        root.LineGeometry = function () {
-            return new LineGeometry(this.ctx);
-        };
-        root.createWebglTexture = function (config) {
-            return new TextureObject(this.ctx, config, this.vDomIndex);
-        };
-        root.RenderTarget = function (config) {
-            return new RenderTarget(this.ctx, config, this.vDomIndex);
-        };
-        if (enableEvents) {
-            const eventsInstance = new Events(root);
-            layer.addEventListener("mousemove", (e) => {
-                e.preventDefault();
-                eventsInstance.mousemoveCheck(e);
-            });
-            layer.addEventListener("mousedown", (e) => {
-                eventsInstance.mousedownCheck(e);
-            });
-            layer.addEventListener("mouseup", (e) => {
-                eventsInstance.mouseupCheck(e);
-            });
-            layer.addEventListener("mouseleave", (e) => {
-                eventsInstance.mouseleaveCheck(e);
-            });
-            layer.addEventListener("contextmenu", (e) => {
-                eventsInstance.contextmenuCheck(e);
-            });
-            layer.addEventListener("touchstart", (e) => {
-                eventsInstance.touchstartCheck(e);
-            });
-            layer.addEventListener("touchend", (e) => {
-                eventsInstance.touchendCheck(e);
-            });
-            layer.addEventListener("touchmove", (e) => {
-                e.preventDefault();
-                eventsInstance.touchmoveCheck(e);
-            });
-            layer.addEventListener("touchcancel", (e) => {
-                eventsInstance.touchcancelCheck(e);
-            });
-            layer.addEventListener("wheel", (e) => {
-                eventsInstance.wheelEventCheck(e);
-            });
-            layer.addEventListener("pointerdown", (e) => {
-                eventsInstance.addPointer(e);
-                eventsInstance.pointerdownCheck(e);
-            });
-            layer.addEventListener("pointerup", (e) => {
-                eventsInstance.removePointer(e);
-                eventsInstance.pointerupCheck(e);
-            });
-            layer.addEventListener("pointermove", (e) => {
-                e.preventDefault();
-                eventsInstance.pointermoveCheck(e);
-            });
-        }
-        queueInstance.execute();
-        if (enableResize && root.container) {
-            layerResizeBind(root, resize);
-        }
-        return root;
-    }
-    function imageInstance(self) {
-        const imageIns = new Image();
-        imageIns.crossOrigin = "anonymous";
-        imageIns.onload = function onload() {
-            self.update();
-            self.updated = true;
-            queueInstance.vDomChanged(self.vDomIndex);
-        };
-        imageIns.onerror = function onerror(onerrorExe) {
-        };
-        return imageIns;
-    }
-    function createEmptyArrayBuffer(width, height) {
-        return new Uint8Array(new ArrayBuffer(width * height * 4));
-    }
-    function TextureObject(ctx, config, vDomIndex) {
-        const self = this;
-        const maxTextureSize = ctx.getParameter(ctx.MAX_TEXTURE_SIZE);
-        this.ctx = ctx;
-        this.texture = ctx.createTexture();
-        this.type = "TEXTURE_2D";
-        this.width = config.width > maxTextureSize ? maxTextureSize : config.width;
-        this.height = config.height > maxTextureSize ? maxTextureSize : config.height;
-        this.border = config.border ? config.border : 0;
-        this.format = config.format ? config.format : "RGBA";
-        this.type = config.type ? config.type : "UNSIGNED_BYTE";
-        this.warpS = config.warpS ? config.warpS : "CLAMP_TO_EDGE";
-        this.warpT = config.warpT ? config.warpT : "CLAMP_TO_EDGE";
-        this.magFilter = config.magFilter ? config.magFilter : "LINEAR";
-        this.minFilter = config.minFilter ? config.minFilter : "LINEAR";
-        this.mipMap = config.mipMap;
-        this.updated = false;
-        this.image = null;
-        this.vDomIndex = vDomIndex;
-        if (typeof config.src === "string") {
-            self.image = imageInstance(self);
-            self.image.src = config.src;
-        } else if (
-            config.src instanceof HTMLImageElement ||
-            config.src instanceof SVGImageElement ||
-            config.src instanceof HTMLCanvasElement ||
-            config.src instanceof Uint8Array
-        ) {
-            self.image = config.src;
-            self.update();
-            self.updated = true;
-        } else if (config.src instanceof NodePrototype) {
-            self.image = config.src.domEl;
-            self.update();
-            self.updated = true;
-        } else {
-            if (this.width && this.height) {
-                self.image = createEmptyArrayBuffer(this.width, this.height);
-                self.update();
-            }
-            self.updated = true;
-        }
-        queueInstance.vDomChanged(self.vDomIndex);
-    }
-    TextureObject.prototype.setAttr = function (attr, value) {
-        if (arguments.length === 1) {
-            for (const key in attr) {
-                this[key] = attr[key];
-                if (key === "src") {
-                    if (typeof value === "string") {
-                        if (!this.image || !(this.image instanceof Image)) {
-                            this.image = imageInstance(this);
-                        }
-                        this.image.src = value;
-                    } else if (
-                        value instanceof HTMLImageElement ||
-                        value instanceof SVGImageElement ||
-                        value instanceof HTMLCanvasElement ||
-                        value instanceof Uint8Array
-                    ) {
-                        this.image = value;
-                        this.update();
-                    } else if (value instanceof NodePrototype) {
-                        this.image = value.domEl;
-                        this.update();
-                    }
-                }
-                if (attr.height || attr.width) {
-                    self.image = createEmptyArrayBuffer(this.width, this.height);
-                }
-            }
-        } else {
-            this[attr] = value;
-            if (attr === "src") {
-                if (typeof value === "string") {
-                    if (!this.image || !(this.image instanceof Image)) {
-                        this.image = imageInstance(this);
-                    }
-                    this.image.src = value;
-                } else if (
-                    value instanceof HTMLImageElement ||
-                    value instanceof SVGImageElement ||
-                    value instanceof HTMLCanvasElement ||
-                    value instanceof Uint8Array
-                ) {
-                    this.image = value;
-                    this.update();
-                } else if (value instanceof NodePrototype) {
-                    this.image = value.domEl;
-                    this.update();
-                }
-            }
-        }
-    };
-    TextureObject.prototype.loadTexture = function () {
-        if (!this.updated) {
-            return;
-        }
-        this.ctx.activeTexture(this.ctx.TEXTURE0);
-        this.ctx.bindTexture(this.ctx.TEXTURE_2D, this.texture);
-    };
-    TextureObject.prototype.clear = function () {};
-    TextureObject.prototype.update = function () {
-        const ctx = this.ctx;
-        ctx.activeTexture(ctx.TEXTURE0);
-        ctx.bindTexture(ctx.TEXTURE_2D, this.texture);
-        if (this.image && !(this.image instanceof Uint8Array)) {
-            ctx.texImage2D(
-                ctx.TEXTURE_2D,
-                this.border,
-                ctx[this.format],
-                ctx[this.format],
-                ctx[this.type],
-                this.image
-            );
-        } else {
-            ctx.texImage2D(
-                ctx.TEXTURE_2D,
-                this.border,
-                ctx[this.format],
-                this.width,
-                this.height,
-                0,
-                ctx[this.format],
-                ctx[this.type],
-                this.image
-            );
-        }
-        if (this.mipMap) {
-            if (!isPowerOf2(self.image.width) || !isPowerOf2(self.image.height)) {
-                console.warn("Image dimension not in power of 2");
-            }
-            ctx.generateMipmap(ctx.TEXTURE_2D);
-            ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx[this.minFilter]);
-            ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx[this.magFilter]);
-        } else {
-            ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx[this.warpS]);
-            ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx[this.warpT]);
-            ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx[this.minFilter]);
-            ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx[this.minFilter]);
-        }
-        this.updated = true;
-    };
-    function RenderTarget(ctx, config) {
-        this.ctx = ctx;
-        this.fbo = ctx.createFramebuffer();
-        this.texture = config.texture;
-        if (!this.texture.updated) {
-            this.texture.update();
-        }
-    }
-    RenderTarget.prototype.setAttr = function (attr, value) {
-        this[attr] = value;
-    };
-    RenderTarget.prototype.update = function () {
-        if (!this.texture || !(this.texture instanceof TextureObject)) {
-            return;
-        }
-        this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, this.fbo);
-        this.ctx.framebufferTexture2D(
-            this.ctx.FRAMEBUFFER,
-            this.ctx.COLOR_ATTACHMENT0,
-            this.ctx.TEXTURE_2D,
-            this.texture.texture,
-            0
-        );
-        this.ctx.clearColor(0, 0, 0, 0);
-        this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT);
-    };
-    RenderTarget.prototype.clear = function () {
-        this.ctx.bindFramebuffer(this.ctx.FRAMEBUFFER, null);
-    };
-    function WebGLGeometry() {
-    }
-    WebGLGeometry.prototype.setAttr = function (attr, value) {
-        if (!value && this.attributes[attr]) {
-            delete this.attributes[attr];
-        } else {
-            this.attributes[attr] = value;
-        }
-    };
-    WebGLGeometry.prototype.setDrawRange = function (start, end) {
-        this.drawRange = [start, end];
-    };
-    WebGLGeometry.prototype.setDrawType = function (type) {
-        this.drawType = type;
-    };
-    WebGLGeometry.prototype.setIndex = function (obj) {
-        this.indexes = obj;
-    };
-    function MeshGeometry() {
-        this.attributes = {};
-        this.drawType = "TRIANGLES";
-        this.indexes = null;
-        this.drawRange = [0, 0];
-    }
-    MeshGeometry.prototype = new WebGLGeometry();
-    MeshGeometry.constructor = MeshGeometry;
-    function PointsGeometry() {
-        this.attributes = {};
-        this.drawType = "POINTS";
-        this.indexes = null;
-        this.drawRange = [0, 0];
-    }
-    PointsGeometry.prototype = new WebGLGeometry();
-    PointsGeometry.constructor = PointsGeometry;
-    function LineGeometry() {
-        this.attributes = {};
-        this.drawType = "LINES";
-        this.indexes = null;
-        this.drawRange = [0, 0];
-    }
-    LineGeometry.prototype = new WebGLGeometry();
-    LineGeometry.constructor = LineGeometry;
 
     function _classCallCheck(instance, Constructor) {
       if (!(instance instanceof Constructor)) {
@@ -73108,25 +73118,18 @@ Please pipe the document into a Node stream.\
         },
     };
 
-    const pathIns = path.instance;
-    const canvasLayer = canvasAPI.canvasLayer;
-    const pdfLayer = canvasAPI.pdfLayer;
-    const CanvasNodeExe = canvasAPI.CanvasNodeExe;
-    const CanvasGradient = canvasAPI.CanvasGradient;
-    const createRadialGradient = canvasAPI.createRadialGradient;
-    const createLinearGradient = canvasAPI.createLinearGradient;
-
-    exports.CanvasGradient = CanvasGradient;
-    exports.CanvasNodeExe = CanvasNodeExe;
-    exports.Path = pathIns;
     exports.behaviour = behaviour;
+    exports.canvasGradient = CanvasGradient;
     exports.canvasLayer = canvasLayer;
+    exports.canvasNodeExe = CanvasNodeExe;
     exports.chain = chain;
     exports.color = colorMap$1;
     exports.createLinearGradient = createLinearGradient;
     exports.createRadialGradient = createRadialGradient;
     exports.ease = fetchTransitionType;
+    exports.exportCanvasToPdf = exportCanvasToPdf;
     exports.geometry = geometry;
+    exports.path = CreatePath;
     exports.pdfLayer = pdfLayer;
     exports.queue = queue;
     exports.svgLayer = svgLayer;

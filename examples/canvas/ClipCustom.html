@@ -11,18 +11,12 @@
             var renderer_ = i2d.canvasLayer("#myCanvas", {}, {});
 
             var clipInstance = renderer_.createClip();
-            clipInstance.clip.createEls([1, 2, 3, 4, 5, 6], {
+            clipInstance.clip.createEl({
                 el: "circle",
                 attr: {
-                    cx: function (d) {
-                        return Math.random() * 566 * 2;
-                    },
-                    cy: function (d) {
-                        return Math.random() * 200 * 2;
-                    },
-                    r: function (d) {
-                        return 50 + Math.random() * 100;
-                    },
+                    cx: Math.random() * 566 * 2,
+                    cy: Math.random() * 200 * 2,
+                    r: 50 + Math.random() * 100
                 },
             });
 

@@ -48,7 +48,7 @@
                     var tx = r * Math.cos(angle);
                     var ty = r * Math.sin(angle);
                     var pathInstance = i2d
-                        .Path()
+                        .path()
                         .m(false, { x: 700, y: 350 })
                         .q(false, { x: tx * 0.6, y: (ty - 350) * 0.6 }, { x: tx, y: ty });
                     // console.log("m"+x+','+y+' q'+(tx*0.6)+','+((ty-y)*0.6) +' '+tx+','+ty)

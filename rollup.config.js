@@ -59,7 +59,13 @@ export default [
                     //   return 'dependencies';
                     // }
                 }
-            }
+            },
+            // {
+            //     banner,
+            //     file: "dist/i2d.js",
+            //     format: "umd",
+            //     name: "i2d",
+            // },
         ],
         plugins: [
             cleanup(),

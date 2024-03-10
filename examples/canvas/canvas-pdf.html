@@ -15,9 +15,9 @@
         </div>
     </body>
 </html>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
 <script type="module">
-    let renderer = i2d.canvasLayer("#lineLoaderContainer", {}, { autoUpdate: true });
+    import {canvasLayer, exportCanvasToPdf } from "../../dist/i2d.esm.min.js";
+    let renderer = canvasLayer("#lineLoaderContainer", {}, { autoUpdate: true });
     var linearGradiant = renderer.createLinearGradient({
         x1: 0,
         y1: 0,
@@ -82,9 +82,19 @@
         bbox: false,
     });
 
-    renderer.exportPdf(function (url) {
-        document.getElementById("i2dPdfContainer").setAttribute("src", url);
-    });
+    renderPdf(renderer);
+
+
+
+    async function renderPdf (renderer) {
+        let pdfBlob = await exportCanvasToPdf(renderer, {});
+        document.getElementById("i2dPdfContainer").setAttribute("src", pdfBlob);
+    }
+
+    
+    // renderer.exportPdf(function (url) {
+    //     document.getElementById("i2dPdfContainer").setAttribute("src", url);
+    // });
 </script>
 <style>
     html,

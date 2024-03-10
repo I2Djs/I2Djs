@@ -8,10 +8,9 @@
         <div id="myCanvas" style="height: 100%; width: 100%; position: absolute">
             <!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
         </div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            var renderer_ = i2d.canvasLayer("#myCanvas", {}, {});
+        <script type="module">
+            import {canvasLayer, path} from "../../dist/i2d.esm.min.js";
+            var renderer_ = canvasLayer("#myCanvas", {}, {});
             var nodes = [];
 
             var data = [];
@@ -19,10 +18,9 @@
                 data.push(i);
             }
 
-            let pathInstance = i2d.Path(
+            let pathInstance = path(
                 "M88.8,0.1H20c-6.2,0-11.2,5-11.2,11.3v8.1c0,0-5.1,3.7-8.5,2.5c0,0,2.8,5.3,8.6,3.3c0.7,5.5,5.4,9.8,11.1,9.8h68.8c6.2,0,11.2-5,11.2-11.3V11.4C100,5.2,95,0.1,88.8,0.1z"
             );
-            console.log(pathInstance);
 
             renderer_.createEl({
                 el: "path",

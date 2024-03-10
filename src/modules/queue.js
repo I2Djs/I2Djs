@@ -159,11 +159,19 @@ ExeQueue.prototype.addVdom = function AaddVdom(_) {
 ExeQueue.prototype.removeVdom = function removeVdom(_) {
     const index = vDomIds.indexOf(_);
 
+    // filter remove tweens
+
+    tweens = tweens.filter((d)=>{
+        return (d?.executable?.target?.vDomIndex??null) !== _;
+    });
+
     if (index !== -1) {
         vDomIds.splice(index, 1);
         vDoms[_].root.destroy();
         delete vDoms[_];
     }
+
+
 
     if (vDomIds.length === 0 && tweens.length === 0 && onFrameExe.length === 0) {
         this.stopAnimeFrame();

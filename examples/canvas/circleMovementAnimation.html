@@ -25,6 +25,7 @@
             renderer_.setClear(function (ctx) {
                 ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
                 ctx.fillRect(0, 0, renderer_.width, renderer_.height);
+
             });
 
             var radialGradiant = radialGrad.createRadialGradient({
@@ -53,6 +54,7 @@
             });
 
             radialGrad.execute();
+
             var circle,
                 circles = [],
                 i = 0;
@@ -66,9 +68,9 @@
                 circle = {};
                 circle.x = random(0, renderer_.width);
                 circle.y = random(0, renderer_.height);
-                circle.velX = random(-3, 3);
-                circle.velY = random(-3, 3);
-                circle.size = random(5, 20);
+                circle.velX = random(-2, 2) || 0.5;
+                circle.velY = random(-2, 2) || 0.5;
+                circle.size = random(5, 50) || 10;
                 circles.push(circle);
                 ++i;
             }

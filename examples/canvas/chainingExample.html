@@ -27,10 +27,9 @@
             </form>
         </div>
 
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            var renderer_ = i2d.canvasLayer("#Mycanvas", {}, {});
+        <script type="module">
+            import {canvasLayer, queue, chain as i2dChain} from "../../dist/i2d.esm.min.js";
+            var renderer_ = canvasLayer("#Mycanvas", {}, {});
 
             var g = renderer_.createEl({
                 el: "group",
@@ -53,7 +52,7 @@
                     g.fetchEls("circle").remove();
                 }
 
-                i2d.queue.clearAll();
+                queue.clearAll();
                 render(data);
             }
 
@@ -62,8 +61,8 @@
             function render(d) {
                 var chain =
                     selectedtype === "parallel"
-                        ? i2d.chain.parallelChain()
-                        : i2d.chain.sequenceChain();
+                        ? i2dChain.parallelChain()
+                        : i2dChain.sequenceChain();
                 g.createEls(d.children, {
                     el: "line",
                     attr: {

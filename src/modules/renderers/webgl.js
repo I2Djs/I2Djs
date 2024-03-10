@@ -1,6 +1,6 @@
 import queue from "./../queue.js";
 import VDom from "./../VDom.js";
-import path from "./../path.js";
+import {CreatePath, CheckPathType, AnimatePathTo, MorphTo} from "./../path.js";
 import colorMap from "./../colorMap.js";
 import geometry from "./../geometry.js";
 import shaders from "./../shaders.js";
@@ -602,11 +602,11 @@ PathNode.prototype.setAttr = function (key, value) {
     }
 
     if (key === "d") {
-        if (path.isTypePath(value)) {
+        if (CheckPathType(value)) {
             this.path = value;
             this.attr.d = value.fetchPathString();
         } else {
-            this.path = path.instance(this.attr.d);
+            this.path = CreatePath(this.attr.d);
         }
         let bbox = this.path.BBox;
         let pathTexture = this.path.getPathTexture(this.style, true);
@@ -3279,8 +3279,8 @@ WebglNodeExe.prototype.remove = function Wremove() {
     queueInstance.vDomChanged(this.vDomIndex);
 };
 
-WebglNodeExe.prototype.animatePathTo = path.animatePathTo;
-WebglNodeExe.prototype.morphTo = path.morphTo;
+WebglNodeExe.prototype.animatePathTo = AnimatePathTo;
+WebglNodeExe.prototype.morphTo = MorphTo;
 
 WebglNodeExe.prototype.removeChild = function WremoveChild(obj) {
     let index = -1;
@@ -3710,7 +3710,7 @@ TextureObject.prototype.setAttr = function (attr, value) {
         }
     } else {
         this[attr] = value;
-        // console.warning("Instead of key, value, pass Object of key,value for optimal rendering");
+        console.warn("Instead of key, value, pass Object of key,value for optimal rendering");
         if (attr === "src") {
             if (typeof value === "string") {
                 if (!this.image || !(this.image instanceof Image)) {

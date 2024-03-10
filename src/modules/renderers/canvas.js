@@ -1,14 +1,11 @@
 import queue from "./../queue.js";
 import VDom from "./../VDom.js";
-import path from "./../path.js";
+import { CreatePath, CheckPathType, AnimatePathTo, MorphTo } from "./../path.js";
 import geometry from "./../geometry.js";
 import colorMap from "./../colorMap.js";
 import Events from "./../events.js";
 import behaviour from "./../behaviour.js";
-import blobStream from "blob-stream-i2d";
-import PDFDocument from "pdfkit";
-import fs from "fs";
-import { STANDARD_FONTS } from "./../../data/static-fonts.js";
+import { canvasStyleMapper, pdfSupportedFontFamily } from "./../constants.js";
 
 import {
     NodePrototype,
@@ -17,23 +14,6 @@ import {
     layerResizeUnBind,
     prepArrayProxy
 } from "./../coreApi.js";
-
-const pdfSupportedFontFamily = [
-    "Courier",
-    "Courier-Bold",
-    "Courier-Oblique",
-    "Courier-BoldOblique",
-    "Helvetica",
-    "Helvetica-Bold",
-    "Helvetica-Oblique",
-    "Helvetica-BoldOblique",
-    "Symbol",
-    "Times-Roman",
-    "Times-Bold",
-    "Times-Italic",
-    "Times-BoldItalic",
-    "ZapfDingbats",
-];
 
 const pdfStyleMapper = {
     fillStyle: {
@@ -91,23 +71,14 @@ const pdfStyleMapper = {
     },
 };
 
-const canvasCssMapper = {
-    "fill": "fillStyle",
-    "stroke": "strokeStyle",
-    "lineDash": "setLineDash",
-    "opacity": "globalAlpha",
-    "stroke-width": "lineWidth",
-    "stroke-dasharray": "setLineDash",
-};
+// if (Object.keys(STANDARD_FONTS).length > 0) {
+//     for(let key in STANDARD_FONTS) {
+//         fs.writeFileSync('/data/'+key, STANDARD_FONTS[key]);
+//     }
+// }
 
-if (Object.keys(STANDARD_FONTS).length > 0) {
-    for(let key in STANDARD_FONTS) {
-        fs.writeFileSync('/data/'+key, STANDARD_FONTS[key]);
-    }
-}
-
-const t2DGeometry = geometry;
 const queueInstance = queue;
+const i2DGeometry = geometry;
 let Id = 0;
 
 const zoomInstance = behaviour.zoom();
@@ -324,7 +295,7 @@ function RPolyupdateBBox() {
     }
 
     if (transform && transform.rotate) {
-        self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+        self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, transform);
     } else {
         self.BBoxHit = this.BBox;
     }
@@ -599,6 +570,7 @@ function CanvasClipping(self, config = {}) {
 }
 
 CanvasClipping.prototype.exe = function () {
+    this.clip.dom.ctx.beginPath();
     this.clip.execute();
     this.clip.dom.ctx.clip();
     return true;
@@ -706,8 +678,8 @@ function imageInstance(self) {
             self.nodeExe.attr.onload.call(self.nodeExe, self.image);
         }
 
-        // self.nodeExe.BBoxUpdate = true;
-        // queueInstance.vDomChanged(self.nodeExe.vDomIndex);
+        self.nodeExe.BBoxUpdate = true;
+        queueInstance.vDomChanged(self.nodeExe.vDomIndex);
     };
 
     imageIns.onerror = function onerror(error) {
@@ -735,10 +707,13 @@ DummyDom.prototype.constructor = DummyDom;
 function RenderImage(ctx, props, styleProps, onloadExe, onerrorExe, nodeExe) {
     const self = this;
     self.ctx = ctx;
-    self.attr = prepObjProxyCanvas('imagePoxy', props, nodeExe, true);
-    self.style = styleProps;
+    // self.attr = prepObjProxyCanvas('imagePoxy', props, nodeExe, true);
+    // self.style = styleProps;
     self.nodeName = "Image";
     self.nodeExe = nodeExe;
+
+    self.attr = Object.assign({}, props) ;
+    self.style = Object.assign({}, styleProps);
 
     for (const key in props) {
         this.setAttr(key, props[key]);
@@ -856,7 +831,7 @@ RenderImage.prototype.updateBBox = function RIupdateBBox() {
     };
 
     if (transform && transform.rotate) {
-        self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+        self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, transform);
     } else {
         self.BBoxHit = this.BBox;
     }
@@ -1040,7 +1015,7 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
     self.abYposition = y;
 
     if (transform && transform.rotate) {
-        self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+        self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, transform);
     } else {
         self.BBoxHit = this.BBox;
     }
@@ -1136,7 +1111,7 @@ RenderCircle.prototype.updateBBox = function RCupdateBBox() {
     };
 
     if (transform && transform.rotate) {
-        self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+        self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, transform);
     } else {
         self.BBoxHit = this.BBox;
     }
@@ -1192,7 +1167,7 @@ RenderLine.prototype.updateBBox = function RLupdateBBox() {
     };
 
     if (transform && transform.rotate) {
-        self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+        self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, transform);
     } else {
         self.BBoxHit = this.BBox;
     }
@@ -1223,20 +1198,20 @@ RenderLine.prototype.in = function RLinfun(co) {
     const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.attr;
     return (
         parseFloat(
-            t2DGeometry.getDistance(
+            i2DGeometry.getDistance(
                 {
                     x: x1,
                     y: y1,
                 },
                 co
             ) +
-                t2DGeometry.getDistance(co, {
+                i2DGeometry.getDistance(co, {
                     x: x2,
                     y: y2,
                 })
         ).toFixed(1) ===
         parseFloat(
-            t2DGeometry.getDistance(
+            i2DGeometry.getDistance(
                 {
                     x: x1,
                     y: y1,
@@ -1303,20 +1278,20 @@ RenderPolyline.prototype.in = function RPolyLinfun(co) {
         flag =
             flag ||
             parseFloat(
-                t2DGeometry.getDistance(
+                i2DGeometry.getDistance(
                     {
                         x: p1.x,
                         y: p1.y,
                     },
                     co
                 ) +
-                    t2DGeometry.getDistance(co, {
+                    i2DGeometry.getDistance(co, {
                         x: p2.x,
                         y: p2.y,
                     })
             ).toFixed(1) ===
                 parseFloat(
-                    t2DGeometry.getDistance(
+                    i2DGeometry.getDistance(
                         {
                             x: p1.x,
                             y: p1.y,
@@ -1342,11 +1317,11 @@ const RenderPath = function RenderPath(ctx, props, styleProps) {
     self.style = Object.assign({}, styleProps);
 
     if (self.attr.d) {
-        if (path.isTypePath(self.attr.d)) {
+        if (CheckPathType(self.attr.d)) {
             self.path = self.attr.d;
             self.attr.d = self.attr.d.fetchPathString();
         } else {
-            self.path = path.instance(self.attr.d);
+            self.path = CreatePath(self.attr.d);
         }
 
         self.pathNode = new Path2D(self.attr.d);
@@ -1387,7 +1362,7 @@ RenderPath.prototype.updateBBox = function RPupdateBBox() {
     self.BBox.height *= scaleY;
 
     if (transform && transform.rotate) {
-        self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+        self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, transform);
     } else {
         self.BBoxHit = this.BBox;
     }
@@ -1397,11 +1372,11 @@ RenderPath.prototype.setAttr = function RPsetAttr(attr, value) {
     this.attr[attr] = value;
 
     if (attr === "d") {
-        if (path.isTypePath(value)) {
+        if (CheckPathType(value)) {
             this.path = value;
             this.attr.d = value.fetchPathString();
         } else {
-            this.path = path.instance(this.attr.d);
+            this.path = CreatePath(this.attr.d);
         }
 
         this.pathNode = new Path2D(this.attr.d);
@@ -1609,7 +1584,7 @@ RenderEllipse.prototype.updateBBox = function REupdateBBox() {
     };
 
     if (transform && transform.rotate) {
-        self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+        self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, transform);
     } else {
         self.BBoxHit = this.BBox;
     }
@@ -1669,7 +1644,7 @@ RenderRect.prototype.updateBBox = function RRupdateBBox() {
     };
 
     if (transform && transform.rotate) {
-        self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, transform);
+        self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, transform);
     } else {
         self.BBoxHit = this.BBox;
     }
@@ -1838,7 +1813,7 @@ RenderGroup.prototype.updateBBox = function RGupdateBBox(children) {
     self.BBox.height = Math.abs(maxY - minY) * scaleY;
 
     if (self.attr.transform && self.attr.transform.rotate) {
-        self.BBoxHit = t2DGeometry.rotateBBox(this.BBox, this.attr.transform);
+        self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, this.attr.transform);
     } else {
         self.BBoxHit = this.BBox;
     }
@@ -1994,8 +1969,8 @@ CanvasNodeExe.prototype.stylesExe = function CstylesExe() {
             console.log("unkonwn Style");
         }
 
-        if (canvasCssMapper[key]) {
-            key = canvasCssMapper[key];
+        if (canvasStyleMapper[key]) {
+            key = canvasStyleMapper[key];
         }
 
         if (typeof this.ctx[key] !== "function") {
@@ -2278,8 +2253,8 @@ CanvasNodeExe.prototype.on = function Con(eventType, hndlr) {
     return this;
 };
 
-CanvasNodeExe.prototype.animatePathTo = path.animatePathTo;
-CanvasNodeExe.prototype.morphTo = path.morphTo;
+CanvasNodeExe.prototype.animatePathTo = AnimatePathTo;
+CanvasNodeExe.prototype.morphTo = MorphTo;
 CanvasNodeExe.prototype.vDomIndex = null;
 
 CanvasNodeExe.prototype.createRadialGradient = createRadialGradient;
@@ -2674,29 +2649,24 @@ function createPage(ctx, vDomIndex) {
 
     root.exportPdf = function (doc) {
         const margin = this.margin || 0;
-        const { top = margin, bottom = margin } = this.margins || {
-            top: margin,
-            bottom: margin,
-        };
+        const { top = margin, bottom = margin } = this.margins || { };
         const pageHeight = this.height;
 
-        root.updateBBox();
-        root.updateABBox();
+        this.updateBBox();
+        this.updateABBox();
 
-        let leafNodes = getAllLeafs(root);
-        // sort leafs based on absolute pos
-        leafNodes = leafNodes.sort((a, b) => {
-            const aTrans = a.dom && a.dom.abTransform ? a.dom.abTransform : { translate: [0, 0] };
-            const aBox = a.dom.BBox;
-            const bTrans = b.dom && b.dom.abTransform ? b.dom.abTransform : { translate: [0, 0] };
-            const bBox = b.dom.BBox;
-            return (
-                aTrans.translate[1] +
-                aBox.height +
-                a.dom.abYposition -
-                (bTrans.translate[1] + bBox.height + b.dom.abYposition)
-            );
-        });
+        let leafNodes = getAllLeafs(this).sort((a, b) => {
+                const aTrans = a.dom && a.dom.abTransform ? a.dom.abTransform : { translate: [0, 0] };
+                const aBox = a.dom.BBox;
+                const bTrans = b.dom && b.dom.abTransform ? b.dom.abTransform : { translate: [0, 0] };
+                const bBox = b.dom.BBox;
+                return (
+                    aTrans.translate[1] +
+                    aBox.height +
+                    a.dom.abYposition -
+                    (bTrans.translate[1] + bBox.height + b.dom.abYposition)
+                );
+            });
         let runningY = 0;
         const pageRage = doc.bufferedPageRange();
         let pageNumber = pageRage.count - 1;
@@ -2704,17 +2674,11 @@ function createPage(ctx, vDomIndex) {
             const abTransform = node.dom.abTransform;
             const elHight = node.dom.BBox.height || 0;
             const elY = node.dom.abYposition || 0;
-            let posY = (abTransform.translate[1] + elY || 0) - runningY;
+            let posY = calculatePosY(abTransform, elY, runningY);
 
-            if (
-                !(
-                    (posY < pageHeight - bottom - top &&
-                        posY + elHight < pageHeight - bottom - top) ||
-                    elHight > pageHeight - bottom - top
-                )
-            ) {
+            if (needsNewPage(node, posY, elHight)) {
                 runningY += pageHeight - top - bottom;
-                posY = (abTransform.translate[1] + elY || 0) - runningY;
+                posY = calculatePosY(abTransform, elY, runningY);
                 runningY += posY;
                 posY = 0;
                 doc.addPage({
@@ -2742,7 +2706,15 @@ function createPage(ctx, vDomIndex) {
             })(pageNumber);
         });
 
-        root.executePdf(doc);
+        this.executePdf(doc);
+
+        function needsNewPage(node, posY, elHight) {
+            return !(posY < pageHeight - bottom - top && posY + elHight < pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
+        }
+
+        function calculatePosY(abTransform, elY, runningY) {
+            return (abTransform.translate[1] + elY || 0) - runningY;
+        }
     };
 
     root.addTemplate = function (template) {
@@ -2772,20 +2744,18 @@ function getAllLeafs(node) {
     const leaves = [];
     let queue = [node];
 
-    while (queue.length !== 0) {
-        const node = queue.shift();
-        if (
-            node.block ||
-            (node.children &&
-                node.children.length === 0 &&
-                node.nodeName !== "g" &&
-                node.nodeName !== "group")
-        ) {
-            leaves.push(node);
-        } else {
-            if (node.children && node.children.length !== 0) {
-                queue = queue.concat(node.children);
-            }
+    while (queue.length > 0) {
+        const currentNode = queue.shift();
+        const isLeaf = currentNode.block ||
+                        (currentNode.children &&
+                        currentNode.children.length === 0 &&
+                        currentNode.nodeName !== "g" &&
+                        currentNode.nodeName !== "group");
+
+        if (isLeaf) {
+            leaves.push(currentNode);
+        } else if (currentNode.children) {
+            queue.push(...currentNode.children);
         }
     }
 
@@ -2874,7 +2844,7 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     }
 
     const execute = root.execute.bind(root);
-    const exportPdf = root.exportPdf.bind(root);
+    // const exportPdf = root.exportPdf.bind(root);
     root.container = res;
     root.domEl = layer;
     root.height = height;
@@ -2944,47 +2914,47 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
         onChangeExe = exec;
     };
 
-    root.exportPdf = async function (callback, options = {}) {
-        const pdfConfig = parsePdfConfig(options);
-        const doc = new PDFDocument({
-            size: [this.width, this.height],
-            ...pdfConfig,
-        });
-        const stream_ = doc.pipe(blobStream());
+    // root.exportPdf = function (callback, options = {}) {
+    //     const pdfConfig = parsePdfConfig(options);
+    //     const doc = new PDFDocument({
+    //         size: [this.width, this.height],
+    //         ...pdfConfig,
+    //     });
+    //     const stream_ = doc.pipe(blobStream());
 
-        const fontRegister = options.fontRegister || {};
-        const pdfInfo = options.info || { title: "I2Djs-PDF" };
+    //     const fontRegister = options.fontRegister || {};
+    //     const pdfInfo = options.info || { title: "I2Djs-PDF" };
 
-        if (fontRegister) {
-            for (const key in fontRegister) {
-                if (pdfSupportedFontFamily.indexOf(key) === -1) pdfSupportedFontFamily.push(key);
-                const font = await fetch(fontRegister[key]);
-                const fontBuffer = await font.arrayBuffer();
-                doc.registerFont(key, fontBuffer);
-            }
-        }
+    //     if (fontRegister) {
+    //         for (const key in fontRegister) {
+    //             if (pdfSupportedFontFamily.indexOf(key) === -1) pdfSupportedFontFamily.push(key);
+    //             const font = await fetch(fontRegister[key]);
+    //             const fontBuffer = await font.arrayBuffer();
+    //             doc.registerFont(key, fontBuffer);
+    //         }
+    //     }
 
-        if (pdfInfo) {
-            doc.info.Title = pdfInfo.title || "";
-            doc.info.Author = pdfInfo.author || "";
-            doc.info.Subject = pdfInfo.subject || "";
-            doc.info.Keywords = pdfInfo.keywords || "";
-            doc.info.CreationDate = pdfInfo.creationDate || new Date();
-        }
+    //     if (pdfInfo) {
+    //         doc.info.Title = pdfInfo.title || "";
+    //         doc.info.Author = pdfInfo.author || "";
+    //         doc.info.Subject = pdfInfo.subject || "";
+    //         doc.info.Keywords = pdfInfo.keywords || "";
+    //         doc.info.CreationDate = pdfInfo.creationDate || new Date();
+    //     }
 
-        root.updateBBox();
-        root.updateABBox();
+    //     root.updateBBox();
+    //     root.updateABBox();
 
-        doc.addPage();
+    //     doc.addPage();
 
-        exportPdf(doc);
+    //     exportPdf(doc);
 
-        doc.end();
+    //     doc.end();
 
-        stream_.on("finish", function () {
-            callback(stream_.toBlobURL("application/pdf"));
-        });
-    };
+    //     stream_.on("finish", function () {
+    //         callback(stream_.toBlobURL("application/pdf"));
+    //     });
+    // };
 
     const updateLayerDimension = function (layer, width, height) {
         layer.setAttribute("height", height * ratio);
@@ -3074,237 +3044,10 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     return root;
 }
 
-function parsePdfConfig(config, oldConfig = {}) {
-    return {
-        ...oldConfig,
-        autoFirstPage: false,
-        bufferPages: true,
-        ...(config.margin !== undefined && { margin: config.margin }),
-        ...(config.margins !== undefined && { margins: config.margins }),
-        ...(config.defaultFont !== undefined && { font: config.defaultFont }),
-        ...(config.encryption !== undefined && { ...config.encryption }),
-    };
-}
 
-function pdfLayer(container, config = {}, layerSettings = {}) {
-    const res =
-        container instanceof HTMLElement
-            ? container
-            : typeof container === "string" || container instanceof String
-            ? document.querySelector(container)
-            : null;
-    let { height = 0, width = 0 } = config;
-    let pdfConfig = parsePdfConfig(config, {});
-    const { autoUpdate = true, onUpdate } = layerSettings;
-    const layer = document.createElement("canvas");
-    const ctx = layer.getContext("2d", {});
-    let fontRegister = config.fontRegister || {};
-    let pdfInfo = config.info || { title: "I2Djs-PDF" };
-    let onUpdateExe = onUpdate;
-
-    let vDomIndex = 999999;
-    let pageDefaultTemplate = null;
-    ctx.type_ = "pdf";
-
-    ctx.doc = new PDFDocument({
-        size: [width, height],
-        ...pdfConfig,
-    });
-
-    ctx.doc.addPage();
-
-    layer.setAttribute("height", height * 1);
-    layer.setAttribute("width", width * 1);
-
-    const vDomInstance = new VDom();
-
-    if (autoUpdate) {
-        vDomIndex = queueInstance.addVdom(vDomInstance);
-    }
-
-    const fallBackPage = createPage(ctx, vDomIndex);
-
-    function PDFCreator() {
-        this.pages = [];
-        this.ctx = ctx;
-        this.domEl = layer;
-        this.vDomIndex = vDomIndex;
-        this.container = res;
-    }
-    PDFCreator.prototype.flush = function () {
-        this.pages.forEach(function (page) {
-            page.flush();
-        });
-
-        this.pages = [];
-
-        if (this.doc) {
-            this.doc.flushPages();
-        }
-    };
-
-    PDFCreator.prototype.setConfig = function (config = {}) {
-        const tPdfConfig = parsePdfConfig(config, pdfConfig);
-
-        if (config.fontRegister) {
-            fontRegister = {
-                ...(config.fontRegister || {}),
-            };
-        }
-
-        if (config.info) {
-            pdfInfo = config.info || { title: "I2Djs-PDF" };
-        }
-
-        height = config.height || height;
-        width = config.width || width;
-
-        layer.setAttribute("height", height * 1);
-        layer.setAttribute("width", width * 1);
-
-        this.width = width;
-        this.height = height;
-
-        pdfConfig = tPdfConfig;
-
-        this.execute();
-
-        return this;
-    };
-
-    PDFCreator.prototype.setPageTemplate = function (exec) {
-        pageDefaultTemplate = exec;
-    };
-
-    PDFCreator.prototype.setSize = function (width = 0, height = 0) {
-        this.width = width;
-        this.height = height;
-
-        return this;
-    };
-    PDFCreator.prototype.execute = function () {
-        this.exportPdf(
-            onUpdateExe ||
-                function (url) {
-                    res.setAttribute("src", url);
-                },
-            pdfConfig
-        );
-    };
-    PDFCreator.prototype.onChange = function (exec) {
-        onUpdateExe = exec;
-    };
-    PDFCreator.prototype.addPage = function (config = {}) {
-        const newpage = createPage(ctx, this.vDomIndex);
-        newpage.domEl = layer;
-        newpage.height = config.height || height;
-        newpage.width = config.width || width;
-        newpage.margin = config.margin || pdfConfig.margin || 0;
-        newpage.margins = config.margins ||
-            pdfConfig.margins || { top: 0, bottom: 0, left: 0, right: 0 };
-        newpage.type = "CANVAS";
-        newpage.EXEType = "pdf";
-        newpage.ctx = ctx;
-
-        if (config.pageTemplate || pageDefaultTemplate) {
-            newpage.addTemplate(config.pageTemplate || pageDefaultTemplate);
-        }
-
-        this.pages.push(newpage);
-        return newpage;
-    };
-    PDFCreator.prototype.removePage = function (page) {
-        const pageIndex = this.pages.indexOf(page);
-        let removedPage = null;
-        if (pageIndex !== -1) {
-            removedPage = this.pages.splice(pageIndex, 1);
-        }
-
-        return removedPage;
-    };
-    PDFCreator.prototype.createTemplate = function () {
-        return createPage(ctx, this.vDomIndex);
-    };
-    PDFCreator.prototype.exportPdf = async function (callback, pdfConfig = {}) {
-        const doc = new PDFDocument({
-            ...pdfConfig,
-        });
-        const stream_ = doc.pipe(blobStream());
-
-        if (fontRegister) {
-            for (const key in fontRegister) {
-                if (pdfSupportedFontFamily.indexOf(key) === -1) pdfSupportedFontFamily.push(key);
-                const font = await fetch(fontRegister[key]);
-                const fontBuffer = await font.arrayBuffer();
-                doc.registerFont(key, fontBuffer);
-            }
-        }
-
-        if (pdfInfo) {
-            doc.info.Title = pdfInfo.title || "";
-            doc.info.Author = pdfInfo.author || "";
-            doc.info.Subject = pdfInfo.subject || "";
-            doc.info.Keywords = pdfInfo.keywords || "";
-            doc.info.CreationDate = pdfInfo.creationDate || new Date();
-        }
-
-        this.doc = doc;
-
-        this.pages.forEach(function (page) {
-            page.updateBBox();
-            doc.addPage({
-                margin: page.margin || 0,
-                size: [page.width, page.height],
-            });
-            if (page.pageTemplate) {
-                page.pageTemplate.executePdf(doc);
-            }
-            page.exportPdf(doc);
-        });
-
-        doc.end();
-
-        stream_.on("finish", function () {
-            callback(stream_.toBlobURL("application/pdf"));
-        });
-    };
-
-    PDFCreator.prototype.destroy = function () {
-        this.flush();
-    };
-    PDFCreator.prototype.exec = function (exe) {
-        exe.call(this, this.dataObj);
-    };
-    PDFCreator.prototype.data = function (data) {
-        if (!data) {
-            return this.dataObj;
-        } else {
-            this.dataObj = data;
-        }
-        return this;
-    };
-    PDFCreator.prototype.createTexture = function (config = {}) {
-        return fallBackPage.createTexture(config);
-    };
-
-    PDFCreator.prototype.createAsyncTexture = function (config = {}) {
-        return fallBackPage.createAsyncTexture(config);
-    };
-
-    const pdfInstance = new PDFCreator();
-
-    if (vDomInstance) {
-        vDomInstance.rootNode(pdfInstance);
-    }
-
-    return pdfInstance;
-}
-
-export default {
-    canvasLayer,
-    pdfLayer,
-    CanvasNodeExe,
-    CanvasGradient,
-    createRadialGradient,
-    createLinearGradient,
-};
+export { canvasLayer };
+export { CanvasNodeExe };
+export { CanvasGradient };
+export { createRadialGradient };
+export { createLinearGradient };
+export { createPage };
