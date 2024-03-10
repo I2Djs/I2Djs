@@ -13,7 +13,7 @@
 
         <script type="text/javascript">
             var renderer_ = i2d.svgLayer("#mySVG", {});
-            const n = 250;
+            const n = 1000;
             const v = 2;
             const m = 12;
             let height = renderer_.height;
@@ -34,13 +34,13 @@
             var nodes = group
                 .createEls(tadpoles, {
                     el: "group",
+                    style: { fill: "white" },
                     bbox: false,
                 })
                 .forEach(function (d) {
                     this.createEl({
                         el: "ellipse",
-                        attr: { cx: 0, cy: 0, rx: 6.5, ry: 4 },
-                        style: { fill: "white" },
+                        attr: { cx: 0, cy: 0, rx: 6.5, ry: 4 }
                     });
                     this.createEl({
                         el: "polyline",

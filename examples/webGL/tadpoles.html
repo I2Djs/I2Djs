@@ -12,7 +12,7 @@
         <script type="text/javascript" src="../../dist/i2d.js"></script>
 
         <script type="text/javascript">
-            var renderer_ = i2d.canvasLayer("#myCanvas", {}, { enableEvents: false });
+            var renderer_ = i2d.webglLayer("#myCanvas", {}, { enableEvents: false });
             const n = 1000;
             const v = 2;
             const m = 12;
@@ -26,16 +26,10 @@
                 count: 0,
             }));
 
-            
             var tailsGroup = renderer_
                 .createEl({
                     el: "group",
                     bbox: false,
-                    style: {
-                        strokeStyle: "white",
-                        lineJoin: "round",
-                        lineCap: "round",
-                    },
                 })
                 .createEls(tadpoles, {
                     el: "group",
@@ -45,12 +39,13 @@
                 this.createEl({
                     el: "polyline",
                     attr: { points: [], class: "mid" },
-                    style: { lineWidth: 4 },
+                    style: { lineWidth: 4, stroke: "#ffffff" },
                     bbox: false,
                 });
                 this.createEl({
                     el: "polyline",
                     attr: { points: [], class: "tail" },
+                    style: { lineWidth: 1, stroke: "#ffffff" },
                     bbox: false,
                 });
             });
@@ -59,13 +54,10 @@
                 .createEl({
                     el: "group",
                     bbox: false,
-                    style: {
-                        // fillStyle: "white",
-                    },
                 })
                 .createEls(tadpoles, {
-                    el: "ellipse",
-                    attr: { cx: 0, cy: 0, rx: 6.5, ry: 4 },
+                    el: "circle",
+                    attr: { cx: 0, cy: 0, r: 10 },
                     style: {
                         fillStyle: function (d) {
                             return i2d.color.rgba(

@@ -14,6 +14,7 @@ import {
     layerResizeUnBind,
     // prepObjProxy,
 } from "./../coreApi.js";
+import { canvasStyleMapper } from "./../constants.js";
 
 const t2DGeometry = geometry;
 
@@ -220,13 +221,14 @@ function prepObjProxyWebGl(type, attr, context, BBoxUpdate) {
                         context.BBoxUpdate = true;
                     }
                 } else if (type === 'style') {
-                    if (prop === "fill" || prop === "stroke") {
+                    let resProp = canvasStyleMapper[prop] || prop;
+                    if ((resProp === "fillStyle" || resProp === "strokeStyle") && !colorMap.RGBAInstanceCheck(value) ) {
                         value = colorMap.colorToRGB(value);
                     }
                     if (context && context.dom) {
-                        context.dom.setStyle(prop, value);
+                        context.dom.setStyle(resProp, value);
                     }
-                    obj[prop] = value;
+                    obj[resProp] = value;
                 } else if (type === 'transform') {
                     if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
                         value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
@@ -242,19 +244,6 @@ function prepObjProxyWebGl(type, attr, context, BBoxUpdate) {
                         context.BBoxUpdate = true;
                     }
                 }
-
-
-                // if (value === null && this.attr[attr] !== null) {
-                //     delete this.attr[attr];
-                // } else {
-                //     this.attr[attr] = value;
-                // }
-                // this.dom.setAttr(attr, value);
-                // if (attr === "transform" && this.children.length > 0) {
-                //     this.children.forEach(function (d) {
-                //         d.applyTransformationMatrix(self.dom.transformMatrix);
-                //     });
-                // }
 
                 queueInstance.vDomChanged(context.vDomIndex);
             } else {
@@ -368,7 +357,7 @@ WebglDom.prototype.exec = function (exe, d) {
 WebglDom.prototype.setStyle = function (key, value) {
     if (value) {
         this.style[key] = value;
-        if (this.shader && key === "fill") {
+        if (this.shader && key === "fillStyle") {
             if (this.style.opacity !== undefined) {
                 value.a *= this.style.opacity;
             }
@@ -377,10 +366,10 @@ WebglDom.prototype.setStyle = function (key, value) {
             }
         }
         if (this.shader && key === "opacity") {
-            if (this.style.fill !== undefined) {
-                this.style.fill.a *= this.style.opacity;
+            if (this.style.fillStyle !== undefined) {
+                this.style.fillStyle.a *= this.style.opacity;
             }
-            this.shader.updateColor(this.pindex, this.style.fill);
+            this.shader.updateColor(this.pindex, this.style.fillStyle);
         }
     } else if (this.style[key]) {
         delete this.style[key];
@@ -392,7 +381,8 @@ WebglDom.prototype.getAttr = function (key) {
 };
 
 WebglDom.prototype.getStyle = function (key) {
-    return this.style[key];
+    let resKey = canvasStyleMapper[key] || key;
+    return this.style[resKey];
 };
 
 function PointNode(ctx, attr, style) {
@@ -417,7 +407,7 @@ PointNode.prototype.setShader = function (shader) {
     this.shader = shader;
     if (this.shader) {
         this.shader.addVertex(this.attr.x || 0, this.attr.y || 0, this.pindex);
-        this.shader.addColors(this.style.fill || defaultColor, this.pindex);
+        this.shader.addColors(this.style.fillStyle || defaultColor, this.pindex);
         this.shader.addSize(this.attr.size || 0, this.pindex);
         this.shader.addTransform(this.transformMatrix, this.pindex);
     }
@@ -501,7 +491,7 @@ RectNode.prototype.setShader = function (shader) {
             this.attr.height || 0,
             this.pindex
         );
-        this.shader.addColors(this.style.fill || defaultColor, this.pindex);
+        this.shader.addColors(this.style.fillStyle || defaultColor, this.pindex);
         this.shader.addTransform(this.transformMatrix, this.pindex);
     }
 };
@@ -578,8 +568,6 @@ function PathNode(ctx, attr, style) {
     for(let key in self.attr) {
         this.setAttr(key, self.attr[key]);
     }
-
-    updatePositionVector(this.positionArray, {x: 0, y: 0, height: this.pathTexture?.height??0, width: this.pathTexture?.width??0});
 }
 
 PathNode.prototype = new WebglDom();
@@ -635,7 +623,7 @@ PathNode.prototype.setStyle = function (key, value) {
     }
     this.style[key] = value;
     if (this.path) {
-        this.textureNode.setAttr('src', this.path.getPathTexture(this.style));
+        this.textureNode.setAttr('src', this.path.getPathTexture(this.style, true));
     }
 }
 
@@ -696,12 +684,12 @@ function PolyLineNode(ctx, attr, style) {
         }
         this.points = new Float32Array(subPoints);
     }
-    if (this.style.stroke) {
+    if (this.style.strokeStyle) {
         this.color = new Float32Array([
-            this.style.stroke.r / 255,
-            this.style.stroke.g / 255,
-            this.style.stroke.b / 255,
-            this.style.stroke.a === undefined ? 1 : this.style.stroke.a / 255,
+            this.style.strokeStyle.r / 255,
+            this.style.strokeStyle.g / 255,
+            this.style.strokeStyle.b / 255,
+            this.style.strokeStyle.a === undefined ? 1 : this.style.strokeStyle.a / 255,
         ]);
     }
 
@@ -742,12 +730,12 @@ PolyLineNode.prototype.updateBBox = RPolyupdateBBox;
 
 PolyLineNode.prototype.setStyle = function (key, value) {
     this.style[key] = value;
-    if (key === "stroke") {
+    if (key === "strokeStyle") {
         this.color = new Float32Array([
-            this.style.stroke.r / 255,
-            this.style.stroke.g / 255,
-            this.style.stroke.b / 255,
-            this.style.stroke.a === undefined ? 1 : this.style.stroke.a / 255,
+            this.style.strokeStyle.r / 255,
+            this.style.strokeStyle.g / 255,
+            this.style.strokeStyle.b / 255,
+            this.style.strokeStyle.a === undefined ? 1 : this.style.strokeStyle.a / 255,
         ]);
     }
 };
@@ -782,7 +770,7 @@ LineNode.prototype.setShader = function (shader) {
 
     if (this.shader) {
         this.shader.addVertex(x1, y1, x2, y2, this.pindex);
-        this.shader.addColors(this.style.stroke || defaultColor, this.pindex);
+        this.shader.addColors(this.style.strokeStyle || defaultColor, this.pindex);
         this.shader.addTransform(this.transformMatrix, this.pindex);
         // this.shader.addTransform(
         //     this.attr.transform || {
@@ -874,12 +862,12 @@ function PolygonNode(ctx, attr, style) {
         }
         this.points = new Float32Array(subPoints);
     }
-    if (this.style.fill) {
+    if (this.style.fillStyle || this.style.strokeStyle) {
         this.color = new Float32Array([
-            this.style.stroke.r / 255,
-            this.style.stroke.g / 255,
-            this.style.stroke.b / 255,
-            this.style.stroke.a === undefined ? 1 : this.style.stroke.a / 255,
+            this.style.strokeStyle.r / 255,
+            this.style.strokeStyle.g / 255,
+            this.style.strokeStyle.b / 255,
+            this.style.strokeStyle.a === undefined ? 1 : this.style.strokeStyle.a / 255,
         ]);
     }
     this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
@@ -927,12 +915,12 @@ PolygonNode.prototype.setAttr = function (key, value) {
 
 PolygonNode.prototype.setStyle = function (key, value) {
     this.style[key] = value;
-    if (key === "fill") {
+    if (key === "fillStyle") {
         this.color = new Float32Array([
-            this.style.fill.r / 255,
-            this.style.fill.g / 255,
-            this.style.fill.b / 255,
-            this.style.fill.a === undefined ? 1 : this.style.fill.a / 255,
+            this.style.fillStyle.r / 255,
+            this.style.fillStyle.g / 255,
+            this.style.fillStyle.b / 255,
+            this.style.fillStyle.a === undefined ? 1 : this.style.fillStyle.a / 255,
         ]);
     }
 };
@@ -961,8 +949,8 @@ CircleNode.prototype.setShader = function (shader) {
     this.shader = shader;
     if (this.shader) {
         this.shader.addVertex(this.attr.cx || 0, this.attr.cy || 0, this.pindex);
-        this.shader.addColors(this.style.fill || defaultColor, this.pindex);
-        this.shader.addSize(this.attr.r || 0, this.pindex);
+        this.shader.addColors(this.style.fillStyle || defaultColor, this.pindex);
+        this.shader.addSize(this.attr.r * ratio || 0, this.pindex);
         this.shader.addTransform(this.transformMatrix, this.pindex);
     }
 };
@@ -1030,7 +1018,7 @@ const onClear = function (ctx, width, height, ratio) {
 
 // const paintCanvasPath = function (ctx, pathNode, style) {
 //     const fillColor = style.fill || style.fillStyle;
-//     const strokeColor = style.stroke || style.strokeStyle;
+//     const strokeColor = style.strokeStyle || style.strokeStyle;
 //     if (fillColor) {
 //         ctx['fillStyle'] = colorMap.RGBAInstanceCheck(fillColor) ? fillColor.rgba : fillColor;
 //         ctx.fill(pathNode);
@@ -1105,11 +1093,15 @@ const onClear = function (ctx, width, height, ratio) {
 //     };
 // }
 
+function fetchColorCode(value) {
+    return colorMap.RGBAInstanceCheck(value) ? value.rgba : value;
+}
+
 function buildCanvasTextEl(str, style) {
     const layer = document.createElement("canvas");
     const ctx = layer.getContext("2d");
     style = style || {
-        fill: "#fff",
+        fillStyle: "#fff",
     };
     if (!style.font) {
         style.font = "10px Arial";
@@ -1122,17 +1114,18 @@ function buildCanvasTextEl(str, style) {
     const height = fontSize;
     layer.setAttribute("height", height * ratio);
     layer.setAttribute("width", width * ratio);
-    layer.style.width = width;
-    layer.style.height = height;
-
-    style.font =
-        fontSize * ratio +
-        (isNaN(parseFloat(style.font, 10))
-            ? style.font
-            : style.font.substring(fontSize.toString().length));
 
     for (const st in style) {
-        ctx[st] = style[st];
+        let value = style[st];
+        if (st === 'fillStyle' || st === 'strokeStyle') {
+            value = fetchColorCode(value);
+        } else if (st === 'font') {
+            value = fontSize * ratio +
+                    (isNaN(parseFloat(style.font, 10))
+                        ? style.font
+                        : style.font.substring(fontSize.toString().length));
+        }
+        ctx[st] = value;
     }
     ctx.fillText(str, 0, height * 0.75 * ratio);
 
@@ -1144,12 +1137,34 @@ function buildCanvasTextEl(str, style) {
         ratio: ratio,
         style: style,
         str: str,
-        updateText: function () {
-            onClear(this.ctx, this.width, this.height, this.ratio);
-            for (const st in this.style) {
-                this.ctx[st] = this.style[st];
+        updateText: function (str, style) {
+            if (!style.font) {
+                style.font = "10px Arial";
             }
-            this.ctx.fillText(this.str, 0, this.height * 0.75);
+            const fontSize = parseFloat(style.font, 10) || 12;
+            ctx.font = style.font;
+            const twid = ctx.measureText(str);
+            const width = twid.width;
+            const height = fontSize;
+            layer.setAttribute("height", height * ratio);
+            layer.setAttribute("width", width * ratio);
+
+            onClear(ctx, width, height, ratio);
+            this.width = width;
+            this.height = height;
+            for (const st in style) {
+                let value = style[st];
+                if (st === 'fillStyle' || st === 'strokeStyle') {
+                    value = fetchColorCode(value);
+                } else if (st === 'font') {
+                    value = fontSize * ratio +
+                            (isNaN(parseFloat(style.font, 10))
+                                ? style.font
+                                : style.font.substring(fontSize.toString().length));
+                }
+                ctx[st] = value;
+            }
+            ctx.fillText(str, 0, height * 0.75 * ratio);
         },
     };
 }
@@ -1228,10 +1243,10 @@ TextNode.prototype.setAttr = function (key, value) {
     }
 
     if (key === "text" && typeof value === "string") {
-        if (this.text) {
+        if (!this.text) {
             this.text = buildCanvasTextEl(this.attr.text, this.style);
         } else {
-            this.text = buildCanvasTextEl(value, this.style);
+            this.text.updateText(value, this.style);
         }
         this.attr.width = this.text.width;
         this.attr.height = this.text.height;
@@ -1250,7 +1265,7 @@ TextNode.prototype.setAttr = function (key, value) {
 
     if (key === "transform") {
         this.exec(updateTransformMatrix, this.p_matrix);
-    } else if (key === "x" || key === "y") {
+    } else if (key === 'text' || key === "x" || key === "y") {
 
         updatePositionVector(this.positionArray, this.attr);
 
@@ -1304,13 +1319,13 @@ TextNode.prototype.setStyle = function (key, value) {
     }
 };
 
-TextNode.prototype.getAttr = function (key) {
-    return this.attr[key];
-};
+// TextNode.prototype.getAttr = function (key) {
+//     return this.attr[key];
+// };
 
-TextNode.prototype.getStyle = function (key) {
-    return this.style[key];
-};
+// TextNode.prototype.getStyle = function (key) {
+//     return this.style[key];
+// };
 
 TextNode.prototype.in = function RIinfun(co) {
     const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
@@ -1452,13 +1467,13 @@ ImageNode.prototype.setStyle = function (key, value) {
     }
 };
 
-ImageNode.prototype.getAttr = function (key) {
-    return this.attr[key];
-};
+// ImageNode.prototype.getAttr = function (key) {
+//     return this.attr[key];
+// };
 
-ImageNode.prototype.getStyle = function (key) {
-    return this.style[key];
-};
+// ImageNode.prototype.getStyle = function (key) {
+//     return this.style[key];
+// };
 
 ImageNode.prototype.in = function RIinfun(co) {
     const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
@@ -2118,7 +2133,7 @@ function vertexExec(self) {
     }
 }
 
-function addColors(self, index, length, fill) {
+function addColors(self, index, length, fillStyle) {
     self.colorArray =
         self.typedColorArray && self.typedColorArray.length > 0
             ? Array.from(self.typedColorArray)
@@ -2126,18 +2141,18 @@ function addColors(self, index, length, fill) {
     self.typedColorArray = null;
     const b = index * length * 4;
     let i = 0;
-    fill = colorMap.colorToRGB(fill);
+    fillStyle = colorMap.colorToRGB(fillStyle);
     while (i < length) {
-        self.colorArray[b + i * 4] = fill.r / 255;
-        self.colorArray[b + i * 4 + 1] = fill.g / 255;
-        self.colorArray[b + i * 4 + 2] = fill.b / 255;
-        self.colorArray[b + i * 4 + 3] = fill.a === undefined ? 1 : fill.a / 255;
+        self.colorArray[b + i * 4] = fillStyle.r / 255;
+        self.colorArray[b + i * 4 + 1] = fillStyle.g / 255;
+        self.colorArray[b + i * 4 + 2] = fillStyle.b / 255;
+        self.colorArray[b + i * 4 + 3] = fillStyle.a === undefined ? 1 : fillStyle.a / 255;
         i++;
     }
     self.addColor_ = true;
 }
 
-function updateColor(self, index, length, fill) {
+function updateColor(self, index, length, fillStyle) {
     const colorArray = self.addColor_ ? self.colorArray : self.typedColorArray;
     const ti = index * length * 4;
     if (isNaN(colorArray[ti])) {
@@ -2146,10 +2161,10 @@ function updateColor(self, index, length, fill) {
     const b = index * length * 4;
     let i = 0;
     while (i < length) {
-        colorArray[b + i * 4] = fill.r / 255;
-        colorArray[b + i * 4 + 1] = fill.g / 255;
-        colorArray[b + i * 4 + 2] = fill.b / 255;
-        colorArray[b + i * 4 + 3] = fill.a === undefined ? 1 : fill.a / 255;
+        colorArray[b + i * 4] = fillStyle.r / 255;
+        colorArray[b + i * 4 + 1] = fillStyle.g / 255;
+        colorArray[b + i * 4 + 2] = fillStyle.b / 255;
+        colorArray[b + i * 4 + 3] = fillStyle.a === undefined ? 1 : fillStyle.a / 255;
         i++;
     }
     self.updateColor_ = true;
@@ -2287,8 +2302,8 @@ RenderWebglPoints.prototype.updateSize = function (index, size) {
     sizeArray[index] = size;
 };
 
-RenderWebglPoints.prototype.updateColor = function (index, fill) {
-    updateColor(this, index, 1, fill);
+RenderWebglPoints.prototype.updateColor = function (index, fillStyle) {
+    updateColor(this, index, 1, fillStyle);
 };
 
 RenderWebglPoints.prototype.addVertex = function (x, y, index) {
@@ -2304,8 +2319,8 @@ RenderWebglPoints.prototype.addSize = function (size, index) {
     this.sizeUpdate = true;
 };
 
-RenderWebglPoints.prototype.addColors = function (fill, index) {
-    addColors(this, index, 1, fill);
+RenderWebglPoints.prototype.addColors = function (fillStyle, index) {
+    addColors(this, index, 1, fillStyle);
 };
 
 RenderWebglPoints.prototype.execute = function () {
@@ -2406,8 +2421,8 @@ RenderWebglRects.prototype.addTransform = function (transform, index) {
     addTransform(this, index, 6, transform);
 };
 
-RenderWebglRects.prototype.updateColor = function (index, fill) {
-    updateColor(this, index, 6, fill);
+RenderWebglRects.prototype.updateColor = function (index, fillStyle) {
+    updateColor(this, index, 6, fillStyle);
 };
 
 RenderWebglRects.prototype.addVertex = function (x, y, width, height, index) {
@@ -2416,8 +2431,8 @@ RenderWebglRects.prototype.addVertex = function (x, y, width, height, index) {
     addVertex(this, index, 6, [x, y, x1, y, x, y1, x, y1, x1, y, x1, y1]);
 };
 
-RenderWebglRects.prototype.addColors = function (fill, index) {
-    addColors(this, index, 6, fill);
+RenderWebglRects.prototype.addColors = function (fillStyle, index) {
+    addColors(this, index, 6, fillStyle);
 };
 
 RenderWebglRects.prototype.execute = function () {
@@ -2499,16 +2514,16 @@ RenderWebglLines.prototype.updateVertex = function (index, x1, y1, x2, y2) {
     updateVertex(this, index, 2, [x1, y1, x2, y2]);
 };
 
-RenderWebglLines.prototype.updateColor = function (index, stroke) {
-    updateColor(this, index, 2, stroke);
+RenderWebglLines.prototype.updateColor = function (index, strokeStyle) {
+    updateColor(this, index, 2, strokeStyle);
 };
 
 RenderWebglLines.prototype.addVertex = function (x1, y1, x2, y2, index) {
     addVertex(this, index, 2, [x1, y1, x2, y2]);
 };
 
-RenderWebglLines.prototype.addColors = function (stroke, index) {
-    addColors(this, index, 2, stroke);
+RenderWebglLines.prototype.addColors = function (strokeStyle, index) {
+    addColors(this, index, 2, strokeStyle);
 };
 
 RenderWebglLines.prototype.execute = function () {
@@ -2716,8 +2731,8 @@ RenderWebglCircles.prototype.updateVertex = function (index, x, y) {
     updateVertex(this, index, 1, [x, y]);
 };
 
-RenderWebglCircles.prototype.updateColor = function (index, fill) {
-    updateColor(this, index, 1, fill);
+RenderWebglCircles.prototype.updateColor = function (index, fillStyle) {
+    updateColor(this, index, 1, fillStyle);
 };
 
 RenderWebglCircles.prototype.updateSize = function (index, value) {
@@ -2738,8 +2753,8 @@ RenderWebglCircles.prototype.addSize = function (size, index) {
     this.sizeUpdate = true;
 };
 
-RenderWebglCircles.prototype.addColors = function (fill, index) {
-    addColors(this, index, 1, fill);
+RenderWebglCircles.prototype.addColors = function (fillStyle, index) {
+    addColors(this, index, 1, fillStyle);
 };
 
 RenderWebglCircles.prototype.execute = function () {
@@ -2915,6 +2930,7 @@ function getTypeShader(ctx, attr, style, type, renderTarget, vDomIndex) {
 }
 
 function WebglNodeExe(ctx, config, id, vDomIndex) {
+
     this.ctx = ctx;
     // this.style = config.style || {};
     // this.attr = config.attr || {};
@@ -2930,7 +2946,20 @@ function WebglNodeExe(ctx, config, id, vDomIndex) {
     this.bbox = config.bbox !== undefined ? config.bbox : true;
     this.events = {};
 
-    this.style = prepObjProxyWebGl('style', config.style || {}, this, true);
+    let style = {};
+    if (config.style) {
+        for(let key in config.style) {
+            let resKey = canvasStyleMapper[key] || key;
+            let value = config.style[key]
+            if ((resKey === "fillStyle" || resKey === "strokeStyle") && !colorMap.RGBAInstanceCheck(value) ) {
+                value = colorMap.colorToRGB(value);
+            }
+            style[resKey] = value;
+        }
+    }
+
+
+    this.style = prepObjProxyWebGl('style', style || {}, this, true);
     this.attr = prepObjProxyWebGl('attr', config.attr || {}, this, true);
 
     switch (config.el) {
@@ -3281,6 +3310,13 @@ WebglNodeExe.prototype.remove = function Wremove() {
 
 WebglNodeExe.prototype.animatePathTo = AnimatePathTo;
 WebglNodeExe.prototype.morphTo = MorphTo;
+
+WebglNodeExe.prototype.text = function Ctext(value) {
+    if (this.dom instanceof TextNode) {
+        this.setAttr('text', value);
+    }
+    return this;
+};
 
 WebglNodeExe.prototype.removeChild = function WremoveChild(obj) {
     let index = -1;
@@ -3710,7 +3746,6 @@ TextureObject.prototype.setAttr = function (attr, value) {
         }
     } else {
         this[attr] = value;
-        console.warn("Instead of key, value, pass Object of key,value for optimal rendering");
         if (attr === "src") {
             if (typeof value === "string") {
                 if (!this.image || !(this.image instanceof Image)) {

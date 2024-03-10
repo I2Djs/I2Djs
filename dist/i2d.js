@@ -4673,22 +4673,24 @@ Example valid ways of supplying a shape would be:
         return new Path2D(pathStr || this.fetchPathString());
     };
     Path.prototype.getPathTexture = function (style = {}, refresh) {
-        if(!this.layer || refresh) {
-            const {x = 0, y= 0, height = 0, width = 0} = this.BBox;
-            this.pathNode = this.getPath2DObject();
+        if (!this.layer) {
             this.layer = document.createElement("canvas");
             this.ctx = this.layer.getContext("2d");
-            this.layer.setAttribute("height", height);
-            this.layer.setAttribute("width", width);
-            this.ctx.translate(x * -1 || 0, y * -1 || 0);
+            refresh = true;
+        }
+        if(refresh) {
+            let lineWidth = (style['lineWidth'] || 1) * 2;
+            const {x = 0, y= 0, height = 0, width = 0} = this.BBox;
+            this.pathNode = this.getPath2DObject();
+            this.layer.setAttribute("height", height + lineWidth * 2);
+            this.layer.setAttribute("width", width + lineWidth * 2);
+            this.ctx.clearRect(0, 0, width + lineWidth * 2, height + lineWidth * 2);
+            this.ctx.save();
+            this.ctx.translate((x * -1 + lineWidth) || 0, (y * -1 + lineWidth) || 0);
             for(let key in style) {
                 let value = style[key];
-                if (key === 'fillStyle' || key === 'fill') {
-                    this.ctx['fillStyle'] = colorMap$1.RGBAInstanceCheck(value) ? value.rgba : value;
-                    this.ctx.fill(this.pathNode);
-                } else if (key === 'strokeStyle' || key === 'stroke') {
-                    this.ctx['strokeStyle'] = colorMap$1.RGBAInstanceCheck(value) ? value.rgba : value;
-                    this.ctx.stroke(this.pathNode);
+                if (key === 'fillStyle' || key === 'strokeStyle') {
+                    this.ctx[key] = colorMap$1.RGBAInstanceCheck(value) ? value.rgba : value;
                 } else {
                     if (typeof this.ctx[key] !== "function") {
                         this.ctx[key] = value;
@@ -4697,6 +4699,13 @@ Example valid ways of supplying a shape would be:
                     }
                 }
             }
+            if (style['fillStyle']) {
+                this.ctx.fill(this.pathNode);
+            }
+            if (style['strokeStyle']) {
+                this.ctx.stroke(this.pathNode);
+            }
+            this.ctx.restore();
         }
         return this.layer;
     };
@@ -8240,6 +8249,31 @@ Example valid ways of supplying a shape would be:
         },
     };
 
+    const canvasStyleMapper = {
+        "fill": "fillStyle",
+        "stroke": "strokeStyle",
+        "lineDash": "setLineDash",
+        "opacity": "globalAlpha",
+        "stroke-width": "lineWidth",
+        "stroke-dasharray": "setLineDash",
+    };
+    const pdfSupportedFontFamily = [
+        "Courier",
+        "Courier-Bold",
+        "Courier-Oblique",
+        "Courier-BoldOblique",
+        "Helvetica",
+        "Helvetica-Bold",
+        "Helvetica-Oblique",
+        "Helvetica-BoldOblique",
+        "Symbol",
+        "Times-Roman",
+        "Times-Bold",
+        "Times-Italic",
+        "Times-BoldItalic",
+        "ZapfDingbats",
+    ];
+
     const t2DGeometry = geometry;
     let ratio;
     const queueInstance$1 = queue;
@@ -8421,13 +8455,14 @@ Example valid ways of supplying a shape would be:
                             context.BBoxUpdate = true;
                         }
                     } else if (type === 'style') {
-                        if (prop === "fill" || prop === "stroke") {
+                        let resProp = canvasStyleMapper[prop] || prop;
+                        if ((resProp === "fillStyle" || resProp === "strokeStyle") && !colorMap$1.RGBAInstanceCheck(value) ) {
                             value = colorMap$1.colorToRGB(value);
                         }
                         if (context && context.dom) {
-                            context.dom.setStyle(prop, value);
+                            context.dom.setStyle(resProp, value);
                         }
-                        obj[prop] = value;
+                        obj[resProp] = value;
                     } else if (type === 'transform') {
                         if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
                             value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
@@ -8539,7 +8574,7 @@ Example valid ways of supplying a shape would be:
     WebglDom.prototype.setStyle = function (key, value) {
         if (value) {
             this.style[key] = value;
-            if (this.shader && key === "fill") {
+            if (this.shader && key === "fillStyle") {
                 if (this.style.opacity !== undefined) {
                     value.a *= this.style.opacity;
                 }
@@ -8548,10 +8583,10 @@ Example valid ways of supplying a shape would be:
                 }
             }
             if (this.shader && key === "opacity") {
-                if (this.style.fill !== undefined) {
-                    this.style.fill.a *= this.style.opacity;
+                if (this.style.fillStyle !== undefined) {
+                    this.style.fillStyle.a *= this.style.opacity;
                 }
-                this.shader.updateColor(this.pindex, this.style.fill);
+                this.shader.updateColor(this.pindex, this.style.fillStyle);
             }
         } else if (this.style[key]) {
             delete this.style[key];
@@ -8561,7 +8596,8 @@ Example valid ways of supplying a shape would be:
         return this.attr[key];
     };
     WebglDom.prototype.getStyle = function (key) {
-        return this.style[key];
+        let resKey = canvasStyleMapper[key] || key;
+        return this.style[resKey];
     };
     function PointNode(ctx, attr, style) {
         this.ctx = ctx;
@@ -8582,7 +8618,7 @@ Example valid ways of supplying a shape would be:
         this.shader = shader;
         if (this.shader) {
             this.shader.addVertex(this.attr.x || 0, this.attr.y || 0, this.pindex);
-            this.shader.addColors(this.style.fill || defaultColor, this.pindex);
+            this.shader.addColors(this.style.fillStyle || defaultColor, this.pindex);
             this.shader.addSize(this.attr.size || 0, this.pindex);
             this.shader.addTransform(this.transformMatrix, this.pindex);
         }
@@ -8655,7 +8691,7 @@ Example valid ways of supplying a shape would be:
                 this.attr.height || 0,
                 this.pindex
             );
-            this.shader.addColors(this.style.fill || defaultColor, this.pindex);
+            this.shader.addColors(this.style.fillStyle || defaultColor, this.pindex);
             this.shader.addTransform(this.transformMatrix, this.pindex);
         }
     };
@@ -8722,7 +8758,6 @@ Example valid ways of supplying a shape would be:
         for(let key in self.attr) {
             this.setAttr(key, self.attr[key]);
         }
-        updatePositionVector(this.positionArray, {x: 0, y: 0, height: this.pathTexture?.height??0, width: this.pathTexture?.width??0});
     }
     PathNode.prototype = new WebglDom();
     PathNode.prototype.constructor = PathNode;
@@ -8771,7 +8806,7 @@ Example valid ways of supplying a shape would be:
         }
         this.style[key] = value;
         if (this.path) {
-            this.textureNode.setAttr('src', this.path.getPathTexture(this.style));
+            this.textureNode.setAttr('src', this.path.getPathTexture(this.style, true));
         }
     };
     PathNode.prototype.in = function RIinfun(co) {
@@ -8824,12 +8859,12 @@ Example valid ways of supplying a shape would be:
             }
             this.points = new Float32Array(subPoints);
         }
-        if (this.style.stroke) {
+        if (this.style.strokeStyle) {
             this.color = new Float32Array([
-                this.style.stroke.r / 255,
-                this.style.stroke.g / 255,
-                this.style.stroke.b / 255,
-                this.style.stroke.a === undefined ? 1 : this.style.stroke.a / 255,
+                this.style.strokeStyle.r / 255,
+                this.style.strokeStyle.g / 255,
+                this.style.strokeStyle.b / 255,
+                this.style.strokeStyle.a === undefined ? 1 : this.style.strokeStyle.a / 255,
             ]);
         }
         this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
@@ -8863,12 +8898,12 @@ Example valid ways of supplying a shape would be:
     PolyLineNode.prototype.updateBBox = RPolyupdateBBox$1;
     PolyLineNode.prototype.setStyle = function (key, value) {
         this.style[key] = value;
-        if (key === "stroke") {
+        if (key === "strokeStyle") {
             this.color = new Float32Array([
-                this.style.stroke.r / 255,
-                this.style.stroke.g / 255,
-                this.style.stroke.b / 255,
-                this.style.stroke.a === undefined ? 1 : this.style.stroke.a / 255,
+                this.style.strokeStyle.r / 255,
+                this.style.strokeStyle.g / 255,
+                this.style.strokeStyle.b / 255,
+                this.style.strokeStyle.a === undefined ? 1 : this.style.strokeStyle.a / 255,
             ]);
         }
     };
@@ -8892,7 +8927,7 @@ Example valid ways of supplying a shape would be:
         const { x1 = 0, y1 = 0, x2 = x1, y2 = y1 } = this.attr;
         if (this.shader) {
             this.shader.addVertex(x1, y1, x2, y2, this.pindex);
-            this.shader.addColors(this.style.stroke || defaultColor, this.pindex);
+            this.shader.addColors(this.style.strokeStyle || defaultColor, this.pindex);
             this.shader.addTransform(this.transformMatrix, this.pindex);
         }
     };
@@ -8968,12 +9003,12 @@ Example valid ways of supplying a shape would be:
             }
             this.points = new Float32Array(subPoints);
         }
-        if (this.style.fill) {
+        if (this.style.fillStyle || this.style.strokeStyle) {
             this.color = new Float32Array([
-                this.style.stroke.r / 255,
-                this.style.stroke.g / 255,
-                this.style.stroke.b / 255,
-                this.style.stroke.a === undefined ? 1 : this.style.stroke.a / 255,
+                this.style.strokeStyle.r / 255,
+                this.style.strokeStyle.g / 255,
+                this.style.strokeStyle.b / 255,
+                this.style.strokeStyle.a === undefined ? 1 : this.style.strokeStyle.a / 255,
             ]);
         }
         this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
@@ -9010,12 +9045,12 @@ Example valid ways of supplying a shape would be:
     };
     PolygonNode.prototype.setStyle = function (key, value) {
         this.style[key] = value;
-        if (key === "fill") {
+        if (key === "fillStyle") {
             this.color = new Float32Array([
-                this.style.fill.r / 255,
-                this.style.fill.g / 255,
-                this.style.fill.b / 255,
-                this.style.fill.a === undefined ? 1 : this.style.fill.a / 255,
+                this.style.fillStyle.r / 255,
+                this.style.fillStyle.g / 255,
+                this.style.fillStyle.b / 255,
+                this.style.fillStyle.a === undefined ? 1 : this.style.fillStyle.a / 255,
             ]);
         }
     };
@@ -9039,8 +9074,8 @@ Example valid ways of supplying a shape would be:
         this.shader = shader;
         if (this.shader) {
             this.shader.addVertex(this.attr.cx || 0, this.attr.cy || 0, this.pindex);
-            this.shader.addColors(this.style.fill || defaultColor, this.pindex);
-            this.shader.addSize(this.attr.r || 0, this.pindex);
+            this.shader.addColors(this.style.fillStyle || defaultColor, this.pindex);
+            this.shader.addSize(this.attr.r * ratio || 0, this.pindex);
             this.shader.addTransform(this.transformMatrix, this.pindex);
         }
     };
@@ -9096,11 +9131,14 @@ Example valid ways of supplying a shape would be:
     const onClear = function (ctx, width, height, ratio) {
         ctx.clearRect(0, 0, width * ratio, height * ratio);
     };
+    function fetchColorCode(value) {
+        return colorMap$1.RGBAInstanceCheck(value) ? value.rgba : value;
+    }
     function buildCanvasTextEl(str, style) {
         const layer = document.createElement("canvas");
         const ctx = layer.getContext("2d");
         style = style || {
-            fill: "#fff",
+            fillStyle: "#fff",
         };
         if (!style.font) {
             style.font = "10px Arial";
@@ -9112,15 +9150,17 @@ Example valid ways of supplying a shape would be:
         const height = fontSize;
         layer.setAttribute("height", height * ratio);
         layer.setAttribute("width", width * ratio);
-        layer.style.width = width;
-        layer.style.height = height;
-        style.font =
-            fontSize * ratio +
-            (isNaN(parseFloat(style.font, 10))
-                ? style.font
-                : style.font.substring(fontSize.toString().length));
         for (const st in style) {
-            ctx[st] = style[st];
+            let value = style[st];
+            if (st === 'fillStyle' || st === 'strokeStyle') {
+                value = fetchColorCode(value);
+            } else if (st === 'font') {
+                value = fontSize * ratio +
+                        (isNaN(parseFloat(style.font, 10))
+                            ? style.font
+                            : style.font.substring(fontSize.toString().length));
+            }
+            ctx[st] = value;
         }
         ctx.fillText(str, 0, height * 0.75 * ratio);
         return {
@@ -9131,12 +9171,33 @@ Example valid ways of supplying a shape would be:
             ratio: ratio,
             style: style,
             str: str,
-            updateText: function () {
-                onClear(this.ctx, this.width, this.height, this.ratio);
-                for (const st in this.style) {
-                    this.ctx[st] = this.style[st];
+            updateText: function (str, style) {
+                if (!style.font) {
+                    style.font = "10px Arial";
                 }
-                this.ctx.fillText(this.str, 0, this.height * 0.75);
+                const fontSize = parseFloat(style.font, 10) || 12;
+                ctx.font = style.font;
+                const twid = ctx.measureText(str);
+                const width = twid.width;
+                const height = fontSize;
+                layer.setAttribute("height", height * ratio);
+                layer.setAttribute("width", width * ratio);
+                onClear(ctx, width, height, ratio);
+                this.width = width;
+                this.height = height;
+                for (const st in style) {
+                    let value = style[st];
+                    if (st === 'fillStyle' || st === 'strokeStyle') {
+                        value = fetchColorCode(value);
+                    } else if (st === 'font') {
+                        value = fontSize * ratio +
+                                (isNaN(parseFloat(style.font, 10))
+                                    ? style.font
+                                    : style.font.substring(fontSize.toString().length));
+                    }
+                    ctx[st] = value;
+                }
+                ctx.fillText(str, 0, height * 0.75 * ratio);
             },
         };
     }
@@ -9186,10 +9247,10 @@ Example valid ways of supplying a shape would be:
             return;
         }
         if (key === "text" && typeof value === "string") {
-            if (this.text) {
+            if (!this.text) {
                 this.text = buildCanvasTextEl(this.attr.text, this.style);
             } else {
-                this.text = buildCanvasTextEl(value, this.style);
+                this.text.updateText(value, this.style);
             }
             this.attr.width = this.text.width;
             this.attr.height = this.text.height;
@@ -9207,7 +9268,7 @@ Example valid ways of supplying a shape would be:
         }
         if (key === "transform") {
             this.exec(updateTransformMatrix, this.p_matrix);
-        } else if (key === "x" || key === "y") {
+        } else if (key === 'text' || key === "x" || key === "y") {
             updatePositionVector(this.positionArray, this.attr);
         }
     };
@@ -9243,12 +9304,6 @@ Example valid ways of supplying a shape would be:
                 this.textureNode.setAttr("src", this.text.dom);
             }
         }
-    };
-    TextNode.prototype.getAttr = function (key) {
-        return this.attr[key];
-    };
-    TextNode.prototype.getStyle = function (key) {
-        return this.style[key];
     };
     TextNode.prototype.in = function RIinfun(co) {
         const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
@@ -9362,12 +9417,6 @@ Example valid ways of supplying a shape would be:
         } else if (this.style[key]) {
             delete this.style[key];
         }
-    };
-    ImageNode.prototype.getAttr = function (key) {
-        return this.attr[key];
-    };
-    ImageNode.prototype.getStyle = function (key) {
-        return this.style[key];
     };
     ImageNode.prototype.in = function RIinfun(co) {
         const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
@@ -9963,7 +10012,7 @@ Example valid ways of supplying a shape would be:
             self.updateVertex_ = false;
         }
     }
-    function addColors(self, index, length, fill) {
+    function addColors(self, index, length, fillStyle) {
         self.colorArray =
             self.typedColorArray && self.typedColorArray.length > 0
                 ? Array.from(self.typedColorArray)
@@ -9971,17 +10020,17 @@ Example valid ways of supplying a shape would be:
         self.typedColorArray = null;
         const b = index * length * 4;
         let i = 0;
-        fill = colorMap$1.colorToRGB(fill);
+        fillStyle = colorMap$1.colorToRGB(fillStyle);
         while (i < length) {
-            self.colorArray[b + i * 4] = fill.r / 255;
-            self.colorArray[b + i * 4 + 1] = fill.g / 255;
-            self.colorArray[b + i * 4 + 2] = fill.b / 255;
-            self.colorArray[b + i * 4 + 3] = fill.a === undefined ? 1 : fill.a / 255;
+            self.colorArray[b + i * 4] = fillStyle.r / 255;
+            self.colorArray[b + i * 4 + 1] = fillStyle.g / 255;
+            self.colorArray[b + i * 4 + 2] = fillStyle.b / 255;
+            self.colorArray[b + i * 4 + 3] = fillStyle.a === undefined ? 1 : fillStyle.a / 255;
             i++;
         }
         self.addColor_ = true;
     }
-    function updateColor(self, index, length, fill) {
+    function updateColor(self, index, length, fillStyle) {
         const colorArray = self.addColor_ ? self.colorArray : self.typedColorArray;
         const ti = index * length * 4;
         if (isNaN(colorArray[ti])) {
@@ -9990,10 +10039,10 @@ Example valid ways of supplying a shape would be:
         const b = index * length * 4;
         let i = 0;
         while (i < length) {
-            colorArray[b + i * 4] = fill.r / 255;
-            colorArray[b + i * 4 + 1] = fill.g / 255;
-            colorArray[b + i * 4 + 2] = fill.b / 255;
-            colorArray[b + i * 4 + 3] = fill.a === undefined ? 1 : fill.a / 255;
+            colorArray[b + i * 4] = fillStyle.r / 255;
+            colorArray[b + i * 4 + 1] = fillStyle.g / 255;
+            colorArray[b + i * 4 + 2] = fillStyle.b / 255;
+            colorArray[b + i * 4 + 3] = fillStyle.a === undefined ? 1 : fillStyle.a / 255;
             i++;
         }
         self.updateColor_ = true;
@@ -10115,8 +10164,8 @@ Example valid ways of supplying a shape would be:
         const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
         sizeArray[index] = size;
     };
-    RenderWebglPoints.prototype.updateColor = function (index, fill) {
-        updateColor(this, index, 1, fill);
+    RenderWebglPoints.prototype.updateColor = function (index, fillStyle) {
+        updateColor(this, index, 1, fillStyle);
     };
     RenderWebglPoints.prototype.addVertex = function (x, y, index) {
         addVertex(this, index, 1, [x, y]);
@@ -10129,8 +10178,8 @@ Example valid ways of supplying a shape would be:
         this.pointsSize[index] = size;
         this.sizeUpdate = true;
     };
-    RenderWebglPoints.prototype.addColors = function (fill, index) {
-        addColors(this, index, 1, fill);
+    RenderWebglPoints.prototype.addColors = function (fillStyle, index) {
+        addColors(this, index, 1, fillStyle);
     };
     RenderWebglPoints.prototype.execute = function () {
         if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
@@ -10219,16 +10268,16 @@ Example valid ways of supplying a shape would be:
     RenderWebglRects.prototype.addTransform = function (transform, index) {
         addTransform(this, index, 6, transform);
     };
-    RenderWebglRects.prototype.updateColor = function (index, fill) {
-        updateColor(this, index, 6, fill);
+    RenderWebglRects.prototype.updateColor = function (index, fillStyle) {
+        updateColor(this, index, 6, fillStyle);
     };
     RenderWebglRects.prototype.addVertex = function (x, y, width, height, index) {
         const x1 = x + width;
         const y1 = y + height;
         addVertex(this, index, 6, [x, y, x1, y, x, y1, x, y1, x1, y, x1, y1]);
     };
-    RenderWebglRects.prototype.addColors = function (fill, index) {
-        addColors(this, index, 6, fill);
+    RenderWebglRects.prototype.addColors = function (fillStyle, index) {
+        addColors(this, index, 6, fillStyle);
     };
     RenderWebglRects.prototype.execute = function () {
         if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
@@ -10297,14 +10346,14 @@ Example valid ways of supplying a shape would be:
     RenderWebglLines.prototype.updateVertex = function (index, x1, y1, x2, y2) {
         updateVertex(this, index, 2, [x1, y1, x2, y2]);
     };
-    RenderWebglLines.prototype.updateColor = function (index, stroke) {
-        updateColor(this, index, 2, stroke);
+    RenderWebglLines.prototype.updateColor = function (index, strokeStyle) {
+        updateColor(this, index, 2, strokeStyle);
     };
     RenderWebglLines.prototype.addVertex = function (x1, y1, x2, y2, index) {
         addVertex(this, index, 2, [x1, y1, x2, y2]);
     };
-    RenderWebglLines.prototype.addColors = function (stroke, index) {
-        addColors(this, index, 2, stroke);
+    RenderWebglLines.prototype.addColors = function (strokeStyle, index) {
+        addColors(this, index, 2, strokeStyle);
     };
     RenderWebglLines.prototype.execute = function () {
         if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
@@ -10484,8 +10533,8 @@ Example valid ways of supplying a shape would be:
     RenderWebglCircles.prototype.updateVertex = function (index, x, y) {
         updateVertex(this, index, 1, [x, y]);
     };
-    RenderWebglCircles.prototype.updateColor = function (index, fill) {
-        updateColor(this, index, 1, fill);
+    RenderWebglCircles.prototype.updateColor = function (index, fillStyle) {
+        updateColor(this, index, 1, fillStyle);
     };
     RenderWebglCircles.prototype.updateSize = function (index, value) {
         const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
@@ -10502,8 +10551,8 @@ Example valid ways of supplying a shape would be:
         this.pointsSize[index] = size;
         this.sizeUpdate = true;
     };
-    RenderWebglCircles.prototype.addColors = function (fill, index) {
-        addColors(this, index, 1, fill);
+    RenderWebglCircles.prototype.addColors = function (fillStyle, index) {
+        addColors(this, index, 1, fillStyle);
     };
     RenderWebglCircles.prototype.execute = function () {
         if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
@@ -10663,7 +10712,18 @@ Example valid ways of supplying a shape would be:
         this.exeCtx = config.ctx;
         this.bbox = config.bbox !== undefined ? config.bbox : true;
         this.events = {};
-        this.style = prepObjProxyWebGl('style', config.style || {}, this, true);
+        let style = {};
+        if (config.style) {
+            for(let key in config.style) {
+                let resKey = canvasStyleMapper[key] || key;
+                let value = config.style[key];
+                if ((resKey === "fillStyle" || resKey === "strokeStyle") && !colorMap$1.RGBAInstanceCheck(value) ) {
+                    value = colorMap$1.colorToRGB(value);
+                }
+                style[resKey] = value;
+            }
+        }
+        this.style = prepObjProxyWebGl('style', style || {}, this, true);
         this.attr = prepObjProxyWebGl('attr', config.attr || {}, this, true);
         switch (config.el) {
             case "point":
@@ -10965,6 +11025,12 @@ Example valid ways of supplying a shape would be:
     };
     WebglNodeExe.prototype.animatePathTo = AnimatePathTo;
     WebglNodeExe.prototype.morphTo = MorphTo;
+    WebglNodeExe.prototype.text = function Ctext(value) {
+        if (this.dom instanceof TextNode) {
+            this.setAttr('text', value);
+        }
+        return this;
+    };
     WebglNodeExe.prototype.removeChild = function WremoveChild(obj) {
         let index = -1;
         this.children.forEach((d, i) => {
@@ -11312,7 +11378,6 @@ Example valid ways of supplying a shape would be:
             }
         } else {
             this[attr] = value;
-            console.warn("Instead of key, value, pass Object of key,value for optimal rendering");
             if (attr === "src") {
                 if (typeof value === "string") {
                     if (!this.image || !(this.image instanceof Image)) {
@@ -70095,31 +70160,6 @@ Please pipe the document into a Node stream.\
     var blobStream$1 = blobStream;
 
     const STANDARD_FONTS = {};
-
-    const canvasStyleMapper = {
-        "fill": "fillStyle",
-        "stroke": "strokeStyle",
-        "lineDash": "setLineDash",
-        "opacity": "globalAlpha",
-        "stroke-width": "lineWidth",
-        "stroke-dasharray": "setLineDash",
-    };
-    const pdfSupportedFontFamily = [
-        "Courier",
-        "Courier-Bold",
-        "Courier-Oblique",
-        "Courier-BoldOblique",
-        "Helvetica",
-        "Helvetica-Bold",
-        "Helvetica-Oblique",
-        "Helvetica-BoldOblique",
-        "Symbol",
-        "Times-Roman",
-        "Times-Bold",
-        "Times-Italic",
-        "Times-BoldItalic",
-        "ZapfDingbats",
-    ];
 
     const pdfStyleMapper = {
         fillStyle: {

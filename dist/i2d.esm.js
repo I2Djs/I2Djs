@@ -2301,22 +2301,24 @@ Path.prototype.getPath2DObject = function (pathStr) {
     return new Path2D(pathStr || this.fetchPathString());
 };
 Path.prototype.getPathTexture = function (style = {}, refresh) {
-    if(!this.layer || refresh) {
-        const {x = 0, y= 0, height = 0, width = 0} = this.BBox;
-        this.pathNode = this.getPath2DObject();
+    if (!this.layer) {
         this.layer = document.createElement("canvas");
         this.ctx = this.layer.getContext("2d");
-        this.layer.setAttribute("height", height);
-        this.layer.setAttribute("width", width);
-        this.ctx.translate(x * -1 || 0, y * -1 || 0);
+        refresh = true;
+    }
+    if(refresh) {
+        let lineWidth = (style['lineWidth'] || 1) * 2;
+        const {x = 0, y= 0, height = 0, width = 0} = this.BBox;
+        this.pathNode = this.getPath2DObject();
+        this.layer.setAttribute("height", height + lineWidth * 2);
+        this.layer.setAttribute("width", width + lineWidth * 2);
+        this.ctx.clearRect(0, 0, width + lineWidth * 2, height + lineWidth * 2);
+        this.ctx.save();
+        this.ctx.translate((x * -1 + lineWidth) || 0, (y * -1 + lineWidth) || 0);
         for(let key in style) {
             let value = style[key];
-            if (key === 'fillStyle' || key === 'fill') {
-                this.ctx['fillStyle'] = colorMap$1.RGBAInstanceCheck(value) ? value.rgba : value;
-                this.ctx.fill(this.pathNode);
-            } else if (key === 'strokeStyle' || key === 'stroke') {
-                this.ctx['strokeStyle'] = colorMap$1.RGBAInstanceCheck(value) ? value.rgba : value;
-                this.ctx.stroke(this.pathNode);
+            if (key === 'fillStyle' || key === 'strokeStyle') {
+                this.ctx[key] = colorMap$1.RGBAInstanceCheck(value) ? value.rgba : value;
             } else {
                 if (typeof this.ctx[key] !== "function") {
                     this.ctx[key] = value;
@@ -2325,6 +2327,13 @@ Path.prototype.getPathTexture = function (style = {}, refresh) {
                 }
             }
         }
+        if (style['fillStyle']) {
+            this.ctx.fill(this.pathNode);
+        }
+        if (style['strokeStyle']) {
+            this.ctx.stroke(this.pathNode);
+        }
+        this.ctx.restore();
     }
     return this.layer;
 };
@@ -5369,6 +5378,31 @@ var behaviour = {
     },
 };
 
+const canvasStyleMapper = {
+    "fill": "fillStyle",
+    "stroke": "strokeStyle",
+    "lineDash": "setLineDash",
+    "opacity": "globalAlpha",
+    "stroke-width": "lineWidth",
+    "stroke-dasharray": "setLineDash",
+};
+const pdfSupportedFontFamily = [
+    "Courier",
+    "Courier-Bold",
+    "Courier-Oblique",
+    "Courier-BoldOblique",
+    "Helvetica",
+    "Helvetica-Bold",
+    "Helvetica-Oblique",
+    "Helvetica-BoldOblique",
+    "Symbol",
+    "Times-Roman",
+    "Times-Bold",
+    "Times-Italic",
+    "Times-BoldItalic",
+    "ZapfDingbats",
+];
+
 const t2DGeometry = geometry;
 let ratio;
 const queueInstance$1 = queue;
@@ -5550,13 +5584,14 @@ function prepObjProxyWebGl(type, attr, context, BBoxUpdate) {
                         context.BBoxUpdate = true;
                     }
                 } else if (type === 'style') {
-                    if (prop === "fill" || prop === "stroke") {
+                    let resProp = canvasStyleMapper[prop] || prop;
+                    if ((resProp === "fillStyle" || resProp === "strokeStyle") && !colorMap$1.RGBAInstanceCheck(value) ) {
                         value = colorMap$1.colorToRGB(value);
                     }
                     if (context && context.dom) {
-                        context.dom.setStyle(prop, value);
+                        context.dom.setStyle(resProp, value);
                     }
-                    obj[prop] = value;
+                    obj[resProp] = value;
                 } else if (type === 'transform') {
                     if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
                         value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
@@ -5668,7 +5703,7 @@ WebglDom.prototype.exec = function (exe, d) {
 WebglDom.prototype.setStyle = function (key, value) {
     if (value) {
         this.style[key] = value;
-        if (this.shader && key === "fill") {
+        if (this.shader && key === "fillStyle") {
             if (this.style.opacity !== undefined) {
                 value.a *= this.style.opacity;
             }
@@ -5677,10 +5712,10 @@ WebglDom.prototype.setStyle = function (key, value) {
             }
         }
         if (this.shader && key === "opacity") {
-            if (this.style.fill !== undefined) {
-                this.style.fill.a *= this.style.opacity;
+            if (this.style.fillStyle !== undefined) {
+                this.style.fillStyle.a *= this.style.opacity;
             }
-            this.shader.updateColor(this.pindex, this.style.fill);
+            this.shader.updateColor(this.pindex, this.style.fillStyle);
         }
     } else if (this.style[key]) {
         delete this.style[key];
@@ -5690,7 +5725,8 @@ WebglDom.prototype.getAttr = function (key) {
     return this.attr[key];
 };
 WebglDom.prototype.getStyle = function (key) {
-    return this.style[key];
+    let resKey = canvasStyleMapper[key] || key;
+    return this.style[resKey];
 };
 function PointNode(ctx, attr, style) {
     this.ctx = ctx;
@@ -5711,7 +5747,7 @@ PointNode.prototype.setShader = function (shader) {
     this.shader = shader;
     if (this.shader) {
         this.shader.addVertex(this.attr.x || 0, this.attr.y || 0, this.pindex);
-        this.shader.addColors(this.style.fill || defaultColor, this.pindex);
+        this.shader.addColors(this.style.fillStyle || defaultColor, this.pindex);
         this.shader.addSize(this.attr.size || 0, this.pindex);
         this.shader.addTransform(this.transformMatrix, this.pindex);
     }
@@ -5784,7 +5820,7 @@ RectNode.prototype.setShader = function (shader) {
             this.attr.height || 0,
             this.pindex
         );
-        this.shader.addColors(this.style.fill || defaultColor, this.pindex);
+        this.shader.addColors(this.style.fillStyle || defaultColor, this.pindex);
         this.shader.addTransform(this.transformMatrix, this.pindex);
     }
 };
@@ -5851,7 +5887,6 @@ function PathNode(ctx, attr, style) {
     for(let key in self.attr) {
         this.setAttr(key, self.attr[key]);
     }
-    updatePositionVector(this.positionArray, {x: 0, y: 0, height: this.pathTexture?.height??0, width: this.pathTexture?.width??0});
 }
 PathNode.prototype = new WebglDom();
 PathNode.prototype.constructor = PathNode;
@@ -5900,7 +5935,7 @@ PathNode.prototype.setStyle = function (key, value) {
     }
     this.style[key] = value;
     if (this.path) {
-        this.textureNode.setAttr('src', this.path.getPathTexture(this.style));
+        this.textureNode.setAttr('src', this.path.getPathTexture(this.style, true));
     }
 };
 PathNode.prototype.in = function RIinfun(co) {
@@ -5953,12 +5988,12 @@ function PolyLineNode(ctx, attr, style) {
         }
         this.points = new Float32Array(subPoints);
     }
-    if (this.style.stroke) {
+    if (this.style.strokeStyle) {
         this.color = new Float32Array([
-            this.style.stroke.r / 255,
-            this.style.stroke.g / 255,
-            this.style.stroke.b / 255,
-            this.style.stroke.a === undefined ? 1 : this.style.stroke.a / 255,
+            this.style.strokeStyle.r / 255,
+            this.style.strokeStyle.g / 255,
+            this.style.strokeStyle.b / 255,
+            this.style.strokeStyle.a === undefined ? 1 : this.style.strokeStyle.a / 255,
         ]);
     }
     this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
@@ -5992,12 +6027,12 @@ PolyLineNode.prototype.setAttr = function (key, value) {
 PolyLineNode.prototype.updateBBox = RPolyupdateBBox$1;
 PolyLineNode.prototype.setStyle = function (key, value) {
     this.style[key] = value;
-    if (key === "stroke") {
+    if (key === "strokeStyle") {
         this.color = new Float32Array([
-            this.style.stroke.r / 255,
-            this.style.stroke.g / 255,
-            this.style.stroke.b / 255,
-            this.style.stroke.a === undefined ? 1 : this.style.stroke.a / 255,
+            this.style.strokeStyle.r / 255,
+            this.style.strokeStyle.g / 255,
+            this.style.strokeStyle.b / 255,
+            this.style.strokeStyle.a === undefined ? 1 : this.style.strokeStyle.a / 255,
         ]);
     }
 };
@@ -6021,7 +6056,7 @@ LineNode.prototype.setShader = function (shader) {
     const { x1 = 0, y1 = 0, x2 = x1, y2 = y1 } = this.attr;
     if (this.shader) {
         this.shader.addVertex(x1, y1, x2, y2, this.pindex);
-        this.shader.addColors(this.style.stroke || defaultColor, this.pindex);
+        this.shader.addColors(this.style.strokeStyle || defaultColor, this.pindex);
         this.shader.addTransform(this.transformMatrix, this.pindex);
     }
 };
@@ -6097,12 +6132,12 @@ function PolygonNode(ctx, attr, style) {
         }
         this.points = new Float32Array(subPoints);
     }
-    if (this.style.fill) {
+    if (this.style.fillStyle || this.style.strokeStyle) {
         this.color = new Float32Array([
-            this.style.stroke.r / 255,
-            this.style.stroke.g / 255,
-            this.style.stroke.b / 255,
-            this.style.stroke.a === undefined ? 1 : this.style.stroke.a / 255,
+            this.style.strokeStyle.r / 255,
+            this.style.strokeStyle.g / 255,
+            this.style.strokeStyle.b / 255,
+            this.style.strokeStyle.a === undefined ? 1 : this.style.strokeStyle.a / 255,
         ]);
     }
     this.transformMatrix = m3.multiply(this.projectionMatrix, m3.identity());
@@ -6139,12 +6174,12 @@ PolygonNode.prototype.setAttr = function (key, value) {
 };
 PolygonNode.prototype.setStyle = function (key, value) {
     this.style[key] = value;
-    if (key === "fill") {
+    if (key === "fillStyle") {
         this.color = new Float32Array([
-            this.style.fill.r / 255,
-            this.style.fill.g / 255,
-            this.style.fill.b / 255,
-            this.style.fill.a === undefined ? 1 : this.style.fill.a / 255,
+            this.style.fillStyle.r / 255,
+            this.style.fillStyle.g / 255,
+            this.style.fillStyle.b / 255,
+            this.style.fillStyle.a === undefined ? 1 : this.style.fillStyle.a / 255,
         ]);
     }
 };
@@ -6168,8 +6203,8 @@ CircleNode.prototype.setShader = function (shader) {
     this.shader = shader;
     if (this.shader) {
         this.shader.addVertex(this.attr.cx || 0, this.attr.cy || 0, this.pindex);
-        this.shader.addColors(this.style.fill || defaultColor, this.pindex);
-        this.shader.addSize(this.attr.r || 0, this.pindex);
+        this.shader.addColors(this.style.fillStyle || defaultColor, this.pindex);
+        this.shader.addSize(this.attr.r * ratio || 0, this.pindex);
         this.shader.addTransform(this.transformMatrix, this.pindex);
     }
 };
@@ -6225,11 +6260,14 @@ function isPowerOf2(value) {
 const onClear = function (ctx, width, height, ratio) {
     ctx.clearRect(0, 0, width * ratio, height * ratio);
 };
+function fetchColorCode(value) {
+    return colorMap$1.RGBAInstanceCheck(value) ? value.rgba : value;
+}
 function buildCanvasTextEl(str, style) {
     const layer = document.createElement("canvas");
     const ctx = layer.getContext("2d");
     style = style || {
-        fill: "#fff",
+        fillStyle: "#fff",
     };
     if (!style.font) {
         style.font = "10px Arial";
@@ -6241,15 +6279,17 @@ function buildCanvasTextEl(str, style) {
     const height = fontSize;
     layer.setAttribute("height", height * ratio);
     layer.setAttribute("width", width * ratio);
-    layer.style.width = width;
-    layer.style.height = height;
-    style.font =
-        fontSize * ratio +
-        (isNaN(parseFloat(style.font, 10))
-            ? style.font
-            : style.font.substring(fontSize.toString().length));
     for (const st in style) {
-        ctx[st] = style[st];
+        let value = style[st];
+        if (st === 'fillStyle' || st === 'strokeStyle') {
+            value = fetchColorCode(value);
+        } else if (st === 'font') {
+            value = fontSize * ratio +
+                    (isNaN(parseFloat(style.font, 10))
+                        ? style.font
+                        : style.font.substring(fontSize.toString().length));
+        }
+        ctx[st] = value;
     }
     ctx.fillText(str, 0, height * 0.75 * ratio);
     return {
@@ -6260,12 +6300,33 @@ function buildCanvasTextEl(str, style) {
         ratio: ratio,
         style: style,
         str: str,
-        updateText: function () {
-            onClear(this.ctx, this.width, this.height, this.ratio);
-            for (const st in this.style) {
-                this.ctx[st] = this.style[st];
+        updateText: function (str, style) {
+            if (!style.font) {
+                style.font = "10px Arial";
             }
-            this.ctx.fillText(this.str, 0, this.height * 0.75);
+            const fontSize = parseFloat(style.font, 10) || 12;
+            ctx.font = style.font;
+            const twid = ctx.measureText(str);
+            const width = twid.width;
+            const height = fontSize;
+            layer.setAttribute("height", height * ratio);
+            layer.setAttribute("width", width * ratio);
+            onClear(ctx, width, height, ratio);
+            this.width = width;
+            this.height = height;
+            for (const st in style) {
+                let value = style[st];
+                if (st === 'fillStyle' || st === 'strokeStyle') {
+                    value = fetchColorCode(value);
+                } else if (st === 'font') {
+                    value = fontSize * ratio +
+                            (isNaN(parseFloat(style.font, 10))
+                                ? style.font
+                                : style.font.substring(fontSize.toString().length));
+                }
+                ctx[st] = value;
+            }
+            ctx.fillText(str, 0, height * 0.75 * ratio);
         },
     };
 }
@@ -6315,10 +6376,10 @@ TextNode.prototype.setAttr = function (key, value) {
         return;
     }
     if (key === "text" && typeof value === "string") {
-        if (this.text) {
+        if (!this.text) {
             this.text = buildCanvasTextEl(this.attr.text, this.style);
         } else {
-            this.text = buildCanvasTextEl(value, this.style);
+            this.text.updateText(value, this.style);
         }
         this.attr.width = this.text.width;
         this.attr.height = this.text.height;
@@ -6336,7 +6397,7 @@ TextNode.prototype.setAttr = function (key, value) {
     }
     if (key === "transform") {
         this.exec(updateTransformMatrix, this.p_matrix);
-    } else if (key === "x" || key === "y") {
+    } else if (key === 'text' || key === "x" || key === "y") {
         updatePositionVector(this.positionArray, this.attr);
     }
 };
@@ -6372,12 +6433,6 @@ TextNode.prototype.setStyle = function (key, value) {
             this.textureNode.setAttr("src", this.text.dom);
         }
     }
-};
-TextNode.prototype.getAttr = function (key) {
-    return this.attr[key];
-};
-TextNode.prototype.getStyle = function (key) {
-    return this.style[key];
 };
 TextNode.prototype.in = function RIinfun(co) {
     const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
@@ -6491,12 +6546,6 @@ ImageNode.prototype.setStyle = function (key, value) {
     } else if (this.style[key]) {
         delete this.style[key];
     }
-};
-ImageNode.prototype.getAttr = function (key) {
-    return this.attr[key];
-};
-ImageNode.prototype.getStyle = function (key) {
-    return this.style[key];
 };
 ImageNode.prototype.in = function RIinfun(co) {
     const { width = 0, height = 0, x = 0, y = 0 } = this.attr;
@@ -7092,7 +7141,7 @@ function vertexExec(self) {
         self.updateVertex_ = false;
     }
 }
-function addColors(self, index, length, fill) {
+function addColors(self, index, length, fillStyle) {
     self.colorArray =
         self.typedColorArray && self.typedColorArray.length > 0
             ? Array.from(self.typedColorArray)
@@ -7100,17 +7149,17 @@ function addColors(self, index, length, fill) {
     self.typedColorArray = null;
     const b = index * length * 4;
     let i = 0;
-    fill = colorMap$1.colorToRGB(fill);
+    fillStyle = colorMap$1.colorToRGB(fillStyle);
     while (i < length) {
-        self.colorArray[b + i * 4] = fill.r / 255;
-        self.colorArray[b + i * 4 + 1] = fill.g / 255;
-        self.colorArray[b + i * 4 + 2] = fill.b / 255;
-        self.colorArray[b + i * 4 + 3] = fill.a === undefined ? 1 : fill.a / 255;
+        self.colorArray[b + i * 4] = fillStyle.r / 255;
+        self.colorArray[b + i * 4 + 1] = fillStyle.g / 255;
+        self.colorArray[b + i * 4 + 2] = fillStyle.b / 255;
+        self.colorArray[b + i * 4 + 3] = fillStyle.a === undefined ? 1 : fillStyle.a / 255;
         i++;
     }
     self.addColor_ = true;
 }
-function updateColor(self, index, length, fill) {
+function updateColor(self, index, length, fillStyle) {
     const colorArray = self.addColor_ ? self.colorArray : self.typedColorArray;
     const ti = index * length * 4;
     if (isNaN(colorArray[ti])) {
@@ -7119,10 +7168,10 @@ function updateColor(self, index, length, fill) {
     const b = index * length * 4;
     let i = 0;
     while (i < length) {
-        colorArray[b + i * 4] = fill.r / 255;
-        colorArray[b + i * 4 + 1] = fill.g / 255;
-        colorArray[b + i * 4 + 2] = fill.b / 255;
-        colorArray[b + i * 4 + 3] = fill.a === undefined ? 1 : fill.a / 255;
+        colorArray[b + i * 4] = fillStyle.r / 255;
+        colorArray[b + i * 4 + 1] = fillStyle.g / 255;
+        colorArray[b + i * 4 + 2] = fillStyle.b / 255;
+        colorArray[b + i * 4 + 3] = fillStyle.a === undefined ? 1 : fillStyle.a / 255;
         i++;
     }
     self.updateColor_ = true;
@@ -7244,8 +7293,8 @@ RenderWebglPoints.prototype.updateSize = function (index, size) {
     const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
     sizeArray[index] = size;
 };
-RenderWebglPoints.prototype.updateColor = function (index, fill) {
-    updateColor(this, index, 1, fill);
+RenderWebglPoints.prototype.updateColor = function (index, fillStyle) {
+    updateColor(this, index, 1, fillStyle);
 };
 RenderWebglPoints.prototype.addVertex = function (x, y, index) {
     addVertex(this, index, 1, [x, y]);
@@ -7258,8 +7307,8 @@ RenderWebglPoints.prototype.addSize = function (size, index) {
     this.pointsSize[index] = size;
     this.sizeUpdate = true;
 };
-RenderWebglPoints.prototype.addColors = function (fill, index) {
-    addColors(this, index, 1, fill);
+RenderWebglPoints.prototype.addColors = function (fillStyle, index) {
+    addColors(this, index, 1, fillStyle);
 };
 RenderWebglPoints.prototype.execute = function () {
     if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
@@ -7348,16 +7397,16 @@ RenderWebglRects.prototype.updateTransform = function (index, transform) {
 RenderWebglRects.prototype.addTransform = function (transform, index) {
     addTransform(this, index, 6, transform);
 };
-RenderWebglRects.prototype.updateColor = function (index, fill) {
-    updateColor(this, index, 6, fill);
+RenderWebglRects.prototype.updateColor = function (index, fillStyle) {
+    updateColor(this, index, 6, fillStyle);
 };
 RenderWebglRects.prototype.addVertex = function (x, y, width, height, index) {
     const x1 = x + width;
     const y1 = y + height;
     addVertex(this, index, 6, [x, y, x1, y, x, y1, x, y1, x1, y, x1, y1]);
 };
-RenderWebglRects.prototype.addColors = function (fill, index) {
-    addColors(this, index, 6, fill);
+RenderWebglRects.prototype.addColors = function (fillStyle, index) {
+    addColors(this, index, 6, fillStyle);
 };
 RenderWebglRects.prototype.execute = function () {
     if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
@@ -7426,14 +7475,14 @@ RenderWebglLines.prototype.addTransform = function (transform, index) {
 RenderWebglLines.prototype.updateVertex = function (index, x1, y1, x2, y2) {
     updateVertex(this, index, 2, [x1, y1, x2, y2]);
 };
-RenderWebglLines.prototype.updateColor = function (index, stroke) {
-    updateColor(this, index, 2, stroke);
+RenderWebglLines.prototype.updateColor = function (index, strokeStyle) {
+    updateColor(this, index, 2, strokeStyle);
 };
 RenderWebglLines.prototype.addVertex = function (x1, y1, x2, y2, index) {
     addVertex(this, index, 2, [x1, y1, x2, y2]);
 };
-RenderWebglLines.prototype.addColors = function (stroke, index) {
-    addColors(this, index, 2, stroke);
+RenderWebglLines.prototype.addColors = function (strokeStyle, index) {
+    addColors(this, index, 2, strokeStyle);
 };
 RenderWebglLines.prototype.execute = function () {
     if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
@@ -7613,8 +7662,8 @@ RenderWebglCircles.prototype.addTransform = function (transform, index) {
 RenderWebglCircles.prototype.updateVertex = function (index, x, y) {
     updateVertex(this, index, 1, [x, y]);
 };
-RenderWebglCircles.prototype.updateColor = function (index, fill) {
-    updateColor(this, index, 1, fill);
+RenderWebglCircles.prototype.updateColor = function (index, fillStyle) {
+    updateColor(this, index, 1, fillStyle);
 };
 RenderWebglCircles.prototype.updateSize = function (index, value) {
     const sizeArray = this.sizeUpdate ? this.pointsSize : this.typedSizeArray;
@@ -7631,8 +7680,8 @@ RenderWebglCircles.prototype.addSize = function (size, index) {
     this.pointsSize[index] = size;
     this.sizeUpdate = true;
 };
-RenderWebglCircles.prototype.addColors = function (fill, index) {
-    addColors(this, index, 1, fill);
+RenderWebglCircles.prototype.addColors = function (fillStyle, index) {
+    addColors(this, index, 1, fillStyle);
 };
 RenderWebglCircles.prototype.execute = function () {
     if (this.renderTarget && this.renderTarget instanceof RenderTarget) {
@@ -7792,7 +7841,18 @@ function WebglNodeExe(ctx, config, id, vDomIndex) {
     this.exeCtx = config.ctx;
     this.bbox = config.bbox !== undefined ? config.bbox : true;
     this.events = {};
-    this.style = prepObjProxyWebGl('style', config.style || {}, this, true);
+    let style = {};
+    if (config.style) {
+        for(let key in config.style) {
+            let resKey = canvasStyleMapper[key] || key;
+            let value = config.style[key];
+            if ((resKey === "fillStyle" || resKey === "strokeStyle") && !colorMap$1.RGBAInstanceCheck(value) ) {
+                value = colorMap$1.colorToRGB(value);
+            }
+            style[resKey] = value;
+        }
+    }
+    this.style = prepObjProxyWebGl('style', style || {}, this, true);
     this.attr = prepObjProxyWebGl('attr', config.attr || {}, this, true);
     switch (config.el) {
         case "point":
@@ -8094,6 +8154,12 @@ WebglNodeExe.prototype.remove = function Wremove() {
 };
 WebglNodeExe.prototype.animatePathTo = AnimatePathTo;
 WebglNodeExe.prototype.morphTo = MorphTo;
+WebglNodeExe.prototype.text = function Ctext(value) {
+    if (this.dom instanceof TextNode) {
+        this.setAttr('text', value);
+    }
+    return this;
+};
 WebglNodeExe.prototype.removeChild = function WremoveChild(obj) {
     let index = -1;
     this.children.forEach((d, i) => {
@@ -8441,7 +8507,6 @@ TextureObject.prototype.setAttr = function (attr, value) {
         }
     } else {
         this[attr] = value;
-        console.warn("Instead of key, value, pass Object of key,value for optimal rendering");
         if (attr === "src") {
             if (typeof value === "string") {
                 if (!this.image || !(this.image instanceof Image)) {
@@ -8600,31 +8665,6 @@ const STANDARD_FONTS = {
   'Symbol.afm': "StartFontMetrics 4.1\r\nComment Copyright (c) 1985, 1987, 1989, 1990, 1997 Adobe Systems Incorporated. All rights reserved.\r\nComment Creation Date: Thu May  1 15:12:25 1997\r\nComment UniqueID 43064\r\nComment VMusage 30820 39997\r\nFontName Symbol\r\nFullName Symbol\r\nFamilyName Symbol\r\nWeight Medium\r\nItalicAngle 0\r\nIsFixedPitch false\r\nCharacterSet Special\r\nFontBBox -180 -293 1090 1010 \r\nUnderlinePosition -100\r\nUnderlineThickness 50\r\nVersion 001.008\r\nNotice Copyright (c) 1985, 1987, 1989, 1990, 1997 Adobe Systems Incorporated. All rights reserved.\r\nEncodingScheme FontSpecific\r\nStdHW 92\r\nStdVW 85\r\nStartCharMetrics 190\r\nC 32 ; WX 250 ; N space ; B 0 0 0 0 ;\r\nC 33 ; WX 333 ; N exclam ; B 128 -17 240 672 ;\r\nC 34 ; WX 713 ; N universal ; B 31 0 681 705 ;\r\nC 35 ; WX 500 ; N numbersign ; B 20 -16 481 673 ;\r\nC 36 ; WX 549 ; N existential ; B 25 0 478 707 ;\r\nC 37 ; WX 833 ; N percent ; B 63 -36 771 655 ;\r\nC 38 ; WX 778 ; N ampersand ; B 41 -18 750 661 ;\r\nC 39 ; WX 439 ; N suchthat ; B 48 -17 414 500 ;\r\nC 40 ; WX 333 ; N parenleft ; B 53 -191 300 673 ;\r\nC 41 ; WX 333 ; N parenright ; B 30 -191 277 673 ;\r\nC 42 ; WX 500 ; N asteriskmath ; B 65 134 427 551 ;\r\nC 43 ; WX 549 ; N plus ; B 10 0 539 533 ;\r\nC 44 ; WX 250 ; N comma ; B 56 -152 194 104 ;\r\nC 45 ; WX 549 ; N minus ; B 11 233 535 288 ;\r\nC 46 ; WX 250 ; N period ; B 69 -17 181 95 ;\r\nC 47 ; WX 278 ; N slash ; B 0 -18 254 646 ;\r\nC 48 ; WX 500 ; N zero ; B 24 -14 476 685 ;\r\nC 49 ; WX 500 ; N one ; B 117 0 390 673 ;\r\nC 50 ; WX 500 ; N two ; B 25 0 475 685 ;\r\nC 51 ; WX 500 ; N three ; B 43 -14 435 685 ;\r\nC 52 ; WX 500 ; N four ; B 15 0 469 685 ;\r\nC 53 ; WX 500 ; N five ; B 32 -14 445 690 ;\r\nC 54 ; WX 500 ; N six ; B 34 -14 468 685 ;\r\nC 55 ; WX 500 ; N seven ; B 24 -16 448 673 ;\r\nC 56 ; WX 500 ; N eight ; B 56 -14 445 685 ;\r\nC 57 ; WX 500 ; N nine ; B 30 -18 459 685 ;\r\nC 58 ; WX 278 ; N colon ; B 81 -17 193 460 ;\r\nC 59 ; WX 278 ; N semicolon ; B 83 -152 221 460 ;\r\nC 60 ; WX 549 ; N less ; B 26 0 523 522 ;\r\nC 61 ; WX 549 ; N equal ; B 11 141 537 390 ;\r\nC 62 ; WX 549 ; N greater ; B 26 0 523 522 ;\r\nC 63 ; WX 444 ; N question ; B 70 -17 412 686 ;\r\nC 64 ; WX 549 ; N congruent ; B 11 0 537 475 ;\r\nC 65 ; WX 722 ; N Alpha ; B 4 0 684 673 ;\r\nC 66 ; WX 667 ; N Beta ; B 29 0 592 673 ;\r\nC 67 ; WX 722 ; N Chi ; B -9 0 704 673 ;\r\nC 68 ; WX 612 ; N Delta ; B 6 0 608 688 ;\r\nC 69 ; WX 611 ; N Epsilon ; B 32 0 617 673 ;\r\nC 70 ; WX 763 ; N Phi ; B 26 0 741 673 ;\r\nC 71 ; WX 603 ; N Gamma ; B 24 0 609 673 ;\r\nC 72 ; WX 722 ; N Eta ; B 39 0 729 673 ;\r\nC 73 ; WX 333 ; N Iota ; B 32 0 316 673 ;\r\nC 74 ; WX 631 ; N theta1 ; B 18 -18 623 689 ;\r\nC 75 ; WX 722 ; N Kappa ; B 35 0 722 673 ;\r\nC 76 ; WX 686 ; N Lambda ; B 6 0 680 688 ;\r\nC 77 ; WX 889 ; N Mu ; B 28 0 887 673 ;\r\nC 78 ; WX 722 ; N Nu ; B 29 -8 720 673 ;\r\nC 79 ; WX 722 ; N Omicron ; B 41 -17 715 685 ;\r\nC 80 ; WX 768 ; N Pi ; B 25 0 745 673 ;\r\nC 81 ; WX 741 ; N Theta ; B 41 -17 715 685 ;\r\nC 82 ; WX 556 ; N Rho ; B 28 0 563 673 ;\r\nC 83 ; WX 592 ; N Sigma ; B 5 0 589 673 ;\r\nC 84 ; WX 611 ; N Tau ; B 33 0 607 673 ;\r\nC 85 ; WX 690 ; N Upsilon ; B -8 0 694 673 ;\r\nC 86 ; WX 439 ; N sigma1 ; B 40 -233 436 500 ;\r\nC 87 ; WX 768 ; N Omega ; B 34 0 736 688 ;\r\nC 88 ; WX 645 ; N Xi ; B 40 0 599 673 ;\r\nC 89 ; WX 795 ; N Psi ; B 15 0 781 684 ;\r\nC 90 ; WX 611 ; N Zeta ; B 44 0 636 673 ;\r\nC 91 ; WX 333 ; N bracketleft ; B 86 -155 299 674 ;\r\nC 92 ; WX 863 ; N therefore ; B 163 0 701 487 ;\r\nC 93 ; WX 333 ; N bracketright ; B 33 -155 246 674 ;\r\nC 94 ; WX 658 ; N perpendicular ; B 15 0 652 674 ;\r\nC 95 ; WX 500 ; N underscore ; B -2 -125 502 -75 ;\r\nC 96 ; WX 500 ; N radicalex ; B 480 881 1090 917 ;\r\nC 97 ; WX 631 ; N alpha ; B 41 -18 622 500 ;\r\nC 98 ; WX 549 ; N beta ; B 61 -223 515 741 ;\r\nC 99 ; WX 549 ; N chi ; B 12 -231 522 499 ;\r\nC 100 ; WX 494 ; N delta ; B 40 -19 481 740 ;\r\nC 101 ; WX 439 ; N epsilon ; B 22 -19 427 502 ;\r\nC 102 ; WX 521 ; N phi ; B 28 -224 492 673 ;\r\nC 103 ; WX 411 ; N gamma ; B 5 -225 484 499 ;\r\nC 104 ; WX 603 ; N eta ; B 0 -202 527 514 ;\r\nC 105 ; WX 329 ; N iota ; B 0 -17 301 503 ;\r\nC 106 ; WX 603 ; N phi1 ; B 36 -224 587 499 ;\r\nC 107 ; WX 549 ; N kappa ; B 33 0 558 501 ;\r\nC 108 ; WX 549 ; N lambda ; B 24 -17 548 739 ;\r\nC 109 ; WX 576 ; N mu ; B 33 -223 567 500 ;\r\nC 110 ; WX 521 ; N nu ; B -9 -16 475 507 ;\r\nC 111 ; WX 549 ; N omicron ; B 35 -19 501 499 ;\r\nC 112 ; WX 549 ; N pi ; B 10 -19 530 487 ;\r\nC 113 ; WX 521 ; N theta ; B 43 -17 485 690 ;\r\nC 114 ; WX 549 ; N rho ; B 50 -230 490 499 ;\r\nC 115 ; WX 603 ; N sigma ; B 30 -21 588 500 ;\r\nC 116 ; WX 439 ; N tau ; B 10 -19 418 500 ;\r\nC 117 ; WX 576 ; N upsilon ; B 7 -18 535 507 ;\r\nC 118 ; WX 713 ; N omega1 ; B 12 -18 671 583 ;\r\nC 119 ; WX 686 ; N omega ; B 42 -17 684 500 ;\r\nC 120 ; WX 493 ; N xi ; B 27 -224 469 766 ;\r\nC 121 ; WX 686 ; N psi ; B 12 -228 701 500 ;\r\nC 122 ; WX 494 ; N zeta ; B 60 -225 467 756 ;\r\nC 123 ; WX 480 ; N braceleft ; B 58 -183 397 673 ;\r\nC 124 ; WX 200 ; N bar ; B 65 -293 135 707 ;\r\nC 125 ; WX 480 ; N braceright ; B 79 -183 418 673 ;\r\nC 126 ; WX 549 ; N similar ; B 17 203 529 307 ;\r\nC 160 ; WX 750 ; N Euro ; B 20 -12 714 685 ;\r\nC 161 ; WX 620 ; N Upsilon1 ; B -2 0 610 685 ;\r\nC 162 ; WX 247 ; N minute ; B 27 459 228 735 ;\r\nC 163 ; WX 549 ; N lessequal ; B 29 0 526 639 ;\r\nC 164 ; WX 167 ; N fraction ; B -180 -12 340 677 ;\r\nC 165 ; WX 713 ; N infinity ; B 26 124 688 404 ;\r\nC 166 ; WX 500 ; N florin ; B 2 -193 494 686 ;\r\nC 167 ; WX 753 ; N club ; B 86 -26 660 533 ;\r\nC 168 ; WX 753 ; N diamond ; B 142 -36 600 550 ;\r\nC 169 ; WX 753 ; N heart ; B 117 -33 631 532 ;\r\nC 170 ; WX 753 ; N spade ; B 113 -36 629 548 ;\r\nC 171 ; WX 1042 ; N arrowboth ; B 24 -15 1024 511 ;\r\nC 172 ; WX 987 ; N arrowleft ; B 32 -15 942 511 ;\r\nC 173 ; WX 603 ; N arrowup ; B 45 0 571 910 ;\r\nC 174 ; WX 987 ; N arrowright ; B 49 -15 959 511 ;\r\nC 175 ; WX 603 ; N arrowdown ; B 45 -22 571 888 ;\r\nC 176 ; WX 400 ; N degree ; B 50 385 350 685 ;\r\nC 177 ; WX 549 ; N plusminus ; B 10 0 539 645 ;\r\nC 178 ; WX 411 ; N second ; B 20 459 413 737 ;\r\nC 179 ; WX 549 ; N greaterequal ; B 29 0 526 639 ;\r\nC 180 ; WX 549 ; N multiply ; B 17 8 533 524 ;\r\nC 181 ; WX 713 ; N proportional ; B 27 123 639 404 ;\r\nC 182 ; WX 494 ; N partialdiff ; B 26 -20 462 746 ;\r\nC 183 ; WX 460 ; N bullet ; B 50 113 410 473 ;\r\nC 184 ; WX 549 ; N divide ; B 10 71 536 456 ;\r\nC 185 ; WX 549 ; N notequal ; B 15 -25 540 549 ;\r\nC 186 ; WX 549 ; N equivalence ; B 14 82 538 443 ;\r\nC 187 ; WX 549 ; N approxequal ; B 14 135 527 394 ;\r\nC 188 ; WX 1000 ; N ellipsis ; B 111 -17 889 95 ;\r\nC 189 ; WX 603 ; N arrowvertex ; B 280 -120 336 1010 ;\r\nC 190 ; WX 1000 ; N arrowhorizex ; B -60 220 1050 276 ;\r\nC 191 ; WX 658 ; N carriagereturn ; B 15 -16 602 629 ;\r\nC 192 ; WX 823 ; N aleph ; B 175 -18 661 658 ;\r\nC 193 ; WX 686 ; N Ifraktur ; B 10 -53 578 740 ;\r\nC 194 ; WX 795 ; N Rfraktur ; B 26 -15 759 734 ;\r\nC 195 ; WX 987 ; N weierstrass ; B 159 -211 870 573 ;\r\nC 196 ; WX 768 ; N circlemultiply ; B 43 -17 733 673 ;\r\nC 197 ; WX 768 ; N circleplus ; B 43 -15 733 675 ;\r\nC 198 ; WX 823 ; N emptyset ; B 39 -24 781 719 ;\r\nC 199 ; WX 768 ; N intersection ; B 40 0 732 509 ;\r\nC 200 ; WX 768 ; N union ; B 40 -17 732 492 ;\r\nC 201 ; WX 713 ; N propersuperset ; B 20 0 673 470 ;\r\nC 202 ; WX 713 ; N reflexsuperset ; B 20 -125 673 470 ;\r\nC 203 ; WX 713 ; N notsubset ; B 36 -70 690 540 ;\r\nC 204 ; WX 713 ; N propersubset ; B 37 0 690 470 ;\r\nC 205 ; WX 713 ; N reflexsubset ; B 37 -125 690 470 ;\r\nC 206 ; WX 713 ; N element ; B 45 0 505 468 ;\r\nC 207 ; WX 713 ; N notelement ; B 45 -58 505 555 ;\r\nC 208 ; WX 768 ; N angle ; B 26 0 738 673 ;\r\nC 209 ; WX 713 ; N gradient ; B 36 -19 681 718 ;\r\nC 210 ; WX 790 ; N registerserif ; B 50 -17 740 673 ;\r\nC 211 ; WX 790 ; N copyrightserif ; B 51 -15 741 675 ;\r\nC 212 ; WX 890 ; N trademarkserif ; B 18 293 855 673 ;\r\nC 213 ; WX 823 ; N product ; B 25 -101 803 751 ;\r\nC 214 ; WX 549 ; N radical ; B 10 -38 515 917 ;\r\nC 215 ; WX 250 ; N dotmath ; B 69 210 169 310 ;\r\nC 216 ; WX 713 ; N logicalnot ; B 15 0 680 288 ;\r\nC 217 ; WX 603 ; N logicaland ; B 23 0 583 454 ;\r\nC 218 ; WX 603 ; N logicalor ; B 30 0 578 477 ;\r\nC 219 ; WX 1042 ; N arrowdblboth ; B 27 -20 1023 510 ;\r\nC 220 ; WX 987 ; N arrowdblleft ; B 30 -15 939 513 ;\r\nC 221 ; WX 603 ; N arrowdblup ; B 39 2 567 911 ;\r\nC 222 ; WX 987 ; N arrowdblright ; B 45 -20 954 508 ;\r\nC 223 ; WX 603 ; N arrowdbldown ; B 44 -19 572 890 ;\r\nC 224 ; WX 494 ; N lozenge ; B 18 0 466 745 ;\r\nC 225 ; WX 329 ; N angleleft ; B 25 -198 306 746 ;\r\nC 226 ; WX 790 ; N registersans ; B 50 -20 740 670 ;\r\nC 227 ; WX 790 ; N copyrightsans ; B 49 -15 739 675 ;\r\nC 228 ; WX 786 ; N trademarksans ; B 5 293 725 673 ;\r\nC 229 ; WX 713 ; N summation ; B 14 -108 695 752 ;\r\nC 230 ; WX 384 ; N parenlefttp ; B 24 -293 436 926 ;\r\nC 231 ; WX 384 ; N parenleftex ; B 24 -85 108 925 ;\r\nC 232 ; WX 384 ; N parenleftbt ; B 24 -293 436 926 ;\r\nC 233 ; WX 384 ; N bracketlefttp ; B 0 -80 349 926 ;\r\nC 234 ; WX 384 ; N bracketleftex ; B 0 -79 77 925 ;\r\nC 235 ; WX 384 ; N bracketleftbt ; B 0 -80 349 926 ;\r\nC 236 ; WX 494 ; N bracelefttp ; B 209 -85 445 925 ;\r\nC 237 ; WX 494 ; N braceleftmid ; B 20 -85 284 935 ;\r\nC 238 ; WX 494 ; N braceleftbt ; B 209 -75 445 935 ;\r\nC 239 ; WX 494 ; N braceex ; B 209 -85 284 935 ;\r\nC 241 ; WX 329 ; N angleright ; B 21 -198 302 746 ;\r\nC 242 ; WX 274 ; N integral ; B 2 -107 291 916 ;\r\nC 243 ; WX 686 ; N integraltp ; B 308 -88 675 920 ;\r\nC 244 ; WX 686 ; N integralex ; B 308 -88 378 975 ;\r\nC 245 ; WX 686 ; N integralbt ; B 11 -87 378 921 ;\r\nC 246 ; WX 384 ; N parenrighttp ; B 54 -293 466 926 ;\r\nC 247 ; WX 384 ; N parenrightex ; B 382 -85 466 925 ;\r\nC 248 ; WX 384 ; N parenrightbt ; B 54 -293 466 926 ;\r\nC 249 ; WX 384 ; N bracketrighttp ; B 22 -80 371 926 ;\r\nC 250 ; WX 384 ; N bracketrightex ; B 294 -79 371 925 ;\r\nC 251 ; WX 384 ; N bracketrightbt ; B 22 -80 371 926 ;\r\nC 252 ; WX 494 ; N bracerighttp ; B 48 -85 284 925 ;\r\nC 253 ; WX 494 ; N bracerightmid ; B 209 -85 473 935 ;\r\nC 254 ; WX 494 ; N bracerightbt ; B 48 -75 284 935 ;\r\nC -1 ; WX 790 ; N apple ; B 56 -3 733 808 ;\r\nEndCharMetrics\r\nEndFontMetrics\r\n",
   'ZapfDingbats.afm': "StartFontMetrics 4.1\r\nComment Copyright (c) 1985, 1987, 1988, 1989, 1997 Adobe Systems Incorporated. All Rights Reserved.\r\nComment Creation Date: Thu May  1 15:14:13 1997\r\nComment UniqueID 43082\r\nComment VMusage 45775 55535\r\nFontName ZapfDingbats\r\nFullName ITC Zapf Dingbats\r\nFamilyName ZapfDingbats\r\nWeight Medium\r\nItalicAngle 0\r\nIsFixedPitch false\r\nCharacterSet Special\r\nFontBBox -1 -143 981 820 \r\nUnderlinePosition -100\r\nUnderlineThickness 50\r\nVersion 002.000\r\nNotice Copyright (c) 1985, 1987, 1988, 1989, 1997 Adobe Systems Incorporated. All Rights Reserved.ITC Zapf Dingbats is a registered trademark of International Typeface Corporation.\r\nEncodingScheme FontSpecific\r\nStdHW 28\r\nStdVW 90\r\nStartCharMetrics 202\r\nC 32 ; WX 278 ; N space ; B 0 0 0 0 ;\r\nC 33 ; WX 974 ; N a1 ; B 35 72 939 621 ;\r\nC 34 ; WX 961 ; N a2 ; B 35 81 927 611 ;\r\nC 35 ; WX 974 ; N a202 ; B 35 72 939 621 ;\r\nC 36 ; WX 980 ; N a3 ; B 35 0 945 692 ;\r\nC 37 ; WX 719 ; N a4 ; B 34 139 685 566 ;\r\nC 38 ; WX 789 ; N a5 ; B 35 -14 755 705 ;\r\nC 39 ; WX 790 ; N a119 ; B 35 -14 755 705 ;\r\nC 40 ; WX 791 ; N a118 ; B 35 -13 761 705 ;\r\nC 41 ; WX 690 ; N a117 ; B 34 138 655 553 ;\r\nC 42 ; WX 960 ; N a11 ; B 35 123 925 568 ;\r\nC 43 ; WX 939 ; N a12 ; B 35 134 904 559 ;\r\nC 44 ; WX 549 ; N a13 ; B 29 -11 516 705 ;\r\nC 45 ; WX 855 ; N a14 ; B 34 59 820 632 ;\r\nC 46 ; WX 911 ; N a15 ; B 35 50 876 642 ;\r\nC 47 ; WX 933 ; N a16 ; B 35 139 899 550 ;\r\nC 48 ; WX 911 ; N a105 ; B 35 50 876 642 ;\r\nC 49 ; WX 945 ; N a17 ; B 35 139 909 553 ;\r\nC 50 ; WX 974 ; N a18 ; B 35 104 938 587 ;\r\nC 51 ; WX 755 ; N a19 ; B 34 -13 721 705 ;\r\nC 52 ; WX 846 ; N a20 ; B 36 -14 811 705 ;\r\nC 53 ; WX 762 ; N a21 ; B 35 0 727 692 ;\r\nC 54 ; WX 761 ; N a22 ; B 35 0 727 692 ;\r\nC 55 ; WX 571 ; N a23 ; B -1 -68 571 661 ;\r\nC 56 ; WX 677 ; N a24 ; B 36 -13 642 705 ;\r\nC 57 ; WX 763 ; N a25 ; B 35 0 728 692 ;\r\nC 58 ; WX 760 ; N a26 ; B 35 0 726 692 ;\r\nC 59 ; WX 759 ; N a27 ; B 35 0 725 692 ;\r\nC 60 ; WX 754 ; N a28 ; B 35 0 720 692 ;\r\nC 61 ; WX 494 ; N a6 ; B 35 0 460 692 ;\r\nC 62 ; WX 552 ; N a7 ; B 35 0 517 692 ;\r\nC 63 ; WX 537 ; N a8 ; B 35 0 503 692 ;\r\nC 64 ; WX 577 ; N a9 ; B 35 96 542 596 ;\r\nC 65 ; WX 692 ; N a10 ; B 35 -14 657 705 ;\r\nC 66 ; WX 786 ; N a29 ; B 35 -14 751 705 ;\r\nC 67 ; WX 788 ; N a30 ; B 35 -14 752 705 ;\r\nC 68 ; WX 788 ; N a31 ; B 35 -14 753 705 ;\r\nC 69 ; WX 790 ; N a32 ; B 35 -14 756 705 ;\r\nC 70 ; WX 793 ; N a33 ; B 35 -13 759 705 ;\r\nC 71 ; WX 794 ; N a34 ; B 35 -13 759 705 ;\r\nC 72 ; WX 816 ; N a35 ; B 35 -14 782 705 ;\r\nC 73 ; WX 823 ; N a36 ; B 35 -14 787 705 ;\r\nC 74 ; WX 789 ; N a37 ; B 35 -14 754 705 ;\r\nC 75 ; WX 841 ; N a38 ; B 35 -14 807 705 ;\r\nC 76 ; WX 823 ; N a39 ; B 35 -14 789 705 ;\r\nC 77 ; WX 833 ; N a40 ; B 35 -14 798 705 ;\r\nC 78 ; WX 816 ; N a41 ; B 35 -13 782 705 ;\r\nC 79 ; WX 831 ; N a42 ; B 35 -14 796 705 ;\r\nC 80 ; WX 923 ; N a43 ; B 35 -14 888 705 ;\r\nC 81 ; WX 744 ; N a44 ; B 35 0 710 692 ;\r\nC 82 ; WX 723 ; N a45 ; B 35 0 688 692 ;\r\nC 83 ; WX 749 ; N a46 ; B 35 0 714 692 ;\r\nC 84 ; WX 790 ; N a47 ; B 34 -14 756 705 ;\r\nC 85 ; WX 792 ; N a48 ; B 35 -14 758 705 ;\r\nC 86 ; WX 695 ; N a49 ; B 35 -14 661 706 ;\r\nC 87 ; WX 776 ; N a50 ; B 35 -6 741 699 ;\r\nC 88 ; WX 768 ; N a51 ; B 35 -7 734 699 ;\r\nC 89 ; WX 792 ; N a52 ; B 35 -14 757 705 ;\r\nC 90 ; WX 759 ; N a53 ; B 35 0 725 692 ;\r\nC 91 ; WX 707 ; N a54 ; B 35 -13 672 704 ;\r\nC 92 ; WX 708 ; N a55 ; B 35 -14 672 705 ;\r\nC 93 ; WX 682 ; N a56 ; B 35 -14 647 705 ;\r\nC 94 ; WX 701 ; N a57 ; B 35 -14 666 705 ;\r\nC 95 ; WX 826 ; N a58 ; B 35 -14 791 705 ;\r\nC 96 ; WX 815 ; N a59 ; B 35 -14 780 705 ;\r\nC 97 ; WX 789 ; N a60 ; B 35 -14 754 705 ;\r\nC 98 ; WX 789 ; N a61 ; B 35 -14 754 705 ;\r\nC 99 ; WX 707 ; N a62 ; B 34 -14 673 705 ;\r\nC 100 ; WX 687 ; N a63 ; B 36 0 651 692 ;\r\nC 101 ; WX 696 ; N a64 ; B 35 0 661 691 ;\r\nC 102 ; WX 689 ; N a65 ; B 35 0 655 692 ;\r\nC 103 ; WX 786 ; N a66 ; B 34 -14 751 705 ;\r\nC 104 ; WX 787 ; N a67 ; B 35 -14 752 705 ;\r\nC 105 ; WX 713 ; N a68 ; B 35 -14 678 705 ;\r\nC 106 ; WX 791 ; N a69 ; B 35 -14 756 705 ;\r\nC 107 ; WX 785 ; N a70 ; B 36 -14 751 705 ;\r\nC 108 ; WX 791 ; N a71 ; B 35 -14 757 705 ;\r\nC 109 ; WX 873 ; N a72 ; B 35 -14 838 705 ;\r\nC 110 ; WX 761 ; N a73 ; B 35 0 726 692 ;\r\nC 111 ; WX 762 ; N a74 ; B 35 0 727 692 ;\r\nC 112 ; WX 762 ; N a203 ; B 35 0 727 692 ;\r\nC 113 ; WX 759 ; N a75 ; B 35 0 725 692 ;\r\nC 114 ; WX 759 ; N a204 ; B 35 0 725 692 ;\r\nC 115 ; WX 892 ; N a76 ; B 35 0 858 705 ;\r\nC 116 ; WX 892 ; N a77 ; B 35 -14 858 692 ;\r\nC 117 ; WX 788 ; N a78 ; B 35 -14 754 705 ;\r\nC 118 ; WX 784 ; N a79 ; B 35 -14 749 705 ;\r\nC 119 ; WX 438 ; N a81 ; B 35 -14 403 705 ;\r\nC 120 ; WX 138 ; N a82 ; B 35 0 104 692 ;\r\nC 121 ; WX 277 ; N a83 ; B 35 0 242 692 ;\r\nC 122 ; WX 415 ; N a84 ; B 35 0 380 692 ;\r\nC 123 ; WX 392 ; N a97 ; B 35 263 357 705 ;\r\nC 124 ; WX 392 ; N a98 ; B 34 263 357 705 ;\r\nC 125 ; WX 668 ; N a99 ; B 35 263 633 705 ;\r\nC 126 ; WX 668 ; N a100 ; B 36 263 634 705 ;\r\nC 128 ; WX 390 ; N a89 ; B 35 -14 356 705 ;\r\nC 129 ; WX 390 ; N a90 ; B 35 -14 355 705 ;\r\nC 130 ; WX 317 ; N a93 ; B 35 0 283 692 ;\r\nC 131 ; WX 317 ; N a94 ; B 35 0 283 692 ;\r\nC 132 ; WX 276 ; N a91 ; B 35 0 242 692 ;\r\nC 133 ; WX 276 ; N a92 ; B 35 0 242 692 ;\r\nC 134 ; WX 509 ; N a205 ; B 35 0 475 692 ;\r\nC 135 ; WX 509 ; N a85 ; B 35 0 475 692 ;\r\nC 136 ; WX 410 ; N a206 ; B 35 0 375 692 ;\r\nC 137 ; WX 410 ; N a86 ; B 35 0 375 692 ;\r\nC 138 ; WX 234 ; N a87 ; B 35 -14 199 705 ;\r\nC 139 ; WX 234 ; N a88 ; B 35 -14 199 705 ;\r\nC 140 ; WX 334 ; N a95 ; B 35 0 299 692 ;\r\nC 141 ; WX 334 ; N a96 ; B 35 0 299 692 ;\r\nC 161 ; WX 732 ; N a101 ; B 35 -143 697 806 ;\r\nC 162 ; WX 544 ; N a102 ; B 56 -14 488 706 ;\r\nC 163 ; WX 544 ; N a103 ; B 34 -14 508 705 ;\r\nC 164 ; WX 910 ; N a104 ; B 35 40 875 651 ;\r\nC 165 ; WX 667 ; N a106 ; B 35 -14 633 705 ;\r\nC 166 ; WX 760 ; N a107 ; B 35 -14 726 705 ;\r\nC 167 ; WX 760 ; N a108 ; B 0 121 758 569 ;\r\nC 168 ; WX 776 ; N a112 ; B 35 0 741 705 ;\r\nC 169 ; WX 595 ; N a111 ; B 34 -14 560 705 ;\r\nC 170 ; WX 694 ; N a110 ; B 35 -14 659 705 ;\r\nC 171 ; WX 626 ; N a109 ; B 34 0 591 705 ;\r\nC 172 ; WX 788 ; N a120 ; B 35 -14 754 705 ;\r\nC 173 ; WX 788 ; N a121 ; B 35 -14 754 705 ;\r\nC 174 ; WX 788 ; N a122 ; B 35 -14 754 705 ;\r\nC 175 ; WX 788 ; N a123 ; B 35 -14 754 705 ;\r\nC 176 ; WX 788 ; N a124 ; B 35 -14 754 705 ;\r\nC 177 ; WX 788 ; N a125 ; B 35 -14 754 705 ;\r\nC 178 ; WX 788 ; N a126 ; B 35 -14 754 705 ;\r\nC 179 ; WX 788 ; N a127 ; B 35 -14 754 705 ;\r\nC 180 ; WX 788 ; N a128 ; B 35 -14 754 705 ;\r\nC 181 ; WX 788 ; N a129 ; B 35 -14 754 705 ;\r\nC 182 ; WX 788 ; N a130 ; B 35 -14 754 705 ;\r\nC 183 ; WX 788 ; N a131 ; B 35 -14 754 705 ;\r\nC 184 ; WX 788 ; N a132 ; B 35 -14 754 705 ;\r\nC 185 ; WX 788 ; N a133 ; B 35 -14 754 705 ;\r\nC 186 ; WX 788 ; N a134 ; B 35 -14 754 705 ;\r\nC 187 ; WX 788 ; N a135 ; B 35 -14 754 705 ;\r\nC 188 ; WX 788 ; N a136 ; B 35 -14 754 705 ;\r\nC 189 ; WX 788 ; N a137 ; B 35 -14 754 705 ;\r\nC 190 ; WX 788 ; N a138 ; B 35 -14 754 705 ;\r\nC 191 ; WX 788 ; N a139 ; B 35 -14 754 705 ;\r\nC 192 ; WX 788 ; N a140 ; B 35 -14 754 705 ;\r\nC 193 ; WX 788 ; N a141 ; B 35 -14 754 705 ;\r\nC 194 ; WX 788 ; N a142 ; B 35 -14 754 705 ;\r\nC 195 ; WX 788 ; N a143 ; B 35 -14 754 705 ;\r\nC 196 ; WX 788 ; N a144 ; B 35 -14 754 705 ;\r\nC 197 ; WX 788 ; N a145 ; B 35 -14 754 705 ;\r\nC 198 ; WX 788 ; N a146 ; B 35 -14 754 705 ;\r\nC 199 ; WX 788 ; N a147 ; B 35 -14 754 705 ;\r\nC 200 ; WX 788 ; N a148 ; B 35 -14 754 705 ;\r\nC 201 ; WX 788 ; N a149 ; B 35 -14 754 705 ;\r\nC 202 ; WX 788 ; N a150 ; B 35 -14 754 705 ;\r\nC 203 ; WX 788 ; N a151 ; B 35 -14 754 705 ;\r\nC 204 ; WX 788 ; N a152 ; B 35 -14 754 705 ;\r\nC 205 ; WX 788 ; N a153 ; B 35 -14 754 705 ;\r\nC 206 ; WX 788 ; N a154 ; B 35 -14 754 705 ;\r\nC 207 ; WX 788 ; N a155 ; B 35 -14 754 705 ;\r\nC 208 ; WX 788 ; N a156 ; B 35 -14 754 705 ;\r\nC 209 ; WX 788 ; N a157 ; B 35 -14 754 705 ;\r\nC 210 ; WX 788 ; N a158 ; B 35 -14 754 705 ;\r\nC 211 ; WX 788 ; N a159 ; B 35 -14 754 705 ;\r\nC 212 ; WX 894 ; N a160 ; B 35 58 860 634 ;\r\nC 213 ; WX 838 ; N a161 ; B 35 152 803 540 ;\r\nC 214 ; WX 1016 ; N a163 ; B 34 152 981 540 ;\r\nC 215 ; WX 458 ; N a164 ; B 35 -127 422 820 ;\r\nC 216 ; WX 748 ; N a196 ; B 35 94 698 597 ;\r\nC 217 ; WX 924 ; N a165 ; B 35 140 890 552 ;\r\nC 218 ; WX 748 ; N a192 ; B 35 94 698 597 ;\r\nC 219 ; WX 918 ; N a166 ; B 35 166 884 526 ;\r\nC 220 ; WX 927 ; N a167 ; B 35 32 892 660 ;\r\nC 221 ; WX 928 ; N a168 ; B 35 129 891 562 ;\r\nC 222 ; WX 928 ; N a169 ; B 35 128 893 563 ;\r\nC 223 ; WX 834 ; N a170 ; B 35 155 799 537 ;\r\nC 224 ; WX 873 ; N a171 ; B 35 93 838 599 ;\r\nC 225 ; WX 828 ; N a172 ; B 35 104 791 588 ;\r\nC 226 ; WX 924 ; N a173 ; B 35 98 889 594 ;\r\nC 227 ; WX 924 ; N a162 ; B 35 98 889 594 ;\r\nC 228 ; WX 917 ; N a174 ; B 35 0 882 692 ;\r\nC 229 ; WX 930 ; N a175 ; B 35 84 896 608 ;\r\nC 230 ; WX 931 ; N a176 ; B 35 84 896 608 ;\r\nC 231 ; WX 463 ; N a177 ; B 35 -99 429 791 ;\r\nC 232 ; WX 883 ; N a178 ; B 35 71 848 623 ;\r\nC 233 ; WX 836 ; N a179 ; B 35 44 802 648 ;\r\nC 234 ; WX 836 ; N a193 ; B 35 44 802 648 ;\r\nC 235 ; WX 867 ; N a180 ; B 35 101 832 591 ;\r\nC 236 ; WX 867 ; N a199 ; B 35 101 832 591 ;\r\nC 237 ; WX 696 ; N a181 ; B 35 44 661 648 ;\r\nC 238 ; WX 696 ; N a200 ; B 35 44 661 648 ;\r\nC 239 ; WX 874 ; N a182 ; B 35 77 840 619 ;\r\nC 241 ; WX 874 ; N a201 ; B 35 73 840 615 ;\r\nC 242 ; WX 760 ; N a183 ; B 35 0 725 692 ;\r\nC 243 ; WX 946 ; N a184 ; B 35 160 911 533 ;\r\nC 244 ; WX 771 ; N a197 ; B 34 37 736 655 ;\r\nC 245 ; WX 865 ; N a185 ; B 35 207 830 481 ;\r\nC 246 ; WX 771 ; N a194 ; B 34 37 736 655 ;\r\nC 247 ; WX 888 ; N a198 ; B 34 -19 853 712 ;\r\nC 248 ; WX 967 ; N a186 ; B 35 124 932 568 ;\r\nC 249 ; WX 888 ; N a195 ; B 34 -19 853 712 ;\r\nC 250 ; WX 831 ; N a187 ; B 35 113 796 579 ;\r\nC 251 ; WX 873 ; N a188 ; B 36 118 838 578 ;\r\nC 252 ; WX 927 ; N a189 ; B 35 150 891 542 ;\r\nC 253 ; WX 970 ; N a190 ; B 35 76 931 616 ;\r\nC 254 ; WX 918 ; N a191 ; B 34 99 884 593 ;\r\nEndCharMetrics\r\nEndFontMetrics\r\n"
 };
-
-const canvasStyleMapper = {
-    "fill": "fillStyle",
-    "stroke": "strokeStyle",
-    "lineDash": "setLineDash",
-    "opacity": "globalAlpha",
-    "stroke-width": "lineWidth",
-    "stroke-dasharray": "setLineDash",
-};
-const pdfSupportedFontFamily = [
-    "Courier",
-    "Courier-Bold",
-    "Courier-Oblique",
-    "Courier-BoldOblique",
-    "Helvetica",
-    "Helvetica-Bold",
-    "Helvetica-Oblique",
-    "Helvetica-BoldOblique",
-    "Symbol",
-    "Times-Roman",
-    "Times-Bold",
-    "Times-Italic",
-    "Times-BoldItalic",
-    "ZapfDingbats",
-];
 
 const pdfStyleMapper = {
     fillStyle: {

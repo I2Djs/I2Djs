@@ -1006,27 +1006,30 @@ Path.prototype.getPath2DObject = function (pathStr) {
 }
 
 Path.prototype.getPathTexture = function (style = {}, refresh) {
-    if(!this.layer || refresh) {
+    if (!this.layer) {
+        this.layer = document.createElement("canvas");
+        this.ctx = this.layer.getContext("2d");
+        refresh = true;
+    }
+
+    if(refresh) {
+        let lineWidth = (style['lineWidth'] || 1) * 2;
         const {x = 0, y= 0, height = 0, width = 0} = this.BBox;
 
         this.pathNode = this.getPath2DObject();
+        this.layer.setAttribute("height", height + lineWidth * 2);
+        this.layer.setAttribute("width", width + lineWidth * 2);
 
-        this.layer = document.createElement("canvas");
-        this.ctx = this.layer.getContext("2d");
+        this.ctx.clearRect(0, 0, width + lineWidth * 2, height + lineWidth * 2);
 
-        this.layer.setAttribute("height", height);
-        this.layer.setAttribute("width", width);
-
-        this.ctx.translate(x * -1 || 0, y * -1 || 0);
+        this.ctx.save();
+        
+        this.ctx.translate((x * -1 + lineWidth) || 0, (y * -1 + lineWidth) || 0);
 
         for(let key in style) {
             let value = style[key];
-            if (key === 'fillStyle' || key === 'fill') {
-                this.ctx['fillStyle'] = colorMap.RGBAInstanceCheck(value) ? value.rgba : value;
-                this.ctx.fill(this.pathNode);
-            } else if (key === 'strokeStyle' || key === 'stroke') {
-                this.ctx['strokeStyle'] = colorMap.RGBAInstanceCheck(value) ? value.rgba : value;
-                this.ctx.stroke(this.pathNode);
+            if (key === 'fillStyle' || key === 'strokeStyle') {
+                this.ctx[key] = colorMap.RGBAInstanceCheck(value) ? value.rgba : value;
             } else {
                 if (typeof this.ctx[key] !== "function") {
                     this.ctx[key] = value;
@@ -1035,6 +1038,15 @@ Path.prototype.getPathTexture = function (style = {}, refresh) {
                 }
             }
         }
+
+        if (style['fillStyle']) {
+            this.ctx.fill(this.pathNode);
+        }
+        if (style['strokeStyle']) {
+            this.ctx.stroke(this.pathNode);
+        }
+
+        this.ctx.restore();
     }
 
     return this.layer;

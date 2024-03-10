@@ -39,7 +39,8 @@
                 });
             }
 
-            var ii = 0;
+            
+            var ii = 100;
             function draw() {
                 var points = [];
                 var amplitud = height * (sin(i) * 0.1);
@@ -55,7 +56,7 @@
                 points[points.length] = { x: width, y: y };
                 points[points.length] = { x: width + space, y: y };
 
-                let path = i2d.Path();
+                let path = i2d.path();
                 path.points(points);
                 var rgb = i2d.color.hslToRgb("hsl(" + (ii % 360) + ",100%," + 40 + "%)");
                 rgb.a = 100;
@@ -65,11 +66,15 @@
                         attr: {
                             d: path,
                         },
-                        style: { stroke: rgb },
+                        style: { stroke: rgb, globalAlpha: 1, lineWidth: 3 },
+                        bbox: false
                     })
                     .animateTo({
                         duration: 4000,
                         attr: {},
+                        style: {
+                            opacity: 0
+                        },
                         end: function () {
                             this.remove();
                         },

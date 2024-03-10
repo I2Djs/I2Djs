@@ -13,15 +13,15 @@
                     type="radio"
                     name="type"
                     value="parallel"
+                    id="parallel"
                     checked
-                    onclick="onRadiobuttonClick('parallel');"
                 />
                 Parallel Chain
                 <input
                     type="radio"
                     name="type"
                     value="sequence"
-                    onclick="onRadiobuttonClick('sequence');"
+                    id="sequence"
                 />
                 Sequence Chain
             </form>
@@ -29,6 +29,14 @@
 
         <script type="module">
             import {canvasLayer, queue, chain as i2dChain} from "../../dist/i2d.esm.min.js";
+            let parallel = document.getElementById("parallel");
+            parallel.addEventListener("click", () => {
+                onRadiobuttonClick('parallel');
+            })
+            let sequence = document.getElementById("sequence");
+            sequence.addEventListener("click", () => {
+                onRadiobuttonClick('sequence');
+            })
             var renderer_ = canvasLayer("#Mycanvas", {}, {});
 
             var g = renderer_.createEl({
