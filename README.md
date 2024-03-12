@@ -128,7 +128,7 @@ import {pdfLayer} from 'i2djs'
 
 ### Support & Compatibility
 
-I2D supports Universal Module Definition(UMD)(AMD,CommonJS and vanilla environments) , based on the environment it can be imported accordingly.
+I2D supports ESM and Universal Module Definition(UMD)(AMD,CommonJS and vanilla environments) , based on the environment it can be imported accordingly.
 It is compatible with all modern browsers with latest versions.
 
 ### Development Setup
