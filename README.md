@@ -42,6 +42,9 @@ Importing individual modules:
 
 ```
 import {canvasLayer} from 'i2djs'
+import {svgLayer} from 'i2djs'
+import {webglLayer} from 'i2djs'
+import {pdfLayer} from 'i2djs'
 ```
 
 ## Resources
