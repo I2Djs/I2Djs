@@ -14,7 +14,7 @@ I2D also provides a unique data-driven approach, **join-actions**, for DOM manip
 
 ## Documentation
 
-<a href="https://nswamy14.gitbook.io/i2djs-v4/"><img width='150' src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/gitbookIcon.png"></a>
+<a href="https://nswamy14.gitbook.io/i2djs-v5/"><img width='150' src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/gitbookIcon.png"></a>
 
 ## Installing
 
@@ -46,7 +46,7 @@ import {canvasLayer} from 'i2djs'
 
 ## Resources
 
--   [API reference](https://nswamy14.gitbook.io/i2djs)
+-   [API reference](https://nswamy14.gitbook.io/i2djs-v5)
 -   [I2Djs Medium Article](https://medium.com/@narayanaswamy14/i2djs-integrated-2d-js-328549ef642)
 
 ## Game Animation Example
