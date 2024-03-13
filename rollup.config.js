@@ -114,6 +114,14 @@ export default [
                 format: "umd",
                 name: "i2d",
             },
+            {
+                banner,
+                file: "dist/i2d.min.js",
+                format: "umd",
+                name: "i2d",
+                compact: true,
+                plugins: [terser()]
+            }
         ],
         plugins: [
             cleanup(),

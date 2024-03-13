@@ -6,7 +6,7 @@
 
 ### I2dJs - SVG | Canvas | WebGL | PDF
 
-Integrated-2D - is an Open source Javascript framework for rendering 2D graphics on SVG, Canvas and WebGL contexts. I2D's simple syntax and semantics lets you combine the power of Vector graphics and Bitmap to achieve complex visualisations easily.
+Integrated-2D - is an Open source Javascript framework for rendering 2D graphics on SVG, Canvas, WebGL and PDF contexts. I2D's simple syntax and semantics lets you combine the power of Vector graphics and Bitmap to achieve complex visualizations easily.
 
 I2Djs provides same Application Programming Interface to create and animate elements across different graphic rendering contexts by leveraging their underlying capabilities. Developers can make use of I2D's multi-layered contextual approach with capabilities from more than one context seamlessly for creating powerful composite visualizations under a single roof.
 
@@ -32,7 +32,7 @@ Download source code from below links
 
 I2Djs is written in ES6 Modules. To import use below syntax
 
-Importing everthing into namespace
+Import all modules into namespace
 
 ```
 import * as i2d from 'i2djs'
@@ -75,7 +75,7 @@ import {pdfLayer} from 'i2djs'
 
 <a href="https://xxsmny.csb.app/">PDF Example-1 </a>
 
-## Examples (SVG + Canvas + WebGL)
+## Examples (SVG + Canvas + WebGL + PDF)
 
 [Codepen Examples](https://codepen.io/search/pens?q=i2djs)
 
