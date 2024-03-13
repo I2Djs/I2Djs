@@ -3,7 +3,7 @@
       * (c) 2024 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
-import { i as interpolate, R as ResizeObserver$1, e as earcut, f as fs, P as PDFDocument, b as blobStream$1, p as processImageDataRGBA } from './dependencies-bundle-esm.js';
+import { i as interpolate, R as ResizeObserver$1, e as earcut, f as fs, P as PDFDocument, b as blobStream, p as processImageDataRGBA } from './dependencies-bundle-esm.js';
 
 let animatorInstance = null;
 let tweens = [];
@@ -11276,7 +11276,7 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
         const doc = new PDFDocument({
             ...pdfConfig,
         });
-        const stream_ = doc.pipe(blobStream$1());
+        const stream_ = doc.pipe(blobStream());
         if (fontRegister) {
             for (const key in fontRegister) {
                 if (pdfSupportedFontFamily.indexOf(key) === -1) pdfSupportedFontFamily.push(key);
@@ -11349,7 +11349,7 @@ async function CanvasToPdf(options) {
                         size: [this.width, this.height],
                         ...pdfConfig,
                     });
-                    const stream_ = doc.pipe(blobStream$1());
+                    const stream_ = doc.pipe(blobStream());
                     const fontRegister = options.fontRegister || {};
                     const pdfInfo = options.info || { title: "I2Djs-PDF" };
                     if (fontRegister) {

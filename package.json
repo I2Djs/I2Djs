@@ -65,7 +65,7 @@
     "@rollup/plugin-replace": "^5.0.5",
     "@rollup/plugin-terser": "^0.4.4",
     "assert": "^2.1.0",
-    "blob-stream-i2d": "^1.1.1",
+    "blob-stream-i2d": "^1.1.2",
     "browserify-zlib": "^0.2.0",
     "buffer": "6.0.3",
     "earcut": "^2.2.4",
