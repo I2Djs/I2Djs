@@ -52,7 +52,7 @@ import {pdfLayer} from 'i2djs'
 -   [API reference](https://nswamy14.gitbook.io/i2djs-v5)
 -   [I2Djs Medium Article](https://medium.com/@narayanaswamy14/i2djs-integrated-2d-js-328549ef642)
 
-## Game Animation Example
+## Animation Example
 
 <table>
     <tr>
