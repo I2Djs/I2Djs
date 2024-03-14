@@ -9,10 +9,16 @@
             style="height: 100%; width: 100%; position: absolute; background: black"
             id="myCanvas"
         ></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            var renderer_ = i2d.canvasLayer("#myCanvas", {}, {});
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer } from "i2djs";
+            var renderer_ = canvasLayer("#myCanvas", {}, {});
             var i = 0;
             var g = renderer_.createEl({
                 el: "group",

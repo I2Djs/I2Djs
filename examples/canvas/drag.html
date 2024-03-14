@@ -5,11 +5,17 @@
     </head>
     <body style="height: 100%">
         <div id="myCanvas" style="height: 100%; width: 100%; position: absolute"></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            var renderer_ = i2d.canvasLayer("#myCanvas", {}, {});
-            var drag = i2d.behaviour.drag();
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer, behaviour } from "i2djs";
+            var renderer_ = canvasLayer("#myCanvas", {}, {});
+            var drag = behaviour.drag();
 
             drag.dragStart(function () {}).drag(function (e) {
                 let x = this.getAttr("x");

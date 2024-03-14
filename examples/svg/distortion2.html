@@ -12,19 +12,18 @@
         <div id="mySvg" style="height: 100%; width: 100%; position: absolute; background: black">
             <!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
         </div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-        <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
-<script type="text/javascript" src="../../src/geometry.js"></script>
-<script type="text/javascript" src="../../src/easing.js"></script>
-<script type="text/javascript" src="../../src/vDom.js"></script>
-<script type="text/javascript" src="../../src/queue.js"></script>
-<script type="text/javascript" src="../../src/chaining.js"></script>
-<script type="text/javascript" src="../../src/renderer.js"></script>-->
-
-        <script type="text/javascript">
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import {svgLayer, queue} from "i2djs";
             var height = 820,
                 width = 1430;
-            var renderer_ = i2d.svgLayer("#mySvg");
+            var renderer_ = svgLayer("#mySvg");
             var circlesGrid = [];
             var gridSize = parseInt(Math.sqrt(10000));
             var rad = Math.pow(100, 2);
@@ -66,7 +65,7 @@
                 my = e.pageY;
             });
 
-            i2d.queue.onRequestFrame(function (t) {
+            queue.onRequestFrame(function (t) {
                 if (!mx || !my) return;
 
                 for (let i = 0, len = rects.stack.length; i < len; i++) {

@@ -9,10 +9,16 @@
             style="height: 100%; width: 100%; position: absolute; background: black"
             id="myCanvas"
         ></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            var renderer_ = i2d.canvasLayer("#myCanvas", {}, {});
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer, path as i2dPath } from "i2djs";
+            var renderer_ = canvasLayer("#myCanvas", {}, {});
             var i = 0;
             var w = renderer_.width;
             var h = renderer_.height;
@@ -106,8 +112,7 @@
                             var yPos = 100;
                             var rangeBandMid = rangeBand / 2;
 
-                            var path = i2d
-                                .Path()
+                            var path = i2dPath()
                                 .m(false, { x: xPos, y: 0 })
                                 .c(
                                     false,

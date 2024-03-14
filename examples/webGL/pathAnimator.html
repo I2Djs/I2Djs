@@ -8,10 +8,16 @@
         <div id="myCanvas" style="height: 100%; width: 100%">
             <!--<canvas width="1400" height="900" id="myCanvas"></canvas>-->
         </div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            var renderer = i2d.webglLayer("#myCanvas", {}, {});
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import {webglLayer } from "i2djs";
+            var renderer = webglLayer("#myCanvas", {}, {});
 
             var path = renderer
                 .createEl({

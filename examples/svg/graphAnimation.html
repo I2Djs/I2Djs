@@ -7,8 +7,6 @@
         <div id="mySvg" style="height: 100%; width: 100%; position: absolute; background: black">
             <!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
         </div>
-        <!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script
             type="text/javascript"
             src="https://cdn.jsdelivr.net/npm/webcola@3.3.6/WebCola/cola.min.js"
@@ -21,7 +19,15 @@
 <script type="text/javascript" src="../../src/chaining.js"></script>
 <script type="text/javascript" src="../../src/renderer.js"></script>-->
 
-        <script type="text/javascript">
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import {svgLayer } from "i2djs";
             var width = 1200,
                 height = 600;
             var d3cola = new cola.Layout()
@@ -30,7 +36,7 @@
                 .avoidOverlaps(true)
                 .size([width, height]);
 
-            var renderer_ = i2d.svgLayer("#mySvg");
+            var renderer_ = svgLayer("#mySvg");
 
             var g = renderer_.createEl({
                 el: "group",
@@ -152,7 +158,7 @@
                     var chainInstance;
 
                     if (links && links.length > 0) {
-                        chainInstance = i2d.chain.parallelChain().duration(1000).ease("linear");
+                        chainInstance = i2dChain.parallelChain().duration(1000).ease("linear");
 
                         var lineExe = lineG
                             .createEls(links, {

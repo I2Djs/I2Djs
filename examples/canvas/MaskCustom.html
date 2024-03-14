@@ -5,12 +5,18 @@
     </head>
     <body style="height: 100%">
         <div id="myCanvas" style="height: 100%; width: 100%; position: absolute"></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer } from "i2djs";
 
-        <script type="text/javascript">
-            var renderer = i2d.canvasLayer("#myCanvas", {}, {});
-
-            var renderer_1 = i2d.canvasLayer(null, {}, {});
+            var renderer = canvasLayer("#myCanvas", {}, {});
+            var renderer_1 = canvasLayer(null, {}, {});
             renderer_1.setSize(566, 300);
 
             renderer.addDependentLayer(renderer_1);
@@ -68,7 +74,7 @@
                 },
             });
 
-            var renderer_2 = i2d.canvasLayer(null, {}, {});
+            var renderer_2 = canvasLayer(null, {}, {});
             renderer_2.setSize(566, 300);
 
             renderer.addDependentLayer(renderer_2);
@@ -113,7 +119,7 @@
                 },
             });
 
-            var renderer_3 = i2d.canvasLayer(null, {}, {});
+            var renderer_3 = canvasLayer(null, {}, {});
             renderer_3.setSize(566, 300);
             renderer.addDependentLayer(renderer_3);
 

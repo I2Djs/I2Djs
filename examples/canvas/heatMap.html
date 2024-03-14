@@ -6,21 +6,26 @@
     <body style="height: 100%">
         <label style="position: absolute; color: white"> Canvas Example </label>
         <div style="height: 100%; width: 100%" id="myCanvas"></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
         <script type="module">
-            // import canvasAPI from "../../src/modules/canvas.js";
+            import { canvasLayer } from "i2djs";
 
-            var radialGrad = i2d.canvasLayer(null, {}, { enableResize: false });
+            var radialGrad = canvasLayer(null, {}, { enableResize: false });
             radialGrad.setPixelRatio(1);
             radialGrad.setSize(100, 100);
-            var LinearGrad = i2d.canvasLayer(null, {}, { enableResize: false });
+            var LinearGrad = canvasLayer(null, {}, { enableResize: false });
             LinearGrad.setPixelRatio(1);
             LinearGrad.setSize(256, 1);
 
-            var renderer_2 = i2d.canvasLayer("#myCanvas", {}, { enableResize: false });
+            var renderer_2 = canvasLayer("#myCanvas", {}, { enableResize: false });
             renderer_2.setPixelRatio(1);
-            var renderer_ = i2d.canvasLayer(null, {}, { enableResize: false });
+            var renderer_ = canvasLayer(null, {}, { enableResize: false });
             renderer_.setPixelRatio(1);
             renderer_.setSize(renderer_2.width, renderer_2.height);
 

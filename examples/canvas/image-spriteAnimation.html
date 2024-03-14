@@ -7,10 +7,16 @@
         <label style="position: absolute; color: white"> Canvas Example </label>
         <div style="height: 20%; width: 100%; position: relative" id="myCanvas1"></div>
 
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            var renderer_ = i2d.canvasLayer("#myCanvas1", {}, {});
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer } from "i2djs";
+            var renderer_ = canvasLayer("#myCanvas1", {}, {});
             var nodes = [];
             var data = [];
             for (var i = 0; i < 1; i++) {

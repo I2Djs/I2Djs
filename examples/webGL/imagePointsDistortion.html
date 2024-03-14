@@ -6,7 +6,7 @@
     <body style="height: 100%">
         <label style="position: absolute; color: white"> Webgl Example </label>
         <div id="canvas" style="height: 100%; width: 100%; background: black"></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
+        
         <script id="vertexShader" type="x-shader/x-vertex">
             precision highp float;
             uniform vec2 u_resolution;
@@ -32,8 +32,16 @@
                 gl_FragColor = v_color;
             }
         </script>
-        <script type="text/javascript">
-            var canvasInstance = i2d.canvasLayer(null, {});
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import {webglLayer, canvasLayer, path as i2dPath, queue } from "i2djs";
+            var canvasInstance = canvasLayer(null, {});
             canvasInstance.setPixelRatio(1);
             canvasInstance.setSize(700, 700);
             canvasInstance.createEl({
@@ -54,7 +62,7 @@
 
             function render(textureObj) {
                 let colors = Array.from(textureObj.imageData.data);
-                var webglRenderer = i2d.webglLayer(
+                var webglRenderer = webglLayer(
                     "#canvas",
                     {
                         depth: false,
@@ -64,7 +72,6 @@
                         enableEvents: true,
                     }
                 );
-                var queue = i2d.queue;
                 var pictureGrid = [];
                 var posArray = new Float32Array(700 * 700 * 2);
 
@@ -123,7 +130,7 @@
                 var sin = Math.sin;
                 let execCount = 500;
 
-                i2d.queue.onRequestFrame(function (t) {
+                queue.onRequestFrame(function (t) {
                     let d, x, y;
                     execCount -= 1;
                     if (execCount <= 0) {

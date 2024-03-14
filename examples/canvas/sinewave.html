@@ -9,10 +9,16 @@
             id="myCanvas"
             style="height: 100%; width: 100%; position: absolute; background: black"
         ></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            const renderer = i2d.canvasLayer("#myCanvas", {}, {});
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer } from "i2djs";
+            const renderer = canvasLayer("#myCanvas", {}, {});
             const pointCount = 500;
             const amplitude = 50;
             const frequency = 0.05;

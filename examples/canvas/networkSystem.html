@@ -16,17 +16,24 @@
             type="text/javascript"
             src="https://cdn.jsdelivr.net/npm/webcola@3.3.6/WebCola/cola.min.js"
         ></script>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer, chain as i2dChain, behaviour } from "i2djs";
 
-        <script type="text/javascript">
             var circles = [];
 
             var sourceDestTree = {};
             var nodeToEdgeTree = {};
             var width = 1200,
                 height = 600;
-            var renderer_ = i2d.canvasLayer("#myCanvas", {}, {});
-            var dragEvent = i2d.behaviour.drag();
+            var renderer_ = canvasLayer("#myCanvas", {}, {});
+            var dragEvent = behaviour.drag();
 
             dragEvent
                 .dragStart(function (d, e) {})
@@ -118,7 +125,7 @@
                     action: {
                         enter: function (data) {
                             if (data.line && data.line.length > 0) {
-                                var chainInstance = i2d.chain
+                                var chainInstance = i2dChain
                                     .parallelChain()
                                     .duration(1000)
                                     .ease("linear");
@@ -172,7 +179,7 @@
                             /*
 				 Remove edges in parallel mode
 				 */
-                            var chainInstance = i2d.chain
+                            var chainInstance = i2dChain
                                 .sequenceChain()
                                 .duration(1000)
                                 .ease("linear");

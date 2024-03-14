@@ -6,9 +6,16 @@
     <body style="height: 100%">
         <label style="position: absolute; color: white"> Webgl Example </label>
         <div id="canvas" style="height: 100%; width: 100%; background: black"></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-        <script type="text/javascript">
-            var webglRenderer = i2d.webglLayer(
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import {webglLayer, path as i2dPath, chain as i2dChain, color as i2dColor } from "i2djs";
+            var webglRenderer = webglLayer(
                 "#canvas",
                 {
                     premultipliedAlpha: false,
@@ -19,23 +26,22 @@
                 {}
             );
 
-            var chainInstance = i2d.chain.sequenceChain();
+            var chainInstance = i2dChain.sequenceChain();
 
             chainInstance.loop(10);
 
             /************** Points *****************/
 
-            var path_ = i2d
-                .path()
+            var path_ = i2dPath()
                 .m(false, { x: 350, y: 225 })
                 .l(true, { x: 450, y: 225 })
                 .l(true, { x: 450, y: 475 })
                 .l(true, { x: 550, y: 475 });
 
-            var path3 = i2d.path(
+            var path3 = i2dPath(
                 "M461,358.614315 L461,195 L561.860025,196.096062 C561.860025,196.096062 672.401935,195 672.401935,341.333251 C672.401935,487.666502 561.860025,479.584155 561.860025,479.584155"
             );
-            var path2 = i2d.path(
+            var path2 = i2dPath(
                 "M276,227 L556.149478,227 L556.149478,352.5 L418.443053,352.5 L418.443053,478 L695.470664,478"
             );
 
@@ -80,12 +86,12 @@
                         size: 2.0,
                     },
                     style: {
-                        fill: i2d.color.rgba(0, 203, 255, 255),
+                        fill: i2dColor.rgba(0, 203, 255, 255),
                     },
                 });
 
             chainInstance.add(function () {
-                var parallelChain = i2d.chain.parallelChain();
+                var parallelChain = i2dChain.parallelChain();
                 parallelChain.add(
                     pointsRef.animateExe({
                         duration: 1000 + Math.random() * 1000,
@@ -104,7 +110,7 @@
             });
 
             chainInstance.add(function () {
-                var pathChain = i2d.chain.parallelChain();
+                var pathChain = i2dChain.parallelChain();
                 pathChain.add(
                     pointsRef.animateExe({
                         duration: 5000,
@@ -127,8 +133,8 @@
             chainInstance.add(disperseParticles);
 
             chainInstance.add(function () {
-                var parallelChain2 = i2d.chain.parallelChain();
-                pointsRef.setStyle("fill", i2d.color.rgba(255, 132, 132, 255));
+                var parallelChain2 = i2dChain.parallelChain();
+                pointsRef.setStyle("fill", i2dColor.rgba(255, 132, 132, 255));
                 let exe = pointsRef.animateExe({
                     duration: 1000 + Math.random() * 1000,
                     ease: "easeOutCubic",
@@ -146,7 +152,7 @@
             });
 
             chainInstance.add(function () {
-                var pathChain = i2d.chain.parallelChain();
+                var pathChain = i2dChain.parallelChain();
                 pathChain.add(
                     pointsRef.animateExe({
                         duration: 5000,
@@ -169,8 +175,8 @@
             chainInstance.add(disperseParticles);
 
             chainInstance.add(function () {
-                var parallelChain3 = i2d.chain.parallelChain();
-                pointsRef.setStyle("fill", i2d.color.rgba(0, 203, 255, 255));
+                var parallelChain3 = i2dChain.parallelChain();
+                pointsRef.setStyle("fill", i2dColor.rgba(0, 203, 255, 255));
                 let exe = pointsRef.animateExe({
                     duration: 1000 + Math.random() * 1000,
                     ease: "easeOutCubic",
@@ -188,7 +194,7 @@
             });
 
             chainInstance.add(function () {
-                var pathChain = i2d.chain.parallelChain();
+                var pathChain = i2dChain.parallelChain();
                 pathChain.add(
                     pointsRef.animateExe({
                         duration: 5000,
@@ -213,7 +219,7 @@
             chainInstance.start();
 
             function disperseParticles() {
-                var parallelChain4 = i2d.chain.parallelChain();
+                var parallelChain4 = i2dChain.parallelChain();
                 parallelChain4.add(
                     pointsRef.animateExe({
                         duration: 1000 + Math.random() * 1000,

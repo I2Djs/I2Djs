@@ -9,10 +9,16 @@
             id="myCanvas"
             style="position: absolute; height: 100%; width: 100%; background: black"
         ></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            var renderer_ = i2d.webglLayer("#myCanvas", {}, { enableEvents: false });
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import {webglLayer, color as i2dColor, path as i2dPath, queue } from "i2djs";
+            var renderer_ = webglLayer("#myCanvas", {}, { enableEvents: false });
             const n = 1000;
             const v = 2;
             const m = 12;
@@ -60,7 +66,7 @@
                     attr: { cx: 0, cy: 0, r: 10 },
                     style: {
                         fillStyle: function (d) {
-                            return i2d.color.rgba(
+                            return i2dColor.rgba(
                                 parseInt(Math.random() * 255),
                                 parseInt(Math.random() * 255),
                                 parseInt(Math.random() * 255),
@@ -71,7 +77,7 @@
                     bbox: false,
                 });
 
-            i2d.queue.onRequestFrame(function (t) {
+            queue.onRequestFrame(function (t) {
                 var time = new Date();
                 ellipseGroup.forEach(function (t) {
                     let dx = t.vx;

@@ -6,9 +6,15 @@
     <body style="height: 100%; background: black">
         <label style="position: absolute; color: white"> Webgl Example </label>
         <div id="canvas" style="height: 50%; width: 100%"></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import {webglLayer, color as i2dColor, path as i2dPath, queue } from "i2djs";
             let sin = Math.sin;
             let abs = Math.abs;
             let i = 0;
@@ -16,7 +22,7 @@
             let height = 0;
             let webglRenderer, pathRef;
             function render() {
-                webglRenderer = i2d.webglLayer(
+                webglRenderer = webglLayer(
                     "#canvas",
                     { depth: false, antialias: true },
                     { enableEvents: false }
@@ -34,7 +40,7 @@
                     },
                     bbox: false,
                 });
-                i2d.queue.onRequestFrame(function (t) {
+                queue.onRequestFrame(function (t) {
                     draw();
                 });
             }
@@ -56,9 +62,9 @@
                 points[points.length] = { x: width, y: y };
                 points[points.length] = { x: width + space, y: y };
 
-                let path = i2d.path();
+                let path = i2dPath();
                 path.points(points);
-                var rgb = i2d.color.hslToRgb("hsl(" + (ii % 360) + ",100%," + 40 + "%)");
+                var rgb = i2dColor.hslToRgb("hsl(" + (ii % 360) + ",100%," + 40 + "%)");
                 rgb.a = 100;
                 pathRef
                     .createEl({

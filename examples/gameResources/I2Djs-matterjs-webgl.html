@@ -19,11 +19,18 @@
         </div>
         <div id="myCanvas" style="height: 100%; width: 100%"></div>
 
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.14.2/matter.js"></script>
 
-        <script type="text/javascript">
-            var webglRenderer = i2d.webglLayer(
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { webglLayer, queue as i2dQueue, color as i2dColor } from "i2djs";
+            var webglRenderer = webglLayer(
                 "#myCanvas",
                 {},
                 {
@@ -76,7 +83,7 @@
                 // console.log(e);
                 renderCounter = 300;
                 if (!renderFlag) {
-                    i2d.queue.onRequestFrame(draw);
+                    i2dQueue.onRequestFrame(draw);
                 }
                 renderFlag = true;
                 boxesContainerInstance.add(e.offsetX, e.offsetY);
@@ -89,7 +96,7 @@
                     console.log(boxesContainerInstance);
                     console.log(engine.world);
                     renderFlag = false;
-                    i2d.queue.removeRequestFrameCall(draw);
+                    i2dQueue.removeRequestFrameCall(draw);
                 }
                 boxesContainerInstance.update();
             }
@@ -136,7 +143,7 @@
                         },
                     },
                     style: {
-                        fill: i2d.color.rgba(
+                        fill: i2dColor.rgba(
                             Math.random() * 255,
                             Math.random() * 203,
                             Math.random() * 255,

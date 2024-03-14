@@ -16,11 +16,17 @@
             "
         ></div>
 
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            var renderer = i2d.canvasLayer("#mySvg", {}, {});
-            var zoomInstance = i2d.behaviour.zoom();
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer, behaviour as i2dBehaviour } from "i2djs";
+            var renderer = canvasLayer("#mySvg", {}, {});
+            var zoomInstance = i2dBehaviour.zoom();
             var circle;
             zoomInstance.scaleExtent([1, 3]);
             zoomInstance.zoom(function (event) {

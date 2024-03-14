@@ -9,9 +9,15 @@
             <img id="myimage" />
         </div>
         <div id="myCanvas" style="height: 100%; width: 100%"></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer } from "i2djs";
             var imgtag = document.getElementById("myimage");
             //Setting Default Image, you can load any image using input box.
             // imgtag.src = "uchiha_madara.jpg";
@@ -28,7 +34,7 @@
                 reader.readAsDataURL(selectedFile);
             }
 
-            var renderer_ = i2d.canvasLayer("#myCanvas", {}, {});
+            var renderer_ = canvasLayer("#myCanvas", {}, {});
             var height = renderer_.height;
             var width = renderer_.width;
             var wh = Math.min(height, width);

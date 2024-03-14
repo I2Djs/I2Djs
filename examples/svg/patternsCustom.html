@@ -5,13 +5,19 @@
     </head>
     <body style="height: 100%">
         <div id="myCanvas" style="height: 100%; width: 100%; position: absolute"></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import {svgLayer, behaviour } from "i2djs";
+            var renderer_ = svgLayer("#myCanvas", {}, {});
 
-        <script type="text/javascript">
-            var renderer_ = i2d.svgLayer("#myCanvas", {}, {});
-
-            var drag1 = i2d.behaviour.drag();
-            var drag2 = i2d.behaviour.drag();
+            var drag1 = behaviour.drag();
+            var drag2 = behaviour.drag();
 
             drag1
                 .dragStart(function () {})

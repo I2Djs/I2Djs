@@ -9,10 +9,16 @@
             id="mySVG"
             style="position: absolute; height: 100%; width: 100%; background: black"
         ></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            var renderer_ = i2d.svgLayer("#mySVG", {});
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import {svgLayer, queue } from "i2djs";
+            var renderer_ = svgLayer("#mySVG", {});
             const n = 1000;
             const v = 2;
             const m = 12;
@@ -56,7 +62,7 @@
             let atan2 = Math.atan2;
             let sin = Math.sin;
             let sqrt = Math.sqrt;
-            i2d.queue.onRequestFrame(function (t) {
+            queue.onRequestFrame(function (t) {
                 var time = new Date();
                 nodes.forEach(function (t) {
                     let dx = t.vx;

@@ -9,9 +9,16 @@
         </div>
     </body>
 </html>
-<script type="text/javascript" src="../../dist/i2d.js"></script>
+<script type="importmap">
+    {
+        "imports": {
+            "i2djs": "../../dist/i2d.esm.min.js"
+        }
+    }
+</script>
 <script type="module">
-    let pdfInstance = i2d.pdfLayer("#i2dPdfContainer", {
+    import { pdfLayer} from "i2djs";
+    let pdfInstance = pdfLayer("#i2dPdfContainer", {
         height: 600,
         width: 600,
         info: {

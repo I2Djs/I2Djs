@@ -7,10 +7,16 @@
         <label style="position: absolute; color: white"> Webgl Example </label>
 
         <div id="canvas" style="height: 100%; width: 100%; background: black"></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            var webglRenderer = i2d.webglLayer("#canvas", { depth: false, antialias: true }, {});
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import {webglLayer, color as i2dColor } from "i2djs";
+            var webglRenderer = webglLayer("#canvas", { depth: false, antialias: true }, {});
             /************** circles *****************/
             // webglRenderer.setPixelRatio(1);
             var circlesData = [];
@@ -45,7 +51,7 @@
                     },
                     style: {
                         fill: function () {
-                            return i2d.color.rgba(
+                            return i2dColor.rgba(
                                 parseInt(Math.random() * 255),
                                 parseInt(Math.random() * 255),
                                 parseInt(Math.random() * 255),

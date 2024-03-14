@@ -10,11 +10,17 @@
             style="height: 50%; width: 50%; position: absolute; left: 25%; top: 25%"
         ></div>
 
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            var renderer_ = i2d.canvasLayer("#myCanvas1", {}, {});
-            var webGLrenderer_ = i2d.webglLayer("#myCanvas1", {}, {});
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer, webglLayer} from "i2djs";
+            var renderer_ = canvasLayer("#myCanvas1", {}, {});
+            var webGLrenderer_ = webglLayer("#myCanvas1", {}, {});
             let bG = webGLrenderer_.createEl({
                 el: "group",
                 attr: {

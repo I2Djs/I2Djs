@@ -5,10 +5,16 @@
     </head>
     <body style="height: 100%">
         <div id="myCanvas" style="height: 100%; width: 100%; position: absolute"></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            var renderer_ = i2d.svgLayer("#myCanvas", {}, {});
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import {svgLayer} from "i2djs";
+            var renderer_ = svgLayer("#myCanvas", {}, {});
 
             var clipInstance = renderer_.createClip();
             clipInstance.clip.createEls([1, 2, 3, 4, 5, 6], {

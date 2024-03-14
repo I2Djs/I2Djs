@@ -15,8 +15,15 @@
         </div>
     </body>
 </html>
+<script type="importmap">
+    {
+        "imports": {
+            "i2djs": "../../dist/i2d.esm.min.js"
+        }
+    }
+</script>
 <script type="module">
-    import {canvasLayer, exportCanvasToPdf } from "../../dist/i2d.esm.min.js";
+    import {canvasLayer, exportCanvasToPdf } from "i2djs";
     let renderer = canvasLayer("#lineLoaderContainer", {}, { autoUpdate: true });
     var linearGradiant = renderer.createLinearGradient({
         x1: 0,

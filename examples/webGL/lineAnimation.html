@@ -6,9 +6,16 @@
     <body style="height: 100%">
         <label style="position: absolute; color: white"> Webgl Example </label>
         <div id="canvas" style="height: 100%; width: 100%; background: black"></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-        <script type="text/javascript">
-            var webglRenderer = i2d.webglLayer("#canvas", {}, {});
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import {webglLayer, color as i2dColor } from "i2djs";
+            var webglRenderer = webglLayer("#canvas", {}, {});
 
             /************** Lines *****************/
 
@@ -52,7 +59,7 @@
                             return d.y2;
                         },
                     },
-                    style: { stroke: i2d.color.rgba(255, 0, 0, 255) },
+                    style: { stroke: i2dColor.rgba(255, 0, 0, 255) },
                 });
 
             linesRef.animateTo({

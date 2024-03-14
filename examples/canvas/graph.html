@@ -7,15 +7,22 @@
         <label style="position: absolute; color: white"> Canvas Example </label>
         <div id="myCanvas" style="position: absolute; height: 100%; width: 100%"></div>
 
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script src="https://d3js.org/d3-collection.v1.min.js"></script>
         <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
         <script src="https://d3js.org/d3-quadtree.v1.min.js"></script>
         <script src="https://d3js.org/d3-timer.v1.min.js"></script>
         <script src="https://d3js.org/d3-force.v1.min.js"></script>
 
-        <script type="text/javascript">
-            var renderer = i2d.canvasLayer("#myCanvas", {}, {});
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer } from "i2djs";
+            var renderer = canvasLayer("#myCanvas", {}, {});
             var width = renderer.width,
                 height = renderer.height;
             var circles, links;

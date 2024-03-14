@@ -27,8 +27,15 @@
             </form>
         </div>
 
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
         <script type="module">
-            import {canvasLayer, queue, chain as i2dChain} from "../../dist/i2d.esm.min.js";
+            import {canvasLayer, queue, chain as i2dChain} from "i2djs";
             let parallel = document.getElementById("parallel");
             parallel.addEventListener("click", () => {
                 onRadiobuttonClick('parallel');

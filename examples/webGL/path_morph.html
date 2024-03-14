@@ -7,9 +7,16 @@
         <label style="position: absolute; color: white"> Webgl Example </label>
 
         <div id="canvas" style="height: 100%; width: 100%; background: black"></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-        <script type="text/javascript">
-            var webglRenderer = i2d.webglLayer("#canvas", {}, { enableEvents:true});
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import {webglLayer } from "i2djs";
+            var webglRenderer = webglLayer("#canvas", {}, { enableEvents:true});
             webglRenderer.createEls([1,2,3,4,5,6,7,8,9], {
                     el: "path",
                     attr: {

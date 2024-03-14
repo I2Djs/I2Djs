@@ -7,10 +7,16 @@
         <label style="position: absolute; color: white"> Canvas Example </label>
         <div id="myCanvas1" style="height: 100%; width: 100%; position: relative"></div>
 
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            var renderer_ = i2d.canvasLayer("#myCanvas1", {}, {});
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer, utility as i2dUtility } from "i2djs";
+            var renderer_ = canvasLayer("#myCanvas1", {}, {});
             var nodes = [];
             var data = [];
             for (var i = 0; i < 1; i++) {
@@ -54,8 +60,8 @@
                     let image1 = image.clone();
                     let image2 = image.clone();
                     let image3 = image.clone();
-                    image1.setAttr("filter", i2d.utility.blur(2));
-                    image2.setAttr("filter", i2d.utility.blur(1));
+                    image1.setAttr("filter", i2dUtility.blur(2));
+                    image2.setAttr("filter", i2dUtility.blur(1));
                     image3.setAttr("filter", null);
                     renderer_.createEl({
                         el: "image",

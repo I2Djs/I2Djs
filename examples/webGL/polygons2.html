@@ -6,9 +6,16 @@
     <body style="height: 100%">
         <label style="position: absolute; color: white"> Webgl Example </label>
         <div id="canvas" style="height: 100%; width: 100%; background: black"></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-        <script type="text/javascript">
-            var webglRenderer = i2d.webglLayer(
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import {webglLayer, color as i2dColor } from "i2djs";
+            var webglRenderer = webglLayer(
                 "#canvas",
                 {},
                 { events: false, selectiveClear: false }
@@ -47,7 +54,7 @@
                 },
                 style: {
                     fill: function () {
-                        return i2d.color.rgba(
+                        return i2dColor.rgba(
                             Math.random() * 255,
                             Math.random() * 203,
                             Math.random() * 255,

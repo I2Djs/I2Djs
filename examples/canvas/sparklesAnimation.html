@@ -6,15 +6,19 @@
     <body style="height: 100%; background: black">
         <label style="position: absolute; color: white"> Canvas Example </label>
         <div id="myCanvas" style="height: 100%; width: 100%"></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer } from "i2djs";
 
-        <script type="text/javascript">
-            render();
-
-            function render() {
                 var height = 820,
                     width = 1430;
-                var renderer = i2d.canvasLayer("#myCanvas", {}, {});
+                var renderer = canvasLayer("#myCanvas", {}, {});
                 var g = renderer.createEl({
                     el: "group",
                 });
@@ -125,7 +129,6 @@
                     var num = Math.floor(Math.random() * (max - min)) + min;
                     return num;
                 }
-            }
         </script>
     </body>
 </html>

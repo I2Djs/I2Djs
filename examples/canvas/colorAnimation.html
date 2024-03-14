@@ -6,10 +6,16 @@
     <body style="height: 100%">
         <div id="myCanvas" style="height: 100%; width: 100%"></div>
 
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            var renderer = i2d.canvasLayer("#myCanvas", {}, {});
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer } from "i2djs";
+            var renderer = canvasLayer("#myCanvas", {}, {});
 
             let rect = renderer
                 .createEl({

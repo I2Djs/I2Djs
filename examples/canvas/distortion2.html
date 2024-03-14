@@ -8,15 +8,21 @@
         <div id="myCanvas" style="height: 100%; width: 100%; position: absolute; background: black">
             <!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
         </div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer, queue } from "i2djs";
             var height = 820,
                 width = 1430;
             height = document.getElementById("myCanvas").offsetHeight;
             width = document.getElementById("myCanvas").offsetWidth;
 
-            var renderer_ = i2d.canvasLayer(
+            var renderer_ = canvasLayer(
                 "#myCanvas",
                 {},
                 {
@@ -31,7 +37,6 @@
                 },
             });
 
-            var queue = i2d.queue;
             var circlesGrid = [];
             var rad = Math.pow(500, 2);
             var dis, dx, dy, f;
@@ -72,7 +77,7 @@
                 my = e.pageY;
             });
 
-            i2d.queue.onRequestFrame(function (t) {
+            queue.onRequestFrame(function (t) {
                 rects.forEach(function (d) {
                     dis = (dx = mx - d.x) * dx + (dy = my - d.y) * dy;
                     f = -rad / dis;

@@ -7,12 +7,18 @@
         <label style="position: absolute; color: black"> Canvas Example </label>
         <div id="myCanvas" style="height: 100%; width: 100%"></div>
         <script src="https://d3js.org/d3.v4.min.js"></script>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer } from "i2djs";
             var width = 600;
             var height = 600;
-            var renderer = i2d.canvasLayer("#myCanvas", {}, {});
+            var renderer = canvasLayer("#myCanvas", {}, {});
             var noOfPoints = 7000;
             var points = [];
             var pointSize = 4;

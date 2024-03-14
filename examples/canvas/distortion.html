@@ -8,10 +8,16 @@
         <div id="myCanvas" style="height: 100%; width: 100%; position: absolute; background: black">
             <!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
         </div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            var renderer_ = i2d.canvasLayer("#myCanvas", {}, { enableEvents: false });
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer, geometry } from "i2djs";
+            var renderer_ = canvasLayer("#myCanvas", {}, { enableEvents: false });
             var circlesGrid = [];
             var gridSize = parseInt(Math.sqrt(10000));
 
@@ -56,8 +62,8 @@
                 };
 
                 circles.forEach(function (d) {
-                    var dis = i2d.geometry.getDistance(p1, d);
-                    var angle = i2d.geometry.getAngle(p1, d);
+                    var dis = geometry.getDistance(p1, d);
+                    var angle = geometry.getAngle(p1, d);
                     dis = Math.abs(dis) > 150 ? 0 : 150 - dis;
                     var cx = dis * Math.cos(angle),
                         cy = dis * Math.sin(angle);

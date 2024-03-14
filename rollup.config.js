@@ -24,7 +24,6 @@ const banner = `/*!
 export default [
     {
         input: "src/main.js",
-        // external: [ 'stackblur-canvas', '@juggle/resize-observer', 'blob-stream-i2d'],
         output: [
             {
                 banner,
@@ -37,9 +36,6 @@ export default [
                     if (id.includes('node_modules')) {
                         return 'dependencies';
                     }
-                    // if (id.includes('node_modules/pdfkit') || id.includes('node_modules/flubber') || id.includes('node_modules/earcut')) {
-                    //   return 'dependencies';
-                    // }
                 }
             },
             {
@@ -55,17 +51,15 @@ export default [
                     if (id.includes('node_modules')) {
                         return 'dependencies';
                     }
-                    // if (id.includes('node_modules/pdfkit') || id.includes('node_modules/flubber') || id.includes('node_modules/earcut')) {
-                    //   return 'dependencies';
-                    // }
                 }
             },
-            // {
-            //     banner,
-            //     file: "dist/i2d.js",
-            //     format: "umd",
-            //     name: "i2d",
-            // },
+            {
+                banner,
+                dir: "dist",
+                format: "cjs",
+                name: "i2d",
+                entryFileNames: "i2d.cjs"
+            }
         ],
         plugins: [
             cleanup(),
@@ -89,8 +83,6 @@ export default [
                 preferBuiltins: false,
             }),
             commonjs({
-                // dynamicRequireTargets: [ 'node_modules/pdfkit/js/pdfkit.standalone.js'],
-                // inlineDynamicImports: true,
                 sourceMap: true,
                 transformMixedEsModules: true
             }),
@@ -105,40 +97,32 @@ export default [
             })
         ],
     },
-    {
-        input: "src/main.js",
-        output: [
-            {
-                banner,
-                file: "dist/i2d.js",
-                format: "umd",
-                name: "i2d",
-            },
-            {
-                banner,
-                file: "dist/i2d.min.js",
-                format: "umd",
-                name: "i2d",
-                compact: true,
-                plugins: [terser()]
-            }
-        ],
-        plugins: [
-            cleanup(),
-            alias({
-                  entries: [
-                    { find: 'pdfkit', replacement: 'pdfkit/js/pdfkit.standalone.js' },
-                    { find: './../../data/static-fonts.js', replacement: __dirname.pathname + 'src/data/dumy-static-fonts.js' },
-                  ]
-                }),
-            nodeResolve({
-            }),
-            commonjs({
-            }),
-            eslint({
-                fix: true,
-                throwOnError: true,
-            }),
-        ],
-    }
+    // {
+    //     input: "src/main.js",
+    //     output: [
+    //         {
+    //             banner,
+    //             file: "dist/i2d.cjs",
+    //             format: "cjs",
+    //             name: "i2d",
+    //         }
+    //     ],
+    //     plugins: [
+    //         cleanup(),
+    //         alias({
+    //               entries: [
+    //                 { find: 'pdfkit', replacement: 'pdfkit/js/pdfkit.standalone.js' },
+    //                 { find: './../../data/static-fonts.js', replacement: __dirname.pathname + 'src/data/dumy-static-fonts.js' },
+    //               ]
+    //             }),
+    //         nodeResolve({
+    //         }),
+    //         commonjs({
+    //         }),
+    //         eslint({
+    //             fix: true,
+    //             throwOnError: true,
+    //         }),
+    //     ],
+    // }
 ];

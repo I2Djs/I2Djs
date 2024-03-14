@@ -8,13 +8,20 @@
             id="myCanvas"
             style="height: 75%; width: 75%; position: absolute; top: 12.5%; left: 12.5%"
         ></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
 
-        <script type="text/javascript">
-            var backrenderer = i2d.canvasLayer("#myCanvas", {}, {});
-            var renderer = i2d.canvasLayer("#myCanvas", {}, {});
-            var zoomInstance = i2d.behaviour.zoom();
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer, behaviour } from "i2djs";
+            var backrenderer = canvasLayer("#myCanvas", {}, {});
+            var renderer = canvasLayer("#myCanvas", {}, {});
+            var zoomInstance = behaviour.zoom();
 
             // console.log(renderer.height);
             var projection = d3

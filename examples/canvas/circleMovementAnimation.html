@@ -6,22 +6,22 @@
     <body style="height: 100%">
         <label style="position: absolute; color: white"> Canvas Example </label>
         <div id="myCanvas" style="height: 100%; width: 100%; position: absolute">
-            <!--<canvas width="1400" height="1000" id="myCanvas"></canvas>-->
         </div>
         <script type="text/javascript" src="../../dist/i2d.js"></script>
-        <!--<script type="text/javascript" src="../../src/colorMap.js"></script>
-<script type="text/javascript" src="../../src/geometry.js"></script>
-<script type="text/javascript" src="../../src/easing.js"></script>
-<script type="text/javascript" src="../../src/vDom.js"></script>
-<script type="text/javascript" src="../../src/queue.js"></script>
-<script type="text/javascript" src="../../src/chaining.js"></script>
-<script type="text/javascript" src="../../src/path.js"></script>
-<script type="text/javascript" src="../../src/renderer.js"></script>-->
 
-        <script type="text/javascript">
-            var radialGrad = i2d.canvasLayer(null, {}, {});
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer, queue } from "i2djs";
+
+            var radialGrad = canvasLayer(null, {}, {});
             radialGrad.setSize(200, 200);
-            var renderer_ = i2d.canvasLayer("#myCanvas", {}, {});
+            var renderer_ = canvasLayer("#myCanvas", {}, {});
             renderer_.setClear(function (ctx) {
                 ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
                 ctx.fillRect(0, 0, renderer_.width, renderer_.height);
@@ -94,7 +94,7 @@
                 },
             });
 
-            i2d.queue.onRequestFrame(function (t) {
+            queue.onRequestFrame(function (t) {
                 circleNodes.forEach(function (d) {
                     updateCirclePosition(d);
                     this.setAttr({ x: d.x, y: d.y });

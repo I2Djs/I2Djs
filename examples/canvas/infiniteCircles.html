@@ -5,18 +5,24 @@
     </head>
     <body style="height: 100%; background: black">
         <div id="myCanvas" style="position: absolute; height: 100%; width: 100%"></div>
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer, chain } from "i2djs";
             /*****************
  A recreation of the Daniel Example (https://codepen.io/scorch/pen/BZjbmW) with I2Djs framework
  I2Djs - https://github.com/I2Djs/I2Djs
  *****************/
 
-            var renderer_ = i2d.canvasLayer("#myCanvas", {}, {});
+            var renderer_ = canvasLayer("#myCanvas", {}, {});
             var height = renderer_.height;
             var width = renderer_.width;
-            var parallelChain = i2d.chain.parallelChain().loop(10);
+            var parallelChain = chain.parallelChain().loop(10);
 
             var g = renderer_.createEl({
                 el: "group",

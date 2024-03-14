@@ -6,12 +6,16 @@
     <body style="height: 100%">
         <label style="position: absolute; color: white"> Canvas Example </label>
         <div id="myCanvas" style="height: 100%; width: 100%; background: black"></div>
-        <!--<script type="text/javascript" src="../../dist/i2d.js"></script>-->
-        <!--<script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>-->
-        <script type="text/javascript" src="../../dist/i2d.js"></script>
-
-        <script type="text/javascript">
-            var renderer = i2d.canvasLayer("#myCanvas", {}, {});
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer, queue as i2dQueue } from "i2djs";
+            var renderer = canvasLayer("#myCanvas", {}, {});
 
             renderer.setClear(function (ctx) {
                 ctx.clearRect(
@@ -65,7 +69,7 @@
             var currentAngle = 0;
             var time;
 
-            i2d.queue.onRequestFrame(function (t) {
+            i2dQueue.onRequestFrame(function (t) {
                 t = Date.now();
                 if (!time) {
                     currentAngle = 0;

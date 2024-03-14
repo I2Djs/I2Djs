@@ -22,8 +22,16 @@
         <script type="text/javascript" src="../../dist/i2d.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.14.2/matter.js"></script>
 
-        <script type="text/javascript">
-            var renderer = i2d.canvasLayer(
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import { canvasLayer, queue as i2dQueue } from "i2djs";
+            var renderer = canvasLayer(
                 "#myCanvas",
                 {},
                 {
@@ -76,7 +84,7 @@
             renderer.on("click", function (e) {
                 renderCounter = 300;
                 if (!renderFlag) {
-                    i2d.queue.onRequestFrame(draw);
+                    i2dQueue.onRequestFrame(draw);
                 }
                 renderFlag = true;
                 boxesContainerInstance.add(e.offsetX, e.offsetY);
@@ -87,7 +95,7 @@
                 if (renderCounter < 0) {
                     boxesContainerInstance.filterBoxes();
                     renderFlag = false;
-                    i2d.queue.removeRequestFrameCall(draw);
+                    i2dQueue.removeRequestFrameCall(draw);
                 }
                 boxesContainerInstance.update();
             }
@@ -120,7 +128,7 @@
                 });
             };
 
-            var radialGrad = i2d.canvasLayer(null, {}, {});
+            var radialGrad = canvasLayer(null, {}, {});
             radialGrad.setSize(50, 50);
 
             var radialGradiant = radialGrad.createRadialGradient({

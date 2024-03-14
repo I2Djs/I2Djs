@@ -5,11 +5,17 @@
     </head>
     <body style="height: 100%">
         <label style="position: absolute; color: white"> Canvas Example </label>
-        <div id="myCanvas" style="height: 100%; width: 100%"></div>
+        <div id="myCanvas" style="height: 500px; width: 700px"></div>
         <!-- <script type="text/javascript" src="../../dist/i2d.js"></script> -->
-
+        <script type="importmap">
+            {
+                "imports": {
+                    "i2djs": "../../dist/i2d.esm.min.js"
+                }
+            }
+        </script>
         <script type="module">
-            import {canvasLayer} from "../../dist/i2d.esm.min.js";
+            import {canvasLayer} from "i2djs";
             var renderer = canvasLayer("#myCanvas", {}, {});
 
             var circle = renderer
