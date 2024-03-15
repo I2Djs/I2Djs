@@ -111,7 +111,6 @@ function prepObjProxyCanvas(type, attr, context, BBoxUpdate) {
                     }
                 } else if (type === 'style') {
                     value = colorValueCheck(value);
-                    // console.log(value);
                     if (context && context.dom) {
                         context.dom.setStyle(prop, value);
                     }

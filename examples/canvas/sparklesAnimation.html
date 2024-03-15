@@ -14,7 +14,7 @@
             }
         </script>
         <script type="module">
-            import { canvasLayer } from "i2djs";
+            import { canvasLayer, path as i2dPath } from "i2djs";
 
                 var height = 820,
                     width = 1430;
@@ -51,8 +51,7 @@
                     var r = random(50, 450);
                     var tx = r * Math.cos(angle);
                     var ty = r * Math.sin(angle);
-                    var pathInstance = i2d
-                        .path()
+                    var pathInstance = i2dPath()
                         .m(false, { x: 700, y: 350 })
                         .q(false, { x: tx * 0.6, y: (ty - 350) * 0.6 }, { x: tx, y: ty });
                     // console.log("m"+x+','+y+' q'+(tx*0.6)+','+((ty-y)*0.6) +' '+tx+','+ty)

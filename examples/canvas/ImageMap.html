@@ -4,7 +4,7 @@
         <title></title>
     </head>
     <body style="height: 100%">
-        <input type="file" onchange="onFileSelected(event)" value="chose picture" />
+        <input type="file" id="inputel" value="chose picture" />
         <div id="imgParent" style="display: none">
             <img id="myimage" />
         </div>
@@ -19,9 +19,12 @@
         <script type="module">
             import { canvasLayer } from "i2djs";
             var imgtag = document.getElementById("myimage");
+            var inEl = document.getElementById("inputel");
+            let context;
             //Setting Default Image, you can load any image using input box.
             // imgtag.src = "uchiha_madara.jpg";
             imgtag.onload = render;
+            inEl.onchange = onFileSelected;
 
             function onFileSelected(event) {
                 var selectedFile = event.target.files[0];
@@ -60,12 +63,8 @@
                 canvas = document.createElement("canvas");
                 canvas.width = width;
                 canvas.height = height;
-                context = canvas.getContext("2d");
+                context = canvas.getContext("2d", {});
                 context.drawImage(img, 0, 0, width, height);
-
-                // g.setAttr('transform', {
-                //     translate: [width / 2, height/ 2]
-                // })
             }
 
             function breakCircle(d, i) {

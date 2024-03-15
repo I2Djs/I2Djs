@@ -30,7 +30,7 @@
             }
         </script>
         <script type="module">
-            import { canvasLayer } from "i2djs";
+            import { canvasLayer, path as i2dPath } from "i2djs";
             var renderer = canvasLayer("#myCanvas", {}, {});
             var nodes = [];
             var data = [],
@@ -161,8 +161,7 @@
                         y: endEnd.y + (endBegin.y - endEnd.y) * 0.9,
                     };
 
-                return i2d
-                    .path()
+                return i2dPath()
                     .m(false, { x: startBegin.x, y: startBegin.y })
                     .c(
                         true,
