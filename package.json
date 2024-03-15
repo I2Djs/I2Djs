@@ -22,28 +22,29 @@
   "files": [
     "dist",
     "src",
-    "examples/canvas",
-    "examples/svg",
-    "examples/webGL",
-    "examples/pdf"
+    "README.md",
+    "LICENSE",
+    "package.json"
   ],
   "keywords": [
+    "i2d",
+    "i2djs",
+    "javascript",
     "SVG",
-    "Canvas",
+    "canvas",
+    "webgl",
+    "pdf",
     "DataJoin",
     "Data Visualization",
-    "Gaming",
     "Visualization",
-    "2D Graphics",
+    "2d",
     "Graphics",
     "Animation",
-    "Virtual Dom",
     "Bitmap",
     "Scalable Vector Graphics",
     "pixel",
     "Rendering",
-    "Integrated 2D",
-    "pdf"
+    "Integrated 2D"
   ],
   "author": "Narayana Swamy",
   "license": "BSD-3-Clause",
@@ -80,5 +81,17 @@
     "stackblur-canvas": "^2.6.0",
     "stream-browserify": "^3.0.0",
     "util": "^0.12.5"
+  },
+  "jspm": {
+    "files": [
+      "package.json",
+      "LICENSE",
+      "README.md",
+      "dist/i2d.cjs",
+      "dist/i2d.esm.js",
+      "dist/i2d.esm.js",
+      "dist/dependencies-bundle-esm.js"
+    ],
+    "directories": {}
   }
 }
