@@ -97,45 +97,79 @@ function colorValueCheck(value) {
     return value === "#000" || value === "#000000" || value === "black" ? "#010101" : value;
 }
 
+function formatTransformValue(prop, value) {
+    if (['translate', 'scale', 'skew'].includes(prop)) {
+        return Array.isArray(value) && value.length > 0 ? [value[0], value[1] || value[0]] : [0, 0];
+    } else if (prop === 'rotate') {
+        return Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0];
+    }
+}
+
 function prepObjProxyCanvas(type, attr, context, BBoxUpdate) {
     const handlr = {
         set(obj, prop, value) {
-            if (value !== null) {
-                if (type === 'attr') {
-                    if (context && context.dom) {
-                        context.dom.setAttr(prop, value);
-                    }
-                    obj[prop] = value;
-                    if (BBoxUpdate) {
-                        context.BBoxUpdate = true;
-                    }
-                } else if (type === 'style') {
-                    value = colorValueCheck(value);
-                    if (context && context.dom) {
-                        context.dom.setStyle(prop, value);
-                    }
-                    obj[prop] = value;
-                } else if (type === 'transform') {
-                    if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
-                        value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
-                    } else if (prop === 'rotate') {
-                        value = Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0]
-                    }
-                    obj[prop] = value;
-
-                    if (context && context.dom) {
-                        context.dom.setAttr('transform', obj);
-                    }
-                    if (BBoxUpdate) {
-                        context.BBoxUpdate = true;
-                    }
-                }
-
-                queueInstance.vDomChanged(context.vDomIndex);
-            } else {
+            if (value === null) {
                 delete obj[prop];
+                return true;
             }
+
+            const transformProps = ['translate', 'scale', 'skew', 'rotate'];
+            if (type === 'transform' && transformProps.includes(prop)) {
+                value = formatTransformValue(prop, value);
+            } else if (type === 'style') {
+                value = colorValueCheck(value);
+            }
+
+            obj[prop] = value;
+            if (context && context.dom) {
+                const action = type === 'transform' ? 'setAttr' : (type === 'style' ? 'setStyle' : 'setAttr');
+                context.dom[action](prop, value);
+            }
+
+            if (BBoxUpdate && (type === 'attr' || type === 'transform')) {
+                context.BBoxUpdate = true;
+            }
+
+            queueInstance.vDomChanged(context.vDomIndex);
             return true;
+
+
+            // if (value !== null) {
+            //     if (type === 'attr') {
+            //         if (context && context.dom) {
+            //             context.dom.setAttr(prop, value);
+            //         }
+            //         obj[prop] = value;
+            //         if (BBoxUpdate) {
+            //             context.BBoxUpdate = true;
+            //         }
+            //     } else if (type === 'style') {
+            //         value = colorValueCheck(value);
+            //         if (context && context.dom) {
+            //             context.dom.setStyle(prop, value);
+            //         }
+            //         obj[prop] = value;
+            //     } else if (type === 'transform') {
+            //         if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
+            //             value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
+            //         } else if (prop === 'rotate') {
+            //             value = Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0]
+            //         }
+            //         obj[prop] = value;
+
+            //         if (context && context.dom) {
+            //             context.dom.setAttr('transform', obj);
+            //         }
+            //         if (BBoxUpdate) {
+            //             context.BBoxUpdate = true;
+            //         }
+            //     }
+
+            //     queueInstance.vDomChanged(context.vDomIndex);
+            // } else {
+            //     delete obj[prop];
+            // }
+            // return true;
         },
         deleteProperty(obj, prop) {
             if (prop in obj) {
