@@ -26,7 +26,7 @@ npm install i2djs --save
 
 I2Djs provides source code bundles for ES6 and CJS modules.
 
--   [i2D.cjs](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.cjs) Common JS bundle
+-   [i2D.cjs](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.cjs) CommonJS bundle
 -   [i2D.esm.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.esm.js) ES6 bundle
 -   [i2D.esm.min.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.esm.min.js) ES6 bundle
 
