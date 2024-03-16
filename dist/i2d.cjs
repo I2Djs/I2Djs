@@ -91,13 +91,7 @@ function removeRequestFrameCall(_) {
 function add(uId, executable, easying) {
     const exeObj = new Tween(uId, executable, easying);
     exeObj.currTime = performance.now();
-    if (executable.target) {
-        if (!executable.target.animList) {
-            executable.target.animList = [];
-        }
-        executable.target.animList[executable.target.animList.length] = exeObj;
-    }
-    tweens[tweens.length] = exeObj;
+    tweens.push(exeObj);
     this.startAnimeFrames();
 }
 function remove$1(exeObj) {
@@ -129,6 +123,11 @@ ExeQueue.prototype = {
         tweens = [];
         onFrameExe = [];
     },
+};
+ExeQueue.prototype.interruptNodeAnimations = function (node) {
+    tweens = tweens.filter((d)=>{
+        return (d?.executable?.target??null) !== node;
+    });
 };
 ExeQueue.prototype.addVdom = function AaddVdom(_) {
     const ind = vDomIds.length + 1;
@@ -206,14 +205,16 @@ function exeFrameCaller() {
                 d.execute(abs$1(d.factor - d.easying(d.lastTime, d.duration)));
                 tweensN[counter++] = d;
             } else if (d.lastTime > d.duration) {
-                loopCheck(d);
+                if (loopCheck(d)) {
+                    tweensN[counter++] = d;
+                }
             } else {
                 tweensN[counter++] = d;
             }
         }
         tweens = tweensN;
         if (onFrameExe.length > 0) {
-            onFrameExeFun();
+            onFrameExeFun(t);
         }
         animatorInstance.vDomUpdates();
     } catch (err) {
@@ -228,35 +229,22 @@ function loopCheck(d) {
         if (d.end) {
             d.end();
         }
-        if (d.executable.target) {
-            const animList = d.executable.target.animList;
-            if (animList && animList.length > 0) {
-                if (animList.length === 1) {
-                    d.executable.target.animList = [];
-                } else if (animList.length > 1) {
-                    const index = animList.indexOf(d);
-                    if (index !== -1) {
-                        animList.splice(index, 1);
-                    }
-                }
-            }
+        const animList = d.executable?.target?.animList;
+        if (animList) {
+            const index = animList.indexOf(d);
+            if (index !== -1) animList.splice(index, 1);
         }
+        return false
     } else {
         d.loopTracker += 1;
         d.lastTime = d.lastTime - d.duration;
         d.lastTime = d.lastTime % d.duration;
-        if (d.direction === "alternate") {
-            d.factor = 1 - d.factor;
-        } else if (d.direction === "reverse") {
-            d.factor = 1;
-        } else {
-            d.factor = 0;
-        }
+        d.factor = d.direction === "alternate"? (1 - d.factor) : (d.direction === "reverse" ? 1 : 0);
         d.execute(abs$1(d.factor - d.easying(d.lastTime, d.duration)));
-        tweensN[counter++] = d;
+        return true;
     }
 }
-function onFrameExeFun() {
+function onFrameExeFun(t) {
     for (let i = 0; i < onFrameExe.length; i += 1) {
         onFrameExe[i](t);
     }
@@ -5883,6 +5871,39 @@ var ResizeObserver$1 = (function () {
     return ResizeObserver;
 }());
 
+const canvasStyleMapper = {
+    "fill": "fillStyle",
+    "stroke": "strokeStyle",
+    "lineDash": "setLineDash",
+    "opacity": "globalAlpha",
+    "stroke-width": "lineWidth",
+    "stroke-dasharray": "setLineDash",
+};
+const svgStyleMapper = {
+    "fillStyle": "fill",
+    "strokeStyle": "stroke",
+    "lineDash": "stroke-dasharray",
+    "globalAlpha": "opacity",
+    "lineWidth": "stroke-width",
+    "setLineDash": "stroke-dasharray",
+};
+const pdfSupportedFontFamily = [
+    "Courier",
+    "Courier-Bold",
+    "Courier-Oblique",
+    "Courier-BoldOblique",
+    "Helvetica",
+    "Helvetica-Bold",
+    "Helvetica-Oblique",
+    "Helvetica-BoldOblique",
+    "Symbol",
+    "Times-Roman",
+    "Times-Bold",
+    "Times-Italic",
+    "Times-BoldItalic",
+    "ZapfDingbats",
+];
+
 let animeIdentifier$1 = 0;
 const t2DGeometry$1 = geometry;
 const easing$1 = fetchTransitionType;
@@ -5959,12 +5980,25 @@ const styleTransition = function styleTransition(self, key, sVal, value) {
         };
     }
 };
+function resolveStyle(style, styleMapper) {
+    let resolvedStyle = {};
+    let val = null;
+    for(let st in style) {
+        val = style[st];
+        st = styleMapper[st] || st;
+        resolvedStyle[st] = val;
+    }
+    return resolvedStyle;
+}
 const animate = function animate(self, fromConfig, targetConfig) {
     const tattr = targetConfig.attr ? targetConfig.attr : {};
-    const tstyles = targetConfig.style ? targetConfig.style : {};
+    let tstyles = targetConfig.style ? targetConfig.style : {};
     const sattr = fromConfig.attr ? fromConfig.attr : {};
-    const sstyles = fromConfig.style ? fromConfig.style : {};
+    let sstyles = fromConfig.style ? fromConfig.style : {};
     const runStack = [];
+    const styleMapper = (self.nodeType === 'WEBGL' || self.nodeType === 'canvas') ? canvasStyleMapper : svgStyleMapper;
+    sstyles = resolveStyle(sstyles, styleMapper);
+    tstyles = resolveStyle(tstyles, styleMapper);
     if (typeof tattr !== "function") {
         for (const key in tattr) {
             if (key !== "transform") {
@@ -6012,7 +6046,7 @@ const animate = function animate(self, fromConfig, targetConfig) {
         runStack[runStack.length] = tattr.bind(self);
     }
     if (typeof tstyles !== "function") {
-        for (const style in tstyles) {
+        for (let style in tstyles) {
             runStack[runStack.length] = styleTransition(
                 self,
                 style,
@@ -6334,12 +6368,7 @@ NodePrototype.prototype.data = function (data) {
 };
 NodePrototype.prototype.interrupt = function () {
     if (this.ctx && this.ctx.type_ === "pdf") return;
-    if (this.animList && this.animList.length > 0) {
-        for (var i = this.animList.length - 1; i >= 0; i--) {
-            queueInstance$4.remove(this.animList[i]);
-        }
-    }
-    this.animList = [];
+    queueInstance$4.interruptNodeAnimations(this);
     return this;
 };
 NodePrototype.prototype.animateTo = function (toConfig, fromConfig) {
@@ -6917,6 +6946,9 @@ function prepObjProxySvg(type, attr, context) {
                     value = pointsToString(value);
                 }
                 if (type === 'attr') {
+                    if (prop === 'transform') {
+                        value = prepObjProxySvg("transform", value, context);
+                    }
                     context.changedAttribute[prop] = value;
                     context.attrChanged = true;
                 } else if (type === 'style') {
@@ -7200,7 +7232,7 @@ DomExe.prototype.transFormAttributes = function transFormAttributes() {
 };
 DomExe.prototype.scale = function DMscale(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = {};
+        this.attr.transform = prepObjProxySvg('transform', {}, this);
     }
     this.attr.transform.scale = XY;
     return this;
@@ -7388,9 +7420,6 @@ DomExe.prototype.text = function DMtext(value) {
     this.changedAttribute.text = value;
     return this;
 };
-DomExe.prototype.remove = function DMremove() {
-    this.parentNode.removeChild(this);
-};
 DomExe.prototype.createEls = function DMcreateEls(data, config) {
     const e = new SVGCollection(
         {
@@ -7410,17 +7439,32 @@ DomExe.prototype.createEl = function DMcreateEl(config) {
     queueInstance$3.vDomChanged(this.vDomIndex);
     return e;
 };
+DomExe.prototype.remove = function DMremove() {
+    if (this.parentNode) {
+        this.parentNode.removeChild(this);
+    }
+};
 DomExe.prototype.removeChild = function DMremoveChild(obj) {
     const { children } = this;
     const index = children.indexOf(obj);
     if (index !== -1) {
+        const removedNode = children[index];
         const dom = children.splice(index, 1)[0].dom;
         if (!this.dom.contains(dom)) {
             return;
         }
         this.dom.removeChild(dom);
+        markForDeletion$2(removedNode);
     }
 };
+function markForDeletion$2(removedNode) {
+    removedNode.deleted = true;
+    if (!removedNode.deleted) {
+        for(let i = 0; i < removedNode.children.length; i++) {
+            markForDeletion$2(removedNode[i]);
+        }
+    }
+}
 function svgLayer(container, layerSettings = {}) {
     const res =
         container instanceof HTMLElement
@@ -8245,31 +8289,6 @@ var behaviour = {
     },
 };
 
-const canvasStyleMapper = {
-    "fill": "fillStyle",
-    "stroke": "strokeStyle",
-    "lineDash": "setLineDash",
-    "opacity": "globalAlpha",
-    "stroke-width": "lineWidth",
-    "stroke-dasharray": "setLineDash",
-};
-const pdfSupportedFontFamily = [
-    "Courier",
-    "Courier-Bold",
-    "Courier-Oblique",
-    "Courier-BoldOblique",
-    "Helvetica",
-    "Helvetica-Bold",
-    "Helvetica-Oblique",
-    "Helvetica-BoldOblique",
-    "Symbol",
-    "Times-Roman",
-    "Times-Bold",
-    "Times-Italic",
-    "Times-BoldItalic",
-    "ZapfDingbats",
-];
-
 const t2DGeometry = geometry;
 let ratio;
 const queueInstance$1 = queue$1;
@@ -8438,12 +8457,13 @@ function prepObjProxyWebGl(type, attr, context, BBoxUpdate) {
         set(obj, prop, value) {
             if (value !== null) {
                 if (type === 'attr') {
-                    obj[prop] = value;
                     if (prop === "transform" && context.children.length > 0) {
+                        value = prepObjProxyWebGl('transform', value, context, BBoxUpdate);
                         context.children.forEach(function (d) {
                             d.applyTransformationMatrix(context.dom.transformMatrix);
                         });
                     }
+                    obj[prop] = value;
                     if (context && context.dom) {
                         context.dom.setAttr(prop, value);
                     }
@@ -10719,8 +10739,14 @@ function WebglNodeExe(ctx, config, id, vDomIndex) {
             style[resKey] = value;
         }
     }
-    this.style = prepObjProxyWebGl('style', style || {}, this, true);
-    this.attr = prepObjProxyWebGl('attr', config.attr || {}, this, true);
+    this.style = prepObjProxyWebGl('style', {}, this, true);
+    this.attr = prepObjProxyWebGl('attr', {}, this, true);
+    if (style) {
+        this.setStyle(style);
+    }
+    if (config.attr) {
+        this.setAttr(config.attr);
+    }
     switch (config.el) {
         case "point":
             this.dom = new PointNode(this.ctx, this.attr, this.style);
@@ -11016,9 +11042,28 @@ WebglNodeExe.prototype.remove = function Wremove() {
             children.splice(index, 1);
         }
     }
+    markForDeletion$1(this);
     this.BBoxUpdate = true;
     queueInstance$1.vDomChanged(this.vDomIndex);
 };
+WebglNodeExe.prototype.removeChild = function WremoveChild(obj) {
+    let index = this.children.indexOf(obj);
+    if (index !== -1) {
+        this.children.splice(index, 1);
+        this.dom.removeChild(obj.dom);
+        markForDeletion$1(obj);
+        this.BBoxUpdate = true;
+        queueInstance$1.vDomChanged(this.vDomIndex);
+    }
+};
+function markForDeletion$1(removedNode) {
+    removedNode.deleted = true;
+    if (!removedNode.deleted) {
+        for(let i = 0; i < removedNode.children.length; i++) {
+            markForDeletion$1(removedNode[i]);
+        }
+    }
+}
 WebglNodeExe.prototype.animatePathTo = AnimatePathTo;
 WebglNodeExe.prototype.morphTo = MorphTo;
 WebglNodeExe.prototype.text = function Ctext(value) {
@@ -11026,20 +11071,6 @@ WebglNodeExe.prototype.text = function Ctext(value) {
         this.setAttr('text', value);
     }
     return this;
-};
-WebglNodeExe.prototype.removeChild = function WremoveChild(obj) {
-    let index = -1;
-    this.children.forEach((d, i) => {
-        if (d === obj) {
-            index = i;
-        }
-    });
-    if (index !== -1) {
-        const removedNode = this.children.splice(index, 1)[0];
-        this.dom.removeChild(removedNode.dom);
-    }
-    this.BBoxUpdate = true;
-    queueInstance$1.vDomChanged(this.vDomIndex);
 };
 function webglLayer(container, contextConfig = {}, layerSettings = {}) {
     const res =
@@ -65377,6 +65408,9 @@ function prepObjProxyCanvas(type, attr, context, BBoxUpdate) {
             } else if (type === 'style') {
                 value = colorValueCheck(value);
             }
+            if (prop === "transform") {
+                value = prepObjProxyCanvas('transform', value, context, BBoxUpdate);
+            }
             obj[prop] = value;
             if (context && context.dom) {
                 const action = type === 'transform' ? 'setAttr' : (type === 'style' ? 'setStyle' : 'setAttr');
@@ -66803,8 +66837,14 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.bbox = config.bbox !== undefined ? config.bbox : true;
     this.BBoxUpdate = true;
     this.block = config.block || false;
-    this.style = prepObjProxyCanvas('style', config.style || {}, this, true);
-    this.attr = prepObjProxyCanvas('attr', config.attr || {}, this, true);
+    this.style = prepObjProxyCanvas('style', {}, this, true);
+    this.attr = prepObjProxyCanvas('attr', {}, this, true);
+    if (config.style) {
+        this.setStyle(config.style);
+    }
+    if (config.attr) {
+        this.setAttr(config.attr);
+    }
     switch (config.el) {
         case "circle":
             this.dom = new RenderCircle(this.ctx, this.attr, this.style);
@@ -66851,7 +66891,6 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
             break;
     }
     this.dom.nodeExe = this;
-    this.setStyle(config.style);
 };
 CanvasNodeExe.prototype = new NodePrototype();
 CanvasNodeExe.prototype.node = function Cnode() {
@@ -66936,13 +66975,6 @@ CanvasNodeExe.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
         }
     }
 };
-CanvasNodeExe.prototype.remove = function Cremove() {
-    const { children } = this.dom.parent;
-    const index = children.indexOf(this);
-    if (index !== -1) {
-        children.splice(index, 1);
-    }
-};
 CanvasNodeExe.prototype.attributesExe = function CattributesExe() {
     this.dom.render(this.attr);
 };
@@ -67000,8 +67032,8 @@ CanvasNodeExe.prototype.skew = function Cskew(XY) {
     return this;
 };
 CanvasNodeExe.prototype.execute = function Cexecute() {
-    if (this.style.display === "none") {
-        return;
+    if (this.style.display === "none" || this.deleted) {
+        return false
     }
     this.ctx.save();
     this.stylesExe();
@@ -67155,18 +67187,26 @@ CanvasNodeExe.prototype.createEl = function CcreateEl(config) {
     this.child([e]);
     return e;
 };
-CanvasNodeExe.prototype.removeChild = function CremoveChild(obj) {
-    let index = -1;
-    this.children.forEach((d, i) => {
-        if (d === obj) {
-            index = i;
-        }
-    });
-    if (index !== -1) {
-        const removedNode = this.children.splice(index, 1)[0];
-        this.dom.removeChild(removedNode.dom);
+CanvasNodeExe.prototype.remove = function Cremove() {
+    if (this.dom && this.dom.parent) {
+        this.dom.parent.removeChild(this);
     }
 };
+CanvasNodeExe.prototype.removeChild = function CremoveChild(obj) {
+    const index = this.children.indexOf(obj);
+    if (index !== -1) {
+        const removedNode = this.children.splice(index, 1)[0];
+        markForDeletion(removedNode);
+    }
+};
+function markForDeletion(removedNode) {
+    removedNode.deleted = true;
+    if (removedNode.dom instanceof RenderGroup && !removedNode.deleted) {
+        for(let i = 0; i < removedNode.children.length; i++) {
+            markForDeletion(removedNode[i]);
+        }
+    }
+}
 CanvasNodeExe.prototype.getBBox = function () {
     return {
         x: this.dom.BBox.x,

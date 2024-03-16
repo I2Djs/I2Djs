@@ -69,10 +69,7 @@ Tween.prototype.execute = function execute(f) {
 Tween.prototype.resetCallBack = function resetCallBack(_) {
     if (typeof _ !== "function") return;
     this.callBack = _;
-}; // function endExe (_) {
-//   this.endExe = _
-//   return this
-// }
+};
 
 function onRequestFrame(_) {
     if (typeof _ !== "function") {
@@ -101,13 +98,7 @@ function removeRequestFrameCall(_) {
 function add(uId, executable, easying) {
     const exeObj = new Tween(uId, executable, easying);
     exeObj.currTime = performance.now();
-    if (executable.target) {
-        if (!executable.target.animList) {
-            executable.target.animList = [];
-        }
-        executable.target.animList[executable.target.animList.length] = exeObj;
-    }
-    tweens[tweens.length] = exeObj;
+    tweens.push(exeObj);
     this.startAnimeFrames();
 }
 
@@ -148,6 +139,12 @@ ExeQueue.prototype = {
     },
 };
 
+ExeQueue.prototype.interruptNodeAnimations = function (node) {
+    tweens = tweens.filter((d)=>{
+        return (d?.executable?.target??null) !== node;
+    });
+}
+
 ExeQueue.prototype.addVdom = function AaddVdom(_) {
     const ind = vDomIds.length + 1;
     vDoms[ind] = _;
@@ -160,7 +157,6 @@ ExeQueue.prototype.removeVdom = function removeVdom(_) {
     const index = vDomIds.indexOf(_);
 
     // filter remove tweens
-
     tweens = tweens.filter((d)=>{
         return (d?.executable?.target?.vDomIndex??null) !== _;
     });
@@ -228,6 +224,7 @@ let tweensN = [];
 
 function exeFrameCaller() {
     try {
+
         tweensN = [];
         counter = 0;
         t = performance.now();
@@ -241,7 +238,9 @@ function exeFrameCaller() {
                 d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)));
                 tweensN[counter++] = d;
             } else if (d.lastTime > d.duration) {
-                loopCheck(d);
+                if (loopCheck(d)) {
+                    tweensN[counter++] = d;
+                }
             } else {
                 tweensN[counter++] = d;
             }
@@ -250,10 +249,11 @@ function exeFrameCaller() {
         tweens = tweensN;
 
         if (onFrameExe.length > 0) {
-            onFrameExeFun();
+            onFrameExeFun(t);
         }
 
         animatorInstance.vDomUpdates();
+
     } catch (err) {
         console.error(err);
     } finally {
@@ -267,38 +267,23 @@ function loopCheck(d) {
         if (d.end) {
             d.end();
         }
-        if (d.executable.target) {
-            const animList = d.executable.target.animList;
-            if (animList && animList.length > 0) {
-                if (animList.length === 1) {
-                    d.executable.target.animList = [];
-                } else if (animList.length > 1) {
-                    const index = animList.indexOf(d);
-                    if (index !== -1) {
-                        animList.splice(index, 1);
-                    }
-                }
-            }
+        const animList = d.executable?.target?.animList;
+        if (animList) {
+            const index = animList.indexOf(d);
+            if (index !== -1) animList.splice(index, 1);
         }
+        return false
     } else {
         d.loopTracker += 1;
         d.lastTime = d.lastTime - d.duration;
         d.lastTime = d.lastTime % d.duration;
-
-        if (d.direction === "alternate") {
-            d.factor = 1 - d.factor;
-        } else if (d.direction === "reverse") {
-            d.factor = 1;
-        } else {
-            d.factor = 0;
-        }
-
+        d.factor = d.direction === "alternate"? (1 - d.factor) : (d.direction === "reverse" ? 1 : 0);
         d.execute(abs(d.factor - d.easying(d.lastTime, d.duration)));
-        tweensN[counter++] = d;
+        return true;
     }
 }
 
-function onFrameExeFun() {
+function onFrameExeFun(t) {
     for (let i = 0; i < onFrameExe.length; i += 1) {
         onFrameExe[i](t);
     }
@@ -306,7 +291,9 @@ function onFrameExeFun() {
 
 animatorInstance = new ExeQueue();
 
-export default animatorInstance; // default function animateQueue () {
-//   if (!animatorInstance) { animatorInstance = new ExeQueue() }
-//   return animatorInstance
-// }
+export default animatorInstance;
+
+// export default function animateQueue () {
+//    if (!animatorInstance) { animatorInstance = new ExeQueue() }
+//    return animatorInstance
+//  }

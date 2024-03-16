@@ -5,6 +5,7 @@ import queue from "./queue.js";
 import ease from "./ease.js";
 import colorMap from "./colorMap.js";
 import { ResizeObserver as resizePolyfill } from "@juggle/resize-observer";
+import { canvasStyleMapper, svgStyleMapper } from "./constants.js";
 
 let animeIdentifier = 0;
 const t2DGeometry = geometry;
@@ -96,12 +97,27 @@ const styleTransition = function styleTransition(self, key, sVal, value) {
     }
 };
 
+function resolveStyle(style, styleMapper) {
+    let resolvedStyle = {};
+    let val = null;
+    for(let st in style) {
+        val = style[st];
+        st = styleMapper[st] || st;
+        resolvedStyle[st] = val;
+    }
+    return resolvedStyle;
+}
+
 const animate = function animate(self, fromConfig, targetConfig) {
     const tattr = targetConfig.attr ? targetConfig.attr : {};
-    const tstyles = targetConfig.style ? targetConfig.style : {};
+    let tstyles = targetConfig.style ? targetConfig.style : {};
     const sattr = fromConfig.attr ? fromConfig.attr : {};
-    const sstyles = fromConfig.style ? fromConfig.style : {};
+    let sstyles = fromConfig.style ? fromConfig.style : {};
     const runStack = [];
+    const styleMapper = (self.nodeType === 'WEBGL' || self.nodeType === 'canvas') ? canvasStyleMapper : svgStyleMapper;
+
+    sstyles = resolveStyle(sstyles, styleMapper);
+    tstyles = resolveStyle(tstyles, styleMapper);
 
     if (typeof tattr !== "function") {
         for (const key in tattr) {
@@ -155,7 +171,8 @@ const animate = function animate(self, fromConfig, targetConfig) {
     }
 
     if (typeof tstyles !== "function") {
-        for (const style in tstyles) {
+        for (let style in tstyles) {
+            // style = styleMapper[style] || style;
             runStack[runStack.length] = styleTransition(
                 self,
                 style,
@@ -523,12 +540,7 @@ NodePrototype.prototype.data = function (data) {
 
 NodePrototype.prototype.interrupt = function () {
     if (this.ctx && this.ctx.type_ === "pdf") return;
-    if (this.animList && this.animList.length > 0) {
-        for (var i = this.animList.length - 1; i >= 0; i--) {
-            queueInstance.remove(this.animList[i]);
-        }
-    }
-    this.animList = [];
+    queueInstance.interruptNodeAnimations(this);
     return this;
 };
 

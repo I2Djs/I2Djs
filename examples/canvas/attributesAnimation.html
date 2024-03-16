@@ -10,7 +10,7 @@
         <script type="importmap">
             {
                 "imports": {
-                    "i2djs": "../../dist/i2d.esm.min.js"
+                    "i2djs": "../../dist/i2d.esm.js"
                 }
             }
         </script>
@@ -32,7 +32,7 @@
                     },
                 })
                 .animateTo({
-                    duration: 500,
+                    duration: 1000,
                     loop: 10,
                     ease: "easeInOutSin",
                     direction: "alternate",
@@ -50,26 +50,37 @@
                     attr: {
                         x: 100,
                         y: 100,
-                        width: 100,
-                        height: 100,
+                        width: 200,
+                        height: 200,
                         transform: {
                             // translate: [100, 100],
-                            rotate: [Math.PI * 0, 150, 150],
+                            rotate: [Math.PI * 0, 200, 200],
                         },
                     },
                     style: {
-                        fillStyle: "#00ff00",
+                        fillStyle: "#ff0000",
                     },
                 })
-                .animateTo({
+
+                rectsRef.animateTo({
                     duration: 1000,
+                    loop: 10,
                     attr: {
                         transform: {
                             // translate: [100, 100],
                             // rotate: [Math.PI * 2.0, -150, -150]
-                            rotate: [360, 150, 150],
+                            rotate: [360, 200, 200],
                         },
-                    },
+                    }
+                });
+
+                rectsRef.animateTo({
+                    duration: 1000,
+                    direction: "alternate",
+                    loop: 10,
+                    style: {
+                        fillStyle: "#00ff00",
+                    }
                 });
         </script>
     </body>

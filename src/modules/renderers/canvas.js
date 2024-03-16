@@ -120,6 +120,10 @@ function prepObjProxyCanvas(type, attr, context, BBoxUpdate) {
                 value = colorValueCheck(value);
             }
 
+            if (prop === "transform") {
+                value = prepObjProxyCanvas('transform', value, context, BBoxUpdate);
+            }
+
             obj[prop] = value;
             if (context && context.dom) {
                 const action = type === 'transform' ? 'setAttr' : (type === 'style' ? 'setStyle' : 'setAttr');
@@ -1903,8 +1907,16 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.BBoxUpdate = true;
     this.block = config.block || false;
 
-    this.style = prepObjProxyCanvas('style', config.style || {}, this, true);
-    this.attr = prepObjProxyCanvas('attr', config.attr || {}, this, true);
+    this.style = prepObjProxyCanvas('style', {}, this, true);
+    this.attr = prepObjProxyCanvas('attr', {}, this, true);
+
+    if (config.style) {
+        this.setStyle(config.style);
+    }
+
+    if (config.attr) {
+        this.setAttr(config.attr);
+    }
 
     switch (config.el) {
         case "circle":
@@ -1964,7 +1976,7 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
 
     this.dom.nodeExe = this;
 
-    this.setStyle(config.style);
+    // this.setStyle(config.style);
 };
 
 CanvasNodeExe.prototype = new NodePrototype();
@@ -2061,15 +2073,6 @@ CanvasNodeExe.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
     }
 };
 
-CanvasNodeExe.prototype.remove = function Cremove() {
-    const { children } = this.dom.parent;
-    const index = children.indexOf(this);
-
-    if (index !== -1) {
-        children.splice(index, 1);
-    }
-};
-
 CanvasNodeExe.prototype.attributesExe = function CattributesExe() {
     this.dom.render(this.attr);
 };
@@ -2140,8 +2143,8 @@ CanvasNodeExe.prototype.skew = function Cskew(XY) {
 };
 
 CanvasNodeExe.prototype.execute = function Cexecute() {
-    if (this.style.display === "none") {
-        return;
+    if (this.style.display === "none" || this.deleted) {
+        return false
     }
     this.ctx.save();
     this.stylesExe();
@@ -2322,22 +2325,30 @@ CanvasNodeExe.prototype.createEl = function CcreateEl(config) {
     return e;
 };
 
+CanvasNodeExe.prototype.remove = function Cremove() {
+    if (this.dom && this.dom.parent) {
+        this.dom.parent.removeChild(this)
+    }
+};
+
 CanvasNodeExe.prototype.removeChild = function CremoveChild(obj) {
-    let index = -1;
-    this.children.forEach((d, i) => {
-        if (d === obj) {
-            index = i;
-        }
-    });
+    const index = this.children.indexOf(obj);
 
     if (index !== -1) {
         const removedNode = this.children.splice(index, 1)[0];
-        this.dom.removeChild(removedNode.dom);
+        markForDeletion(removedNode);
+        
     }
-
-    // this.BBoxUpdate = true;
-    // queueInstance.vDomChanged(this.vDomIndex);
 };
+
+function markForDeletion(removedNode) {
+    removedNode.deleted = true;
+    if (removedNode.dom instanceof RenderGroup && !removedNode.deleted) {
+        for(let i = 0; i < removedNode.children.length; i++) {
+            markForDeletion(removedNode[i]);
+        }
+    }
+}
 
 CanvasNodeExe.prototype.getBBox = function () {
     return {

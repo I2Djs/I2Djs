@@ -13,12 +13,12 @@
         <script type="importmap">
             {
                 "imports": {
-                    "i2djs": "../../dist/i2d.esm.min.js"
+                    "i2djs": "../../dist/i2d.esm.js"
                 }
             }
         </script>
         <script type="module">
-            import {webglLayer } from "i2djs";
+            import {webglLayer} from "i2djs";
             var renderer_ = webglLayer("#myCanvas", {}, {});
             var rectsRef = renderer_.createEl({
                 el: "group",

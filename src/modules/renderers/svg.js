@@ -130,6 +130,9 @@ function prepObjProxySvg(type, attr, context) {
                 }
                 
                 if (type === 'attr') {
+                    if (prop === 'transform') {
+                        value = prepObjProxySvg("transform", value, context);
+                    }
                     context.changedAttribute[prop] = value;
                     context.attrChanged = true;
                 } else if (type === 'style') {
@@ -473,7 +476,7 @@ DomExe.prototype.transFormAttributes = function transFormAttributes() {
 
 DomExe.prototype.scale = function DMscale(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = {};
+        this.attr.transform = prepObjProxySvg('transform', {}, this);
     }
 
     this.attr.transform.scale = XY;
@@ -709,9 +712,7 @@ DomExe.prototype.text = function DMtext(value) {
     return this;
 };
 
-DomExe.prototype.remove = function DMremove() {
-    this.parentNode.removeChild(this);
-};
+
 
 DomExe.prototype.createEls = function DMcreateEls(data, config) {
     const e = new SVGCollection(
@@ -734,18 +735,35 @@ DomExe.prototype.createEl = function DMcreateEl(config) {
     return e;
 };
 
+DomExe.prototype.remove = function DMremove() {
+    if (this.parentNode) {
+        this.parentNode.removeChild(this);
+    }
+};
+
 DomExe.prototype.removeChild = function DMremoveChild(obj) {
     const { children } = this;
     const index = children.indexOf(obj);
 
     if (index !== -1) {
+        const removedNode = children[index];
         const dom = children.splice(index, 1)[0].dom;
         if (!this.dom.contains(dom)) {
             return;
         }
         this.dom.removeChild(dom);
+        markForDeletion(removedNode);
     }
 };
+
+function markForDeletion(removedNode) {
+    removedNode.deleted = true;
+    if (!removedNode.deleted) {
+        for(let i = 0; i < removedNode.children.length; i++) {
+            markForDeletion(removedNode[i]);
+        }
+    }
+}
 
 function svgLayer(container, layerSettings = {}) {
     const res =

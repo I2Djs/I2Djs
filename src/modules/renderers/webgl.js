@@ -207,13 +207,13 @@ function prepObjProxyWebGl(type, attr, context, BBoxUpdate) {
         set(obj, prop, value) {
             if (value !== null) {
                 if (type === 'attr') {
-                    obj[prop] = value;
-
                     if (prop === "transform" && context.children.length > 0) {
+                        value = prepObjProxyWebGl('transform', value, context, BBoxUpdate)
                         context.children.forEach(function (d) {
                             d.applyTransformationMatrix(context.dom.transformMatrix);
                         });
                     }
+                    obj[prop] = value;
                     if (context && context.dom) {
                         context.dom.setAttr(prop, value);
                     }
@@ -2959,8 +2959,17 @@ function WebglNodeExe(ctx, config, id, vDomIndex) {
     }
 
 
-    this.style = prepObjProxyWebGl('style', style || {}, this, true);
-    this.attr = prepObjProxyWebGl('attr', config.attr || {}, this, true);
+    this.style = prepObjProxyWebGl('style', {}, this, true);
+    this.attr = prepObjProxyWebGl('attr', {}, this, true);
+
+
+    if (style) {
+        this.setStyle(style);
+    }
+
+    if (config.attr) {
+        this.setAttr(config.attr);
+    }
 
     switch (config.el) {
         case "point":
@@ -3303,10 +3312,31 @@ WebglNodeExe.prototype.remove = function Wremove() {
             children.splice(index, 1);
         }
     }
-
+    markForDeletion(this);
     this.BBoxUpdate = true;
     queueInstance.vDomChanged(this.vDomIndex);
 };
+
+WebglNodeExe.prototype.removeChild = function WremoveChild(obj) {
+    let index = this.children.indexOf(obj);
+
+    if (index !== -1) {
+        this.children.splice(index, 1);
+        this.dom.removeChild(obj.dom);
+        markForDeletion(obj);
+        this.BBoxUpdate = true;
+        queueInstance.vDomChanged(this.vDomIndex);
+    }
+};
+
+function markForDeletion(removedNode) {
+    removedNode.deleted = true;
+    if (!removedNode.deleted) {
+        for(let i = 0; i < removedNode.children.length; i++) {
+            markForDeletion(removedNode[i]);
+        }
+    }
+}
 
 WebglNodeExe.prototype.animatePathTo = AnimatePathTo;
 WebglNodeExe.prototype.morphTo = MorphTo;
@@ -3318,21 +3348,7 @@ WebglNodeExe.prototype.text = function Ctext(value) {
     return this;
 };
 
-WebglNodeExe.prototype.removeChild = function WremoveChild(obj) {
-    let index = -1;
-    this.children.forEach((d, i) => {
-        if (d === obj) {
-            index = i;
-        }
-    });
 
-    if (index !== -1) {
-        const removedNode = this.children.splice(index, 1)[0];
-        this.dom.removeChild(removedNode.dom);
-    }
-    this.BBoxUpdate = true;
-    queueInstance.vDomChanged(this.vDomIndex);
-};
 
 function webglLayer(container, contextConfig = {}, layerSettings = {}) {
     const res =

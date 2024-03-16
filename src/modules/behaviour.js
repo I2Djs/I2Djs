@@ -166,8 +166,6 @@ function computeTransform(transformObj, oScale, nScale, point) {
     transformObj.translate[0] *= nScale;
     transformObj.translate[1] *= nScale;
 
-    // console.log(transformObj.translate[0], transformObj.translate[1]);
-
     return transformObj;
 }
 
@@ -358,7 +356,6 @@ ZoomClass.prototype.zoomPinch = function (trgt, event, eventsInstance) {
                 offsetY: this.event.y, // + ((pointers[1].clientY - pointers[0].clientY) * 0.5),
                 deltaY: !distance_ ? 0 : distance_ - distance,
             };
-            // console.log(pinchEvent.deltaY);
             this.event.distance = distance;
             this.onZoom(trgt, pinchEvent);
         }
