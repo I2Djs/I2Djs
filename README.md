@@ -24,13 +24,13 @@ If npm
 npm install i2djs --save
 ```
 
-Download source code from below links
+I2Djs provides source code bundles for ES6 and CJS modules.
 
--   [i2D.min.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.min.js)
--   [i2D.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.js)
--   [i2D.esm.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.esm.js)
+-   [i2D.cjs](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.cjs) Common JS syntax
+-   [i2D.esm.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.esm.js) ES6 syntax
+-   [i2D.esm.min.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.esm.min.js) ES6 syntax
 
-I2Djs is written in ES6 Modules. To import use below syntax
+In ES6, use below syntax to import modules.
 
 Import all modules into namespace
 
@@ -128,7 +128,7 @@ import {pdfLayer} from 'i2djs'
 
 ### Support & Compatibility
 
-I2D supports ESM and Universal Module Definition(UMD)(AMD,CommonJS and vanilla environments) , based on the environment it can be imported accordingly.
+I2D offers both ESM and CommonJS packages, allowing for seamless integration into the desired environment as required.
 It is compatible with all modern browsers with latest versions.
 
 ### Development Setup
