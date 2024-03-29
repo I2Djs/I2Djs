@@ -10931,7 +10931,7 @@ function createPage(ctx, vDomIndex) {
         });
         this.executePdf(doc);
         function needsNewPage(node, posY, elHight) {
-            return !(posY < pageHeight - bottom - top && posY + elHight < pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
+            return !(posY < pageHeight - bottom - top && posY + elHight <= pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
         }
         function calculatePosY(abTransform, elY, runningY) {
             return (abTransform.translate[1] + elY || 0) - runningY;
@@ -11198,7 +11198,9 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
             : typeof container === "string" || container instanceof String
             ? document.querySelector(container)
             : null;
-    let { height = 0, width = 0 } = config;
+    let res_height = res ? res.clientHeight : 0;
+    let res_width = res ? res.clientWidth : 0;
+    let { height = res_height, width = res_width } = config;
     let pdfConfig = parsePdfConfig(config, {});
     const { autoUpdate = true, onUpdate } = layerSettings;
     const layer = document.createElement("canvas");
@@ -11216,6 +11218,8 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
     ctx.doc.addPage();
     layer.setAttribute("height", height * 1);
     layer.setAttribute("width", width * 1);
+    layer.height = height;
+    layer.width = width;
     const vDomInstance = new VDom();
     if (autoUpdate) {
         vDomIndex = queue.addVdom(vDomInstance);
@@ -11227,6 +11231,8 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
         this.domEl = layer;
         this.vDomIndex = vDomIndex;
         this.container = res;
+        this.height = height;
+        this.width = width;
     }
     PDFCreator.prototype.flush = function () {
         this.pages.forEach(function (page) {

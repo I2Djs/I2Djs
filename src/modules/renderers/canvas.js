@@ -2753,7 +2753,7 @@ function createPage(ctx, vDomIndex) {
         this.executePdf(doc);
 
         function needsNewPage(node, posY, elHight) {
-            return !(posY < pageHeight - bottom - top && posY + elHight < pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
+            return !(posY < pageHeight - bottom - top && posY + elHight <= pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
         }
 
         function calculatePosY(abTransform, elY, runningY) {

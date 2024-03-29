@@ -33,7 +33,9 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
             : typeof container === "string" || container instanceof String
             ? document.querySelector(container)
             : null;
-    let { height = 0, width = 0 } = config;
+    let res_height = res ? res.clientHeight : 0;
+    let res_width = res ? res.clientWidth : 0;
+    let { height = res_height, width = res_width } = config;
     let pdfConfig = parsePdfConfig(config, {});
     const { autoUpdate = true, onUpdate } = layerSettings;
     const layer = document.createElement("canvas");
@@ -55,6 +57,8 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
 
     layer.setAttribute("height", height * 1);
     layer.setAttribute("width", width * 1);
+    layer.height = height;
+    layer.width = width;
 
     const vDomInstance = new VDom();
 
@@ -70,6 +74,8 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
         this.domEl = layer;
         this.vDomIndex = vDomIndex;
         this.container = res;
+        this.height = height;
+        this.width = width;
     }
     PDFCreator.prototype.flush = function () {
         this.pages.forEach(function (page) {
