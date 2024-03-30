@@ -766,14 +766,12 @@ function markForDeletion(removedNode) {
 }
 
 function svgLayer(container, layerSettings = {}) {
-    const res =
-        container instanceof HTMLElement
-            ? container
-            : typeof container === "string" || container instanceof String
-            ? document.querySelector(container)
-            : null;
-    let height = res.clientHeight;
-    let width = res.clientWidth;
+
+    const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
+    
+    let height = res?.clientHeight || 0;
+    let width = res?.clientWidth || 0;
+
     const { autoUpdate = true, enableResize = true } = layerSettings;
     const layer = document.createElementNS(nameSpace.svg, "svg");
     layer.setAttribute("height", height);

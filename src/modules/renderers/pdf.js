@@ -27,19 +27,22 @@ function parsePdfConfig(config, oldConfig = {}) {
 }
 
 function pdfLayer(container, config = {}, layerSettings = {}) {
-    const res =
-        container instanceof HTMLElement
-            ? container
-            : typeof container === "string" || container instanceof String
-            ? document.querySelector(container)
-            : null;
-    let res_height = res ? res.clientHeight : 0;
-    let res_width = res ? res.clientWidth : 0;
-    let { height = res_height, width = res_width } = config;
-    let pdfConfig = parsePdfConfig(config, {});
-    const { autoUpdate = true, onUpdate } = layerSettings;
-    const layer = document.createElement("canvas");
-    const ctx = layer.getContext("2d", {});
+
+    const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
+    
+    let clientHeight = res?.clientHeight || 0;
+    let clientWidth = res?.clientWidth || 0;
+
+    let { height = (clientHeight), width = clientWidth } = config;
+
+    let pdfConfig = parsePdfConfig(config);
+    let { autoUpdate = true, onUpdate } = layerSettings;
+
+    const layer = document.createElement('canvas');
+    layer.setAttribute('height', height);
+    layer.setAttribute('width', width);
+    const ctx = layer.getContext('2d');
+
     let fontRegister = config.fontRegister || {};
     let pdfInfo = config.info || { title: "I2Djs-PDF" };
     let onUpdateExe = onUpdate;
@@ -54,11 +57,6 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
     });
 
     ctx.doc.addPage();
-
-    layer.setAttribute("height", height * 1);
-    layer.setAttribute("width", width * 1);
-    layer.height = height;
-    layer.width = width;
 
     const vDomInstance = new VDom();
 
@@ -76,6 +74,7 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
         this.container = res;
         this.height = height;
         this.width = width;
+        this.pdfConfig = pdfConfig;
     }
     PDFCreator.prototype.flush = function () {
         this.pages.forEach(function (page) {
@@ -90,7 +89,7 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
     };
 
     PDFCreator.prototype.setConfig = function (config = {}) {
-        const tPdfConfig = parsePdfConfig(config, pdfConfig);
+        const tPdfConfig = parsePdfConfig(config, this.pdfConfig);
 
         if (config.fontRegister) {
             fontRegister = {
@@ -98,9 +97,7 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
             };
         }
 
-        if (config.info) {
-            pdfInfo = config.info || { title: "I2Djs-PDF" };
-        }
+        pdfInfo = config.info || pdfInfo || { title: "I2Djs-PDF" };
 
         height = config.height || height;
         width = config.width || width;
@@ -111,7 +108,7 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
         this.width = width;
         this.height = height;
 
-        pdfConfig = tPdfConfig;
+        this.pdfConfig = tPdfConfig;
 
         this.execute();
 
@@ -126,6 +123,18 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
         this.width = width;
         this.height = height;
 
+        this.pdfConfig = parsePdfConfig({
+            height, width
+        }, this.pdfConfig);
+
+        this.pages.forEach((p) => {
+            let pConfig = p.pageConfig;
+            p.height = pConfig.height || height;
+            p.width = pConfig.width || width;
+        });
+
+        this.execute();
+
         return this;
     };
     PDFCreator.prototype.execute = function () {
@@ -134,26 +143,30 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
                 function (url) {
                     res.setAttribute("src", url);
                 },
-            pdfConfig
+            this.pdfConfig
         );
     };
     PDFCreator.prototype.onChange = function (exec) {
         onUpdateExe = exec;
     };
-    PDFCreator.prototype.addPage = function (config = {}) {
+    PDFCreator.prototype.addPage = function addPage (config = {}) {
         const newpage = createPage(ctx, this.vDomIndex);
-        newpage.domEl = layer;
-        newpage.height = config.height || height;
-        newpage.width = config.width || width;
-        newpage.margin = config.margin || pdfConfig.margin || 0;
-        newpage.margins = config.margins ||
-            pdfConfig.margins || { top: 0, bottom: 0, left: 0, right: 0 };
-        newpage.type = "CANVAS";
-        newpage.EXEType = "pdf";
-        newpage.ctx = ctx;
 
-        if (config.pageTemplate || pageDefaultTemplate) {
-            newpage.addTemplate(config.pageTemplate || pageDefaultTemplate);
+        Object.assign(newpage, {
+            domEl: this.layer,
+            pageConfig: config,
+            height: config.height || this.height,
+            width: config.width || this.width,
+            margin: config.margin || this.pdfConfig.margin || 0,
+            margins: config.margins || this.pdfConfig.margins || { top: 0, bottom: 0, left: 0, right: 0 },
+            type: 'CANVAS',
+            EXEType: 'pdf',
+            ctx: this.ctx
+        })
+
+        const template = config.pageTemplate || pageDefaultTemplate;
+        if (template) {
+            newpage.addTemplate(template);
         }
 
         this.pages.push(newpage);

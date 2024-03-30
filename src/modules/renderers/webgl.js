@@ -3351,14 +3351,12 @@ WebglNodeExe.prototype.text = function Ctext(value) {
 
 
 function webglLayer(container, contextConfig = {}, layerSettings = {}) {
-    const res =
-        container instanceof HTMLElement
-            ? container
-            : typeof container === "string" || container instanceof String
-            ? document.querySelector(container)
-            : null;
-    let height = res ? res.clientHeight : 0;
-    let width = res ? res.clientWidth : 0;
+
+    const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
+    
+    let height = res?.clientHeight || 0;
+    let width = res?.clientWidth || 0;
+
     let clearColor = colorMap.rgba(0, 0, 0, 0);
     const { enableEvents = false, autoUpdate = true, enableResize = false } = layerSettings;
 

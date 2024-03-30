@@ -3869,66 +3869,29 @@ function pathCmdIsValid(_) {
     );
 }
 function updateBBox(d, pd, minMax, bbox) {
-    let { minX, minY, maxX, maxY } = minMax;
-    if (["V", "H", "L", "v", "h", "l"].indexOf(d.type) !== -1) {
-        [d.p0 ? d.p0 : pd.p1, d.p1].forEach(function (point) {
-            if (point.x < minX) {
-                minX = point.x;
-            }
-            if (point.x > maxX) {
-                maxX = point.x;
-            }
-            if (point.y < minY) {
-                minY = point.y;
-            }
-            if (point.y > maxY) {
-                maxY = point.y;
-            }
-        });
-    } else if (["Q", "C", "q", "c"].indexOf(d.type) !== -1) {
+    const updateBounds = (point) => {
+        minMax.minX = Math.min(minMax.minX, point.x);
+        minMax.maxX = Math.max(minMax.maxX, point.x);
+        minMax.minY = Math.min(minMax.minY, point.y);
+        minMax.maxY = Math.max(minMax.maxY, point.y);
+    };
+    if (["V", "H", "L", "v", "h", "l"].includes(d.type)) {
+        [d.p0 || pd.p1, d.p1].forEach(updateBounds);
+    } else if (["Q", "C", "q", "c"].includes(d.type)) {
         const co = t2DGeometry$2.cubicBezierCoefficients(d);
         const exe = t2DGeometry$2.cubicBezierTransition.bind(null, d.p0, co);
-        let ii = 0;
-        let point;
-        while (ii < 1) {
-            point = exe(ii);
-            ii += 0.05;
-            if (point.x < minX) {
-                minX = point.x;
-            }
-            if (point.x > maxX) {
-                maxX = point.x;
-            }
-            if (point.y < minY) {
-                minY = point.y;
-            }
-            if (point.y > maxY) {
-                maxY = point.y;
-            }
+        for (let ii = 0; ii <= 1; ii += 0.05) {
+            updateBounds(exe(ii));
         }
     } else {
-        const point = d.p0;
-        if (point.x < minX) {
-            minX = point.x;
-        }
-        if (point.x > maxX) {
-            maxX = point.x;
-        }
-        if (point.y < minY) {
-            minY = point.y;
-        }
-        if (point.y > maxY) {
-            maxY = point.y;
-        }
+        updateBounds(d.p0);
     }
-    minMax.minX = minX;
-    minMax.minY = minY;
-    minMax.maxX = maxX;
-    minMax.maxY = maxY;
-    bbox.x = minX;
-    bbox.y = minY;
-    bbox.width = maxX - minX;
-    bbox.height = maxY - minY;
+    Object.assign(bbox, {
+        x: minMax.minX,
+        y: minMax.minY,
+        width: minMax.maxX - minMax.minX,
+        height: minMax.maxY - minMax.minY,
+    });
 }
 function pathParser(path) {
     let pathStr = path.replace(/e-/g, "$");
@@ -7468,14 +7431,9 @@ function markForDeletion$2(removedNode) {
     }
 }
 function svgLayer(container, layerSettings = {}) {
-    const res =
-        container instanceof HTMLElement
-            ? container
-            : typeof container === "string" || container instanceof String
-            ? document.querySelector(container)
-            : null;
-    let height = res.clientHeight;
-    let width = res.clientWidth;
+    const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
+    let height = res?.clientHeight || 0;
+    let width = res?.clientWidth || 0;
     const { autoUpdate = true, enableResize = true } = layerSettings;
     const layer = document.createElementNS(nameSpace.svg, "svg");
     layer.setAttribute("height", height);
@@ -11075,14 +11033,9 @@ WebglNodeExe.prototype.text = function Ctext(value) {
     return this;
 };
 function webglLayer(container, contextConfig = {}, layerSettings = {}) {
-    const res =
-        container instanceof HTMLElement
-            ? container
-            : typeof container === "string" || container instanceof String
-            ? document.querySelector(container)
-            : null;
-    let height = res ? res.clientHeight : 0;
-    let width = res ? res.clientWidth : 0;
+    const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
+    let height = res?.clientHeight || 0;
+    let width = res?.clientWidth || 0;
     let clearColor = colorMap$1.rgba(0, 0, 0, 0);
     const { enableEvents = false, autoUpdate = true, enableResize = false } = layerSettings;
     contextConfig = contextConfig || {
@@ -66115,6 +66068,7 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
         }
         height = doc.heightOfString(this.attr.text, styleObect);
     }
+    Object.assign(self, { width, height, x, y });
     self.width = width;
     self.height = height;
     self.x = x;
@@ -66749,51 +66703,37 @@ const RenderGroup = function RenderGroup(ctx, props, styleProps) {
 RenderGroup.prototype = new CanvasDom();
 RenderGroup.prototype.constructor = RenderGroup;
 RenderGroup.prototype.updateBBox = function RGupdateBBox(children) {
-    const self = this;
-    let minX;
-    let maxX;
-    let minY;
-    let maxY;
-    const { transform } = self.attr;
+    if (!children || children.length === 0) {
+        this.BBox = { x: 0, y: 0, width: 0, height: 0 };
+        this.BBoxHit = this.BBox;
+        return;
+    }
+    let minf = Math.min;
+    let maxf = Math.max;
+    let absf= Math.abs;
+    const { transform } = this.attr;
     const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-    self.BBox = {};
-    if (children && children.length > 0) {
-        let d;
-        let boxX;
-        let boxY;
-        for (let i = 0; i < children.length; i += 1) {
-            d = children[i];
-            boxX = d.dom.BBoxHit.x;
-            boxY = d.dom.BBoxHit.y;
-            minX = minX === undefined ? boxX : minX > boxX ? boxX : minX;
-            minY = minY === undefined ? boxY : minY > boxY ? boxY : minY;
-            maxX =
-                maxX === undefined
-                    ? boxX + d.dom.BBoxHit.width
-                    : maxX < boxX + d.dom.BBoxHit.width
-                    ? boxX + d.dom.BBoxHit.width
-                    : maxX;
-            maxY =
-                maxY === undefined
-                    ? boxY + d.dom.BBoxHit.height
-                    : maxY < boxY + d.dom.BBoxHit.height
-                    ? boxY + d.dom.BBoxHit.height
-                    : maxY;
-        }
+    let { x: minX, y: minY, width, height } = children[0].dom.BBoxHit;
+    let maxX = minX + width;
+    let maxY = minY + height;
+    for (let i = 1; i < children.length; i++) {
+        const { x, y, width, height } = children[i].dom.BBoxHit;
+        const currentMaxX = x + width;
+        const currentMaxY = y + height;
+        minX = minf(minX, x);
+        minY = minf(minY, y);
+        maxX = maxf(maxX, currentMaxX);
+        maxY = maxf(maxY, currentMaxY);
     }
-    minX = minX === undefined ? 0 : minX;
-    minY = minY === undefined ? 0 : minY;
-    maxX = maxX === undefined ? 0 : maxX;
-    maxY = maxY === undefined ? 0 : maxY;
-    self.BBox.x = translateX + minX * scaleX;
-    self.BBox.y = translateY + minY * scaleY;
-    self.BBox.width = Math.abs(maxX - minX) * scaleX;
-    self.BBox.height = Math.abs(maxY - minY) * scaleY;
-    if (self.attr.transform && self.attr.transform.rotate) {
-        self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, this.attr.transform);
-    } else {
-        self.BBoxHit = this.BBox;
-    }
+    this.BBox = {
+        x: translateX + minX * scaleX,
+        y: translateY + minY * scaleY,
+        width: absf(maxX - minX) * scaleX,
+        height: absf(maxY - minY) * scaleY,
+    };
+    this.BBoxHit = this.attr.transform && this.attr.transform.rotate
+        ? i2DGeometry.rotateBBox(this.BBox, this.attr.transform)
+        : this.BBox;
 };
 RenderGroup.prototype.child = function RGchild(obj) {
     const self = this;
@@ -67599,17 +67539,11 @@ function updateABBoxOfPdfTemplate(root) {
     });
 }
 function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
-    const res =
-        container instanceof HTMLElement
-            ? container
-            : typeof container === "string" || container instanceof String
-            ? document.querySelector(container)
-            : null;
-    let height = res ? res.clientHeight : 0;
-    let width = res ? res.clientWidth : 0;
+    const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
+    let height = res?.clientHeight || 0;
+    let width = res?.clientWidth || 0;
     const layer = document.createElement("canvas");
     const ctx = layer.getContext("2d", contextConfig);
-    let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
     let ratio = getPixlRatio(ctx);
     ctx.pixelRatio = ratio;
     let onClear = function (ctx) {
@@ -67620,6 +67554,7 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     layer.style.height = `${height}px`;
     layer.style.width = `${width}px`;
     layer.style.position = "absolute";
+    let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
     let vDomInstance;
     let vDomIndex = 999999;
     let cHeight;
@@ -67805,19 +67740,16 @@ function parsePdfConfig(config, oldConfig = {}) {
     };
 }
 function pdfLayer(container, config = {}, layerSettings = {}) {
-    const res =
-        container instanceof HTMLElement
-            ? container
-            : typeof container === "string" || container instanceof String
-            ? document.querySelector(container)
-            : null;
-    let res_height = res ? res.clientHeight : 0;
-    let res_width = res ? res.clientWidth : 0;
-    let { height = res_height, width = res_width } = config;
-    let pdfConfig = parsePdfConfig(config, {});
-    const { autoUpdate = true, onUpdate } = layerSettings;
-    const layer = document.createElement("canvas");
-    const ctx = layer.getContext("2d", {});
+    const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
+    let clientHeight = res?.clientHeight || 0;
+    let clientWidth = res?.clientWidth || 0;
+    let { height = (clientHeight), width = clientWidth } = config;
+    let pdfConfig = parsePdfConfig(config);
+    let { autoUpdate = true, onUpdate } = layerSettings;
+    const layer = document.createElement('canvas');
+    layer.setAttribute('height', height);
+    layer.setAttribute('width', width);
+    const ctx = layer.getContext('2d');
     let fontRegister = config.fontRegister || {};
     let pdfInfo = config.info || { title: "I2Djs-PDF" };
     let onUpdateExe = onUpdate;
@@ -67829,10 +67761,6 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
         ...pdfConfig,
     });
     ctx.doc.addPage();
-    layer.setAttribute("height", height * 1);
-    layer.setAttribute("width", width * 1);
-    layer.height = height;
-    layer.width = width;
     const vDomInstance = new VDom();
     if (autoUpdate) {
         vDomIndex = queue$1.addVdom(vDomInstance);
@@ -67846,6 +67774,7 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
         this.container = res;
         this.height = height;
         this.width = width;
+        this.pdfConfig = pdfConfig;
     }
     PDFCreator.prototype.flush = function () {
         this.pages.forEach(function (page) {
@@ -67857,22 +67786,20 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
         }
     };
     PDFCreator.prototype.setConfig = function (config = {}) {
-        const tPdfConfig = parsePdfConfig(config, pdfConfig);
+        const tPdfConfig = parsePdfConfig(config, this.pdfConfig);
         if (config.fontRegister) {
             fontRegister = {
                 ...(config.fontRegister || {}),
             };
         }
-        if (config.info) {
-            pdfInfo = config.info || { title: "I2Djs-PDF" };
-        }
+        pdfInfo = config.info || pdfInfo || { title: "I2Djs-PDF" };
         height = config.height || height;
         width = config.width || width;
         layer.setAttribute("height", height * 1);
         layer.setAttribute("width", width * 1);
         this.width = width;
         this.height = height;
-        pdfConfig = tPdfConfig;
+        this.pdfConfig = tPdfConfig;
         this.execute();
         return this;
     };
@@ -67882,6 +67809,15 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
     PDFCreator.prototype.setSize = function (width = 0, height = 0) {
         this.width = width;
         this.height = height;
+        this.pdfConfig = parsePdfConfig({
+            height, width
+        }, this.pdfConfig);
+        this.pages.forEach((p) => {
+            let pConfig = p.pageConfig;
+            p.height = pConfig.height || height;
+            p.width = pConfig.width || width;
+        });
+        this.execute();
         return this;
     };
     PDFCreator.prototype.execute = function () {
@@ -67890,25 +67826,28 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
                 function (url) {
                     res.setAttribute("src", url);
                 },
-            pdfConfig
+            this.pdfConfig
         );
     };
     PDFCreator.prototype.onChange = function (exec) {
         onUpdateExe = exec;
     };
-    PDFCreator.prototype.addPage = function (config = {}) {
+    PDFCreator.prototype.addPage = function addPage (config = {}) {
         const newpage = createPage(ctx, this.vDomIndex);
-        newpage.domEl = layer;
-        newpage.height = config.height || height;
-        newpage.width = config.width || width;
-        newpage.margin = config.margin || pdfConfig.margin || 0;
-        newpage.margins = config.margins ||
-            pdfConfig.margins || { top: 0, bottom: 0, left: 0, right: 0 };
-        newpage.type = "CANVAS";
-        newpage.EXEType = "pdf";
-        newpage.ctx = ctx;
-        if (config.pageTemplate || pageDefaultTemplate) {
-            newpage.addTemplate(config.pageTemplate || pageDefaultTemplate);
+        Object.assign(newpage, {
+            domEl: this.layer,
+            pageConfig: config,
+            height: config.height || this.height,
+            width: config.width || this.width,
+            margin: config.margin || this.pdfConfig.margin || 0,
+            margins: config.margins || this.pdfConfig.margins || { top: 0, bottom: 0, left: 0, right: 0 },
+            type: 'CANVAS',
+            EXEType: 'pdf',
+            ctx: this.ctx
+        });
+        const template = config.pageTemplate || pageDefaultTemplate;
+        if (template) {
+            newpage.addTemplate(template);
         }
         this.pages.push(newpage);
         return newpage;

@@ -136,44 +136,6 @@ function prepObjProxyCanvas(type, attr, context, BBoxUpdate) {
 
             queueInstance.vDomChanged(context.vDomIndex);
             return true;
-
-
-            // if (value !== null) {
-            //     if (type === 'attr') {
-            //         if (context && context.dom) {
-            //             context.dom.setAttr(prop, value);
-            //         }
-            //         obj[prop] = value;
-            //         if (BBoxUpdate) {
-            //             context.BBoxUpdate = true;
-            //         }
-            //     } else if (type === 'style') {
-            //         value = colorValueCheck(value);
-            //         if (context && context.dom) {
-            //             context.dom.setStyle(prop, value);
-            //         }
-            //         obj[prop] = value;
-            //     } else if (type === 'transform') {
-            //         if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
-            //             value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
-            //         } else if (prop === 'rotate') {
-            //             value = Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0]
-            //         }
-            //         obj[prop] = value;
-
-            //         if (context && context.dom) {
-            //             context.dom.setAttr('transform', obj);
-            //         }
-            //         if (BBoxUpdate) {
-            //             context.BBoxUpdate = true;
-            //         }
-            //     }
-
-            //     queueInstance.vDomChanged(context.vDomIndex);
-            // } else {
-            //     delete obj[prop];
-            // }
-            // return true;
         },
         deleteProperty(obj, prop) {
             if (prop in obj) {
@@ -1037,6 +999,8 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
         height = doc.heightOfString(this.attr.text, styleObect);
     }
 
+    Object.assign(self, { width, height, x, y });
+
     self.width = width;
     self.height = height;
     self.x = x;
@@ -1093,8 +1057,6 @@ RenderText.prototype.execute = function RTexecute() {
 RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
     if (this.attr.text !== undefined && this.attr.text !== null) {
         if (this.style.font) {
-            // parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1
-
             pdfCtx.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
         }
         const alignVlaue = this.style.align ?? this.style.textAlign;
@@ -1114,8 +1076,6 @@ RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
         }
     }
 };
-
-// RenderText.prototype.applyStyles = function RTapplyStyles() {};
 
 RenderText.prototype.in = function RTinfun(co) {
     const { x = 0, y = 0, width = 0, height = 0 } = this;
@@ -1805,55 +1765,43 @@ RenderGroup.prototype = new CanvasDom();
 RenderGroup.prototype.constructor = RenderGroup;
 
 RenderGroup.prototype.updateBBox = function RGupdateBBox(children) {
-    const self = this;
-    let minX;
-    let maxX;
-    let minY;
-    let maxY;
-    const { transform } = self.attr;
+    if (!children || children.length === 0) {
+        this.BBox = { x: 0, y: 0, width: 0, height: 0 };
+        this.BBoxHit = this.BBox;
+        return;
+    }
+    let minf = Math.min;
+    let maxf = Math.max;
+    let absf= Math.abs;
+    const { transform } = this.attr;
     const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-    self.BBox = {};
 
-    if (children && children.length > 0) {
-        let d;
-        let boxX;
-        let boxY;
+    let { x: minX, y: minY, width, height } = children[0].dom.BBoxHit;
+    let maxX = minX + width;
+    let maxY = minY + height;
 
-        for (let i = 0; i < children.length; i += 1) {
-            d = children[i];
-            boxX = d.dom.BBoxHit.x;
-            boxY = d.dom.BBoxHit.y;
-            minX = minX === undefined ? boxX : minX > boxX ? boxX : minX;
-            minY = minY === undefined ? boxY : minY > boxY ? boxY : minY;
-            maxX =
-                maxX === undefined
-                    ? boxX + d.dom.BBoxHit.width
-                    : maxX < boxX + d.dom.BBoxHit.width
-                    ? boxX + d.dom.BBoxHit.width
-                    : maxX;
-            maxY =
-                maxY === undefined
-                    ? boxY + d.dom.BBoxHit.height
-                    : maxY < boxY + d.dom.BBoxHit.height
-                    ? boxY + d.dom.BBoxHit.height
-                    : maxY;
-        }
+    for (let i = 1; i < children.length; i++) {
+        const { x, y, width, height } = children[i].dom.BBoxHit;
+        const currentMaxX = x + width;
+        const currentMaxY = y + height;
+
+        // Update bounds
+        minX = minf(minX, x);
+        minY = minf(minY, y);
+        maxX = maxf(maxX, currentMaxX);
+        maxY = maxf(maxY, currentMaxY);
     }
 
-    minX = minX === undefined ? 0 : minX;
-    minY = minY === undefined ? 0 : minY;
-    maxX = maxX === undefined ? 0 : maxX;
-    maxY = maxY === undefined ? 0 : maxY;
-    self.BBox.x = translateX + minX * scaleX;
-    self.BBox.y = translateY + minY * scaleY;
-    self.BBox.width = Math.abs(maxX - minX) * scaleX;
-    self.BBox.height = Math.abs(maxY - minY) * scaleY;
+    this.BBox = {
+        x: translateX + minX * scaleX,
+        y: translateY + minY * scaleY,
+        width: absf(maxX - minX) * scaleX,
+        height: absf(maxY - minY) * scaleY,
+    };
 
-    if (self.attr.transform && self.attr.transform.rotate) {
-        self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, this.attr.transform);
-    } else {
-        self.BBoxHit = this.BBox;
-    }
+    this.BBoxHit = this.attr.transform && this.attr.transform.rotate
+        ? i2DGeometry.rotateBBox(this.BBox, this.attr.transform)
+        : this.BBox;
 };
 
 RenderGroup.prototype.child = function RGchild(obj) {
@@ -2810,17 +2758,14 @@ function updateABBoxOfPdfTemplate(root) {
 }
 
 function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
-    const res =
-        container instanceof HTMLElement
-            ? container
-            : typeof container === "string" || container instanceof String
-            ? document.querySelector(container)
-            : null;
-    let height = res ? res.clientHeight : 0;
-    let width = res ? res.clientWidth : 0;
+
+    const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
+    
+    let height = res?.clientHeight || 0;
+    let width = res?.clientWidth || 0;
+
     const layer = document.createElement("canvas");
     const ctx = layer.getContext("2d", contextConfig);
-    let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
     let ratio = getPixlRatio(ctx);
     ctx.pixelRatio = ratio;
     let onClear = function (ctx) {
@@ -2831,6 +2776,8 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     layer.style.height = `${height}px`;
     layer.style.width = `${width}px`;
     layer.style.position = "absolute";
+
+    let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
 
     let vDomInstance;
     let vDomIndex = 999999;
@@ -2948,48 +2895,6 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     root.onChange = function (exec) {
         onChangeExe = exec;
     };
-
-    // root.exportPdf = function (callback, options = {}) {
-    //     const pdfConfig = parsePdfConfig(options);
-    //     const doc = new PDFDocument({
-    //         size: [this.width, this.height],
-    //         ...pdfConfig,
-    //     });
-    //     const stream_ = doc.pipe(blobStream());
-
-    //     const fontRegister = options.fontRegister || {};
-    //     const pdfInfo = options.info || { title: "I2Djs-PDF" };
-
-    //     if (fontRegister) {
-    //         for (const key in fontRegister) {
-    //             if (pdfSupportedFontFamily.indexOf(key) === -1) pdfSupportedFontFamily.push(key);
-    //             const font = await fetch(fontRegister[key]);
-    //             const fontBuffer = await font.arrayBuffer();
-    //             doc.registerFont(key, fontBuffer);
-    //         }
-    //     }
-
-    //     if (pdfInfo) {
-    //         doc.info.Title = pdfInfo.title || "";
-    //         doc.info.Author = pdfInfo.author || "";
-    //         doc.info.Subject = pdfInfo.subject || "";
-    //         doc.info.Keywords = pdfInfo.keywords || "";
-    //         doc.info.CreationDate = pdfInfo.creationDate || new Date();
-    //     }
-
-    //     root.updateBBox();
-    //     root.updateABBox();
-
-    //     doc.addPage();
-
-    //     exportPdf(doc);
-
-    //     doc.end();
-
-    //     stream_.on("finish", function () {
-    //         callback(stream_.toBlobURL("application/pdf"));
-    //     });
-    // };
 
     const updateLayerDimension = function (layer, width, height) {
         layer.setAttribute("height", height * ratio);
