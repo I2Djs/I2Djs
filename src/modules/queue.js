@@ -197,21 +197,15 @@ ExeQueue.prototype.execute = function Aexecute() {
 
 ExeQueue.prototype.vDomUpdates = function () {
     for (let i = 0, len = vDomIds.length; i < len; i += 1) {
-        if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].stateModified) {
-            vDoms[vDomIds[i]].execute();
-            vDoms[vDomIds[i]].stateModified = false;
-            // vDoms[vDomIds[i]].onchange();
-        } else if (
-            vDomIds[i] &&
-            vDoms[vDomIds[i]] &&
-            vDoms[vDomIds[i]].root &&
-            vDoms[vDomIds[i]].root.ENV !== "NODE"
-        ) {
-            var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id);
+        const vdomId = vDomIds[i];
+        const vdom = vDoms[vdomId];
+        if (!vdom) {
+            continue;
+        }
 
-            if (!elementExists) {
-                this.removeVdom(vDomIds[i]);
-            }
+        if (vdom.stateModified) {
+            vdom.execute();
+            vdom.stateModified = false;
         }
     }
 };

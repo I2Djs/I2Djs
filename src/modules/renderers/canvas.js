@@ -1987,45 +1987,36 @@ CanvasNodeExe.prototype.node = function Cnode() {
 };
 
 CanvasNodeExe.prototype.stylesExe = function CstylesExe() {
-    let value;
-    let key;
-    const style = this.style;
+    const { style, ctx, dom, dataObj } = this;
 
     this.resolvedStyle = {};
 
-    for (key in style) {
-        if (typeof style[key] === "string" || typeof style[key] === "number") {
-            value = style[key];
-        } else if (typeof style[key] === "object") {
-            if (
-                style[key] instanceof CanvasGradient ||
-                style[key] instanceof CanvasPattern ||
-                style[key] instanceof CanvasClipping ||
-                style[key] instanceof CanvasMask
-            ) {
-                value = style[key].exe(this.ctx, this.dom.BBox);
-            } else {
-                value = style[key];
+    for (let key in style) {
+        let value = style[key];
+        if (typeof value === "function") {
+            value = value.call(this, dataObj);
+        } else if (typeof value === "object" && value !== null) {
+            let isSpecialObject = value instanceof CanvasGradient ||
+                value instanceof CanvasPattern ||
+                value instanceof CanvasClipping ||
+                value instanceof CanvasMask;
+
+            if (isSpecialObject) {
+                value = value.exe(ctx, dom.BBox);
             }
-        } else if (typeof style[key] === "function") {
-            style[key] = style[key].call(this, this.dataObj);
-            value = style[key];
-        } else {
-            console.log("unkonwn Style");
+        } else if (typeof value !== 'string' && typeof value !== 'number') {
+            console.log("Unknown Style");
+            continue;
         }
 
-        if (canvasStyleMapper[key]) {
-            key = canvasStyleMapper[key];
-        }
+        const mappedKey = canvasStyleMapper[key] || key;
 
-        if (typeof this.ctx[key] !== "function") {
-            this.ctx[key] = value;
-        } else if (typeof this.ctx[key] === "function") {
-            this.ctx[key](value);
+        if (typeof ctx[mappedKey] === "function") {
+            ctx[mappedKey](value);
         } else {
-            console.log("junk comp");
+            ctx[mappedKey] = value;
         }
-        this.resolvedStyle[key] = value;
+        this.resolvedStyle[mappedKey] = value;
     }
 };
 

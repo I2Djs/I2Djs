@@ -20,7 +20,8 @@ function animeId() {
 
 const transitionSetAttr = function transitionSetAttr(self, key, value) {
     return function inner(f) {
-        self.setAttr(key, value.call(self, f));
+        self.attr[key] = value.call(self, f);
+        // self.setAttr(key, value.call(self, f));
     };
 };
 
@@ -55,7 +56,8 @@ const transformTransition = function transformTransition(self, subkey, srcVal, v
 
 const attrTransition = function attrTransition(self, key, srcVal, tgtVal) {
     return function setAttr_(f) {
-        self.setAttr(key, t2DGeometry.intermediateValue(srcVal, tgtVal, f));
+        self.attr[key] = t2DGeometry.intermediateValue(srcVal, tgtVal, f);
+        // self.setAttr(key, t2DGeometry.intermediateValue(srcVal, tgtVal, f));
     };
 };
 
@@ -66,7 +68,8 @@ const styleTransition = function styleTransition(self, key, sVal, value) {
 
     if (typeof value === "function") {
         return function inner(f) {
-            self.setStyle(key, value.call(self, self.dataObj, f));
+            self.style[key] = value.call(self, self.dataObj, f);
+            // self.setStyle(key, value.call(self, self.dataObj, f));
         };
     } else {
         srcValue = sVal;
@@ -75,7 +78,8 @@ const styleTransition = function styleTransition(self, key, sVal, value) {
             if (colorMap.isTypeColor(value)) {
                 const colorExe = colorMap.transition(srcValue, value);
                 return function inner(f) {
-                    self.setStyle(key, colorExe(f));
+                    self.style[key] = colorExe(f);
+                    // self.setStyle(key, colorExe(f));
                 };
             }
 
@@ -92,7 +96,8 @@ const styleTransition = function styleTransition(self, key, sVal, value) {
         }
 
         return function inner(f) {
-            self.setStyle(key, t2DGeometry.intermediateValue(srcValue, destValue, f) + destUnit);
+            self.style[key] = t2DGeometry.intermediateValue(srcValue, destValue, f) + destUnit;
+            // self.setStyle(key, t2DGeometry.intermediateValue(srcValue, destValue, f) + destUnit);
         };
     }
 };
@@ -126,7 +131,8 @@ const animate = function animate(self, fromConfig, targetConfig) {
 
                 if (typeof value === "function") {
                     runStack[runStack.length] = function setAttr_(f) {
-                        self.setAttr(key, value.call(self, f));
+                        self.attr[key] = value.call(self, f);
+                        // self.setAttr(key, value.call(self, f));
                     };
                 } else {
                     if (key === "d") {
@@ -978,9 +984,11 @@ function CollectionPrototype(contextInfo, data, config, vDomIndex) {
 
             if (typeof config.style[key] === "function") {
                 const resValue = config.style[key].call(node, d, i);
-                node.setStyle(key, resValue);
+                node.style[key] = resValue;
+                // node.setStyle(key, resValue);
             } else {
-                node.setStyle(key, config.style[key]);
+                node.style[key] = config.style[key];
+                // node.setStyle(key, config.style[key]);
             }
         }
 
@@ -990,9 +998,12 @@ function CollectionPrototype(contextInfo, data, config, vDomIndex) {
             if (key !== "transform") {
                 if (typeof config.attr[key] === "function") {
                     const resValue = config.attr[key].call(node, d, i);
-                    node.setAttr(key, resValue);
+                    node.attr[key] = resValue;
+                    // node.setAttr(key, resValue);
+
                 } else {
-                    node.setAttr(key, config.attr[key]);
+                    node.attr[key] = config.attr[key];
+                    // node.setAttr(key, config.attr[key]);
                 }
             } else {
                 if (typeof config.attr.transform === "function") {

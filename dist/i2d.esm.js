@@ -171,19 +171,14 @@ ExeQueue.prototype.execute = function Aexecute() {
 };
 ExeQueue.prototype.vDomUpdates = function () {
     for (let i = 0, len = vDomIds.length; i < len; i += 1) {
-        if (vDomIds[i] && vDoms[vDomIds[i]] && vDoms[vDomIds[i]].stateModified) {
-            vDoms[vDomIds[i]].execute();
-            vDoms[vDomIds[i]].stateModified = false;
-        } else if (
-            vDomIds[i] &&
-            vDoms[vDomIds[i]] &&
-            vDoms[vDomIds[i]].root &&
-            vDoms[vDomIds[i]].root.ENV !== "NODE"
-        ) {
-            var elementExists = document.getElementById(vDoms[vDomIds[i]].root.container.id);
-            if (!elementExists) {
-                this.removeVdom(vDomIds[i]);
-            }
+        const vdomId = vDomIds[i];
+        const vdom = vDoms[vdomId];
+        if (!vdom) {
+            continue;
+        }
+        if (vdom.stateModified) {
+            vdom.execute();
+            vdom.stateModified = false;
         }
     }
 };
@@ -253,7 +248,14 @@ animatorInstance = new ExeQueue();
 var queue = animatorInstance;
 
 function VDom() {}
+const queueInstance$6 = queue;
 VDom.prototype.execute = function execute() {
+    let elementExists = document.body.contains(this.root.container);
+    if (!elementExists) {
+        queueInstance$6.removeVdom(this.root.vDomIndex);
+        this.stateModified = false;
+        return;
+    }
     this.root.execute();
     this.stateModified = false;
 };
@@ -3048,7 +3050,7 @@ function animeId$1() {
 }
 const transitionSetAttr = function transitionSetAttr(self, key, value) {
     return function inner(f) {
-        self.setAttr(key, value.call(self, f));
+        self.attr[key] = value.call(self, f);
     };
 };
 const transformTransition = function transformTransition(self, subkey, srcVal, value) {
@@ -3077,7 +3079,7 @@ const transformTransition = function transformTransition(self, subkey, srcVal, v
 };
 const attrTransition = function attrTransition(self, key, srcVal, tgtVal) {
     return function setAttr_(f) {
-        self.setAttr(key, t2DGeometry$1.intermediateValue(srcVal, tgtVal, f));
+        self.attr[key] = t2DGeometry$1.intermediateValue(srcVal, tgtVal, f);
     };
 };
 const styleTransition = function styleTransition(self, key, sVal, value) {
@@ -3086,7 +3088,7 @@ const styleTransition = function styleTransition(self, key, sVal, value) {
     let destValue;
     if (typeof value === "function") {
         return function inner(f) {
-            self.setStyle(key, value.call(self, self.dataObj, f));
+            self.style[key] = value.call(self, self.dataObj, f);
         };
     } else {
         srcValue = sVal;
@@ -3094,7 +3096,7 @@ const styleTransition = function styleTransition(self, key, sVal, value) {
             if (colorMap$1.isTypeColor(value)) {
                 const colorExe = colorMap$1.transition(srcValue, value);
                 return function inner(f) {
-                    self.setStyle(key, colorExe(f));
+                    self.style[key] = colorExe(f);
                 };
             }
             srcValue = srcValue.match(/(\d+)/g);
@@ -3109,7 +3111,7 @@ const styleTransition = function styleTransition(self, key, sVal, value) {
             destUnit = 0;
         }
         return function inner(f) {
-            self.setStyle(key, t2DGeometry$1.intermediateValue(srcValue, destValue, f) + destUnit);
+            self.style[key] = t2DGeometry$1.intermediateValue(srcValue, destValue, f) + destUnit;
         };
     }
 };
@@ -3138,7 +3140,7 @@ const animate = function animate(self, fromConfig, targetConfig) {
                 const value = tattr[key];
                 if (typeof value === "function") {
                     runStack[runStack.length] = function setAttr_(f) {
-                        self.setAttr(key, value.call(self, f));
+                        self.attr[key] = value.call(self, f);
                     };
                 } else {
                     if (key === "d") {
@@ -3840,9 +3842,9 @@ function CollectionPrototype(contextInfo, data, config, vDomIndex) {
             key = styleKeys[j];
             if (typeof config.style[key] === "function") {
                 const resValue = config.style[key].call(node, d, i);
-                node.setStyle(key, resValue);
+                node.style[key] = resValue;
             } else {
-                node.setStyle(key, config.style[key]);
+                node.style[key] = config.style[key];
             }
         }
         for (let j = 0, len = attrKeys.length; j < len; j += 1) {
@@ -3850,9 +3852,9 @@ function CollectionPrototype(contextInfo, data, config, vDomIndex) {
             if (key !== "transform") {
                 if (typeof config.attr[key] === "function") {
                     const resValue = config.attr[key].call(node, d, i);
-                    node.setAttr(key, resValue);
+                    node.attr[key] = resValue;
                 } else {
-                    node.setAttr(key, config.attr[key]);
+                    node.attr[key] = config.attr[key];
                 }
             } else {
                 if (typeof config.attr.transform === "function") {
@@ -10277,41 +10279,31 @@ CanvasNodeExe.prototype.node = function Cnode() {
     return this.dom;
 };
 CanvasNodeExe.prototype.stylesExe = function CstylesExe() {
-    let value;
-    let key;
-    const style = this.style;
+    const { style, ctx, dom, dataObj } = this;
     this.resolvedStyle = {};
-    for (key in style) {
-        if (typeof style[key] === "string" || typeof style[key] === "number") {
-            value = style[key];
-        } else if (typeof style[key] === "object") {
-            if (
-                style[key] instanceof CanvasGradient ||
-                style[key] instanceof CanvasPattern ||
-                style[key] instanceof CanvasClipping ||
-                style[key] instanceof CanvasMask
-            ) {
-                value = style[key].exe(this.ctx, this.dom.BBox);
-            } else {
-                value = style[key];
+    for (let key in style) {
+        let value = style[key];
+        if (typeof value === "function") {
+            value = value.call(this, dataObj);
+        } else if (typeof value === "object" && value !== null) {
+            let isSpecialObject = value instanceof CanvasGradient ||
+                value instanceof CanvasPattern ||
+                value instanceof CanvasClipping ||
+                value instanceof CanvasMask;
+            if (isSpecialObject) {
+                value = value.exe(ctx, dom.BBox);
             }
-        } else if (typeof style[key] === "function") {
-            style[key] = style[key].call(this, this.dataObj);
-            value = style[key];
+        } else if (typeof value !== 'string' && typeof value !== 'number') {
+            console.log("Unknown Style");
+            continue;
+        }
+        const mappedKey = canvasStyleMapper[key] || key;
+        if (typeof ctx[mappedKey] === "function") {
+            ctx[mappedKey](value);
         } else {
-            console.log("unkonwn Style");
+            ctx[mappedKey] = value;
         }
-        if (canvasStyleMapper[key]) {
-            key = canvasStyleMapper[key];
-        }
-        if (typeof this.ctx[key] !== "function") {
-            this.ctx[key] = value;
-        } else if (typeof this.ctx[key] === "function") {
-            this.ctx[key](value);
-        } else {
-            console.log("junk comp");
-        }
-        this.resolvedStyle[key] = value;
+        this.resolvedStyle[mappedKey] = value;
     }
 };
 CanvasNodeExe.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
