@@ -10809,7 +10809,7 @@ function createPage(ctx, vDomIndex) {
     root.update = function executeUpdate() {
         this.execute();
     };
-    root.exportPdf = function (doc) {
+    root.exportPdf = function (doc, layerConfig) {
         const margin = this.margin || 0;
         const { top = margin, bottom = margin } = this.margins || { };
         const pageHeight = this.height;
@@ -10863,7 +10863,7 @@ function createPage(ctx, vDomIndex) {
         });
         this.executePdf(doc);
         function needsNewPage(node, posY, elHight) {
-            return !(posY < pageHeight - bottom - top && posY + elHight <= pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
+            return layerConfig.autoPagination && !(posY < pageHeight - bottom - top && posY + elHight <= pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
         }
         function calculatePosY(abTransform, elY, runningY) {
             return (abTransform.translate[1] + elY || 0) - runningY;
@@ -11118,42 +11118,19 @@ function parsePdfConfig(config, oldConfig = {}) {
         ...(config.encryption !== undefined && { ...config.encryption }),
     };
 }
-function pdfLayer(container, config = {}, layerSettings = {}) {
-    const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
-    let clientHeight = res?.clientHeight || 0;
-    let clientWidth = res?.clientWidth || 0;
-    let { height = (clientHeight), width = clientWidth } = config;
-    let pdfConfig = parsePdfConfig(config);
-    let { autoUpdate = true, onUpdate } = layerSettings;
-    const layer = document.createElement('canvas');
-    layer.setAttribute('height', height);
-    layer.setAttribute('width', width);
-    const ctx = layer.getContext('2d');
-    let fontRegister = config.fontRegister || {};
-    let pdfInfo = config.info || { title: "I2Djs-PDF" };
-    let onUpdateExe = onUpdate;
-    let vDomIndex = 999999;
-    let pageDefaultTemplate = null;
-    ctx.type_ = "pdf";
-    ctx.doc = new PDFDocument({
-        size: [width, height],
-        ...pdfConfig,
-    });
-    ctx.doc.addPage();
-    const vDomInstance = new VDom();
-    if (autoUpdate) {
-        vDomIndex = queue.addVdom(vDomInstance);
-    }
-    const fallBackPage = createPage(ctx, vDomIndex);
-    function PDFCreator() {
+function PDFCreator(config) {
         this.pages = [];
-        this.ctx = ctx;
-        this.domEl = layer;
-        this.vDomIndex = vDomIndex;
-        this.container = res;
-        this.height = height;
-        this.width = width;
-        this.pdfConfig = pdfConfig;
+        this.ctx = config.ctx;
+        this.domEl = config.layer;
+        this.vDomIndex = config.vDomIndex;
+        this.container = config.res;
+        this.height = config.height;
+        this.width = config.width;
+        this.pdfConfig = config.pdfConfig;
+        this.pdfInfo = config.pdfInfo;
+        this.fontRegister = config.fontRegister;
+        this.fallBackPage = config.fallBackPage;
+        this.layerConfig = config.layerConfig;
     }
     PDFCreator.prototype.flush = function () {
         this.pages.forEach(function (page) {
@@ -11167,23 +11144,21 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
     PDFCreator.prototype.setConfig = function (config = {}) {
         const tPdfConfig = parsePdfConfig(config, this.pdfConfig);
         if (config.fontRegister) {
-            fontRegister = {
+            this.fontRegister = {
                 ...(config.fontRegister || {}),
             };
         }
-        pdfInfo = config.info || pdfInfo || { title: "I2Djs-PDF" };
-        height = config.height || height;
-        width = config.width || width;
-        layer.setAttribute("height", height * 1);
-        layer.setAttribute("width", width * 1);
-        this.width = width;
-        this.height = height;
+        this.pdfInfo = config.info || this.pdfInfo || { title: "I2Djs-PDF" };
+        this.height = config.height || this.height;
+        this.width = config.width || this.width;
+        this.layer.setAttribute("height", this.height * 1);
+        this.layer.setAttribute("width", this.width * 1);
         this.pdfConfig = tPdfConfig;
         this.execute();
         return this;
     };
     PDFCreator.prototype.setPageTemplate = function (exec) {
-        pageDefaultTemplate = exec;
+        this.pageDefaultTemplate = exec;
     };
     PDFCreator.prototype.setSize = function (width = 0, height = 0) {
         this.width = width;
@@ -11200,19 +11175,20 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
         return this;
     };
     PDFCreator.prototype.execute = function () {
+        let self = this;
         this.exportPdf(
-            onUpdateExe ||
+            this.onUpdateExe ||
                 function (url) {
-                    res.setAttribute("src", url);
+                    self.container.setAttribute("src", url);
                 },
             this.pdfConfig
         );
     };
     PDFCreator.prototype.onChange = function (exec) {
-        onUpdateExe = exec;
+        this.onUpdateExe = exec;
     };
     PDFCreator.prototype.addPage = function addPage (config = {}) {
-        const newpage = createPage(ctx, this.vDomIndex);
+        const newpage = createPage(this.ctx, this.vDomIndex);
         Object.assign(newpage, {
             domEl: this.layer,
             pageConfig: config,
@@ -11224,7 +11200,7 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
             EXEType: 'pdf',
             ctx: this.ctx
         });
-        const template = config.pageTemplate || pageDefaultTemplate;
+        const template = config.pageTemplate || this.pageDefaultTemplate;
         if (template) {
             newpage.addTemplate(template);
         }
@@ -11240,27 +11216,28 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
         return removedPage;
     };
     PDFCreator.prototype.createTemplate = function () {
-        return createPage(ctx, this.vDomIndex);
+        return createPage(this.ctx, this.vDomIndex);
     };
     PDFCreator.prototype.exportPdf = async function (callback, pdfConfig = {}) {
+        let self = this;
         const doc = new PDFDocument({
             ...pdfConfig,
         });
         const stream_ = doc.pipe(blobStream());
-        if (fontRegister) {
-            for (const key in fontRegister) {
+        if (this.fontRegister) {
+            for (const key in this.fontRegister) {
                 if (pdfSupportedFontFamily.indexOf(key) === -1) pdfSupportedFontFamily.push(key);
-                const font = await fetch(fontRegister[key]);
+                const font = await fetch(this.fontRegister[key]);
                 const fontBuffer = await font.arrayBuffer();
                 doc.registerFont(key, fontBuffer);
             }
         }
-        if (pdfInfo) {
-            doc.info.Title = pdfInfo.title || "";
-            doc.info.Author = pdfInfo.author || "";
-            doc.info.Subject = pdfInfo.subject || "";
-            doc.info.Keywords = pdfInfo.keywords || "";
-            doc.info.CreationDate = pdfInfo.creationDate || new Date();
+        if (this.pdfInfo) {
+            doc.info.Title = this.pdfInfo.title || "";
+            doc.info.Author = this.pdfInfo.author || "";
+            doc.info.Subject = this.pdfInfo.subject || "";
+            doc.info.Keywords = this.pdfInfo.keywords || "";
+            doc.info.CreationDate = this.pdfInfo.creationDate || new Date();
         }
         this.doc = doc;
         this.pages.forEach(function (page) {
@@ -11272,9 +11249,11 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
             if (page.pageTemplate) {
                 page.pageTemplate.executePdf(doc);
             }
-            page.exportPdf(doc);
+            page.exportPdf(doc, {
+                autoPagination: self.layerConfig.autoPagination
+            });
         });
-        doc.end();
+        this.doc.end();
         stream_.on("finish", function () {
             callback(stream_.toBlobURL("application/pdf"));
         });
@@ -11299,12 +11278,53 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
         return this;
     };
     PDFCreator.prototype.createTexture = function (config = {}) {
-        return fallBackPage.createTexture(config);
+        return this.fallBackPage.createTexture(config);
     };
     PDFCreator.prototype.createAsyncTexture = function (config = {}) {
-        return fallBackPage.createAsyncTexture(config);
+        return this.fallBackPage.createAsyncTexture(config);
     };
-    const pdfInstance = new PDFCreator();
+function pdfLayer(container, config = {}, layerSettings = {}) {
+    const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
+    let clientHeight = res?.clientHeight || 0;
+    let clientWidth = res?.clientWidth || 0;
+    let { height = (clientHeight), width = clientWidth } = config;
+    let pdfConfig = parsePdfConfig(config);
+    let { autoUpdate = true, onUpdate, autoPagination = true } = layerSettings;
+    const layer = document.createElement('canvas');
+    layer.setAttribute('height', height);
+    layer.setAttribute('width', width);
+    const ctx = layer.getContext('2d');
+    let fontRegister = config.fontRegister || {};
+    let pdfInfo = config.info || { title: "I2Djs-PDF" };
+    let vDomIndex = 999999;
+    ctx.type_ = "pdf";
+    ctx.doc = new PDFDocument({
+        size: [width, height],
+        ...pdfConfig,
+    });
+    ctx.doc.addPage();
+    const vDomInstance = new VDom();
+    if (autoUpdate) {
+        vDomIndex = queue.addVdom(vDomInstance);
+    }
+    const fallBackPage = createPage(ctx, vDomIndex);
+    const pdfInstance = new PDFCreator({
+        ctx,
+        layer,
+        vDomIndex,
+        res,
+        height,
+        width,
+        pdfConfig,
+        pdfInfo,
+        fontRegister,
+        fallBackPage,
+        layerConfig : {
+            autoUpdate,
+            autoPagination
+        }
+    });
+    pdfInstance.onChange(onUpdate);
     if (vDomInstance) {
         vDomInstance.rootNode(pdfInstance);
     }
@@ -11416,4 +11436,4 @@ var utilities = {
     },
 };
 
-export { behaviour, CanvasGradient as canvasGradient, canvasLayer, CanvasNodeExe as canvasNodeExe, chain, colorMap$1 as color, createLinearGradient, createRadialGradient, fetchTransitionType as ease, exportCanvasToPdf, geometry, CreatePath as path, pdfLayer, queue, svgLayer, utilities as utility, webglLayer };
+export { PDFCreator, behaviour, CanvasGradient as canvasGradient, canvasLayer, CanvasNodeExe as canvasNodeExe, chain, colorMap$1 as color, createLinearGradient, createRadialGradient, fetchTransitionType as ease, exportCanvasToPdf, geometry, CreatePath as path, pdfLayer, queue, svgLayer, utilities as utility, webglLayer };

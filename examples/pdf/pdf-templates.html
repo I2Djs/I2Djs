@@ -28,6 +28,8 @@
             Keywords: "I2Djs, PDF, PDF-Frame",
             CreationDate: new Date(),
         },
+    }, {
+        autoPagination: true    
     });
 
     /* create Template object by calling padInstance createTemplate method
@@ -94,6 +96,19 @@
             y: 100,
             width: 100,
             height: 100,
+        },
+        style: {
+            fillStyle: linearGradiant,
+        },
+    });
+
+    page1.createEl({
+        el: "rect",
+        attr: {
+            x: 350,
+            y: 500,
+            width: 100,
+            height: 200,
         },
         style: {
             fillStyle: linearGradiant,

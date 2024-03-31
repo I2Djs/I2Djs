@@ -2630,7 +2630,7 @@ function createPage(ctx, vDomIndex) {
         this.execute();
     };
 
-    root.exportPdf = function (doc) {
+    root.exportPdf = function (doc, layerConfig) {
         const margin = this.margin || 0;
         const { top = margin, bottom = margin } = this.margins || { };
         const pageHeight = this.height;
@@ -2650,6 +2650,7 @@ function createPage(ctx, vDomIndex) {
                     (bTrans.translate[1] + bBox.height + b.dom.abYposition)
                 );
             });
+
         let runningY = 0;
         const pageRage = doc.bufferedPageRange();
         let pageNumber = pageRage.count - 1;
@@ -2692,7 +2693,7 @@ function createPage(ctx, vDomIndex) {
         this.executePdf(doc);
 
         function needsNewPage(node, posY, elHight) {
-            return !(posY < pageHeight - bottom - top && posY + elHight <= pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
+            return layerConfig.autoPagination && !(posY < pageHeight - bottom - top && posY + elHight <= pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
         }
 
         function calculatePosY(abTransform, elY, runningY) {
@@ -2826,7 +2827,6 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     }
 
     const execute = root.execute.bind(root);
-    // const exportPdf = root.exportPdf.bind(root);
     root.container = res;
     root.domEl = layer;
     root.height = height;

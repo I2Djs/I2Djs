@@ -10,7 +10,7 @@
     </body>
 </html>
 <script type="module">
-    import {pdfLayer} from "../../dist/i2d.esm.min.js";
+    import {pdfLayer} from "../../dist/i2d.esm.js";
     let pdfInstance = pdfLayer("#i2dPdfContainer", {
         info: {
             Title: "I2Djs-pdf",
@@ -19,6 +19,8 @@
             Keywords: "I2Djs, PDF, PDF-Frame",
             CreationDate: new Date(),
         },
+    }, {
+        autoPagination: false
     });
 
     let page1 = pdfInstance.addPage();

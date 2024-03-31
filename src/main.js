@@ -1,6 +1,6 @@
 import svgLayer from "./modules/renderers/svg.js";
 import webglLayer from "./modules/renderers/webgl.js";
-import { pdfLayer, exportCanvasToPdf } from "./modules/renderers/pdf.js";
+import { pdfLayer, exportCanvasToPdf, PDFCreator } from "./modules/renderers/pdf.js";
 import { canvasLayer, CanvasNodeExe, CanvasGradient, createRadialGradient, createLinearGradient } from "./modules/renderers/canvas.js";
 import geometry from "./modules/geometry.js";
 import color from "./modules/colorMap.js";
@@ -28,3 +28,4 @@ export { CanvasGradient as canvasGradient };
 export { createRadialGradient };
 export { createLinearGradient };
 export { exportCanvasToPdf };
+export { PDFCreator };

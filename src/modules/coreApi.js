@@ -985,10 +985,8 @@ function CollectionPrototype(contextInfo, data, config, vDomIndex) {
             if (typeof config.style[key] === "function") {
                 const resValue = config.style[key].call(node, d, i);
                 node.style[key] = resValue;
-                // node.setStyle(key, resValue);
             } else {
                 node.style[key] = config.style[key];
-                // node.setStyle(key, config.style[key]);
             }
         }
 
@@ -999,11 +997,9 @@ function CollectionPrototype(contextInfo, data, config, vDomIndex) {
                 if (typeof config.attr[key] === "function") {
                     const resValue = config.attr[key].call(node, d, i);
                     node.attr[key] = resValue;
-                    // node.setAttr(key, resValue);
 
                 } else {
                     node.attr[key] = config.attr[key];
-                    // node.setAttr(key, config.attr[key]);
                 }
             } else {
                 if (typeof config.attr.transform === "function") {
