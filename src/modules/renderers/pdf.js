@@ -320,7 +320,7 @@ async function CanvasToPdf(options) {
                     this.updateABBox();
 
                     doc.addPage();
-                    this.exportPdf(doc);
+                    this.exportPdf(doc, {});
                     doc.end();
 
                     stream_.on("finish", function () {
