@@ -8837,10 +8837,10 @@ CanvasGradient.prototype.exePdf = function GRAexe(ctx, BBox, AABox) {
 CanvasGradient.prototype.linearGradientPdf = function GralinearGradient(ctx, BBox, AABox) {
     const { translate = [0, 0] } = AABox;
     const lGradient = ctx.linearGradient(
-        translate[0] + BBox.x + BBox.width * (this.config.x1 / 100),
-        translate[1] + 0 + BBox.height * (this.config.y1 / 100),
-        translate[0] + BBox.x + BBox.width * (this.config.x2 / 100),
-        translate[1] + 0 + BBox.height * (this.config.y2 / 100)
+        translate[0] + BBox.x + BBox.width * ((this.config.x1 || 0) / 100),
+        translate[1] + 0 + BBox.height * ((this.config.y1 || 0) / 100),
+        translate[0] + BBox.x + BBox.width * ((this.config.x2 || 0) / 100),
+        translate[1] + 0 + BBox.height * ((this.config.y2 || 0) / 100)
     );
     (this.config.colorStops ?? []).forEach((d) => {
         lGradient.stop((d.offset || 0) / 100, d.color, d.opacity);
@@ -8849,10 +8849,10 @@ CanvasGradient.prototype.linearGradientPdf = function GralinearGradient(ctx, BBo
 };
 CanvasGradient.prototype.linearGradient = function GralinearGradient(ctx, BBox) {
     const lGradient = ctx.createLinearGradient(
-        BBox.x + BBox.width * (this.config.x1 / 100),
-        BBox.y + BBox.height * (this.config.y1 / 100),
-        BBox.x + BBox.width * (this.config.x2 / 100),
-        BBox.y + BBox.height * (this.config.y2 / 100)
+        BBox.x + BBox.width * ((this.config.x1 || 0) / 100),
+        BBox.y + BBox.height * ((this.config.y1 || 0) / 100),
+        BBox.x + BBox.width * ((this.config.x2 || 0) / 100),
+        BBox.y + BBox.height * ((this.config.y2 || 0) / 100)
     );
     (this.config.colorStops ?? []).forEach((d) => {
         lGradient.addColorStop( (d.offset || 0) / 100, d.color);
@@ -8861,10 +8861,10 @@ CanvasGradient.prototype.linearGradient = function GralinearGradient(ctx, BBox) 
 };
 CanvasGradient.prototype.absoluteLinearGradient = function absoluteGralinearGradient(ctx) {
     const lGradient = ctx.createLinearGradient(
-        this.config.x1,
-        this.config.y1,
-        this.config.x2,
-        this.config.y2
+        this.config.x1 || 0,
+        this.config.y1 || 0,
+        this.config.x2 || 0,
+        this.config.y2 || 0
     );
     (this.config.colorStops ?? []).forEach((d) => {
         lGradient.addColorStop((d.offset || 0), d.color);
@@ -8877,10 +8877,10 @@ CanvasGradient.prototype.absoluteLinearGradientPdf = function absoluteGralinearG
 ) {
     const { translate = [0, 0] } = AABox;
     const lGradient = ctx.linearGradient(
-        translate[0] + this.config.x1,
-        translate[1] + this.config.y1,
-        translate[0] + this.config.x2,
-        translate[1] + this.config.y2
+        translate[0] + this.config.x1 || 0,
+        translate[1] + this.config.y1 || 0,
+        translate[0] + this.config.x2 || 0,
+        translate[1] + this.config.y2 || 0
     );
     (this.config.colorStops ?? []).forEach((d) => {
         lGradient.stop((d.offset || 0), d.color, d.opacity);
@@ -8890,16 +8890,16 @@ CanvasGradient.prototype.absoluteLinearGradientPdf = function absoluteGralinearG
 CanvasGradient.prototype.radialGradient = function GRAradialGradient(ctx, BBox) {
     const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.createRadialGradient(
-        BBox.x + BBox.width * (innerCircle.x / 100),
-        BBox.y + BBox.height * (innerCircle.y / 100),
+        BBox.x + BBox.width * (innerCircle.x || 0) / 100,
+        BBox.y + BBox.height * (innerCircle.y || 0) / 100,
         BBox.width > BBox.height
-            ? (BBox.width * innerCircle.r) / 100
-            : (BBox.height * innerCircle.r) / 100,
-        BBox.x + BBox.width * (outerCircle.x / 100),
-        BBox.y + BBox.height * (outerCircle.y / 100),
+            ? (BBox.width * (innerCircle.r || 0) / 100)
+            : (BBox.height * (innerCircle.r || 0) / 100),
+        BBox.x + BBox.width * (outerCircle.x || 0) / 100,
+        BBox.y + BBox.height * (outerCircle.y || 0) / 100,
         BBox.width > BBox.height
-            ? (BBox.width * outerCircle.r) / 100
-            : (BBox.height * outerCircle.r) / 100
+            ? (BBox.width * (outerCircle.r || 0) / 100)
+            : (BBox.height * (outerCircle.r || 0) / 100)
     );
     (this.config.colorStops ?? []).forEach((d) => {
         cGradient.addColorStop((d.offset || 0) / 100, d.color);
@@ -8910,12 +8910,12 @@ CanvasGradient.prototype.radialGradientPdf = function GRAradialGradient(ctx, BBo
     const { translate = [0, 0] } = AABox;
     const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.radialGradient(
-        translate[0] + BBox.x + BBox.width * (innerCircle.x / 100),
-        translate[1] + 0 + BBox.height * (innerCircle.y / 100),
-        innerCircle.r,
-        translate[0] + BBox.x + BBox.width * (outerCircle.x / 100),
-        translate[1] + 0 + BBox.height * (outerCircle.y / 100),
-        outerCircle.r2
+        translate[0] + BBox.x + BBox.width * (innerCircle.x || 0) / 100,
+        translate[1] + 0 + BBox.height * (innerCircle.y || 0) / 100,
+        innerCircle.r || 0,
+        translate[0] + BBox.x + BBox.width * (outerCircle.x || 0) / 100,
+        translate[1] + 0 + BBox.height * (outerCircle.y || 0) / 100,
+        outerCircle.r2 || 0
     );
     (this.config.colorStops ?? []).forEach((d) => {
         cGradient.stop((d.offset || 0) / 100, d.color, d.opacity);
@@ -8925,12 +8925,12 @@ CanvasGradient.prototype.radialGradientPdf = function GRAradialGradient(ctx, BBo
 CanvasGradient.prototype.absoluteRadialGradient = function absoluteGraradialGradient(ctx) {
     const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.createRadialGradient(
-        innerCircle.x,
-        innerCircle.y,
-        innerCircle.r,
-        outerCircle.x,
-        outerCircle.y,
-        outerCircle.r
+        innerCircle.x || 0,
+        innerCircle.y || 0,
+        innerCircle.r || 0,
+        outerCircle.x || 0,
+        outerCircle.y || 0,
+        outerCircle.r || 0
     );
     (this.config.colorStops ?? []).forEach((d) => {
         cGradient.addColorStop((d.offset || 0) / 100, d.color);
@@ -8945,12 +8945,12 @@ CanvasGradient.prototype.absoluteRadialGradientPdf = function absoluteGraradialG
     const { translate = [0, 0] } = AABox;
     const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.radialGradient(
-        translate[0] + innerCircle.x,
-        translate[1] + innerCircle.y,
-        innerCircle.r,
-        translate[0] + outerCircle.x,
-        translate[1] + outerCircle.y,
-        outerCircle.r
+        translate[0] + innerCircle.x || 0,
+        translate[1] + innerCircle.y || 0,
+        innerCircle.r || 0,
+        translate[0] + outerCircle.x || 0,
+        translate[1] + outerCircle.y || 0,
+        outerCircle.r || 0
     );
     (this.config.colorStops ?? []).forEach((d) => {
         cGradient.stop((d.offset || 0) / 100, d.color);
@@ -9119,7 +9119,8 @@ CanvasDom.prototype = {
     applyStyles,
     applyStylesPdf,
     updateBBox: function () {},
-    executePdf: function () {}
+    executePdf: function () {},
+    execute: function () {}
 };
 function imageInstance(self) {
     const imageIns = new Image();
