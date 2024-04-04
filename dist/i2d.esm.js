@@ -9118,6 +9118,8 @@ CanvasDom.prototype = {
     setStyle: domSetStyle,
     applyStyles,
     applyStylesPdf,
+    updateBBox: function () {},
+    executePdf: function () {}
 };
 function imageInstance(self) {
     const imageIns = new Image();
@@ -9147,8 +9149,8 @@ function DummyDom(ctx, props, styleProps) {
     const self = this;
     self.ctx = ctx;
     self.nodeName = "dummy";
-    self.attr = props;
-    self.style = styleProps;
+    self.attr = Object.assign({}, props);
+    self.style = Object.assign({}, styleProps);
     self.stack = [self];
     return this;
 }
