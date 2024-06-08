@@ -136,44 +136,6 @@ function prepObjProxyCanvas(type, attr, context, BBoxUpdate) {
 
             queueInstance.vDomChanged(context.vDomIndex);
             return true;
-
-
-            // if (value !== null) {
-            //     if (type === 'attr') {
-            //         if (context && context.dom) {
-            //             context.dom.setAttr(prop, value);
-            //         }
-            //         obj[prop] = value;
-            //         if (BBoxUpdate) {
-            //             context.BBoxUpdate = true;
-            //         }
-            //     } else if (type === 'style') {
-            //         value = colorValueCheck(value);
-            //         if (context && context.dom) {
-            //             context.dom.setStyle(prop, value);
-            //         }
-            //         obj[prop] = value;
-            //     } else if (type === 'transform') {
-            //         if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
-            //             value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
-            //         } else if (prop === 'rotate') {
-            //             value = Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0]
-            //         }
-            //         obj[prop] = value;
-
-            //         if (context && context.dom) {
-            //             context.dom.setAttr('transform', obj);
-            //         }
-            //         if (BBoxUpdate) {
-            //             context.BBoxUpdate = true;
-            //         }
-            //     }
-
-            //     queueInstance.vDomChanged(context.vDomIndex);
-            // } else {
-            //     delete obj[prop];
-            // }
-            // return true;
         },
         deleteProperty(obj, prop) {
             if (prop in obj) {
@@ -384,10 +346,10 @@ CanvasGradient.prototype.exePdf = function GRAexe(ctx, BBox, AABox) {
 CanvasGradient.prototype.linearGradientPdf = function GralinearGradient(ctx, BBox, AABox) {
     const { translate = [0, 0] } = AABox;
     const lGradient = ctx.linearGradient(
-        translate[0] + BBox.x + BBox.width * (this.config.x1 / 100),
-        translate[1] + 0 + BBox.height * (this.config.y1 / 100),
-        translate[0] + BBox.x + BBox.width * (this.config.x2 / 100),
-        translate[1] + 0 + BBox.height * (this.config.y2 / 100)
+        translate[0] + BBox.x + BBox.width * ((this.config.x1 || 0) / 100),
+        translate[1] + 0 + BBox.height * ((this.config.y1 || 0) / 100),
+        translate[0] + BBox.x + BBox.width * ((this.config.x2 || 0) / 100),
+        translate[1] + 0 + BBox.height * ((this.config.y2 || 0) / 100)
     );
     (this.config.colorStops ?? []).forEach((d) => {
         lGradient.stop((d.offset || 0) / 100, d.color, d.opacity);
@@ -397,10 +359,10 @@ CanvasGradient.prototype.linearGradientPdf = function GralinearGradient(ctx, BBo
 
 CanvasGradient.prototype.linearGradient = function GralinearGradient(ctx, BBox) {
     const lGradient = ctx.createLinearGradient(
-        BBox.x + BBox.width * (this.config.x1 / 100),
-        BBox.y + BBox.height * (this.config.y1 / 100),
-        BBox.x + BBox.width * (this.config.x2 / 100),
-        BBox.y + BBox.height * (this.config.y2 / 100)
+        BBox.x + BBox.width * ((this.config.x1 || 0) / 100),
+        BBox.y + BBox.height * ((this.config.y1 || 0) / 100),
+        BBox.x + BBox.width * ((this.config.x2 || 0) / 100),
+        BBox.y + BBox.height * ((this.config.y2 || 0) / 100)
     );
     (this.config.colorStops ?? []).forEach((d) => {
         lGradient.addColorStop( (d.offset || 0) / 100, d.color);
@@ -410,10 +372,10 @@ CanvasGradient.prototype.linearGradient = function GralinearGradient(ctx, BBox) 
 
 CanvasGradient.prototype.absoluteLinearGradient = function absoluteGralinearGradient(ctx) {
     const lGradient = ctx.createLinearGradient(
-        this.config.x1,
-        this.config.y1,
-        this.config.x2,
-        this.config.y2
+        this.config.x1 || 0,
+        this.config.y1 || 0,
+        this.config.x2 || 0,
+        this.config.y2 || 0
     );
     (this.config.colorStops ?? []).forEach((d) => {
         lGradient.addColorStop((d.offset || 0), d.color);
@@ -427,10 +389,10 @@ CanvasGradient.prototype.absoluteLinearGradientPdf = function absoluteGralinearG
 ) {
     const { translate = [0, 0] } = AABox;
     const lGradient = ctx.linearGradient(
-        translate[0] + this.config.x1,
-        translate[1] + this.config.y1,
-        translate[0] + this.config.x2,
-        translate[1] + this.config.y2
+        translate[0] + this.config.x1 || 0,
+        translate[1] + this.config.y1 || 0,
+        translate[0] + this.config.x2 || 0,
+        translate[1] + this.config.y2 || 0
     );
     (this.config.colorStops ?? []).forEach((d) => {
         lGradient.stop((d.offset || 0), d.color, d.opacity);
@@ -441,16 +403,16 @@ CanvasGradient.prototype.absoluteLinearGradientPdf = function absoluteGralinearG
 CanvasGradient.prototype.radialGradient = function GRAradialGradient(ctx, BBox) {
     const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.createRadialGradient(
-        BBox.x + BBox.width * (innerCircle.x / 100),
-        BBox.y + BBox.height * (innerCircle.y / 100),
+        BBox.x + BBox.width * (innerCircle.x || 0) / 100,
+        BBox.y + BBox.height * (innerCircle.y || 0) / 100,
         BBox.width > BBox.height
-            ? (BBox.width * innerCircle.r) / 100
-            : (BBox.height * innerCircle.r) / 100,
-        BBox.x + BBox.width * (outerCircle.x / 100),
-        BBox.y + BBox.height * (outerCircle.y / 100),
+            ? (BBox.width * (innerCircle.r || 0) / 100)
+            : (BBox.height * (innerCircle.r || 0) / 100),
+        BBox.x + BBox.width * (outerCircle.x || 0) / 100,
+        BBox.y + BBox.height * (outerCircle.y || 0) / 100,
         BBox.width > BBox.height
-            ? (BBox.width * outerCircle.r) / 100
-            : (BBox.height * outerCircle.r) / 100
+            ? (BBox.width * (outerCircle.r || 0) / 100)
+            : (BBox.height * (outerCircle.r || 0) / 100)
     );
     (this.config.colorStops ?? []).forEach((d) => {
         cGradient.addColorStop((d.offset || 0) / 100, d.color);
@@ -462,12 +424,12 @@ CanvasGradient.prototype.radialGradientPdf = function GRAradialGradient(ctx, BBo
     const { translate = [0, 0] } = AABox;
     const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.radialGradient(
-        translate[0] + BBox.x + BBox.width * (innerCircle.x / 100),
-        translate[1] + 0 + BBox.height * (innerCircle.y / 100),
-        innerCircle.r,
-        translate[0] + BBox.x + BBox.width * (outerCircle.x / 100),
-        translate[1] + 0 + BBox.height * (outerCircle.y / 100),
-        outerCircle.r2
+        translate[0] + BBox.x + BBox.width * (innerCircle.x || 0) / 100,
+        translate[1] + 0 + BBox.height * (innerCircle.y || 0) / 100,
+        innerCircle.r || 0,
+        translate[0] + BBox.x + BBox.width * (outerCircle.x || 0) / 100,
+        translate[1] + 0 + BBox.height * (outerCircle.y || 0) / 100,
+        outerCircle.r2 || 0
     );
     (this.config.colorStops ?? []).forEach((d) => {
         cGradient.stop((d.offset || 0) / 100, d.color, d.opacity);
@@ -478,12 +440,12 @@ CanvasGradient.prototype.radialGradientPdf = function GRAradialGradient(ctx, BBo
 CanvasGradient.prototype.absoluteRadialGradient = function absoluteGraradialGradient(ctx) {
     const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.createRadialGradient(
-        innerCircle.x,
-        innerCircle.y,
-        innerCircle.r,
-        outerCircle.x,
-        outerCircle.y,
-        outerCircle.r
+        innerCircle.x || 0,
+        innerCircle.y || 0,
+        innerCircle.r || 0,
+        outerCircle.x || 0,
+        outerCircle.y || 0,
+        outerCircle.r || 0
     );
     (this.config.colorStops ?? []).forEach((d) => {
         cGradient.addColorStop((d.offset || 0) / 100, d.color);
@@ -499,12 +461,12 @@ CanvasGradient.prototype.absoluteRadialGradientPdf = function absoluteGraradialG
     const { translate = [0, 0] } = AABox;
     const { innerCircle = {}, outerCircle = {} } = this.config;
     const cGradient = ctx.radialGradient(
-        translate[0] + innerCircle.x,
-        translate[1] + innerCircle.y,
-        innerCircle.r,
-        translate[0] + outerCircle.x,
-        translate[1] + outerCircle.y,
-        outerCircle.r
+        translate[0] + innerCircle.x || 0,
+        translate[1] + innerCircle.y || 0,
+        innerCircle.r || 0,
+        translate[0] + outerCircle.x || 0,
+        translate[1] + outerCircle.y || 0,
+        outerCircle.r || 0
     );
     (this.config.colorStops ?? []).forEach((d) => {
         cGradient.stop((d.offset || 0) / 100, d.color);
@@ -696,6 +658,9 @@ CanvasDom.prototype = {
     setStyle: domSetStyle,
     applyStyles,
     applyStylesPdf,
+    updateBBox: function () {},
+    executePdf: function () {},
+    execute: function () {}
 };
 
 function imageInstance(self) {
@@ -732,8 +697,8 @@ function DummyDom(ctx, props, styleProps) {
     const self = this;
     self.ctx = ctx;
     self.nodeName = "dummy";
-    self.attr = props;
-    self.style = styleProps;
+    self.attr = Object.assign({}, props);
+    self.style = Object.assign({}, styleProps);
     self.stack = [self];
     return this;
 }
@@ -1037,6 +1002,8 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
         height = doc.heightOfString(this.attr.text, styleObect);
     }
 
+    Object.assign(self, { width, height, x, y });
+
     self.width = width;
     self.height = height;
     self.x = x;
@@ -1093,8 +1060,6 @@ RenderText.prototype.execute = function RTexecute() {
 RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
     if (this.attr.text !== undefined && this.attr.text !== null) {
         if (this.style.font) {
-            // parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 1
-
             pdfCtx.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
         }
         const alignVlaue = this.style.align ?? this.style.textAlign;
@@ -1114,8 +1079,6 @@ RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
         }
     }
 };
-
-// RenderText.prototype.applyStyles = function RTapplyStyles() {};
 
 RenderText.prototype.in = function RTinfun(co) {
     const { x = 0, y = 0, width = 0, height = 0 } = this;
@@ -1805,55 +1768,43 @@ RenderGroup.prototype = new CanvasDom();
 RenderGroup.prototype.constructor = RenderGroup;
 
 RenderGroup.prototype.updateBBox = function RGupdateBBox(children) {
-    const self = this;
-    let minX;
-    let maxX;
-    let minY;
-    let maxY;
-    const { transform } = self.attr;
+    if (!children || children.length === 0) {
+        this.BBox = { x: 0, y: 0, width: 0, height: 0 };
+        this.BBoxHit = this.BBox;
+        return;
+    }
+    let minf = Math.min;
+    let maxf = Math.max;
+    let absf= Math.abs;
+    const { transform } = this.attr;
     const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-    self.BBox = {};
 
-    if (children && children.length > 0) {
-        let d;
-        let boxX;
-        let boxY;
+    let { x: minX, y: minY, width, height } = children[0].dom.BBoxHit;
+    let maxX = minX + width;
+    let maxY = minY + height;
 
-        for (let i = 0; i < children.length; i += 1) {
-            d = children[i];
-            boxX = d.dom.BBoxHit.x;
-            boxY = d.dom.BBoxHit.y;
-            minX = minX === undefined ? boxX : minX > boxX ? boxX : minX;
-            minY = minY === undefined ? boxY : minY > boxY ? boxY : minY;
-            maxX =
-                maxX === undefined
-                    ? boxX + d.dom.BBoxHit.width
-                    : maxX < boxX + d.dom.BBoxHit.width
-                    ? boxX + d.dom.BBoxHit.width
-                    : maxX;
-            maxY =
-                maxY === undefined
-                    ? boxY + d.dom.BBoxHit.height
-                    : maxY < boxY + d.dom.BBoxHit.height
-                    ? boxY + d.dom.BBoxHit.height
-                    : maxY;
-        }
+    for (let i = 1; i < children.length; i++) {
+        const { x, y, width, height } = children[i].dom.BBoxHit;
+        const currentMaxX = x + width;
+        const currentMaxY = y + height;
+
+        // Update bounds
+        minX = minf(minX, x);
+        minY = minf(minY, y);
+        maxX = maxf(maxX, currentMaxX);
+        maxY = maxf(maxY, currentMaxY);
     }
 
-    minX = minX === undefined ? 0 : minX;
-    minY = minY === undefined ? 0 : minY;
-    maxX = maxX === undefined ? 0 : maxX;
-    maxY = maxY === undefined ? 0 : maxY;
-    self.BBox.x = translateX + minX * scaleX;
-    self.BBox.y = translateY + minY * scaleY;
-    self.BBox.width = Math.abs(maxX - minX) * scaleX;
-    self.BBox.height = Math.abs(maxY - minY) * scaleY;
+    this.BBox = {
+        x: translateX + minX * scaleX,
+        y: translateY + minY * scaleY,
+        width: absf(maxX - minX) * scaleX,
+        height: absf(maxY - minY) * scaleY,
+    };
 
-    if (self.attr.transform && self.attr.transform.rotate) {
-        self.BBoxHit = i2DGeometry.rotateBBox(this.BBox, this.attr.transform);
-    } else {
-        self.BBoxHit = this.BBox;
-    }
+    this.BBoxHit = this.attr.transform && this.attr.transform.rotate
+        ? i2DGeometry.rotateBBox(this.BBox, this.attr.transform)
+        : this.BBox;
 };
 
 RenderGroup.prototype.child = function RGchild(obj) {
@@ -1987,45 +1938,36 @@ CanvasNodeExe.prototype.node = function Cnode() {
 };
 
 CanvasNodeExe.prototype.stylesExe = function CstylesExe() {
-    let value;
-    let key;
-    const style = this.style;
+    const { style, ctx, dom, dataObj } = this;
 
     this.resolvedStyle = {};
 
-    for (key in style) {
-        if (typeof style[key] === "string" || typeof style[key] === "number") {
-            value = style[key];
-        } else if (typeof style[key] === "object") {
-            if (
-                style[key] instanceof CanvasGradient ||
-                style[key] instanceof CanvasPattern ||
-                style[key] instanceof CanvasClipping ||
-                style[key] instanceof CanvasMask
-            ) {
-                value = style[key].exe(this.ctx, this.dom.BBox);
-            } else {
-                value = style[key];
+    for (let key in style) {
+        let value = style[key];
+        if (typeof value === "function") {
+            value = value.call(this, dataObj);
+        } else if (typeof value === "object" && value !== null) {
+            let isSpecialObject = value instanceof CanvasGradient ||
+                value instanceof CanvasPattern ||
+                value instanceof CanvasClipping ||
+                value instanceof CanvasMask;
+
+            if (isSpecialObject) {
+                value = value.exe(ctx, dom.BBox);
             }
-        } else if (typeof style[key] === "function") {
-            style[key] = style[key].call(this, this.dataObj);
-            value = style[key];
-        } else {
-            console.log("unkonwn Style");
+        } else if (typeof value !== 'string' && typeof value !== 'number') {
+            console.log("Unknown Style");
+            continue;
         }
 
-        if (canvasStyleMapper[key]) {
-            key = canvasStyleMapper[key];
-        }
+        const mappedKey = canvasStyleMapper[key] || key;
 
-        if (typeof this.ctx[key] !== "function") {
-            this.ctx[key] = value;
-        } else if (typeof this.ctx[key] === "function") {
-            this.ctx[key](value);
+        if (typeof ctx[mappedKey] === "function") {
+            ctx[mappedKey](value);
         } else {
-            console.log("junk comp");
+            ctx[mappedKey] = value;
         }
-        this.resolvedStyle[key] = value;
+        this.resolvedStyle[mappedKey] = value;
     }
 };
 
@@ -2691,7 +2633,7 @@ function createPage(ctx, vDomIndex) {
         this.execute();
     };
 
-    root.exportPdf = function (doc) {
+    root.exportPdf = function (doc, layerConfig) {
         const margin = this.margin || 0;
         const { top = margin, bottom = margin } = this.margins || { };
         const pageHeight = this.height;
@@ -2711,6 +2653,7 @@ function createPage(ctx, vDomIndex) {
                     (bTrans.translate[1] + bBox.height + b.dom.abYposition)
                 );
             });
+
         let runningY = 0;
         const pageRage = doc.bufferedPageRange();
         let pageNumber = pageRage.count - 1;
@@ -2753,7 +2696,7 @@ function createPage(ctx, vDomIndex) {
         this.executePdf(doc);
 
         function needsNewPage(node, posY, elHight) {
-            return !(posY < pageHeight - bottom - top && posY + elHight < pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
+            return layerConfig.autoPagination && !(posY < pageHeight - bottom - top && posY + elHight <= pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
         }
 
         function calculatePosY(abTransform, elY, runningY) {
@@ -2819,17 +2762,14 @@ function updateABBoxOfPdfTemplate(root) {
 }
 
 function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
-    const res =
-        container instanceof HTMLElement
-            ? container
-            : typeof container === "string" || container instanceof String
-            ? document.querySelector(container)
-            : null;
-    let height = res ? res.clientHeight : 0;
-    let width = res ? res.clientWidth : 0;
+
+    const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
+    
+    let height = res?.clientHeight || 0;
+    let width = res?.clientWidth || 0;
+
     const layer = document.createElement("canvas");
     const ctx = layer.getContext("2d", contextConfig);
-    let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
     let ratio = getPixlRatio(ctx);
     ctx.pixelRatio = ratio;
     let onClear = function (ctx) {
@@ -2840,6 +2780,8 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     layer.style.height = `${height}px`;
     layer.style.width = `${width}px`;
     layer.style.position = "absolute";
+
+    let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
 
     let vDomInstance;
     let vDomIndex = 999999;
@@ -2888,7 +2830,6 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     }
 
     const execute = root.execute.bind(root);
-    // const exportPdf = root.exportPdf.bind(root);
     root.container = res;
     root.domEl = layer;
     root.height = height;
@@ -2957,48 +2898,6 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     root.onChange = function (exec) {
         onChangeExe = exec;
     };
-
-    // root.exportPdf = function (callback, options = {}) {
-    //     const pdfConfig = parsePdfConfig(options);
-    //     const doc = new PDFDocument({
-    //         size: [this.width, this.height],
-    //         ...pdfConfig,
-    //     });
-    //     const stream_ = doc.pipe(blobStream());
-
-    //     const fontRegister = options.fontRegister || {};
-    //     const pdfInfo = options.info || { title: "I2Djs-PDF" };
-
-    //     if (fontRegister) {
-    //         for (const key in fontRegister) {
-    //             if (pdfSupportedFontFamily.indexOf(key) === -1) pdfSupportedFontFamily.push(key);
-    //             const font = await fetch(fontRegister[key]);
-    //             const fontBuffer = await font.arrayBuffer();
-    //             doc.registerFont(key, fontBuffer);
-    //         }
-    //     }
-
-    //     if (pdfInfo) {
-    //         doc.info.Title = pdfInfo.title || "";
-    //         doc.info.Author = pdfInfo.author || "";
-    //         doc.info.Subject = pdfInfo.subject || "";
-    //         doc.info.Keywords = pdfInfo.keywords || "";
-    //         doc.info.CreationDate = pdfInfo.creationDate || new Date();
-    //     }
-
-    //     root.updateBBox();
-    //     root.updateABBox();
-
-    //     doc.addPage();
-
-    //     exportPdf(doc);
-
-    //     doc.end();
-
-    //     stream_.on("finish", function () {
-    //         callback(stream_.toBlobURL("application/pdf"));
-    //     });
-    // };
 
     const updateLayerDimension = function (layer, width, height) {
         layer.setAttribute("height", height * ratio);

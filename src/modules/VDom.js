@@ -1,7 +1,15 @@
 /* eslint-disable no-undef */
+import queue from "./queue.js";
 function VDom() {}
 
+const queueInstance = queue;
 VDom.prototype.execute = function execute() {
+    let elementExists = document.body.contains(this.root.container);
+    if (!elementExists) {
+        queueInstance.removeVdom(this.root.vDomIndex);
+        this.stateModified = false;
+        return;
+    }
     this.root.execute();
     this.stateModified = false;
 };

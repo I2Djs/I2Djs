@@ -20,7 +20,8 @@ function animeId() {
 
 const transitionSetAttr = function transitionSetAttr(self, key, value) {
     return function inner(f) {
-        self.setAttr(key, value.call(self, f));
+        self.attr[key] = value.call(self, f);
+        // self.setAttr(key, value.call(self, f));
     };
 };
 
@@ -55,7 +56,8 @@ const transformTransition = function transformTransition(self, subkey, srcVal, v
 
 const attrTransition = function attrTransition(self, key, srcVal, tgtVal) {
     return function setAttr_(f) {
-        self.setAttr(key, t2DGeometry.intermediateValue(srcVal, tgtVal, f));
+        self.attr[key] = t2DGeometry.intermediateValue(srcVal, tgtVal, f);
+        // self.setAttr(key, t2DGeometry.intermediateValue(srcVal, tgtVal, f));
     };
 };
 
@@ -66,7 +68,8 @@ const styleTransition = function styleTransition(self, key, sVal, value) {
 
     if (typeof value === "function") {
         return function inner(f) {
-            self.setStyle(key, value.call(self, self.dataObj, f));
+            self.style[key] = value.call(self, self.dataObj, f);
+            // self.setStyle(key, value.call(self, self.dataObj, f));
         };
     } else {
         srcValue = sVal;
@@ -75,7 +78,8 @@ const styleTransition = function styleTransition(self, key, sVal, value) {
             if (colorMap.isTypeColor(value)) {
                 const colorExe = colorMap.transition(srcValue, value);
                 return function inner(f) {
-                    self.setStyle(key, colorExe(f));
+                    self.style[key] = colorExe(f);
+                    // self.setStyle(key, colorExe(f));
                 };
             }
 
@@ -92,7 +96,8 @@ const styleTransition = function styleTransition(self, key, sVal, value) {
         }
 
         return function inner(f) {
-            self.setStyle(key, t2DGeometry.intermediateValue(srcValue, destValue, f) + destUnit);
+            self.style[key] = t2DGeometry.intermediateValue(srcValue, destValue, f) + destUnit;
+            // self.setStyle(key, t2DGeometry.intermediateValue(srcValue, destValue, f) + destUnit);
         };
     }
 };
@@ -109,12 +114,12 @@ function resolveStyle(style, styleMapper) {
 }
 
 const animate = function animate(self, fromConfig, targetConfig) {
-    const tattr = targetConfig.attr ? targetConfig.attr : {};
-    let tstyles = targetConfig.style ? targetConfig.style : {};
-    const sattr = fromConfig.attr ? fromConfig.attr : {};
-    let sstyles = fromConfig.style ? fromConfig.style : {};
+    const tattr = targetConfig.attr || {};
+    let tstyles = targetConfig.style || {};
+    const sattr = fromConfig.attr || {};
+    let sstyles = fromConfig.style || {};
     const runStack = [];
-    const styleMapper = (self.nodeType === 'WEBGL' || self.nodeType === 'canvas') ? canvasStyleMapper : svgStyleMapper;
+    const styleMapper = ['WEBGL', 'canvas'].includes(self.nodeType) ? canvasStyleMapper : svgStyleMapper;
 
     sstyles = resolveStyle(sstyles, styleMapper);
     tstyles = resolveStyle(tstyles, styleMapper);
@@ -126,7 +131,8 @@ const animate = function animate(self, fromConfig, targetConfig) {
 
                 if (typeof value === "function") {
                     runStack[runStack.length] = function setAttr_(f) {
-                        self.setAttr(key, value.call(self, f));
+                        self.attr[key] = value.call(self, f);
+                        // self.setAttr(key, value.call(self, f));
                     };
                 } else {
                     if (key === "d") {
@@ -143,8 +149,9 @@ const animate = function animate(self, fromConfig, targetConfig) {
                     }
                 }
             } else {
-                if (typeof tattr[key] === "function") {
-                    runStack[runStack.length] = transitionSetAttr(self, key, tattr[key]);
+                const value = tattr[key];
+                if (typeof value === "function") {
+                    runStack[runStack.length] = transitionSetAttr(self, key, value);
                 } else {
                     let trans = sattr.transform;
 
@@ -345,126 +352,61 @@ NodePrototype.prototype.exec = function Cexe(exe) {
     return this;
 };
 
-NodePrototype.prototype.fetchEls = function (nodeSelector, dataArray) {
+NodePrototype.prototype.fetchEls = function fetchEls (nodeSelector, dataArray) {
+
     const nodes = [];
     const wrap = new CollectionPrototype();
+    const selectorType = nodeSelector.charAt(0);
+    const token = ['.', '#'].includes(selectorType) ? nodeSelector.substring(1) : nodeSelector;
 
-    if (this.children.length > 0) {
-        if (nodeSelector.charAt(0) === ".") {
-            const classToken = nodeSelector.substring(1, nodeSelector.length);
-            this.children.forEach((d) => {
-                if (!d) {
-                    return;
-                }
-                const check1 =
-                    dataArray &&
-                    d.dataObj &&
-                    dataArray.indexOf(d.dataObj) !== -1 &&
-                    d.attr.class === classToken;
-                const check2 = !dataArray && d.attr.class === classToken;
+    const isMatch = (node, compareToken) => {
+        if (!node) return false;
 
-                if (check1 || check2) {
-                    nodes.push(d);
-                }
-            });
-        } else if (nodeSelector.charAt(0) === "#") {
-            const idToken = nodeSelector.substring(1, nodeSelector.length);
-            this.children.every((d) => {
-                if (!d) {
-                    return;
-                }
-                const check1 =
-                    dataArray &&
-                    d.dataObj &&
-                    dataArray.indexOf(d.dataObj) !== -1 &&
-                    d.attr.id === idToken;
-                const check2 = !dataArray && d.attr.id === idToken;
+        const attrValue = selectorType === '.' ? node.attr?.class :
+                          selectorType === '#' ? node.attr?.id :
+                          node.nodeName;
+        const isInDataArray = dataArray ? dataArray.includes(node.dataObj) : true;
 
-                if (check1 || check2) {
-                    nodes.push(d);
-                    return false;
-                }
+        return isInDataArray && attrValue === compareToken;
+    };
 
-                return true;
-            });
-        } else {
-            nodeSelector = nodeSelector === "group" ? "g" : nodeSelector;
-            this.children.forEach((d) => {
-                if (!d) {
-                    return;
-                }
-                const check1 =
-                    dataArray &&
-                    d.dataObj &&
-                    dataArray.indexOf(d.dataObj) !== -1 &&
-                    d.nodeName === nodeSelector;
-                const check2 = !dataArray && d.nodeName === nodeSelector;
-
-                if (check1 || check2) {
-                    nodes.push(d);
-                }
-            });
+    for (let i = 0; i < this.children.length; i++) {
+        const node = this.children[i];
+        if (isMatch(node, token)) {
+            nodes.push(node);
         }
     }
 
     return wrap.wrapper(nodes);
 };
 
-NodePrototype.prototype.fetchEl = function (nodeSelector, data) {
-    let nodes;
+NodePrototype.prototype.fetchEl = function fetchEl(nodeSelector, data) {
+    let matchedNode = null;
 
-    if (this.children.length > 0) {
-        if (nodeSelector.charAt(0) === ".") {
-            const classToken = nodeSelector.substring(1, nodeSelector.length);
-            this.children.every((d) => {
-                if (!d) {
-                    return;
-                }
-                const check1 =
-                    data && d.dataObj && data === d.dataObj && d.attr.class === classToken;
-                const check2 = !data && d.attr.class === classToken;
+    const selectorType = nodeSelector.charAt(0);
+    const token = ['.', '#'].includes(selectorType) ? nodeSelector.substring(1) : nodeSelector
 
-                if (check1 || check2) {
-                    nodes = d;
-                    return false;
-                }
+    const isMatch = (node, compareToken) => {
+        if (!node) return false;
+        const nodeAttr = node.attr || {};
+        const compareAgainst = selectorType === '.' ? nodeAttr['class'] : 
+                               selectorType === '#' ? nodeAttr['id'] : 
+                               node.nodeName;
 
-                return true;
-            });
-        } else if (nodeSelector.charAt(0) === "#") {
-            const idToken = nodeSelector.substring(1, nodeSelector.length);
-            this.children.every((d) => {
-                if (!d) {
-                    return;
-                }
-                const check1 = data && d.dataObj && data === d.dataObj && d.attr.id === idToken;
-                const check2 = !data && d.attr.id === idToken;
+        return (!data || node.dataObj === data) && compareAgainst === compareToken;
+    };
 
-                if (check1 || check2) {
-                    nodes = d;
-                    return false;
-                }
+     for (let node of this.children) {
+        const compareToken = (selectorType === '.' || selectorType === '#') ? token : 
+                             (nodeSelector === 'group' ? 'g' : nodeSelector);
 
-                return true;
-            });
-        } else {
-            nodeSelector = nodeSelector === "group" ? "g" : nodeSelector;
-            this.children.forEach((d) => {
-                if (!d) {
-                    return;
-                }
-                const check1 =
-                    data && d.dataObj && data === d.dataObj && d.nodeName === nodeSelector;
-                const check2 = !data && d.nodeName === nodeSelector;
-
-                if (check1 || check2) {
-                    nodes = d;
-                }
-            });
+        if (isMatch(node, compareToken)) {
+            matchedNode = node;
+            break;
         }
     }
 
-    return nodes;
+    return matchedNode;
 };
 
 function dataJoin(data, selector, config) {
@@ -660,31 +602,21 @@ function forEach(callBck) {
 }
 
 function setAttribute(key, value) {
-    let d;
+    const setAttrHelper = (element, attrKey, attrValue, index) => {
+        const resolvedValue = typeof attrValue === 'function' ? attrValue.call(element, element.dataObj, index) : attrValue;
+        element.setAttr(attrKey, resolvedValue);
+    };
 
     for (let i = 0, len = this.stack.length; i < len; i += 1) {
-        d = this.stack[i];
-
+        let element = this.stack[i];
         if (arguments.length > 1) {
-            if (typeof value === "function") {
-                d.setAttr(key, value.call(d, d.dataObj, i));
-            } else {
-                d.setAttr(key, value);
-            }
-        } else if (typeof key === "function") {
-            d.setAttr(key.call(d, d.dataObj, i));
-        } else {
-            const keys = Object.keys(key);
-
-            for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
-                const keykey = keys[j];
-
-                if (typeof key[keykey] === "function") {
-                    d.setAttr(keykey, key[keykey].call(d, d.dataObj, i));
-                } else {
-                    d.setAttr(keykey, key[keykey]);
-                }
-            }
+            setAttrHelper(element, key, value, i);
+        } else if (typeof key === 'function') {
+            element.setAttr(key.call(element, element.dataObj, i));
+        } else if (typeof key === 'object' && key !== null) {
+            Object.entries(key).forEach(([attrKey, attrValue]) => {
+                setAttrHelper(element, attrKey, attrValue, i);
+            });
         }
     }
 
@@ -692,39 +624,22 @@ function setAttribute(key, value) {
 }
 
 function setStyle(key, value) {
-    let d;
+    const setStyleHelper = (element, styleKey, styleValue, index) => {
+        const resolvedValue = typeof styleValue === 'function' ? styleValue.call(element, element.dataObj, index) : styleValue;
+        element.setStyle(styleKey, resolvedValue);
+    };
 
     for (let i = 0, len = this.stack.length; i < len; i += 1) {
-        d = this.stack[i];
+        let element = this.stack[i];
 
         if (arguments.length > 1) {
-            if (typeof value === "function") {
-                d.setStyle(key, value.call(d, d.dataObj, i));
-            } else {
-                d.setStyle(key, value);
-            }
-        } else {
-            if (typeof key === "function") {
-                d.setStyle(key.call(d, d.dataObj, i));
-            } else {
-                const keys = Object.keys(key);
-
-                for (let j = 0, lenJ = keys.length; j < lenJ; j += 1) {
-                    const keykey = keys[j];
-
-                    if (typeof key[keykey] === "function") {
-                        d.setStyle(keykey, key[keykey].call(d, d.dataObj, i));
-                    } else {
-                        d.setStyle(keykey, key[keykey]);
-                    }
-                }
-            }
-
-            if (typeof key === "function") {
-                d.setStyle(key.call(d, d.dataObj, i));
-            } else {
-                d.setStyle(key);
-            }
+          setStyleHelper(element, key, value, i);
+        } else if (typeof key === 'function') {
+          element.setStyle(key.call(element, element.dataObj, i));
+        } else if (typeof key === 'object') {
+          Object.entries(key).forEach(([styleKey, styleValue]) => {
+            setStyleHelper(element, styleKey, styleValue, i);
+          });
         }
     }
 
@@ -841,13 +756,10 @@ function resolveObject(config, node, i) {
 }
 
 const animateArrayTo = function animateArrayTo(config) {
-    let node;
-    let newConfig;
 
     for (let i = 0; i < this.stack.length; i += 1) {
-        newConfig = {};
-        node = this.stack[i];
-        newConfig = resolveObject(config, node, i);
+        let node = this.stack[i];
+        let newConfig = resolveObject(config, node, i);
 
         if (config.attr && typeof config.attr !== "function") {
             newConfig.attr = resolveObject(config.attr, node, i);
@@ -857,13 +769,9 @@ const animateArrayTo = function animateArrayTo(config) {
             newConfig.style = resolveObject(config.style, node, i);
         }
 
-        if (config.end) {
-            newConfig.end = config.end;
-        }
+        if (config.end) newConfig.end = config.end;
 
-        if (config.ease) {
-            newConfig.ease = config.ease;
-        }
+        if (config.ease) newConfig.ease = config.ease;
 
         node.animateTo(newConfig);
     }
@@ -872,14 +780,11 @@ const animateArrayTo = function animateArrayTo(config) {
 };
 
 const animateArrayExe = function animateArrayExe(config) {
-    let node;
-    let newConfig;
     const exeArray = [];
 
     for (let i = 0; i < this.stack.length; i += 1) {
-        newConfig = {};
-        node = this.stack[i];
-        newConfig = resolveObject(config, node, i);
+        let node = this.stack[i];
+        let newConfig = resolveObject(config, node, i);
 
         if (config.attr && typeof config.attr !== "function") {
             newConfig.attr = resolveObject(config.attr, node, i);
@@ -889,13 +794,9 @@ const animateArrayExe = function animateArrayExe(config) {
             newConfig.style = resolveObject(config.style, node, i);
         }
 
-        if (config.end) {
-            newConfig.end = config.end;
-        }
+        if (config.end) newConfig.end = config.end;
 
-        if (config.ease) {
-            newConfig.ease = config.ease;
-        }
+        if (config.ease) newConfig.ease = config.ease;
 
         exeArray.push(node.animateExe(newConfig));
     }
@@ -978,9 +879,9 @@ function CollectionPrototype(contextInfo, data, config, vDomIndex) {
 
             if (typeof config.style[key] === "function") {
                 const resValue = config.style[key].call(node, d, i);
-                node.setStyle(key, resValue);
+                node.style[key] = resValue;
             } else {
-                node.setStyle(key, config.style[key]);
+                node.style[key] = config.style[key];
             }
         }
 
@@ -990,9 +891,10 @@ function CollectionPrototype(contextInfo, data, config, vDomIndex) {
             if (key !== "transform") {
                 if (typeof config.attr[key] === "function") {
                     const resValue = config.attr[key].call(node, d, i);
-                    node.setAttr(key, resValue);
+                    node.attr[key] = resValue;
+
                 } else {
-                    node.setAttr(key, config.attr[key]);
+                    node.attr[key] = config.attr[key];
                 }
             } else {
                 if (typeof config.attr.transform === "function") {

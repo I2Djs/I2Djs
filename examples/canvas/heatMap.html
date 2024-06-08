@@ -25,7 +25,9 @@
 
             var renderer_2 = canvasLayer("#myCanvas", {}, { enableResize: false });
             renderer_2.setPixelRatio(1);
-            var renderer_ = canvasLayer(null, {}, { enableResize: false });
+            var renderer_ = canvasLayer(null, {
+                willReadFrequently: true
+            }, { enableResize: false });
             renderer_.setPixelRatio(1);
             renderer_.setSize(renderer_2.width, renderer_2.height);
 

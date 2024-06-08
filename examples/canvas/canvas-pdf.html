@@ -18,7 +18,7 @@
 <script type="importmap">
     {
         "imports": {
-            "i2djs": "../../dist/i2d.esm.min.js"
+            "i2djs": "../../dist/i2d.esm.js"
         }
     }
 </script>
@@ -91,17 +91,11 @@
 
     renderPdf(renderer);
 
-
-
     async function renderPdf (renderer) {
         let pdfBlob = await exportCanvasToPdf(renderer, {});
         document.getElementById("i2dPdfContainer").setAttribute("src", pdfBlob);
     }
 
-    
-    // renderer.exportPdf(function (url) {
-    //     document.getElementById("i2dPdfContainer").setAttribute("src", url);
-    // });
 </script>
 <style>
     html,

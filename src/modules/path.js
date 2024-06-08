@@ -46,81 +46,33 @@ function pathCmdIsValid(_) {
 }
 
 function updateBBox(d, pd, minMax, bbox) {
-    let { minX, minY, maxX, maxY } = minMax;
+    const updateBounds = (point) => {
+        minMax.minX = Math.min(minMax.minX, point.x);
+        minMax.maxX = Math.max(minMax.maxX, point.x);
+        minMax.minY = Math.min(minMax.minY, point.y);
+        minMax.maxY = Math.max(minMax.maxY, point.y);
+    };
 
-    if (["V", "H", "L", "v", "h", "l"].indexOf(d.type) !== -1) {
-        [d.p0 ? d.p0 : pd.p1, d.p1].forEach(function (point) {
-            if (point.x < minX) {
-                minX = point.x;
-            }
 
-            if (point.x > maxX) {
-                maxX = point.x;
-            }
-
-            if (point.y < minY) {
-                minY = point.y;
-            }
-
-            if (point.y > maxY) {
-                maxY = point.y;
-            }
-        });
-    } else if (["Q", "C", "q", "c"].indexOf(d.type) !== -1) {
+    if (["V", "H", "L", "v", "h", "l"].includes(d.type)) {
+        [d.p0 || pd.p1, d.p1].forEach(updateBounds);
+    } else if (["Q", "C", "q", "c"].includes(d.type)) {
         const co = t2DGeometry.cubicBezierCoefficients(d);
         const exe = t2DGeometry.cubicBezierTransition.bind(null, d.p0, co);
-        let ii = 0;
-        let point;
 
-        while (ii < 1) {
-            point = exe(ii);
-            ii += 0.05;
-
-            if (point.x < minX) {
-                minX = point.x;
-            }
-
-            if (point.x > maxX) {
-                maxX = point.x;
-            }
-
-            if (point.y < minY) {
-                minY = point.y;
-            }
-
-            if (point.y > maxY) {
-                maxY = point.y;
-            }
+        for (let ii = 0; ii <= 1; ii += 0.05) {
+            updateBounds(exe(ii));
         }
     } else {
-        const point = d.p0;
-
-        if (point.x < minX) {
-            minX = point.x;
-        }
-
-        if (point.x > maxX) {
-            maxX = point.x;
-        }
-
-        if (point.y < minY) {
-            minY = point.y;
-        }
-
-        if (point.y > maxY) {
-            maxY = point.y;
-        }
+        updateBounds(d.p0);
     }
 
-    minMax.minX = minX;
-    minMax.minY = minY;
-    minMax.maxX = maxX;
-    minMax.maxY = maxY;
-
-    bbox.x = minX;
-    bbox.y = minY;
-    bbox.width = maxX - minX;
-    bbox.height = maxY - minY;
+    Object.assign(bbox, {
+        x: minMax.minX,
+        y: minMax.minY,
+        width: minMax.maxX - minMax.minX,
+        height: minMax.maxY - minMax.minY,
+    });
 }
 
 function pathParser(path) {
