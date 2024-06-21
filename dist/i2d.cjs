@@ -67746,43 +67746,34 @@ function PDFCreator(config) {
     };
     PDFCreator.prototype.exportPdf = async function (callback, pdfConfig = {}) {
         let self = this;
-        const doc = new PDFDocument({
-            ...pdfConfig,
-        });
-        const stream_ = doc.pipe(blobStream());
-        if (this.fontRegister) {
-            for (const key in this.fontRegister) {
-                if (pdfSupportedFontFamily.indexOf(key) === -1) pdfSupportedFontFamily.push(key);
-                const font = await fetch(this.fontRegister[key]);
-                const fontBuffer = await font.arrayBuffer();
-                doc.registerFont(key, fontBuffer);
-            }
-        }
-        if (this.pdfInfo) {
-            doc.info.Title = this.pdfInfo.title || "";
-            doc.info.Author = this.pdfInfo.author || "";
-            doc.info.Subject = this.pdfInfo.subject || "";
-            doc.info.Keywords = this.pdfInfo.keywords || "";
-            doc.info.CreationDate = this.pdfInfo.creationDate || new Date();
-        }
-        this.doc = doc;
-        this.pages.forEach(function (page) {
-            page.updateBBox();
-            doc.addPage({
-                margin: page.margin || 0,
-                size: [page.width, page.height],
+        try {
+            const doc = new PDFDocument({
+                ...pdfConfig,
             });
-            if (page.pageTemplate) {
-                page.pageTemplate.executePdf(doc);
+            const stream_ = doc.pipe(blobStream());
+            await registerFontFromConfig(doc, this.fontRegister);
+            if (this.pdfInfo) {
+                doc.info.Title = this.pdfInfo.title || "";
+                doc.info.Author = this.pdfInfo.author || "";
+                doc.info.Subject = this.pdfInfo.subject || "";
+                doc.info.Keywords = this.pdfInfo.keywords || "";
+                doc.info.CreationDate = this.pdfInfo.creationDate || new Date();
             }
-            page.exportPdf(doc, {
-                autoPagination: self.layerConfig.autoPagination
+            this.doc = doc;
+            this.pages.forEach(function (page) {
+                page.updateBBox();
+                page.exportPdf(doc, {
+                    autoPagination: self.layerConfig.autoPagination
+                });
             });
-        });
-        this.doc.end();
-        stream_.on("finish", function () {
-            callback(stream_.toBlobURL("application/pdf"));
-        });
+            this.doc.end();
+            stream_.on("finish", function () {
+                callback(stream_.toBlobURL("application/pdf"));
+            });
+        }
+        catch (err) {
+            console.error(err);
+        }
     };
     PDFCreator.prototype.destroy = function () {
         const res = document.body.contains(this.container);
@@ -67868,14 +67859,7 @@ async function CanvasToPdf(options) {
                     const stream_ = doc.pipe(blobStream());
                     const fontRegister = options.fontRegister || {};
                     const pdfInfo = options.info || { title: "I2Djs-PDF" };
-                    if (fontRegister) {
-                        for (const key in fontRegister) {
-                            if (pdfSupportedFontFamily.indexOf(key) === -1) pdfSupportedFontFamily.push(key);
-                            const font = await fetch(fontRegister[key]);
-                            const fontBuffer = await font.arrayBuffer();
-                            doc.registerFont(key, fontBuffer);
-                        }
-                    }
+                    await registerFontFromConfig(doc, fontRegister);
                     doc.info = {
                         Title: pdfInfo.title || "",
                         Author: pdfInfo.author || "",
@@ -67899,6 +67883,38 @@ async function CanvasToPdf(options) {
 }
 function exportCanvasToPdf(canvasLayer, options) {
     return CanvasToPdf.call(canvasLayer, options);
+}
+function registerFontFromConfig(doc, fontRegister = {}) {
+    return new Promise((resolve, reject) => {
+        (async () => {
+            try {
+                let keys = Object.keys(fontRegister);
+                for (let i = 0; i < keys.length; i++) {
+                    let key = keys[i];
+                    if (!pdfSupportedFontFamily.includes(key)) {
+                        pdfSupportedFontFamily.push(key);
+                    }
+                    const fontResponse = await fetch(fontRegister[key]);
+                    if (!fontResponse.ok) {
+                        throw new Error(`Failed to fetch font: ${fontRegister[key]}`);
+                    }
+                    const fontBuffer = await fontResponse.arrayBuffer();
+                    const fontExtension = fontRegister[key].split('.').pop().toLowerCase();
+                    if (['ttc', 'dfont'].includes(fontExtension)) {
+                        const encodedKey = (new TextEncoder()).encode(key);
+                        encodedKey._isBuffer = true;
+                        doc.registerFont(key, fontBuffer, encodedKey);
+                    } else {
+                        doc.registerFont(key, fontBuffer);
+                    }
+                }
+                resolve(true);
+            } catch(err) {
+                console.error(err);
+                reject(false);
+            }
+        })();
+    })
 }
 
 function _classCallCheck(instance, Constructor) {

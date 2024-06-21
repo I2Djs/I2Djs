@@ -10,7 +10,7 @@
     </body>
 </html>
 <script type="module">
-    import {pdfLayer} from "../../dist/i2d.esm.min.js";
+    import {pdfLayer} from "../../dist/i2d.esm.js";
     let pdfInstance = pdfLayer("#i2dPdfContainer", {
         height: 600,
         width: 600,
@@ -23,7 +23,10 @@
         },
         fontRegister: {
             'LoveDays': "./../fonts/LoveDays-2v7Oe.ttf",
-            'ShadeBlue': "./../fonts/ShadeBlue-2OozX.ttf"
+            'ShadeBlue': "./../fonts/ShadeBlue-2OozX.ttf",
+            'Chalkboard': "./../fonts/Chalkboard.ttc",
+            'Chalkboard-Bold': "./../fonts/Chalkboard.ttc",
+            'Helvetica-Oblique': "./../fonts/Helvetica.dfont"
         }
     });
 
@@ -50,7 +53,7 @@
         style: {
             textAlign: "center",
             fillStyle: "#ff0000",
-            font: "100px LoveDays"
+            font: "100px"
         },
     });
 
@@ -65,9 +68,55 @@
         style: {
             textAlign: "center",
             fillStyle: "#ff0000",
+            font: "100px Chalkboard-Bold"
+        },
+    });
+
+    page1.createEl({
+        el: "text",
+        attr: {
+            x: 0,
+            y: 350,
+            width: 600,
+            text: 'PDF-Frame',
+        },
+        style: {
+            textAlign: "center",
+            fillStyle: "#ff0000",
+            font: "100px Helvetica-Oblique"
+        },
+    });
+
+    page1.createEl({
+        el: "text",
+        attr: {
+            x: 0,
+            y: 600,
+            width: 600,
+            text: 'PDF-Frame',
+        },
+        style: {
+            textAlign: "center",
+            fillStyle: "#ff0000",
+            font: "100px LoveDays"
+        },
+    });
+
+    page1.createEl({
+        el: "text",
+        attr: {
+            x: 0,
+            y: 750,
+            width: 600,
+            text: 'PDF-Frame',
+        },
+        style: {
+            textAlign: "center",
+            fillStyle: "#ff0000",
             font: "100px ShadeBlue"
         },
     });
+
 </script>
 <style>
     html,
