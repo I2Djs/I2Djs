@@ -118,6 +118,18 @@
     let page2 = pdfInstance.addPage({
         pageTemplate: template,
     });
+
+    page2.createEl({
+        el: "text",
+        attr: {
+            text: "Pdf-frame is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame features SVG-like ",
+            x: 150,
+            y: 250,
+        },
+        style: {
+            fillStyle: "#ff0000"
+        },
+    });
 </script>
 <style>
     html,

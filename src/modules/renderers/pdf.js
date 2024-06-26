@@ -5,7 +5,7 @@ import PDFDocument from "pdfkit";
 import blobStream from "blob-stream-i2d";
 import fs from "fs";
 import { STANDARD_FONTS } from "./../../data/static-fonts.js";
-import { createPage } from "./canvas.js";
+import { createPage, CanvasNodeExe } from "./canvas.js";
 import { pdfSupportedFontFamily } from "./../constants.js";
 
 if (Object.keys(STANDARD_FONTS).length > 0) {
@@ -144,7 +144,17 @@ function PDFCreator(config) {
         return removedPage;
     };
     PDFCreator.prototype.createTemplate = function () {
-        return createPage(this.ctx, this.vDomIndex);
+        return new CanvasNodeExe(
+            this.ctx,
+            {
+                el: "g",
+                attr: {
+                    id: "templateNode",
+                },
+            },
+            Math.round(Math.random() * 99999),
+            this.vDomIndex
+        )
     };
     PDFCreator.prototype.exportPdf = async function (callback, pdfConfig = {}) {
         let self = this;
@@ -167,6 +177,7 @@ function PDFCreator(config) {
             this.doc = doc;
 
             this.pages.forEach(function (page) {
+                page.updateABBox();
                 page.updateBBox();
                 page.exportPdf(doc, {
                     autoPagination: self.layerConfig.autoPagination

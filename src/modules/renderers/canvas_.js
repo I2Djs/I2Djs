@@ -198,7 +198,7 @@ function cRenderPdf(attr, pdfCtx, block) {
     const [hozSkew = 0, verSkew = hozSkew] = skew;
     const [hozMove = 0, verMove = hozMove] = translate;
 
-    pdfCtx.save();
+    pdfCtx.switchToPage(this.pageIndex);
 
     pdfCtx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove);
 
@@ -211,8 +211,6 @@ function cRenderPdf(attr, pdfCtx, block) {
     for (let i = 0; i < self.stack.length; i += 1) {
         self.stack[i].executePdf(pdfCtx, block);
     }
-
-    pdfCtx.restore();
 }
 
 function cRender(attr) {
@@ -985,11 +983,16 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
         width = this.ctx.measureText(this.attr.text).width;
     }
 
+    if (this.style.textAlign === "center") {
+        x -= width / 2;
+    } else if (this.style.textAlign === "right") {
+        x -= width;
+    }
+
     if (doc) {
-        width = this.attr.width || ((doc?.options?.size[0]??0) - this.abTransform.translate[0] - x);
         const alignVlaue = this.style.align ?? this.style.textAlign;
         const styleObect = {
-            width,
+            ...(this.attr.width && { width: this.attr.width }),
             ...(this.style.lineGap && { lineGap: this.style.lineGap }),
             ...(this.style.textBaseline && { textBaseline: this.style.textBaseline }),
             ...(alignVlaue && { align: alignVlaue }),
@@ -997,17 +1000,9 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
 
         if (this.style.font) {
             doc.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
-        } else {
-            doc.fontSize(10);
         }
-        height = doc.heightOfString(this.attr.text, styleObect);
-        this.textHeight = doc.heightOfString("i2djs", styleObect);
-    }
 
-    if (this.style.textAlign === "center") {
-        x -= width / 2;
-    } else if (this.style.textAlign === "right") {
-        x -= width;
+        height = doc.heightOfString(this.attr.text, styleObect);
     }
 
     Object.assign(self, { width, height, x, y });
@@ -1082,8 +1077,6 @@ RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
             } catch (err) {
                 console.error("Unknown font family - "+ fontFamily);
             }
-        } else {
-            pdfCtx.fontSize(10);
         }
         const alignVlaue = this.style.align ?? this.style.textAlign;
 
@@ -1093,39 +1086,12 @@ RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
             ...(this.style.textBaseline && { textBaseline: this.style.textBaseline }),
             ...(alignVlaue && { align: alignVlaue }),
         };
+        if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
+            pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
+        }
 
-        if (this.pdfSubTexts && this.pdfSubTexts.length) {
-            this.pdfSubTexts.forEach((d, i) => {
-                if (i !== 0) {
-                    pdfCtx.restore();
-                    pdfCtx.switchToPage(d.pageIndex);
-                    pdfCtx.save();
-                }
-                
-                this.nodeExe.stylesExePdf(pdfCtx);
-                if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
-                    pdfCtx.text(d.text, d.attr.x, d.attr.y, styleObect);
-                }
-        
-                if (this.style.strokeStyle || this.style.stroke || this.style.strokeColor) {
-                    pdfCtx.text(d.text, d.attr.x, d.attr.y, styleObect);
-                }
-
-                if (!block && i === 0) {
-                    pdfCtx.translate(0, -this.abYposition);
-                }
-                if (i !== 0) {
-                    pdfCtx.restore();
-                }
-            })
-        } else {
-            if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
-                pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
-            }
-    
-            if (this.style.strokeStyle || this.style.stroke || this.style.strokeColor) {
-                pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
-            }
+        if (this.style.strokeStyle || this.style.stroke || this.style.strokeColor) {
+            pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
         }
     }
 };
@@ -2157,7 +2123,6 @@ CanvasNodeExe.prototype.executePdf = function Cexecute(pdfCtx, block) {
         return;
     }
     if (!(this.dom instanceof RenderGroup) || block || this.block) {
-        pdfCtx.switchToPage(this.dom.pageIndex) ;
         pdfCtx.save();
         this.stylesExePdf(pdfCtx);
         this.attributesExePdf(pdfCtx, block);
@@ -2213,15 +2178,6 @@ CanvasNodeExe.prototype.setVDomIndex = function (vDomIndex) {
     for (let i = 0, len = this.children.length; i < len; i += 1) {
         if (this.children[i] && this.children[i].setVDomIndex) {
             this.children[i].setVDomIndex(vDomIndex);
-        }
-    }
-};
-
-CanvasNodeExe.prototype.setPdfPageIndex = function (pageIndex) {
-    this.dom.pageIndex = pageIndex;
-    for (let i = 0, len = this.children.length; i < len; i += 1) {
-        if (this.children[i] && this.children[i].setPdfPageIndex) {
-            this.children[i].setPdfPageIndex(pageIndex);
         }
     }
 };
@@ -2700,214 +2656,226 @@ function createPage(ctx, vDomIndex) {
         this.execute();
     };
 
-    root.exportPdf = function (doc) {
+    root.exportPdf = function (doc, layerConfig) {
         const margin = this.margin || 0;
         const { top = margin, bottom = margin } = this.margins || { };
         const pageHeight = this.height;
         const abPageHeight = (pageHeight - top - bottom)
 
-        this.updateABBox(undefined, { pageHeight, top, bottom});
         this.updateBBox();
+        this.updateABBox(undefined, { pageHeight, top, bottom});
 
         let leafNodes = getAllLeafs(this).sort((a, b) => {
-                const aTrans = a.dom && a.dom.abTransform ? a.dom.abTransform : { translate: [0, 0] };
-                // const aBox = a.dom.BBox;
-                const bTrans = b.dom && b.dom.abTransform ? b.dom.abTransform : { translate: [0, 0] };
-                // const bBox = b.dom.BBox;
-                return (
-                    aTrans.translate[1] +
-                    a.dom.abYposition -
-                    (bTrans.translate[1] + b.dom.abYposition)
-                );
+                return ( a.dom.pageIndex - b.dom.pageIndex );
             });
 
         let pages = [];
-        // let pageRunningY = {
-        // };
+        let pageRunningY = {
+        };
         const pageRage = doc.bufferedPageRange();
-        let pageNumber = pageRage.count;
+        let pageNumber = pageRage.count - 1;
         leafNodes.forEach((node) => {
             const abTransform = node.dom.abTransform;
             const elHight = node.dom.BBox.height || 0;
             const elY = node.dom.abYposition || 0;
-            // let runningY = pageRunningY[node.dom.pageIndex] || 0;
-            let newPageIndex= pageNumber + node.dom.pageIndex;
-            let currentPageIndex = newPageIndex;
-            let posY = calculatePosY(abTransform, elY, (node.dom.pageIndex * abPageHeight));
+            let runningY = pageRunningY[node.dom.pageIndex] || 0;
+            let newPageIndex= node.dom.pageIndex + (runningY / abPageHeight);
+            let posY = calculatePosY(abTransform, elY, (node.dom.pageIndex * abPageHeight) + (pageRunningY[node.dom.pageIndex] || 0));
 
 
             if ((posY + elHight) > abPageHeight ) {
                 if (node.dom instanceof RenderText) {
-                    let pagesCount = splitTextNode(node, posY, newPageIndex);
-                    while(pagesCount >= 1) {
-                        addNewPage.call(this, newPageIndex);
-                        newPageIndex += 1;
-                        pagesCount--;
-                    }
-                    // while loops increments additional page
-                    // newPageIndex -= 1;
+                    splitTextNode(node, posY, elHight);
+                } else {
+                    newPageIndex += 1;
+                    posY = 0;
+                    pageRunningY[newPageIndex] = 0;
                 }
-            } else {
-                addNewPage.call(this, newPageIndex);
+            }
+
+            if (!pages[newPageIndex]) {
+                doc.addPage({
+                    margin: this.margin,
+                    margins: this.margins,
+                    size: [this.width, this.height],
+                });
+                if (this.pageTemplate) {
+                    // this.pageTemplate.executePdf(doc);
+                }
+                pages[newPageIndex] = true;
+                pageNumber += 1;
+                console.log(pageNumber);
+                console.log(elHight);
+                console.log(layerConfig);
             }
 
             node.dom.abTransform = {
                 translate: [abTransform.translate[0], posY + top],
             };
 
-            node.dom.pageIndex = currentPageIndex;
+            node.dom.pageIndex = pageNumber;
+            // const executePdf = node.executePdf.bind(node);
+            // node.executePdf = (function (pNumber) {
+            //     return function (pdfCtx) {
+            //         pdfCtx.switchToPage(pNumber);
+            //         executePdf(pdfCtx);
+            //     };
+            // })(pageNumber);
+
+
+            // if (needsNewPage(node, posY, elHight)) {
+
+            //     if (node.dom instanceof RenderText) {
+            //         splitTextNode(node, posY, elHight);
+            //     }
+
+            //     runningY += pageHeight - top - bottom;
+            //     posY = calculatePosY(abTransform, elY, runningY);
+            //     runningY += posY;
+            //     posY = 0;
+            //     doc.addPage({
+            //         margin: this.margin,
+            //         margins: this.margins,
+            //         size: [this.width, this.height],
+            //     });
+            //     if (this.pageTemplate) {
+            //         this.pageTemplate.executePdf(doc);
+            //     }
+            //     pageNumber += 1;
+            // }
+            // node.dom.abTransform = {
+            //     translate: [abTransform.translate[0], posY + top],
+            // };
+
+            // const executePdf = node.executePdf.bind(node);
+
+            // // Redefining pdf call with page mapping
+            // node.executePdf = (function (pNumber) {
+            //     return function (pdfCtx) {
+            //         pdfCtx.switchToPage(pNumber);
+            //         executePdf(pdfCtx);
+            //     };
+            // })(pageNumber);
         });
 
         this.executePdf(doc);
 
-        function addNewPage(newPageIndex) {
-            if (pages[newPageIndex]) {
-                return;
-            }
-            pages[newPageIndex] = true;
-            doc.addPage({
-                margin: this.margin,
-                margins: this.margins,
-                size: [this.width, this.height],
-            });
-            if (this.pageTemplate) {
-                this.pageTemplate.setPdfPageIndex(newPageIndex);
-                this.pageTemplate.executePdf(doc);
-            }
-        }
+        // function needsNewPage(node, posY, elHight) {
+        //     return layerConfig.autoPagination && !(posY < pageHeight - bottom - top && posY + elHight <= pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
+        // }
 
-        function splitTextNode(node, posY, pIndex) {
-            let elHeight = node.dom.BBox.height || 0;
+        function splitTextNode(node, posY, elHight) {
             let availablePageHeight = (abPageHeight - posY);
+            let percent = availablePageHeight / elHight;
             let text = node.attr.text || "";
-            let subStrs = [];
-            let subPage = 0;
-            let currentAvailableHeight = availablePageHeight;
-            let prevIndex = 0;
-            posY = 0;
-
-            if (!text || elHeight <= 0) {
-                console.warn("Invalid text or element height.");
-                return 0;
-            }
-
-            while(prevIndex < text.length) {
-                elHeight = ((elHeight === node.dom.textHeight) ? currentAvailableHeight : elHeight);
-                let percent = currentAvailableHeight / elHeight;
-                const index = Math.floor(text.length * percent);
-
-                if (index <= prevIndex) {
-                    console.warn("Text splitting encountered an infinite loop.");
-                    break;
+            const index = Math.floor(text.length * percent);
+            node.dom.addSubText([{
+                text: text.substring(0, index),
+                attr: {
+                    x: 0,
+                    y: posY
                 }
+            }, {
+                text: text.substring(index),
+                attr: {
+                    x: 0,
+                    y: 0
+                }
+            }]);
 
-                subStrs.push({
-                    text: text.substring(prevIndex, index),
-                    attr: {
-                        x: node.getAttr('x'),
-                        y: posY
-                    },
-                    pageIndex: pIndex + subPage
-                })
-                prevIndex = index;
-                currentAvailableHeight += abPageHeight;
-                subPage++;
-                posY = top;
-            }
-
-            node.dom.addSubText(subStrs);
-
-            return subPage;
+            // node.dom.addSubTexts()
+            // node.textList = [text.substring(0, index), text.substring(index)];
+            // return [text.substring(0, index), text.substring(index)];
         }
 
         function calculatePosY(abTransform, elY, runningY) {
-            return (abTransform.translate[1] + elY - runningY);
+            return (abTransform.translate[1] + elY || 0) - runningY;
         }
     };
 
-    // root.exportPdf_ = function (doc, layerConfig) {
-    //     const margin = this.margin || 0;
-    //     const { top = margin, bottom = margin } = this.margins || { };
-    //     const pageHeight = this.height;
+    root.exportPdf_ = function (doc, layerConfig) {
+        const margin = this.margin || 0;
+        const { top = margin, bottom = margin } = this.margins || { };
+        const pageHeight = this.height;
 
-    //     this.updateBBox();
-    //     this.updateABBox(undefined, {pageHeight, top, bottom });
+        this.updateBBox();
+        this.updateABBox(undefined, {pageHeight, top, bottom });
 
-    //     let leafNodes = getAllLeafs(this).sort((a, b) => {
-    //             const aTrans = a.dom && a.dom.abTransform ? a.dom.abTransform : { translate: [0, 0] };
-    //             const aBox = a.dom.BBox;
-    //             const bTrans = b.dom && b.dom.abTransform ? b.dom.abTransform : { translate: [0, 0] };
-    //             const bBox = b.dom.BBox;
-    //             return (
-    //                 aTrans.translate[1] +
-    //                 a.dom.abYposition +
-    //                 aBox.height -
-    //                 (bTrans.translate[1] + bBox.height + b.dom.abYposition)
-    //             );
-    //         });
+        let leafNodes = getAllLeafs(this).sort((a, b) => {
+                const aTrans = a.dom && a.dom.abTransform ? a.dom.abTransform : { translate: [0, 0] };
+                const aBox = a.dom.BBox;
+                const bTrans = b.dom && b.dom.abTransform ? b.dom.abTransform : { translate: [0, 0] };
+                const bBox = b.dom.BBox;
+                return (
+                    aTrans.translate[1] +
+                    a.dom.abYposition +
+                    aBox.height -
+                    (bTrans.translate[1] + bBox.height + b.dom.abYposition)
+                );
+            });
 
-    //     let runningY = 0;
-    //     const pageRage = doc.bufferedPageRange();
-    //     let pageNumber = pageRage.count - 1;
-    //     leafNodes.forEach((node) => {
-    //         const abTransform = node.dom.abTransform;
-    //         const elHight = node.dom.BBox.height || 0;
-    //         const elY = node.dom.abYposition || 0;
-    //         let posY = calculatePosY(abTransform, elY, runningY);
+        let runningY = 0;
+        const pageRage = doc.bufferedPageRange();
+        let pageNumber = pageRage.count - 1;
+        leafNodes.forEach((node) => {
+            const abTransform = node.dom.abTransform;
+            const elHight = node.dom.BBox.height || 0;
+            const elY = node.dom.abYposition || 0;
+            let posY = calculatePosY(abTransform, elY, runningY);
 
-    //         if (needsNewPage(node, posY, elHight)) {
+            if (needsNewPage(node, posY, elHight)) {
 
-    //             if (node.dom instanceof RenderText) {
-    //                 splitTextNode(node, posY, elHight);
-    //             }
+                if (node.dom instanceof RenderText) {
+                    splitTextNode(node, posY, elHight);
+                }
 
-    //             runningY += pageHeight - top - bottom;
-    //             posY = calculatePosY(abTransform, elY, runningY);
-    //             runningY += posY;
-    //             posY = 0;
-    //             doc.addPage({
-    //                 margin: this.margin,
-    //                 margins: this.margins,
-    //                 size: [this.width, this.height],
-    //             });
-    //             if (this.pageTemplate) {
-    //                 this.pageTemplate.executePdf(doc);
-    //             }
-    //             pageNumber += 1;
-    //         }
-    //         node.dom.abTransform = {
-    //             translate: [abTransform.translate[0], posY + top],
-    //         };
+                runningY += pageHeight - top - bottom;
+                posY = calculatePosY(abTransform, elY, runningY);
+                runningY += posY;
+                posY = 0;
+                doc.addPage({
+                    margin: this.margin,
+                    margins: this.margins,
+                    size: [this.width, this.height],
+                });
+                if (this.pageTemplate) {
+                    this.pageTemplate.executePdf(doc);
+                }
+                pageNumber += 1;
+            }
+            node.dom.abTransform = {
+                translate: [abTransform.translate[0], posY + top],
+            };
 
-    //         const executePdf = node.executePdf.bind(node);
+            const executePdf = node.executePdf.bind(node);
 
-    //         // Redefining pdf call with page mapping
-    //         node.executePdf = (function (pNumber) {
-    //             return function (pdfCtx) {
-    //                 pdfCtx.switchToPage(pNumber);
-    //                 executePdf(pdfCtx);
-    //             };
-    //         })(pageNumber);
-    //     });
+            // Redefining pdf call with page mapping
+            node.executePdf = (function (pNumber) {
+                return function (pdfCtx) {
+                    pdfCtx.switchToPage(pNumber);
+                    executePdf(pdfCtx);
+                };
+            })(pageNumber);
+        });
 
-    //     this.executePdf(doc);
+        this.executePdf(doc);
 
-    //     function needsNewPage(node, posY, elHight) {
-    //         return layerConfig.autoPagination && !(posY < pageHeight - bottom - top && posY + elHight <= pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
-    //     }
+        function needsNewPage(node, posY, elHight) {
+            return layerConfig.autoPagination && !(posY < pageHeight - bottom - top && posY + elHight <= pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
+        }
 
-    //     function splitTextNode(node, posY, elHight) {
-    //         let availablePageHeight = ((pageHeight - bottom - top) - posY);
-    //         let percent = availablePageHeight / elHight;
-    //         let text = node.attr.text || "";
-    //         const index = Math.floor(text.length * percent);
-    //         node.textList = [text.substring(0, index), text.substring(index)];
-    //     }
+        function splitTextNode(node, posY, elHight) {
+            let availablePageHeight = ((pageHeight - bottom - top) - posY);
+            let percent = availablePageHeight / elHight;
+            let text = node.attr.text || "";
+            const index = Math.floor(text.length * percent);
+            node.textList = [text.substring(0, index), text.substring(index)];
+        }
 
-    //     function calculatePosY(abTransform, elY, runningY) {
-    //         return (abTransform.translate[1] + elY || 0) - runningY;
-    //     }
-    // };
+        function calculatePosY(abTransform, elY, runningY) {
+            return (abTransform.translate[1] + elY || 0) - runningY;
+        }
+    };
 
     root.addTemplate = function (template) {
         this.pageTemplate = template;

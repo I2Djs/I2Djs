@@ -65333,6 +65333,7 @@ function cRenderPdf(attr, pdfCtx, block) {
     const [hozScale = 1, verScale = hozScale] = scale;
     const [hozSkew = 0, verSkew = hozSkew] = skew;
     const [hozMove = 0, verMove = hozMove] = translate;
+    pdfCtx.save();
     pdfCtx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove);
     if (transform.rotate && transform.rotate.length > 0) {
         pdfCtx.translate(transform.rotate[1] || 0, transform.rotate[2] || 0);
@@ -65342,6 +65343,7 @@ function cRenderPdf(attr, pdfCtx, block) {
     for (let i = 0; i < self.stack.length; i += 1) {
         self.stack[i].executePdf(pdfCtx, block);
     }
+    pdfCtx.restore();
 }
 function cRender(attr) {
     const self = this;
@@ -65860,6 +65862,7 @@ function RenderText(ctx, props, styleProps) {
     self.stack = [self];
     self.textHeight = 0;
     self.height = 1;
+    self.pdfSubTexts = [];
     if (self.attr.width && self.attr.text) {
         this.fitWidth();
     }
@@ -65955,23 +65958,27 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
     } else {
         width = this.ctx.measureText(this.attr.text).width;
     }
-    if (this.style.textAlign === "center") {
-        x -= width / 2;
-    } else if (this.style.textAlign === "right") {
-        x -= width;
-    }
     if (doc) {
+        width = this.attr.width || ((doc?.options?.size[0]??0) - this.abTransform.translate[0] - x);
         const alignVlaue = this.style.align ?? this.style.textAlign;
         const styleObect = {
-            ...(this.attr.width && { width: this.attr.width }),
+            width,
             ...(this.style.lineGap && { lineGap: this.style.lineGap }),
             ...(this.style.textBaseline && { textBaseline: this.style.textBaseline }),
             ...(alignVlaue && { align: alignVlaue }),
         };
         if (this.style.font) {
             doc.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
+        } else {
+            doc.fontSize(10);
         }
         height = doc.heightOfString(this.attr.text, styleObect);
+        this.textHeight = doc.heightOfString("i2djs", styleObect);
+    }
+    if (this.style.textAlign === "center") {
+        x -= width / 2;
+    } else if (this.style.textAlign === "right") {
+        x -= width;
     }
     Object.assign(self, { width, height, x, y });
     self.width = width;
@@ -66020,10 +66027,23 @@ RenderText.prototype.execute = function RTexecute() {
         }
     }
 };
+function extractFontFamily(fontStyle) {
+    const fontFamilyRegex = /(?:[a-zA-Z]+\s)*\d+px\s(.+)/;
+    const match = fontStyle.match(fontFamilyRegex);
+    return match ? match[1] : null;
+  }
 RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
     if (this.attr.text !== undefined && this.attr.text !== null) {
         if (this.style.font) {
             pdfCtx.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
+            let fontFamily = extractFontFamily(this.style.font);
+            try {
+                fontFamily && pdfCtx.font(fontFamily);
+            } catch (err) {
+                console.error("Unknown font family - "+ fontFamily);
+            }
+        } else {
+            pdfCtx.fontSize(10);
         }
         const alignVlaue = this.style.align ?? this.style.textAlign;
         const styleObect = {
@@ -66032,13 +66052,39 @@ RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
             ...(this.style.textBaseline && { textBaseline: this.style.textBaseline }),
             ...(alignVlaue && { align: alignVlaue }),
         };
-        if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
-            pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
-        }
-        if (this.style.strokeStyle || this.style.stroke || this.style.strokeColor) {
-            pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
+        if (this.pdfSubTexts && this.pdfSubTexts.length) {
+            this.pdfSubTexts.forEach((d, i) => {
+                if (i !== 0) {
+                    pdfCtx.restore();
+                    pdfCtx.switchToPage(d.pageIndex);
+                    pdfCtx.save();
+                }
+                this.nodeExe.stylesExePdf(pdfCtx);
+                if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
+                    pdfCtx.text(d.text, d.attr.x, d.attr.y, styleObect);
+                }
+                if (this.style.strokeStyle || this.style.stroke || this.style.strokeColor) {
+                    pdfCtx.text(d.text, d.attr.x, d.attr.y, styleObect);
+                }
+                if (!block && i === 0) {
+                    pdfCtx.translate(0, -this.abYposition);
+                }
+                if (i !== 0) {
+                    pdfCtx.restore();
+                }
+            });
+        } else {
+            if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
+                pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
+            }
+            if (this.style.strokeStyle || this.style.stroke || this.style.strokeColor) {
+                pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
+            }
         }
     }
+};
+RenderText.prototype.addSubText = function addSubText(configs) {
+    this.pdfSubTexts = configs;
 };
 RenderText.prototype.in = function RTinfun(co) {
     const { x = 0, y = 0, width = 0, height = 0 } = this;
@@ -66887,6 +66933,7 @@ CanvasNodeExe.prototype.executePdf = function Cexecute(pdfCtx, block) {
         return;
     }
     if (!(this.dom instanceof RenderGroup) || block || this.block) {
+        pdfCtx.switchToPage(this.dom.pageIndex) ;
         pdfCtx.save();
         this.stylesExePdf(pdfCtx);
         this.attributesExePdf(pdfCtx, block);
@@ -66936,6 +66983,14 @@ CanvasNodeExe.prototype.setVDomIndex = function (vDomIndex) {
         }
     }
 };
+CanvasNodeExe.prototype.setPdfPageIndex = function (pageIndex) {
+    this.dom.pageIndex = pageIndex;
+    for (let i = 0, len = this.children.length; i < len; i += 1) {
+        if (this.children[i] && this.children[i].setPdfPageIndex) {
+            this.children[i].setPdfPageIndex(pageIndex);
+        }
+    }
+};
 CanvasNodeExe.prototype.updateBBox = function CupdateBBox() {
     let status;
     if (this.bbox || this.ctx.type_ === "pdf") {
@@ -66952,7 +67007,8 @@ CanvasNodeExe.prototype.updateBBox = function CupdateBBox() {
     }
     return false;
 };
-CanvasNodeExe.prototype.updateABBox = function updateABBox(transform = { translate: [0, 0] }) {
+CanvasNodeExe.prototype.updateABBox = function updateABBox(transform = { translate: [0, 0] }, pageDim = { pageHeight: 0, top: 0, bottom: 0 }) {
+    let { pageHeight, top, bottom } = pageDim;
     const localTransform = this.attr.transform || { translate: [0, 0] };
     const abTransform = {
         translate: [
@@ -66962,9 +67018,12 @@ CanvasNodeExe.prototype.updateABBox = function updateABBox(transform = { transla
     };
     this.dom.abTransform = abTransform;
     if (this.dom instanceof RenderGroup) {
+        this.dom.pageIndex = Math.floor(abTransform.translate[1] / ((pageHeight - top - bottom) || 1));
         for (let i = 0, len = this.children.length; i < len && this.children[i]; i += 1) {
-            this.children[i].updateABBox(abTransform);
+            this.children[i].updateABBox(abTransform, pageDim);
         }
+    } else {
+        this.dom.pageIndex = Math.floor((abTransform.translate[1] + (this.dom.abYposition || 0)) / ((pageHeight - top - bottom) || 1));
     }
 };
 CanvasNodeExe.prototype.in = function Cinfun(co) {
@@ -67335,64 +67394,99 @@ function createPage(ctx, vDomIndex) {
     root.update = function executeUpdate() {
         this.execute();
     };
-    root.exportPdf = function (doc, layerConfig) {
+    root.exportPdf = function (doc) {
         const margin = this.margin || 0;
         const { top = margin, bottom = margin } = this.margins || { };
         const pageHeight = this.height;
+        const abPageHeight = (pageHeight - top - bottom);
+        this.updateABBox(undefined, { pageHeight, top, bottom});
         this.updateBBox();
-        this.updateABBox();
         let leafNodes = getAllLeafs(this).sort((a, b) => {
                 const aTrans = a.dom && a.dom.abTransform ? a.dom.abTransform : { translate: [0, 0] };
-                const aBox = a.dom.BBox;
                 const bTrans = b.dom && b.dom.abTransform ? b.dom.abTransform : { translate: [0, 0] };
-                const bBox = b.dom.BBox;
                 return (
                     aTrans.translate[1] +
-                    aBox.height +
                     a.dom.abYposition -
-                    (bTrans.translate[1] + bBox.height + b.dom.abYposition)
+                    (bTrans.translate[1] + b.dom.abYposition)
                 );
             });
-        let runningY = 0;
+        let pages = [];
         const pageRage = doc.bufferedPageRange();
-        let pageNumber = pageRage.count - 1;
+        let pageNumber = pageRage.count;
         leafNodes.forEach((node) => {
             const abTransform = node.dom.abTransform;
             const elHight = node.dom.BBox.height || 0;
             const elY = node.dom.abYposition || 0;
-            let posY = calculatePosY(abTransform, elY, runningY);
-            if (needsNewPage(node, posY, elHight)) {
-                runningY += pageHeight - top - bottom;
-                posY = calculatePosY(abTransform, elY, runningY);
-                runningY += posY;
-                posY = 0;
-                doc.addPage({
-                    margin: this.margin,
-                    margins: this.margins,
-                    size: [this.width, this.height],
-                });
-                if (this.pageTemplate) {
-                    this.pageTemplate.executePdf(doc);
+            let newPageIndex= pageNumber + node.dom.pageIndex;
+            let currentPageIndex = newPageIndex;
+            let posY = calculatePosY(abTransform, elY, (node.dom.pageIndex * abPageHeight));
+            if ((posY + elHight) > abPageHeight ) {
+                if (node.dom instanceof RenderText) {
+                    let pagesCount = splitTextNode(node, posY, newPageIndex);
+                    while(pagesCount >= 1) {
+                        addNewPage.call(this, newPageIndex);
+                        newPageIndex += 1;
+                        pagesCount--;
+                    }
                 }
-                pageNumber += 1;
+            } else {
+                addNewPage.call(this, newPageIndex);
             }
             node.dom.abTransform = {
                 translate: [abTransform.translate[0], posY + top],
             };
-            const executePdf = node.executePdf.bind(node);
-            node.executePdf = (function (pNumber) {
-                return function (pdfCtx) {
-                    pdfCtx.switchToPage(pNumber);
-                    executePdf(pdfCtx);
-                };
-            })(pageNumber);
+            node.dom.pageIndex = currentPageIndex;
         });
         this.executePdf(doc);
-        function needsNewPage(node, posY, elHight) {
-            return layerConfig.autoPagination && !(posY < pageHeight - bottom - top && posY + elHight <= pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
+        function addNewPage(newPageIndex) {
+            if (pages[newPageIndex]) {
+                return;
+            }
+            pages[newPageIndex] = true;
+            doc.addPage({
+                margin: this.margin,
+                margins: this.margins,
+                size: [this.width, this.height],
+            });
+            if (this.pageTemplate) {
+                this.pageTemplate.setPdfPageIndex(newPageIndex);
+                this.pageTemplate.executePdf(doc);
+            }
+        }
+        function splitTextNode(node, posY, pIndex) {
+            let elHight = node.dom.BBox.height || 0;
+            let availablePageHeight = (abPageHeight - posY);
+            let text = node.attr.text || "";
+            let subStrs = [];
+            let subPage = 0;
+            let currentAvailableHeight = availablePageHeight;
+            let prevIndex = 0;
+            posY = 0;
+            while(prevIndex < text.length) {
+                console.log(currentAvailableHeight, elHight);
+                elHight = ((elHight === node.dom.textHeight) ? currentAvailableHeight : elHight);
+                let percent = currentAvailableHeight / elHight;
+                const index = Math.floor(text.length * percent);
+                console.log(percent);
+                console.log(text.substring(prevIndex, index));
+                subStrs.push({
+                    text: text.substring(prevIndex, index),
+                    attr: {
+                        x: node.getAttr('x'),
+                        y: posY
+                    },
+                    pageIndex: pIndex + subPage
+                });
+                prevIndex = index;
+                currentAvailableHeight += abPageHeight;
+                subPage++;
+                posY = top;
+            }
+            node.dom.addSubText(subStrs);
+            return subPage;
         }
         function calculatePosY(abTransform, elY, runningY) {
-            return (abTransform.translate[1] + elY || 0) - runningY;
+            return (abTransform.translate[1] + elY - runningY);
         }
     };
     root.addTemplate = function (template) {
@@ -67742,7 +67836,17 @@ function PDFCreator(config) {
         return removedPage;
     };
     PDFCreator.prototype.createTemplate = function () {
-        return createPage(this.ctx, this.vDomIndex);
+        return new CanvasNodeExe(
+            this.ctx,
+            {
+                el: "g",
+                attr: {
+                    id: "templateNode",
+                },
+            },
+            Math.round(Math.random() * 99999),
+            this.vDomIndex
+        )
     };
     PDFCreator.prototype.exportPdf = async function (callback, pdfConfig = {}) {
         let self = this;
@@ -67761,6 +67865,7 @@ function PDFCreator(config) {
             }
             this.doc = doc;
             this.pages.forEach(function (page) {
+                page.updateABBox();
                 page.updateBBox();
                 page.exportPdf(doc, {
                     autoPagination: self.layerConfig.autoPagination
