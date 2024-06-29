@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Using Module of I2Djs</title>
+    </head>
+    <body>
+        <div class="main-container">
+            <iframe class="iframeCanvas" id="i2dPdfContainer"></iframe>
+        </div>
+    </body>
+</html>
+<script type="module">
+    import {pdfLayer} from "../../dist/i2d.esm.js";
+    let pdfInstance = pdfLayer("#i2dPdfContainer", {
+        info: {
+            Title: "I2Djs-pdf",
+            Author: "Narayana Swamy",
+            Subject: "The First PDF",
+            Keywords: "I2Djs, PDF, PDF-Frame",
+            CreationDate: new Date(),
+        },
+        margins: {
+            top: 30,
+            bottom: 30,
+            left: 10,
+            right: 10
+        }
+    }, {
+        autoPagination: false
+    });
+
+
+    // let template = pdfInstance.createTemplate();
+
+    // let t_grad = template.createLinearGradient({
+    //     x1: 0,
+    //     y1: 0,
+    //     x2: 0,
+    //     y2: 100,
+    //     colorStops: [
+    //         { color: "#023c73", offset: 0 },
+    //         { color: "#5f0b9c", offset: 50 },
+    //         { color: "#b814c4", offset: 100 },
+    //     ],
+    // });
+
+    // template.createEl({
+    //     el: "rect",
+    //     attr: {
+    //         height: 600,
+    //         width: 600,
+    //     },
+    //     style: {
+    //         fillStyle: t_grad,
+    //     },
+    // });
+
+    let page1 = pdfInstance.addPage({
+        // pageTemplate: template, 
+    });
+
+    let gg = page1.createEl({
+        el: 'g',
+        attr: {
+            transform: {
+                translate: [0, 100]
+            }
+        },
+        block: false
+    })
+
+    gg.createEl({
+        el: "rect",
+        attr: {
+            height: 200,
+            width: 300,
+            x: 20,
+            y: 0    
+        },
+        style: {
+            fillStyle: '#00ff00',
+        },
+    });
+
+    gg.createEl({
+        el: "text",
+        attr: {
+            text: "Pdf-frame is a client-side JavaScript web",
+            x: 50,
+            y: 10,
+            width: 500
+        },
+        style: {
+            fillStyle: "#ff0000"
+        },
+    });
+
+    
+
+    // page1.createEl({
+    //     el: "rect",
+    //     attr: {
+    //         height: 200,
+    //         width: 300,
+    //         x: 400,
+    //         y: 0    
+    //     },
+    //     style: {
+    //         fillStyle: '#ffff00',
+    //     },
+    // });
+
+    // page1.createEl({
+    //     el: "rect",
+    //     attr: {
+    //         height: 200,
+    //         width: 300,
+    //         x: 400,
+    //         y: 800
+    //     },
+    //     style: {
+    //         fillStyle: '#ffff00',
+    //     },
+    // });
+
+    // page1.createEl({
+    //     el: "rect",
+    //     attr: {
+    //         height: 200,
+    //         width: 300,
+    //         x: 300,
+    //         y: 650
+    //     },
+    //     style: {
+    //         fillStyle: '#ff0000',
+    //     },
+    // });
+
+    // page1.createEl({
+    //     el: "circle",
+    //     attr: {
+    //         cx: 150,
+    //         cy: 750,
+    //         r: 50,
+    //     },
+    //     style: {
+    //         fillStyle: "#00ff00",
+    //         strokeStyle: "#0000ff",
+    //     },
+    // });
+
+    // page1.createEls([1], {
+    //     el: "text",
+    //     attr: {
+    //         text: "Pdf-frame is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow Pdf-frame is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow Pdf-frame is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow Pdf-frame is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow",
+    //         x: 300,
+    //         y: 850,
+    //         width: 300
+    //     },
+    //     style: {
+    //         fillStyle: "#ff0000"
+    //     },
+    // });
+
+    // let page2 = pdfInstance.addPage({
+    //     pageTemplate: template,
+    // });
+
+    // page2.createEl({
+    //     el: "text",
+    //     attr: {
+    //         text: "Pdf-frame is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame features SVG-like ",
+    //         x: 150,
+    //         y: 0,
+    //     },
+    //     style: {
+    //         fillStyle: "#ff0000"
+    //     },
+    // });
+    
+</script>
+<style>
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+        font-size: 14px;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    .main-container {
+        height: 100%;
+        width: 100%;
+    }
+
+    .iframeCanvas {
+        width: 600px;
+        height: 600px;
+    }
+</style>

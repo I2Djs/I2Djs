@@ -1072,15 +1072,17 @@ function extractFontFamily(fontStyle) {
   }
 
 RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
-    
+    let self= this;
     if (this.attr.text !== undefined && this.attr.text !== null) {
         if (this.style.font) {
             pdfCtx.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
             let fontFamily = extractFontFamily(this.style.font);
-            try {
-                fontFamily && pdfCtx.font(fontFamily);
-            } catch (err) {
-                console.error("Unknown font family - "+ fontFamily);
+            if (fontFamily) {
+                try {
+                    fontFamily && pdfCtx.font(fontFamily);
+                } catch (err) {
+                    console.error("Unknown font family - "+ fontFamily);
+                }
             }
         } else {
             pdfCtx.fontSize(10);
@@ -1099,7 +1101,20 @@ RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
                 if (i !== 0) {
                     pdfCtx.restore();
                     pdfCtx.switchToPage(d.pageIndex);
+                    const transform = self.abTransform || {};
+                    const { scale = [1, 1], skew = [0, 0], translate = [0, 0] } = transform;
+                    const [hozScale = 1, verScale = hozScale] = scale;
+                    const [hozSkew = 0, verSkew = hozSkew] = skew;
+                    const [hozMove = 0] = translate;
+
                     pdfCtx.save();
+                    pdfCtx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, 0);
+
+                    if (transform.rotate && transform.rotate.length > 0) {
+                        pdfCtx.translate(transform.rotate[1] || 0, transform.rotate[2] || 0);
+                        pdfCtx.rotate(transform.rotate[0] * (Math.PI / 180));
+                        pdfCtx.translate(-transform.rotate[1] || 0, -transform.rotate[2] || 0);
+                    }
                 }
                 
                 this.nodeExe.stylesExePdf(pdfCtx);
@@ -1909,7 +1924,7 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.vDomIndex = vDomIndex;
     this.bbox = config.bbox !== undefined ? config.bbox : true;
     this.BBoxUpdate = true;
-    this.block = config.block || false;
+    this.block = false;
 
     this.style = prepObjProxyCanvas('style', {}, this, true);
     this.attr = prepObjProxyCanvas('attr', {}, this, true);
@@ -2938,8 +2953,7 @@ function getAllLeafs(node) {
 
     while (queue.length > 0) {
         const currentNode = queue.shift();
-        const isLeaf = currentNode.block ||
-                        (currentNode.children &&
+        const isLeaf = (currentNode.children &&
                         currentNode.children.length === 0 &&
                         currentNode.nodeName !== "g" &&
                         currentNode.nodeName !== "group");

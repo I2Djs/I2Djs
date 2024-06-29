@@ -66033,14 +66033,17 @@ function extractFontFamily(fontStyle) {
     return match ? match[1] : null;
   }
 RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
+    let self= this;
     if (this.attr.text !== undefined && this.attr.text !== null) {
         if (this.style.font) {
             pdfCtx.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
             let fontFamily = extractFontFamily(this.style.font);
-            try {
-                fontFamily && pdfCtx.font(fontFamily);
-            } catch (err) {
-                console.error("Unknown font family - "+ fontFamily);
+            if (fontFamily) {
+                try {
+                    fontFamily && pdfCtx.font(fontFamily);
+                } catch (err) {
+                    console.error("Unknown font family - "+ fontFamily);
+                }
             }
         } else {
             pdfCtx.fontSize(10);
@@ -66057,7 +66060,18 @@ RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
                 if (i !== 0) {
                     pdfCtx.restore();
                     pdfCtx.switchToPage(d.pageIndex);
+                    const transform = self.abTransform || {};
+                    const { scale = [1, 1], skew = [0, 0], translate = [0, 0] } = transform;
+                    const [hozScale = 1, verScale = hozScale] = scale;
+                    const [hozSkew = 0, verSkew = hozSkew] = skew;
+                    const [hozMove = 0] = translate;
                     pdfCtx.save();
+                    pdfCtx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, 0);
+                    if (transform.rotate && transform.rotate.length > 0) {
+                        pdfCtx.translate(transform.rotate[1] || 0, transform.rotate[2] || 0);
+                        pdfCtx.rotate(transform.rotate[0] * (Math.PI / 180));
+                        pdfCtx.translate(-transform.rotate[1] || 0, -transform.rotate[2] || 0);
+                    }
                 }
                 this.nodeExe.stylesExePdf(pdfCtx);
                 if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
@@ -66729,7 +66743,7 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.vDomIndex = vDomIndex;
     this.bbox = config.bbox !== undefined ? config.bbox : true;
     this.BBoxUpdate = true;
-    this.block = config.block || false;
+    this.block = false;
     this.style = prepObjProxyCanvas('style', {}, this, true);
     this.attr = prepObjProxyCanvas('attr', {}, this, true);
     if (config.style) {
@@ -67454,7 +67468,7 @@ function createPage(ctx, vDomIndex) {
             }
         }
         function splitTextNode(node, posY, pIndex) {
-            let elHight = node.dom.BBox.height || 0;
+            let elHeight = node.dom.BBox.height || 0;
             let availablePageHeight = (abPageHeight - posY);
             let text = node.attr.text || "";
             let subStrs = [];
@@ -67462,13 +67476,18 @@ function createPage(ctx, vDomIndex) {
             let currentAvailableHeight = availablePageHeight;
             let prevIndex = 0;
             posY = 0;
+            if (!text || elHeight <= 0) {
+                console.warn("Invalid text or element height.");
+                return 0;
+            }
             while(prevIndex < text.length) {
-                console.log(currentAvailableHeight, elHight);
-                elHight = ((elHight === node.dom.textHeight) ? currentAvailableHeight : elHight);
-                let percent = currentAvailableHeight / elHight;
+                elHeight = ((elHeight === node.dom.textHeight) ? currentAvailableHeight : elHeight);
+                let percent = currentAvailableHeight / elHeight;
                 const index = Math.floor(text.length * percent);
-                console.log(percent);
-                console.log(text.substring(prevIndex, index));
+                if (index <= prevIndex) {
+                    console.warn("Text splitting encountered an infinite loop.");
+                    break;
+                }
                 subStrs.push({
                     text: text.substring(prevIndex, index),
                     attr: {
@@ -67513,8 +67532,7 @@ function getAllLeafs(node) {
     let queue = [node];
     while (queue.length > 0) {
         const currentNode = queue.shift();
-        const isLeaf = currentNode.block ||
-                        (currentNode.children &&
+        const isLeaf = (currentNode.children &&
                         currentNode.children.length === 0 &&
                         currentNode.nodeName !== "g" &&
                         currentNode.nodeName !== "group");
