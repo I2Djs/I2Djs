@@ -995,11 +995,7 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
             ...(alignVlaue && { align: alignVlaue }),
         };
 
-        if (this.style.font) {
-            doc.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
-        } else {
-            doc.fontSize(10);
-        }
+        doc.fontSize(parseInt(this.style.font?.replace(/[^\d.]/g, ""), 10) || 10);
         height = doc.heightOfString(this.attr.text, styleObect);
         this.textHeight = doc.heightOfString("i2djs", styleObect);
     }
@@ -1072,76 +1068,78 @@ function extractFontFamily(fontStyle) {
   }
 
 RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
-    let self= this;
-    if (this.attr.text !== undefined && this.attr.text !== null) {
-        if (this.style.font) {
-            pdfCtx.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
-            let fontFamily = extractFontFamily(this.style.font);
-            if (fontFamily) {
-                try {
-                    fontFamily && pdfCtx.font(fontFamily);
-                } catch (err) {
-                    console.error("Unknown font family - "+ fontFamily);
-                }
-            }
-        } else {
-            pdfCtx.fontSize(10);
-        }
-        const alignVlaue = this.style.align ?? this.style.textAlign;
+    if (this.attr.text === undefined || this.attr.text === null) {
+        return;
+    }
 
-        const styleObect = {
-            ...(this.attr.width && { width: this.attr.width }),
-            ...(this.style.lineGap && { lineGap: this.style.lineGap }),
-            ...(this.style.textBaseline && { textBaseline: this.style.textBaseline }),
-            ...(alignVlaue && { align: alignVlaue }),
-        };
+    const { font, align, textAlign, lineGap, textBaseline, fillStyle, fill, fillColor, strokeStyle, stroke, strokeColor } = this.style;
+    const { text, width, x, y } = this.attr;
 
-        if (this.pdfSubTexts && this.pdfSubTexts.length) {
-            this.pdfSubTexts.forEach((d, i) => {
-                if (i !== 0) {
-                    pdfCtx.restore();
-                    pdfCtx.switchToPage(d.pageIndex);
-                    const transform = self.abTransform || {};
-                    const { scale = [1, 1], skew = [0, 0], translate = [0, 0] } = transform;
-                    const [hozScale = 1, verScale = hozScale] = scale;
-                    const [hozSkew = 0, verSkew = hozSkew] = skew;
-                    const [hozMove = 0] = translate;
+    const fontSize = font ? parseInt(font.replace(/[^\d.]/g, ""), 10) || 10 : 10;
+    pdfCtx.fontSize(fontSize);
 
-                    pdfCtx.save();
-                    pdfCtx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, 0);
-
-                    if (transform.rotate && transform.rotate.length > 0) {
-                        pdfCtx.translate(transform.rotate[1] || 0, transform.rotate[2] || 0);
-                        pdfCtx.rotate(transform.rotate[0] * (Math.PI / 180));
-                        pdfCtx.translate(-transform.rotate[1] || 0, -transform.rotate[2] || 0);
-                    }
-                }
-                
-                this.nodeExe.stylesExePdf(pdfCtx);
-                if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
-                    pdfCtx.text(d.text, d.attr.x, d.attr.y, styleObect);
-                }
-        
-                if (this.style.strokeStyle || this.style.stroke || this.style.strokeColor) {
-                    pdfCtx.text(d.text, d.attr.x, d.attr.y, styleObect);
-                }
-
-                if (!block && i === 0) {
-                    pdfCtx.translate(0, -this.abYposition);
-                }
-                if (i !== 0) {
-                    pdfCtx.restore();
-                }
-            })
-        } else {
-            if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
-                pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
-            }
-    
-            if (this.style.strokeStyle || this.style.stroke || this.style.strokeColor) {
-                pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
+    if (font) {
+        const fontFamily = extractFontFamily(font);
+        if (fontFamily) {
+            try {
+                pdfCtx.font(fontFamily);
+            } catch (err) {
+                console.error(`Unknown font family - ${fontFamily}`);
             }
         }
+    }
+
+    const alignValue = align ?? textAlign;
+    const styleObject = {
+        ...(width && { width }),
+        ...(lineGap && { lineGap }),
+        ...(textBaseline && { textBaseline }),
+        ...(alignValue && { align: alignValue }),
+    };
+
+    const applyText = (d, isSubText) => {
+        if (isSubText) {
+            pdfCtx.restore();
+            pdfCtx.switchToPage(d.pageIndex);
+            const { scale = [1, 1], skew = [0, 0], translate = [0, 0], rotate = [] } = this.abTransform || {};
+            const [hozScale = 1, verScale = hozScale] = scale;
+            const [hozSkew = 0, verSkew = hozSkew] = skew;
+            const [hozMove = 0] = translate;
+
+            pdfCtx.save();
+            pdfCtx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, 0);
+
+            if (rotate.length > 0) {
+                const [angle, cx = 0, cy = 0] = rotate;
+                pdfCtx.translate(cx, cy);
+                pdfCtx.rotate(angle * (Math.PI / 180));
+                pdfCtx.translate(-cx, -cy);
+            }
+        }
+
+        this.nodeExe.stylesExePdf(pdfCtx);
+
+        if (fillStyle || fill || fillColor) {
+            pdfCtx.text(d.text, d.attr.x, d.attr.y, styleObject);
+        }
+
+        if (strokeStyle || stroke || strokeColor) {
+            pdfCtx.text(d.text, d.attr.x, d.attr.y, styleObject);
+        }
+
+        if (!block && !isSubText) {
+            pdfCtx.translate(0, -this.abYposition);
+        }
+
+        if (isSubText) {
+            pdfCtx.restore();
+        }
+    };
+
+    if (this.pdfSubTexts && this.pdfSubTexts.length) {
+        this.pdfSubTexts.forEach((d, i) => applyText(d, i !== 0));
+    } else {
+        applyText({ text, attr: { x, y: block ? y : 0 } }, false);
     }
 };
 
@@ -1406,14 +1404,6 @@ RenderPath.prototype.updateBBox = function RPupdateBBox() {
     const self = this;
     const { transform } = self.attr;
     const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-
-    // if (transform && transform.translate) {
-    //  [translateX, translateY] = transform.translate;
-    // }
-
-    // if (transform && transform.scale) {
-    //  [scaleX = 1, scaleY = scaleX] = transform.scale;
-    // }
 
     self.BBox = self.path
         ? self.path.BBox
@@ -2520,16 +2510,12 @@ function RenderTexture(nodeExe, config = {}) {
     self.domEl = self.rImageObj.canvas;
     self.imageArray = [];
     self.seekIndex = 0;
-    // self.attr = props;
     self.nodeName = "Sprite";
     self.nodeExe = nodeExe;
 
     for (const key in self.attr) {
         self.setAttr(key, self.attr[key]);
     }
-
-    // queueInstance.vDomChanged(nodeExe.vDomIndex);
-    // self.stack = [self];
 }
 RenderTexture.prototype = new NodePrototype();
 RenderTexture.prototype.constructor = RenderTexture;
@@ -2759,8 +2745,6 @@ function createPage(ctx, vDomIndex) {
                         newPageIndex += 1;
                         pagesCount--;
                     }
-                    // while loops increments additional page
-                    // newPageIndex -= 1;
                 }
             } else {
                 addNewPage.call(this, newPageIndex);
@@ -2839,90 +2823,6 @@ function createPage(ctx, vDomIndex) {
             return (abTransform.translate[1] + elY - runningY);
         }
     };
-
-    // root.exportPdf_ = function (doc, layerConfig) {
-    //     const margin = this.margin || 0;
-    //     const { top = margin, bottom = margin } = this.margins || { };
-    //     const pageHeight = this.height;
-
-    //     this.updateBBox();
-    //     this.updateABBox(undefined, {pageHeight, top, bottom });
-
-    //     let leafNodes = getAllLeafs(this).sort((a, b) => {
-    //             const aTrans = a.dom && a.dom.abTransform ? a.dom.abTransform : { translate: [0, 0] };
-    //             const aBox = a.dom.BBox;
-    //             const bTrans = b.dom && b.dom.abTransform ? b.dom.abTransform : { translate: [0, 0] };
-    //             const bBox = b.dom.BBox;
-    //             return (
-    //                 aTrans.translate[1] +
-    //                 a.dom.abYposition +
-    //                 aBox.height -
-    //                 (bTrans.translate[1] + bBox.height + b.dom.abYposition)
-    //             );
-    //         });
-
-    //     let runningY = 0;
-    //     const pageRage = doc.bufferedPageRange();
-    //     let pageNumber = pageRage.count - 1;
-    //     leafNodes.forEach((node) => {
-    //         const abTransform = node.dom.abTransform;
-    //         const elHight = node.dom.BBox.height || 0;
-    //         const elY = node.dom.abYposition || 0;
-    //         let posY = calculatePosY(abTransform, elY, runningY);
-
-    //         if (needsNewPage(node, posY, elHight)) {
-
-    //             if (node.dom instanceof RenderText) {
-    //                 splitTextNode(node, posY, elHight);
-    //             }
-
-    //             runningY += pageHeight - top - bottom;
-    //             posY = calculatePosY(abTransform, elY, runningY);
-    //             runningY += posY;
-    //             posY = 0;
-    //             doc.addPage({
-    //                 margin: this.margin,
-    //                 margins: this.margins,
-    //                 size: [this.width, this.height],
-    //             });
-    //             if (this.pageTemplate) {
-    //                 this.pageTemplate.executePdf(doc);
-    //             }
-    //             pageNumber += 1;
-    //         }
-    //         node.dom.abTransform = {
-    //             translate: [abTransform.translate[0], posY + top],
-    //         };
-
-    //         const executePdf = node.executePdf.bind(node);
-
-    //         // Redefining pdf call with page mapping
-    //         node.executePdf = (function (pNumber) {
-    //             return function (pdfCtx) {
-    //                 pdfCtx.switchToPage(pNumber);
-    //                 executePdf(pdfCtx);
-    //             };
-    //         })(pageNumber);
-    //     });
-
-    //     this.executePdf(doc);
-
-    //     function needsNewPage(node, posY, elHight) {
-    //         return layerConfig.autoPagination && !(posY < pageHeight - bottom - top && posY + elHight <= pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
-    //     }
-
-    //     function splitTextNode(node, posY, elHight) {
-    //         let availablePageHeight = ((pageHeight - bottom - top) - posY);
-    //         let percent = availablePageHeight / elHight;
-    //         let text = node.attr.text || "";
-    //         const index = Math.floor(text.length * percent);
-    //         node.textList = [text.substring(0, index), text.substring(index)];
-    //     }
-
-    //     function calculatePosY(abTransform, elY, runningY) {
-    //         return (abTransform.translate[1] + elY || 0) - runningY;
-    //     }
-    // };
 
     root.addTemplate = function (template) {
         this.pageTemplate = template;

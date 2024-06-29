@@ -65967,11 +65967,7 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
             ...(this.style.textBaseline && { textBaseline: this.style.textBaseline }),
             ...(alignVlaue && { align: alignVlaue }),
         };
-        if (this.style.font) {
-            doc.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
-        } else {
-            doc.fontSize(10);
-        }
+        doc.fontSize(parseInt(this.style.font?.replace(/[^\d.]/g, ""), 10) || 10);
         height = doc.heightOfString(this.attr.text, styleObect);
         this.textHeight = doc.heightOfString("i2djs", styleObect);
     }
@@ -66033,68 +66029,65 @@ function extractFontFamily(fontStyle) {
     return match ? match[1] : null;
   }
 RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
-    let self= this;
-    if (this.attr.text !== undefined && this.attr.text !== null) {
-        if (this.style.font) {
-            pdfCtx.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
-            let fontFamily = extractFontFamily(this.style.font);
-            if (fontFamily) {
-                try {
-                    fontFamily && pdfCtx.font(fontFamily);
-                } catch (err) {
-                    console.error("Unknown font family - "+ fontFamily);
-                }
-            }
-        } else {
-            pdfCtx.fontSize(10);
-        }
-        const alignVlaue = this.style.align ?? this.style.textAlign;
-        const styleObect = {
-            ...(this.attr.width && { width: this.attr.width }),
-            ...(this.style.lineGap && { lineGap: this.style.lineGap }),
-            ...(this.style.textBaseline && { textBaseline: this.style.textBaseline }),
-            ...(alignVlaue && { align: alignVlaue }),
-        };
-        if (this.pdfSubTexts && this.pdfSubTexts.length) {
-            this.pdfSubTexts.forEach((d, i) => {
-                if (i !== 0) {
-                    pdfCtx.restore();
-                    pdfCtx.switchToPage(d.pageIndex);
-                    const transform = self.abTransform || {};
-                    const { scale = [1, 1], skew = [0, 0], translate = [0, 0] } = transform;
-                    const [hozScale = 1, verScale = hozScale] = scale;
-                    const [hozSkew = 0, verSkew = hozSkew] = skew;
-                    const [hozMove = 0] = translate;
-                    pdfCtx.save();
-                    pdfCtx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, 0);
-                    if (transform.rotate && transform.rotate.length > 0) {
-                        pdfCtx.translate(transform.rotate[1] || 0, transform.rotate[2] || 0);
-                        pdfCtx.rotate(transform.rotate[0] * (Math.PI / 180));
-                        pdfCtx.translate(-transform.rotate[1] || 0, -transform.rotate[2] || 0);
-                    }
-                }
-                this.nodeExe.stylesExePdf(pdfCtx);
-                if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
-                    pdfCtx.text(d.text, d.attr.x, d.attr.y, styleObect);
-                }
-                if (this.style.strokeStyle || this.style.stroke || this.style.strokeColor) {
-                    pdfCtx.text(d.text, d.attr.x, d.attr.y, styleObect);
-                }
-                if (!block && i === 0) {
-                    pdfCtx.translate(0, -this.abYposition);
-                }
-                if (i !== 0) {
-                    pdfCtx.restore();
-                }
-            });
-        } else {
-            if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
-                pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
-            }
-            if (this.style.strokeStyle || this.style.stroke || this.style.strokeColor) {
-                pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
+    if (this.attr.text === undefined || this.attr.text === null) {
+        return;
+    }
+    const { font, align, textAlign, lineGap, textBaseline, fillStyle, fill, fillColor, strokeStyle, stroke, strokeColor } = this.style;
+    const { text, width, x, y } = this.attr;
+    const fontSize = font ? parseInt(font.replace(/[^\d.]/g, ""), 10) || 10 : 10;
+    pdfCtx.fontSize(fontSize);
+    if (font) {
+        const fontFamily = extractFontFamily(font);
+        if (fontFamily) {
+            try {
+                pdfCtx.font(fontFamily);
+            } catch (err) {
+                console.error(`Unknown font family - ${fontFamily}`);
             }
         }
+    }
+    const alignValue = align ?? textAlign;
+    const styleObject = {
+        ...(width && { width }),
+        ...(lineGap && { lineGap }),
+        ...(textBaseline && { textBaseline }),
+        ...(alignValue && { align: alignValue }),
+    };
+    const applyText = (d, isSubText) => {
+        if (isSubText) {
+            pdfCtx.restore();
+            pdfCtx.switchToPage(d.pageIndex);
+            const { scale = [1, 1], skew = [0, 0], translate = [0, 0], rotate = [] } = this.abTransform || {};
+            const [hozScale = 1, verScale = hozScale] = scale;
+            const [hozSkew = 0, verSkew = hozSkew] = skew;
+            const [hozMove = 0] = translate;
+            pdfCtx.save();
+            pdfCtx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, 0);
+            if (rotate.length > 0) {
+                const [angle, cx = 0, cy = 0] = rotate;
+                pdfCtx.translate(cx, cy);
+                pdfCtx.rotate(angle * (Math.PI / 180));
+                pdfCtx.translate(-cx, -cy);
+            }
+        }
+        this.nodeExe.stylesExePdf(pdfCtx);
+        if (fillStyle || fill || fillColor) {
+            pdfCtx.text(d.text, d.attr.x, d.attr.y, styleObject);
+        }
+        if (strokeStyle || stroke || strokeColor) {
+            pdfCtx.text(d.text, d.attr.x, d.attr.y, styleObject);
+        }
+        if (!block && !isSubText) {
+            pdfCtx.translate(0, -this.abYposition);
+        }
+        if (isSubText) {
+            pdfCtx.restore();
+        }
+    };
+    if (this.pdfSubTexts && this.pdfSubTexts.length) {
+        this.pdfSubTexts.forEach((d, i) => applyText(d, i !== 0));
+    } else {
+        applyText({ text, attr: { x, y: block ? y : 0 } }, false);
     }
 };
 RenderText.prototype.addSubText = function addSubText(configs) {
@@ -67925,28 +67918,23 @@ function PDFCreator(config) {
     };
 function pdfLayer(container, config = {}, layerSettings = {}) {
     const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
+    if (!res) throw new Error('Invalid container provided.');
     let clientHeight = res?.clientHeight || 0;
     let clientWidth = res?.clientWidth || 0;
     let { height = (clientHeight), width = clientWidth } = config;
     let pdfConfig = parsePdfConfig(config);
     let { autoUpdate = true, onUpdate, autoPagination = true } = layerSettings;
     const layer = document.createElement('canvas');
-    layer.setAttribute('height', height);
-    layer.setAttribute('width', width);
+    layer.height = height;
+    layer.width = width;
     const ctx = layer.getContext('2d');
     let fontRegister = config.fontRegister || {};
     let pdfInfo = config.info || { title: "I2Djs-PDF" };
-    let vDomIndex = 999999;
     ctx.type_ = "pdf";
-    ctx.doc = new PDFDocument({
-        size: [width, height],
-        ...pdfConfig,
-    });
+    ctx.doc = new PDFDocument({ size: [width, height], ...pdfConfig });
     ctx.doc.addPage();
     const vDomInstance = new VDom();
-    if (autoUpdate) {
-        vDomIndex = queue$1.addVdom(vDomInstance);
-    }
+    const vDomIndex = autoUpdate ? queue$1.addVdom(vDomInstance) : 999999;
     const fallBackPage = createPage(ctx, vDomIndex);
     const pdfInstance = new PDFCreator({
         ctx,
@@ -67971,73 +67959,66 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
     return pdfInstance;
 }
 async function CanvasToPdf(options) {
-    return new Promise((resolve, reject) => {
-        (async () => {
-            try {
-                    const pdfConfig = parsePdfConfig(options);
-                    const doc = new PDFDocument({
-                        size: [this.width, this.height],
-                        ...pdfConfig,
-                    });
-                    const stream_ = doc.pipe(blobStream());
-                    const fontRegister = options.fontRegister || {};
-                    const pdfInfo = options.info || { title: "I2Djs-PDF" };
-                    await registerFontFromConfig(doc, fontRegister);
-                    doc.info = {
-                        Title: pdfInfo.title || "",
-                        Author: pdfInfo.author || "",
-                        Subject: pdfInfo.subject || "",
-                        Keywords: pdfInfo.keywords || "",
-                        CreationDate: pdfInfo.creationDate || new Date(),
-                    };
-                    this.updateBBox();
-                    this.updateABBox();
-                    doc.addPage();
-                    this.exportPdf(doc, {});
-                    doc.end();
-                    stream_.on("finish", function () {
-                        resolve(stream_.toBlobURL("application/pdf"));
-                    });
-                } catch (error) {
-                    reject(error);
-                }
-            })();
-        })
+    try {
+        const pdfConfig = parsePdfConfig(options);
+        const doc = new PDFDocument({
+            size: [this.width, this.height],
+            ...pdfConfig,
+        });
+        const stream_ = doc.pipe(blobStream());
+        const fontRegister = options.fontRegister || {};
+        const pdfInfo = options.info || { title: "I2Djs-PDF" };
+        await registerFontFromConfig(doc, fontRegister);
+        doc.info = {
+            Title: pdfInfo.title || "",
+            Author: pdfInfo.author || "",
+            Subject: pdfInfo.subject || "",
+            Keywords: pdfInfo.keywords || "",
+            CreationDate: pdfInfo.creationDate || new Date(),
+        };
+        this.updateBBox();
+        this.updateABBox();
+        doc.addPage();
+        this.exportPdf(doc, {});
+        doc.end();
+        return new Promise((resolve) => {
+            stream_.on("finish", function () {
+                resolve(stream_.toBlobURL("application/pdf"));
+            });
+        });
+    } catch (error) {
+        return Promise.reject(error);
+    }
 }
 function exportCanvasToPdf(canvasLayer, options) {
     return CanvasToPdf.call(canvasLayer, options);
 }
-function registerFontFromConfig(doc, fontRegister = {}) {
-    return new Promise((resolve, reject) => {
-        (async () => {
-            try {
-                let keys = Object.keys(fontRegister);
-                for (let i = 0; i < keys.length; i++) {
-                    let key = keys[i];
-                    if (!pdfSupportedFontFamily.includes(key)) {
-                        pdfSupportedFontFamily.push(key);
-                    }
-                    const fontResponse = await fetch(fontRegister[key]);
-                    if (!fontResponse.ok) {
-                        throw new Error(`Failed to fetch font: ${fontRegister[key]}`);
-                    }
-                    const fontBuffer = await fontResponse.arrayBuffer();
-                    const fontExtension = fontRegister[key].split('.').pop().toLowerCase();
-                    if (['ttc', 'dfont'].includes(fontExtension)) {
-                        const encodedKey = (new TextEncoder()).encode(key);
-                        encodedKey._isBuffer = true;
-                        doc.registerFont(key, fontBuffer, encodedKey);
-                    } else {
-                        doc.registerFont(key, fontBuffer);
-                    }
-                }
-                resolve(true);
-            } catch(err) {
-                console.error(err);
-                reject(false);
+async function registerFontFromConfig(doc, fontRegister = {}) {
+    try {
+        const keys = Object.keys(fontRegister);
+        for (const key of keys) {
+            if (!pdfSupportedFontFamily.includes(key)) {
+                pdfSupportedFontFamily.push(key);
             }
-        })();
-    })
+            const fontResponse = await fetch(fontRegister[key]);
+            if (!fontResponse.ok) {
+                throw new Error(`Failed to fetch font: ${fontRegister[key]}`);
+            }
+            const fontBuffer = await fontResponse.arrayBuffer();
+            const fontExtension = fontRegister[key].split('.').pop().toLowerCase();
+            if (['ttc', 'dfont'].includes(fontExtension)) {
+                const encodedKey = new TextEncoder().encode(key);
+                encodedKey._isBuffer = true;
+                doc.registerFont(key, fontBuffer, encodedKey);
+            } else {
+                doc.registerFont(key, fontBuffer);
+            }
+        }
+        return true;
+    } catch (err) {
+        console.error(err);
+        throw new Error('Font registration failed');
+    }
 }
 
 function _classCallCheck(instance, Constructor) {
