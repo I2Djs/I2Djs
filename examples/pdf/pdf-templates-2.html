@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Using Module of I2Djs</title>
+    </head>
+    <body>
+        <div class="main-container">
+            <iframe class="iframeCanvas" id="i2dPdfContainer"></iframe>
+        </div>
+    </body>
+</html>
+<script type="importmap">
+    {
+        "imports": {
+            "i2djs": "../../dist/i2d.esm.js"
+        }
+    }
+</script>
+<script type="module">
+    import { pdfLayer} from "i2djs";
+    let pdfInstance = pdfLayer("#i2dPdfContainer", {
+        height: 600,
+        width: 600,
+        info: {
+            Title: "I2Djs-pdf",
+            Author: "Narayana Swamy",
+            Subject: "The First PDF",
+            Keywords: "I2Djs, PDF, PDF-Frame",
+            CreationDate: new Date(),
+        },
+        margins: {
+            top: 10,
+            bottom: 20,
+            left: 10,
+            right: 20
+        }
+    }, {
+        autoPagination: false    
+    });
+
+    /* create Template object by calling padInstance createTemplate method
+     */
+    let template = pdfInstance.createTemplate();
+
+    let t_grad = template.createLinearGradient({
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 100,
+        colorStops: [
+            { color: "#023c73", offset: 0 },
+            { color: "#5f0b9c", offset: 50 },
+            { color: "#b814c4", offset: 100 },
+        ],
+    });
+
+    template.createEl({
+        el: "rect",
+        attr: {
+            height: 600,
+            width: 600,
+        },
+        style: {
+            fillStyle: t_grad,
+        },
+    });
+
+    /* 
+        Pass created template either as config to the AddPage API or invoke setTemplate on pageInstance.
+    */
+
+    let page1 = pdfInstance.addPage({
+        pageTemplate: template,
+    });
+    var linearGradiant = page1.createLinearGradient({
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 100,
+        colorStops: [
+            { color: "red", offset: 0 },
+            { color: "green", offset: 100 },
+        ],
+    });
+
+    page1.createEl({
+        el: "circle",
+        attr: {
+            cx: 150,
+            cy: 150,
+            r: 50,
+        },
+        style: {
+            fillStyle: "#ff0000",
+            strokeStyle: "#0000ff",
+        },
+    });
+    page1.createEl({
+        el: "rect",
+        attr: {
+            x: 350,
+            y: 100,
+            width: 100,
+            height: 100,
+        },
+        style: {
+            fillStyle: linearGradiant,
+        },
+    });
+
+    page1.createEl({
+        el: "rect",
+        attr: {
+            x: 350,
+            y: 300,
+            width: 100,
+            height: 200,
+        },
+        style: {
+            fillStyle: linearGradiant,
+        },
+    });
+
+    page1.createEl({
+        el: "text",
+        attr: {
+            x: 150,
+            y: 0,
+            width: 400,
+            text: "Pdf-frame1 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame2 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame3 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame4 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame5 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame6 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame7 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame8 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame9 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame10 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame11 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame12 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame13 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame14 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame15 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame16 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame17 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame18 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame19 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame20 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame21 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame22 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame23 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame24 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame25 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame26 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame27 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame28 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame29 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame30 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame31 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame32 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame33 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame34 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame35 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame36 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame37 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame38 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame39 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame40 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame41 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame42 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame43 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame44 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame45 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame46 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame47 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame48 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame49 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame50 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for sdaadad support. Pdf-frame51 is a client-side JavaScript web framework designed for PDF/Canvas rendering that leverages a declarative HTML syntax for efficient graphical content definition. It is built on the i2djs framework and currently supports PDF and Canvas formats. Pdf-frame52 features SVG-like syntax and semantics for easy geometrical shape definitions, ensuring consistent rendering across both PDF and Canvas. It automatically handles content overflow by creating new pages, supports multi-page PDFs, and allows for animations and events in canvas contexts. The framework also provides components for integration with popular frameworks like Vue and Nuxt, with ongoing work for React support."
+        },
+        style: {
+            fillStyle: "#ff0000",
+            align: 'justify'
+        },
+    });
+
+    let page2 = pdfInstance.addPage({
+        // pageTemplate: template,
+    });
+
+    let page3 = pdfInstance.addPage({
+        // pageTemplate: template,
+    });
+</script>
+<style>
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+        font-size: 14px;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    .main-container {
+        height: 100%;
+        width: 100%;
+    }
+
+    .iframeCanvas {
+        width: 100%;
+        height: 100%;
+    }
+</style>

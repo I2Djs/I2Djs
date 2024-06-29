@@ -5,7 +5,7 @@ import PDFDocument from "pdfkit";
 import blobStream from "blob-stream-i2d";
 import fs from "fs";
 import { STANDARD_FONTS } from "./../../data/static-fonts.js";
-import { createPage } from "./canvas.js";
+import { createPage, CanvasNodeExe } from "./canvas.js";
 import { pdfSupportedFontFamily } from "./../constants.js";
 
 if (Object.keys(STANDARD_FONTS).length > 0) {
@@ -144,7 +144,17 @@ function PDFCreator(config) {
         return removedPage;
     };
     PDFCreator.prototype.createTemplate = function () {
-        return createPage(this.ctx, this.vDomIndex);
+        return new CanvasNodeExe(
+            this.ctx,
+            {
+                el: "g",
+                attr: {
+                    id: "templateNode",
+                },
+            },
+            Math.round(Math.random() * 99999),
+            this.vDomIndex
+        )
     };
     PDFCreator.prototype.exportPdf = async function (callback, pdfConfig = {}) {
         let self = this;
@@ -167,6 +177,7 @@ function PDFCreator(config) {
             this.doc = doc;
 
             this.pages.forEach(function (page) {
+                page.updateABBox();
                 page.updateBBox();
                 page.exportPdf(doc, {
                     autoPagination: self.layerConfig.autoPagination
@@ -215,38 +226,29 @@ function PDFCreator(config) {
 function pdfLayer(container, config = {}, layerSettings = {}) {
 
     const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
+    if (!res) throw new Error('Invalid container provided.');
     
     let clientHeight = res?.clientHeight || 0;
     let clientWidth = res?.clientWidth || 0;
 
     let { height = (clientHeight), width = clientWidth } = config;
-
     let pdfConfig = parsePdfConfig(config);
     let { autoUpdate = true, onUpdate, autoPagination = true } = layerSettings;
 
     const layer = document.createElement('canvas');
-    layer.setAttribute('height', height);
-    layer.setAttribute('width', width);
+    layer.height = height;
+    layer.width = width;
     const ctx = layer.getContext('2d');
 
     let fontRegister = config.fontRegister || {};
     let pdfInfo = config.info || { title: "I2Djs-PDF" };
 
-    let vDomIndex = 999999;
     ctx.type_ = "pdf";
-
-    ctx.doc = new PDFDocument({
-        size: [width, height],
-        ...pdfConfig,
-    });
-
+    ctx.doc = new PDFDocument({ size: [width, height], ...pdfConfig });
     ctx.doc.addPage();
 
     const vDomInstance = new VDom();
-
-    if (autoUpdate) {
-        vDomIndex = queue.addVdom(vDomInstance);
-    }
+    const vDomIndex = autoUpdate ? queue.addVdom(vDomInstance) : 999999;
 
     const fallBackPage = createPage(ctx, vDomIndex);
 
@@ -277,81 +279,77 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
 }
 
 async function CanvasToPdf(options) {
-    return new Promise((resolve, reject) => {
-        (async () => {
-            try {
-                    const pdfConfig = parsePdfConfig(options);
-                    const doc = new PDFDocument({
-                        size: [this.width, this.height],
-                        ...pdfConfig,
-                    });
-                    const stream_ = doc.pipe(blobStream());
+    try {
+        const pdfConfig = parsePdfConfig(options);
+        const doc = new PDFDocument({
+            size: [this.width, this.height],
+            ...pdfConfig,
+        });
+        const stream_ = doc.pipe(blobStream());
 
-                    const fontRegister = options.fontRegister || {};
-                    const pdfInfo = options.info || { title: "I2Djs-PDF" };
+        const fontRegister = options.fontRegister || {};
+        const pdfInfo = options.info || { title: "I2Djs-PDF" };
 
-                    await registerFontFromConfig(doc, fontRegister);
+        await registerFontFromConfig(doc, fontRegister);
 
-                    doc.info = {
-                        Title: pdfInfo.title || "",
-                        Author: pdfInfo.author || "",
-                        Subject: pdfInfo.subject || "",
-                        Keywords: pdfInfo.keywords || "",
-                        CreationDate: pdfInfo.creationDate || new Date(),
-                    };
+        doc.info = {
+            Title: pdfInfo.title || "",
+            Author: pdfInfo.author || "",
+            Subject: pdfInfo.subject || "",
+            Keywords: pdfInfo.keywords || "",
+            CreationDate: pdfInfo.creationDate || new Date(),
+        };
 
-                    this.updateBBox();
-                    this.updateABBox();
+        this.updateBBox();
+        this.updateABBox();
 
-                    doc.addPage();
-                    this.exportPdf(doc, {});
-                    doc.end();
+        doc.addPage();
+        this.exportPdf(doc, {});
+        doc.end();
 
-                    stream_.on("finish", function () {
-                        resolve(stream_.toBlobURL("application/pdf"));
-                    });
-                } catch (error) {
-                    reject(error);
-                }
-            })()
-        })
+        return new Promise((resolve) => {
+            stream_.on("finish", function () {
+                resolve(stream_.toBlobURL("application/pdf"));
+            });
+        });
+    } catch (error) {
+        return Promise.reject(error);
+    }
 }
 
 function exportCanvasToPdf(canvasLayer, options) {
     return CanvasToPdf.call(canvasLayer, options);
 }
 
-function registerFontFromConfig(doc, fontRegister = {}) {
-    return new Promise((resolve, reject) => {
-        (async () => {
-            try {
-                let keys = Object.keys(fontRegister);
-                for (let i = 0; i < keys.length; i++) {
-                    let key = keys[i];
-                    if (!pdfSupportedFontFamily.includes(key)) {
-                        pdfSupportedFontFamily.push(key);
-                    }
-                    const fontResponse = await fetch(fontRegister[key]);
-                    if (!fontResponse.ok) {
-                        throw new Error(`Failed to fetch font: ${fontRegister[key]}`);
-                    }
-                    const fontBuffer = await fontResponse.arrayBuffer();
-                    const fontExtension = fontRegister[key].split('.').pop().toLowerCase();
-                    if (['ttc', 'dfont'].includes(fontExtension)) {
-                        const encodedKey = (new TextEncoder()).encode(key);
-                        encodedKey._isBuffer = true;
-                        doc.registerFont(key, fontBuffer, encodedKey);
-                    } else {
-                        doc.registerFont(key, fontBuffer);
-                    }
-                }
-                resolve(true);
-            } catch(err) {
-                console.error(err);
-                reject(false);
+async function registerFontFromConfig(doc, fontRegister = {}) {
+    try {
+        const keys = Object.keys(fontRegister);
+        for (const key of keys) {
+            if (!pdfSupportedFontFamily.includes(key)) {
+                pdfSupportedFontFamily.push(key);
             }
-        })()
-    })
+
+            const fontResponse = await fetch(fontRegister[key]);
+            if (!fontResponse.ok) {
+                throw new Error(`Failed to fetch font: ${fontRegister[key]}`);
+            }
+
+            const fontBuffer = await fontResponse.arrayBuffer();
+            const fontExtension = fontRegister[key].split('.').pop().toLowerCase();
+
+            if (['ttc', 'dfont'].includes(fontExtension)) {
+                const encodedKey = new TextEncoder().encode(key);
+                encodedKey._isBuffer = true;
+                doc.registerFont(key, fontBuffer, encodedKey);
+            } else {
+                doc.registerFont(key, fontBuffer);
+            }
+        }
+        return true;
+    } catch (err) {
+        console.error(err);
+        throw new Error('Font registration failed');
+    }
 }
 
 export {

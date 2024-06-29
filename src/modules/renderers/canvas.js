@@ -198,6 +198,8 @@ function cRenderPdf(attr, pdfCtx, block) {
     const [hozSkew = 0, verSkew = hozSkew] = skew;
     const [hozMove = 0, verMove = hozMove] = translate;
 
+    pdfCtx.save();
+
     pdfCtx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, verMove);
 
     if (transform.rotate && transform.rotate.length > 0) {
@@ -209,6 +211,8 @@ function cRenderPdf(attr, pdfCtx, block) {
     for (let i = 0; i < self.stack.length; i += 1) {
         self.stack[i].executePdf(pdfCtx, block);
     }
+
+    pdfCtx.restore();
 }
 
 function cRender(attr) {
@@ -875,6 +879,7 @@ function RenderText(ctx, props, styleProps) {
     self.stack = [self];
     self.textHeight = 0;
     self.height = 1;
+    self.pdfSubTexts = []
     if (self.attr.width && self.attr.text) {
         this.fitWidth();
     }
@@ -980,26 +985,25 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
         width = this.ctx.measureText(this.attr.text).width;
     }
 
-    if (this.style.textAlign === "center") {
-        x -= width / 2;
-    } else if (this.style.textAlign === "right") {
-        x -= width;
-    }
-
     if (doc) {
+        width = this.attr.width || ((doc?.options?.size[0]??0) - this.abTransform.translate[0] - x);
         const alignVlaue = this.style.align ?? this.style.textAlign;
         const styleObect = {
-            ...(this.attr.width && { width: this.attr.width }),
+            width,
             ...(this.style.lineGap && { lineGap: this.style.lineGap }),
             ...(this.style.textBaseline && { textBaseline: this.style.textBaseline }),
             ...(alignVlaue && { align: alignVlaue }),
         };
 
-        if (this.style.font) {
-            doc.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
-        }
-
+        doc.fontSize(parseInt(this.style.font?.replace(/[^\d.]/g, ""), 10) || 10);
         height = doc.heightOfString(this.attr.text, styleObect);
+        this.textHeight = doc.heightOfString("i2djs", styleObect);
+    }
+
+    if (this.style.textAlign === "center") {
+        x -= width / 2;
+    } else if (this.style.textAlign === "right") {
+        x -= width;
     }
 
     Object.assign(self, { width, height, x, y });
@@ -1057,28 +1061,91 @@ RenderText.prototype.execute = function RTexecute() {
     }
 };
 
+function extractFontFamily(fontStyle) {
+    const fontFamilyRegex = /(?:[a-zA-Z]+\s)*\d+px\s(.+)/;
+    const match = fontStyle.match(fontFamilyRegex);
+    return match ? match[1] : null;
+  }
+
 RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
-    if (this.attr.text !== undefined && this.attr.text !== null) {
-        if (this.style.font) {
-            pdfCtx.fontSize(parseInt(this.style.font.replace(/[^\d.]/g, ""), 10) || 10);
-        }
-        const alignVlaue = this.style.align ?? this.style.textAlign;
+    if (this.attr.text === undefined || this.attr.text === null) {
+        return;
+    }
 
-        const styleObect = {
-            ...(this.attr.width && { width: this.attr.width }),
-            ...(this.style.lineGap && { lineGap: this.style.lineGap }),
-            ...(this.style.textBaseline && { textBaseline: this.style.textBaseline }),
-            ...(alignVlaue && { align: alignVlaue }),
-        };
-        if (this.style.fillStyle || this.style.fill || this.style.fillColor) {
-            pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
-        }
+    const { font, align, textAlign, lineGap, textBaseline, fillStyle, fill, fillColor, strokeStyle, stroke, strokeColor } = this.style;
+    const { text, width, x, y } = this.attr;
 
-        if (this.style.strokeStyle || this.style.stroke || this.style.strokeColor) {
-            pdfCtx.text(this.attr.text, this.attr.x, block ? this.attr.y : 0, styleObect);
+    const fontSize = font ? parseInt(font.replace(/[^\d.]/g, ""), 10) || 10 : 10;
+    pdfCtx.fontSize(fontSize);
+
+    if (font) {
+        const fontFamily = extractFontFamily(font);
+        if (fontFamily) {
+            try {
+                pdfCtx.font(fontFamily);
+            } catch (err) {
+                console.error(`Unknown font family - ${fontFamily}`);
+            }
         }
     }
+
+    const alignValue = align ?? textAlign;
+    const styleObject = {
+        ...(width && { width }),
+        ...(lineGap && { lineGap }),
+        ...(textBaseline && { textBaseline }),
+        ...(alignValue && { align: alignValue }),
+    };
+
+    const applyText = (d, isSubText) => {
+        if (isSubText) {
+            pdfCtx.restore();
+            pdfCtx.switchToPage(d.pageIndex);
+            const { scale = [1, 1], skew = [0, 0], translate = [0, 0], rotate = [] } = this.abTransform || {};
+            const [hozScale = 1, verScale = hozScale] = scale;
+            const [hozSkew = 0, verSkew = hozSkew] = skew;
+            const [hozMove = 0] = translate;
+
+            pdfCtx.save();
+            pdfCtx.transform(hozScale, hozSkew, verSkew, verScale, hozMove, 0);
+
+            if (rotate.length > 0) {
+                const [angle, cx = 0, cy = 0] = rotate;
+                pdfCtx.translate(cx, cy);
+                pdfCtx.rotate(angle * (Math.PI / 180));
+                pdfCtx.translate(-cx, -cy);
+            }
+        }
+
+        this.nodeExe.stylesExePdf(pdfCtx);
+
+        if (fillStyle || fill || fillColor) {
+            pdfCtx.text(d.text, d.attr.x, d.attr.y, styleObject);
+        }
+
+        if (strokeStyle || stroke || strokeColor) {
+            pdfCtx.text(d.text, d.attr.x, d.attr.y, styleObject);
+        }
+
+        if (!block && !isSubText) {
+            pdfCtx.translate(0, -this.abYposition);
+        }
+
+        if (isSubText) {
+            pdfCtx.restore();
+        }
+    };
+
+    if (this.pdfSubTexts && this.pdfSubTexts.length) {
+        this.pdfSubTexts.forEach((d, i) => applyText(d, i !== 0));
+    } else {
+        applyText({ text, attr: { x, y: block ? y : 0 } }, false);
+    }
 };
+
+RenderText.prototype.addSubText = function addSubText(configs) {
+    this.pdfSubTexts = configs;
+}
 
 RenderText.prototype.in = function RTinfun(co) {
     const { x = 0, y = 0, width = 0, height = 0 } = this;
@@ -1254,7 +1321,6 @@ RenderPolyline.prototype.execute = function polylineExe() {
 RenderPolyline.prototype.executePdf = function polylineExe(pdfCtx, block) {
     let d;
     if (!this.attr.points || this.attr.points.length === 0) return;
-
     if (!block) {
         pdfCtx.translate(0, -this.abYposition);
     }
@@ -1338,14 +1404,6 @@ RenderPath.prototype.updateBBox = function RPupdateBBox() {
     const self = this;
     const { transform } = self.attr;
     const { translateX, translateY, scaleX, scaleY } = parseTransform(transform);
-
-    // if (transform && transform.translate) {
-    //  [translateX, translateY] = transform.translate;
-    // }
-
-    // if (transform && transform.scale) {
-    //  [scaleX = 1, scaleY = scaleX] = transform.scale;
-    // }
 
     self.BBox = self.path
         ? self.path.BBox
@@ -1856,7 +1914,7 @@ const CanvasNodeExe = function CanvasNodeExe(context, config, id, vDomIndex) {
     this.vDomIndex = vDomIndex;
     this.bbox = config.bbox !== undefined ? config.bbox : true;
     this.BBoxUpdate = true;
-    this.block = config.block || false;
+    this.block = false;
 
     this.style = prepObjProxyCanvas('style', {}, this, true);
     this.attr = prepObjProxyCanvas('attr', {}, this, true);
@@ -2104,6 +2162,7 @@ CanvasNodeExe.prototype.executePdf = function Cexecute(pdfCtx, block) {
         return;
     }
     if (!(this.dom instanceof RenderGroup) || block || this.block) {
+        pdfCtx.switchToPage(this.dom.pageIndex) ;
         pdfCtx.save();
         this.stylesExePdf(pdfCtx);
         this.attributesExePdf(pdfCtx, block);
@@ -2163,6 +2222,15 @@ CanvasNodeExe.prototype.setVDomIndex = function (vDomIndex) {
     }
 };
 
+CanvasNodeExe.prototype.setPdfPageIndex = function (pageIndex) {
+    this.dom.pageIndex = pageIndex;
+    for (let i = 0, len = this.children.length; i < len; i += 1) {
+        if (this.children[i] && this.children[i].setPdfPageIndex) {
+            this.children[i].setPdfPageIndex(pageIndex);
+        }
+    }
+};
+
 CanvasNodeExe.prototype.updateBBox = function CupdateBBox() {
     let status;
 
@@ -2182,7 +2250,8 @@ CanvasNodeExe.prototype.updateBBox = function CupdateBBox() {
     return false;
 };
 
-CanvasNodeExe.prototype.updateABBox = function updateABBox(transform = { translate: [0, 0] }) {
+CanvasNodeExe.prototype.updateABBox = function updateABBox(transform = { translate: [0, 0] }, pageDim = { pageHeight: 0, top: 0, bottom: 0 }) {
+    let { pageHeight, top, bottom } = pageDim;
     const localTransform = this.attr.transform || { translate: [0, 0] };
     const abTransform = {
         translate: [
@@ -2191,11 +2260,14 @@ CanvasNodeExe.prototype.updateABBox = function updateABBox(transform = { transla
         ],
     };
     this.dom.abTransform = abTransform;
-
+    
     if (this.dom instanceof RenderGroup) {
+        this.dom.pageIndex = Math.floor(abTransform.translate[1] / ((pageHeight - top - bottom) || 1));
         for (let i = 0, len = this.children.length; i < len && this.children[i]; i += 1) {
-            this.children[i].updateABBox(abTransform);
+            this.children[i].updateABBox(abTransform, pageDim);
         }
+    } else {
+        this.dom.pageIndex = Math.floor((abTransform.translate[1] + (this.dom.abYposition || 0)) / ((pageHeight - top - bottom) || 1));
     }
 };
 
@@ -2438,16 +2510,12 @@ function RenderTexture(nodeExe, config = {}) {
     self.domEl = self.rImageObj.canvas;
     self.imageArray = [];
     self.seekIndex = 0;
-    // self.attr = props;
     self.nodeName = "Sprite";
     self.nodeExe = nodeExe;
 
     for (const key in self.attr) {
         self.setAttr(key, self.attr[key]);
     }
-
-    // queueInstance.vDomChanged(nodeExe.vDomIndex);
-    // self.stack = [self];
 }
 RenderTexture.prototype = new NodePrototype();
 RenderTexture.prototype.constructor = RenderTexture;
@@ -2633,74 +2701,126 @@ function createPage(ctx, vDomIndex) {
         this.execute();
     };
 
-    root.exportPdf = function (doc, layerConfig) {
+    root.exportPdf = function (doc) {
         const margin = this.margin || 0;
         const { top = margin, bottom = margin } = this.margins || { };
         const pageHeight = this.height;
+        const abPageHeight = (pageHeight - top - bottom)
 
+        this.updateABBox(undefined, { pageHeight, top, bottom});
         this.updateBBox();
-        this.updateABBox();
 
         let leafNodes = getAllLeafs(this).sort((a, b) => {
                 const aTrans = a.dom && a.dom.abTransform ? a.dom.abTransform : { translate: [0, 0] };
-                const aBox = a.dom.BBox;
+                // const aBox = a.dom.BBox;
                 const bTrans = b.dom && b.dom.abTransform ? b.dom.abTransform : { translate: [0, 0] };
-                const bBox = b.dom.BBox;
+                // const bBox = b.dom.BBox;
                 return (
                     aTrans.translate[1] +
-                    aBox.height +
                     a.dom.abYposition -
-                    (bTrans.translate[1] + bBox.height + b.dom.abYposition)
+                    (bTrans.translate[1] + b.dom.abYposition)
                 );
             });
 
-        let runningY = 0;
+        let pages = [];
+        // let pageRunningY = {
+        // };
         const pageRage = doc.bufferedPageRange();
-        let pageNumber = pageRage.count - 1;
+        let pageNumber = pageRage.count;
         leafNodes.forEach((node) => {
             const abTransform = node.dom.abTransform;
             const elHight = node.dom.BBox.height || 0;
             const elY = node.dom.abYposition || 0;
-            let posY = calculatePosY(abTransform, elY, runningY);
+            // let runningY = pageRunningY[node.dom.pageIndex] || 0;
+            let newPageIndex= pageNumber + node.dom.pageIndex;
+            let currentPageIndex = newPageIndex;
+            let posY = calculatePosY(abTransform, elY, (node.dom.pageIndex * abPageHeight));
 
-            if (needsNewPage(node, posY, elHight)) {
-                runningY += pageHeight - top - bottom;
-                posY = calculatePosY(abTransform, elY, runningY);
-                runningY += posY;
-                posY = 0;
-                doc.addPage({
-                    margin: this.margin,
-                    margins: this.margins,
-                    size: [this.width, this.height],
-                });
-                if (this.pageTemplate) {
-                    this.pageTemplate.executePdf(doc);
+
+            if ((posY + elHight) > abPageHeight ) {
+                if (node.dom instanceof RenderText) {
+                    let pagesCount = splitTextNode(node, posY, newPageIndex);
+                    while(pagesCount >= 1) {
+                        addNewPage.call(this, newPageIndex);
+                        newPageIndex += 1;
+                        pagesCount--;
+                    }
                 }
-                pageNumber += 1;
+            } else {
+                addNewPage.call(this, newPageIndex);
             }
+
             node.dom.abTransform = {
                 translate: [abTransform.translate[0], posY + top],
             };
 
-            const executePdf = node.executePdf.bind(node);
-
-            // Redefining pdf call with page mapping
-            node.executePdf = (function (pNumber) {
-                return function (pdfCtx) {
-                    pdfCtx.switchToPage(pNumber);
-                    executePdf(pdfCtx);
-                };
-            })(pageNumber);
+            node.dom.pageIndex = currentPageIndex;
         });
 
         this.executePdf(doc);
 
-        function needsNewPage(node, posY, elHight) {
-            return layerConfig.autoPagination && !(posY < pageHeight - bottom - top && posY + elHight <= pageHeight - bottom - top) || elHight > pageHeight - bottom - top;
+        function addNewPage(newPageIndex) {
+            if (pages[newPageIndex]) {
+                return;
+            }
+            pages[newPageIndex] = true;
+            doc.addPage({
+                margin: this.margin,
+                margins: this.margins,
+                size: [this.width, this.height],
+            });
+            if (this.pageTemplate) {
+                this.pageTemplate.setPdfPageIndex(newPageIndex);
+                this.pageTemplate.executePdf(doc);
+            }
+        }
+
+        function splitTextNode(node, posY, pIndex) {
+            let elHeight = node.dom.BBox.height || 0;
+            let availablePageHeight = (abPageHeight - posY);
+            let text = node.attr.text || "";
+            let subStrs = [];
+            let subPage = 0;
+            let currentAvailableHeight = availablePageHeight;
+            let prevIndex = 0;
+            posY = 0;
+
+            if (!text || elHeight <= 0) {
+                console.warn("Invalid text or element height.");
+                return 0;
+            }
+
+            while(prevIndex < text.length) {
+                elHeight = ((elHeight === node.dom.textHeight) ? currentAvailableHeight : elHeight);
+                let percent = currentAvailableHeight / elHeight;
+                const index = Math.floor(text.length * percent);
+
+                if (index <= prevIndex) {
+                    console.warn("Text splitting encountered an infinite loop.");
+                    break;
+                }
+
+                subStrs.push({
+                    text: text.substring(prevIndex, index),
+                    attr: {
+                        x: node.getAttr('x'),
+                        y: posY
+                    },
+                    pageIndex: pIndex + subPage
+                })
+                prevIndex = index;
+                currentAvailableHeight += abPageHeight;
+                subPage++;
+                posY = top;
+            }
+
+            node.dom.addSubText(subStrs);
+
+            return subPage;
         }
 
         function calculatePosY(abTransform, elY, runningY) {
-            return (abTransform.translate[1] + elY || 0) - runningY;
+            return (abTransform.translate[1] + elY - runningY);
         }
     };
 
@@ -2733,8 +2853,7 @@ function getAllLeafs(node) {
 
     while (queue.length > 0) {
         const currentNode = queue.shift();
-        const isLeaf = currentNode.block ||
-                        (currentNode.children &&
+        const isLeaf = (currentNode.children &&
                         currentNode.children.length === 0 &&
                         currentNode.nodeName !== "g" &&
                         currentNode.nodeName !== "group");
