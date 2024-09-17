@@ -776,7 +776,7 @@ function svgLayer(container, layerSettings = {}) {
     const layer = document.createElementNS(nameSpace.svg, "svg");
     layer.setAttribute("height", height);
     layer.setAttribute("width", width);
-    layer.style.position = "absolute";
+    // layer.style.position = "absolute";
 
     let vDomInstance;
     let vDomIndex = 999999;

@@ -4473,7 +4473,6 @@ function svgLayer(container, layerSettings = {}) {
     const layer = document.createElementNS(nameSpace.svg, "svg");
     layer.setAttribute("height", height);
     layer.setAttribute("width", width);
-    layer.style.position = "absolute";
     let vDomInstance;
     let vDomIndex = 999999;
     let cHeight;
@@ -8093,7 +8092,6 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
     layer.setAttribute("width", width * ratio);
     layer.style.height = `${height}px`;
     layer.style.width = `${width}px`;
-    layer.style.position = "absolute";
     let vDomInstance;
     let vDomIndex = 999999;
     let resizeCall;
@@ -10951,7 +10949,6 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     layer.setAttribute("width", width * ratio);
     layer.style.height = `${height}px`;
     layer.style.width = `${width}px`;
-    layer.style.position = "absolute";
     let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
     let vDomInstance;
     let vDomIndex = 999999;

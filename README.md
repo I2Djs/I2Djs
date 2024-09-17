@@ -12,6 +12,8 @@ I2Djs provides same Application Programming Interface to create and animate elem
 
 I2D also provides a unique data-driven approach, **join-actions**, for DOM manipulation based on data binding.
 
+Used by : <a href="https://www.pdf-frame.org"> www.pdf-frame.org </a>
+
 ## Documentation
 
 <a href="https://nswamy14.gitbook.io/i2djs-v5/"><img width='150' src="https://raw.githubusercontent.com/I2Djs/I2Djs/snaps/examples/snaps/gitbookIcon.png"></a>

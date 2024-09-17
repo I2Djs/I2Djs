@@ -3387,7 +3387,7 @@ function webglLayer(container, contextConfig = {}, layerSettings = {}) {
     layer.setAttribute("width", width * ratio);
     layer.style.height = `${height}px`;
     layer.style.width = `${width}px`;
-    layer.style.position = "absolute";
+    // layer.style.position = "absolute";
 
     let vDomInstance;
     let vDomIndex = 999999;

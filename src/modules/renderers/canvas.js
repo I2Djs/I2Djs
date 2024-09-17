@@ -2908,7 +2908,7 @@ function canvasLayer(container, contextConfig = {}, layerSettings = {}) {
     layer.setAttribute("width", width * ratio);
     layer.style.height = `${height}px`;
     layer.style.width = `${width}px`;
-    layer.style.position = "absolute";
+    // layer.style.position = "absolute";
 
     let { enableEvents = true, autoUpdate = true, enableResize = true } = layerSettings;
 
