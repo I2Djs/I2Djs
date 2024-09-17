@@ -1072,7 +1072,7 @@ RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
         return;
     }
 
-    const { font, align, textAlign, lineGap, textBaseline, fillStyle, fill, fillColor, strokeStyle, stroke, strokeColor } = this.style;
+    const { font, align, textAlign, lineGap, textBaseline, fillStyle, fill, fillColor, strokeStyle, stroke, strokeColor, underline, link, anchor, goto, strike, oblique } = this.style;
     const { text, width, x, y } = this.attr;
 
     const fontSize = font ? parseInt(font.replace(/[^\d.]/g, ""), 10) || 10 : 10;
@@ -1095,6 +1095,12 @@ RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
         ...(lineGap && { lineGap }),
         ...(textBaseline && { textBaseline }),
         ...(alignValue && { align: alignValue }),
+        ...(underline && { underline}),
+        ...(link && { link }),
+        ...(anchor && { destination: anchor }),
+        ...(goto && { goTo: goto }),
+        ...(strike && { strike }),
+        ...(oblique && { oblique })
     };
 
     const applyText = (d, isSubText) => {
@@ -2034,7 +2040,7 @@ CanvasNodeExe.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
     const style = this.style;
     let value;
     for (let key in style) {
-        if (typeof style[key] === "string" || typeof style[key] === "number") {
+        if (typeof style[key] === "string" || typeof style[key] === "number" ||  typeof style[key] === 'boolean') {
             value = style[key];
         } else if (typeof style[key] === "object") {
             if (
@@ -2061,6 +2067,10 @@ CanvasNodeExe.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
 
         if ((key === "fillColor" || key === "strokeColor") && typeof value === "string") {
             value = colorMap.colorToRGBPdf(value);
+        }
+
+        if (['underline', 'strike', 'goto', 'link', 'anchor', 'oblique'].includes(key)) {
+            continue;
         }
 
         if (typeof pdfCtx[key] !== "function") {

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Using Module of I2Djs</title>
+    </head>
+    <body>
+        <div class="main-container">
+            <iframe class="iframeCanvas" id="i2dPdfContainer"></iframe>
+        </div>
+    </body>
+</html>
+<script type="module">
+    import {pdfLayer} from "../../dist/i2d.esm.js";
+    let pdfInstance = pdfLayer("#i2dPdfContainer", {
+        info: {
+            Title: "I2Djs-pdf",
+            Author: "Narayana Swamy",
+            Subject: "The First PDF",
+            Keywords: "I2Djs, PDF, PDF-Frame",
+            CreationDate: new Date(),
+        },
+        margins: {
+            top: 30,
+            bottom: 30,
+            left: 10,
+            right: 10
+        }
+    }, {
+        autoPagination: true
+    });
+
+    let page1 = pdfInstance.addPage({
+    });
+
+    page1.createEls([1], {
+        el: "text",
+        attr: {
+            text: "Pdf-frame",
+            x: 30,
+            y: 50
+        },
+        style: {
+            fillStyle: "#000000",
+            font: "25",
+            underline: true
+        },
+    });
+
+    page1.createEls([1], {
+        el: "text",
+        attr: {
+            text: "Pdf-frame",
+            x: 30,
+            y: 80
+        },
+        style: {
+            fillStyle: "#ff0000",
+            font: "25",
+            strike: true
+        },
+    });
+
+    page1.createEls([1], {
+        el: "text",
+        attr: {
+            text: "Pdf-frame",
+            x: 30,
+            y: 110
+        },
+        style: {
+            fillStyle: "#00ff00",
+            font: "25",
+            link: "https://www.pdf-frame.org",
+            underline: true
+        },
+    });
+
+    page1.createEls([1], {
+        el: "text",
+        attr: {
+            text: "Pdf-frame",
+            x: 30,
+            y: 140
+        },
+        style: {
+            fillStyle: "#0000ff",
+            font: "25",
+            goto: "ENDP",
+            underline: true,
+            oblique: true
+        },
+    });
+
+    let page2 = pdfInstance.addPage({
+    });
+
+    page2.createEls([1], {
+        el: "text",
+        attr: {
+            text: "Pdf-frame",
+            x: 30,
+            y: 50
+        },
+        style: {
+            fillStyle: "#000000",
+            font: "25",
+            anchor: "ENDP",
+            oblique: true
+        },
+    });
+    
+</script>
+<style>
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+        font-size: 14px;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    .main-container {
+        height: 100%;
+        width: 100%;
+    }
+
+    .iframeCanvas {
+        height: 100%;
+        width: 100%;
+    }
+</style>
