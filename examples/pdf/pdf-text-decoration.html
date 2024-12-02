@@ -35,7 +35,7 @@
     page1.createEls([1], {
         el: "text",
         attr: {
-            text: "Pdf-frame",
+            text: "Pdf-frame Underline",
             x: 30,
             y: 50
         },
@@ -49,7 +49,7 @@
     page1.createEls([1], {
         el: "text",
         attr: {
-            text: "Pdf-frame",
+            text: "Pdf-frame Strike",
             x: 30,
             y: 80
         },
@@ -63,29 +63,30 @@
     page1.createEls([1], {
         el: "text",
         attr: {
-            text: "Pdf-frame",
+            text: "https://www.pdf-frame.org",
+            link: "https://www.pdf-frame.org",
             x: 30,
             y: 110
         },
         style: {
-            fillStyle: "#00ff00",
-            font: "25",
-            link: "https://www.pdf-frame.org",
-            underline: true
+            fillStyle: "#0ffff0",
+            font: "25"
         },
     });
 
     page1.createEls([1], {
         el: "text",
         attr: {
-            text: "Pdf-frame",
+            text: "Goto Pdf-frame - 3",
             x: 30,
-            y: 140
+            y: 140,
+            goto: "ENDP",
+            underline: true,
+            oblique: true
         },
         style: {
             fillStyle: "#0000ff",
             font: "25",
-            goto: "ENDP",
             underline: true,
             oblique: true
         },
@@ -97,14 +98,14 @@
     page2.createEls([1], {
         el: "text",
         attr: {
-            text: "Pdf-frame",
+            text: "Pdf-frame - 3",
             x: 30,
-            y: 50
+            y: 50,
+            anchor: "ENDP",
         },
         style: {
             fillStyle: "#000000",
             font: "25",
-            anchor: "ENDP",
             oblique: true
         },
     });

@@ -1072,8 +1072,8 @@ RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
         return;
     }
 
-    const { font, align, textAlign, lineGap, textBaseline, fillStyle, fill, fillColor, strokeStyle, stroke, strokeColor, underline, link, anchor, goto, strike, oblique } = this.style;
-    const { text, width, x, y } = this.attr;
+    const { font, align, textAlign, lineGap, textBaseline, fillStyle, fill, fillColor, strokeStyle, stroke, strokeColor, underline, strike, oblique } = this.style;
+    const { text, width, x, y, link, anchor, goto } = this.attr;
 
     const fontSize = font ? parseInt(font.replace(/[^\d.]/g, ""), 10) || 10 : 10;
     pdfCtx.fontSize(fontSize);
