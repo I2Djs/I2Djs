@@ -6,9 +6,9 @@
 
 ### I2dJs - SVG | Canvas | WebGL | PDF
 
-Integrated-2D - is an Open source Javascript framework for rendering 2D graphics on SVG, Canvas, WebGL and PDF contexts. I2D's simple syntax and semantics lets you combine the power of Vector graphics and Bitmap to achieve complex visualizations easily.
+Integrated-2D is an open-source JavaScript framework for rendering 2D graphics in SVG, Canvas, WebGL, and PDF contexts. I2D's simple syntax and semantics let you combine the power of Vector graphics and Bitmap to achieve complex visualizations easily.
 
-I2Djs provides same Application Programming Interface to create and animate elements across different graphic rendering contexts by leveraging their underlying capabilities. Developers can make use of I2D's multi-layered contextual approach with capabilities from more than one context seamlessly for creating powerful composite visualizations under a single roof.
+I2Djs provides the same Application Programming Interface to create and animate elements across different graphic rendering contexts by leveraging their underlying capabilities. Developers can make use of I2D's multi-layered contextual approach with capabilities from more than one context seamlessly for creating powerful composite visualizations under a single roof.
 
 I2D also provides a unique data-driven approach, **join-actions**, for DOM manipulation based on data binding.
 
@@ -32,9 +32,9 @@ I2Djs provides source code bundles for ES6 and CJS modules.
 -   [i2D.esm.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.esm.js) ES6 bundle
 -   [i2D.esm.min.js](https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.esm.min.js) ES6 bundle
 
-In ES6, use below syntax to import modules.
+In ES6, use the following syntax to import modules.
 
-Import all modules into namespace
+Import all modules into a namespace
 
 ```
 import * as i2d from 'i2djs'
