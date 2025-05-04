@@ -2,7 +2,7 @@
   <img src="https://github.com/I2Djs/I2Djs/blob/master/i2djsLogo.png?raw=true" width=500>
 </p>
 
-# Integrated-2D js [![npm](https://img.shields.io/npm/v/i2djs.svg)](https://www.npmjs.com/package/i2djs)
+# Integrated-2D js [![npm](https://img.shields.io/npm/v/i2djs.svg)](https://www.npmjs.com/package/i2djs) [![Downloads](https://img.shields.io/npm/dy/i2djs.svg)](https://www.npmjs.com/package/i2djs)
 
 ### I2dJs - SVG | Canvas | WebGL | PDF
 
