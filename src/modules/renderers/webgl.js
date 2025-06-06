@@ -7,6 +7,7 @@ import shaders from "./../shaders.js";
 import earcut from "earcut";
 import Events from "./../events.js";
 import behaviour from "./../behaviour.js";
+import logger from "../logger.js";
 import {
     CollectionPrototype,
     NodePrototype,
@@ -297,7 +298,7 @@ function loadShader(ctx, shaderSource, shaderType) {
 
     if (!compiled) {
         var lastError = ctx.getShaderInfoLog(shader);
-        console.error("*** Error compiling shader '" + shader + "':" + lastError);
+        logger.error("*** Error compiling shader '" + shader + "':" + lastError);
         ctx.deleteShader(shader);
         return null;
     }
@@ -315,7 +316,7 @@ function createProgram(ctx, shaders) {
 
     if (!linked) {
         var lastError = ctx.getProgramInfoLog(program);
-        console.error("Error in program linking:" + lastError);
+        logger.error("Error in program linking:" + lastError);
         ctx.deleteProgram(program);
         return null;
     }
@@ -348,7 +349,7 @@ function WebglDom() {
 
 WebglDom.prototype.exec = function (exe, d) {
     if (typeof exe !== "function") {
-        console.error("Wrong Exe type");
+        logger.error("Wrong Exe type");
     }
 
     exe.call(this, d);
@@ -1714,7 +1715,7 @@ function webGlUniformMapper(ctx, program, uniform, uniObj) {
         if (Number.isInteger(Math.sqrt(uniObj.value.length))) {
             type = "uniformMatrix" + Math.sqrt(uniObj.value.length) + "fv";
         } else {
-            console.error("Not Square Matrix");
+            logger.error("Not Square Matrix");
         }
     }
 
@@ -1768,7 +1769,7 @@ function RenderWebglShader(ctx, shader, vDomIndex) {
             this.attributes = this.geometry.attributes;
             this.indexes = this.geometry.indexes;
         } else {
-            console.error("Wrong Geometry type");
+            logger.error("Wrong Geometry type");
         }
     }
 
@@ -2084,7 +2085,7 @@ function updateVertex(self, index, length, ver) {
     const b = index * length * 2;
     let i = 0;
     if (isNaN(positionArray[b])) {
-        console.log("overriding Nan");
+        logger.warn("overriding NaN in vertex data");
     }
     while (i < ver.length) {
         positionArray[b + i] = ver[i];
@@ -2156,7 +2157,7 @@ function updateColor(self, index, length, fillStyle) {
     const colorArray = self.addColor_ ? self.colorArray : self.typedColorArray;
     const ti = index * length * 4;
     if (isNaN(colorArray[ti])) {
-        console.log("overriding Nan");
+        logger.warn("overriding NaN in color data");
     }
     const b = index * length * 4;
     let i = 0;
@@ -2174,7 +2175,7 @@ function clearColor(self, index, length) {
     const colorArray = self.addColor_ ? self.colorArray : self.typedColorArray;
     const ti = index * length * 4;
     if (isNaN(colorArray[ti])) {
-        console.log("overriding Nan");
+        logger.warn("overriding NaN in color data");
     }
     const b = index * length * 4;
     let i = 0;
@@ -3209,7 +3210,7 @@ WebglNodeExe.prototype.child = function child(childrens) {
                     if (node.el === this.dom.shader.attr.shaderType) {
                         node.dom.setShader(this.dom.shader);
                     } else {
-                        console.warn(
+                        logger.warn(
                             "wrong el type '" +
                                 node.el +
                                 "' being added to shader group - '" +
@@ -3248,7 +3249,7 @@ WebglNodeExe.prototype.child = function child(childrens) {
             }
         }
     } else {
-        console.log("Error");
+        logger.error("Error adding node to group");
     }
 
     this.BBoxUpdate = true;
@@ -3821,7 +3822,7 @@ TextureObject.prototype.update = function () {
 
     if (this.mipMap) {
         if (!isPowerOf2(self.image.width) || !isPowerOf2(self.image.height)) {
-            console.warn("Image dimension not in power of 2");
+            logger.warn("Image dimension not in power of 2");
         }
         ctx.generateMipmap(ctx.TEXTURE_2D);
         ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx[this.minFilter]);

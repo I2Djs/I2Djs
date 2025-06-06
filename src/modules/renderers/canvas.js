@@ -6,6 +6,7 @@ import colorMap from "./../colorMap.js";
 import Events from "./../events.js";
 import behaviour from "./../behaviour.js";
 import { canvasStyleMapper, pdfSupportedFontFamily } from "./../constants.js";
+import logger from "../logger.js";
 
 import {
     NodePrototype,
@@ -325,7 +326,7 @@ CanvasGradient.prototype.exe = function GRAexe(ctx, BBox) {
     } else if (this.type === "radial" && this.mode === "absolute") {
         return this.absoluteRadialGradient(ctx);
     } else {
-        console.error("wrong Gradiant type");
+        logger.error("wrong Gradiant type");
     }
 };
 
@@ -343,7 +344,7 @@ CanvasGradient.prototype.exePdf = function GRAexe(ctx, BBox, AABox) {
     } else if (this.type === "radial" && this.mode === "absolute") {
         return this.absoluteRadialGradientPdf(ctx, AABox);
     } else {
-        console.error("wrong Gradiant type");
+        logger.error("wrong Gradiant type");
     }
 };
 
@@ -1084,7 +1085,7 @@ RenderText.prototype.executePdf = function RTexecute(pdfCtx, block) {
             try {
                 pdfCtx.font(fontFamily);
             } catch (err) {
-                console.error(`Unknown font family - ${fontFamily}`);
+                logger.error(`Unknown font family - ${fontFamily}`);
             }
         }
     }
@@ -1512,7 +1513,7 @@ RenderPath.prototype.in = function RPinfun(co) {
 
 function polygonExe(points) {
     if (Object.prototype.toString.call(points) !== "[object Array]") {
-        console.error("Points expected as array [{x: , y:}]");
+        logger.error("Points expected as array [{x: , y:}]");
         return;
     }
     if (points && points.length === 0) {
@@ -1886,7 +1887,7 @@ RenderGroup.prototype.child = function RGchild(obj) {
             self.stack[self.stack.length] = d;
         });
     } else {
-        console.log("wrong Object");
+        logger.warn("wrong Object");
     }
 };
 
@@ -2020,7 +2021,7 @@ CanvasNodeExe.prototype.stylesExe = function CstylesExe() {
                 value = value.exe(ctx, dom.BBox);
             }
         } else if (typeof value !== 'string' && typeof value !== 'number') {
-            console.log("Unknown Style");
+            logger.warn("Unknown Style");
             continue;
         }
 
@@ -2057,7 +2058,7 @@ CanvasNodeExe.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
             style[key] = style[key].call(this, this.dataObj);
             value = style[key];
         } else {
-            console.log("unkonwn Style");
+            logger.warn("unkonwn Style");
         }
 
         if (pdfStyleMapper[key]) {
@@ -2078,7 +2079,7 @@ CanvasNodeExe.prototype.stylesExePdf = function CstylesExe(pdfCtx) {
         } else if (typeof pdfCtx[key] === "function") {
             pdfCtx[key](value);
         } else {
-            console.log("junk comp");
+            logger.warn("junk comp");
         }
     }
 };
@@ -2200,7 +2201,7 @@ CanvasNodeExe.prototype.prependChild = function child(childrens) {
             self.children.unshift(childrensLocal[i]);
         }
     } else {
-        console.error("Trying to insert child to nonGroup Element");
+        logger.error("Trying to insert child to nonGroup Element");
     }
 
     return self;
@@ -2217,7 +2218,7 @@ CanvasNodeExe.prototype.child = function child(childrens) {
             self.children[self.children.length] = childrensLocal[i];
         }
     } else {
-        console.error("Trying to insert child to nonGroup Element");
+        logger.error("Trying to insert child to nonGroup Element");
     }
 
     return self;
@@ -2463,7 +2464,7 @@ function textureImageInstance(self, url) {
     };
 
     imageIns.onerror = function onerror(error) {
-        console.error(error);
+        logger.error(error);
         if (self.nodeExe.attr.onerror && typeof self.nodeExe.attr.onerror === "function") {
             self.nodeExe.attr.onerror.call(self.nodeExe, error);
         }
@@ -2796,7 +2797,7 @@ function createPage(ctx, vDomIndex) {
             posY = 0;
 
             if (!text || elHeight <= 0) {
-                console.warn("Invalid text or element height.");
+                logger.warn("Invalid text or element height.");
                 return 0;
             }
 
@@ -2806,7 +2807,7 @@ function createPage(ctx, vDomIndex) {
                 const index = Math.floor(text.length * percent);
 
                 if (index <= prevIndex) {
-                    console.warn("Text splitting encountered an infinite loop.");
+                    logger.warn("Text splitting encountered an infinite loop.");
                     break;
                 }
 

@@ -2,6 +2,7 @@
 // import { queue, ease } from './'
 import queue from "./queue.js";
 import ease from "./ease.js";
+import logger from "./logger.js";
 
 let Id = 0;
 let chainId = 0;
@@ -364,7 +365,7 @@ ParallelGroup.prototype.triggerChild = function PGtriggerChild(exe) {
     } else if (typeof exe === "function") {
         exe();
     } else {
-        console.log("wrong type");
+        logger.warn("wrong type");
     }
 };
 
