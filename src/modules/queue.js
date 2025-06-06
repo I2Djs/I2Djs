@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+import logger from "./logger.js";
 let animatorInstance = null;
 let tweens = [];
 const vDoms = {};
@@ -249,7 +250,7 @@ function exeFrameCaller() {
         animatorInstance.vDomUpdates();
 
     } catch (err) {
-        console.error(err);
+        logger.error(err);
     } finally {
         animeFrameId = window.requestAnimationFrame(exeFrameCaller);
     }

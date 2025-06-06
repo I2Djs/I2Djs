@@ -7,6 +7,7 @@ import fs from "fs";
 import { STANDARD_FONTS } from "./../../data/static-fonts.js";
 import { createPage, CanvasNodeExe } from "./canvas.js";
 import { pdfSupportedFontFamily } from "./../constants.js";
+import logger from "../logger.js";
 
 if (Object.keys(STANDARD_FONTS).length > 0) {
     for(let key in STANDARD_FONTS) {
@@ -191,7 +192,7 @@ function PDFCreator(config) {
             });
         }
         catch (err) {
-            console.error(err);
+            logger.error(err);
         }
     };
 
@@ -347,7 +348,7 @@ async function registerFontFromConfig(doc, fontRegister = {}) {
         }
         return true;
     } catch (err) {
-        console.error(err);
+        logger.error(err);
         throw new Error('Font registration failed');
     }
 }

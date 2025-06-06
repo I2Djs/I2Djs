@@ -3,6 +3,7 @@ import VDom from "./../VDom.js";
 import { CheckPathType, AnimatePathTo, MorphTo} from "./../path.js";
 import colorMap from "./../colorMap.js";
 import Events from "./../events.js";
+import logger from "../logger.js";
 import {
     CollectionPrototype,
     NodePrototype,
@@ -598,7 +599,7 @@ DomExe.prototype.child = function DMchild(nodes) {
         nodes.parentNode = self;
         this.children.push(nodes);
     } else {
-        console.log("wrong node type");
+        logger.warn("wrong node type");
     }
 
     return this;

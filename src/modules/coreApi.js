@@ -4,6 +4,7 @@ import geometry from "./geometry.js";
 import queue from "./queue.js";
 import ease from "./ease.js";
 import colorMap from "./colorMap.js";
+import logger from "./logger.js";
 import { ResizeObserver as resizePolyfill } from "@juggle/resize-observer";
 import { canvasStyleMapper, svgStyleMapper } from "./constants.js";
 
@@ -137,9 +138,7 @@ const animate = function animate(self, fromConfig, targetConfig) {
                 } else {
                     if (key === "d") {
                         self.morphTo(targetConfig);
-                    } else if (key === "points") {
-                        console.log("write points mapper");
-                    } else {
+                    } else if (key !== "points") {
                         runStack[runStack.length] = attrTransition(
                             self,
                             key,
@@ -345,7 +344,7 @@ NodePrototype.prototype.getStyle = function (_) {
 
 NodePrototype.prototype.exec = function Cexe(exe) {
     if (typeof exe !== "function") {
-        console.error("Wrong Exe type");
+        logger.error("Wrong Exe type");
     }
 
     exe.call(this, this.dataObj);

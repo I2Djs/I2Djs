@@ -8,6 +8,7 @@ const tan = Math.tan;
 const PI = Math.PI;
 const ceil = Math.ceil;
 const max = Math.max;
+import logger from "./logger.js";
 
 function pw(a, x) {
     let val = 1;
@@ -163,7 +164,7 @@ function toCubicCurves(stack) {
                 length: _[i].length,
             });
         } else {
-            console.log("wrong cmd type");
+            logger.warn("wrong cmd type");
         }
     }
 
@@ -219,7 +220,7 @@ const _slicedToArray = (function () {
                 if (!_n && _i.return) _i.return();
             } finally {
                 if (_d) {
-                    console.log("Error -" + _e);
+                    logger.error("Error -" + _e);
                 }
             }
         }

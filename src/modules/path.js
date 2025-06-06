@@ -1250,8 +1250,6 @@ function AnimatePathTo(targetConfig, fromConfig) {
                 length: 0,
             });
             totalLength += 0;
-        } else {
-            // console.log('M Or Other Type')
         }
     }
 
