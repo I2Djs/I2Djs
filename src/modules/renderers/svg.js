@@ -759,10 +759,8 @@ DomExe.prototype.removeChild = function DMremoveChild(obj) {
 
 function markForDeletion(removedNode) {
     removedNode.deleted = true;
-    if (!removedNode.deleted) {
-        for(let i = 0; i < removedNode.children.length; i++) {
-            markForDeletion(removedNode[i]);
-        }
+    for (let i = 0; i < removedNode.children.length; i++) {
+        markForDeletion(removedNode.children[i]);
     }
 }
 
@@ -849,20 +847,26 @@ function svgLayer(container, layerSettings = {}) {
     };
 
     root.setSize = function (width, height) {
-        this.dom.setAttribute("height", height);
-        this.dom.setAttribute("width", width);
-        this.width = width;
-        this.height = height;
-        cHeight = height;
-        cWidth = width;
+        if (this.width !== width || this.height !== height) {
+            this.dom.setAttribute("height", height);
+            this.dom.setAttribute("width", width);
+            this.width = width;
+            this.height = height;
+            cHeight = height;
+            cWidth = width;
+        }
     };
 
     root.update = function () {
         this.execute();
     };
 
-    root.setViewBox = function (x, y, height, width) {
-        this.dom.setAttribute("viewBox", x + "," + y + "," + width + "," + height);
+    root.setViewBox = function (x, y, width, height) {
+        const vb = `${x},${y},${width},${height}`;
+        if (this._viewBox !== vb) {
+            this.dom.setAttribute("viewBox", vb);
+            this._viewBox = vb;
+        }
     };
 
     root.destroy = function () {
