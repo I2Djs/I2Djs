@@ -207,9 +207,9 @@ function prepObjProxyWebGl(type, attr, context, BBoxUpdate) {
     const handlr = {
         set(obj, prop, value) {
             if (value !== null) {
-                if (type === 'attr') {
+                if (type === "attr") {
                     if (prop === "transform" && context.children.length > 0) {
-                        value = prepObjProxyWebGl('transform', value, context, BBoxUpdate)
+                        value = prepObjProxyWebGl("transform", value, context, BBoxUpdate);
                         context.children.forEach(function (d) {
                             d.applyTransformationMatrix(context.dom.transformMatrix);
                         });
@@ -221,7 +221,7 @@ function prepObjProxyWebGl(type, attr, context, BBoxUpdate) {
                     if (BBoxUpdate) {
                         context.BBoxUpdate = true;
                     }
-                } else if (type === 'style') {
+                } else if (type === "style") {
                     let resProp = canvasStyleMapper[prop] || prop;
                     if ((resProp === "fillStyle" || resProp === "strokeStyle") && !colorMap.RGBAInstanceCheck(value) ) {
                         value = colorMap.colorToRGB(value);
@@ -230,16 +230,16 @@ function prepObjProxyWebGl(type, attr, context, BBoxUpdate) {
                         context.dom.setStyle(resProp, value);
                     }
                     obj[resProp] = value;
-                } else if (type === 'transform') {
-                    if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
+                } else if (type === "transform") {
+                    if (prop === "translate" || prop === "scale" || prop === "skew") {
                         value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
-                    } else if (prop === 'rotate') {
-                        value = Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0]
+                    } else if (prop === "rotate") {
+                        value = Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0];
                     }
                     obj[prop] = value;
 
                     if (context && context.dom) {
-                        context.dom.setAttr('transform', obj);
+                        context.dom.setAttr("transform", obj);
                     }
                     if (BBoxUpdate) {
                         context.BBoxUpdate = true;
@@ -256,7 +256,7 @@ function prepObjProxyWebGl(type, attr, context, BBoxUpdate) {
             if (prop in obj) {
                 delete obj[prop];
                 queueInstance.vDomChanged(context.vDomIndex);
-                if (type === 'attr' && BBoxUpdate) {
+                if (type === "attr" && BBoxUpdate) {
                     context.BBoxUpdate = true;
                 }
             }
@@ -268,17 +268,17 @@ function prepObjProxyWebGl(type, attr, context, BBoxUpdate) {
 }
 
 function updatePositionVector (positionArray, attr) {
-        const x = attr.x || 0;
-        const y = attr.y || 0;
-        const width = attr.width || 0;
-        const height = attr.height || 0;
-        const x1 = x + width;
-        const y1 = y + height;
+    const x = attr.x || 0;
+    const y = attr.y || 0;
+    const width = attr.width || 0;
+    const height = attr.height || 0;
+    const x1 = x + width;
+    const y1 = y + height;
 
-        positionArray[0] = positionArray[4] = positionArray[6] = x;
-        positionArray[1] = positionArray[3] = positionArray[9] = y;
-        positionArray[2] = positionArray[8] = positionArray[10] = x1;
-        positionArray[5] = positionArray[7] = positionArray[11] = y1;
+    positionArray[0] = positionArray[4] = positionArray[6] = x;
+    positionArray[1] = positionArray[3] = positionArray[9] = y;
+    positionArray[2] = positionArray[8] = positionArray[10] = x1;
+    positionArray[5] = positionArray[7] = positionArray[11] = y1;
 }
 
 const WebglCollection = function () {
@@ -608,7 +608,7 @@ PathNode.prototype.setAttr = function (key, value) {
                 this.vDomIndex
             );
         } else {
-            this.textureNode.setAttr('src', pathTexture);
+            this.textureNode.setAttr("src", pathTexture);
         }
         
         updatePositionVector(this.positionArray, {x: 0, y: 0, height: bbox?.height??0, width: bbox?.width??0});
@@ -624,9 +624,9 @@ PathNode.prototype.setStyle = function (key, value) {
     }
     this.style[key] = value;
     if (this.path) {
-        this.textureNode.setAttr('src', this.path.getPathTexture(this.style, true));
+        this.textureNode.setAttr("src", this.path.getPathTexture(this.style, true));
     }
-}
+};
 
 PathNode.prototype.in = function RIinfun(co) {
     const { x = 0, y = 0 } = co;
@@ -646,11 +646,11 @@ PathNode.prototype.updateBBox = function RCupdateBBox() {
     self.BBox = self.path
         ? self.path.BBox
         : {
-              x: 0,
-              y: 0,
-              width: 0,
-              height: 0,
-          };
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+        };
 
     self.BBox.x = translateX + self.BBox.x * scaleX;
     self.BBox.y = translateY + self.BBox.y * scaleY;
@@ -834,10 +834,10 @@ LineNode.prototype.updateBBox = function RLupdateBBox() {
 
 function polygonPointsMapper(value) {
     return earcut(value.reduce(function (p, c) {
-            p[p.length] = c.x;
-            p[p.length] = c.y;
-            return p;
-        }, [])).map(function (d) {
+        p[p.length] = c.x;
+        p[p.length] = c.y;
+        return p;
+    }, [])).map(function (d) {
         return value[d];
     });
 }
@@ -1118,9 +1118,9 @@ function buildCanvasTextEl(str, style) {
 
     for (const st in style) {
         let value = style[st];
-        if (st === 'fillStyle' || st === 'strokeStyle') {
+        if (st === "fillStyle" || st === "strokeStyle") {
             value = fetchColorCode(value);
-        } else if (st === 'font') {
+        } else if (st === "font") {
             value = fontSize * ratio +
                     (isNaN(parseFloat(style.font, 10))
                         ? style.font
@@ -1155,9 +1155,9 @@ function buildCanvasTextEl(str, style) {
             this.height = height;
             for (const st in style) {
                 let value = style[st];
-                if (st === 'fillStyle' || st === 'strokeStyle') {
+                if (st === "fillStyle" || st === "strokeStyle") {
                     value = fetchColorCode(value);
-                } else if (st === 'font') {
+                } else if (st === "font") {
                     value = fontSize * ratio +
                             (isNaN(parseFloat(style.font, 10))
                                 ? style.font
@@ -1266,7 +1266,7 @@ TextNode.prototype.setAttr = function (key, value) {
 
     if (key === "transform") {
         this.exec(updateTransformMatrix, this.p_matrix);
-    } else if (key === 'text' || key === "x" || key === "y") {
+    } else if (key === "text" || key === "x" || key === "y") {
 
         updatePositionVector(this.positionArray, this.attr);
 
@@ -1603,14 +1603,14 @@ WebglGroupNode.prototype.updateBBox = function RGupdateBBox(children) {
                 maxX === undefined
                     ? boxX + d.dom.BBoxHit.width
                     : maxX < boxX + d.dom.BBoxHit.width
-                    ? boxX + d.dom.BBoxHit.width
-                    : maxX;
+                        ? boxX + d.dom.BBoxHit.width
+                        : maxX;
             maxY =
                 maxY === undefined
                     ? boxY + d.dom.BBoxHit.height
                     : maxY < boxY + d.dom.BBoxHit.height
-                    ? boxY + d.dom.BBoxHit.height
-                    : maxY;
+                        ? boxY + d.dom.BBoxHit.height
+                        : maxY;
         }
     }
 
@@ -2886,45 +2886,45 @@ function getTypeShader(ctx, attr, style, type, renderTarget, vDomIndex) {
     let e;
 
     switch (type) {
-        case "rect":
-            e = new RenderWebglRects(ctx, attr, style, renderTarget, vDomIndex);
-            break;
+    case "rect":
+        e = new RenderWebglRects(ctx, attr, style, renderTarget, vDomIndex);
+        break;
 
-        case "point":
-            e = new RenderWebglPoints(ctx, attr, style, renderTarget, vDomIndex);
-            break;
+    case "point":
+        e = new RenderWebglPoints(ctx, attr, style, renderTarget, vDomIndex);
+        break;
 
-        case "line":
-            e = new RenderWebglLines(ctx, attr, style, renderTarget, vDomIndex);
-            break;
+    case "line":
+        e = new RenderWebglLines(ctx, attr, style, renderTarget, vDomIndex);
+        break;
 
-        case "polyline":
-            e = new RenderWebglPolyLines(ctx, attr, style, renderTarget, vDomIndex);
-            break;
+    case "polyline":
+        e = new RenderWebglPolyLines(ctx, attr, style, renderTarget, vDomIndex);
+        break;
 
-        case "path":
-            e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
-            break;
+    case "path":
+        e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
+        break;
 
-        case "polygon":
-            e = new RenderWebglPolygons(ctx, attr, style, renderTarget, vDomIndex);
-            break;
+    case "polygon":
+        e = new RenderWebglPolygons(ctx, attr, style, renderTarget, vDomIndex);
+        break;
 
-        case "circle":
-            e = new RenderWebglCircles(ctx, attr, style, renderTarget, vDomIndex);
-            break;
+    case "circle":
+        e = new RenderWebglCircles(ctx, attr, style, renderTarget, vDomIndex);
+        break;
 
-        case "image":
-            e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
-            break;
+    case "image":
+        e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
+        break;
 
-        case "text":
-            e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
-            break;
+    case "text":
+        e = new RenderWebglImages(ctx, attr, style, renderTarget, vDomIndex);
+        break;
 
-        default:
-            e = null;
-            break;
+    default:
+        e = null;
+        break;
     }
 
     return e;
@@ -2951,7 +2951,7 @@ function WebglNodeExe(ctx, config, id, vDomIndex) {
     if (config.style) {
         for(let key in config.style) {
             let resKey = canvasStyleMapper[key] || key;
-            let value = config.style[key]
+            let value = config.style[key];
             if ((resKey === "fillStyle" || resKey === "strokeStyle") && !colorMap.RGBAInstanceCheck(value) ) {
                 value = colorMap.colorToRGB(value);
             }
@@ -2960,8 +2960,8 @@ function WebglNodeExe(ctx, config, id, vDomIndex) {
     }
 
 
-    this.style = prepObjProxyWebGl('style', {}, this, true);
-    this.attr = prepObjProxyWebGl('attr', {}, this, true);
+    this.style = prepObjProxyWebGl("style", {}, this, true);
+    this.attr = prepObjProxyWebGl("attr", {}, this, true);
 
 
     if (style) {
@@ -2973,55 +2973,55 @@ function WebglNodeExe(ctx, config, id, vDomIndex) {
     }
 
     switch (config.el) {
-        case "point":
-            this.dom = new PointNode(this.ctx, this.attr, this.style);
-            break;
+    case "point":
+        this.dom = new PointNode(this.ctx, this.attr, this.style);
+        break;
 
-        case "rect":
-            this.dom = new RectNode(this.ctx, this.attr, this.style);
-            break;
+    case "rect":
+        this.dom = new RectNode(this.ctx, this.attr, this.style);
+        break;
 
-        case "line":
-            this.dom = new LineNode(this.ctx, this.attr, this.style);
-            break;
+    case "line":
+        this.dom = new LineNode(this.ctx, this.attr, this.style);
+        break;
 
-        case "polyline":
-            this.dom = new PolyLineNode(this.ctx, this.attr, this.style);
-            break;
+    case "polyline":
+        this.dom = new PolyLineNode(this.ctx, this.attr, this.style);
+        break;
 
-        case "polygon":
-            this.dom = new PolygonNode(this.ctx, this.attr, this.style);
-            break;
+    case "polygon":
+        this.dom = new PolygonNode(this.ctx, this.attr, this.style);
+        break;
 
-        case "path":
-            this.dom = new PathNode(this.ctx, this.attr, this.style);
-            break;
+    case "path":
+        this.dom = new PathNode(this.ctx, this.attr, this.style);
+        break;
 
-        case "circle":
-            this.dom = new CircleNode(this.ctx, this.attr, this.style);
-            break;
+    case "circle":
+        this.dom = new CircleNode(this.ctx, this.attr, this.style);
+        break;
 
-        case "image":
-            this.dom = new ImageNode(this.ctx, this.attr, this.style, vDomIndex);
-            break;
+    case "image":
+        this.dom = new ImageNode(this.ctx, this.attr, this.style, vDomIndex);
+        break;
 
-        case "text":
-            this.dom = new TextNode(this.ctx, this.attr, this.style, vDomIndex);
-            break;
+    case "text":
+        this.dom = new TextNode(this.ctx, this.attr, this.style, vDomIndex);
+        break;
 
-        case "group":
-            this.dom = new WebglGroupNode(
-                this.ctx,
-                this.attr,
-                this.style,
-                config.renderTarget,
-                vDomIndex
-            );
-            break;
+    case "group":
+        this.dom = new WebglGroupNode(
+            this.ctx,
+            this.attr,
+            this.style,
+            config.renderTarget,
+            vDomIndex
+        );
+        break;
 
-        default:
-            this.dom = null;
-            break;
+    default:
+        this.dom = null;
+        break;
     }
 
     this.dom.nodeExe = this;
@@ -3068,7 +3068,7 @@ WebglNodeExe.prototype.setAttr = function WsetAttr(attr, value) {
 
 WebglNodeExe.prototype.scale = function Cscale(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = prepObjProxyWebGl('transform', {}, this, true);
+        this.attr.transform = prepObjProxyWebGl("transform", {}, this, true);
     }
 
     this.attr.transform.scale = XY;
@@ -3077,7 +3077,7 @@ WebglNodeExe.prototype.scale = function Cscale(XY) {
 
 WebglNodeExe.prototype.translate = function Ctranslate(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = prepObjProxyWebGl('transform', {}, this, true);
+        this.attr.transform = prepObjProxyWebGl("transform", {}, this, true);
     }
 
     this.attr.transform.translate = XY;
@@ -3089,7 +3089,7 @@ WebglNodeExe.prototype.translate = function Ctranslate(XY) {
 
 WebglNodeExe.prototype.rotate = function Crotate(angleXY) {
     if (!this.attr.transform) {
-        this.attr.transform = prepObjProxyWebGl('transform', {}, this, true);
+        this.attr.transform = prepObjProxyWebGl("transform", {}, this, true);
     }
 
     this.attr.transform.rotate = angleXY;
@@ -3344,7 +3344,7 @@ WebglNodeExe.prototype.morphTo = MorphTo;
 
 WebglNodeExe.prototype.text = function Ctext(value) {
     if (this.dom instanceof TextNode) {
-        this.setAttr('text', value);
+        this.setAttr("text", value);
     }
     return this;
 };
@@ -3353,7 +3353,7 @@ WebglNodeExe.prototype.text = function Ctext(value) {
 
 function webglLayer(container, contextConfig = {}, layerSettings = {}) {
 
-    const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
+    const res = typeof container === "string" ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
     
     let height = res?.clientHeight || 0;
     let width = res?.clientWidth || 0;

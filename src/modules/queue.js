@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+ 
 import logger from "./logger.js";
 let animatorInstance = null;
 let tweens = [];
@@ -144,7 +144,7 @@ ExeQueue.prototype.interruptNodeAnimations = function (node) {
     tweens = tweens.filter((d)=>{
         return (d?.executable?.target??null) !== node;
     });
-}
+};
 
 ExeQueue.prototype.addVdom = function AaddVdom(_) {
     const ind = vDomIds.length + 1;
@@ -267,7 +267,7 @@ function loopCheck(d) {
             const index = animList.indexOf(d);
             if (index !== -1) animList.splice(index, 1);
         }
-        return false
+        return false;
     } else {
         d.loopTracker += 1;
         d.lastTime = d.lastTime - d.duration;

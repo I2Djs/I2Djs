@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+ 
 import queue from "./queue.js";
 function VDom() {}
 

@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+ 
 // import { geometry, queue, ease, chain, colorMap, path } from './'
 import geometry from "./geometry.js";
 import queue from "./queue.js";
@@ -120,7 +120,7 @@ const animate = function animate(self, fromConfig, targetConfig) {
     const sattr = fromConfig.attr || {};
     let sstyles = fromConfig.style || {};
     const runStack = [];
-    const styleMapper = ['WEBGL', 'canvas'].includes(self.nodeType) ? canvasStyleMapper : svgStyleMapper;
+    const styleMapper = ["WEBGL", "canvas"].includes(self.nodeType) ? canvasStyleMapper : svgStyleMapper;
 
     sstyles = resolveStyle(sstyles, styleMapper);
     tstyles = resolveStyle(tstyles, styleMapper);
@@ -356,14 +356,14 @@ NodePrototype.prototype.fetchEls = function fetchEls (nodeSelector, dataArray) {
     const nodes = [];
     const wrap = new CollectionPrototype();
     const selectorType = nodeSelector.charAt(0);
-    const token = ['.', '#'].includes(selectorType) ? nodeSelector.substring(1) : nodeSelector;
+    const token = [".", "#"].includes(selectorType) ? nodeSelector.substring(1) : nodeSelector;
 
     const isMatch = (node, compareToken) => {
         if (!node) return false;
 
-        const attrValue = selectorType === '.' ? node.attr?.class :
-                          selectorType === '#' ? node.attr?.id :
-                          node.nodeName;
+        const attrValue = selectorType === "." ? node.attr?.class :
+            selectorType === "#" ? node.attr?.id :
+                node.nodeName;
         const isInDataArray = dataArray ? dataArray.includes(node.dataObj) : true;
 
         return isInDataArray && attrValue === compareToken;
@@ -383,21 +383,21 @@ NodePrototype.prototype.fetchEl = function fetchEl(nodeSelector, data) {
     let matchedNode = null;
 
     const selectorType = nodeSelector.charAt(0);
-    const token = ['.', '#'].includes(selectorType) ? nodeSelector.substring(1) : nodeSelector
+    const token = [".", "#"].includes(selectorType) ? nodeSelector.substring(1) : nodeSelector;
 
     const isMatch = (node, compareToken) => {
         if (!node) return false;
         const nodeAttr = node.attr || {};
-        const compareAgainst = selectorType === '.' ? nodeAttr['class'] : 
-                               selectorType === '#' ? nodeAttr['id'] : 
-                               node.nodeName;
+        const compareAgainst = selectorType === "." ? nodeAttr["class"] : 
+            selectorType === "#" ? nodeAttr["id"] : 
+                node.nodeName;
 
         return (!data || node.dataObj === data) && compareAgainst === compareToken;
     };
 
-     for (let node of this.children) {
-        const compareToken = (selectorType === '.' || selectorType === '#') ? token : 
-                             (nodeSelector === 'group' ? 'g' : nodeSelector);
+    for (let node of this.children) {
+        const compareToken = (selectorType === "." || selectorType === "#") ? token : 
+            (nodeSelector === "group" ? "g" : nodeSelector);
 
         if (isMatch(node, compareToken)) {
             matchedNode = node;
@@ -602,7 +602,7 @@ function forEach(callBck) {
 
 function setAttribute(key, value) {
     const setAttrHelper = (element, attrKey, attrValue, index) => {
-        const resolvedValue = typeof attrValue === 'function' ? attrValue.call(element, element.dataObj, index) : attrValue;
+        const resolvedValue = typeof attrValue === "function" ? attrValue.call(element, element.dataObj, index) : attrValue;
         element.setAttr(attrKey, resolvedValue);
     };
 
@@ -610,9 +610,9 @@ function setAttribute(key, value) {
         let element = this.stack[i];
         if (arguments.length > 1) {
             setAttrHelper(element, key, value, i);
-        } else if (typeof key === 'function') {
+        } else if (typeof key === "function") {
             element.setAttr(key.call(element, element.dataObj, i));
-        } else if (typeof key === 'object' && key !== null) {
+        } else if (typeof key === "object" && key !== null) {
             Object.entries(key).forEach(([attrKey, attrValue]) => {
                 setAttrHelper(element, attrKey, attrValue, i);
             });
@@ -624,7 +624,7 @@ function setAttribute(key, value) {
 
 function setStyle(key, value) {
     const setStyleHelper = (element, styleKey, styleValue, index) => {
-        const resolvedValue = typeof styleValue === 'function' ? styleValue.call(element, element.dataObj, index) : styleValue;
+        const resolvedValue = typeof styleValue === "function" ? styleValue.call(element, element.dataObj, index) : styleValue;
         element.setStyle(styleKey, resolvedValue);
     };
 
@@ -632,13 +632,13 @@ function setStyle(key, value) {
         let element = this.stack[i];
 
         if (arguments.length > 1) {
-          setStyleHelper(element, key, value, i);
-        } else if (typeof key === 'function') {
-          element.setStyle(key.call(element, element.dataObj, i));
-        } else if (typeof key === 'object') {
-          Object.entries(key).forEach(([styleKey, styleValue]) => {
-            setStyleHelper(element, styleKey, styleValue, i);
-          });
+            setStyleHelper(element, key, value, i);
+        } else if (typeof key === "function") {
+            element.setStyle(key.call(element, element.dataObj, i));
+        } else if (typeof key === "object") {
+            Object.entries(key).forEach(([styleKey, styleValue]) => {
+                setStyleHelper(element, styleKey, styleValue, i);
+            });
         }
     }
 
@@ -818,11 +818,11 @@ const animatePathArrayTo = function animatePathArrayTo(config) {
                 value = value.call(node, node.dataObj, i);
             }
 
-            if (keys[j] === 'attr' && typeof config.attr !== "function") {
+            if (keys[j] === "attr" && typeof config.attr !== "function") {
                 value = resolveObject(config.attr, node, i);
             }
 
-            if (keys[j] === 'style' && typeof config.style !== "function") {
+            if (keys[j] === "style" && typeof config.style !== "function") {
                 value = resolveObject(config.style, node, i);
             }
 
@@ -989,24 +989,24 @@ function layerResizeUnBind(layer, handler) {
 function prepArrayProxy(arr, context, BBoxUpdate) {
     const handlr = {
         get(target, prop) {
-            if (prop === 'push') {
-              return (...args) => {
-                queueInstance.vDomChanged(context.vDomIndex);
-                if (BBoxUpdate) {
-                    context.BBoxUpdate = true;
-                }
-                return target.push(...args);
-              };
-            } else if (prop === 'pop') {
-              return (...args) => {
-                queueInstance.vDomChanged(context.vDomIndex);
-                if (BBoxUpdate) {
-                    context.BBoxUpdate = true;
-                }
-                return target.pop(...args);
-              };
+            if (prop === "push") {
+                return (...args) => {
+                    queueInstance.vDomChanged(context.vDomIndex);
+                    if (BBoxUpdate) {
+                        context.BBoxUpdate = true;
+                    }
+                    return target.push(...args);
+                };
+            } else if (prop === "pop") {
+                return (...args) => {
+                    queueInstance.vDomChanged(context.vDomIndex);
+                    if (BBoxUpdate) {
+                        context.BBoxUpdate = true;
+                    }
+                    return target.pop(...args);
+                };
             } else {
-              return target[prop];
+                return target[prop];
             }
         },
         set(obj, prop, value) {

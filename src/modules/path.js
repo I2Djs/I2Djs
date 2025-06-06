@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+ 
 // import { geometry, queue, ease, chain } from './'
 import geometry from "./geometry.js";
 import queue from "./queue.js";
@@ -141,9 +141,9 @@ function m(rel, p0) {
         this.pp
             ? this.pp
             : {
-                  x: 0,
-                  y: 0,
-              },
+                x: 0,
+                y: 0,
+            },
         {
             x: 0,
             y: 0,
@@ -463,9 +463,9 @@ function a(rel, rx, ry, xRotation, arcLargeFlag, sweepFlag, ep) {
             i === 0
                 ? self.pp
                 : {
-                      x: arcToQuad[0].x,
-                      y: arcToQuad[0].y,
-                  };
+                    x: arcToQuad[0].x,
+                    y: arcToQuad[0].y,
+                };
         const cntrl1 = {
             x: d.x1,
             y: d.y1,
@@ -746,34 +746,34 @@ Path.prototype.execute = function (ctx, clippath) {
     for (let i = 0; i < this.stack.length; i++) {
         c = this.stack[i];
         switch (c.type) {
-            case "M":
-            case "m":
-                ctx.moveTo(c.p0.x, c.p0.y);
-                break;
-            case "Z":
-            case "z":
-                ctx.lineTo(c.p1.x, c.p1.y);
-                break;
-            case "L":
-            case "l":
-            case "V":
-            case "v":
-            case "H":
-            case "h":
-                ctx.lineTo(c.p1.x, c.p1.y);
-                break;
-            case "C":
-            case "c":
-            case "S":
-            case "s":
-                ctx.bezierCurveTo(c.cntrl1.x, c.cntrl1.y, c.cntrl2.x, c.cntrl2.y, c.p1.x, c.p1.y);
-                break;
-            case "Q":
-            case "q":
-                ctx.quadraticCurveTo(c.cntrl1.x, c.cntrl1.y, c.p1.x, c.p1.y);
-                break;
-            default:
-                break;
+        case "M":
+        case "m":
+            ctx.moveTo(c.p0.x, c.p0.y);
+            break;
+        case "Z":
+        case "z":
+            ctx.lineTo(c.p1.x, c.p1.y);
+            break;
+        case "L":
+        case "l":
+        case "V":
+        case "v":
+        case "H":
+        case "h":
+            ctx.lineTo(c.p1.x, c.p1.y);
+            break;
+        case "C":
+        case "c":
+        case "S":
+        case "s":
+            ctx.bezierCurveTo(c.cntrl1.x, c.cntrl1.y, c.cntrl2.x, c.cntrl2.y, c.p1.x, c.p1.y);
+            break;
+        case "Q":
+        case "q":
+            ctx.quadraticCurveTo(c.cntrl1.x, c.cntrl1.y, c.p1.x, c.p1.y);
+            break;
+        default:
+            break;
         }
     }
     if (!clippath) {
@@ -857,105 +857,105 @@ Path.prototype.case = function pCase(currCmd) {
     }
 
     switch (currCmdI) {
-        case "m":
-            this.m(false, this.fetchXY());
-            break;
+    case "m":
+        this.m(false, this.fetchXY());
+        break;
 
-        case "M":
-            this.m(true, this.fetchXY());
-            break;
+    case "M":
+        this.m(true, this.fetchXY());
+        break;
 
-        case "v":
-            this.v(false, {
-                x: 0,
-                y: parseFloat(this.pathArr[(this.currPathArr += 1)]),
-            });
-            break;
+    case "v":
+        this.v(false, {
+            x: 0,
+            y: parseFloat(this.pathArr[(this.currPathArr += 1)]),
+        });
+        break;
 
-        case "V":
-            this.v(true, {
-                x: 0,
-                y: parseFloat(this.pathArr[(this.currPathArr += 1)]),
-            });
-            break;
+    case "V":
+        this.v(true, {
+            x: 0,
+            y: parseFloat(this.pathArr[(this.currPathArr += 1)]),
+        });
+        break;
 
-        case "l":
-            this.l(false, this.fetchXY());
-            break;
+    case "l":
+        this.l(false, this.fetchXY());
+        break;
 
-        case "L":
-            this.l(true, this.fetchXY());
-            break;
+    case "L":
+        this.l(true, this.fetchXY());
+        break;
 
-        case "h":
-            this.h(false, {
-                x: parseFloat(this.pathArr[(this.currPathArr += 1)]),
-                y: 0,
-            });
-            break;
+    case "h":
+        this.h(false, {
+            x: parseFloat(this.pathArr[(this.currPathArr += 1)]),
+            y: 0,
+        });
+        break;
 
-        case "H":
-            this.h(true, {
-                x: parseFloat(this.pathArr[(this.currPathArr += 1)]),
-                y: 0,
-            });
-            break;
+    case "H":
+        this.h(true, {
+            x: parseFloat(this.pathArr[(this.currPathArr += 1)]),
+            y: 0,
+        });
+        break;
 
-        case "q":
-            this.q(false, this.fetchXY(), this.fetchXY());
-            break;
+    case "q":
+        this.q(false, this.fetchXY(), this.fetchXY());
+        break;
 
-        case "Q":
-            this.q(true, this.fetchXY(), this.fetchXY());
-            break;
+    case "Q":
+        this.q(true, this.fetchXY(), this.fetchXY());
+        break;
 
-        case "c":
-            this.c(false, this.fetchXY(), this.fetchXY(), this.fetchXY());
-            break;
+    case "c":
+        this.c(false, this.fetchXY(), this.fetchXY(), this.fetchXY());
+        break;
 
-        case "C":
-            this.c(true, this.fetchXY(), this.fetchXY(), this.fetchXY());
-            break;
+    case "C":
+        this.c(true, this.fetchXY(), this.fetchXY(), this.fetchXY());
+        break;
 
-        case "s":
-            this.s(false, this.fetchXY(), this.fetchXY());
-            break;
+    case "s":
+        this.s(false, this.fetchXY(), this.fetchXY());
+        break;
 
-        case "S":
-            this.s(true, this.fetchXY(), this.fetchXY());
-            break;
+    case "S":
+        this.s(true, this.fetchXY(), this.fetchXY());
+        break;
 
-        case "a":
-            rx = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-            ry = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-            xRotation = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-            arcLargeFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-            sweepFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-            this.a(false, rx, ry, xRotation, arcLargeFlag, sweepFlag, this.fetchXY());
-            break;
+    case "a":
+        rx = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        ry = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        xRotation = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        arcLargeFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        sweepFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        this.a(false, rx, ry, xRotation, arcLargeFlag, sweepFlag, this.fetchXY());
+        break;
 
-        case "A":
-            rx = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-            ry = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-            xRotation = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-            arcLargeFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-            sweepFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
-            this.a(true, rx, ry, xRotation, arcLargeFlag, sweepFlag, this.fetchXY());
-            break;
+    case "A":
+        rx = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        ry = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        xRotation = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        arcLargeFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        sweepFlag = parseFloat(this.pathArr[(this.currPathArr += 1)]);
+        this.a(true, rx, ry, xRotation, arcLargeFlag, sweepFlag, this.fetchXY());
+        break;
 
-        case "z":
-        case "Z":
-            this.z();
-            break;
+    case "z":
+    case "Z":
+        this.z();
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 };
 
 Path.prototype.getPath2DObject = function (pathStr) {
     return new Path2D(pathStr || this.fetchPathString());
-}
+};
 
 Path.prototype.getPathTexture = function (style = {}, refresh) {
     if (!this.layer) {
@@ -965,7 +965,7 @@ Path.prototype.getPathTexture = function (style = {}, refresh) {
     }
 
     if(refresh) {
-        let lineWidth = (style['lineWidth'] || 1) * 2;
+        let lineWidth = (style["lineWidth"] || 1) * 2;
         const {x = 0, y= 0, height = 0, width = 0} = this.BBox;
 
         this.pathNode = this.getPath2DObject();
@@ -980,7 +980,7 @@ Path.prototype.getPathTexture = function (style = {}, refresh) {
 
         for(let key in style) {
             let value = style[key];
-            if (key === 'fillStyle' || key === 'strokeStyle') {
+            if (key === "fillStyle" || key === "strokeStyle") {
                 this.ctx[key] = colorMap.RGBAInstanceCheck(value) ? value.rgba : value;
             } else {
                 if (typeof this.ctx[key] !== "function") {
@@ -991,10 +991,10 @@ Path.prototype.getPathTexture = function (style = {}, refresh) {
             }
         }
 
-        if (style['fillStyle']) {
+        if (style["fillStyle"]) {
             this.ctx.fill(this.pathNode);
         }
-        if (style['strokeStyle']) {
+        if (style["strokeStyle"]) {
             this.ctx.stroke(this.pathNode);
         }
 
@@ -1002,7 +1002,7 @@ Path.prototype.getPathTexture = function (style = {}, refresh) {
     }
 
     return this.layer;
-}
+};
 
 function relativeCheck(type) {
     return ["S", "C", "V", "L", "H", "Q"].indexOf(type) > -1;

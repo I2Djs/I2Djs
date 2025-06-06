@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+ 
 import geometry from "./geometry.js";
 
 const i2DGeometry = geometry;
@@ -97,56 +97,56 @@ export default function fetchTransitionType(_) {
     }
 
     switch (_) {
-        case "easeOutQuad":
-            res = easeOutQuad;
-            break;
+    case "easeOutQuad":
+        res = easeOutQuad;
+        break;
 
-        case "easeInQuad":
-            res = easeInQuad;
-            break;
+    case "easeInQuad":
+        res = easeInQuad;
+        break;
 
-        case "easeInOutQuad":
-            res = easeInOutQuad;
-            break;
+    case "easeInOutQuad":
+        res = easeInOutQuad;
+        break;
 
-        case "easeInCubic":
-            res = easeInCubic;
-            break;
+    case "easeInCubic":
+        res = easeInCubic;
+        break;
 
-        case "easeOutCubic":
-            res = easeOutCubic;
-            break;
+    case "easeOutCubic":
+        res = easeOutCubic;
+        break;
 
-        case "easeInOutCubic":
-            res = easeInOutCubic;
-            break;
+    case "easeInOutCubic":
+        res = easeInOutCubic;
+        break;
 
-        case "easeInSin":
-            res = sinIn;
-            break;
+    case "easeInSin":
+        res = sinIn;
+        break;
 
-        case "easeOutSin":
-            res = easeOutSin;
-            break;
+    case "easeOutSin":
+        res = easeOutSin;
+        break;
 
-        case "easeInOutSin":
-            res = easeInOutSin;
-            break;
+    case "easeInOutSin":
+        res = easeInOutSin;
+        break;
 
-        case "bounce":
-            res = bounce;
-            break;
+    case "bounce":
+        res = bounce;
+        break;
 
-        case "linear":
-            res = linear;
-            break;
+    case "linear":
+        res = linear;
+        break;
 
-        case "elastic":
-            res = elastic;
-            break;
+    case "elastic":
+        res = elastic;
+        break;
 
-        default:
-            res = linear;
+    default:
+        res = linear;
     }
 
     return res;

@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+ 
 const colorMap = {
     AliceBlue: "f0f8ff",
     AntiqueWhite: "faebd7",
@@ -250,17 +250,17 @@ function colorToRGB(val) {
     return val instanceof RGBA
         ? val
         : val.startsWith("#")
-        ? hexToRgb(val)
-        : val.startsWith("rgb")
-        ? rgbParse(val)
-        : val.startsWith("hsl")
-        ? hslParse(val)
-        : {
-              r: 0,
-              g: 0,
-              b: 0,
-              a: 255,
-          };
+            ? hexToRgb(val)
+            : val.startsWith("rgb")
+                ? rgbParse(val)
+                : val.startsWith("hsl")
+                    ? hslParse(val)
+                    : {
+                        r: 0,
+                        g: 0,
+                        b: 0,
+                        a: 255,
+                    };
 }
 
 function colorToRGBPdf(val) {
@@ -268,17 +268,17 @@ function colorToRGBPdf(val) {
         val instanceof RGBA
             ? val
             : val.startsWith("#")
-            ? hexToRgb(val)
-            : val.startsWith("rgb")
-            ? rgbParse(val)
-            : val.startsWith("hsl")
-            ? hslParse(val)
-            : {
-                  r: 0,
-                  g: 0,
-                  b: 0,
-                  a: 255,
-              };
+                ? hexToRgb(val)
+                : val.startsWith("rgb")
+                    ? rgbParse(val)
+                    : val.startsWith("hsl")
+                        ? hslParse(val)
+                        : {
+                            r: 0,
+                            g: 0,
+                            b: 0,
+                            a: 255,
+                        };
     return [rgbColor.r, rgbColor.g, rgbColor.b];
 }
 

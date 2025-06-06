@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+ 
 const logger = {
     info: function () {
         console.info.apply(console, arguments);
