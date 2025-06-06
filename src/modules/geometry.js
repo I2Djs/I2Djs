@@ -277,7 +277,7 @@ const approxUnitArc = function approxUnitArc(ang1, ang2) {
 const vectorAngle = function vectorAngle(ux, uy, vx, vy) {
     const sign = ux * vy - uy * vx < 0 ? -1 : 1;
     const umag = sqrt(ux * ux + uy * uy);
-    const vmag = sqrt(ux * ux + uy * uy);
+    const vmag = sqrt(vx * vx + vy * vy);
     const dot = ux * vx + uy * vy;
     let div = dot / (umag * vmag);
 
