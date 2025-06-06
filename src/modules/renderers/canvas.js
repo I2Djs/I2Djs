@@ -1033,10 +1033,11 @@ RenderText.prototype.updateBBox = function RTupdateBBox() {
 RenderText.prototype.execute = function RTexecute() {
     if (this.attr.text !== undefined && this.attr.text !== null) {
         if (this.textList && this.textList.length > 0) {
-            for (var i = 0; i < this.textList.length; i++) {
+            for (let i = 0; i < this.textList.length; i += 1) {
+                const text = this.textList[i];
                 if (this.ctx.fillStyle !== "#000000") {
                     this.ctx.fillText(
-                        this.textList[i],
+                        text,
                         this.attr.x,
                         this.attr.y + this.textHeight * (i + 1)
                     );
@@ -1044,7 +1045,7 @@ RenderText.prototype.execute = function RTexecute() {
 
                 if (this.ctx.strokeStyle !== "#000000") {
                     this.ctx.strokeText(
-                        this.textList[i],
+                        text,
                         this.attr.x,
                         this.attr.y + this.textHeight * (i + 1)
                     );
@@ -1317,7 +1318,7 @@ RenderPolyline.prototype.execute = function polylineExe() {
     if (!this.attr.points || this.attr.points.length === 0) return;
     this.ctx.beginPath();
     self.ctx.moveTo(this.attr.points[0].x, this.attr.points[0].y);
-    for (var i = 1; i < this.attr.points.length; i++) {
+    for (let i = 1; i < this.attr.points.length; i++) {
         d = this.attr.points[i];
         self.ctx.lineTo(d.x, d.y);
     }
@@ -1333,7 +1334,7 @@ RenderPolyline.prototype.executePdf = function polylineExe(pdfCtx, block) {
     }
 
     pdfCtx.moveTo(this.attr.points[0].x, this.attr.points[0].y);
-    for (var i = 1; i < this.attr.points.length; i++) {
+    for (let i = 1; i < this.attr.points.length; i++) {
         d = this.attr.points[i];
         pdfCtx.lineTo(d.x, d.y);
     }

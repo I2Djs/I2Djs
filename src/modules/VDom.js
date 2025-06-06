@@ -23,9 +23,9 @@ VDom.prototype.eventsCheck = function eventsCheck(nodes, mouseCoor, rawEvent) {
     const self = this;
     let node, temp;
 
-    for (var i = 0; i <= nodes.length - 1; i += 1) {
-        var d = nodes[i];
-        var coOr = {
+    for (let i = 0; i < nodes.length; i += 1) {
+        const d = nodes[i];
+        const coOr = {
             x: mouseCoor.x,
             y: mouseCoor.y,
         };

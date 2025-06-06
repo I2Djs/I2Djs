@@ -17,7 +17,7 @@ Events.prototype.removePointer = function (e) {
     const self = this;
     const pointers = this.pointers;
     let index = -1;
-    for (var i = 0; i < pointers.length; i++) {
+    for (let i = 0; i < pointers.length; i += 1) {
         if (e.pointerId === pointers[i].pointerId) {
             index = i;
             break;
@@ -376,9 +376,9 @@ Events.prototype.wheelEventCheck = function (e) {
 function propogateEvent(nodes, mouseCoor, rawEvent, eventType) {
     let node, temp;
 
-    for (var i = nodes.length - 1; i >= 0; i -= 1) {
-        var d = nodes[i];
-        var coOr = {
+    for (let i = nodes.length - 1; i >= 0; i -= 1) {
+        const d = nodes[i];
+        const coOr = {
             x: mouseCoor.x,
             y: mouseCoor.y,
         };
