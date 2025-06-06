@@ -11,7 +11,7 @@ import logger from "../logger.js";
 
 if (Object.keys(STANDARD_FONTS).length > 0) {
     for(let key in STANDARD_FONTS) {
-        fs.writeFileSync('/data/'+key, STANDARD_FONTS[key]);
+        fs.writeFileSync("/data/"+key, STANDARD_FONTS[key]);
     }
 }
 
@@ -28,206 +28,206 @@ function parsePdfConfig(config, oldConfig = {}) {
 }
 
 function PDFCreator(config) {
-        this.pages = [];
-        this.ctx = config.ctx;
-        this.domEl = config.layer;
-        this.vDomIndex = config.vDomIndex;
-        this.container = config.res;
-        this.height = config.height;
-        this.width = config.width;
-        this.pdfConfig = config.pdfConfig;
-        this.pdfInfo = config.pdfInfo;
-        this.fontRegister = config.fontRegister;
-        this.fallBackPage = config.fallBackPage;
-        this.layerConfig = config.layerConfig;
+    this.pages = [];
+    this.ctx = config.ctx;
+    this.domEl = config.layer;
+    this.vDomIndex = config.vDomIndex;
+    this.container = config.res;
+    this.height = config.height;
+    this.width = config.width;
+    this.pdfConfig = config.pdfConfig;
+    this.pdfInfo = config.pdfInfo;
+    this.fontRegister = config.fontRegister;
+    this.fallBackPage = config.fallBackPage;
+    this.layerConfig = config.layerConfig;
+}
+PDFCreator.prototype.flush = function () {
+    this.pages.forEach(function (page) {
+        page.flush();
+    });
+
+    this.pages = [];
+
+    if (this.doc) {
+        this.doc.flushPages();
     }
-    PDFCreator.prototype.flush = function () {
-        this.pages.forEach(function (page) {
-            page.flush();
-        });
+};
 
-        this.pages = [];
+PDFCreator.prototype.setConfig = function (config = {}) {
+    const tPdfConfig = parsePdfConfig(config, this.pdfConfig);
 
-        if (this.doc) {
-            this.doc.flushPages();
-        }
-    };
+    if (config.fontRegister) {
+        this.fontRegister = {
+            ...(config.fontRegister || {}),
+        };
+    }
 
-    PDFCreator.prototype.setConfig = function (config = {}) {
-        const tPdfConfig = parsePdfConfig(config, this.pdfConfig);
+    this.pdfInfo = config.info || this.pdfInfo || { title: "I2Djs-PDF" };
 
-        if (config.fontRegister) {
-            this.fontRegister = {
-                ...(config.fontRegister || {}),
-            };
-        }
+    this.height = config.height || this.height;
+    this.width = config.width || this.width;
 
-        this.pdfInfo = config.info || this.pdfInfo || { title: "I2Djs-PDF" };
+    this.layer.setAttribute("height", this.height * 1);
+    this.layer.setAttribute("width", this.width * 1);
 
-        this.height = config.height || this.height;
-        this.width = config.width || this.width;
+    this.pdfConfig = tPdfConfig;
 
-        this.layer.setAttribute("height", this.height * 1);
-        this.layer.setAttribute("width", this.width * 1);
+    this.execute();
 
-        this.pdfConfig = tPdfConfig;
+    return this;
+};
 
-        this.execute();
+PDFCreator.prototype.setPageTemplate = function (exec) {
+    this.pageDefaultTemplate = exec;
+};
 
-        return this;
-    };
+PDFCreator.prototype.setSize = function (width = 0, height = 0) {
+    this.width = width;
+    this.height = height;
 
-    PDFCreator.prototype.setPageTemplate = function (exec) {
-        this.pageDefaultTemplate = exec;
-    };
+    this.pdfConfig = parsePdfConfig({
+        height, width
+    }, this.pdfConfig);
 
-    PDFCreator.prototype.setSize = function (width = 0, height = 0) {
-        this.width = width;
-        this.height = height;
+    this.pages.forEach((p) => {
+        let pConfig = p.pageConfig;
+        p.height = pConfig.height || height;
+        p.width = pConfig.width || width;
+    });
 
-        this.pdfConfig = parsePdfConfig({
-            height, width
-        }, this.pdfConfig);
+    this.execute();
 
-        this.pages.forEach((p) => {
-            let pConfig = p.pageConfig;
-            p.height = pConfig.height || height;
-            p.width = pConfig.width || width;
-        });
-
-        this.execute();
-
-        return this;
-    };
-    PDFCreator.prototype.execute = function () {
-        let self = this;
-        this.exportPdf(
-            this.onUpdateExe ||
+    return this;
+};
+PDFCreator.prototype.execute = function () {
+    let self = this;
+    this.exportPdf(
+        this.onUpdateExe ||
                 function (url) {
                     self.container.setAttribute("src", url);
                 },
-            this.pdfConfig
-        );
-    };
-    PDFCreator.prototype.onChange = function (exec) {
-        this.onUpdateExe = exec;
-    };
-    PDFCreator.prototype.addPage = function addPage (config = {}) {
-        const newpage = createPage(this.ctx, this.vDomIndex);
+        this.pdfConfig
+    );
+};
+PDFCreator.prototype.onChange = function (exec) {
+    this.onUpdateExe = exec;
+};
+PDFCreator.prototype.addPage = function addPage (config = {}) {
+    const newpage = createPage(this.ctx, this.vDomIndex);
 
-        Object.assign(newpage, {
-            domEl: this.layer,
-            pageConfig: config,
-            height: config.height || this.height,
-            width: config.width || this.width,
-            margin: config.margin || this.pdfConfig.margin || 0,
-            margins: config.margins || this.pdfConfig.margins || { top: 0, bottom: 0, left: 0, right: 0 },
-            type: 'CANVAS',
-            EXEType: 'pdf',
-            ctx: this.ctx
-        })
+    Object.assign(newpage, {
+        domEl: this.layer,
+        pageConfig: config,
+        height: config.height || this.height,
+        width: config.width || this.width,
+        margin: config.margin || this.pdfConfig.margin || 0,
+        margins: config.margins || this.pdfConfig.margins || { top: 0, bottom: 0, left: 0, right: 0 },
+        type: "CANVAS",
+        EXEType: "pdf",
+        ctx: this.ctx
+    });
 
-        const template = config.pageTemplate || this.pageDefaultTemplate;
-        if (template) {
-            newpage.addTemplate(template);
-        }
+    const template = config.pageTemplate || this.pageDefaultTemplate;
+    if (template) {
+        newpage.addTemplate(template);
+    }
 
-        this.pages.push(newpage);
-        return newpage;
-    };
-    PDFCreator.prototype.removePage = function (page) {
-        const pageIndex = this.pages.indexOf(page);
-        let removedPage = null;
-        if (pageIndex !== -1) {
-            removedPage = this.pages.splice(pageIndex, 1);
-        }
+    this.pages.push(newpage);
+    return newpage;
+};
+PDFCreator.prototype.removePage = function (page) {
+    const pageIndex = this.pages.indexOf(page);
+    let removedPage = null;
+    if (pageIndex !== -1) {
+        removedPage = this.pages.splice(pageIndex, 1);
+    }
 
-        return removedPage;
-    };
-    PDFCreator.prototype.createTemplate = function () {
-        return new CanvasNodeExe(
-            this.ctx,
-            {
-                el: "g",
-                attr: {
-                    id: "templateNode",
-                },
+    return removedPage;
+};
+PDFCreator.prototype.createTemplate = function () {
+    return new CanvasNodeExe(
+        this.ctx,
+        {
+            el: "g",
+            attr: {
+                id: "templateNode",
             },
-            Math.round(Math.random() * 99999),
-            this.vDomIndex
-        )
-    };
-    PDFCreator.prototype.exportPdf = async function (callback, pdfConfig = {}) {
-        let self = this;
-        try {
-            const doc = new PDFDocument({
-                ...pdfConfig,
+        },
+        Math.round(Math.random() * 99999),
+        this.vDomIndex
+    );
+};
+PDFCreator.prototype.exportPdf = async function (callback, pdfConfig = {}) {
+    let self = this;
+    try {
+        const doc = new PDFDocument({
+            ...pdfConfig,
+        });
+        const stream_ = doc.pipe(blobStream());
+
+        await registerFontFromConfig(doc, this.fontRegister);
+
+        if (this.pdfInfo) {
+            doc.info.Title = this.pdfInfo.title || "";
+            doc.info.Author = this.pdfInfo.author || "";
+            doc.info.Subject = this.pdfInfo.subject || "";
+            doc.info.Keywords = this.pdfInfo.keywords || "";
+            doc.info.CreationDate = this.pdfInfo.creationDate || new Date();
+        }
+
+        this.doc = doc;
+
+        this.pages.forEach(function (page) {
+            page.updateABBox();
+            page.updateBBox();
+            page.exportPdf(doc, {
+                autoPagination: self.layerConfig.autoPagination
             });
-            const stream_ = doc.pipe(blobStream());
+        });
 
-            await registerFontFromConfig(doc, this.fontRegister);
+        this.doc.end();
 
-            if (this.pdfInfo) {
-                doc.info.Title = this.pdfInfo.title || "";
-                doc.info.Author = this.pdfInfo.author || "";
-                doc.info.Subject = this.pdfInfo.subject || "";
-                doc.info.Keywords = this.pdfInfo.keywords || "";
-                doc.info.CreationDate = this.pdfInfo.creationDate || new Date();
-            }
+        stream_.on("finish", function () {
+            callback(stream_.toBlobURL("application/pdf"));
+        });
+    }
+    catch (err) {
+        logger.error(err);
+    }
+};
 
-            this.doc = doc;
+PDFCreator.prototype.destroy = function () {
+    const res = document.body.contains(this.container);
+    if (res && this.container.contains(this.domEl)) {
+        this.container.removeChild(this.domEl);
+    }
+    this.flush();
+    queue.removeVdom(this.vDomIndex);
+};
+PDFCreator.prototype.exec = function (exe) {
+    exe.call(this, this.dataObj);
+};
+PDFCreator.prototype.data = function (data) {
+    if (!data) {
+        return this.dataObj;
+    } else {
+        this.dataObj = data;
+    }
+    return this;
+};
+PDFCreator.prototype.createTexture = function (config = {}) {
+    return this.fallBackPage.createTexture(config);
+};
 
-            this.pages.forEach(function (page) {
-                page.updateABBox();
-                page.updateBBox();
-                page.exportPdf(doc, {
-                    autoPagination: self.layerConfig.autoPagination
-                });
-            });
-
-            this.doc.end();
-
-            stream_.on("finish", function () {
-                callback(stream_.toBlobURL("application/pdf"));
-            });
-        }
-        catch (err) {
-            logger.error(err);
-        }
-    };
-
-    PDFCreator.prototype.destroy = function () {
-        const res = document.body.contains(this.container);
-        if (res && this.container.contains(this.domEl)) {
-            this.container.removeChild(this.domEl);
-        }
-        this.flush();
-        queue.removeVdom(this.vDomIndex);
-    };
-    PDFCreator.prototype.exec = function (exe) {
-        exe.call(this, this.dataObj);
-    };
-    PDFCreator.prototype.data = function (data) {
-        if (!data) {
-            return this.dataObj;
-        } else {
-            this.dataObj = data;
-        }
-        return this;
-    };
-    PDFCreator.prototype.createTexture = function (config = {}) {
-        return this.fallBackPage.createTexture(config);
-    };
-
-    PDFCreator.prototype.createAsyncTexture = function (config = {}) {
-        return this.fallBackPage.createAsyncTexture(config);
-    };
+PDFCreator.prototype.createAsyncTexture = function (config = {}) {
+    return this.fallBackPage.createAsyncTexture(config);
+};
 
 
 function pdfLayer(container, config = {}, layerSettings = {}) {
 
-    const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
-    if (!res) throw new Error('Invalid container provided.');
+    const res = typeof container === "string" ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
+    if (!res) throw new Error("Invalid container provided.");
     
     let clientHeight = res?.clientHeight || 0;
     let clientWidth = res?.clientWidth || 0;
@@ -236,10 +236,10 @@ function pdfLayer(container, config = {}, layerSettings = {}) {
     let pdfConfig = parsePdfConfig(config);
     let { autoUpdate = true, onUpdate, autoPagination = true } = layerSettings;
 
-    const layer = document.createElement('canvas');
+    const layer = document.createElement("canvas");
     layer.height = height;
     layer.width = width;
-    const ctx = layer.getContext('2d');
+    const ctx = layer.getContext("2d");
 
     let fontRegister = config.fontRegister || {};
     let pdfInfo = config.info || { title: "I2Djs-PDF" };
@@ -336,9 +336,9 @@ async function registerFontFromConfig(doc, fontRegister = {}) {
             }
 
             const fontBuffer = await fontResponse.arrayBuffer();
-            const fontExtension = fontRegister[key].split('.').pop().toLowerCase();
+            const fontExtension = fontRegister[key].split(".").pop().toLowerCase();
 
-            if (['ttc', 'dfont'].includes(fontExtension)) {
+            if (["ttc", "dfont"].includes(fontExtension)) {
                 const encodedKey = new TextEncoder().encode(key);
                 encodedKey._isBuffer = true;
                 doc.registerFont(key, fontBuffer, encodedKey);
@@ -349,13 +349,13 @@ async function registerFontFromConfig(doc, fontRegister = {}) {
         return true;
     } catch (err) {
         logger.error(err);
-        throw new Error('Font registration failed');
+        throw new Error("Font registration failed");
     }
 }
 
 export {
-  pdfLayer,
-  exportCanvasToPdf,
-  PDFCreator
-} 
+    pdfLayer,
+    exportCanvasToPdf,
+    PDFCreator
+}; 
 

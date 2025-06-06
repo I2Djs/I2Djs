@@ -126,30 +126,30 @@ function prepObjProxySvg(type, attr, context) {
     const handlr = {
         set(obj, prop, value) {
             if (value !== null) {
-                if (prop === 'points') {
+                if (prop === "points") {
                     value = pointsToString(value);
                 }
                 
-                if (type === 'attr') {
-                    if (prop === 'transform') {
+                if (type === "attr") {
+                    if (prop === "transform") {
                         value = prepObjProxySvg("transform", value, context);
                     }
                     context.changedAttribute[prop] = value;
                     context.attrChanged = true;
-                } else if (type === 'style') {
+                } else if (type === "style") {
                     if (colorMap.RGBAInstanceCheck(value)) {
                         value = value.rgba;
                     }
                     context.changedStyles[prop] = value;
                     context.styleChanged = true;
-                } else if (type === 'transform') {
-                    if (prop === 'translate' || prop === 'scale' || prop === 'skew') {
+                } else if (type === "transform") {
+                    if (prop === "translate" || prop === "scale" || prop === "skew") {
                         value = Array.isArray(value) && value.length > 0 ? [value[0], value[1] ? value[1] : value[0]] : [0, 0];
-                    } else if (prop === 'rotate') {
-                        value = Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0]
+                    } else if (prop === "rotate") {
+                        value = Array.isArray(value) && value.length > 0 ? [value[0] || 0, value[1] || 0, value[2] || 0] : [0, 0, 0];
                     }
 
-                    context.changedStyles['transform'] = obj;
+                    context.changedStyles["transform"] = obj;
                     context.attrChanged = true;
                 }
 
@@ -365,13 +365,13 @@ function createDomElement(obj, vDomIndex) {
         dom = buildNamespaceDom(obj.el.slice(0, ind), obj.el.slice(ind + 1));
     } else {
         switch (obj.el) {
-            case "group":
-                dom = buildDom("g");
-                break;
+        case "group":
+            dom = buildDom("g");
+            break;
 
-            default:
-                dom = buildDom(obj.el);
-                break;
+        default:
+            dom = buildDom(obj.el);
+            break;
         }
     }
 
@@ -395,8 +395,8 @@ const DomExe = function DomExe(dom, config, id, vDomIndex) {
     this.children = [];
     this.vDomIndex = vDomIndex;
     this.events = {};
-    this.style = prepObjProxySvg('style', {}, this);
-    this.attr = prepObjProxySvg('attr',{}, this);
+    this.style = prepObjProxySvg("style", {}, this);
+    this.attr = prepObjProxySvg("attr",{}, this);
 
     if (config.style) {
         this.setStyle(config.style);
@@ -477,7 +477,7 @@ DomExe.prototype.transFormAttributes = function transFormAttributes() {
 
 DomExe.prototype.scale = function DMscale(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = prepObjProxySvg('transform', {}, this);
+        this.attr.transform = prepObjProxySvg("transform", {}, this);
     }
 
     this.attr.transform.scale = XY;
@@ -489,7 +489,7 @@ DomExe.prototype.scale = function DMscale(XY) {
 
 DomExe.prototype.skew = function DMskewX(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = prepObjProxySvg('transform', {}, this);
+        this.attr.transform = prepObjProxySvg("transform", {}, this);
     }
 
     this.attr.transform.skew = XY;
@@ -498,7 +498,7 @@ DomExe.prototype.skew = function DMskewX(XY) {
 
 DomExe.prototype.translate = function DMtranslate(XY) {
     if (!this.attr.transform) {
-        this.attr.transform = prepObjProxySvg('transform', {}, this);
+        this.attr.transform = prepObjProxySvg("transform", {}, this);
     }
 
     this.attr.transform.translate = XY;
@@ -507,7 +507,7 @@ DomExe.prototype.translate = function DMtranslate(XY) {
 
 DomExe.prototype.rotate = function DMrotate(angleXY) {
     if (!this.attr.transform) {
-        this.attr.transform = prepObjProxySvg('transform', {}, this);
+        this.attr.transform = prepObjProxySvg("transform", {}, this);
     }
 
     this.attr.transform.rotate = angleXY;
@@ -768,7 +768,7 @@ function markForDeletion(removedNode) {
 
 function svgLayer(container, layerSettings = {}) {
 
-    const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
+    const res = typeof container === "string" ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
     
     let height = res?.clientHeight || 0;
     let width = res?.clientWidth || 0;

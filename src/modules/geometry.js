@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+ 
 const sqrt = Math.sqrt;
 const sin = Math.sin;
 const cos = Math.cos;

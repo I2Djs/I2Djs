@@ -1,11 +1,11 @@
-/* eslint-disable no-undef */
+ 
 function shaders(el) {
     let res;
 
     switch (el) {
-        case "point":
-            res = {
-                vertexShader: `#version 300 es
+    case "point":
+        res = {
+            vertexShader: `#version 300 es
                     precision highp float;
                     in vec2 a_position;
                     in vec4 a_color;
@@ -18,7 +18,7 @@ function shaders(el) {
                       v_color = a_color;
                     }
                     `,
-                fragmentShader: `#version 300 es
+            fragmentShader: `#version 300 es
                     precision mediump float;
                     in vec4 v_color;
                     out vec4 fragColor;
@@ -26,12 +26,12 @@ function shaders(el) {
                         fragColor = v_color;
                     }
                     `,
-            };
-            break;
+        };
+        break;
 
-        case "circle":
-            res = {
-                vertexShader: `#version 300 es
+    case "circle":
+        res = {
+            vertexShader: `#version 300 es
                     precision highp float;
                     in vec2 a_position;
                     in vec4 a_color;
@@ -45,7 +45,7 @@ function shaders(el) {
                       v_color = a_color;
                     }
                     `,
-                fragmentShader: `#version 300 es
+            fragmentShader: `#version 300 es
                     precision mediump float;
                     in vec4 v_color;
                     out vec4 fragColor;
@@ -61,8 +61,8 @@ function shaders(el) {
                       fragColor = v_color * alpha;
                     }
                     `,
-            };
-            break;
+        };
+        break;
 
         // case "ellipse":
         //     res = {
@@ -109,9 +109,9 @@ function shaders(el) {
         //     };
         //     break;
 
-        case "image":
-            res = {
-                vertexShader: `#version 300 es
+    case "image":
+        res = {
+            vertexShader: `#version 300 es
                     precision highp float;
                     in vec2 a_position;
                     in vec2 a_texCoord;
@@ -123,7 +123,7 @@ function shaders(el) {
                       v_texCoord = a_texCoord;
                     }
           `,
-                fragmentShader: `#version 300 es
+            fragmentShader: `#version 300 es
                     precision mediump float;
                     uniform sampler2D u_image;
                     uniform float u_opacity;
@@ -139,13 +139,13 @@ function shaders(el) {
                       }
                     }
                     `,
-            };
-            break;
+        };
+        break;
 
-        case "polyline":
-        case "polygon":
-            res = {
-                vertexShader: `#version 300 es
+    case "polyline":
+    case "polygon":
+        res = {
+            vertexShader: `#version 300 es
                     precision highp float;
                     in vec2 a_position;
                     uniform mat3 u_transformMatrix;
@@ -154,7 +154,7 @@ function shaders(el) {
                       gl_Position = vec4(u_transformMatrix * vec3(a_position, 1), 1);
                     }
                     `,
-                fragmentShader: `#version 300 es
+            fragmentShader: `#version 300 es
                     precision mediump float;
                     uniform vec4 u_color;
                     out vec4 fragColor;
@@ -162,12 +162,12 @@ function shaders(el) {
                         fragColor = u_color;
                     }
                     `,
-            };
-            break;
+        };
+        break;
 
-        case "rect":
-            res = {
-                vertexShader: `#version 300 es
+    case "rect":
+        res = {
+            vertexShader: `#version 300 es
                     precision highp float;
                     in vec2 a_position;
                     in vec4 a_color;
@@ -179,7 +179,7 @@ function shaders(el) {
                       v_color = a_color;
                     }
                     `,
-                fragmentShader: `#version 300 es
+            fragmentShader: `#version 300 es
                     precision mediump float;
                     in vec4 v_color;
                     out vec4 fragColor;
@@ -187,12 +187,12 @@ function shaders(el) {
                       fragColor = v_color;
                     }
                     `,
-            };
-            break;
+        };
+        break;
 
-        case "line":
-            res = {
-                vertexShader: `#version 300 es
+    case "line":
+        res = {
+            vertexShader: `#version 300 es
                     precision highp float;
                     in vec2 a_position;
                     in vec4 a_color;
@@ -204,7 +204,7 @@ function shaders(el) {
                       v_color = a_color;
                     }
                     `,
-                fragmentShader: `#version 300 es
+            fragmentShader: `#version 300 es
                     precision mediump float;
                     in vec4 v_color;
                     out vec4 fragColor;
@@ -212,12 +212,12 @@ function shaders(el) {
                         fragColor = v_color;
                     }
                     `,
-            };
-            break;
+        };
+        break;
 
-        default:
-            res = {
-                vertexShader: `#version 300 es
+    default:
+        res = {
+            vertexShader: `#version 300 es
                     precision highp float;
                     in vec2 a_position;
                     in vec4 a_color;
@@ -229,7 +229,7 @@ function shaders(el) {
                       v_color = a_color;
                     }
                     `,
-                fragmentShader: `#version 300 es
+            fragmentShader: `#version 300 es
                     precision mediump float;
                     in vec4 v_color;
                     out vec4 fragColor;
@@ -237,7 +237,7 @@ function shaders(el) {
                       fragColor = v_color;
                     }
                     `,
-            };
+        };
     }
 
     return res;

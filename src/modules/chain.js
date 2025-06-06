@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+ 
 // import { queue, ease } from './'
 import queue from "./queue.js";
 import ease from "./ease.js";
