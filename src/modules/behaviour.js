@@ -341,7 +341,7 @@ ZoomClass.prototype.zoomPinch = function (trgt, event, eventsInstance) {
             this.onZoomStart(trgt, event, eventsInstance);
         } else {
             const distance_ = this.event.distance;
-            for (var i = 0; i < pointers.length; i++) {
+            for (let i = 0; i < pointers.length; i += 1) {
                 if (event.pointerId === pointers[i].pointerId) {
                     pointers[i] = event;
                     break;

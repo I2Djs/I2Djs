@@ -560,17 +560,17 @@ Path.prototype.points = function (points) {
 
     this.m(true, { x: points[0].x, y: points[0].y });
 
-    var m = 0;
-    var dx1 = 0;
-    var dy1 = 0;
+    let m = 0;
+    let dx1 = 0;
+    let dy1 = 0;
     let dx2 = 0;
     let dy2 = 0;
 
-    var preP = points[0];
+    let preP = points[0];
 
-    for (var i = 1; i < points.length; i++) {
-        var curP = points[i];
-        var nexP = points[i + 1];
+    for (let i = 1; i < points.length; i++) {
+        const curP = points[i];
+        const nexP = points[i + 1];
         dx2 = 0;
         dy2 = 0;
         if (nexP) {

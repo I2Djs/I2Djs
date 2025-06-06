@@ -3040,7 +3040,7 @@ WebglNodeExe.prototype.reIndexChildren = function (shader) {
     children = children.filter(function (d) {
         return d;
     });
-    for (var i = 0, len = children.length; i < len; i++) {
+    for (let i = 0, len = children.length; i < len; i += 1) {
         children[i].dom.pindex = i;
     }
 
